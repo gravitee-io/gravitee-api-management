@@ -24,10 +24,12 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -39,6 +41,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.Date;
@@ -58,6 +61,7 @@ public class IngestIntegrationApisUseCase {
     private final CreatePlanDomainService createPlanDomainService;
     private final IntegrationAgent integrationAgent;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
+    private final LicenseDomainService licenseDomainService;
 
     public IngestIntegrationApisUseCase(
         IntegrationCrudService integrationCrudService,
@@ -67,7 +71,8 @@ public class IngestIntegrationApisUseCase {
         CreateApiDomainService createApiDomainService,
         CreatePlanDomainService createPlanDomainService,
         IntegrationAgent integrationAgent,
-        CreateApiDocumentationDomainService createApiDocumentationDomainService
+        CreateApiDocumentationDomainService createApiDocumentationDomainService,
+        LicenseDomainService licenseDomainService
     ) {
         this.integrationCrudService = integrationCrudService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -77,6 +82,7 @@ public class IngestIntegrationApisUseCase {
         this.createPlanDomainService = createPlanDomainService;
         this.integrationAgent = integrationAgent;
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
+        this.licenseDomainService = licenseDomainService;
     }
 
     public Completable execute(Input input) {
@@ -85,12 +91,16 @@ public class IngestIntegrationApisUseCase {
         var organizationId = auditInfo.organizationId();
         var environmentId = auditInfo.environmentId();
 
-        return Single
-            .fromCallable(() ->
-                integrationCrudService
-                    .findById(integrationId)
-                    .filter(integration -> integration.getEnvironmentId().equals(environmentId))
-                    .orElseThrow(() -> new IntegrationNotFoundException(integrationId))
+        return Maybe
+            .fromOptional(licenseDomainService.getLicenseByOrganizationId(organizationId))
+            .switchIfEmpty(Maybe.error(NotAllowedDomainException.noLicenseForFederation()))
+            .flatMapSingle(license ->
+                Single.fromCallable(() ->
+                    integrationCrudService
+                        .findById(integrationId)
+                        .filter(integration -> integration.getEnvironmentId().equals(environmentId))
+                        .orElseThrow(() -> new IntegrationNotFoundException(integrationId))
+                )
             )
             .flatMapPublisher(integration -> {
                 var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());

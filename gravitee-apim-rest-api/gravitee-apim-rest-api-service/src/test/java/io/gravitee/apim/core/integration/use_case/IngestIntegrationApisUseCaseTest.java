@@ -40,6 +40,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -65,11 +66,13 @@ import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -107,6 +110,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -140,6 +144,7 @@ class IngestIntegrationApisUseCaseTest {
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
 
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
 
@@ -234,7 +239,8 @@ class IngestIntegrationApisUseCaseTest {
                 createApiDomainService,
                 createPlanDomainService,
                 integrationAgent,
-                createApiDocumentationPage
+                createApiDocumentationPage,
+                new LicenseDomainService(licenseCrudService)
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -245,6 +251,8 @@ class IngestIntegrationApisUseCaseTest {
         givenExistingUsers(
             List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
+
+        licenseCrudService.createOrganizationLicense(ORGANIZATION_ID, "license-base64");
     }
 
     @AfterEach
@@ -255,6 +263,7 @@ class IngestIntegrationApisUseCaseTest {
                 auditCrudService,
                 groupQueryService,
                 integrationCrudService,
+                licenseCrudService,
                 membershipCrudService,
                 parametersQueryService,
                 planCrudService,
@@ -669,6 +678,16 @@ class IngestIntegrationApisUseCaseTest {
             //Then
             assertThat(pageCrudService.storage()).isEmpty();
         }
+    }
+
+    @Test
+    void should_throw_when_no_license_found() {
+        licenseCrudService.reset();
+
+        useCase
+            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .test()
+            .assertError(NotAllowedDomainException.class);
     }
 
     @Test
