@@ -15,11 +15,12 @@
  */
 package io.gravitee.integration.controller.websocket.auth;
 
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.exchange.controller.websocket.auth.WebSocketControllerAuthentication;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.rest.api.service.TokenService;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.Optional;
@@ -38,6 +39,7 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
 
     private final TokenService tokenService;
     private final UserCrudService userCrudService;
+    private final LicenseDomainService licenseDomainService;
 
     @Override
     public IntegrationCommandContext authenticate(final HttpServerRequest httpServerRequest) {
@@ -49,10 +51,13 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
         if (tokenValue.isPresent()) {
             try {
                 var token = tokenService.findByToken(tokenValue.get());
+
                 return userCrudService
                     .findBaseUserById(token.getReferenceId())
-                    .map(user -> new IntegrationCommandContext(true, user.getOrganizationId()))
-                    .orElseThrow(() -> new UserNotFoundException(token.getReferenceId()));
+                    .map(BaseUserEntity::getOrganizationId)
+                    .filter(licenseDomainService::isFederationFeatureAllowed)
+                    .map(organizationId -> new IntegrationCommandContext(true, organizationId))
+                    .orElse(new IntegrationCommandContext(false));
             } catch (Exception e) {
                 log.warn("Unable to authenticate incoming websocket controller request");
             }
