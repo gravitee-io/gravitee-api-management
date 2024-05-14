@@ -1216,7 +1216,7 @@ paths:
             operationId: deleteIngestedApis
             responses:
                 "200":
-                    description: APIs deleted
+                    $ref: "#/components/responses/DeletedIngestedApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -6588,6 +6588,23 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        DeletedIngestedApisResponse:
+            description: Result of deleting ingested APIs operation
+            content:
+                application/json:
+                    schema:
+                        title: "DeletedIngestedApisResponse"
+                        properties:
+                            deleted:
+                                description: "Number of successfully deleted APIs "
+                                type: number
+                            skipped:
+                                description: "Number of skipped APIs due to some criteria (e.g. being PUBLISHED)"
+                                type: number
+                            errors:
+                                description: "Number of errors encountered during deletion process"
+                                type: number
 
         GroupsResponse:
             description: Page of Groups

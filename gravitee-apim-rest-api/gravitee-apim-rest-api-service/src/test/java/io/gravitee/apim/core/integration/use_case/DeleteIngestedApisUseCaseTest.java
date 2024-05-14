@@ -82,6 +82,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -256,10 +257,15 @@ class DeleteIngestedApisUseCaseTest {
         var input = DeleteIngestedApisUseCase.Input.builder().integrationId(INTEGRATION_ID).auditInfo(auditInfo).build();
 
         //when
-        useCase.execute(input);
+        var output = useCase.execute(input);
 
         //then
-        assertThat(apiCrudServiceInMemory.storage()).isNotNull().isEmpty();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(apiCrudServiceInMemory.storage()).isNotNull().isEmpty();
+            softly.assertThat(output.deleted()).isEqualTo(1);
+            softly.assertThat(output.skipped()).isEqualTo(0);
+            softly.assertThat(output.errors()).isEqualTo(0);
+        });
     }
 
     @Test
@@ -270,13 +276,37 @@ class DeleteIngestedApisUseCaseTest {
         var input = DeleteIngestedApisUseCase.Input.builder().integrationId(INTEGRATION_ID).auditInfo(auditInfo).build();
 
         //when
-        useCase.execute(input);
+        var output = useCase.execute(input);
 
         //then
-        assertThat(apiCrudServiceInMemory.storage())
-            .hasSize(1)
-            .extracting(Api::getApiLifecycleState)
-            .containsExactly(Api.ApiLifecycleState.PUBLISHED);
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThat(apiCrudServiceInMemory.storage())
+                .hasSize(1)
+                .extracting(Api::getApiLifecycleState)
+                .containsExactly(Api.ApiLifecycleState.PUBLISHED);
+            softly.assertThat(output.deleted()).isEqualTo(0);
+            softly.assertThat(output.skipped()).isEqualTo(1);
+            softly.assertThat(output.errors()).isEqualTo(0);
+        });
+    }
+
+    @Test
+    void should_correctly_count_errors() {
+        //given
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(null).build()));
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+        var input = DeleteIngestedApisUseCase.Input.builder().integrationId(INTEGRATION_ID).auditInfo(auditInfo).build();
+
+        //when
+        var output = useCase.execute(input);
+
+        //then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(output.deleted()).isEqualTo(0);
+            softly.assertThat(output.skipped()).isEqualTo(0);
+            softly.assertThat(output.errors()).isEqualTo(1);
+        });
     }
 
     @ParameterizedTest

@@ -37,7 +37,9 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Builder;
 
 @UseCase
@@ -87,21 +89,41 @@ public class DeleteIngestedApisUseCase {
         this.apiIndexerDomainService = apiIndexerDomainService;
     }
 
-    public void execute(Input input) {
+    public Output execute(Input input) {
+        var skippedCounter = new AtomicInteger();
+        var errorCounter = new AtomicInteger();
+        var deletedCounter = new AtomicInteger();
+
         var apisToDelete = apiQueryService
             .search(
                 ApiSearchCriteria.builder().integrationId(input.integrationId).build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
             )
-            .filter(api -> !api.getApiLifecycleState().equals(Api.ApiLifecycleState.PUBLISHED))
             .toList();
 
-        apisToDelete.forEach(api -> delete(api, input.auditInfo));
+        Flowable
+            .fromIterable(apisToDelete)
+            .subscribe(
+                api -> {
+                    if (api.getApiLifecycleState().equals(Api.ApiLifecycleState.PUBLISHED)) {
+                        skippedCounter.incrementAndGet();
+                    } else {
+                        delete(api, input.auditInfo);
+                        deletedCounter.incrementAndGet();
+                    }
+                },
+                exception -> errorCounter.incrementAndGet()
+            )
+            .dispose();
+
+        return new Output(deletedCounter.get(), skippedCounter.get(), errorCounter.get());
     }
 
     @Builder
     public record Input(String integrationId, AuditInfo auditInfo) {}
+
+    public record Output(int deleted, int skipped, int errors) {}
 
     private void delete(Api api, AuditInfo auditInfo) {
         var apiId = api.getId();
