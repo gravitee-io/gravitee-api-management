@@ -79,8 +79,8 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
       .get(this.ajsStateParams.apiId)
       .pipe(
         switchMap((api) =>
-          api.definitionVersion === 'V1'
-            ? throwError({ message: 'You cannot modify a V1 API.' })
+          api.definitionVersion === 'V1' || api.definitionContext?.origin === 'KUBERNETES'
+            ? throwError({ message: 'You cannot modify this API.' })
             : this.apiService.update(api.id, { ...api, groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue }),
         ),
         takeUntil(this.unsubscribe$),
