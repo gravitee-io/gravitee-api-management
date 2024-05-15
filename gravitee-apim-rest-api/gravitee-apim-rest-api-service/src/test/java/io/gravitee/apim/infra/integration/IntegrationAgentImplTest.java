@@ -42,6 +42,7 @@ import io.gravitee.integration.api.model.PageType;
 import io.gravitee.integration.api.model.Plan;
 import io.gravitee.integration.api.model.PlanSecurityType;
 import io.gravitee.integration.api.model.Subscription;
+import io.gravitee.integration.api.model.SubscriptionResult;
 import io.gravitee.integration.api.model.SubscriptionType;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
@@ -159,7 +160,10 @@ class IntegrationAgentImplTest {
             when(controller.sendCommand(any(), any()))
                 .thenReturn(
                     Single.just(
-                        new SubscribeReply("command-id", new SubscribeReplyPayload(Subscription.builder().apiKey("my-api-key").build()))
+                        new SubscribeReply(
+                            "command-id",
+                            new SubscribeReplyPayload(SubscriptionResult.builder().apiKey("my-api-key").build())
+                        )
                     )
                 );
         }
