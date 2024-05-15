@@ -51,7 +51,6 @@ export interface UpdateIntegrationPayload {
 }
 
 export interface IntegrationProvider {
-  name: string;
   icon: string;
   value: string;
 }

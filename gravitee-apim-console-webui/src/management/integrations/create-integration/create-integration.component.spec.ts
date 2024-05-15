@@ -80,8 +80,8 @@ describe('CreateIntegrationComponent', () => {
     it('should set solace value', async (): Promise<void> => {
       fixture.componentInstance.integrationProviders = {
         active: [
-          { name: 'AWS API Gateway', icon: 'aws-api-gateway', value: 'aws-api-gateway' },
-          { name: 'Solace', icon: 'solace', value: 'solace' },
+          { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
+          { icon: 'solace', value: 'solace' },
         ],
       };
 
@@ -95,7 +95,7 @@ describe('CreateIntegrationComponent', () => {
 
     it('should set correct value', async (): Promise<void> => {
       fixture.componentInstance.integrationProviders = {
-        active: [{ name: 'AWS', icon: 'aws.svg', value: 'test_my_value' }],
+        active: [{ icon: 'aws.svg', value: 'test_my_value' }],
       };
 
       const radioButtonsGroup: GioFormSelectionInlineHarness = await componentHarness.getRadioButtonsGroup();
@@ -108,14 +108,14 @@ describe('CreateIntegrationComponent', () => {
     it('should have correct numbers of radio buttons', async (): Promise<void> => {
       fixture.componentInstance.integrationProviders = {
         active: [
-          { name: 'AWS', icon: 'aws.svg', value: 'aws-api-gateway' },
-          { name: 'Solace', icon: 'solace.svg', value: 'solace' },
-          { name: 'Apigee', icon: 'apigee.svg', value: 'apigee' },
+          { icon: 'aws.svg', value: 'aws-api-gateway' },
+          { icon: 'solace.svg', value: 'solace' },
+          { icon: 'apigee.svg', value: 'apigee' },
         ],
         comingSoon: [
-          { name: 'Confluent', icon: 'confluent.svg', value: 'confluent' },
-          { name: 'Azure', icon: 'azure.svg', value: 'azure' },
-          { name: 'Kong', icon: 'kong.svg', value: 'kong' },
+          { icon: 'confluent.svg', value: 'confluent' },
+          { icon: 'azure.svg', value: 'azure' },
+          { icon: 'kong.svg', value: 'kong' },
         ],
       };
       const radioCards: GioFormSelectionInlineCardHarness[] = await componentHarness.getRadioCards();

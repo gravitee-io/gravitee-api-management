@@ -25,6 +25,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatTableModule } from '@angular/material/table';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
+import { CdkAccordion, CdkAccordionItem } from '@angular/cdk/accordion';
+import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import {
   GioBannerModule,
   GioBreadcrumbModule,
@@ -34,9 +37,6 @@ import {
   GioSubmenuModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
-import { CdkAccordion, CdkAccordionItem } from '@angular/cdk/accordion';
-import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
-import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 
 import { IntegrationsComponent } from './integrations.component';
 import { CreateIntegrationComponent } from './create-integration/create-integration.component';
@@ -45,6 +45,7 @@ import { IntegrationOverviewComponent } from './integration-overview/integration
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
+import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -98,6 +99,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioSaveBarModule,
     CdkAccordion,
     CdkAccordionItem,
+    MapProviderNamePipe,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })

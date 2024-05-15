@@ -79,7 +79,7 @@
 
         <ng-container matColumnDef="provider">
           <th mat-header-cell *matHeaderCellDef id="provider">Provider</th>
-          <td mat-cell *matCellDef="let integration">{{ integration.provider }}</td>
+          <td mat-cell *matCellDef="let integration">{{ integration.provider | mapProviderName }}</td>
         </ng-container>
 
         <ng-container matColumnDef="agent">
