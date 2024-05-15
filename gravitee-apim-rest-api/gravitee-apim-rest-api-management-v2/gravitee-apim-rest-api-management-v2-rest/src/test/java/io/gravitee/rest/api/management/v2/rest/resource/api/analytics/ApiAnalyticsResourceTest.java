@@ -25,11 +25,13 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -54,6 +56,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     WebTarget requestsCountTarget;
     WebTarget averageMessagesPerRequestTarget;
+    WebTarget averageConnectionDurationTarget;
 
     @Inject
     FakeAnalyticsQueryService fakeAnalyticsQueryService;
@@ -77,7 +80,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        fakeAnalyticsQueryService.requestsCount = null;
+        fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
     }
 
@@ -176,6 +179,59 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsAverageMessagesPerRequestResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getAverage()).isEqualTo(55.0);
+                    assertThat(r.getAveragesByEntrypoint()).containsAllEntriesOf(Map.of("http-get", 10.0, "sse", 100.0));
+                });
+        }
+    }
+
+    @Nested
+    class AverageConnectionDurationAnalytics {
+
+        @BeforeEach
+        public void prepareTarget() {
+            averageConnectionDurationTarget = rootTarget().path("average-connection-duration");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = averageConnectionDurationTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_average_messages_per_request() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.averageConnectionDuration =
+                AverageConnectionDuration
+                    .builder()
+                    .globalAverage(55.0)
+                    .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
+                    .build();
+
+            final Response response = averageConnectionDurationTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsAverageConnectionDurationResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getAverage()).isEqualTo(55.0);
                     assertThat(r.getAveragesByEntrypoint()).containsAllEntriesOf(Map.of("http-get", 10.0, "sse", 100.0));

@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -45,6 +47,9 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchAverageMessagesPerRequestAnalyticsUseCase searchAverageMessagesPerRequestAnalyticsUseCase;
 
+    @Inject
+    private SearchAverageConnectionDurationUseCase searchAverageConnectionDurationUseCase;
+
     @Path("/requests-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -71,5 +76,19 @@ public class ApiAnalyticsResource extends AbstractResource {
             .averageMessagesPerRequest()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No average message per request found for api: " + apiId));
+    }
+
+    @Path("/average-connection-duration")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration() {
+        var request = new SearchAverageConnectionDurationUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+
+        return searchAverageConnectionDurationUseCase
+            .execute(request)
+            .averageConnectionDuration()
+            .map(ApiAnalyticsMapper.INSTANCE::map)
+            .orElseThrow(() -> new NotFoundException("No connection duration found for api: " + apiId));
     }
 }

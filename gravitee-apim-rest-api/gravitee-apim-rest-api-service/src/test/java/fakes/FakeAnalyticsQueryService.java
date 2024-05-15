@@ -45,4 +45,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public Optional<AverageConnectionDuration> searchAverageConnectionDuration(String apiId) {
         return Optional.ofNullable(averageConnectionDuration);
     }
+
+    public void reset() {
+        requestsCount = null;
+        averageMessagesPerRequest = null;
+        averageConnectionDuration = null;
+    }
 }

@@ -165,6 +165,7 @@ public class Api implements Serializable {
         return failover != null && failover.isEnabled();
     }
 
+    @JsonIgnore
     public boolean isTcpProxy() {
         return ApiType.PROXY.equals(type) && listeners.stream().anyMatch(TcpListener.class::isInstance);
     }
