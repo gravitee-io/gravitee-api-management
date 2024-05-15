@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import org.mapstruct.Mapper;
@@ -36,4 +38,8 @@ public interface ApiAnalyticsMapper {
     @Mapping(target = "average", source = "globalAverage")
     @Mapping(target = "averagesByEntrypoint", source = "averagesByEntrypoint")
     ApiAnalyticsAverageMessagesPerRequestResponse map(AverageMessagesPerRequest averageMessagesPerRequest);
+
+    @Mapping(target = "average", source = "globalAverage")
+    @Mapping(target = "averagesByEntrypoint", source = "averagesByEntrypoint")
+    ApiAnalyticsAverageConnectionDurationResponse map(AverageConnectionDuration averageConnectionDuration);
 }

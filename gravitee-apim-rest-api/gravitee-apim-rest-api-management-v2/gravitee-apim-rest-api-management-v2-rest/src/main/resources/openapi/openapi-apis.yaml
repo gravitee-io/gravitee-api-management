@@ -1793,6 +1793,24 @@ paths:
             $ref: "#/components/responses/ApiAnalyticsAverageMessagesPerRequestResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/average-connection-duration:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - Analytics - Average connection duration
+        summary: Get API Analytics average connection duration
+        description: |-
+          Get API analytics average connection duration. Duration is only computed for ended requests.
+
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getAverageConnectionDuration
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+          default:
+            $ref: "#/components/responses/Error"
     # Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -6795,6 +6813,24 @@ components:
                     type: object
                     additionalProperties:
                       description: A map of rounded average messages request by entrypoint
+                      type: number
+        ApiAnalyticsAverageConnectionDurationResponse:
+          description: Analytics for average connection duration by entrypoint
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsAverageConnectionDurationResponse"
+                description: API Analytics for average connection duration by entrypoint.
+                properties:
+                  average:
+                    type: number
+                    format: double
+                    description: The rounded global average of connection duration
+                    example: 1000
+                  averagesByEntrypoint:
+                    type: object
+                    additionalProperties:
+                      description: A map of rounded average connection duration by entrypoint
                       type: number
 
         # Analytics - Logs
