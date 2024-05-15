@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.definition.model.DefinitionVersion.V1;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
+import static io.gravitee.definition.model.DefinitionVersion.V4;
 import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -333,6 +334,7 @@ public class PlanService_UpdateTest {
     @Test
     public void shouldUpdate_withNotPublished_GCUPage_StagingPlan() throws TechnicalException {
         final String PAGE_ID = "PAGE_ID_TEST";
+        when(plan.getDefinitionVersion()).thenReturn(V4);
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
