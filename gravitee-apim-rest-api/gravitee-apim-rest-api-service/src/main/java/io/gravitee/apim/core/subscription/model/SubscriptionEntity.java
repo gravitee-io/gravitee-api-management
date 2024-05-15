@@ -126,6 +126,16 @@ public class SubscriptionEntity {
     }
 
     public SubscriptionEntity acceptBy(String userId, ZonedDateTime startingAt, ZonedDateTime endingAt, String reasonMessage) {
+        return acceptBy(userId, startingAt, endingAt, reasonMessage, null);
+    }
+
+    public SubscriptionEntity acceptBy(
+        String userId,
+        ZonedDateTime startingAt,
+        ZonedDateTime endingAt,
+        String reasonMessage,
+        Map<String, String> metadata
+    ) {
         return switch (this.status) {
             case PENDING -> {
                 final ZonedDateTime now = TimeProvider.now();
@@ -137,6 +147,7 @@ public class SubscriptionEntity {
                     .processedAt(now)
                     .status(Status.ACCEPTED)
                     .reasonMessage(reasonMessage)
+                    .metadata(metadata)
                     .build();
             }
             case ACCEPTED -> this;

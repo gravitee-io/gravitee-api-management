@@ -61,7 +61,8 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
             new IntegrationSubscription(
                 integrationId,
                 IntegrationSubscription.Type.API_KEY,
-                "api-key-" + subscriptionId + "-" + applicationName
+                "api-key-" + subscriptionId + "-" + applicationName,
+                Map.of("key", "value")
             )
         );
     }

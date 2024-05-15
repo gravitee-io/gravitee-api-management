@@ -162,7 +162,9 @@ class IntegrationAgentImplTest {
                     Single.just(
                         new SubscribeReply(
                             "command-id",
-                            new SubscribeReplyPayload(SubscriptionResult.builder().apiKey("my-api-key").build())
+                            new SubscribeReplyPayload(
+                                SubscriptionResult.builder().apiKey("my-api-key").metadata(Map.of("key", "value")).build()
+                            )
                         )
                     )
                 );
@@ -193,8 +195,7 @@ class IntegrationAgentImplTest {
                             "subscription-id",
                             "application-name",
                             SubscriptionType.API_KEY,
-                            Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id"),
-                            null
+                            Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id")
                         )
                     )
                 );
@@ -216,7 +217,9 @@ class IntegrationAgentImplTest {
 
             assertThat(result)
                 .hasSize(1)
-                .containsExactly(new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key"));
+                .containsExactly(
+                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
+                );
         }
 
         @Test

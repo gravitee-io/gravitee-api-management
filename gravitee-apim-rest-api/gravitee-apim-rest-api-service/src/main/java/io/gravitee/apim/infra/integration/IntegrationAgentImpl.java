@@ -99,7 +99,8 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                     new IntegrationSubscription(
                         integrationId,
                         IntegrationSubscription.Type.API_KEY,
-                        reply.getPayload().subscription().apiKey()
+                        reply.getPayload().subscription().apiKey(),
+                        reply.getPayload().subscription().metadata()
                     )
                 );
             });
