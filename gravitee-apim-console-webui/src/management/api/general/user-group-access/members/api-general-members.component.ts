@@ -54,6 +54,11 @@ export interface GroupData {
 })
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.ts
+=======
+  private apiId: string;
+  public isKubernetesOrigin: boolean;
+>>>>>>> 7930f53241 (fix: make members and groups read-only):gravitee-apim-console-webui/src/management/api/user-group-access/members/api-general-members.component.ts
 
   form: FormGroup;
 
@@ -193,6 +198,61 @@ export class ApiGeneralMembersComponent implements OnInit {
       });
   }
 
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.ts
+=======
+  public updateGroups(): void {
+    this.matDialog
+      .open<ApiGeneralGroupsComponent, ApiGroupsDialogData, ApiGroupsDialogResult>(ApiGeneralGroupsComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'addGroupsDialog',
+        data: {
+          api: this.api,
+          groups: this.groups,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((apiDialogResult) => {
+          return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
+        }),
+        switchMap(([apiDialogResult, api]) => {
+          return api.definitionVersion === 'V1' || api.definitionVersion === 'FEDERATED' || this.isKubernetesOrigin
+            ? throwError({ message: `You cannot modify a ${api.definitionVersion} API.` })
+            : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  public transferOwnership(): void {
+    this.matDialog
+      .open<ApiGeneralTransferOwnershipComponent, ApiOwnershipDialogData, ApiOwnershipDialogResult>(ApiGeneralTransferOwnershipComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'transferOwnershipDialog',
+        data: {
+          api: this.api,
+          groups: this.groups,
+          roles: this.roles,
+          members: this.members,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((apiDialogResult) => {
+          return this.apiService.transferOwnership(
+            this.apiId,
+            apiDialogResult.isUserMode ? apiDialogResult.transferOwnershipToUser : apiDialogResult.transferOwnershipToGroup,
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+>>>>>>> 7930f53241 (fix: make members and groups read-only):gravitee-apim-console-webui/src/management/api/user-group-access/members/api-general-members.component.ts
   public onReset() {
     this.form = undefined;
     this.ngOnInit();
@@ -214,10 +274,17 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initForm(api: Api) {
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general/user-group-access/members/api-general-members.component.ts
     const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || isKubernetesOrigin;
     this.form = new FormGroup({
       isNotificationsEnabled: new FormControl({
+=======
+    this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || this.isKubernetesOrigin;
+    this.form = new UntypedFormGroup({
+      isNotificationsEnabled: new UntypedFormControl({
+>>>>>>> 7930f53241 (fix: make members and groups read-only):gravitee-apim-console-webui/src/management/api/user-group-access/members/api-general-members.component.ts
         value: !api.disableMembershipNotifications,
         disabled: this.isReadOnly,
       }),
