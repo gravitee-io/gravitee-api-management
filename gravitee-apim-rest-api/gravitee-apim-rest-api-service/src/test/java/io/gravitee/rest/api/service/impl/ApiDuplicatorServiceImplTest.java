@@ -185,23 +185,6 @@ public class ApiDuplicatorServiceImplTest {
     }
 
     @Test
-    public void shouldGetRolesToImport_fromRoles() {
-        RoleEntity userRoleEntity = new RoleEntity();
-        userRoleEntity.setId(UUID.randomUUID().toString());
-
-        ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
-        memberToImport.setSource("user-source");
-        memberToImport.setSourceId("user-sourceId");
-        memberToImport.setRoles(Collections.singletonList(userRoleEntity.getId()));
-
-        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
-
-        assertNotNull(rolesToImport);
-        assertEquals(1, rolesToImport.size());
-        assertEquals(userRoleEntity.getId(), rolesToImport.get(0));
-    }
-
-    @Test
     public void shouldGetRolesToImport_fromRole() {
         RoleEntity userRoleEntity = new RoleEntity();
         userRoleEntity.setId("user-role");
@@ -211,9 +194,6 @@ public class ApiDuplicatorServiceImplTest {
         memberToImport.setSourceId("user-sourceId");
         memberToImport.setRoles(List.of(userRoleEntity.getId()));
 
-        when(roleService.findByScopeAndName(RoleScope.API, "user-role", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(userRoleEntity));
-
         final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
 
         assertNotNull(rolesToImport);
@@ -222,16 +202,14 @@ public class ApiDuplicatorServiceImplTest {
     }
 
     @Test
-    public void shouldGetRolesToImport_fromRolesAndRole() {
+    public void shouldGetRolesToImport_fromRoles() {
         RoleEntity userRoleEntity1 = new RoleEntity();
-        userRoleEntity1.setId("user-role-1-id");
+        userRoleEntity1.setId(UUID.randomUUID().toString());
         userRoleEntity1.setName("user-role-1-name");
+
         RoleEntity userRoleEntity2 = new RoleEntity();
         userRoleEntity2.setId(UUID.randomUUID().toString());
         userRoleEntity2.setName("user-role-2-name");
-
-        when(roleService.findByScopeAndName(RoleScope.API, "user-role-1-name", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(userRoleEntity1));
 
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
@@ -242,7 +220,36 @@ public class ApiDuplicatorServiceImplTest {
 
         assertNotNull(rolesToImport);
         assertEquals(3, rolesToImport.size());
-        assertTrue(rolesToImport.contains("user-role-1-id"));
+        assertTrue(rolesToImport.contains("user-role-1-name"));
+        assertTrue(rolesToImport.contains(userRoleEntity2.getId()));
+        // The check on role existence will occur when creating the membership. So this method returns every roleId available in the definition.
+        assertTrue(rolesToImport.contains("unexisting_role"));
+    }
+
+    @Test
+    public void shouldGetRolesToImport_fromRolesAndRole() {
+        RoleEntity userRoleEntity1 = new RoleEntity();
+        userRoleEntity1.setId(UUID.randomUUID().toString());
+        userRoleEntity1.setName("user-role-1-name");
+
+        RoleEntity userRoleEntity2 = new RoleEntity();
+        userRoleEntity2.setId(UUID.randomUUID().toString());
+        userRoleEntity2.setName("user-role-2-name");
+
+        when(roleService.findByScopeAndName(RoleScope.API, "user-role-1-name", GraviteeContext.getExecutionContext().getOrganizationId()))
+            .thenReturn(Optional.of(userRoleEntity1));
+
+        ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
+        memberToImport.setSource("user-source");
+        memberToImport.setSourceId("user-sourceId");
+        memberToImport.setRoles(List.of(userRoleEntity2.getId(), "unexisting_role"));
+        memberToImport.setRole(userRoleEntity1.getName());
+
+        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
+
+        assertNotNull(rolesToImport);
+        assertEquals(3, rolesToImport.size());
+        assertTrue(rolesToImport.contains(userRoleEntity1.getId()));
         assertTrue(rolesToImport.contains(userRoleEntity2.getId()));
         // The check on role existence will occur when creating the membership. So this method returns every roleId available in the definition.
         assertTrue(rolesToImport.contains("unexisting_role"));
