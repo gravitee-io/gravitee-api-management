@@ -294,6 +294,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             Plan newPlan = new Plan();
             //copy immutable values
+            newPlan.setDefinitionVersion(oldPlan.getDefinitionVersion());
             newPlan.setId(oldPlan.getId());
             newPlan.setSecurity(oldPlan.getSecurity());
             newPlan.setType(oldPlan.getType());
