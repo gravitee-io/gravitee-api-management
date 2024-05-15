@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -162,6 +163,10 @@ public class Api implements Serializable {
 
     public boolean failoverEnabled() {
         return failover != null && failover.isEnabled();
+    }
+
+    public boolean isTcpProxy() {
+        return ApiType.PROXY.equals(type) && listeners.stream().anyMatch(TcpListener.class::isInstance);
     }
 
     public static class ApiBuilder {
