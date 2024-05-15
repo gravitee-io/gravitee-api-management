@@ -18,12 +18,14 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.theme.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ThemeTypeNotSupportedException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -54,7 +56,10 @@ public class ThemesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE) })
     public ThemeEntity createTheme(@Valid @NotNull final NewThemeEntity theme) {
-        return themeService.create(GraviteeContext.getExecutionContext(), theme);
+        if (!ThemeType.PORTAL.equals(theme.getType())) {
+            throw new ThemeTypeNotSupportedException(null, theme.getType());
+        }
+        return themeService.createPortalTheme(GraviteeContext.getExecutionContext(), theme);
     }
 
     @Path("/current")
@@ -62,7 +67,7 @@ public class ThemesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
     public ThemeEntity getCurrentTheme() {
-        return themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        return themeService.findOrCreateDefaultPortalTheme(GraviteeContext.getExecutionContext());
     }
 
     @Path("{themeId}")

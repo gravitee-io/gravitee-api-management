@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
+import io.gravitee.rest.api.model.theme.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
@@ -44,7 +45,7 @@ public class ThemeResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalTheme() {
-        ThemeEntity theme = themeService.findEnabled(GraviteeContext.getExecutionContext());
+        ThemeEntity theme = themeService.findEnabledPortalTheme(GraviteeContext.getExecutionContext());
         String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
         return Response.ok(themeMapper.convert(theme, themeURL)).build();
     }
