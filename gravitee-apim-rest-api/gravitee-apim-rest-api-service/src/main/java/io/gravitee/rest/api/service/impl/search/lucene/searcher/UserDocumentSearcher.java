@@ -47,7 +47,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public SearchResult search(ExecutionContext executionContext, Query query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(
-            new String[] { "displayname", "displayname_reverted", "email", "reference" },
+            new String[] { "displayname", "displayname_reverted", "email", "reference", "custom", "custom_split" },
             analyzer
         );
         parser.setFuzzyMinSim(0.6f);
@@ -57,23 +57,25 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
         BooleanQuery.Builder userFieldsQuery = new BooleanQuery.Builder();
 
         try {
-            parser.parse(QueryParserBase.escape(query.getQuery()));
             final String normalizedQuery = StringUtils.stripAccents(query.getQuery().toLowerCase());
 
             if (isUserIdFormat(query)) {
                 userFieldsQuery.add(new WildcardQuery(new Term("id", normalizedQuery)), BooleanClause.Occur.MUST);
             } else {
-                userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
-                userFieldsQuery.add(
-                    new WildcardQuery(new Term("displayname_reverted", '*' + normalizedQuery + '*')),
-                    BooleanClause.Occur.SHOULD
-                );
-
-                userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
-                userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+                String[] tokens = normalizedQuery.split(" ");
+                for (String token : tokens) {
+                    userFieldsQuery
+                        .add(new WildcardQuery(new Term("displayname", '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term("displayname_reverted", '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term("email", '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term("reference", '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term("custom", '*' + token + '*')), BooleanClause.Occur.SHOULD)
+                        .add(new WildcardQuery(new Term("custom_split", token)), BooleanClause.Occur.SHOULD);
+                }
             }
 
             userQuery.add(userFieldsQuery.build(), BooleanClause.Occur.MUST);
+            userQuery.add(parser.parse(QueryParserBase.escape(query.getQuery())), BooleanClause.Occur.SHOULD);
             userQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
 
             BooleanQuery.Builder orgCriteria = new BooleanQuery.Builder();
