@@ -44,10 +44,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @UseCase
 @Slf4j
+@RequiredArgsConstructor
 public class IngestIntegrationApisUseCase {
 
     private final IntegrationCrudService integrationCrudService;
@@ -58,26 +61,6 @@ public class IngestIntegrationApisUseCase {
     private final CreatePlanDomainService createPlanDomainService;
     private final IntegrationAgent integrationAgent;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
-
-    public IngestIntegrationApisUseCase(
-        IntegrationCrudService integrationCrudService,
-        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
-        ValidateFederatedApiDomainService validateFederatedApi,
-        ApiCrudService apiCrudService,
-        CreateApiDomainService createApiDomainService,
-        CreatePlanDomainService createPlanDomainService,
-        IntegrationAgent integrationAgent,
-        CreateApiDocumentationDomainService createApiDocumentationDomainService
-    ) {
-        this.integrationCrudService = integrationCrudService;
-        this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
-        this.validateFederatedApi = validateFederatedApi;
-        this.apiCrudService = apiCrudService;
-        this.createApiDomainService = createApiDomainService;
-        this.createPlanDomainService = createPlanDomainService;
-        this.integrationAgent = integrationAgent;
-        this.createApiDocumentationDomainService = createApiDocumentationDomainService;
-    }
 
     public Completable execute(Input input) {
         var integrationId = input.integrationId;
@@ -122,8 +105,16 @@ public class IngestIntegrationApisUseCase {
         integrationApi
             .pages()
             .stream()
-            .filter(page -> page.pageType() == IntegrationApi.PageType.SWAGGER)
-            .map(page -> buildSwaggerPage(integrationApi.name(), referenceId, page.content()))
+            .flatMap(page ->
+                switch (page.pageType()) {
+                    case SWAGGER -> Stream.of(buildSwaggerPage(integrationApi.name(), referenceId, page.content()));
+                    case ASYNCAPI -> Stream.of(buildAsyncApiPage(integrationApi.name(), referenceId, page.content()));
+                    case ASCIIDOC, MARKDOWN, MARKDOWN_TEMPLATE -> {
+                        log.error("Impossible to import {} documentation for {}", page.pageType(), integrationApi.name());
+                        yield Stream.empty();
+                    }
+                }
+            )
             .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
     }
 
@@ -141,6 +132,24 @@ public class IngestIntegrationApisUseCase {
             .visibility(Page.Visibility.PRIVATE)
             .homepage(true)
             .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+    }
+
+    private Page buildAsyncApiPage(String name, String referenceId, String content) {
+        var now = Date.from(TimeProvider.instantNow());
+        return Page
+            .builder()
+            .id(UuidString.generateRandom())
+            .name(name.concat(".json"))
+            .content(content)
+            .type(Page.Type.valueOf(IntegrationApi.PageType.ASYNCAPI.name()))
+            .referenceId(referenceId)
+            .referenceType(Page.ReferenceType.API)
+            .published(true)
+            .visibility(Page.Visibility.PRIVATE)
+            .homepage(true)
             .createdAt(now)
             .updatedAt(now)
             .build();
