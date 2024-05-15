@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -99,6 +100,8 @@ public class SearchIndexInitializer implements Initializer {
     private final PrimaryOwnerService primaryOwnerService;
     private final ApiIndexerDomainService apiIndexerDomainService;
 
+    private final UserMetadataService userMetadataService;
+
     @Autowired
     public SearchIndexInitializer(
         @Lazy ApiRepository apiRepository,
@@ -110,7 +113,11 @@ public class SearchIndexInitializer implements Initializer {
         ApiConverter apiConverter,
         UserConverter userConverter,
         final PrimaryOwnerService primaryOwnerService,
+<<<<<<< HEAD
         ApiIndexerDomainService apiIndexerDomainService
+=======
+        UserMetadataService userMetadataService
+>>>>>>> df369b2ffe (fix(mapi): add lucene index on user custom fields)
     ) {
         this.apiRepository = apiRepository;
         this.genericApiMapper = genericApiMapper;
@@ -121,7 +128,11 @@ public class SearchIndexInitializer implements Initializer {
         this.apiConverter = apiConverter;
         this.userConverter = userConverter;
         this.primaryOwnerService = primaryOwnerService;
+<<<<<<< HEAD
         this.apiIndexerDomainService = apiIndexerDomainService;
+=======
+        this.userMetadataService = userMetadataService;
+>>>>>>> df369b2ffe (fix(mapi): add lucene index on user custom fields)
     }
 
     @Override
@@ -273,7 +284,12 @@ public class SearchIndexInitializer implements Initializer {
         return CompletableFuture.runAsync(
             () -> {
                 ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
-                searchEngineService.index(executionContext, userConverter.toUserEntity(user), true, false);
+                searchEngineService.index(
+                    executionContext,
+                    userConverter.toUserEntity(user, userMetadataService.findAllByUserId(user.getId())),
+                    true,
+                    false
+                );
             },
             executorService
         );
