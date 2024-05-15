@@ -281,7 +281,8 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initForm(api: Api) {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1';
+    const isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || isKubernetesOrigin;
     this.form = new UntypedFormGroup({
       isNotificationsEnabled: new UntypedFormControl({
         value: !api.disableMembershipNotifications,
