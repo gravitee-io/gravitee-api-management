@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.PictureEntity;
+import io.gravitee.rest.api.model.theme.GenericThemeEntity;
+import io.gravitee.rest.api.model.theme.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.model.theme.portal.UpdateThemeEntity;
@@ -27,17 +29,19 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ThemeService {
-    Set<ThemeEntity> findAll(final ExecutionContext executionContext);
-    ThemeEntity findById(final ExecutionContext executionContext, String themeId);
-    ThemeEntity create(final ExecutionContext executionContext, NewThemeEntity theme);
-    ThemeEntity update(final ExecutionContext executionContext, UpdateThemeEntity theme);
+    Set<GenericThemeEntity> findAllByType(final ExecutionContext executionContext, ThemeType type);
+    GenericThemeEntity findById(final ExecutionContext executionContext, String themeId);
     void delete(final ExecutionContext executionContext, String themeId);
-    ThemeEntity findEnabled(final ExecutionContext executionContext);
-    ThemeEntity findOrCreateDefault(ExecutionContext executionContext);
-    ThemeEntity resetToDefaultTheme(final ExecutionContext executionContext, String themeId);
+    GenericThemeEntity resetToDefaultTheme(final ExecutionContext executionContext, String themeId);
     PictureEntity getLogo(final ExecutionContext executionContext, String themeId);
     PictureEntity getOptionalLogo(final ExecutionContext executionContext, String themeId);
     PictureEntity getBackgroundImage(final ExecutionContext executionContext, String themeId);
-    void updateDefaultTheme(final ExecutionContext executionContext);
     PictureEntity getFavicon(final ExecutionContext executionContext, String themeId);
+
+    // PORTAL THEME
+    ThemeEntity findOrCreateDefaultPortalTheme(ExecutionContext executionContext);
+    ThemeEntity findEnabledPortalTheme(final ExecutionContext executionContext);
+    void updateDefaultPortalTheme(final ExecutionContext executionContext);
+    ThemeEntity createPortalTheme(final ExecutionContext executionContext, NewThemeEntity theme);
+    ThemeEntity updatePortalTheme(final ExecutionContext executionContext, UpdateThemeEntity theme);
 }

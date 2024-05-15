@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
+import io.gravitee.rest.api.model.theme.ThemeType;
 import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class DefaultThemeInitializer extends EnvironmentInitializer {
 
     @Override
     public void initializeEnvironment(ExecutionContext executionContext) {
-        themeService.updateDefaultTheme(executionContext);
+        themeService.updateDefaultPortalTheme(executionContext);
     }
 
     @Override

@@ -31,9 +31,11 @@ import com.google.common.collect.ImmutableMap;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
+import io.gravitee.rest.api.model.theme.GenericThemeEntity;
 import io.gravitee.rest.api.model.theme.portal.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.portal.ThemeCssDefinition;
 import io.gravitee.rest.api.model.theme.portal.ThemeCssType;
@@ -99,6 +101,7 @@ public class ThemeServiceTest {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(THEME_ID);
         when(theme.getName()).thenReturn("NAME");
+        when(theme.getType()).thenReturn(ThemeType.PORTAL);
         when(theme.getDefinition()).thenReturn(definition);
         when(theme.getReferenceId()).thenReturn("DEFAULT");
         when(theme.getCreatedAt()).thenReturn(new Date(1));
@@ -106,7 +109,7 @@ public class ThemeServiceTest {
         when(theme.getFavicon()).thenReturn("favicon.png");
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
-        final ThemeEntity themeEntity = themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
+        final ThemeEntity themeEntity = (ThemeEntity) themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
         assertEquals(THEME_ID, themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
         assertEquals(definition, definitionMapper.writeValueAsString(themeEntity.getDefinition()));
@@ -132,7 +135,7 @@ public class ThemeServiceTest {
         when(theme.getReferenceId()).thenReturn("NOT-DEFAULT");
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
-        final ThemeEntity themeEntity = themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
+        final ThemeEntity themeEntity = (ThemeEntity) themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID);
         assertEquals(THEME_ID, themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
         assertEquals(definition, definitionMapper.writeValueAsString(themeEntity.getDefinition()));
@@ -147,14 +150,24 @@ public class ThemeServiceTest {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(THEME_ID);
         when(theme.getName()).thenReturn("NAME");
+        when(theme.getType()).thenReturn(ThemeType.PORTAL);
         when(theme.getDefinition()).thenReturn(definition);
         when(theme.getCreatedAt()).thenReturn(new Date(1));
         when(theme.getUpdatedAt()).thenReturn(new Date(2));
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(singleton(theme));
 
-        final Set<ThemeEntity> themes = themeService.findAll(GraviteeContext.getExecutionContext());
-        final ThemeEntity themeEntity = themes.iterator().next();
+        final Set<GenericThemeEntity> themes = themeService.findAllByType(
+            GraviteeContext.getExecutionContext(),
+            io.gravitee.rest.api.model.theme.ThemeType.PORTAL
+        );
+        final ThemeEntity themeEntity = (ThemeEntity) themes.iterator().next();
         assertEquals(THEME_ID, themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
         assertTrue(definitionMapper.isSame(definition, definitionMapper.writeValueAsString(themeEntity.getDefinition())));
@@ -172,18 +185,30 @@ public class ThemeServiceTest {
         when(theme.getDefinition()).thenReturn(definition);
         when(theme.getCreatedAt()).thenReturn(new Date(1));
         when(theme.getUpdatedAt()).thenReturn(new Date(2));
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(singleton(theme));
 
-        assertNotNull(themeService.findEnabled(GraviteeContext.getExecutionContext()));
+        assertNotNull(themeService.findEnabledPortalTheme(GraviteeContext.getExecutionContext()));
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldFindEnabledThrowTechnicalManagementExceptionOnRepositoryException() throws TechnicalException {
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenThrow(TechnicalException.class);
 
-        themeService.findEnabled(GraviteeContext.getExecutionContext());
+        themeService.findEnabledPortalTheme(GraviteeContext.getExecutionContext());
     }
 
     @Test
@@ -194,18 +219,26 @@ public class ThemeServiceTest {
         theme1.setId("theme-1");
         theme1.setEnabled(false);
         theme1.setDefinition("{}");
+        theme1.setType(ThemeType.PORTAL);
         databaseThemes.add(theme1);
 
         Theme theme2 = new Theme();
         theme2.setId("theme-2");
+        theme2.setType(ThemeType.PORTAL);
         theme2.setEnabled(true);
         theme2.setDefinition("{}");
         databaseThemes.add(theme2);
 
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(databaseThemes);
 
-        ThemeEntity resultTheme = themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        ThemeEntity resultTheme = themeService.findOrCreateDefaultPortalTheme(GraviteeContext.getExecutionContext());
         assertNotNull(resultTheme);
         assertEquals("theme-2", resultTheme.getId());
 
@@ -218,14 +251,21 @@ public class ThemeServiceTest {
 
         Theme theme1 = new Theme();
         theme1.setId("theme-1");
+        theme1.setType(ThemeType.PORTAL);
         theme1.setEnabled(false);
         theme1.setDefinition("{}");
         databaseThemes.add(theme1);
 
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(databaseThemes);
 
-        ThemeEntity resultTheme = themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        ThemeEntity resultTheme = themeService.findOrCreateDefaultPortalTheme(GraviteeContext.getExecutionContext());
         assertNotNull(resultTheme);
         assertEquals("theme-1", resultTheme.getId());
 
@@ -234,11 +274,17 @@ public class ThemeServiceTest {
 
     @Test
     public void shouldFindAndCreateDefaultTheme() throws TechnicalException {
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(new HashSet<>());
         when(themeRepository.create(any())).thenAnswer(i -> i.getArgument(0));
 
-        ThemeEntity resultTheme = themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        ThemeEntity resultTheme = themeService.findOrCreateDefaultPortalTheme(GraviteeContext.getExecutionContext());
         assertNotNull(resultTheme);
         assertEquals("Default theme", resultTheme.getName());
 
@@ -247,18 +293,30 @@ public class ThemeServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldFindOrCreateDefaultThrowTechnicalManagementExceptionOnRepositoryException() throws TechnicalException {
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenThrow(TechnicalException.class);
 
-        themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        themeService.findOrCreateDefaultPortalTheme(GraviteeContext.getExecutionContext());
     }
 
     @Test
     public void shouldGetDefaultIfNoThemeEnabled() throws TechnicalException {
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(new HashSet<>());
 
-        assertNotNull(themeService.findEnabled(GraviteeContext.getExecutionContext()));
+        assertNotNull(themeService.findEnabledPortalTheme(GraviteeContext.getExecutionContext()));
     }
 
     @Test
@@ -274,12 +332,13 @@ public class ThemeServiceTest {
         final Theme createdTheme = new Theme();
         createdTheme.setId(THEME_ID);
         createdTheme.setName("NAME");
+        createdTheme.setType(ThemeType.PORTAL);
         createdTheme.setDefinition(definition);
         createdTheme.setCreatedAt(new Date());
         createdTheme.setUpdatedAt(new Date());
         when(themeRepository.create(any())).thenReturn(createdTheme);
 
-        final ThemeEntity themeEntity = themeService.create(GraviteeContext.getExecutionContext(), newThemeEntity);
+        final ThemeEntity themeEntity = themeService.createPortalTheme(GraviteeContext.getExecutionContext(), newThemeEntity);
 
         assertNotNull(themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
@@ -290,6 +349,7 @@ public class ThemeServiceTest {
 
         final Theme theme = new Theme();
         theme.setName("NAME");
+        theme.setType(ThemeType.PORTAL);
         theme.setDefinition(definition);
         theme.setReferenceId("REF_ID");
         theme.setReferenceType(ENVIRONMENT.name());
@@ -324,13 +384,20 @@ public class ThemeServiceTest {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(THEME_ID);
         when(theme.getName()).thenReturn("NAME");
+        when(theme.getType()).thenReturn(ThemeType.PORTAL);
         when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(singleton(theme));
 
         final NewThemeEntity newThemeEntity = new NewThemeEntity();
         newThemeEntity.setName("NAME");
-        themeService.create(GraviteeContext.getExecutionContext(), newThemeEntity);
+        themeService.createPortalTheme(GraviteeContext.getExecutionContext(), newThemeEntity);
     }
 
     @Test
@@ -348,6 +415,7 @@ public class ThemeServiceTest {
         final Theme updatedTheme = new Theme();
         updatedTheme.setId(THEME_ID);
         updatedTheme.setName("NAME");
+        updatedTheme.setType(ThemeType.PORTAL);
         updatedTheme.setDefinition(definition);
         updatedTheme.setCreatedAt(new Date());
         updatedTheme.setUpdatedAt(new Date());
@@ -356,7 +424,7 @@ public class ThemeServiceTest {
         when(themeRepository.update(any())).thenReturn(updatedTheme);
         when(themeRepository.findById(THEME_ID)).thenReturn(of(updatedTheme));
 
-        final ThemeEntity themeEntity = themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
+        final ThemeEntity themeEntity = themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), updateThemeEntity);
 
         assertNotNull(themeEntity.getId());
         assertEquals("NAME", themeEntity.getName());
@@ -415,7 +483,7 @@ public class ThemeServiceTest {
         updatedTheme.setReferenceId("Another_environment");
         when(themeRepository.findById(THEME_ID)).thenReturn(of(updatedTheme));
 
-        themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
+        themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), updateThemeEntity);
 
         verify(themeRepository, never()).update(any());
 
@@ -435,6 +503,7 @@ public class ThemeServiceTest {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(THEME_ID);
         when(theme.getName()).thenReturn("NAME");
+        when(theme.getType()).thenReturn(ThemeType.PORTAL);
         when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
         when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
         when(theme.getReferenceId()).thenReturn(GraviteeContext.getCurrentEnvironment());
@@ -442,16 +511,23 @@ public class ThemeServiceTest {
         final Theme theme2 = mock(Theme.class);
         when(theme2.getId()).thenReturn("foobar");
         when(theme2.getName()).thenReturn("NAME");
+        when(theme2.getType()).thenReturn(ThemeType.PORTAL);
         when(theme2.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
 
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(new HashSet(asList(theme, theme2)));
 
         final UpdateThemeEntity updateThemeEntity = new UpdateThemeEntity();
         updateThemeEntity.setId(THEME_ID);
         updateThemeEntity.setName("NAME");
-        themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
+        themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), updateThemeEntity);
     }
 
     @Test
@@ -466,7 +542,7 @@ public class ThemeServiceTest {
         when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
         when(themeRepository.create(any())).thenReturn(theme);
 
-        themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
+        themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), updateThemeEntity);
         verify(themeRepository).create(any());
     }
 
@@ -478,6 +554,7 @@ public class ThemeServiceTest {
         final Theme theme = new Theme();
         theme.setId(THEME_ID);
         theme.setName("NAME");
+        theme.setType(ThemeType.PORTAL);
         theme.setDefinition(themeServiceImpl.getDefinition(THEMES_PATH + "/custom-definition.json"));
         theme.setReferenceId("DEFAULT");
         theme.setReferenceType(ENVIRONMENT.name());
@@ -623,7 +700,7 @@ public class ThemeServiceTest {
         ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         String definition = themeServiceImpl.getDefaultDefinition();
 
-        ThemeDefinition themeDefinition = definitionMapper.readDefinition(definition);
+        ThemeDefinition themeDefinition = definitionMapper.readPortalDefinition(definition);
         String formattedDefinition = definitionMapper.writerWithDefaultPrettyPrinter().writeValueAsString(themeDefinition);
 
         assertNotEquals(definition, formattedDefinition);
@@ -638,11 +715,12 @@ public class ThemeServiceTest {
         final UpdateThemeEntity themeToCreate = new UpdateThemeEntity();
         themeToCreate.setId(THEME_ID);
         themeToCreate.setName("Default");
-        themeToCreate.setDefinition(definitionMapper.readDefinition(definition));
+        themeToCreate.setDefinition(definitionMapper.readPortalDefinition(definition));
 
         final Theme createdTheme = new Theme();
         createdTheme.setId(THEME_ID);
         createdTheme.setName("Default");
+        createdTheme.setType(ThemeType.PORTAL);
         createdTheme.setDefinition(definition);
         createdTheme.setCreatedAt(new Date());
         createdTheme.setUpdatedAt(new Date());
@@ -650,7 +728,7 @@ public class ThemeServiceTest {
         assertEquals(definitionMapper.readTree(definition), definitionMapper.readTree(definition));
         assertEquals(definition, definition);
 
-        themeService.update(GraviteeContext.getExecutionContext(), themeToCreate);
+        themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), themeToCreate);
 
         verify(themeRepository, times(1))
             .create(
@@ -700,13 +778,20 @@ public class ThemeServiceTest {
         when(theme2.getReferenceId()).thenReturn("DEFAULT");
         when(theme2.getCreatedAt()).thenReturn(new Date(1));
         when(theme2.getUpdatedAt()).thenReturn(new Date(2));
+        when(theme2.getType()).thenReturn(ThemeType.PORTAL);
 
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+        when(
+            themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                GraviteeContext.getCurrentEnvironment(),
+                ENVIRONMENT.name(),
+                ThemeType.PORTAL
+            )
+        )
             .thenReturn(new HashSet(asList(theme, theme2)));
 
         String mergeDefinition = themeDefinitionMapper.writeValueAsString(themeDefinitionMapper.merge(definition, customDefinition));
 
-        themeService.updateDefaultTheme(GraviteeContext.getExecutionContext());
+        themeService.updateDefaultPortalTheme(GraviteeContext.getExecutionContext());
 
         verify(themeRepository, times(1))
             .update(
