@@ -18,6 +18,7 @@ import { Routes } from '@angular/router';
 import { ApiDetailsComponent } from './api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
+import { ApiTabSubscriptionsComponent } from './api-details/api-tab-subscriptions/api-tab-subscriptions.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
@@ -53,6 +54,12 @@ export const routes: Routes = [
             path: 'documentation',
             component: ApiTabDocumentationComponent,
             data: { breadcrumb: 'Documentation' },
+          },
+          {
+            path: 'subscriptions',
+            component: ApiTabSubscriptionsComponent,
+            data: { breadcrumb: 'Subscriptions' },
+            canActivate: [authGuard],
           },
         ],
       },

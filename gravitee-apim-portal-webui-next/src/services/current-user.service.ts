@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, signal, WritableSignal } from '@angular/core';
 import { isEmpty } from 'lodash';
 import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -27,11 +27,21 @@ import { User } from '../entities/user/user';
 })
 export class CurrentUserService {
   public user: WritableSignal<User> = signal({});
+  public isUserAuthenticated: WritableSignal<boolean> = signal(false);
 
   constructor(
     private http: HttpClient,
     private configuration: ConfigService,
-  ) {}
+  ) {
+    effect(
+      () => {
+        this.isUserAuthenticated.set(!isEmpty(this.user()));
+      },
+      {
+        allowSignalWrites: true,
+      },
+    );
+  }
 
   public isAuthenticated(): boolean {
     return !isEmpty(this.user());
