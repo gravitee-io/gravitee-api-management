@@ -106,7 +106,7 @@ describe('API - Imports with members', () => {
     test('should create an API, and associate a member with role, by role name', async () => {
       const fakeApi = ApisFaker.apiImport({
         id: apiId,
-        members: [{ source: 'gravitee', sourceId: member.email, roles: [customRole.name] }],
+        members: [{ source: 'gravitee', sourceId: member.email, role: customRole.name }],
         primaryOwner: { id: primaryOwner.id, type: 'USER', email: primaryOwner.email },
       });
       await succeed(

@@ -69,7 +69,7 @@
     </div>
 
     <mat-card-actions align="end">
-      <button mat-raised-button color="primary" [disabled]="!form.valid">Transfer</button>
+      <button mat-raised-button color="primary" [disabled]="!form.valid || isKubernetesOrigin">Transfer</button>
     </mat-card-actions>
   </mat-card>
 </form>
