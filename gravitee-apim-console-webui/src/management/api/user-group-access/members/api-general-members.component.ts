@@ -63,6 +63,7 @@ export interface GroupData {
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private apiId: string;
+  public isKubernetesOrigin: boolean;
 
   form: UntypedFormGroup;
   roles: Role[];
@@ -225,8 +226,8 @@ export class ApiGeneralMembersComponent implements OnInit {
           return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
         }),
         switchMap(([apiDialogResult, api]) => {
-          return api.definitionVersion === 'V1'
-            ? throwError({ message: 'You cannot modify a V1 API.' })
+          return api.definitionVersion === 'V1' || this.isKubernetesOrigin
+            ? throwError({ message: `You cannot modify this API. version ${api.definitionVersion}.` })
             : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
         }),
         takeUntil(this.unsubscribe$),
@@ -281,8 +282,8 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initForm(api: Api) {
-    const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || isKubernetesOrigin;
+    this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || this.isKubernetesOrigin;
     this.form = new UntypedFormGroup({
       isNotificationsEnabled: new UntypedFormControl({
         value: !api.disableMembershipNotifications,
