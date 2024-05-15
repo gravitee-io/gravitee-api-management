@@ -15,10 +15,11 @@
  */
 package io.gravitee.apim.core.integration.model;
 
+import java.util.Map;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record IntegrationSubscription(String integrationId, Type type, String apiKey) {
+public record IntegrationSubscription(String integrationId, Type type, String apiKey, Map<String, String> metadata) {
     public enum Type {
         API_KEY,
     }

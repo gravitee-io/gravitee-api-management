@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
@@ -145,7 +146,7 @@ public class AcceptSubscriptionDomainService {
                     subscription.getId(),
                     application.getName()
                 )
-                .map(integrationSubscription -> acceptByIntegration(subscription.getId(), integrationSubscription.apiKey(), auditInfo))
+                .map(integrationSubscription -> acceptByIntegration(subscription.getId(), integrationSubscription, auditInfo))
                 .onErrorReturn(throwable -> rejectByIntegration(integrationId, subscription.getId(), auditInfo, throwable.getMessage()))
                 .blockingGet();
         }
@@ -167,10 +168,14 @@ public class AcceptSubscriptionDomainService {
     /**
      * Accept a subscription once the integration successfully did its job.
      * @param subscriptionId The subscription to accept.
-     * @param apiKey The API Key coming from Integration.
+     * @param integrationSubscription The subscription coming from Integration.
      * @param auditInfo Audit information about whom accepting the subscription.
      */
-    private SubscriptionEntity acceptByIntegration(String subscriptionId, String apiKey, AuditInfo auditInfo) {
+    private SubscriptionEntity acceptByIntegration(
+        String subscriptionId,
+        IntegrationSubscription integrationSubscription,
+        AuditInfo auditInfo
+    ) {
         log.debug("Integration accepted subscription {}", subscriptionId);
 
         var subscription = subscriptionCrudService.get(subscriptionId);
@@ -179,11 +184,12 @@ public class AcceptSubscriptionDomainService {
             auditInfo.actor().userId(),
             TimeProvider.now(),
             null,
-            subscription.getReasonMessage()
+            subscription.getReasonMessage(),
+            integrationSubscription.metadata()
         );
 
         subscriptionCrudService.update(acceptedSubscription);
-        generateApiKeyDomainService.generateForFederated(acceptedSubscription, auditInfo, apiKey);
+        generateApiKeyDomainService.generateForFederated(acceptedSubscription, auditInfo, integrationSubscription.apiKey());
 
         createAudit(subscription, acceptedSubscription, auditInfo);
 

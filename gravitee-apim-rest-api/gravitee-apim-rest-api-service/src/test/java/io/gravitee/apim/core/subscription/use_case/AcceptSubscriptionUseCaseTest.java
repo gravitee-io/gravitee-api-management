@@ -235,6 +235,37 @@ class AcceptSubscriptionUseCaseTest {
     }
 
     @Test
+    void should_keep_integration_metadata_when_accepting_federated_subscription() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
+        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED));
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
+
+        // When
+        var result = accept(subscription.getId());
+
+        // Then
+        assertThat(result.subscription())
+            .extracting(
+                SubscriptionEntity::getId,
+                SubscriptionEntity::getStatus,
+                SubscriptionEntity::getReasonMessage,
+                SubscriptionEntity::getStartingAt,
+                SubscriptionEntity::getEndingAt,
+                SubscriptionEntity::getMetadata
+            )
+            .contains(
+                subscription.getId(),
+                SubscriptionEntity.Status.ACCEPTED,
+                null,
+                INSTANT_NOW.atZone(ZoneId.systemDefault()),
+                null,
+                Map.of("key", "value")
+            );
+    }
+
+    @Test
     void should_reject_subscription_when_integration_processing_fails_on_federated_api() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
