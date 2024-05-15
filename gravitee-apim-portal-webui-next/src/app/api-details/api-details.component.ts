@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,6 +27,7 @@ import { ApiPictureComponent } from '../../components/api-picture/api-picture.co
 import { BannerComponent } from '../../components/banner/banner.component';
 import { BreadcrumbNavigationComponent } from '../../components/breadcrumb-navigation/breadcrumb-navigation.component';
 import { Api } from '../../entities/api/api';
+import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
   selector: 'app-api-details',
@@ -50,6 +51,7 @@ import { Api } from '../../entities/api/api';
 })
 export class ApiDetailsComponent implements OnInit {
   @Input() api!: Api;
+  isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
 
   constructor(private breadcrumbService: BreadcrumbService) {}
 

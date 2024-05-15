@@ -55,6 +55,17 @@
         i18n="@@apiDocumentation"
         >Documentation</a
       >
+      @if (isAuthenticated()) {
+        <a
+          mat-tab-link
+          [routerLink]="['.', 'subscriptions']"
+          routerLinkActive
+          #subscriptionsActive="routerLinkActive"
+          [active]="subscriptionsActive.isActive"
+          i18n="@@apiSubscriptions"
+          >My Subscriptions</a
+        >
+      }
     </nav>
     <mat-tab-nav-panel #tabPanel>
       <div class="api-details__content">
