@@ -16,6 +16,7 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     public RequestsCount requestsCount;
     public AverageMessagesPerRequest averageMessagesPerRequest;
+    public AverageConnectionDuration averageConnectionDuration;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(String apiId) {
@@ -37,5 +39,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(String apiId) {
         return Optional.ofNullable(averageMessagesPerRequest);
+    }
+
+    @Override
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(String apiId) {
+        return Optional.ofNullable(averageConnectionDuration);
     }
 }
