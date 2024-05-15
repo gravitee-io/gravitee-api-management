@@ -20,6 +20,9 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
@@ -53,6 +56,8 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     private static final String FIELD_EMAIL = "email";
     private static final String FIELD_SOURCE = "source";
     private static final String FIELD_REFERENCE = "reference";
+    private static final String FIELD_CUSTOM = "custom";
+    private static final String FIELD_CUSTOM_SPLIT = "custom_split";
 
     private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 
@@ -120,6 +125,20 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
                 // For security reasons, we remove the domain part of the email
                 doc.add(new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')), Field.Store.NO));
             }
+        }
+
+        if (user.getCustomFields() != null && !user.getCustomFields().isEmpty()) {
+            user
+                .getCustomFields()
+                .values()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .filter(Predicate.not(String::isEmpty))
+                .forEach(customValue -> {
+                    doc.add(new StringField(FIELD_CUSTOM, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
+                    doc.add(new TextField(FIELD_CUSTOM_SPLIT, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
+                });
         }
 
         return doc;
