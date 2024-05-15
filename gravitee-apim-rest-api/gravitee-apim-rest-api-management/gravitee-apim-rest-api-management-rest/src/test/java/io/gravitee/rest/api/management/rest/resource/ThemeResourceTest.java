@@ -72,6 +72,10 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteTheme() {
+        ThemeEntity theme = new ThemeEntity();
+        theme.setId(THEME_ID);
+
+        when(themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID)).thenReturn(theme);
         final Response response = envTarget(THEME_ID).request().delete();
 
         assertEquals(NO_CONTENT_204, response.getStatus());
@@ -80,6 +84,11 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldUpdateTheme() {
+        ThemeEntity oldTheme = new ThemeEntity();
+        oldTheme.setId(THEME_ID);
+
+        when(themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID)).thenReturn(oldTheme);
+
         UpdateThemeEntity updateTheme = new UpdateThemeEntity();
         updateTheme.setId(THEME_ID);
         updateTheme.setName("my-theme");
@@ -88,15 +97,55 @@ public class ThemeResourceTest extends AbstractResourceTest {
         ThemeEntity theme = new ThemeEntity();
         theme.setId(THEME_ID);
 
-        when(themeService.update(GraviteeContext.getExecutionContext(), updateTheme)).thenReturn(theme);
+        when(themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), updateTheme)).thenReturn(theme);
 
         final Response response = envTarget(THEME_ID).request().put(json(updateTheme));
 
         assertEquals(OK_200, response.getStatus());
-        verify(themeService).update(eq(GraviteeContext.getExecutionContext()), eq(updateTheme));
+        verify(themeService).updatePortalTheme(eq(GraviteeContext.getExecutionContext()), eq(updateTheme));
 
         final ThemeEntity responseTheme = response.readEntity(ThemeEntity.class);
         assertNotNull(responseTheme);
         assertEquals(theme, responseTheme);
+    }
+
+    @Test
+    public void shouldNotFindPortalNextThemeById() {
+        var theme = io.gravitee.rest.api.model.theme.portalnext.ThemeEntity.builder().id(THEME_ID).build();
+
+        when(themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID)).thenReturn(theme);
+        final Response response = envTarget(THEME_ID).request().get();
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotDeletePortalNextTheme() {
+        var theme = io.gravitee.rest.api.model.theme.portalnext.ThemeEntity.builder().id(THEME_ID).build();
+
+        when(themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID)).thenReturn(theme);
+        final Response response = envTarget(THEME_ID).request().delete();
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdatePortalNextTheme() {
+        var oldTheme = io.gravitee.rest.api.model.theme.portalnext.ThemeEntity.builder().id(THEME_ID).build();
+
+        when(themeService.findById(GraviteeContext.getExecutionContext(), THEME_ID)).thenReturn(oldTheme);
+        UpdateThemeEntity updateTheme = new UpdateThemeEntity();
+        updateTheme.setId(THEME_ID);
+        updateTheme.setName("my-theme");
+        updateTheme.setDefinition(new ThemeDefinition());
+
+        ThemeEntity theme = new ThemeEntity();
+        theme.setId(THEME_ID);
+
+        when(themeService.updatePortalTheme(GraviteeContext.getExecutionContext(), updateTheme)).thenReturn(theme);
+
+        final Response response = envTarget(THEME_ID).request().put(json(updateTheme));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 }

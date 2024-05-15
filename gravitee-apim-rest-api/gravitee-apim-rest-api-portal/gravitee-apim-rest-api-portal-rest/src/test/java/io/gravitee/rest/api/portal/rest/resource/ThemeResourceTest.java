@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.model.theme.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -49,7 +50,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
         ThemeEntity themeEntity = new ThemeEntity();
         themeEntity.setId(THEME_ID);
 
-        when(themeService.findEnabled(GraviteeContext.getExecutionContext())).thenReturn(themeEntity);
+        when(themeService.findEnabledPortalTheme(GraviteeContext.getExecutionContext())).thenReturn(themeEntity);
         when(themeMapper.convert(any(), any())).thenCallRealMethod();
 
         final Response response = target().request().get();
