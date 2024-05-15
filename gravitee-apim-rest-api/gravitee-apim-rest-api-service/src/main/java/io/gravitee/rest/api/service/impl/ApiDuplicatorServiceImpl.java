@@ -476,6 +476,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 }
 
                 /*
+                 * Use by GKO
                  * When the API comes from Kubernetes, we remove the members which are not in use anymore
                  * If the same behaviour required for all APIs regardless of their origin, then the context check
                  * can be removed
@@ -483,10 +484,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 if (apiJsonNode.isKubernetesOrigin()) {
                     // by removing the member, we will eventually end up with a clean list of
                     // Members that can be removed from this API
+                    removePreviousRoleIfExist(executionContext, apiEntity.getId(), memberToImport, roleIdsToImport);
                     membersAlreadyPresent.remove(memberToImport);
                 }
             }
 
+            // Use by GKO
             if (apiJsonNode.isKubernetesOrigin()) {
                 // delete members that no longer referenced inside this API
                 for (MemberToImport memberToDelete : membersAlreadyPresent) {
@@ -498,7 +501,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // transfer the ownership
             transferOwnership(executionContext, apiEntity.getId(), currentPo, roleUsedInTransfert, futurePo);
-        } else if (!apiJsonNode.hasMembers() && apiJsonNode.isKubernetesOrigin()) {
+        } else if (!apiJsonNode.hasMembers() && apiJsonNode.isKubernetesOrigin()) { // Used by GKO
             // Remove all members if exist except the PO
             // get current members of the api
             Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
@@ -529,7 +532,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 return new MemberToImport(
                     userEntity.getSource(),
                     userEntity.getSourceId(),
-                    member.getRoles().stream().map(RoleEntity::getId).collect(toList())
+                    member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()),
+                    null
                 );
             })
             .collect(toSet());
@@ -556,30 +560,34 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         List<String> roleIdsToImport = memberToImport.getRoles();
         if (roleIdsToImport == null) {
             roleIdsToImport = new ArrayList<>();
-            memberToImport.setRoles(roleIdsToImport);
         } else {
-            var roleIds = new ArrayList<String>();
-            for (var roleIdOrName : memberToImport.getRoles()) {
-                try {
-                    UUID.fromString(roleIdOrName);
-                    roleIds.add(roleIdOrName);
-                } catch (IllegalArgumentException e) {
-                    Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
-                        RoleScope.API,
-                        roleIdOrName,
-                        executionContext.getOrganizationId()
-                    );
-                    if (optionalRole.isPresent()) {
-                        roleIds.add(optionalRole.get().getId());
-                    } else {
-                        LOGGER.warn("Role {} does not exist in 'API' scope", roleIdOrName);
-                        // We still add this to the list
-                        roleIds.add(roleIdOrName);
-                    }
+            roleIdsToImport = new ArrayList<>(roleIdsToImport);
+        }
+
+        /*
+         * Used by GKO
+         * Before v3, only one role per member could be imported and it was a role name.
+         * And now we use the same thing for the APIs created by GKO
+         */
+        String roleIdOrName = memberToImport.getRole();
+        if (roleIdOrName != null && !roleIdOrName.isEmpty()) {
+            try {
+                UUID.fromString(roleIdOrName);
+                roleIdsToImport.add(roleIdOrName);
+            } catch (IllegalArgumentException e) {
+                Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
+                    RoleScope.API,
+                    roleIdOrName,
+                    executionContext.getOrganizationId()
+                );
+                if (optRoleToAddEntity.isPresent()) {
+                    roleIdsToImport.add(optRoleToAddEntity.get().getId());
+                } else {
+                    LOGGER.warn("Role {} does not exist", roleIdOrName);
+                    // We still add it to the list, same as what has been done for the memberToImport.getRoles()
+                    roleIdsToImport.add(roleIdOrName);
                 }
             }
-
-            roleIdsToImport = roleIds;
         }
 
         roleIdsToImport.sort(Comparator.naturalOrder());
@@ -635,6 +643,34 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 });
             } catch (UserNotFoundException unfe) {}
         }
+    }
+
+    private void removePreviousRoleIfExist(
+        ExecutionContext executionContext,
+        String apiId,
+        MemberToImport memberToImport,
+        List<String> roleIdsToImport
+    ) {
+        UserEntity userEntity = userService.findBySource(
+            executionContext.getOrganizationId(),
+            memberToImport.getSource(),
+            memberToImport.getSourceId(),
+            false
+        );
+
+        List<String> existingRoles = new ArrayList<>(
+            membershipService
+                .getRoles(MembershipReferenceType.API, apiId, MembershipMemberType.USER, userEntity.getId())
+                .stream()
+                .map(RoleEntity::getId)
+                .toList()
+        );
+
+        roleIdsToImport.forEach(existingRoles::remove);
+
+        existingRoles.forEach(roleId ->
+            membershipService.removeRole(MembershipReferenceType.API, apiId, MembershipMemberType.USER, userEntity.getId(), roleId)
+        );
     }
 
     protected void deleteMembers(ExecutionContext executionContext, String apiId, MemberToImport memberToImport) {
@@ -830,13 +866,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         private String source;
         private String sourceId;
         private List<String> roles; // After v3
+        private String role; // Before v3 but now it is used by GKO
 
         public MemberToImport() {}
 
-        public MemberToImport(String source, String sourceId, List<String> roles) {
+        public MemberToImport(String source, String sourceId, List<String> roles, String role) {
             this.source = source;
             this.sourceId = sourceId;
             this.roles = roles;
+            this.role = role;
         }
 
         public String getSource() {
@@ -861,6 +899,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         public void setRoles(List<String> roles) {
             this.roles = roles;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
 
         @Override
