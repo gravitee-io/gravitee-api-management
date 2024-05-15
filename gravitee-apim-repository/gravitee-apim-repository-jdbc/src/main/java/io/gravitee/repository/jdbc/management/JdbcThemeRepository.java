@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -73,15 +74,20 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
     }
 
     @Override
-    public Set<Theme> findByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+    public Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type)
+        throws TechnicalException {
         LOGGER.debug("JdbcThemeRepository.findByReference({})", referenceType);
         try {
             return new HashSet(
                 jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?",
+                    getOrm().getSelectAllSql() +
+                    " where reference_id = ? and reference_type = ? and " +
+                    escapeReservedWord("type") +
+                    " = ?",
                     getOrm().getRowMapper(),
                     referenceId,
-                    referenceType
+                    referenceType,
+                    type.name()
                 )
             );
         } catch (final Exception ex) {

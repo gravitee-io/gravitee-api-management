@@ -52,8 +52,8 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByReference() throws Exception {
-        final Set<Theme> themes = themeRepository.findByReferenceIdAndReferenceType("DEFAULT", "ENVIRONMENT");
+    public void shouldFindByReferenceAndType() throws Exception {
+        final Set<Theme> themes = themeRepository.findByReferenceIdAndReferenceTypeAndType("DEFAULT", "ENVIRONMENT", ThemeType.PORTAL);
         assertNotNull(themes);
         assertEquals(2, themes.size());
         final Theme darkTheme = themes.stream().filter(theme -> "dark".equals(theme.getId())).findAny().get();
