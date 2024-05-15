@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.theme;
+package io.gravitee.rest.api.model.theme.portalnext;
 
-import java.util.Date;
+import io.gravitee.rest.api.model.theme.portal.ThemeComponentDefinition;
+import java.util.List;
+import lombok.Data;
 
-public interface GenericThemeEntity {
-    String getId();
-    String getName();
-    ThemeType getType();
-    Date getCreatedAt();
-    Date getUpdatedAt();
-    boolean isEnabled();
-    String getLogo();
-    String getOptionalLogo();
-    String getFavicon();
+@Data
+public class ThemeDefinition {
+
+    private String primary;
+    private String secondary;
+    private String tertiary;
+    private String error;
+    private String background;
+    private Banner banner;
+
+    @Data
+    public static class Banner {
+
+        private String background;
+        private String text;
+    }
 }

@@ -13,34 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.theme.portal;
+package io.gravitee.rest.api.model.theme.portalnext;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.theme.GenericThemeEntity;
 import io.gravitee.rest.api.model.theme.ThemeType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import java.util.Date;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Guillaume CUSNIEUX (azize at graviteesource.com)
+ * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
-public class NewThemeEntity {
+@Setter
+@Getter
+@Builder
+public class ThemeEntity implements GenericThemeEntity {
+
+    private String id;
 
     @NotNull
-    @Size(min = 1, max = 64)
+    @Size(min = 1)
     private String name;
+
+    @Builder.Default
+    private ThemeType type = ThemeType.PORTAL_NEXT;
+
+    @JsonProperty("created_at")
+    private Date createdAt;
+
+    @JsonProperty("updated_at")
+    private Date updatedAt;
 
     private boolean enabled;
 
-    private ThemeType type = ThemeType.PORTAL;
-
-    private Object definition;
+    private ThemeDefinition definition;
 
     private String logo;
-
-    private String backgroundImage;
 
     private String optionalLogo;
 
