@@ -1,0 +1,28 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="search-input">
+  <mat-form-field class="search-input__form">
+    <mat-icon matPrefix>{{ searchControl.value ? 'arrow_backword' : 'search' }}</mat-icon>
+    <input matInput [formControl]="searchControl" placeholder="Search..." i18n-placeholder="@@searchPlaceholder" />
+    @if (searchControl.value) {
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.reset()">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+</div>

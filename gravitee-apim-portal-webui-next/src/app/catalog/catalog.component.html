@@ -26,6 +26,8 @@
   @if (filterList$ | async; as filterList) {
     <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList"></app-api-filter>
   }
+  <app-search-bar (searchTerm)="onSearchResults($event)" />
+
   @if (apis.data.length === 0) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
