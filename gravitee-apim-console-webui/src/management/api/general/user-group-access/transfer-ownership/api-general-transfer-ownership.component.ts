@@ -53,6 +53,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
   apiMembers: SearchableUser[];
 
   private apiId: string;
+  public isKubernetesOrigin: boolean;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -79,6 +80,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
       .pipe(
         tap(([api, groups, roles, apiMembers]) => {
           this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null);
+          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           if (api.primaryOwner.type === 'GROUP') {
             this.poGroups = this.poGroups.filter((group) => group.id !== api.primaryOwner.id);
           }
