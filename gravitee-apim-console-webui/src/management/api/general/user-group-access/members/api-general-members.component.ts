@@ -54,6 +54,7 @@ export interface GroupData {
 })
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  public isKubernetesOrigin: boolean;
 
   form: FormGroup;
 
@@ -214,8 +215,8 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initForm(api: Api) {
-    const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || isKubernetesOrigin;
+    this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1' || this.isKubernetesOrigin;
     this.form = new FormGroup({
       isNotificationsEnabled: new FormControl({
         value: !api.disableMembershipNotifications,
