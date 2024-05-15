@@ -31,23 +31,23 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   styleUrls: ['./create-integration.component.scss'],
 })
 export class CreateIntegrationComponent {
-  public isLoading = false;
-  private destroyRef = inject(DestroyRef);
+  public isLoading: boolean = false;
+  private destroyRef: DestroyRef = inject(DestroyRef);
 
   // hardcoded list of providers for time when backend is not ready, icon not needed in future stick to value
   public integrationProviders: { active?: IntegrationProvider[]; comingSoon?: IntegrationProvider[] } = {
     active: [
-      { name: 'AWS API Gateway', icon: 'aws-api-gateway', value: 'aws-api-gateway' },
-      { name: 'Solace', icon: 'solace', value: 'solace' },
+      { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
+      { icon: 'solace', value: 'solace' },
     ],
     comingSoon: [
-      { name: 'Apigee', icon: 'apigee', value: 'apigee' },
-      { name: 'Confluent', icon: 'confluent', value: 'confluent' },
-      { name: 'Azure', icon: 'azure', value: 'azure' },
-      { name: 'Kong', icon: 'kong', value: 'kong' },
-      { name: 'IBM API Connect', icon: 'ibm-api-connect', value: 'ibm-api-connect' },
-      { name: 'Mulesoft', icon: 'mulesoft', value: 'mulesoft' },
-      { name: 'Dell Boomi', icon: 'dell-boomi', value: 'dell-boomi' },
+      { icon: 'apigee', value: 'apigee' },
+      { icon: 'confluent', value: 'confluent' },
+      { icon: 'azure', value: 'azure' },
+      { icon: 'kong', value: 'kong' },
+      { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
+      { icon: 'mulesoft', value: 'mulesoft' },
+      { icon: 'dell-boomi', value: 'dell-boomi' },
     ],
   };
 

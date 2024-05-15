@@ -73,10 +73,10 @@
               tabindex="0"
               data-testid="accordion-header"
             >
-              <h5 class="title">Open the agent connection wizard</h5>
+              <h5 class="title">{{ accordionItem.expanded ? 'Close' : 'Open' }} the agent connection wizard</h5>
               <mat-icon [svgIcon]="accordionItem.expanded ? 'gio:nav-arrow-up' : 'gio:nav-arrow-down'"></mat-icon>
             </div>
-            <div *ngIf="accordionItem.expanded">
+            <div *ngIf="accordionItem.expanded" class="wizard">
               <div class="wizard__item">
                 <div class="order">1</div>
                 <div class="content">
