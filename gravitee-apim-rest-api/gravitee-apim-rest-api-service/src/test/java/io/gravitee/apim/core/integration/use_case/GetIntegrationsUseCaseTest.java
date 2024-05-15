@@ -17,14 +17,24 @@ package io.gravitee.apim.core.integration.use_case;
 
 import static java.util.Optional.of;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.LicenseFixtures;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationQueryServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
+import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,23 +42,28 @@ import org.junit.jupiter.api.Test;
 public class GetIntegrationsUseCaseTest {
 
     private static final String ENV_ID = "my-env";
+    private static final String ORGANIZATION_ID = "my-org";
     private static final int PAGE_NUMBER = 1;
     private static final int PAGE_SIZE = 5;
     private static final Pageable pageable = new PageableImpl(PAGE_NUMBER, PAGE_SIZE);
 
     IntegrationQueryServiceInMemory integrationQueryServiceInMemory = new IntegrationQueryServiceInMemory();
+    LicenseManager licenseManager = mock(LicenseManager.class);
 
     GetIntegrationsUseCase usecase;
 
     @BeforeEach
     void setUp() {
         IntegrationQueryService integrationQueryService = integrationQueryServiceInMemory;
-        usecase = new GetIntegrationsUseCase(integrationQueryService);
+        usecase =
+            new GetIntegrationsUseCase(integrationQueryService, new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager));
+
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
-        integrationQueryServiceInMemory.reset();
+        Stream.of(integrationQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -58,7 +73,12 @@ public class GetIntegrationsUseCaseTest {
         integrationQueryServiceInMemory.initWith(
             List.of(expected, IntegrationFixture.anIntegration("falseEnvID"), IntegrationFixture.anIntegration("anotherFalseEnvID"))
         );
-        var input = GetIntegrationsUseCase.Input.builder().environmentId(ENV_ID).pageable(of(pageable)).build();
+        var input = GetIntegrationsUseCase.Input
+            .builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENV_ID)
+            .pageable(of(pageable))
+            .build();
 
         //When
         var output = usecase.execute(input);
@@ -80,7 +100,7 @@ public class GetIntegrationsUseCaseTest {
         //Given
         var expected = IntegrationFixture.anIntegration();
         integrationQueryServiceInMemory.initWith(List.of(expected));
-        var input = new GetIntegrationsUseCase.Input(ENV_ID);
+        var input = new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID);
 
         //When
         var output = usecase.execute(input);
@@ -95,5 +115,17 @@ public class GetIntegrationsUseCaseTest {
                 output.integrations().getPageElements(),
                 (long) output.integrations().getContent().size()
             );
+    }
+
+    @Test
+    void should_throw_when_no_enterprise_license_found() {
+        // Given
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> usecase.execute(new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID)));
+
+        // Then
+        assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
     }
 }
