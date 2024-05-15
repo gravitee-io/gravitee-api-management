@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
@@ -89,6 +90,9 @@ public class SearchIndexInitializerTest {
 
     @Mock
     private UserConverter userConverter;
+
+    @Mock
+    private UserMetadataService userMetadataService;
 
     private final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
 
@@ -262,7 +266,8 @@ public class SearchIndexInitializerTest {
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
-        when(userConverter.toUserEntity(user)).thenReturn(userEntity);
+        when(userMetadataService.findAllByUserId(user.getId())).thenReturn(List.of());
+        when(userConverter.toUserEntity(user, List.of())).thenReturn(userEntity);
 
         return user;
     }

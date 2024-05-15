@@ -179,7 +179,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    /** A default source used for user registration.*/
+    /**
+     * A default source used for user registration.
+     */
     private static final String IDP_SOURCE_GRAVITEE = "gravitee";
     private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
 
@@ -729,6 +731,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     /**
      * Allows to create a user.
+     *
      * @param executionContext
      * @param newExternalUserEntity
      * @return
@@ -1308,7 +1311,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             Page<User> users = userRepository.search(newCriteria, convert(pageable));
 
-            List<UserEntity> entities = users.getContent().stream().map(u -> convert(u, false)).collect(toList());
+            List<UserEntity> entities = users
+                .getContent()
+                .stream()
+                .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
+                .collect(toList());
 
             populateUserFlags(executionContext.getOrganizationId(), entities);
 
@@ -1519,6 +1526,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     private UserEntity convert(User user, boolean loadRoles) {
         return convert(user, loadRoles, emptyList(), true);
+    }
+
+    private UserEntity convert(User user, boolean loadRoles, List<UserMetadataEntity> customUserFields) {
+        return convert(user, loadRoles, customUserFields, true);
     }
 
     private UserEntity convert(User user, boolean loadRoles, List<UserMetadataEntity> customUserFields, boolean nullifyPassword) {
@@ -2022,12 +2033,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     /**
      * Refresh user memberships.
-     *  @param executionContext
-     * @param userId User identifier.
+     *
+     * @param executionContext
+     * @param userId             User identifier.
      * @param identityProviderId The identity provider used to authenticate the user.
-     * @param memberships List of memberships to associate to the user
-     * @param hasMapping If the social provider has a mapping for the given type
-     * @param types The types of user memberships to manage
+     * @param memberships        List of memberships to associate to the user
+     * @param hasMapping         If the social provider has a mapping for the given type
+     * @param types              The types of user memberships to manage
      */
     private void refreshUserMemberships(
         ExecutionContext executionContext,
