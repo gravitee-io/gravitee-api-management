@@ -27,6 +27,7 @@ import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseC
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -60,24 +61,27 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, "another-environment"))).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment")))
+            .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID))).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
+            .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID))).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
+            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
@@ -86,7 +90,7 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     void should_not_find_requests_count() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.requestsCount = null;
-        final Output result = cut.execute(new Input(MY_API, ENV_ID));
+        final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
         assertThat(result.requestsCount()).isEmpty();
     }
 
@@ -95,7 +99,7 @@ class SearchRequestsCountAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.requestsCount =
             RequestsCount.builder().total(56).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
-        final Output result = cut.execute(new Input(MY_API, ENV_ID));
+        final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
         assertThat(result.requestsCount())
             .hasValueSatisfying(requestsCount -> {
                 assertThat(requestsCount.getTotal()).isEqualTo(56);

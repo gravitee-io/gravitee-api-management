@@ -18,8 +18,8 @@ package io.gravitee.repository.elasticsearch.monitoring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
-import io.gravitee.repository.elasticsearch.monitoring.ElasticsearchMonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,10 @@ public class ElasticsearchMonitoringRepositoryTest extends AbstractElasticsearch
     @Test
     public void testQuery() throws IOException {
         //Do the call
-        final MonitoringResponse monitoringResponse = elasticMonitoringRepository.query("1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
+        final MonitoringResponse monitoringResponse = elasticMonitoringRepository.query(
+            new QueryContext("org#1", "env#1"),
+            "1876c024-c6a2-409a-b6c0-24c6a2e09a5f"
+        );
 
         final ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

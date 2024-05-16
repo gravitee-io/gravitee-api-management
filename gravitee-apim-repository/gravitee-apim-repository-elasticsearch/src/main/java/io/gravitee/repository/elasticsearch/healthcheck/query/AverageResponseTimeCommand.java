@@ -20,6 +20,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.healthcheck.query.Bucket;
@@ -64,7 +65,8 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
     }
 
     @Override
-    public AverageResponseTimeResponse executeQuery(Query<AverageResponseTimeResponse> query) throws AnalyticsException {
+    public AverageResponseTimeResponse executeQuery(QueryContext queryContext, Query<AverageResponseTimeResponse> query)
+        throws AnalyticsException {
         final AverageResponseTimeQuery averageResponseTimeQuery = (AverageResponseTimeQuery) query;
 
         final String sQuery = this.createQuery(TEMPLATE, averageResponseTimeQuery);
@@ -80,7 +82,7 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
 
             final Single<SearchResponse> result =
                 this.client.search(
-                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
+                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
                         sQuery
                     );

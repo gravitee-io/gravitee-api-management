@@ -26,6 +26,7 @@ import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.histogram.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,7 +94,7 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
     }
 
     @Override
-    public DateHistogramResponse executeQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
+    public DateHistogramResponse executeQuery(QueryContext queryContext, Query<DateHistogramResponse> query) throws AnalyticsException {
         final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
 
         final Long from = dateHistogramQuery.timeRange().range().from();
@@ -107,7 +108,7 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         final String sQuery = this.createQuery(TEMPLATE, query, roundedFrom, roundedTo);
 
         try {
-            SearchResponse searchResponse = execute(dateHistogramQuery, Type.REQUEST, sQuery).blockingGet();
+            SearchResponse searchResponse = execute(queryContext, dateHistogramQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toDateHistogramResponse(searchResponse, dateHistogramQuery);
         } catch (final Exception eex) {
             logger.error("Impossible to perform DateHistogramQuery", eex);

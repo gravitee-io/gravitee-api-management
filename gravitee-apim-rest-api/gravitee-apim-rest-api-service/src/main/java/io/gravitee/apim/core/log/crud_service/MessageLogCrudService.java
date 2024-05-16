@@ -18,11 +18,17 @@ package io.gravitee.apim.core.log.crud_service;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface MessageLogCrudService {
-    SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable);
+    SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(
+        ExecutionContext executionContext,
+        String apiId,
+        String requestId,
+        Pageable pageable
+    );
 }

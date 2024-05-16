@@ -123,9 +123,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private TenantService tenantService;
 
     @Override
-    public StatsAnalytics execute(final StatsQuery query) {
+    public StatsAnalytics execute(final ExecutionContext executionContext, final StatsQuery query) {
         try {
             final StatsResponse response = analyticsRepository.query(
+                executionContext.getQueryContext(),
                 QueryBuilders
                     .stats()
                     .query(query.getQuery())
@@ -143,9 +144,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public HitsAnalytics execute(CountQuery query) {
+    public HitsAnalytics execute(final ExecutionContext executionContext, CountQuery query) {
         try {
             CountResponse response = analyticsRepository.query(
+                executionContext.getQueryContext(),
                 QueryBuilders
                     .count()
                     .query(query.getQuery())
@@ -179,7 +181,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     );
             }
 
-            DateHistogramResponse response = analyticsRepository.query(queryBuilder.build());
+            DateHistogramResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
             return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
@@ -212,7 +214,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 );
             }
 
-            GroupByResponse response = analyticsRepository.query(queryBuilder.build());
+            GroupByResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
             return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);

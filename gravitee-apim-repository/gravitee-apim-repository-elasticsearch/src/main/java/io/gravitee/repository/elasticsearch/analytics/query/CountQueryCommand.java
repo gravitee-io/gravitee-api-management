@@ -20,6 +20,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.gravitee.repository.analytics.query.count.CountResponse;
+import io.gravitee.repository.common.query.QueryContext;
 
 /**
  * Commmand used to handle CountQuery
@@ -38,12 +39,13 @@ public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountRe
     }
 
     @Override
-    public CountResponse executeQuery(Query<CountResponse> query) throws AnalyticsException {
+    public CountResponse executeQuery(QueryContext queryContext, Query<CountResponse> query) throws AnalyticsException {
         final CountQuery countQuery = (CountQuery) query;
         final String sQuery = this.createQuery(TEMPLATE, query);
 
         try {
-            io.gravitee.elasticsearch.model.CountResponse response = executeCount(countQuery, Type.REQUEST, sQuery).blockingGet();
+            io.gravitee.elasticsearch.model.CountResponse response = executeCount(queryContext, countQuery, Type.REQUEST, sQuery)
+                .blockingGet();
             return this.toCountResponse(response);
         } catch (final Exception eex) {
             logger.error("Impossible to perform CountQuery", eex);

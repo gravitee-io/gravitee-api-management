@@ -19,6 +19,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query) throws AnalyticsException {
         @SuppressWarnings("unchecked")
         final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
@@ -67,6 +68,6 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
             logger.error("No command found to handle query of type {}", query.getClass());
             throw new AnalyticsException("No command found to handle query of type " + query.getClass());
         }
-        return handler.executeQuery(handler.prepareQuery(query));
+        return handler.executeQuery(queryContext, handler.prepareQuery(query));
     }
 }

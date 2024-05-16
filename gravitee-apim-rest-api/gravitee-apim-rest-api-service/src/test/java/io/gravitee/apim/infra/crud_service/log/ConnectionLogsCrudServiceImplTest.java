@@ -23,9 +23,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,14 +55,20 @@ public class ConnectionLogsCrudServiceImplTest {
 
         @Test
         void should_search_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any())).thenReturn(Optional.of(ConnectionLogDetail.builder().build()));
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(ConnectionLogDetail.builder().build()));
 
-            logCrudService.searchApiConnectionLog("apiId", "requestId");
+            logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId");
 
-            var captor = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
-            verify(logRepository).searchConnectionLogDetail(captor.capture());
+            var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
+            var captorConnectionLogDetailQuery = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
+            verify(logRepository).searchConnectionLogDetail(captorQueryContext.capture(), captorConnectionLogDetailQuery.capture());
 
-            assertThat(captor.getValue())
+            final QueryContext queryContext = captorQueryContext.getValue();
+            assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
+            assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
+
+            assertThat(captorConnectionLogDetailQuery.getValue())
                 .isEqualTo(
                     ConnectionLogDetailQuery
                         .builder()
@@ -71,14 +79,14 @@ public class ConnectionLogsCrudServiceImplTest {
 
         @Test
         void should_return_empty_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any())).thenReturn(Optional.empty());
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any())).thenReturn(Optional.empty());
 
-            assertThat(logCrudService.searchApiConnectionLog("apiId", "requestId")).isEmpty();
+            assertThat(logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId")).isEmpty();
         }
 
         @Test
         void should_return_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any()))
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any()))
                 .thenReturn(
                     Optional.of(
                         ConnectionLogDetail
@@ -149,7 +157,7 @@ public class ConnectionLogsCrudServiceImplTest {
                     )
                 );
 
-            var result = logCrudService.searchApiConnectionLog("apiId", "requestId");
+            var result = logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId");
 
             SoftAssertions.assertSoftly(soft -> {
                 assertThat(result)

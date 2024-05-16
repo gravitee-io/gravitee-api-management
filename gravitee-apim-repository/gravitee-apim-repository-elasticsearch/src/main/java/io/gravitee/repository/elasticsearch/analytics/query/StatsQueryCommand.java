@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.stats.StatsQuery;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
+import io.gravitee.repository.common.query.QueryContext;
 
 /**
  * Commmand used to handle StatsQuery
@@ -39,12 +40,12 @@ public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsRe
     }
 
     @Override
-    public StatsResponse executeQuery(Query<StatsResponse> query) throws AnalyticsException {
+    public StatsResponse executeQuery(QueryContext queryContext, Query<StatsResponse> query) throws AnalyticsException {
         final StatsQuery statsQuery = (StatsQuery) query;
         final String sQuery = this.createQuery(TEMPLATE, query);
 
         try {
-            SearchResponse searchResponse = execute(statsQuery, Type.REQUEST, sQuery).blockingGet();
+            SearchResponse searchResponse = execute(queryContext, statsQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toStatsResponse(searchResponse);
         } catch (final Exception eex) {
             logger.error("Impossible to perform StatsQuery", eex);

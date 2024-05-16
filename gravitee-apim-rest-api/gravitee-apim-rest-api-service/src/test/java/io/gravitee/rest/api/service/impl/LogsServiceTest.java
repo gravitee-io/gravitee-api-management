@@ -25,6 +25,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Request;
@@ -94,30 +95,30 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldThrowNotFoundExceptionBecause() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(KEY_LESS));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(KEY_LESS));
         when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, LOG_API_ID)).thenThrow(new ApiNotFoundException(LOG_API_ID));
         assertThrows(LogNotFoundException.class, () -> logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP));
     }
 
     @Test
     void findApiLogShouldThrowException() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenThrow(new AnalyticsException());
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenThrow(new AnalyticsException());
 
         assertThrows(TechnicalManagementException.class, () -> logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP));
     }
 
     @Test
     void findApiLogShouldReturnNull() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(null);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(null);
 
         ApiRequest result = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
         assertThat(result).isNull();
-        verify(logRepository, times(1)).findById(LOG_ID, LOG_TIMESTAMP);
+        verify(logRepository, times(1)).findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP));
     }
 
     @Test
     void findApiLogShouldFindWithKeyLessPlan() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(KEY_LESS));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(KEY_LESS));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(KEY_LESS));
 
@@ -132,7 +133,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldFindWithApiKeyPlan() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(API_KEY));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
         when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID)).thenReturn(newApiKey());
@@ -149,7 +150,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldFindWithJwtPlan() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(JWT));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
         when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
@@ -167,7 +168,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldHaveEmptySubscriptionWithNoSecurity() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(null));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(null));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(null));
 
@@ -183,7 +184,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldHaveEmptySubscriptionWithNoSecurityInV4Plan() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(null));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(null));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlanV4(null));
 
@@ -199,7 +200,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldNotFailOnApiKeyNotFoundException() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(API_KEY));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
         when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID)).thenThrow(new ApiKeyNotFoundException());
@@ -216,7 +217,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldNotFailOnPlanNotFoundException() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(JWT));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenThrow(new PlanNotFoundException(LOG_PLAN_ID));
 
@@ -231,7 +232,7 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldNotFailOnDuplicatedSubscription() throws Exception {
-        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(JWT));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
         when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
@@ -249,7 +250,7 @@ class LogsServiceTest {
 
     @Test
     void findLogByApiShouldThrowException() throws Exception {
-        when(logRepository.query(any())).thenThrow(new AnalyticsException());
+        when(logRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
         LogQuery query = new LogQuery();
 
@@ -258,13 +259,13 @@ class LogsServiceTest {
 
     @Test
     void findLogByApiShouldReturnEmptyResult() throws Exception {
-        when(logRepository.query(any())).thenReturn(null);
+        when(logRepository.query(any(QueryContext.class), any())).thenReturn(null);
 
         SearchLogResponse<ApiRequestItem> result = logService.findByApi(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isNull();
-        verify(logRepository, times(1)).query(any());
+        verify(logRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
@@ -272,18 +273,18 @@ class LogsServiceTest {
         TabularResponse tabularResponse = new TabularResponse(0L);
         tabularResponse.setLogs(new ArrayList<>());
 
-        when(logRepository.query(any())).thenReturn(tabularResponse);
+        when(logRepository.query(any(QueryContext.class), any())).thenReturn(tabularResponse);
 
         SearchLogResponse<ApiRequestItem> result = logService.findByApi(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isEmpty();
-        verify(logRepository, times(1)).query(any());
+        verify(logRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     void findLogByApplicationShouldThrowException() throws Exception {
-        when(logRepository.query(any())).thenThrow(new AnalyticsException());
+        when(logRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
         LogQuery query = new LogQuery();
 
         assertThrows(TechnicalManagementException.class, () -> logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, query));
@@ -291,13 +292,13 @@ class LogsServiceTest {
 
     @Test
     void findLogByApplicationShouldReturnEmptyResult() throws Exception {
-        when(logRepository.query(any())).thenReturn(null);
+        when(logRepository.query(any(QueryContext.class), any())).thenReturn(null);
 
         SearchLogResponse<ApplicationRequestItem> result = logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isNull();
-        verify(logRepository, times(1)).query(any());
+        verify(logRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
@@ -305,18 +306,18 @@ class LogsServiceTest {
         TabularResponse tabularResponse = new TabularResponse(0L);
         tabularResponse.setLogs(new ArrayList<>());
 
-        when(logRepository.query(any())).thenReturn(tabularResponse);
+        when(logRepository.query(any(QueryContext.class), any())).thenReturn(tabularResponse);
 
         SearchLogResponse<ApplicationRequestItem> result = logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isEmpty();
-        verify(logRepository, times(1)).query(any());
+        verify(logRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     void findLogByPlatformShouldThrowException() throws Exception {
-        when(logRepository.query(any())).thenThrow(new AnalyticsException());
+        when(logRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
         LogQuery query = new LogQuery();
 
@@ -325,13 +326,13 @@ class LogsServiceTest {
 
     @Test
     void findLogByPlatformShouldReturnEmptyResult() throws Exception {
-        when(logRepository.query(any())).thenReturn(null);
+        when(logRepository.query(any(QueryContext.class), any())).thenReturn(null);
 
         SearchLogResponse<PlatformRequestItem> result = logService.findPlatform(EXECUTION_CONTEXT, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isNull();
-        verify(logRepository, times(1)).query(any());
+        verify(logRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
@@ -339,13 +340,13 @@ class LogsServiceTest {
         TabularResponse tabularResponse = new TabularResponse(0L);
         tabularResponse.setLogs(new ArrayList<>());
 
-        when(logRepository.query(any())).thenReturn(tabularResponse);
+        when(logRepository.query(any(QueryContext.class), any())).thenReturn(tabularResponse);
 
         SearchLogResponse<PlatformRequestItem> result = logService.findPlatform(EXECUTION_CONTEXT, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isEmpty();
-        verify(logRepository, times(1)).query(any());
+        verify(logRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
@@ -354,7 +355,7 @@ class LogsServiceTest {
         log.setClientRequest(newRequest());
         log.setClientResponse(newResponse());
         log.setApplication("Another_application");
-        when(logRepository.findById(eq(LOG_ID), anyLong())).thenReturn(log);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(log);
 
         long timestamp = Instant.now().toEpochMilli();
 
@@ -366,7 +367,7 @@ class LogsServiceTest {
 
     @Test
     void findApplicationLogShouldThrowException() throws Exception {
-        when(logRepository.findById(eq(LOG_ID), anyLong())).thenThrow(new AnalyticsException("test_error"));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenThrow(new AnalyticsException("test_error"));
         long timestamp = Instant.now().toEpochMilli();
 
         assertThrows(
@@ -377,7 +378,7 @@ class LogsServiceTest {
 
     @Test
     void findApplicationLogShouldReturnNull() throws Exception {
-        when(logRepository.findById(eq(LOG_ID), anyLong())).thenReturn(null);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(null);
 
         ApplicationRequest result = logService.findApplicationLog(
             EXECUTION_CONTEXT,
@@ -387,7 +388,7 @@ class LogsServiceTest {
         );
 
         assertThat(result).isNull();
-        verify(logRepository, times(1)).findById(eq(LOG_ID), anyLong());
+        verify(logRepository, times(1)).findById(any(QueryContext.class), eq(LOG_ID), anyLong());
     }
 
     @Test
@@ -395,7 +396,7 @@ class LogsServiceTest {
         ExtendedLog log = newLog(JWT);
         log.setClientRequest(newRequest());
         log.setClientResponse(newResponse());
-        when(logRepository.findById(eq(LOG_ID), anyLong())).thenReturn(log);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(log);
         when(apiSearchService.findGenericById(any(), anyString())).thenReturn(newApiEntity());
         when(planSearchService.findById(any(), anyString())).thenReturn(newPlan(KEY_LESS));
 
@@ -407,7 +408,7 @@ class LogsServiceTest {
         );
 
         assertThat(result).isNotNull();
-        verify(logRepository, times(1)).findById(eq(LOG_ID), anyLong());
+        verify(logRepository, times(1)).findById(any(QueryContext.class), eq(LOG_ID), anyLong());
         verify(apiSearchService, times(1)).findGenericById(any(), anyString());
         verify(planSearchService, times(1)).findById(any(), anyString());
     }

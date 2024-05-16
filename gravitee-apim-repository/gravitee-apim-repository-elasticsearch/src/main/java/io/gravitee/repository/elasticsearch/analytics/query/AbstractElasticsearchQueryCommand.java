@@ -25,6 +25,7 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.analytics.query.AbstractQuery;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchQueryCommand;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
@@ -115,7 +116,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
         return request;
     }
 
-    Single<SearchResponse> execute(AbstractQuery<T> query, Type type, String sQuery) {
+    Single<SearchResponse> execute(QueryContext queryContext, AbstractQuery<T> query, Type type, String sQuery) {
         final Single<SearchResponse> result;
 
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
@@ -127,14 +128,14 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
             result =
                 this.client.search(
-                        this.indexNameGenerator.getIndexName(type, from, to, clusters),
+                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), type, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
         } else {
             result =
                 this.client.search(
-                        this.indexNameGenerator.getTodayIndexName(type, clusters),
+                        this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), type, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
@@ -143,7 +144,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
         return result;
     }
 
-    Single<CountResponse> executeCount(AbstractQuery<T> query, Type type, String sQuery) {
+    Single<CountResponse> executeCount(QueryContext queryContext, AbstractQuery<T> query, Type type, String sQuery) {
         final Single<CountResponse> result;
 
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
@@ -155,14 +156,14 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
             result =
                 this.client.count(
-                        this.indexNameGenerator.getIndexName(type, from, to, clusters),
+                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), type, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
         } else {
             result =
                 this.client.count(
-                        this.indexNameGenerator.getTodayIndexName(type, clusters),
+                        this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), type, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );

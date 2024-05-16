@@ -56,7 +56,7 @@ public class SearchConnectionLogsUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = connectionLogsCrudService.searchApiConnectionLogs(input.apiId(), input.logsFilters(), pageable);
+        var response = connectionLogsCrudService.searchApiConnectionLogs(executionContext, input.apiId(), input.logsFilters(), pageable);
         return mapToResponse(executionContext, response);
     }
 

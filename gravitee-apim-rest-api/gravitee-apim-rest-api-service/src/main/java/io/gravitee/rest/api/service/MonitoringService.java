@@ -16,11 +16,12 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  * @author GraviteeSource Team
  */
 public interface MonitoringService {
-    MonitoringData findMonitoring(String gatewayId);
+    MonitoringData findMonitoring(ExecutionContext executionContext, String gatewayId);
 }

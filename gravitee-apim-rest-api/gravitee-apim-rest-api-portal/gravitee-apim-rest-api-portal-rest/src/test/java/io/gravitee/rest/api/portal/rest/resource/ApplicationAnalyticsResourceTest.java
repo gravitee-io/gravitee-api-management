@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery.Order;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
@@ -142,8 +143,9 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
             .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
+        ArgumentCaptor<ExecutionContext> queryContextCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
         ArgumentCaptor<CountQuery> queryCaptor = ArgumentCaptor.forClass(CountQuery.class);
-        Mockito.verify(analyticsService).execute(queryCaptor.capture());
+        Mockito.verify(analyticsService).execute(queryContextCaptor.capture(), queryCaptor.capture());
         final CountQuery query = queryCaptor.getValue();
         assertEquals(0, query.getFrom());
         assertEquals(100, query.getTo());
@@ -151,5 +153,9 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertEquals(APPLICATION, query.getQuery());
         assertEquals(ANALYTICS_ROOT_FIELD, query.getRootField());
         assertEquals(APPLICATION, query.getRootIdentifier());
+
+        final ExecutionContext executionContext = queryContextCaptor.getValue();
+        assertEquals("DEFAULT", executionContext.getOrganizationId());
+        assertEquals("DEFAULT", executionContext.getEnvironmentId());
     }
 }

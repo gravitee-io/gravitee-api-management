@@ -21,6 +21,7 @@ import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,10 +38,10 @@ public class SearchMessageLogsUseCase {
         this.messageLogCrudService = messageLogCrudService;
     }
 
-    public Output execute(Input input) {
+    public Output execute(ExecutionContext executionContext, Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = messageLogCrudService.searchApiMessageLog(input.apiId(), input.requestId(), pageable);
+        var response = messageLogCrudService.searchApiMessageLog(executionContext, input.apiId(), input.requestId(), pageable);
         return mapToResponse(response);
     }
 

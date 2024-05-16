@@ -115,7 +115,7 @@ public class ApiMetricsResource extends AbstractResource {
         query.setField("response-time");
 
         try {
-            final StatsAnalytics analytics = analyticsService.execute(query);
+            final StatsAnalytics analytics = analyticsService.execute(GraviteeContext.getExecutionContext(), query);
             if (analytics != null) {
                 return analytics.getCount();
             }

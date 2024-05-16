@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
@@ -42,8 +43,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public Optional<CountAggregate> searchRequestsCount(RequestsCountQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_METRICS, clusters);
+    public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
         return this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query))
             .map(SearchRequestsCountResponseAdapter::adapt)
@@ -51,16 +52,16 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public Optional<AverageAggregate> searchAverageMessagesPerRequest(AverageMessagesPerRequestQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_MESSAGE_METRICS, clusters);
+    public Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
         return this.client.search(index, null, SearchAverageMessagesPerRequestQueryAdapter.adapt(query))
             .map(SearchAverageMessagesPerRequestResponseAdapter::adapt)
             .blockingGet();
     }
 
     @Override
-    public Optional<AverageAggregate> searchAverageConnectionDuration(AverageConnectionDurationQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_METRICS, clusters);
+    public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         return this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query))
             .map(SearchAverageConnectionDurationResponseAdapter::adapt)
             .blockingGet();

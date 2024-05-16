@@ -92,7 +92,7 @@ public class ApiLogsResource extends AbstractResource {
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
-        var response = searchMessageLogsUsecase.execute(request);
+        var response = searchMessageLogsUsecase.execute(GraviteeContext.getExecutionContext(), request);
 
         return ApiMessageLogsResponse
             .builder()
@@ -110,7 +110,7 @@ public class ApiLogsResource extends AbstractResource {
         var request = new SearchConnectionLogUseCase.Input(apiId, requestId);
 
         return searchConnectionLogUsecase
-            .execute(request)
+            .execute(GraviteeContext.getExecutionContext(), request)
             .connectionLogDetail()
             .map(ApiLogsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));

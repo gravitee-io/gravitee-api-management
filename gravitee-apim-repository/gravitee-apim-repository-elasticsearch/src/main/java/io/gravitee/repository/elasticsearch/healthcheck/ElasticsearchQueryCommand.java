@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.healthcheck;
 
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
 
@@ -38,7 +39,7 @@ public interface ElasticsearchQueryCommand<T extends Response> {
      * @throws AnalyticsException
      *             in case of analytic exception
      */
-    T executeQuery(final Query<T> query) throws AnalyticsException;
+    T executeQuery(final QueryContext queryContext, final Query<T> query) throws AnalyticsException;
 
     /**
      * Get the supported query

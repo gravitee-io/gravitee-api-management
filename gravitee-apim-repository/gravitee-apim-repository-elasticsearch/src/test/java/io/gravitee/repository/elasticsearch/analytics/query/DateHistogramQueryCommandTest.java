@@ -29,6 +29,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.DateHistogramQuery;
 import io.gravitee.repository.analytics.query.DateRange;
 import io.gravitee.repository.analytics.query.TimeRangeFilter;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,7 +91,7 @@ public class DateHistogramQueryCommandTest {
         when(timeRangeFilter.interval()).thenReturn(() -> interval);
         when(dateRange.from()).thenReturn(from);
         when(dateRange.to()).thenReturn(to);
-        dateHistogramQueryCommand.executeQuery(dateHistogramQuery);
+        dateHistogramQueryCommand.executeQuery(new QueryContext("org#1", "env#1"), dateHistogramQuery);
 
         verify(freeMarkerComponent)
             .generateFromTemplate(

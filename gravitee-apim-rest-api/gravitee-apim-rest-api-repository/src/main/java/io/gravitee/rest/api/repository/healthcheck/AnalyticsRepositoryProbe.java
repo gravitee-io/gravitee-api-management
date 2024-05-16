@@ -19,6 +19,7 @@ import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
+import io.gravitee.repository.common.query.QueryContext;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -48,23 +49,15 @@ public class AnalyticsRepositoryProbe implements Probe {
         Promise<Result> promise = Promise.promise();
 
         vertx.executeBlocking(
-            new Handler<Promise<Result>>() {
-                @Override
-                public void handle(Promise<Result> event) {
-                    try {
-                        analyticsRepository.query(new CountQuery());
-                        promise.complete(Result.healthy());
-                    } catch (Exception ex) {
-                        promise.complete(Result.unhealthy(ex));
-                    }
+            event -> {
+                try {
+                    analyticsRepository.query(new QueryContext("DEFAULT", "DEFAULT"), new CountQuery());
+                    promise.complete(Result.healthy());
+                } catch (Exception ex) {
+                    promise.complete(Result.unhealthy(ex));
                 }
             },
-            new Handler<AsyncResult<Result>>() {
-                @Override
-                public void handle(AsyncResult<Result> event) {
-                    promise.complete(event.result());
-                }
-            }
+            (Handler<AsyncResult<Result>>) event -> promise.complete(event.result())
         );
 
         return promise.future().toCompletionStage();

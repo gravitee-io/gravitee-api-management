@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.noop.monitor;
 
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class NoOpMonitoringRepository implements MonitoringRepository {
     private final Logger logger = LoggerFactory.getLogger(NoOpMonitoringRepository.class);
 
     @Override
-    public MonitoringResponse query(final String gatewayId) {
+    public MonitoringResponse query(final QueryContext queryContext, final String gatewayId) {
         return null;
     }
 }

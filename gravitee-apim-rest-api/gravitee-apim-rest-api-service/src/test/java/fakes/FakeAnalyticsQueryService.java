@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
 /**
@@ -32,17 +33,17 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public AverageConnectionDuration averageConnectionDuration;
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(String apiId) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
         return Optional.ofNullable(requestsCount);
     }
 
     @Override
-    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(String apiId) {
+    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId) {
         return Optional.ofNullable(averageMessagesPerRequest);
     }
 
     @Override
-    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(String apiId) {
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId) {
         return Optional.ofNullable(averageConnectionDuration);
     }
 

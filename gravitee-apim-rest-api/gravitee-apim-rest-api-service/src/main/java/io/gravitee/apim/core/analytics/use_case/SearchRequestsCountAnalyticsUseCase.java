@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +36,11 @@ public class SearchRequestsCountAnalyticsUseCase {
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
-    public Output execute(Input input) {
+    public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
 
         // Verify v4 api
-        return analyticsQueryService.searchRequestsCount(input.apiId()).map(Output::new).orElse(new Output());
+        return analyticsQueryService.searchRequestsCount(executionContext, input.apiId()).map(Output::new).orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {

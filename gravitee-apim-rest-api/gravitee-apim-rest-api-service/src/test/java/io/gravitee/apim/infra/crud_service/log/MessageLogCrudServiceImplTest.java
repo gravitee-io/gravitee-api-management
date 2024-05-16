@@ -23,11 +23,13 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
@@ -57,14 +59,18 @@ class MessageLogCrudServiceImplTest {
 
     @Test
     void should_search_api_message_logs() throws AnalyticsException {
-        when(logRepository.searchAggregatedMessageLog(any())).thenReturn(new LogResponse<>(0L, List.of()));
+        when(logRepository.searchAggregatedMessageLog(any(QueryContext.class), any())).thenReturn(new LogResponse<>(0L, List.of()));
 
-        cut.searchApiMessageLog("api-id", "request-id", new PageableImpl(1, 10));
+        cut.searchApiMessageLog(GraviteeContext.getExecutionContext(), "api-id", "request-id", new PageableImpl(1, 10));
 
-        var captor = ArgumentCaptor.forClass(MessageLogQuery.class);
-        verify(logRepository).searchAggregatedMessageLog(captor.capture());
+        var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
+        var captorConnectionLogDetailQuery = ArgumentCaptor.forClass(MessageLogQuery.class);
+        verify(logRepository).searchAggregatedMessageLog(captorQueryContext.capture(), captorConnectionLogDetailQuery.capture());
 
-        assertThat(captor.getValue())
+        assertThat(captorQueryContext.getValue().getOrgId()).isEqualTo("DEFAULT");
+        assertThat(captorQueryContext.getValue().getEnvId()).isEqualTo("DEFAULT");
+
+        assertThat(captorConnectionLogDetailQuery.getValue())
             .isEqualTo(
                 MessageLogQuery
                     .builder()
@@ -108,9 +114,10 @@ class MessageLogCrudServiceImplTest {
                     .build()
             )
             .build();
-        when(logRepository.searchAggregatedMessageLog(any())).thenReturn(new LogResponse<>(1L, List.of(expectedMessageLog)));
+        when(logRepository.searchAggregatedMessageLog(any(QueryContext.class), any()))
+            .thenReturn(new LogResponse<>(1L, List.of(expectedMessageLog)));
 
-        var result = cut.searchApiMessageLog("api-id", "request-id", new PageableImpl(1, 10));
+        var result = cut.searchApiMessageLog(GraviteeContext.getExecutionContext(), "api-id", "request-id", new PageableImpl(1, 10));
 
         SoftAssertions.assertSoftly(soft -> {
             assertThat(result.total()).isOne();

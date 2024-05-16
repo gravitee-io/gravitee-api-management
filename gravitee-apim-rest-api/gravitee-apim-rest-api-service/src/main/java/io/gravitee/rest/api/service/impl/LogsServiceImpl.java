@@ -134,6 +134,7 @@ public class LogsServiceImpl implements LogsService {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
+                executionContext.getQueryContext(),
                 QueryBuilders
                     .tabular()
                     .page(query.getPage())
@@ -185,7 +186,7 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public ApiRequest findApiLog(final ExecutionContext executionContext, String id, Long timestamp) {
         try {
-            final ExtendedLog log = logRepository.findById(id, timestamp);
+            final ExtendedLog log = logRepository.findById(executionContext.getQueryContext(), id, timestamp);
             if (log == null) {
                 return null;
             }
@@ -223,6 +224,7 @@ public class LogsServiceImpl implements LogsService {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
+                executionContext.getQueryContext(),
                 QueryBuilders
                     .tabular()
                     .page(query.getPage())
@@ -276,6 +278,7 @@ public class LogsServiceImpl implements LogsService {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
+                executionContext.getQueryContext(),
                 QueryBuilders
                     .tabular()
                     .page(query.getPage())
@@ -331,7 +334,7 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public ApplicationRequest findApplicationLog(ExecutionContext executionContext, String applicationId, String id, Long timestamp) {
         try {
-            ExtendedLog log = logRepository.findById(id, timestamp);
+            ExtendedLog log = logRepository.findById(executionContext.getQueryContext(), id, timestamp);
             if (log == null) {
                 return null;
             }

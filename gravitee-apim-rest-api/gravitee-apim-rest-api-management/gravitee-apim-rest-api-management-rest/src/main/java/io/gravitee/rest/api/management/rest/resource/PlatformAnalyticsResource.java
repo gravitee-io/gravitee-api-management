@@ -160,7 +160,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
         query.setQuery(analyticsParam.getQuery());
         query.setField(analyticsParam.getField());
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeCount(AnalyticsParam analyticsParam, String extraFilter) {
@@ -170,7 +170,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
         query.setInterval(analyticsParam.getInterval());
         query.setQuery(analyticsParam.getQuery());
         addExtraFilter(query, extraFilter);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeDateHisto(AnalyticsParam analyticsParam, String extraFilter) {

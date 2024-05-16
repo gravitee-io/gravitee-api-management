@@ -63,7 +63,7 @@ class SearchMessageLogsUseCaseTest {
             )
         );
 
-        var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -99,7 +99,7 @@ class SearchMessageLogsUseCaseTest {
             )
         );
 
-        var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -126,7 +126,10 @@ class SearchMessageLogsUseCaseTest {
                 .toList()
         );
 
-        var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize))
+        );
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);

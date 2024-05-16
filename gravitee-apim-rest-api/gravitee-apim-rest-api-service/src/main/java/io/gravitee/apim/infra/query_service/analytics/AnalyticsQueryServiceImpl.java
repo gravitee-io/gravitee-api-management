@@ -23,6 +23,7 @@ import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -43,18 +44,21 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(String apiId) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
         return analyticsRepository
-            .searchRequestsCount(RequestsCountQuery.builder().apiId(apiId).build())
+            .searchRequestsCount(executionContext.getQueryContext(), RequestsCountQuery.builder().apiId(apiId).build())
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
             );
     }
 
     @Override
-    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(String apiId) {
+    public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId) {
         return analyticsRepository
-            .searchAverageMessagesPerRequest(AverageMessagesPerRequestQuery.builder().apiId(apiId).build())
+            .searchAverageMessagesPerRequest(
+                executionContext.getQueryContext(),
+                AverageMessagesPerRequestQuery.builder().apiId(apiId).build()
+            )
             .map(averageAggregate ->
                 AverageMessagesPerRequest
                     .builder()
@@ -65,9 +69,12 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(String apiId) {
+    public Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId) {
         return analyticsRepository
-            .searchAverageConnectionDuration(AverageConnectionDurationQuery.builder().apiId(apiId).build())
+            .searchAverageConnectionDuration(
+                executionContext.getQueryContext(),
+                AverageConnectionDurationQuery.builder().apiId(apiId).build()
+            )
             .map(averageAggregate ->
                 AverageConnectionDuration
                     .builder()

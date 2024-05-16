@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.healthcheck.query.Query;
@@ -63,7 +64,7 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
     }
 
     @Override
-    public LogsResponse executeQuery(Query<LogsResponse> query) throws AnalyticsException {
+    public LogsResponse executeQuery(QueryContext queryContext, Query<LogsResponse> query) throws AnalyticsException {
         final LogsQuery logsQuery = (LogsQuery) query;
 
         long queryFrom = logsQuery.from();
@@ -84,7 +85,7 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
 
             final Single<SearchResponse> result =
                 this.client.search(
-                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
+                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
                         sQuery
                     );

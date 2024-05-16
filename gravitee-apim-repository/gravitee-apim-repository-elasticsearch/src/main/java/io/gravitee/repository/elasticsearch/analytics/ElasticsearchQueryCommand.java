@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.analytics;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.common.query.QueryContext;
 
 /**
  * Common interface used to execute an analytic Elasticsearch query.
@@ -48,7 +49,7 @@ public interface ElasticsearchQueryCommand<T extends Response> {
      * @throws AnalyticsException
      *             in case of analytic exception
      */
-    T executeQuery(final Query<T> query) throws AnalyticsException;
+    T executeQuery(final QueryContext queryContext, final Query<T> query) throws AnalyticsException;
 
     /**
      * Get the supported query

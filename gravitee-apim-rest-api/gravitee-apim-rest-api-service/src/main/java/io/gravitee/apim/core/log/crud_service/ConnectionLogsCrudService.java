@@ -20,9 +20,15 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
 public interface ConnectionLogsCrudService {
-    SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(String apiId, SearchLogsFilters logsFilters, Pageable pageable);
-    Optional<ConnectionLogDetail> searchApiConnectionLog(String apiId, String requestId);
+    SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        String apiId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable
+    );
+    Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId);
 }

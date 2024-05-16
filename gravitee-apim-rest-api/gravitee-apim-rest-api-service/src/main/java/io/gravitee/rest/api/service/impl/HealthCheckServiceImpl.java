@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.query.AggregationType;
 import io.gravitee.repository.analytics.query.DateRangeBuilder;
 import io.gravitee.repository.analytics.query.IntervalBuilder;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Bucket;
 import io.gravitee.repository.healthcheck.query.DateHistogramQueryBuilder;
@@ -47,7 +48,6 @@ import io.gravitee.rest.api.model.healthcheck.Request;
 import io.gravitee.rest.api.model.healthcheck.Response;
 import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -59,7 +59,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +90,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private InstanceService instanceService;
 
     @Override
-    public Analytics query(final DateHistogramQuery query) {
+    public Analytics query(final ExecutionContext executionContext, final DateHistogramQuery query) {
         try {
             final DateHistogramQueryBuilder queryBuilder = QueryBuilders
                 .dateHistogram()
@@ -108,7 +107,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                     );
             }
 
-            DateHistogramResponse response = healthCheckRepository.query(queryBuilder.build());
+            DateHistogramResponse response = healthCheckRepository.query(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                queryBuilder.build()
+            );
             return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
@@ -185,6 +187,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api);
 
             AvailabilityResponse response = healthCheckRepository.query(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 QueryBuilders.availability().api(api).field(AvailabilityQuery.Field.valueOf(field)).build()
             );
 
@@ -203,6 +206,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api);
 
             AverageResponseTimeResponse response = healthCheckRepository.query(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 QueryBuilders.responseTime().api(api).field(AverageResponseTimeQuery.Field.valueOf(field)).build()
             );
 
@@ -219,6 +223,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
         try {
             LogsResponse response = healthCheckRepository.query(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 QueryBuilders
                     .logs()
                     .api(api)
@@ -239,9 +244,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public Log findLog(String api, String id) {
+    public Log findLog(ExecutionContext executionContext, String api, String id) {
         try {
-            ExtendedLog log = healthCheckRepository.findById(id);
+            ExtendedLog log = healthCheckRepository.findById(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                id
+            );
             return (log != null && api.equalsIgnoreCase(log.getApi())) ? toLog(log) : null;
         } catch (AnalyticsException ae) {
             logger.error("An unexpected error occurs while searching for health data.", ae);

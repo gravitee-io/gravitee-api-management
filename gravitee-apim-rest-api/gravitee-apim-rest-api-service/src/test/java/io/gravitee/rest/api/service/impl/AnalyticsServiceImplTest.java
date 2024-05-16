@@ -26,6 +26,7 @@ import io.gravitee.repository.analytics.query.count.CountResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
@@ -56,101 +57,101 @@ public class AnalyticsServiceImplTest {
 
     @Test(expected = AnalyticsCalculateException.class)
     public void shouldThrowExceptionForStatusQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenThrow(new AnalyticsException());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
-        cut.execute(new StatsQuery());
+        cut.execute(EXECUTION_CONTEXT, new StatsQuery());
     }
 
     @Test
     public void shouldExecuteStatusQueryWithNoResponse() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(null);
-        StatsAnalytics execute = cut.execute(new StatsQuery());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
+        StatsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new StatsQuery());
 
         assertNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     public void shouldExecuteStatusQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(new StatsResponse());
-        StatsAnalytics execute = cut.execute(new StatsQuery());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(new StatsResponse());
+        StatsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new StatsQuery());
 
         assertNotNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test(expected = AnalyticsCalculateException.class)
     public void shouldThrowExceptionForCountQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenThrow(new AnalyticsException());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
-        cut.execute(new CountQuery());
+        cut.execute(EXECUTION_CONTEXT, new CountQuery());
     }
 
     @Test
     public void shouldExecuteCountQueryWithNoResponse() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(null);
-        HitsAnalytics execute = cut.execute(new CountQuery());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
+        HitsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new CountQuery());
 
         assertNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     public void shouldExecuteCountQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(new CountResponse());
-        HitsAnalytics execute = cut.execute(new CountQuery());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(new CountResponse());
+        HitsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new CountQuery());
 
         assertNotNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test(expected = AnalyticsCalculateException.class)
     public void shouldThrowExceptionForDateHistogramQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenThrow(new AnalyticsException());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
         cut.execute(EXECUTION_CONTEXT, new DateHistogramQuery());
     }
 
     @Test
     public void shouldExecuteDateHistogramQueryWithNoResponse() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(null);
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
         HistogramAnalytics execute = cut.execute(EXECUTION_CONTEXT, new DateHistogramQuery());
 
         assertNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     public void shouldExecuteDateHistogramQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(new DateHistogramResponse());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(new DateHistogramResponse());
         HistogramAnalytics execute = cut.execute(EXECUTION_CONTEXT, new DateHistogramQuery());
 
         assertNotNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test(expected = AnalyticsCalculateException.class)
     public void shouldThrowExceptionForGroupByQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenThrow(new AnalyticsException());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
         cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
     }
 
     @Test
     public void shouldExecuteGroupByQueryWithNoResponse() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(null);
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(null);
         TopHitsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
 
         assertNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     public void shouldExecuteGroupByQuery() throws Exception {
-        when(analyticsRepository.query(any())).thenReturn(new GroupByResponse());
+        when(analyticsRepository.query(any(QueryContext.class), any())).thenReturn(new GroupByResponse());
         TopHitsAnalytics execute = cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
 
         assertNotNull(execute);
-        verify(analyticsRepository, times(1)).query(any());
+        verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 }

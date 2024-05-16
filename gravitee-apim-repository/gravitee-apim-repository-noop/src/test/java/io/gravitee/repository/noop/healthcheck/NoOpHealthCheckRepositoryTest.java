@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.healthcheck;
 import static io.gravitee.repository.healthcheck.query.QueryBuilders.dateHistogram;
 
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
@@ -32,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class NoOpHealthCheckRepositoryTest extends AbstractNoOpRepositoryTest {
 
+    private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+
     @Autowired
     private HealthCheckRepository healthCheckRepository;
 
@@ -39,7 +42,7 @@ public class NoOpHealthCheckRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testQuery() throws AnalyticsException {
         Assert.assertNotNull(healthCheckRepository);
 
-        DateHistogramResponse response = healthCheckRepository.query(dateHistogram().query("any_query").build());
+        DateHistogramResponse response = healthCheckRepository.query(queryContext, dateHistogram().query("any_query").build());
 
         Assert.assertNull(response);
     }
@@ -48,7 +51,7 @@ public class NoOpHealthCheckRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testFindById() throws AnalyticsException {
         Assert.assertNotNull(healthCheckRepository);
 
-        ExtendedLog response = healthCheckRepository.findById("any_id");
+        ExtendedLog response = healthCheckRepository.findById(queryContext, "any_id");
 
         Assert.assertNull(response);
     }

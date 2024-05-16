@@ -16,6 +16,7 @@
 package io.gravitee.repository.noop.monitor;
 
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
@@ -37,7 +38,10 @@ public class NoOpMonitoringRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testQuery() throws AnalyticsException, IOException {
         Assert.assertNotNull(monitoringRepository);
 
-        final MonitoringResponse monitoringResponse = monitoringRepository.query("1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
+        final MonitoringResponse monitoringResponse = monitoringRepository.query(
+            new QueryContext("org#1", "env#1"),
+            "1876c024-c6a2-409a-b6c0-24c6a2e09a5f"
+        );
 
         Assert.assertNull(monitoringResponse);
     }
