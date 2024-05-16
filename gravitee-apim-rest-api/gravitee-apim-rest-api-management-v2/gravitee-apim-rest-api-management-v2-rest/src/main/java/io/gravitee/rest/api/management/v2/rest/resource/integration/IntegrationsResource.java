@@ -85,11 +85,7 @@ public class IntegrationsResource extends AbstractResource {
     ) {
         Page<Integration> integrations = getIntegrationsUsecase
             .execute(
-                new GetIntegrationsUseCase.Input(
-                    GraviteeContext.getCurrentOrganization(),
-                    environmentId,
-                    new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
-                )
+                new GetIntegrationsUseCase.Input(environmentId, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))
             )
             .integrations();
         var totalElements = integrations.getTotalElements();
