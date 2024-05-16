@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -196,6 +197,7 @@ class UpdateFederatedPlanUseCaseTest {
     void should_throw_when_general_conditions_page_is_not_published_while_updating_a_federated_plan() {
         // Given
         var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
+        pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
 
         // When
         var throwable = Assertions.catchThrowable(() ->
