@@ -30,7 +30,7 @@
         *gioPermission="{ anyOf: ['environment-integration-c'] }"
         mat-raised-button
         color="primary"
-        [disabled]="isLoading"
+        [disabled]="isLoading || isFreeTier"
         data-testid="create-integration-button"
         routerLink="new"
       >
@@ -39,16 +39,41 @@
     </div>
   </div>
 
+  <div class="banners">
+    <gio-banner-info class="tech-preview-banner">
+      This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for
+      production use.
+    </gio-banner-info>
+
+    @if (isFreeTier) {
+      <gio-banner-error icon="gio:universe" class="licence-banner">
+        <div>This configuration requires an enterprise license</div>
+        <div gioBannerBody>
+          Request a license to unlock enterprise functionality, such as support for event-native APIs, multitenancy support, enterprise
+          policies, and federation of 3rd-party gateways and brokers.
+        </div>
+
+        <div gioBannerAction>
+          <button mat-raised-button color="basic" (click)="onRequestUpgrade()">Request upgrade</button>
+        </div>
+      </gio-banner-error>
+    }
+  </div>
+
   <ng-template #noIntegrations>
-    <div class="no-integrations">
-      <div class="no-integrations__img">
-        <img class="banner" src="/assets/integrations-banner.png" alt="Integrations banner" />
-      </div>
-      <div class="no-integrations__message">
-        <h2 class="header">No integrations yet</h2>
-        <p class="description">Create an integration to start importing APIs and event streams from a 3rd-party provider.</p>
-      </div>
-    </div>
+    <mat-card>
+      <mat-card-content>
+        <div class="no-integrations">
+          <div class="no-integrations__img">
+            <img class="banner" src="/assets/integrations-banner.png" alt="Integrations banner" />
+          </div>
+          <div class="no-integrations__message">
+            <h2 class="header">No integrations yet</h2>
+            <p class="description">Create an integration to start importing APIs and event streams from a 3rd-party provider.</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </ng-template>
 
   <ng-container *ngIf="integrations.length || isLoading; else noIntegrations">

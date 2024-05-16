@@ -16,8 +16,9 @@
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { BehaviorSubject, EMPTY } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { catchError, distinctUntilChanged, mergeMap, switchMap } from 'rxjs/operators';
+import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Integration, IntegrationResponse } from './integrations.model';
@@ -25,6 +26,7 @@ import { Integration, IntegrationResponse } from './integrations.model';
 import { IntegrationsService } from '../../services-ngx/integrations.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'app-integrations',
@@ -36,44 +38,68 @@ export class IntegrationsComponent implements OnInit {
   public isLoading: boolean = false;
   public integrations: Integration[] = [];
   public displayedColumns: string[] = ['name', 'owner', 'provider', 'agent', 'action'];
-
+  public isFreeTier: boolean = false;
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   };
   public nbTotalInstances = this.integrations.length;
-
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
     private integrationsService: IntegrationsService,
     private snackBarService: SnackBarService,
+    private licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
-    this.filters$
+    this.licenseService
+      .getLicense$()
       .pipe(
-        distinctUntilChanged(isEqual),
-        switchMap((filters: GioTableWrapperFilters) => {
+        mergeMap((license: License): Observable<null> | Observable<IntegrationResponse> => {
+          if (license.isExpired || license.tier === 'oss') {
+            this.isFreeTier = true;
+            return of(null);
+          }
           this.isLoading = true;
-          return this.integrationsService.getIntegrations(filters.pagination.index, filters.pagination.size);
+          return this.initFilters();
         }),
-        catchError((_) => {
+        catchError(({ error }) => {
           this.isLoading = false;
-          this.snackBarService.error('Something went wrong!');
+          this.snackBarService.error(error.message);
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((response: IntegrationResponse): void => {
-        this.nbTotalInstances = response.pagination.totalCount;
-        this.integrations = response.data;
+      .subscribe((response: IntegrationResponse | null): void => {
         this.isLoading = false;
+        if (response) {
+          this.nbTotalInstances = response.pagination.totalCount;
+          this.integrations = response.data;
+        }
       });
+  }
+
+  initFilters(): Observable<IntegrationResponse> {
+    return this.filters$.pipe(
+      distinctUntilChanged(isEqual),
+      switchMap((filters: GioTableWrapperFilters) => {
+        return this.integrationsService.getIntegrations(filters.pagination.index, filters.pagination.size);
+      }),
+    );
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters = { ...this.filters, ...filters };
     this.filters$.next(this.filters);
+  }
+
+  private licenseOptions = {
+    feature: ApimFeature.FEDERATION,
+    context: UTMTags.CONTEXT_ENVIRONMENT,
+  };
+
+  public onRequestUpgrade() {
+    this.licenseService.openDialog(this.licenseOptions);
   }
 }

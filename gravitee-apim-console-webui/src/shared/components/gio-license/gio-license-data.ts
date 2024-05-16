@@ -28,6 +28,7 @@ export enum ApimFeature {
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
   ALERT_ENGINE = 'alert-engine',
+  FEDERATION = 'federation',
 }
 
 export enum UTMTags {
@@ -65,6 +66,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
   const hideDays = ctaConfig?.hideDays || false;
 
   return {
+    [ApimFeature.FEDERATION]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/policies.svg',
+      description: `Request a license to unlock enterprise functionality, such as support for event-native APIs, multitenancy support, enterprise policies, and federation of 3rd-party gateways and brokers.`,
+      trialButtonLabel,
+      hideDays,
+    },
     [ApimFeature.APIM_CUSTOM_ROLES]: {
       title,
       image: 'assets/gio-ee-unlock-dialog/roles-customisation.svg',

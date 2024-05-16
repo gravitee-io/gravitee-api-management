@@ -36,6 +36,7 @@ import {
   GioLoaderModule,
   GioSubmenuModule,
   GioSaveBarModule,
+  GioLicenseModule,
 } from '@gravitee/ui-particles-angular';
 
 import { IntegrationsComponent } from './integrations.component';
@@ -100,6 +101,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     CdkAccordion,
     CdkAccordionItem,
     MapProviderNamePipe,
+    GioLicenseModule,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })

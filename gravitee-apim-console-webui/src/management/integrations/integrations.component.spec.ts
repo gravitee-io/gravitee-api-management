@@ -22,6 +22,8 @@ import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform
 import { TestElement } from '@angular/cdk/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { of } from 'rxjs';
+import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 
 import { IntegrationsComponent } from './integrations.component';
 import { IntegrationsHarness } from './integrations.harness';
@@ -44,6 +46,12 @@ describe('IntegrationsComponent', () => {
       'environment-integration-c',
       'environment-integration-r',
     ],
+    licence: License = {
+      tier: 'universe',
+      packs: ['', ''],
+      features: [''],
+      isExpired: false,
+    },
   ) => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationsComponent],
@@ -52,6 +60,13 @@ describe('IntegrationsComponent', () => {
         {
           provide: GioTestingPermissionProvider,
           useValue: [...permissions],
+        },
+        {
+          provide: GioLicenseService,
+          useValue: {
+            openDialog: jest.fn(),
+            getLicense$: () => of(licence),
+          },
         },
       ],
     })
@@ -143,20 +158,69 @@ describe('IntegrationsComponent', () => {
     });
   });
 
-  describe('banner', () => {
+  describe('free tier info banners', (): void => {
+    beforeEach((): void => {
+      init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
+        tier: 'oss',
+        packs: [],
+        features: [],
+        isExpired: false,
+      });
+    });
+
+    it('should not request for integrations', async (): Promise<void> => {
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations?page=1&perPage=10`);
+    });
+
+    it('should display tech preview banner', async (): Promise<void> => {
+      const techPreviewBanner: TestElement = await componentHarness.getTechPreviewBanner();
+      expect(techPreviewBanner).toBeTruthy();
+    });
+
+    it('should display license banner', async (): Promise<void> => {
+      const licenceBanner: TestElement = await componentHarness.getLicenceBanner();
+      expect(licenceBanner).toBeTruthy();
+    });
+  });
+
+  describe('enterprise license info banners', (): void => {
+    beforeEach((): void => {
+      init(['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'], {
+        tier: 'universe',
+        packs: [],
+        features: [],
+        isExpired: false,
+      });
+    });
+
+    it('should display tech preview banner', async (): Promise<void> => {
+      expectIntegrationGetRequest();
+
+      const techPreviewBanner = await componentHarness.getTechPreviewBanner();
+      expect(techPreviewBanner).toBeTruthy();
+    });
+
+    it('should not display license banner', async (): Promise<void> => {
+      expectIntegrationGetRequest();
+      const licenceBanner = await componentHarness.getLicenceBanner();
+      expect(licenceBanner).toBeNull();
+    });
+  });
+
+  describe('no-integrations-banner', (): void => {
     beforeEach(() => {
       init();
     });
 
-    it('should be visible when no integrations', async () => {
+    it('should be visible when no integrations', async (): Promise<void> => {
       expectIntegrationGetRequest([]);
-      const banner: TestElement = await componentHarness.getBanner();
+      const banner: TestElement = await componentHarness.getNoIntegrationBanner();
       expect(banner).toBeTruthy();
     });
 
-    it('should be hidden when integration are present', async () => {
+    it('should be hidden when integration are present', async (): Promise<void> => {
       expectIntegrationGetRequest([fakeIntegration()]);
-      const banner: TestElement = await componentHarness.getBanner();
+      const banner: TestElement = await componentHarness.getNoIntegrationBanner();
       expect(banner).toBeFalsy();
     });
   });
