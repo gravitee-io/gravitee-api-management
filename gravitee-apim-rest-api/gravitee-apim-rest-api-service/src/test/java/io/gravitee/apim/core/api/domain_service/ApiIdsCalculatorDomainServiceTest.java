@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import fixtures.core.model.PlanFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import java.util.List;
 import java.util.Map;
@@ -391,7 +393,10 @@ class ApiIdsCalculatorDomainServiceTest {
     }
 
     private static PlanWithFlows buildPlanWithFlows(String id, String crossId) {
-        return PlanWithFlows.builder().id(id).crossId(crossId).name(generateRandomName()).build();
+        return new PlanWithFlows(
+            PlanFixtures.aPlanV4().setPlanId(id).toBuilder().crossId(crossId).name(generateRandomName()).build(),
+            List.of()
+        );
     }
 
     private static Page buildPage(String id, String crossId) {
