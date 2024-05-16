@@ -21,6 +21,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.FederatedPlan;
@@ -32,8 +33,12 @@ import io.gravitee.integration.api.command.ingest.IngestReply;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommand;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommandPayload;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReply;
 import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionType;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
@@ -106,6 +111,22 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             });
     }
 
+    @Override
+    public Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription) {
+        var payload = new UnsubscribeCommandPayload(
+            api.getProviderId(),
+            Subscription.builder().graviteeSubscriptionId(subscription.getId()).metadata(subscription.getMetadata()).build()
+        );
+
+        return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId)
+            .flatMapCompletable(reply -> {
+                if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                    return Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
+                }
+                return Completable.complete();
+            });
+    }
+
     private Single<IngestReply> sendIngestCommand(IngestCommand fetchCommand, String integrationId) {
         return exchangeController
             .sendCommand(fetchCommand, integrationId)
@@ -118,5 +139,12 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             .sendCommand(subscribeCommand, integrationId)
             .cast(SubscribeReply.class)
             .onErrorReturn(throwable -> new SubscribeReply(subscribeCommand.getId(), throwable.getMessage()));
+    }
+
+    private Single<UnsubscribeReply> sendUnsubscribeCommand(UnsubscribeCommand command, String integrationId) {
+        return exchangeController
+            .sendCommand(command, integrationId)
+            .cast(UnsubscribeReply.class)
+            .onErrorReturn(throwable -> new UnsubscribeReply(command.getId(), throwable.getMessage()));
     }
 }

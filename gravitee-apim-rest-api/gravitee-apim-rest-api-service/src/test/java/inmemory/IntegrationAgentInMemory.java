@@ -19,8 +19,10 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.FederatedPlan;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
 
     List<IntegrationApi> storage = new ArrayList<>();
     Map<String, List<String>> subscriptions = new HashMap<>();
+    Map<String, List<SubscriptionEntity>> closedSubscriptions = new HashMap<>();
 
     @Override
     public Flowable<IntegrationApi> fetchAllApis(Integration integration) {
@@ -68,6 +71,14 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     }
 
     @Override
+    public Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription) {
+        return Completable.fromRunnable(() -> {
+            var subscriptions = closedSubscriptions.computeIfAbsent(integrationId, value -> new ArrayList<>());
+            subscriptions.add(subscription);
+        });
+    }
+
+    @Override
     public void initWith(List<IntegrationApi> items) {
         this.storage.addAll(items);
     }
@@ -80,5 +91,9 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     @Override
     public List<IntegrationApi> storage() {
         return Collections.unmodifiableList(storage);
+    }
+
+    public List<SubscriptionEntity> closedSubscriptions(String integrationId) {
+        return closedSubscriptions.get(integrationId);
     }
 }

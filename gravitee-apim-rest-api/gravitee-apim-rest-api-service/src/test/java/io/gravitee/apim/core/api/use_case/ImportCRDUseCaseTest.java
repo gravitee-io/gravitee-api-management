@@ -43,6 +43,7 @@ import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -233,7 +234,9 @@ class ImportCRDUseCaseTest {
                 subscriptionCrudService,
                 auditDomainService,
                 triggerNotificationDomainService
-            )
+            ),
+            apiCrudService,
+            new IntegrationAgentInMemory()
         );
         var metadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
@@ -613,6 +616,7 @@ class ImportCRDUseCaseTest {
                 aSubscription()
                     .toBuilder()
                     .id("sub1")
+                    .apiId(API_ID)
                     .applicationId(application.getId())
                     .planId(API_KEY.getId())
                     .status(SubscriptionEntity.Status.ACCEPTED)
@@ -620,6 +624,7 @@ class ImportCRDUseCaseTest {
                 aSubscription()
                     .toBuilder()
                     .id("sub2")
+                    .apiId(API_ID)
                     .applicationId(application.getId())
                     .planId(API_KEY.getId())
                     .status(SubscriptionEntity.Status.PENDING)
@@ -627,6 +632,7 @@ class ImportCRDUseCaseTest {
                 aSubscription()
                     .toBuilder()
                     .id("sub3")
+                    .apiId(API_ID)
                     .applicationId(application.getId())
                     .planId(API_KEY.getId())
                     .status(SubscriptionEntity.Status.PAUSED)

@@ -18,7 +18,9 @@ package io.gravitee.apim.core.subscription.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
@@ -26,6 +28,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
@@ -38,6 +41,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditEntity.AuditReferenceType;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -58,7 +62,8 @@ class CloseExpiredSubscriptionsUseCaseTest {
     private static final String USER_ID = "user-id";
     private static final AuditActor AUDIT_ACTOR = AuditActor.builder().userId(USER_ID).build();
 
-    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
@@ -104,7 +109,9 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     auditDomainService,
                     triggerNotificationService,
                     rejectSubscriptionDomainService,
-                    revokeApiKeyDomainService
+                    revokeApiKeyDomainService,
+                    apiCrudService,
+                    new IntegrationAgentInMemory()
                 )
             );
 
@@ -116,6 +123,12 @@ class CloseExpiredSubscriptionsUseCaseTest {
         );
         givenExistingApis(
             List.of(Api.builder().id("api1").environmentId("env1").build(), Api.builder().id("api2").environmentId("env2").build())
+        );
+        givenExistingPlans(
+            List.of(
+                PlanFixtures.anApiKeyV4().toBuilder().id("plan1").apiId("api1").build(),
+                PlanFixtures.anApiKeyV4().toBuilder().id("plan2").apiId("api2").build()
+            )
         );
         givenExistingApplication(
             List.of(BaseApplicationEntity.builder().id("app1").build(), BaseApplicationEntity.builder().id("app2").build())
@@ -152,6 +165,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .toBuilder()
                     .id("s1")
                     .apiId("api1")
+                    .planId("plan1")
                     .applicationId("app1")
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
@@ -161,6 +175,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .toBuilder()
                     .id("s2")
                     .apiId("api2")
+                    .planId("plan2")
                     .applicationId("app2")
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
@@ -189,6 +204,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .toBuilder()
                     .id("s1")
                     .apiId("api1")
+                    .planId("plan1")
                     .applicationId("app1")
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
@@ -198,6 +214,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .toBuilder()
                     .id("s2")
                     .apiId("api2")
+                    .planId("plan2")
                     .applicationId("app2")
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
@@ -238,6 +255,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .toBuilder()
                     .id("s1")
                     .apiId("api1")
+                    .planId("plan1")
                     .applicationId("app1")
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
@@ -247,6 +265,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .toBuilder()
                     .id("s2")
                     .apiId("api2")
+                    .planId("plan2")
                     .applicationId("app2")
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
@@ -267,7 +286,11 @@ class CloseExpiredSubscriptionsUseCaseTest {
     }
 
     private void givenExistingApis(List<Api> apis) {
-        apiQueryService.initWith(apis);
+        apiCrudService.initWith(apis);
+    }
+
+    private void givenExistingPlans(List<Plan> plans) {
+        planCrudService.initWith(plans);
     }
 
     private void givenExistingApplication(List<BaseApplicationEntity> applications) {

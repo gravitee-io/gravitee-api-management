@@ -18,8 +18,10 @@ package io.gravitee.apim.core.integration.service_provider;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.FederatedPlan;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 
@@ -42,4 +44,14 @@ public interface IntegrationAgent {
         String subscriptionId,
         String applicationName
     );
+
+    /**
+     * Send Unsubscribe command
+     *
+     * @param integrationId The integartion id.
+     * @param api           The Federated API.
+     * @param subscription  The subscription to close.
+     * @return {Completable}
+     */
+    Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription);
 }

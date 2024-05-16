@@ -27,6 +27,7 @@ import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionExcept
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
@@ -37,6 +38,10 @@ import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
 import io.gravitee.integration.api.command.subscribe.SubscribeReplyPayload;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommand;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommandPayload;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReply;
+import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReplyPayload;
 import io.gravitee.integration.api.model.Page;
 import io.gravitee.integration.api.model.PageType;
 import io.gravitee.integration.api.model.Plan;
@@ -238,6 +243,59 @@ class IntegrationAgentImplTest {
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertError(error -> {
                     assertThat(error).isInstanceOf(IntegrationSubscriptionException.class).hasMessage("Fail to subscribe");
+                    return true;
+                });
+        }
+    }
+
+    @Nested
+    class Unsubscribe {
+
+        @BeforeEach
+        void setUp() {
+            when(controller.sendCommand(any(), any()))
+                .thenReturn(Single.just(new UnsubscribeReply("command-id", new UnsubscribeReplyPayload())));
+        }
+
+        @Test
+        void should_send_command_to_unsubscribe() {
+            agent
+                .unsubscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    SubscriptionEntity.builder().id("subscription-id").metadata(Map.of("aws-api-key-id", "apikey-123")).build()
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            assertThat(captor.getValue())
+                .isInstanceOf(UnsubscribeCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(
+                    new UnsubscribeCommandPayload(
+                        "api-provider-id",
+                        new Subscription("subscription-id", null, null, Map.of("aws-api-key-id", "apikey-123"))
+                    )
+                );
+        }
+
+        @Test
+        void should_throw_when_command_fails() {
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new UnsubscribeReply("command-id", "Fail to unsubscribe")));
+
+            agent
+                .unsubscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    SubscriptionEntity.builder().id("subscription-id").metadata(Map.of("aws-api-key-id", "apikey-123")).build()
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(IntegrationSubscriptionException.class).hasMessage("Fail to unsubscribe");
                     return true;
                 });
         }
