@@ -26,78 +26,106 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
 import { GioRequestStatsHarness } from '../components/gio-request-stats/gio-request-stats.harness';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('HomeOverviewComponent', () => {
   let fixture: ComponentFixture<HomeOverviewComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule],
-    });
-  });
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(HomeOverviewComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
-
-    httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-  });
-
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should show request stats', async () => {
-    expectApiLifecycleStateRequest();
-    expectApiStateRequest();
-    expectResponseStatusRequest();
-    expectRequestStatsRequest();
-    expectTopApiRequest();
-    expectCountApiRequest();
-    expectCountApplicationRequest();
-    expectSearchApiEventsRequest();
+  describe('with environment-platform-read permission', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule],
+        providers: [{ provide: GioTestingPermissionProvider, useValue: ['environment-platform-r'] }],
+      });
+      fixture = TestBed.createComponent(HomeOverviewComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
 
-    const stats = await loader.getHarness(GioRequestStatsHarness);
-    expect(await stats.getAverage()).toEqual('8.43 ms');
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+    });
+
+    it('should show request stats', async () => {
+      expectApiLifecycleStateRequest();
+      expectApiStateRequest();
+      expectResponseStatusRequest();
+      expectRequestStatsRequest();
+      expectTopApiRequest();
+      expectCountApiRequest();
+      expectCountApplicationRequest();
+      expectSearchApiEventsRequest();
+
+      const stats = await loader.getHarness(GioRequestStatsHarness);
+      expect(await stats.getAverage()).toEqual('8.43 ms');
+    });
+
+    it('should load request stats when changing date range', async () => {
+      expectApiLifecycleStateRequest();
+      expectApiStateRequest();
+      expectResponseStatusRequest();
+      expectRequestStatsRequest();
+      expectTopApiRequest();
+      expectCountApiRequest();
+      expectCountApplicationRequest();
+      expectSearchApiEventsRequest();
+
+      const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
+      await timeRangeHarness.selectTimeRangeByText('last hour');
+      let req = expectApiLifecycleStateRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      req = expectApiStateRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      req = expectResponseStatusRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      req = expectRequestStatsRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      req = expectTopApiRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      req = expectCountApiRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      req = expectCountApplicationRequest();
+      expect(req.request.url).toContain('interval=120000');
+
+      expectSearchApiEventsRequest();
+    });
   });
 
-  it('should load request stats when changing date range', async () => {
-    expectApiLifecycleStateRequest();
-    expectApiStateRequest();
-    expectResponseStatusRequest();
-    expectRequestStatsRequest();
-    expectTopApiRequest();
-    expectCountApiRequest();
-    expectCountApplicationRequest();
-    expectSearchApiEventsRequest();
+  describe('without environment-platform-read permission', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule],
+        providers: [{ provide: GioTestingPermissionProvider, useValue: [] }],
+      });
+      fixture = TestBed.createComponent(HomeOverviewComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
 
-    const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
-    await timeRangeHarness.selectTimeRangeByText('last hour');
-    let req = expectApiLifecycleStateRequest();
-    expect(req.request.url).toContain('interval=120000');
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+    });
 
-    req = expectApiStateRequest();
-    expect(req.request.url).toContain('interval=120000');
+    it('should not load api events', async () => {
+      expectApiLifecycleStateRequest();
+      expectApiStateRequest();
+      expectResponseStatusRequest();
+      expectRequestStatsRequest();
+      expectTopApiRequest();
+      expectCountApiRequest();
+      expectCountApplicationRequest();
 
-    req = expectResponseStatusRequest();
-    expect(req.request.url).toContain('interval=120000');
-
-    req = expectRequestStatsRequest();
-    expect(req.request.url).toContain('interval=120000');
-
-    req = expectTopApiRequest();
-    expect(req.request.url).toContain('interval=120000');
-
-    req = expectCountApiRequest();
-    expect(req.request.url).toContain('interval=120000');
-
-    req = expectCountApplicationRequest();
-    expect(req.request.url).toContain('interval=120000');
-
-    expectSearchApiEventsRequest();
+      const stats = await loader.getHarness(GioRequestStatsHarness);
+      expect(await stats.getAverage()).toEqual('8.43 ms');
+    });
   });
 
   function expectRequestStatsRequest(): TestRequest {
