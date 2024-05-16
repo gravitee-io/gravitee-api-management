@@ -74,7 +74,7 @@
     </mat-card>
   </div>
 </div>
-<div class="home-api-events">
+<div class="home-api-events" *gioPermission="{ anyOf: ['environment-platform-r'] }">
   <h2>API Events</h2>
   <ng-container *ngIf="timeRangeParams; else loader">
     <gio-api-events-table [timeRangeParams]="timeRangeParams"></gio-api-events-table>

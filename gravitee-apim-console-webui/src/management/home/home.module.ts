@@ -42,6 +42,7 @@ import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-a
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { TasksComponent } from '../tasks/tasks.component';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 export const states: Ng2StateDeclaration[] = [
   {
@@ -128,6 +129,7 @@ export const states: Ng2StateDeclaration[] = [
     GioApiStateModule,
     GioApiLifecycleStateModule,
     GioApiEventsTableModule,
+    GioPermissionModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })
