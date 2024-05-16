@@ -18,7 +18,6 @@ package io.gravitee.apim.core.analytics.use_case;
 import static fixtures.core.model.ApiFixtures.MY_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
@@ -73,6 +72,14 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
         assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID))).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_throw_if_api_is_tcp() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
+        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
 
     @Test

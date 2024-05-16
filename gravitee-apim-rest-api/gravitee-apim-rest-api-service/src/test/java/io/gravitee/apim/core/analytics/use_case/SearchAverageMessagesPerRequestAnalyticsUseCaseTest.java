@@ -81,6 +81,14 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
     }
 
     @Test
+    void should_throw_if_api_is_tcp() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
+        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Analytics are not supported for TCP Proxy APIs");
+    }
+
+    @Test
     void should_not_find_average_messages_per_request() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.averageMessagesPerRequest = null;

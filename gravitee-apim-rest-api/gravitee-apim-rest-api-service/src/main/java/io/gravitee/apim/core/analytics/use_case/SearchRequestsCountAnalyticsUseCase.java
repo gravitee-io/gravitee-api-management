@@ -45,6 +45,7 @@ public class SearchRequestsCountAnalyticsUseCase {
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
+        validateApiIsNotTcp(api.getApiDefinitionV4());
         validateApiMultiTenancyAccess(api, input.environmentId);
     }
 
@@ -57,6 +58,12 @@ public class SearchRequestsCountAnalyticsUseCase {
     private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
         if (!DefinitionVersion.V4.equals(definitionVersion)) {
             throw new ApiInvalidDefinitionVersionException(apiId);
+        }
+    }
+
+    private void validateApiIsNotTcp(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+        if (apiDefinitionV4.isTcpProxy()) {
+            throw new IllegalArgumentException("Analytics are not supported for TCP Proxy APIs");
         }
     }
 
