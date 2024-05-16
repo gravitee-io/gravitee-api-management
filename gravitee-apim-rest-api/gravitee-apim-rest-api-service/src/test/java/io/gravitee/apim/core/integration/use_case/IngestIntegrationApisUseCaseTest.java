@@ -634,6 +634,39 @@ class IngestIntegrationApisUseCaseTest {
         }
 
         @Test
+        void should_create_and_index_a_federated_page_for_asyncapi() {
+            //Given
+            givenIntegrationApis(
+                IntegrationApiFixtures
+                    .anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc")))
+                    .build()
+            );
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            var expectedPage = Page
+                .builder()
+                .id("generated-id")
+                .name("An alien API.json")
+                .referenceId("environment-idintegration-idasset-uid")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.ASYNCAPI)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("some async Doc")
+                .homepage(true)
+                .published(true)
+                .build();
+
+            // Then
+            assertThat(pageCrudService.storage()).contains(expectedPage);
+        }
+
+        @Test
         void should_not_create_documentation_if_pages_list_is_null() {
             //Given
             var nullPagesIntegrationApi = IntegrationApiFixtures
@@ -652,7 +685,7 @@ class IngestIntegrationApisUseCaseTest {
         }
 
         @ParameterizedTest
-        @EnumSource(value = IntegrationApi.PageType.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER" })
+        @EnumSource(value = IntegrationApi.PageType.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER", "ASYNCAPI" })
         void should_not_create_documentation_if_pageType_is_other_than_SWAGGER(IntegrationApi.PageType pageType) {
             //Given
             var unsupportedPageTypeIntegrationApi = IntegrationApiFixtures
