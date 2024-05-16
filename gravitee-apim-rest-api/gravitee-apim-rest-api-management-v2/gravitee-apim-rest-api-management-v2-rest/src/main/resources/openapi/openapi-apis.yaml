@@ -1767,6 +1767,7 @@ paths:
         summary: Get API Analytics requests count
         description: |-
           Get API analytics request count.
+          TCP Proxy APIs are not supported.
           
           User must have the API_ANALYTICS[READ] permission.
         operationId: getApiAnalyticsRequestCount
@@ -1803,7 +1804,8 @@ paths:
         summary: Get API Analytics average connection duration
         description: |-
           Get API analytics average connection duration. Duration is only computed for ended requests.
-
+          TCP Proxy APIs are not supported.
+          
           User must have the API_ANALYTICS[READ] permission.
         operationId: getAverageConnectionDuration
         responses:
