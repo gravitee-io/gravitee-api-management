@@ -16,12 +16,9 @@
 
 package io.gravitee.apim.core.integration.use_case;
 
-import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicenseForFederation;
-
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
-import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -36,21 +33,14 @@ import lombok.Builder;
 public class GetIntegrationsUseCase {
 
     private final IntegrationQueryService integrationQueryService;
-    private final LicenseDomainService licenseDomainService;
 
-    public GetIntegrationsUseCase(IntegrationQueryService integrationQueryService, LicenseDomainService licenseDomainService) {
+    public GetIntegrationsUseCase(IntegrationQueryService integrationQueryService) {
         this.integrationQueryService = integrationQueryService;
-        this.licenseDomainService = licenseDomainService;
     }
 
     public GetIntegrationsUseCase.Output execute(GetIntegrationsUseCase.Input input) {
         var environmentId = input.environmentId();
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));
-
-        var license = licenseDomainService.getLicenseByOrganizationId(input.organizationId());
-        if (license.isEmpty()) {
-            throw noLicenseForFederation();
-        }
 
         Page<Integration> integrations = integrationQueryService.findByEnvironment(environmentId, pageable);
 
@@ -58,13 +48,13 @@ public class GetIntegrationsUseCase {
     }
 
     @Builder
-    public record Input(String organizationId, String environmentId, Optional<Pageable> pageable) {
-        public Input(String organizationId, String environmentId) {
-            this(organizationId, environmentId, Optional.empty());
+    public record Input(String environmentId, Optional<Pageable> pageable) {
+        public Input(String environmentId) {
+            this(environmentId, Optional.empty());
         }
 
-        public Input(String organizationId, String environmentId, Pageable pageable) {
-            this(organizationId, environmentId, Optional.of(pageable));
+        public Input(String environmentId, Pageable pageable) {
+            this(environmentId, Optional.of(pageable));
         }
     }
 

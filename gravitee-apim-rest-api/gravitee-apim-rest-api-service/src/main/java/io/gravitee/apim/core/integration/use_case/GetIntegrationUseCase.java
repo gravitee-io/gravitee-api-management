@@ -15,13 +15,10 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
-import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicenseForFederation;
-
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import lombok.Builder;
 
 /**
@@ -32,20 +29,13 @@ import lombok.Builder;
 public class GetIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
-    private final LicenseDomainService licenseDomainService;
 
-    public GetIntegrationUseCase(IntegrationCrudService integrationCrudService, LicenseDomainService licenseDomainService) {
+    public GetIntegrationUseCase(IntegrationCrudService integrationCrudService) {
         this.integrationCrudService = integrationCrudService;
-        this.licenseDomainService = licenseDomainService;
     }
 
     public GetIntegrationUseCase.Output execute(GetIntegrationUseCase.Input input) {
         var integrationId = input.integrationId();
-
-        var license = licenseDomainService.getLicenseByOrganizationId(input.organizationId());
-        if (license.isEmpty()) {
-            throw noLicenseForFederation();
-        }
 
         Integration integrationCreated = integrationCrudService
             .findById(integrationId)
@@ -55,7 +45,7 @@ public class GetIntegrationUseCase {
     }
 
     @Builder
-    public record Input(String integrationId, String organizationId) {}
+    public record Input(String integrationId) {}
 
     public record Output(Integration integration) {}
 }
