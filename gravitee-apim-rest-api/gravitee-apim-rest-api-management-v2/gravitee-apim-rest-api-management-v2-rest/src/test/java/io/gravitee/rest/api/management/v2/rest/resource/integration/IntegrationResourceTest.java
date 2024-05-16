@@ -26,9 +26,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationFixture;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
@@ -53,7 +51,6 @@ import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -70,9 +67,6 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Autowired
     ApiCrudServiceInMemory apiCrudServiceInMemory;
-
-    @Autowired
-    LicenseCrudServiceInMemory licenseCrudService;
 
     static final String ENVIRONMENT = "my-env";
     static final String INTEGRATION_ID = "integration-id";
@@ -100,14 +94,13 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         givenExistingUsers(
             List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
-
-        licenseCrudService.createOrganizationLicense(ORGANIZATION, "license-base64");
     }
 
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        Stream.of(apiCrudServiceInMemory, integrationCrudServiceInMemory, licenseCrudService).forEach(InMemoryAlternative::reset);
+        integrationCrudServiceInMemory.reset();
+        apiCrudServiceInMemory.reset();
         GraviteeContext.cleanContext();
     }
 
