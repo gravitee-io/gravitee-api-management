@@ -26,26 +26,26 @@
   @if (filterList$ | async; as filterList) {
     <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList"></app-api-filter>
   }
-  <app-search-bar (searchTerm)="onSearchResults($event)" />
-
   @if (apis.data.length === 0) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
         <div>
           <p i18n="@@noApisAvailable">Sorry, there are no APIs listed yet.</p>
-          <p i18n="@@moreApisComingSoon">Our API catalog is currently being updated. More APIs will be available soon.</p>
+          <p i18n="@@moreApisComingSoon">Our API catalog is currently being updated. More APIs will be available
+            soon.</p>
         </div>
       </mat-card-content>
     </mat-card>
   } @else {
     <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
       @for (api of apis.data; track api.id) {
-        <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" />
+        <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content"
+                      [picture]="api.picture"/>
       }
     </div>
   }
 }
 
 @if (loadingPage$ | async) {
-  <app-loader />
+  <app-loader/>
 }
