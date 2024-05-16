@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.cockpit.command.adapter;
 import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.model.InstallationType;
-import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.hello.HelloCommand;
@@ -31,6 +30,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.spring.InstallationConfiguration;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;
@@ -40,7 +40,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,14 +53,8 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
 
     private static final String PATH_SUFFIX = "/";
 
-    @Value("${installation.api.url:http://localhost:8083}")
-    private String apiURL;
-
-    @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
-    private String managementProxyPath;
-
     @Value("${cockpit.auth.path:/auth/cockpit?token={token}}")
-    private String authPath;
+    protected String authPath;
 
     @Value("${cockpit.trial:false}")
     private boolean cockpitTrial;
@@ -71,20 +64,22 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
     private final InstallationTypeDomainService installationTypeDomainService;
     private final CockpitAccessService cockpitAccessService;
     private final PluginRegistry pluginRegistry;
-    private String buildAuthPath;
+    private final InstallationConfiguration configuration;
+
+    protected String buildAuthPath;
 
     @PostConstruct
     public void afterPropertiesSet() {
-        StringBuilder authPathBuilder = new StringBuilder(managementProxyPath);
-        if (managementProxyPath.endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX)) {
+        StringBuilder authPathBuilder = new StringBuilder(configuration.getManagementProxyPath());
+        if (configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX)) {
             authPathBuilder.append(authPath.substring(1));
         } else if (
-            (managementProxyPath.endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) ||
-            (!managementProxyPath.endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX))
+            (configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) ||
+            (!configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX))
         ) {
             authPathBuilder.append(authPath);
-        } else if (!managementProxyPath.endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) {
-            authPathBuilder.append(managementProxyPath).append(PATH_SUFFIX).append(authPath);
+        } else if (!configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) {
+            authPathBuilder.append(PATH_SUFFIX).append(authPath);
         }
         this.buildAuthPath = authPathBuilder.toString();
     }
@@ -117,7 +112,8 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
                     .trial(cockpitTrial)
                     .defaultOrganizationId(GraviteeContext.getDefaultOrganization())
                     .defaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
-                Map<String, String> additionalInformation = new HashMap<>(installation.getAdditionalInformation());
+                Map<String, String> additionalInformation = new HashMap<>(configuration.getAdditionalInformation());
+                additionalInformation.putAll(installation.getAdditionalInformation());
                 additionalInformation.put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
                 if (installationType == InstallationType.MULTI_TENANT) {
                     Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
@@ -141,7 +137,7 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
                         );
                     payloadBuilder.accessPointsTemplate(accessPointTemplates);
                 } else {
-                    additionalInformation.put(AdditionalInfoConstants.AUTH_BASE_URL, apiURL);
+                    additionalInformation.put(AdditionalInfoConstants.AUTH_BASE_URL, configuration.getApiURL());
                 }
                 payloadBuilder.additionalInformation(additionalInformation);
                 return new HelloCommand(payloadBuilder.build());

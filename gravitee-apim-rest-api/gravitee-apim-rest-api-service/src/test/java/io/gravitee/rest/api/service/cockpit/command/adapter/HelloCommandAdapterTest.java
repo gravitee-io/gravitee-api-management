@@ -16,23 +16,30 @@
 package io.gravitee.rest.api.service.cockpit.command.adapter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.cockpit.model.AccessPointTemplate;
 import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.model.InstallationType;
+import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.v1.installation.AdditionalInfoConstants;
 import io.gravitee.exchange.api.command.hello.HelloCommandPayload;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.spring.InstallationConfiguration;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,11 +74,58 @@ public class HelloCommandAdapterTest {
     @Mock
     private PluginRegistry pluginRegistry;
 
+    @Mock
+    private InstallationConfiguration installationConfiguration;
+
     private HelloCommandAdapter cut;
 
     @BeforeEach
     public void beforeEach() {
-        cut = new HelloCommandAdapter(node, installationService, installationTypeDomainService, cockpitAccessService, pluginRegistry);
+        cut =
+            new HelloCommandAdapter(
+                node,
+                installationService,
+                installationTypeDomainService,
+                cockpitAccessService,
+                pluginRegistry,
+                installationConfiguration
+            );
+    }
+
+    @Test
+    void shouldBuildAuthPath() {
+        cut.authPath = "/auth/cockpit?token={token}";
+        when(installationConfiguration.getManagementProxyPath()).thenReturn("/management/foobar/");
+
+        cut.afterPropertiesSet();
+
+        assertEquals(cut.buildAuthPath, "/management/foobar/auth/cockpit?token={token}");
+    }
+
+    @Test
+    void shouldBuildAuthPathWithoutProxyPathSuffix() {
+        cut.authPath = "/auth/cockpit?token={token}";
+        when(installationConfiguration.getManagementProxyPath()).thenReturn("/management/foobar");
+
+        cut.afterPropertiesSet();
+
+        assertEquals(cut.buildAuthPath, "/management/foobar/auth/cockpit?token={token}");
+    }
+
+    @Test
+    void shouldBuildAuthPathWithoutAuthPathPrefix() {
+        cut.authPath = "auth/cockpit?token={token}";
+        when(installationConfiguration.getManagementProxyPath()).thenReturn("/management/foobar/");
+        cut.afterPropertiesSet();
+        assertEquals(cut.buildAuthPath, "/management/foobar/auth/cockpit?token={token}");
+    }
+
+    @Test
+    void shouldBuildAuthPathWithoutPrefix() {
+        cut.authPath = "auth/cockpit?token={token}";
+        when(installationConfiguration.getManagementProxyPath()).thenReturn("/management/foobar");
+        cut.afterPropertiesSet();
+        assertEquals(cut.buildAuthPath, "/management/foobar/auth/cockpit?token={token}");
     }
 
     @Test
@@ -106,6 +160,50 @@ public class HelloCommandAdapterTest {
             assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().installationId());
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
 
+            return true;
+        });
+    }
+
+    @Test
+    void adaptMultiTenant() throws InterruptedException {
+        final InstallationEntity installationEntity = new InstallationEntity();
+        installationEntity.setId(INSTALLATION_ID);
+        installationEntity.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
+
+        when(node.hostname()).thenReturn(HOSTNAME);
+        when(installationService.getOrInitialize()).thenReturn(installationEntity);
+        when(installationTypeDomainService.get()).thenReturn(InstallationType.MULTI_TENANT);
+        when(cockpitAccessService.getAccessPointsTemplate())
+            .thenReturn(
+                Map.of(
+                    AccessPointTemplate.Type.ENVIRONMENT,
+                    List.of(
+                        AccessPointTemplate.builder().host("localhost").secured(false).target(AccessPointTemplate.Target.CONSOLE).build()
+                    )
+                )
+            );
+        final TestObserver<HelloCommand> obs = cut
+            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+            .test();
+
+        obs.await();
+        obs.assertValue(helloCommand -> {
+            assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
+            assertFalse(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
+            assertEquals(InstallationType.MULTI_TENANT.getLabel(), helloCommand.getPayload().getInstallationType());
+
+            assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
+            assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
+            assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
+            assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().installationId());
+            assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
+
+            assertEquals(helloCommand.getPayload().getAccessPointsTemplate().size(), 1);
+            AccessPoint accessPoint = helloCommand.getPayload().getAccessPointsTemplate().get(AccessPoint.Type.ENVIRONMENT).get(0);
+            assertEquals(accessPoint.getHost(), "localhost");
+            assertEquals(accessPoint.isSecured(), false);
+            assertEquals(accessPoint.getTarget(), AccessPoint.Target.CONSOLE);
             return true;
         });
     }
