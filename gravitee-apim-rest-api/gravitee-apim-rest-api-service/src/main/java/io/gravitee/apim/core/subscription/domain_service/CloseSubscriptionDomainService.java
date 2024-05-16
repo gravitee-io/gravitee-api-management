@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.subscription.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -24,11 +26,16 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +50,8 @@ public class CloseSubscriptionDomainService {
     private final AuditDomainService auditDomainService;
     private final ApplicationCrudService applicationCrudService;
     private final RevokeApiKeyDomainService revokeApiKeyDomainService;
+    private final ApiCrudService apiCrudService;
+    private final IntegrationAgent integrationAgent;
 
     public CloseSubscriptionDomainService(
         SubscriptionCrudService subscriptionCrudService,
@@ -50,7 +59,9 @@ public class CloseSubscriptionDomainService {
         AuditDomainService auditDomainService,
         TriggerNotificationDomainService triggerNotificationDomainService,
         RejectSubscriptionDomainService rejectSubscriptionDomainService,
-        RevokeApiKeyDomainService revokeApiKeyDomainService
+        RevokeApiKeyDomainService revokeApiKeyDomainService,
+        ApiCrudService apiCrudService,
+        IntegrationAgent integrationAgent
     ) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.rejectSubscriptionDomainService = rejectSubscriptionDomainService;
@@ -58,20 +69,41 @@ public class CloseSubscriptionDomainService {
         this.auditDomainService = auditDomainService;
         this.applicationCrudService = applicationCrudService;
         this.revokeApiKeyDomainService = revokeApiKeyDomainService;
+        this.apiCrudService = apiCrudService;
+        this.integrationAgent = integrationAgent;
     }
 
     public SubscriptionEntity closeSubscription(String subscriptionId, AuditInfo auditInfo) {
-        log.debug("Close subscription {}", subscriptionId);
+        var subscription = subscriptionCrudService.get(subscriptionId);
+        var plan = apiCrudService.get(subscription.getApiId());
+
+        return closeSubscription(subscription, plan, auditInfo);
+    }
+
+    public SubscriptionEntity closeSubscription(String subscriptionId, Api api, AuditInfo auditInfo) {
         var subscription = subscriptionCrudService.get(subscriptionId);
 
+        return closeSubscription(subscription, api, auditInfo);
+    }
+
+    public SubscriptionEntity closeSubscription(SubscriptionEntity subscription, Api api, AuditInfo auditInfo) {
+        log.debug("Close subscription {}", subscription.getId());
+
         return switch (subscription.getStatus()) {
-            case ACCEPTED, PAUSED -> closeAcceptedOrPausedSubscription(subscription, auditInfo);
+            case ACCEPTED, PAUSED -> closeAcceptedOrPausedSubscription(subscription, api, auditInfo);
             case PENDING -> rejectSubscriptionDomainService.reject(subscription, "Subscription has been closed.", auditInfo);
             case CLOSED, REJECTED -> subscription;
         };
     }
 
-    private SubscriptionEntity closeAcceptedOrPausedSubscription(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
+    private SubscriptionEntity closeAcceptedOrPausedSubscription(SubscriptionEntity subscriptionEntity, Api api, AuditInfo auditInfo) {
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            var federatedApi = api.getFederatedApiDefinition();
+            integrationAgent
+                .unsubscribe(((IntegrationContext) api.getOriginContext()).getIntegrationId(), federatedApi, subscriptionEntity)
+                .blockingAwait();
+        }
+
         var closedSubscriptionEntity = subscriptionCrudService.update(subscriptionEntity.close());
 
         triggerNotifications(closedSubscriptionEntity, auditInfo);

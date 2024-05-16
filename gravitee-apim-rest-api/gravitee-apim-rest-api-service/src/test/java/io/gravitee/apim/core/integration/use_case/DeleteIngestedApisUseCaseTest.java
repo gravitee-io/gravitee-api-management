@@ -36,6 +36,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -148,7 +149,9 @@ class DeleteIngestedApisUseCaseTest {
             auditDomainService,
             triggerNotificationDomainServiceInMemory,
             rejectSubscriptionDomainService,
-            revokeApiKeyDomainService
+            revokeApiKeyDomainService,
+            apiCrudServiceInMemory,
+            new IntegrationAgentInMemory()
         );
         var deleteSubscriptionDomainService = new DeleteSubscriptionDomainService(subscriptionCrudService, auditDomainService);
         var deletePlanDomainService = new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
@@ -352,14 +355,12 @@ class DeleteIngestedApisUseCaseTest {
 
     @Test
     public void should_delete_all_subscriptions() {
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build());
         var allSubscriptions = Stream
             .of(SubscriptionEntity.Status.values())
-            .map(value -> SubscriptionFixtures.aSubscription().toBuilder().planId("federated").status(value).build())
+            .map(value -> SubscriptionFixtures.aSubscription().toBuilder().apiId(api.getId()).planId("federated").status(value).build())
             .toList();
         subscriptionCrudService.initWith(allSubscriptions);
-        apiCrudServiceInMemory.initWith(
-            List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build())
-        );
         planCrudService.initWith(List.of(PlanFixtures.aFederatedPlan()));
         applicationService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id("application-id").build()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
@@ -509,5 +510,10 @@ class DeleteIngestedApisUseCaseTest {
             )
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
+    }
+
+    private Api givenExistingApi(Api api) {
+        apiCrudServiceInMemory.initWith(List.of(api));
+        return api;
     }
 }
