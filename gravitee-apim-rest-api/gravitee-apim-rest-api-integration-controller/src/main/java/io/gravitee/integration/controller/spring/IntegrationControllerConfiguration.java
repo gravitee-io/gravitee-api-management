@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
-import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
 import io.gravitee.exchange.api.controller.ControllerCommandHandlersFactory;
@@ -52,10 +51,9 @@ public class IntegrationControllerConfiguration {
     @Bean("integrationWebsocketControllerAuthentication")
     public IntegrationWebsocketControllerAuthentication integrationWebsocketControllerAuthentication(
         final TokenService tokenService,
-        final UserCrudService userCrudService,
-        final LicenseDomainService licenseDomainService
+        final UserCrudService userCrudService
     ) {
-        return new IntegrationWebsocketControllerAuthentication(tokenService, userCrudService, licenseDomainService);
+        return new IntegrationWebsocketControllerAuthentication(tokenService, userCrudService);
     }
 
     @Bean("integrationExchangeSerDe")
