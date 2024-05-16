@@ -2,7 +2,7 @@
 apiVersion: "gravitee.io/v1alpha1"
 kind: "ApiDefinition"
 metadata:
-  name: "Export Test API"
+  name: "export-test-api"
   annotations: {}
   labels: {}
 spec:
