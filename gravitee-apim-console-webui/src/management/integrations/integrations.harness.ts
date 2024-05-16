@@ -22,9 +22,11 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 export class IntegrationsHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integrations';
 
-  private getTable = this.locatorForOptional(MatTableHarness);
-  private getBannerLocator = this.locatorForOptional('.no-integrations');
-  private getPaginationLocator = this.locatorForOptional(MatPaginatorHarness);
+  private techPreviewBannerLocator = this.locatorForOptional('.tech-preview-banner');
+  private licenceBannerLocator = this.locatorForOptional('.licence-banner');
+  private tableLocator = this.locatorForOptional(MatTableHarness);
+  private noIntegrationBannerLocator = this.locatorForOptional('.no-integrations');
+  private paginationLocator = this.locatorForOptional(MatPaginatorHarness);
   private createIntegrationButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
     MatButtonHarness.with({
       selector: '[data-testid=create-integration-button]',
@@ -36,16 +38,24 @@ export class IntegrationsHarness extends ComponentHarness {
   };
 
   public rowsNumber = async (): Promise<number> => {
-    return this.getTable()
+    return this.tableLocator()
       .then((table: MatTableHarness) => table.getRows())
       .then((rows: MatRowHarness[]) => rows.length);
   };
 
-  public getBanner = async (): Promise<TestElement> => {
-    return await this.getBannerLocator();
+  public getNoIntegrationBanner = async (): Promise<TestElement> => {
+    return await this.noIntegrationBannerLocator();
   };
 
   public getPagination = async (): Promise<MatPaginatorHarness> => {
-    return await this.getPaginationLocator();
+    return await this.paginationLocator();
+  };
+
+  public getTechPreviewBanner = async (): Promise<TestElement> => {
+    return await this.techPreviewBannerLocator();
+  };
+
+  public getLicenceBanner = async (): Promise<TestElement> => {
+    return await this.licenceBannerLocator();
   };
 }

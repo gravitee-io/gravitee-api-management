@@ -24,6 +24,8 @@ import { IntegrationOverviewComponent } from './integration-overview/integration
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
 
+import { hasEnterpriseLicenseGuard } from '../../shared/components/gio-license/has-enterprise-license.guard';
+
 const routes: Routes = [
   {
     path: '',
@@ -32,6 +34,7 @@ const routes: Routes = [
   {
     path: 'new',
     component: CreateIntegrationComponent,
+    canActivate: [hasEnterpriseLicenseGuard],
     data: {
       permissions: {
         anyOf: ['environment-integration-c'],
@@ -41,6 +44,7 @@ const routes: Routes = [
   {
     path: ':integrationId',
     component: IntegrationsNavigationComponent,
+    canActivate: [hasEnterpriseLicenseGuard],
     children: [
       {
         path: '',
