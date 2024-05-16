@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Predicate;
@@ -32,7 +33,12 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     private final InMemoryConnectionLogDetails connectionLogDetails = new InMemoryConnectionLogDetails();
 
     @Override
-    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        String apiId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable
+    ) {
         Predicate<BaseConnectionLog> predicate = connectionLog -> connectionLog.getApiId().equals(apiId);
         if (null != logsFilters.from()) {
             predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= logsFilters.from());
@@ -78,7 +84,7 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     }
 
     @Override
-    public Optional<ConnectionLogDetail> searchApiConnectionLog(String apiId, String requestId) {
+    public Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId) {
         Predicate<ConnectionLogDetail> predicate = connectionLog -> true;
         if (null != apiId && !apiId.isEmpty()) {
             predicate = predicate.and(connectionLog -> connectionLog.getApiId().equals(apiId));

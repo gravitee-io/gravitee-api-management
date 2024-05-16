@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -82,6 +83,10 @@ public class ExecutionContext {
                     .map(orgId -> ReferenceContext.builder().referenceId(orgId).referenceType(ReferenceContext.Type.ORGANIZATION).build())
                     .orElse(null)
             );
+    }
+
+    public QueryContext getQueryContext() {
+        return new QueryContext(this.getOrganizationId(), this.getEnvironmentId());
     }
 
     @Override

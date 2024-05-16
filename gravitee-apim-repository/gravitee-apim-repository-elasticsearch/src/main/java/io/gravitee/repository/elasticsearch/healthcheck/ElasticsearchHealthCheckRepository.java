@@ -19,6 +19,7 @@ import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.query.LogBuilder;
@@ -76,7 +77,7 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
     }
 
     @Override
-    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query) throws AnalyticsException {
         @SuppressWarnings("unchecked")
         final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
@@ -85,11 +86,11 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
             throw new AnalyticsException("No command found to handle query of type " + query.getClass());
         }
 
-        return handler.executeQuery(query);
+        return handler.executeQuery(queryContext, query);
     }
 
     @Override
-    public ExtendedLog findById(String id) throws AnalyticsException {
+    public ExtendedLog findById(QueryContext queryContext, String id) throws AnalyticsException {
         final Map<String, Object> data = new HashMap<>();
         data.put("id", id);
 
@@ -99,7 +100,7 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         try {
             final Single<SearchResponse> result =
                 this.client.search(
-                        this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK, clusters),
+                        this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
                         sQuery
                     );

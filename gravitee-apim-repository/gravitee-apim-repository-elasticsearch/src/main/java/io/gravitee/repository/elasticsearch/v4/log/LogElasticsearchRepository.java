@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.log;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
@@ -47,9 +48,9 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public LogResponse<ConnectionLog> searchConnectionLogs(ConnectionLogQuery query) {
+    public LogResponse<ConnectionLog> searchConnectionLogs(QueryContext queryContext, ConnectionLogQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_METRICS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
         return this.client.search(index, null, SearchConnectionLogQueryAdapter.adapt(query))
             .map(SearchConnectionLogResponseAdapter::adapt)
@@ -57,9 +58,9 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public Optional<ConnectionLogDetail> searchConnectionLogDetail(ConnectionLogDetailQuery query) {
+    public Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_LOG, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_LOG, clusters);
 
         return this.client.search(index, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
             .map(SearchConnectionLogDetailResponseAdapter::adapt)
@@ -67,9 +68,9 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(MessageLogQuery query) {
+    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_MESSAGE_LOG, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_LOG, clusters);
 
         var entrypointMessages =
             this.client.search(

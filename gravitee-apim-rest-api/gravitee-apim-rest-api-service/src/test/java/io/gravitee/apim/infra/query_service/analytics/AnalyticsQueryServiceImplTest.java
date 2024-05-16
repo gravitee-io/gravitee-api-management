@@ -20,8 +20,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,17 +58,17 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_empty_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any())).thenReturn(Optional.empty());
-            assertThat(cut.searchRequestsCount(any())).isEmpty();
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1")).isEmpty();
         }
 
         @Test
         void should_map_repository_response_to_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any()))
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any()))
                 .thenReturn(
                     Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
                 );
-            assertThat(cut.searchRequestsCount(any()))
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1"))
                 .hasValueSatisfying(requestsCount -> {
                     assertThat(requestsCount.getTotal()).isEqualTo(10);
                     assertThat(requestsCount.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));

@@ -18,11 +18,12 @@ package io.gravitee.repository.analytics.api;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.common.query.QueryContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface AnalyticsRepository {
-    <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    <T extends Response> T query(QueryContext queryContext, Query<T> query) throws AnalyticsException;
 }

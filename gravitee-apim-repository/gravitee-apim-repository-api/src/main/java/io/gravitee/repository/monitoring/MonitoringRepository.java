@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.monitoring;
 
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 
 /**
@@ -22,5 +23,5 @@ import io.gravitee.repository.monitoring.model.MonitoringResponse;
  * @author GraviteeSource Team
  */
 public interface MonitoringRepository {
-    MonitoringResponse query(String gatewayId);
+    MonitoringResponse query(QueryContext queryContext, String gatewayId);
 }

@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.healthcheck.api;
+package io.gravitee.repository.common.query;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.common.query.QueryContext;
-import io.gravitee.repository.healthcheck.query.Query;
-import io.gravitee.repository.healthcheck.query.Response;
-import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Aurelien PACAUD (aurelien.pacaud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HealthCheckRepository {
-    <T extends Response> T query(QueryContext queryContext, Query<T> query) throws AnalyticsException;
+@AllArgsConstructor
+@Getter
+public class QueryContext {
 
-    ExtendedLog findById(QueryContext queryContext, String logId) throws AnalyticsException;
+    private static final String ORG_ID_PLACEHOLDER_KEY = "orgId";
+    private static final String ENV_ID_PLACEHOLDER_KEY = "envId";
+
+    private final String orgId;
+    private final String envId;
+
+    public Map<String, String> placeholder() {
+        return Map.of(ORG_ID_PLACEHOLDER_KEY, orgId, ENV_ID_PLACEHOLDER_KEY, envId);
+    }
 }

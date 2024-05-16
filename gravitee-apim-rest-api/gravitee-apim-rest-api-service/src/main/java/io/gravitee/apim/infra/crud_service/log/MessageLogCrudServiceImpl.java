@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -44,9 +45,15 @@ class MessageLogCrudServiceImpl implements MessageLogCrudService {
     }
 
     @Override
-    public SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
+    public SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(
+        ExecutionContext executionContext,
+        String apiId,
+        String requestId,
+        Pageable pageable
+    ) {
         try {
             var response = logRepository.searchAggregatedMessageLog(
+                executionContext.getQueryContext(),
                 MessageLogQuery
                     .builder()
                     .filter(MessageLogQuery.Filter.builder().apiId(apiId).requestId(requestId).build())

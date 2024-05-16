@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.log;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +47,15 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     }
 
     @Override
-    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
+        ExecutionContext executionContext,
+        String apiId,
+        SearchLogsFilters logsFilters,
+        Pageable pageable
+    ) {
         try {
             var response = logRepository.searchConnectionLogs(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 ConnectionLogQuery
                     .builder()
                     .filter(
@@ -75,9 +83,10 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     }
 
     @Override
-    public Optional<ConnectionLogDetail> searchApiConnectionLog(String apiId, String requestId) {
+    public Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId) {
         try {
             var response = logRepository.searchConnectionLogDetail(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 ConnectionLogDetailQuery
                     .builder()
                     .filter(ConnectionLogDetailQuery.Filter.builder().apiId(apiId).requestId(requestId).build())

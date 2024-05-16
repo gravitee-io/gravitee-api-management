@@ -72,7 +72,7 @@ public class MonitoringResource extends AbstractResource {
         ) {
             throw new InstanceNotFoundException(instance);
         }
-        return monitoringService.findMonitoring(gatewayId);
+        return monitoringService.findMonitoring(GraviteeContext.getExecutionContext(), gatewayId);
     }
 
     private boolean isInstanceAccessibleByOrga(List<String> organizationsHrids, String currentOrganization) {

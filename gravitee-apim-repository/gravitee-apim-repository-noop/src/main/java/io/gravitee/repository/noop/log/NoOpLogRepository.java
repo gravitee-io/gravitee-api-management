@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.log;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.tabular.TabularQuery;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import org.slf4j.Logger;
@@ -35,12 +36,12 @@ public class NoOpLogRepository implements LogRepository {
     private final Logger logger = LoggerFactory.getLogger(NoOpLogRepository.class);
 
     @Override
-    public TabularResponse query(final TabularQuery query) throws AnalyticsException {
+    public TabularResponse query(final QueryContext queryContext, final TabularQuery query) throws AnalyticsException {
         return null;
     }
 
     @Override
-    public ExtendedLog findById(String logId, Long timestamp) throws AnalyticsException {
+    public ExtendedLog findById(QueryContext queryContext, String logId, Long timestamp) throws AnalyticsException {
         return null;
     }
 }

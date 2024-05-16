@@ -29,6 +29,7 @@ import io.gravitee.repository.analytics.query.QueryFilter;
 import io.gravitee.repository.analytics.query.tabular.TabularQuery;
 import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
@@ -71,7 +72,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     protected RepositoryConfiguration configuration;
 
     @Override
-    public TabularResponse query(final TabularQuery query) throws AnalyticsException {
+    public TabularResponse query(final QueryContext queryContext, final TabularQuery query) throws AnalyticsException {
         final Long from = query.timeRange().range().from();
         final Long to = query.timeRange().range().to();
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
@@ -80,7 +81,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             if (isEmpty(logQueryString)) {
                 final Single<SearchResponse> result =
                     this.client.search(
-                            this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
+                            this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
                             !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                             this.createElasticsearchJsonQuery(query)
                         );
@@ -97,7 +98,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
                 Single<SearchResponse> result =
                     this.client.search(
-                            this.indexNameGenerator.getIndexName(Type.LOG, from, to, clusters),
+                            this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),
                             !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(),
                             sQuery
                         );
@@ -124,7 +125,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     }
                     result =
                         this.client.search(
-                                this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
+                                this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
                                 !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                                 this.createElasticsearchJsonQuery(requestQueryBuilder.build())
                             );
@@ -180,7 +181,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     @Override
-    public ExtendedLog findById(final String requestId, final Long timestamp) throws AnalyticsException {
+    public ExtendedLog findById(final QueryContext queryContext, final String requestId, final Long timestamp) throws AnalyticsException {
         final Map<String, Object> data = new HashMap<>(1);
         data.put("requestId", requestId);
 
@@ -191,8 +192,13 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             Single<SearchResponse> result =
                 this.client.search(
                         (timestamp == null)
-                            ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST, clusters)
-                            : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp), clusters),
+                            ? this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters)
+                            : this.indexNameGenerator.getIndexName(
+                                    queryContext.placeholder(),
+                                    Type.REQUEST,
+                                    Instant.ofEpochMilli(timestamp),
+                                    clusters
+                                ),
                         !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                         sQuery
                     );
@@ -212,7 +218,8 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             if (!configuration.isILMIndex()) {
                 searchHitIndex = searchHitIndex.replaceAll(Type.REQUEST.getType(), Type.LOG.getType());
             } else {
-                searchHitIndex = this.indexNameGenerator.getIndexName(Type.LOG, Instant.ofEpochMilli(timestamp), clusters);
+                searchHitIndex =
+                    this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, Instant.ofEpochMilli(timestamp), clusters);
             }
 
             result = this.client.search(searchHitIndex, !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(), sQuery);

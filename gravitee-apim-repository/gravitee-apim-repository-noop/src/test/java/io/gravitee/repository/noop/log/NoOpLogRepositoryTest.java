@@ -21,6 +21,7 @@ import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
@@ -34,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
 
+    private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+
     @Autowired
     private LogRepository logRepository;
 
@@ -41,7 +44,11 @@ public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testFindById() throws Exception {
         Assert.assertNotNull(logRepository);
 
-        ExtendedLog log = logRepository.findById("29381bce-df59-47b2-b81b-cedf59c7b23e", System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+        ExtendedLog log = logRepository.findById(
+            queryContext,
+            "29381bce-df59-47b2-b81b-cedf59c7b23e",
+            System.currentTimeMillis() - 24 * 60 * 60 * 1000
+        );
 
         assertNull(log);
     }
@@ -51,6 +58,7 @@ public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
         Assert.assertNotNull(logRepository);
 
         TabularResponse response = logRepository.query(
+            queryContext,
             tabular().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").page(1).size(20).build()
         );
 

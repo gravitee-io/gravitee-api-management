@@ -34,6 +34,7 @@ import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +45,14 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchRepositoryTest {
 
+    private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+
     @Autowired
     private AnalyticsRepository analyticsRepository;
 
     @Test
     public void testDateHistogram() throws Exception {
-        DateHistogramResponse response = analyticsRepository.query(dateHistogram().timeRange(lastDays(30), hours(1)).build());
+        DateHistogramResponse response = analyticsRepository.query(queryContext, dateHistogram().timeRange(lastDays(30), hours(1)).build());
 
         assertThat(response).isNotNull();
     }
@@ -57,6 +60,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_root() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
+            queryContext,
             dateHistogram().timeRange(lastDays(90), hours(1)).root("api", "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").build()
         );
 
@@ -66,6 +70,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_singleAggregation() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
+            queryContext,
             dateHistogram().timeRange(lastDays(60), hours(1)).aggregation(AggregationType.AVG, "response-time").build()
         );
 
@@ -75,6 +80,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_multipleAggregation_average() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
+            queryContext,
             dateHistogram()
                 .timeRange(lastDays(30), hours(1))
                 .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
@@ -89,6 +95,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_multipleAggregation_averageAndField() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
+            queryContext,
             dateHistogram()
                 .timeRange(lastDays(30), hours(1))
                 .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
@@ -103,6 +110,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testGroupBy_simpleField() throws Exception {
         GroupByResponse response = analyticsRepository.query(
+            queryContext,
             groupBy().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").field("application").build()
         );
 
@@ -112,6 +120,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testGroupBy_simpleField_withOrder() throws Exception {
         GroupByResponse response = analyticsRepository.query(
+            queryContext,
             groupBy()
                 .timeRange(lastDays(30), hours(1))
                 .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
@@ -126,6 +135,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testGroupBy_simpleField_withRanges() throws Exception {
         GroupByResponse response = analyticsRepository.query(
+            queryContext,
             groupBy()
                 .timeRange(lastDays(30), hours(1))
                 .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
@@ -157,6 +167,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCount() throws Exception {
         CountResponse response = analyticsRepository.query(
+            queryContext,
             count().timeRange(lastDays(30), hours(1)).query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1").build()
         );
 
@@ -166,7 +177,10 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
 
     @Test
     public void testCountByPath() throws Exception {
-        CountResponse response = analyticsRepository.query(count().timeRange(lastDays(30), hours(1)).query("(path:/mypath)").build());
+        CountResponse response = analyticsRepository.query(
+            queryContext,
+            count().timeRange(lastDays(30), hours(1)).query("(path:/mypath)").build()
+        );
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isOne();
@@ -175,6 +189,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCountByHost() throws Exception {
         CountResponse response = analyticsRepository.query(
+            queryContext,
             count().timeRange(lastDays(30), hours(1)).query("(host:localhost:8082)").build()
         );
 
@@ -185,6 +200,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCountByHostAndPath() throws Exception {
         CountResponse response = analyticsRepository.query(
+            queryContext,
             count().timeRange(lastDays(30), hours(1)).query("((path:/mypath) AND (host:localhost:8082))").build()
         );
 
@@ -195,6 +211,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testStats() throws Exception {
         final StatsResponse response = analyticsRepository.query(
+            queryContext,
             stats().timeRange(lastDays(30), hours(1)).query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1").field("response-time").build()
         );
 

@@ -102,7 +102,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         query.setRootField("api");
         query.setRootIdentifier(api);
         query.setField(analyticsParam.getField());
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeCount(String api, AnalyticsParam analyticsParam) {
@@ -113,7 +113,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         query.setQuery(analyticsParam.getQuery());
         query.setRootField("api");
         query.setRootIdentifier(api);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeDateHisto(String api, AnalyticsParam analyticsParam) {

@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;
 
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -50,7 +51,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
-            var result = cut.searchRequestsCount(RequestsCountQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build());
+            var result = cut.searchRequestsCount(
+                new QueryContext("org#1", "env#1"),
+                RequestsCountQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
+            );
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
@@ -67,6 +71,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         @Test
         void should_return_average_messages_per_request_by_entrypoint_for_a_given_api() {
             var result = cut.searchAverageMessagesPerRequest(
+                new QueryContext("org#1", "env#1"),
                 AverageMessagesPerRequestQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
             );
 
@@ -85,6 +90,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         @Test
         void should_return_average_connection_duration_by_entrypoint_for_a_given_api() {
             var result = cut.searchAverageConnectionDuration(
+                new QueryContext("org#1", "env#1"),
                 AverageConnectionDurationQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
             );
 

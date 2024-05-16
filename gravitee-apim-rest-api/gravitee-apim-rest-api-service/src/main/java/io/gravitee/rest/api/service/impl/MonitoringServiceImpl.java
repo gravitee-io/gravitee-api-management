@@ -19,6 +19,7 @@ import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.gravitee.rest.api.model.monitoring.*;
 import io.gravitee.rest.api.service.MonitoringService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +40,9 @@ public class MonitoringServiceImpl implements MonitoringService {
     private MonitoringRepository monitoringRepository;
 
     @Override
-    public MonitoringData findMonitoring(final String gatewayId) {
+    public MonitoringData findMonitoring(final ExecutionContext executionContext, final String gatewayId) {
         LOGGER.debug("Running monitoring query for Gateway instance '{}'", gatewayId);
-        final MonitoringResponse monitoringResponse = monitoringRepository.query(gatewayId);
+        final MonitoringResponse monitoringResponse = monitoringRepository.query(executionContext.getQueryContext(), gatewayId);
         return monitoringResponse != null ? convert(monitoringResponse) : null;
     }
 

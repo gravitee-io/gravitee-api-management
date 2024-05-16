@@ -61,7 +61,7 @@ class SearchConnectionLogUseCaseTest {
         final ConnectionLogDetail connectionLogDetail = connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().build();
         logStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
-        var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isEqualTo(new SearchConnectionLogUseCase.Output(Optional.of(connectionLogDetail)));
     }
@@ -72,7 +72,7 @@ class SearchConnectionLogUseCaseTest {
             List.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder().build())
         );
 
-        var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isEqualTo(new SearchConnectionLogUseCase.Output(Optional.empty()));
     }
@@ -83,7 +83,7 @@ class SearchConnectionLogUseCaseTest {
             List.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().apiId("other-api").build())
         );
 
-        var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isEqualTo(new SearchConnectionLogUseCase.Output(Optional.empty()));
     }

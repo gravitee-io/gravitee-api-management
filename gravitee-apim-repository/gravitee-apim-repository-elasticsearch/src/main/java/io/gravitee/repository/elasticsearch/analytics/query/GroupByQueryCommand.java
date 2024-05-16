@@ -23,6 +23,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.groupby.GroupByQuery;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
+import io.gravitee.repository.common.query.QueryContext;
 import java.util.Iterator;
 
 /**
@@ -43,13 +44,13 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
     }
 
     @Override
-    public GroupByResponse executeQuery(Query<GroupByResponse> query) throws AnalyticsException {
+    public GroupByResponse executeQuery(QueryContext queryContext, Query<GroupByResponse> query) throws AnalyticsException {
         final GroupByQuery groupByQuery = (GroupByQuery) query;
 
         final String sQuery = this.createQuery(TEMPLATE, query);
 
         try {
-            SearchResponse searchResponse = execute(groupByQuery, Type.REQUEST, sQuery).blockingGet();
+            SearchResponse searchResponse = execute(queryContext, groupByQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toGroupByResponse(searchResponse);
         } catch (Exception eex) {
             logger.error("Impossible to perform GroupByQuery", eex);

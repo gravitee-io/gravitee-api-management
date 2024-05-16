@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
@@ -45,6 +46,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class LogElasticsearchRepositoryTest extends AbstractElasticsearchRepositoryTest {
 
+    private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
 
     @Autowired
@@ -58,6 +61,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var today = DATE_FORMATTER.format(Instant.now());
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery.builder().filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()).size(2).build()
             );
             assertThat(result).isNotNull();
@@ -100,6 +104,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery
                     .builder()
                     .page(3)
@@ -167,6 +172,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 1000;
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().from(from).to(to).build()).build()
             );
             assertThat(result).isNotNull();
@@ -194,6 +200,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 1000;
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().to(to).build()).build()
             );
             assertThat(result).isNotNull();
@@ -214,6 +221,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 1000;
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().from(from).build()).build()
             );
             assertThat(result).isNotNull();
@@ -234,6 +242,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery
                     .builder()
                     .page(1)
@@ -263,6 +272,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var today = DATE_FORMATTER.format(Instant.now());
 
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery
                     .builder()
                     .page(1)
@@ -290,6 +300,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_the_connection_logs_for_methods() {
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery
                     .builder()
                     .page(1)
@@ -313,6 +324,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_the_connection_logs_for_statuses() {
             var result = logV4Repository.searchConnectionLogs(
+                queryContext,
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().statuses(Set.of(500, 200)).build()).build()
             );
             assertThat(result).isNotNull();
@@ -329,6 +341,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_empty_result() {
             var result = logV4Repository.searchConnectionLogDetail(
+                queryContext,
                 ConnectionLogDetailQuery.builder().filter(ConnectionLogDetailQuery.Filter.builder().apiId("notExisting").build()).build()
             );
             assertThat(result).isEmpty();
@@ -339,6 +352,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var today = DATE_FORMATTER.format(Instant.now());
 
             var result = logV4Repository.searchConnectionLogDetail(
+                queryContext,
                 ConnectionLogDetailQuery
                     .builder()
                     .filter(
@@ -399,6 +413,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
             var result = logV4Repository.searchAggregatedMessageLog(
+                queryContext,
                 MessageLogQuery
                     .builder()
                     .filter(
@@ -444,6 +459,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
             var result = logV4Repository.searchAggregatedMessageLog(
+                queryContext,
                 MessageLogQuery
                     .builder()
                     .filter(
@@ -489,6 +505,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
             var result = logV4Repository.searchAggregatedMessageLog(
+                queryContext,
                 MessageLogQuery
                     .builder()
                     .filter(
@@ -546,6 +563,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
             var result = logV4Repository.searchAggregatedMessageLog(
+                queryContext,
                 MessageLogQuery
                     .builder()
                     .filter(
@@ -601,6 +619,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_the_1st_page_of_aggregated_message_logs_of_an_api_and_request_id() {
             var result = logV4Repository.searchAggregatedMessageLog(
+                queryContext,
                 MessageLogQuery
                     .builder()
                     .filter(
@@ -627,6 +646,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_the_2nd_page_of_aggregated_message_logs_of_an_api_and_request_id() {
             var result = logV4Repository.searchAggregatedMessageLog(
+                queryContext,
                 MessageLogQuery
                     .builder()
                     .filter(

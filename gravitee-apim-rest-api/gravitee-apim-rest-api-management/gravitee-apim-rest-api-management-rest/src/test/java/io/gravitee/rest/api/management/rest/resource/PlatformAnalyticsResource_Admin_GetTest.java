@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
@@ -105,7 +106,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
-        when(analyticsService.execute(any(CountQuery.class))).thenReturn(analytics);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(analytics);
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -137,7 +138,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
-        when(analyticsService.execute(any(CountQuery.class))).thenReturn(analytics);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(analytics);
 
         final Response response = envTarget()
             .queryParam("to", 122222L)

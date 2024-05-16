@@ -16,6 +16,7 @@
 package io.gravitee.repository.noop.healthcheck;
 
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
@@ -28,12 +29,12 @@ import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 public class NoOpHealthCheckRepository implements HealthCheckRepository {
 
     @Override
-    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query) throws AnalyticsException {
         return null;
     }
 
     @Override
-    public ExtendedLog findById(String id) throws AnalyticsException {
+    public ExtendedLog findById(QueryContext queryContext, String id) throws AnalyticsException {
         return null;
     }
 }

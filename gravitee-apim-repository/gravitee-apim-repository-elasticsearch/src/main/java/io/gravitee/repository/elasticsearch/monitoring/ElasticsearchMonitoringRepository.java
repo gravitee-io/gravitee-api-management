@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
-import io.gravitee.repository.elasticsearch.analytics.ElasticsearchAnalyticsRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.monitoring.MonitoringRepository;
@@ -67,14 +67,14 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
     protected RepositoryConfiguration configuration;
 
     @Override
-    public MonitoringResponse query(final String gatewayId) {
+    public MonitoringResponse query(final QueryContext queryContext, final String gatewayId) {
         final String sQuery = this.createElasticsearchJsonQuery(gatewayId);
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
         try {
             final Single<SearchResponse> result =
                 this.client.search(
-                        this.indexNameGenerator.getTodayIndexName(Type.MONITOR, clusters),
+                        this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), Type.MONITOR, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.MONITOR.getType(),
                         sQuery
                     );

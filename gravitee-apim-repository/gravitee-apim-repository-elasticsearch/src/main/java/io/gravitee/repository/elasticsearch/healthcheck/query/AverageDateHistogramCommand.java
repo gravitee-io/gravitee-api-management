@@ -23,6 +23,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.AggregationType;
 import io.gravitee.repository.analytics.query.response.histogram.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.healthcheck.query.DateHistogramQuery;
@@ -63,7 +64,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
     }
 
     @Override
-    public DateHistogramResponse executeQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
+    public DateHistogramResponse executeQuery(QueryContext queryContext, Query<DateHistogramResponse> query) throws AnalyticsException {
         final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
 
         try {
@@ -92,7 +93,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
             final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
             final Single<SearchResponse> result =
                 this.client.search(
-                        this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
+                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
                         sQuery
                     );

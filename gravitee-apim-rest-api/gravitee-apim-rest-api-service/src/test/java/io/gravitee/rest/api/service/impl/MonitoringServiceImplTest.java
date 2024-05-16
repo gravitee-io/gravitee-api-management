@@ -18,11 +18,16 @@ package io.gravitee.rest.api.service.impl;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -44,19 +49,19 @@ public class MonitoringServiceImplTest {
 
     @Test
     public void shouldFindNoMonitoring() {
-        when(monitoringRepository.query(anyString())).thenReturn(null);
-        MonitoringData result = cut.findMonitoring("a_gateway_id");
+        when(monitoringRepository.query(any(QueryContext.class), anyString())).thenReturn(null);
+        MonitoringData result = cut.findMonitoring(GraviteeContext.getExecutionContext(), "a_gateway_id");
 
         assertNull(result);
-        verify(monitoringRepository, times(1)).query(any());
+        verify(monitoringRepository, times(1)).query(any(QueryContext.class), any());
     }
 
     @Test
     public void shouldFindMonitoring() {
-        when(monitoringRepository.query(anyString())).thenReturn(new MonitoringResponse());
-        MonitoringData result = cut.findMonitoring("a_gateway_id");
+        when(monitoringRepository.query(any(QueryContext.class), anyString())).thenReturn(new MonitoringResponse());
+        MonitoringData result = cut.findMonitoring(GraviteeContext.getExecutionContext(), "a_gateway_id");
 
         assertNotNull(result);
-        verify(monitoringRepository, times(1)).query(any());
+        verify(monitoringRepository, times(1)).query(any(QueryContext.class), any());
     }
 }

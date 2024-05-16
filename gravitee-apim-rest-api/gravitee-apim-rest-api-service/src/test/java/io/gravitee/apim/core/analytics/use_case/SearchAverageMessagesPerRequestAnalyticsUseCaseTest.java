@@ -27,6 +27,7 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -60,30 +61,34 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, "another-environment"))).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment")))
+            .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID))).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
+            .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID))).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
+            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_throw_if_api_is_not_message() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID))).isInstanceOf(ApiInvalidTypeException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
+            .isInstanceOf(ApiInvalidTypeException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        assertThatThrownBy(() -> cut.execute(new Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
@@ -92,7 +97,7 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
     void should_not_find_average_messages_per_request() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.averageMessagesPerRequest = null;
-        final Output result = cut.execute(new Input(MY_API, ENV_ID));
+        final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
         assertThat(result.averageMessagesPerRequest()).isEmpty();
     }
 
@@ -105,7 +110,7 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
                 .globalAverage(250.0)
                 .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
                 .build();
-        final Output result = cut.execute(new Input(MY_API, ENV_ID));
+        final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
         assertThat(result.averageMessagesPerRequest())
             .hasValueSatisfying(averageMessagesPerRequest -> {
                 assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);

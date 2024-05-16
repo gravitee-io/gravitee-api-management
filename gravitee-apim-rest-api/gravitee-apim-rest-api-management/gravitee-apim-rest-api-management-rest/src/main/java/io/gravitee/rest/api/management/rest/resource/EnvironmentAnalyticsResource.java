@@ -144,7 +144,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         query.setQuery(analyticsParam.getQuery());
         query.setField(analyticsParam.getField());
         addExtraFilter(query, fieldFilter);
-        return analyticsService.execute(query);
+        return analyticsService.execute(executionContext, query);
     }
 
     private Analytics executeCount(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
@@ -176,7 +176,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 query.setInterval(analyticsParam.getInterval());
                 query.setQuery(analyticsParam.getQuery());
                 addExtraFilter(query, fieldFilter);
-                return analyticsService.execute(query);
+                return analyticsService.execute(executionContext, query);
         }
     }
 

@@ -28,8 +28,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface AnalyticsService {
-    StatsAnalytics execute(StatsQuery query);
-    HitsAnalytics execute(CountQuery query);
+    StatsAnalytics execute(ExecutionContext executionContext, StatsQuery query);
+    HitsAnalytics execute(ExecutionContext executionContext, CountQuery query);
     HistogramAnalytics execute(ExecutionContext executionContext, DateHistogramQuery query);
     TopHitsAnalytics execute(ExecutionContext executionContext, GroupByQuery query);
 }

@@ -98,7 +98,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         query.setField(analyticsParam.getField());
         query.setRootField(ANALYTICS_ROOT_FIELD);
         query.setRootIdentifier(application);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeCount(String application, AnalyticsParam analyticsParam) {
@@ -109,7 +109,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         query.setQuery(analyticsParam.getQuery());
         query.setRootField(ANALYTICS_ROOT_FIELD);
         query.setRootIdentifier(application);
-        return analyticsService.execute(query);
+        return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
     private Analytics executeDateHisto(String application, AnalyticsParam analyticsParam) {

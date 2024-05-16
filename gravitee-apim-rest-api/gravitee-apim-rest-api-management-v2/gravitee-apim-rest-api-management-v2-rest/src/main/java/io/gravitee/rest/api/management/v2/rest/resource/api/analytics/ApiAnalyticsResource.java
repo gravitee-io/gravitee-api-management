@@ -58,7 +58,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         var request = new SearchRequestsCountAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
 
         return searchRequestsCountAnalyticsUseCase
-            .execute(request)
+            .execute(GraviteeContext.getExecutionContext(), request)
             .requestsCount()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No requests count found for api: " + apiId));
@@ -72,7 +72,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         var request = new SearchAverageMessagesPerRequestAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
 
         return searchAverageMessagesPerRequestAnalyticsUseCase
-            .execute(request)
+            .execute(GraviteeContext.getExecutionContext(), request)
             .averageMessagesPerRequest()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No average message per request found for api: " + apiId));

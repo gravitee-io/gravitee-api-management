@@ -18,6 +18,7 @@ package io.gravitee.apim.core.log.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
 /**
@@ -33,8 +34,11 @@ public class SearchConnectionLogUseCase {
         this.connectionLogsCrudService = connectionLogsCrudService;
     }
 
-    public Output execute(Input input) {
-        return connectionLogsCrudService.searchApiConnectionLog(input.apiId(), input.requestId()).map(Output::new).orElse(new Output());
+    public Output execute(ExecutionContext executionContext, Input input) {
+        return connectionLogsCrudService
+            .searchApiConnectionLog(executionContext, input.apiId(), input.requestId())
+            .map(Output::new)
+            .orElse(new Output());
     }
 
     public record Input(String apiId, String requestId) {}
