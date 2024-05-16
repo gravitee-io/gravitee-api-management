@@ -78,6 +78,8 @@ public enum Key {
     ),
     PORTAL_URL("portal.url", new HashSet<>(Arrays.asList(ENVIRONMENT, SYSTEM))),
     PORTAL_HOMEPAGE_TITLE("portal.homepageTitle", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_HOMEPAGE_BANNER_TITLE("portal.homepageBannerTitle", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_HOMEPAGE_SUBTITLE("portal.homepageSubtitle", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

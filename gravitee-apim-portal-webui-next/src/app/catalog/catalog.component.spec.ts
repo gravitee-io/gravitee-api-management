@@ -69,6 +69,9 @@ describe('CatalogComponent', () => {
             },
           },
         }),
+        1,
+        9,
+        '',
       );
     });
 
@@ -87,6 +90,7 @@ describe('CatalogComponent', () => {
       expect(await apiCard.getVersion()).toEqual('v.1.2');
       expectCategoriesList(fakeCategoriesResponse());
     });
+
     it('should call second page after scrolled event', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
@@ -105,6 +109,8 @@ describe('CatalogComponent', () => {
           },
         }),
         2,
+        9,
+        '',
       );
       fixture.detectChanges();
       expectCategoriesList(fakeCategoriesResponse());
@@ -114,6 +120,32 @@ describe('CatalogComponent', () => {
 
       const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
       expect(secondPageApi).toBeTruthy();
+    });
+
+    it('should call API list with search query', async () => {
+      fixture.componentInstance.searchInput = 'all';
+      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(apiCard).toBeDefined();
+      expect(apiCard.length).toEqual(1);
+      expect(await apiCard[0].getTitle()).toEqual('Test title');
+
+      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      expectApiList(
+        fakeApisResponse({
+          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
+          metadata: {
+            pagination: {
+              current_page: 2,
+              total_pages: 2,
+            },
+          },
+        }),
+        2,
+        9,
+        'all',
+      );
+      fixture.detectChanges();
+      expectCategoriesList(fakeCategoriesResponse());
     });
 
     it('should not call page if on last page', async () => {
@@ -132,6 +164,8 @@ describe('CatalogComponent', () => {
           },
         }),
         2,
+        9,
+        '',
       );
       fixture.detectChanges();
       expectCategoriesList(fakeCategoriesResponse());
@@ -146,7 +180,7 @@ describe('CatalogComponent', () => {
 
   describe('empty component', () => {
     it('should show empty API list', async () => {
-      expectApiList(fakeApisResponse({ data: [] }));
+      expectApiList(fakeApisResponse({ data: [] }), 1, 9, '');
       const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
       expect(noApiCard).toBeTruthy();
       expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
@@ -154,8 +188,8 @@ describe('CatalogComponent', () => {
     });
   });
 
-  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 9) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=${page}&category=&size=${size}`).flush(apisResponse);
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 9, q: string = '') {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=&size=${size}&q=${q}`).flush(apisResponse);
   }
 
   function expectCategoriesList(categoriesResponse = fakeCategoriesResponse()) {

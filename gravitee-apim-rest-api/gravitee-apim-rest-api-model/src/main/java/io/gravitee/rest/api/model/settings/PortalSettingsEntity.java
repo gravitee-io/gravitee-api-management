@@ -18,8 +18,11 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.settings.portlanext.PortalNext;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -41,6 +44,11 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
 
     @Valid
     private Portal portal;
+
+    @Valid
+    @Getter
+    @Setter
+    private PortalNext portalNext = new PortalNext();
 
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;

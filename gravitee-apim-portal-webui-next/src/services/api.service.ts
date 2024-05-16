@@ -30,12 +30,13 @@ export class ApiService {
     private configService: ConfigService,
   ) {}
 
-  list(page = 1, category: string = 'all', size = 9): Observable<ApisResponse> {
-    return this.http.get<ApisResponse>(`${this.configService.baseURL}/apis`, {
+  search(page = 1, category: string = 'all', q: string, size = 9): Observable<ApisResponse> {
+    return this.http.post<ApisResponse>(`${this.configService.baseURL}/apis/_search`, null, {
       params: {
         page,
         category: category !== 'all' && category !== undefined ? category : '',
         size,
+        q: q,
       },
     });
   }

@@ -25,6 +25,7 @@ import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiFilterComponent } from '../../components/api-filter/api-filter.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
+import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { Category } from '../../entities/categories/categories';
 import { ApiService } from '../../services/api.service';
 import { CategoriesService } from '../../services/categories.service';
@@ -55,6 +56,7 @@ export interface ApiPaginatorVM {
     InfiniteScrollModule,
     LoaderComponent,
     ApiFilterComponent,
+    SearchBarComponent,
   ],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
@@ -68,6 +70,7 @@ export class CatalogComponent {
   bannerTitle: string = 'Welcome to Gravitee Developer Portal!';
   bannerSubtitle: string = 'Discover powerful APIs to supercharge your projects.';
   selectedFilter: string = 'all';
+  searchInput: string = '';
 
   private apiService = inject(ApiService);
   private categoriesService = inject(CategoriesService);
@@ -91,10 +94,15 @@ export class CatalogComponent {
     this.page$.next(1);
   }
 
+  public onSearchResults(searchInput: string) {
+    this.searchInput = searchInput;
+    this.page$.next(1);
+  }
+
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.apiService.list(currentPage, this.selectedFilter)),
+      switchMap(currentPage => this.apiService.search(currentPage, this.selectedFilter, this.searchInput)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
