@@ -106,12 +106,12 @@ export class CatalogComponent {
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
-              id: api.id,
-              content: api.description,
-              version: api.version,
-              title: api.name,
-              picture: api._links?.picture,
-            }))
+            id: api.id,
+            content: api.description,
+            version: api.version,
+            title: api.name,
+            picture: api._links?.picture,
+          }))
           : [];
 
         const page = resp.metadata?.pagination?.current_page ?? 1;
