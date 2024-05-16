@@ -31,7 +31,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -67,7 +66,7 @@ public class IntegrationsResource extends AbstractResource {
         newIntegrationEntity.setEnvironmentId(environmentId);
 
         var createdIntegration = createIntegrationUsecase
-            .execute(new CreateIntegrationUseCase.Input(newIntegrationEntity, GraviteeContext.getCurrentOrganization()))
+            .execute(CreateIntegrationUseCase.Input.builder().integration(newIntegrationEntity).build())
             .createdIntegration();
 
         return Response
