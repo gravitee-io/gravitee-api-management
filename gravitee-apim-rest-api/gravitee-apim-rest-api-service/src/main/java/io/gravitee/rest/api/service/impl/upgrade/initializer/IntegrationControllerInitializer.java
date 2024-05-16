@@ -35,6 +35,7 @@ public class IntegrationControllerInitializer implements Initializer {
     @Override
     public boolean initialize() {
         try {
+            // TODO check license before starting controller
             integrationExchangeController.start();
             log.info("Integrations started.");
         } catch (Exception e) {

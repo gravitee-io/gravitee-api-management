@@ -20,10 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
-import inmemory.LicenseCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
-import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
-import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.repository.management.model.Token;
@@ -52,28 +49,19 @@ class IntegrationWebsocketControllerAuthenticationTest {
     @Mock
     HttpServerRequest request;
 
-    LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
-
     UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
 
     IntegrationWebsocketControllerAuthentication authentication;
 
     @BeforeEach
     void setUp() {
-        authentication =
-            new IntegrationWebsocketControllerAuthentication(
-                tokenService,
-                userCrudServiceInMemory,
-                new LicenseDomainService(licenseCrudService)
-            );
+        authentication = new IntegrationWebsocketControllerAuthentication(tokenService, userCrudServiceInMemory);
 
         MultiMap requestHeaders = HttpHeaders.headers();
         requestHeaders
             .add(IntegrationWebsocketControllerAuthentication.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER_BEARER + TOKEN_VALUE)
             .add(IntegrationWebsocketControllerAuthentication.ORGANIZATION_HEADER, ORGANIZATION_ID);
         lenient().when(request.headers()).thenReturn(requestHeaders);
-
-        licenseCrudService.createOrganizationLicense(ORGANIZATION_ID, "license-base64");
     }
 
     @AfterEach
@@ -112,17 +100,6 @@ class IntegrationWebsocketControllerAuthenticationTest {
     @Test
     void should_return_an_invalid_IntegrationCommandContext_when_no_authorization_headers() {
         lenient().when(request.headers()).thenReturn(HttpHeaders.headers());
-
-        var result = authentication.authenticate(request);
-
-        assertThat(result).isEqualTo(new IntegrationCommandContext(false));
-    }
-
-    @Test
-    void should_return_an_invalid_IntegrationCommandContext_when_no_license_found() {
-        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId("user-id").build());
-        givenUser(BaseUserEntity.builder().id(token.getReferenceId()).organizationId(ORGANIZATION_ID).build());
-        licenseCrudService.reset();
 
         var result = authentication.authenticate(request);
 
