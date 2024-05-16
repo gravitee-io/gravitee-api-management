@@ -42,6 +42,7 @@ import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-a
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { TasksComponent } from '../../user/tasks/tasks.component';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 const homeRoutes: Route[] = [
   {
@@ -99,6 +100,7 @@ const homeRoutes: Route[] = [
     GioApiStateModule,
     GioApiLifecycleStateModule,
     GioApiEventsTableModule,
+    GioPermissionModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })
