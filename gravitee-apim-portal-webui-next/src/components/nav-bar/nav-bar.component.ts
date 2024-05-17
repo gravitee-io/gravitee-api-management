@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, InputSignal } from '@angular/core';
+import { Component, Input, input, InputSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';
@@ -31,6 +31,8 @@ import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent {
+  @Input()
+  siteTitle!: string;
   currentUser: InputSignal<User> = input({});
   protected readonly isEmpty = isEmpty;
 }

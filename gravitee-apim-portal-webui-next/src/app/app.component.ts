@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { Component, inject } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 
 import { FooterComponent } from '../components/footer/footer.component';
 import { NavBarComponent } from '../components/nav-bar/nav-bar.component';
+import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 
 @Component({
@@ -28,6 +30,14 @@ import { CurrentUserService } from '../services/current-user.service';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  // TODO: Implement service to get title
   currentUser = inject(CurrentUserService).user;
+  siteTitle: string;
+
+  constructor(
+    private configService: ConfigService,
+    private title: Title,
+  ) {
+    this.siteTitle = configService.portalNext.siteTitle ?? 'Developer Portal';
+    this.title.setTitle(this.siteTitle);
+  }
 }

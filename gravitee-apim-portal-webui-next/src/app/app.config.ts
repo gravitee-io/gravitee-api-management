@@ -31,7 +31,10 @@ function initApp(
   themeService: ThemeService,
   currentUserService: CurrentUserService,
 ): () => Observable<unknown> {
-  return () => configService.initBaseURL().pipe(switchMap(_ => combineLatest([themeService.loadTheme(), currentUserService.loadUser()])));
+  return () =>
+    configService
+      .initBaseURL()
+      .pipe(switchMap(_ => combineLatest([themeService.loadTheme(), currentUserService.loadUser(), configService.loadConfiguration()])));
 }
 
 export const appConfig: ApplicationConfig = {

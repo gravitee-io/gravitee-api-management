@@ -15,7 +15,11 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap, tap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
+
+import { Configuration } from '../entities/configuration/configuration';
+import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
 
 /**
  * Object used in `config.json` file and `/ui/bootstrap` response
@@ -30,6 +34,7 @@ interface Config {
 })
 export class ConfigService {
   private _baseURL: string = '';
+  private _configuration: Configuration = {};
 
   constructor(private httpClient: HttpClient) {}
 
@@ -37,8 +42,16 @@ export class ConfigService {
     return this._baseURL;
   }
 
+  public get portalNext(): ConfigurationPortalNext {
+    return this._configuration.portalNext ?? {};
+  }
+
   private set baseURL(baseURL: string) {
     this._baseURL = baseURL;
+  }
+
+  private set configuration(configuration: Configuration) {
+    this._configuration = configuration;
   }
 
   public initBaseURL(): Observable<string> {
@@ -53,6 +66,18 @@ export class ConfigService {
       map((bootstrapConfig: Config) => {
         this.baseURL = `${bootstrapConfig.baseURL}/environments/${bootstrapConfig.environmentId}`;
         return this.baseURL;
+      }),
+    );
+  }
+
+  public loadConfiguration(): Observable<Configuration> {
+    return this.httpClient.get<Configuration>(`${this.baseURL}/configuration`).pipe(
+      tap(resp => {
+        this.configuration = resp;
+      }),
+      catchError(_ => {
+        this.configuration = {};
+        return of({});
       }),
     );
   }
