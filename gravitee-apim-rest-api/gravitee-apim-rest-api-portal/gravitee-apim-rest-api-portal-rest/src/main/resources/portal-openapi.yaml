@@ -4646,6 +4646,8 @@ components:
       properties:
         portal:
           $ref: '#/components/schemas/ConfigurationPortal'
+        portalNext:
+          $ref: '#/components/schemas/ConfigurationPortalNext'
         authentication:
           $ref: '#/components/schemas/ConfigurationAuthentication'
         scheduler:
@@ -4691,6 +4693,17 @@ components:
           $ref: '#/components/schemas/ConfigurationPortalMedia'
         homepageTitle:
           description: Main phrase to display on the homepage.
+          type: string
+    ConfigurationPortalNext:
+      properties:
+        siteTitle:
+          description: Title to display in the navigation menu
+          type: string
+        bannerTitle:
+          description: Title to display on the homepage banner.
+          type: string
+        bannerSubtitle:
+          description: Subtitle to display on the homepage banner.
           type: string
     ConfigurationPortalApis:
       properties:
