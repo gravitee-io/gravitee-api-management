@@ -77,10 +77,12 @@ public class ApiModelFactory {
     public static Api fromIntegration(IntegrationApi integrationApi, Integration integration) {
         var id = generateFederatedApiId(integrationApi, integration);
         var now = TimeProvider.now();
+        var defaultVersion = "0.0.0";
+        var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
         return Api
             .builder()
             .id(id)
-            .version(integrationApi.version())
+            .version(version)
             .definitionVersion(DefinitionVersion.FEDERATED)
             .name(integrationApi.name())
             .description(integrationApi.description())

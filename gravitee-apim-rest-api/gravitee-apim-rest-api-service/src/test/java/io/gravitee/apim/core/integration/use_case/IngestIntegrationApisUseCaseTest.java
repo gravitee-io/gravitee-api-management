@@ -327,6 +327,21 @@ class IngestIntegrationApisUseCaseTest {
         }
 
         @Test
+        void should_create_federated_api_with_default_version_if_none_exist() {
+            // Given
+            var expectedDefaultApiVersion = "0.0.0";
+            var nullVersionApi = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().version(null).build();
+            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+            givenIntegrationApis(nullVersionApi);
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            //Then
+            assertThat(apiCrudService.storage()).extracting(Api::getVersion).containsExactly(expectedDefaultApiVersion);
+        }
+
+        @Test
         void should_create_an_audit() {
             // Given
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
