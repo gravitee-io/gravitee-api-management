@@ -19,47 +19,43 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.LicenseCrudServiceInMemory;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class LicenseDomainServiceTest {
 
-    LicenseCrudServiceInMemory licenseCrudServiceInMemory;
+    LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
     LicenseDomainService service;
 
     @BeforeEach
     void setUp() {
-        licenseCrudServiceInMemory = new LicenseCrudServiceInMemory();
-        service = new LicenseDomainService(licenseCrudServiceInMemory);
+        service = new LicenseDomainService(licenseCrudService);
     }
 
-    @Test
-    void should_get_organization_license() {
-        givenOrganizationLicense("org-id", "licenseAsBase64");
-
-        var result = service.getLicenseByOrganizationId("org-id");
-        assertThat(result).isPresent();
-        assertThat(result.get().getLicense()).isEqualTo("licenseAsBase64");
+    @AfterEach
+    void tearDown() {
+        licenseCrudService.reset();
     }
 
     @Test
     void should_create_organization_license() {
-        assertThat(service.getLicenseByOrganizationId("new")).isEmpty();
+        assertThat(licenseCrudService.getOrganizationLicense("new")).isEmpty();
 
         service.createOrUpdateOrganizationLicense("new", "newLicense");
 
-        var result = service.getLicenseByOrganizationId("new");
+        var result = licenseCrudService.getOrganizationLicense("new");
         assertThat(result).isPresent();
         assertThat(result.get().getLicense()).isEqualTo("newLicense");
     }
 
     @Test
     void should_not_create_organization_license_if_null_license() {
-        assertThat(service.getLicenseByOrganizationId("new")).isEmpty();
+        assertThat(licenseCrudService.getOrganizationLicense("new")).isEmpty();
 
         service.createOrUpdateOrganizationLicense("new", null);
 
-        var result = service.getLicenseByOrganizationId("new");
+        var result = licenseCrudService.getOrganizationLicense("new");
         assertThat(result).isEmpty();
     }
 
@@ -68,13 +64,13 @@ class LicenseDomainServiceTest {
         givenOrganizationLicense("org-to-update", "initialLicense");
         service.createOrUpdateOrganizationLicense("org-to-update", "updatedLicense");
 
-        var result = service.getLicenseByOrganizationId("org-to-update");
+        var result = licenseCrudService.getOrganizationLicense("org-to-update");
         assertThat(result).isPresent();
         assertThat(result.get().getLicense()).isEqualTo("updatedLicense");
     }
 
     @SneakyThrows
     private void givenOrganizationLicense(String organizationId, String license) {
-        licenseCrudServiceInMemory.createOrganizationLicense(organizationId, license);
+        licenseCrudService.createOrganizationLicense(organizationId, license);
     }
 }

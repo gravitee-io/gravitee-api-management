@@ -30,10 +30,6 @@ public class LicenseDomainService {
         this.licenseCrudService = licenseCrudService;
     }
 
-    public Optional<License> getLicenseByOrganizationId(String organizationId) {
-        return this.licenseCrudService.getOrganizationLicense(organizationId);
-    }
-
     /**
      * Create or update license by organization ID.
      * If on create and license is null, no license is saved in the database.
