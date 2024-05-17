@@ -43,7 +43,6 @@ tests:
             reporters:
               # Elasticsearch reporter
               elasticsearch:
-                enabled: true
                 endpoints:
                   - http://graviteeio-apim-elasticsearch-ingest-hl:9200
                 index_mode: daily
@@ -76,7 +75,6 @@ tests:
             reporters:
               # Elasticsearch reporter
               elasticsearch:
-                enabled: true
                 endpoints:
                   - http://graviteeio-apim-elasticsearch-ingest-hl:9200
                 index_mode: daily
@@ -91,3 +89,39 @@ tests:
                 bulk:
                   actions: 1000           # Number of requests action before flush
                   flush_interval: 5       # Flush interval in seconds
+
+  - it: Check explicitly enable es
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        reporters:
+          elasticsearch:
+            enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            reporters:
+              # Elasticsearch reporter
+              elasticsearch:
+                enabled: true
+
+  - it: Check explicitly disable es
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        reporters:
+          elasticsearch:
+            enabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            reporters:
+              # Elasticsearch reporter
+              elasticsearch:
+                enabled: false

@@ -355,7 +355,9 @@ data:
     reporters:
       # Elasticsearch reporter
       elasticsearch:
+        {{- if (hasKey ((.Values.gateway).reporters).elasticsearch "enabled") }}
         enabled: {{ .Values.gateway.reporters.elasticsearch.enabled }}
+        {{- end }}
         {{- with .Values.es.endpoints }}
         endpoints:
           {{ toYaml . | nindent 10 | trim -}}
