@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.core.v4.analytics;
 
+import io.gravitee.common.utils.SizeUtils;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.MessageConditionSupplier;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
@@ -105,34 +106,11 @@ public class LoggingContext implements ConditionSupplier {
     public void setMaxSizeLogMessage(String maxSizeLogMessage) {
         // log max size limit is in MB format
         // -1 means no limit
-        if (maxSizeLogMessage != null) {
-            try {
-                int value = Integer.parseInt(maxSizeLogMessage);
-                if (value >= 0) {
-                    // By default, consider MB
-                    this.maxSizeLogMessage = Integer.parseInt(maxSizeLogMessage) * (1024 * 1024);
-                }
-            } catch (NumberFormatException nfe) {
-                maxSizeLogMessage = maxSizeLogMessage.toUpperCase();
-
-                try {
-                    if (maxSizeLogMessage.endsWith("MB") || maxSizeLogMessage.endsWith("M")) {
-                        int value = Integer.parseInt(maxSizeLogMessage.substring(0, maxSizeLogMessage.indexOf('M')));
-                        this.maxSizeLogMessage = value * (1024 * 1024);
-                    } else if (maxSizeLogMessage.endsWith("KB") || maxSizeLogMessage.endsWith("K")) {
-                        int value = Integer.parseInt(maxSizeLogMessage.substring(0, maxSizeLogMessage.indexOf('K')));
-                        this.maxSizeLogMessage = value * (1024);
-                    } else if (maxSizeLogMessage.endsWith("B")) {
-                        this.maxSizeLogMessage = Integer.parseInt(maxSizeLogMessage.substring(0, maxSizeLogMessage.indexOf('B')));
-                    } else {
-                        log.error("Max size for API logging is invalid, no limit is defined. (value: {})", maxSizeLogMessage);
-                        this.maxSizeLogMessage = -1;
-                    }
-                } catch (NumberFormatException nfe2) {
-                    log.error("Max size for API logging is invalid, no limit is defined. (value: {})", maxSizeLogMessage);
-                    this.maxSizeLogMessage = -1;
-                }
-            }
+        try {
+            final long sizeInBytes = SizeUtils.toBytes(maxSizeLogMessage);
+            this.maxSizeLogMessage = Math.toIntExact(sizeInBytes);
+        } catch (ArithmeticException | NumberFormatException ae) {
+            this.maxSizeLogMessage = -1;
         }
     }
 
