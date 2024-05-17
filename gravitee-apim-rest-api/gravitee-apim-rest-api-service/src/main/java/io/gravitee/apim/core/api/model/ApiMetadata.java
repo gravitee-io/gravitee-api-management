@@ -39,6 +39,7 @@ public class ApiMetadata {
 
     String defaultValue;
 
+    @JsonIgnore
     public String getFormatToString() {
         if (this.format == null) {
             return null;

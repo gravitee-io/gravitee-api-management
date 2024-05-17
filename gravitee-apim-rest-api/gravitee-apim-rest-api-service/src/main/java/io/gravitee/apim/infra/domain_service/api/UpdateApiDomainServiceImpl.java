@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -41,7 +41,7 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     }
 
     @Override
-    public Api update(String apiId, ApiCRD crd, AuditInfo auditInfo) {
+    public Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var apiEntity = delegate.update(executionContext, apiId, ApiAdapter.INSTANCE.toUpdateApiEntity(crd), auditInfo.actor().userId());
 

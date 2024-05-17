@@ -318,6 +318,45 @@ class PlanAdapterTest {
     }
 
     @Nested
+<<<<<<< HEAD
+=======
+    class toCRD {
+
+        @Test
+        public void should_convert_plan_to_crd() {
+            var plan = PlanFixtures
+                .anApiKeyV4()
+                .toBuilder()
+                .planDefinitionV4(
+                    fixtures.definition.PlanFixtures
+                        .anApiKeyV4()
+                        .toBuilder()
+                        .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).configuration("{}").build())
+                        .build()
+                )
+                .build();
+
+            PlanCRD planEntity = PlanAdapter.INSTANCE.toCRD(plan);
+
+            assertThat(planEntity.getId()).isEqualTo(plan.getId());
+            assertThat(planEntity.getCrossId()).isEqualTo(plan.getCrossId());
+            assertThat(planEntity.getName()).isEqualTo(plan.getName());
+            assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
+            assertThat(planEntity.getSecurity()).isEqualTo(plan.getPlanSecurity());
+            assertThat(planEntity.getCharacteristics()).isEqualTo(plan.getCharacteristics());
+            assertThat(planEntity.getExcludedGroups()).isEqualTo(plan.getExcludedGroups());
+            assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
+            assertThat(planEntity.getOrder()).isEqualTo(plan.getOrder());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
+            assertThat(planEntity.getStatus()).isEqualTo(plan.getPlanStatus());
+            assertThat(planEntity.getValidation()).isEqualTo(plan.getValidation());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionV4().getTags());
+            assertThat(planEntity.getType()).isEqualTo(plan.getType());
+        }
+    }
+
+    @Nested
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
     class ToEntityV2 {
 
         @Test

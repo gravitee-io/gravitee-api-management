@@ -88,13 +88,17 @@ export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
 
       const excludes = Object.entries(exportJsonFromValue.options)
         .filter(([_, value]) => !value)
-        .map(([key]) => key);
+        .map(([key, _]) => key);
 
       export$ = this.apiService
         .export(this.apiId, excludes, exportJsonFromValue.exportVersion)
         .pipe(map((blob) => ({ blob, fileName: `${this.fileName}.json` })));
     } else {
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general-info/api-general-info-export-dialog/api-general-info-export-dialog.component.ts
       export$ = this.apiService.exportCrd(this.apiId).pipe(map((blob) => ({ blob, fileName: `${this.fileName}-crd.yml` })));
+=======
+      export$ = this.apiService.exportCRD(this.apiId).pipe(map((blob) => ({ blob, fileName: `${this.fileName}-crd.yml` })));
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource):gravitee-apim-console-webui/src/management/api/general-info/api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.component.ts
     }
 
     export$
@@ -102,7 +106,7 @@ export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
         tap(({ blob, fileName }) => {
           const anchor = document.createElement('a');
           anchor.download = fileName;
-          anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+          anchor.href = ((<any>window).webkitURL || (<any>window).URL).createObjectURL(blob);
           anchor.click();
         }),
         catchError(() => {

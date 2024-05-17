@@ -44,19 +44,20 @@ public class PlanCRD {
 
     private List<String> characteristics;
 
+<<<<<<< HEAD
     private String commentMessage;
 
     private boolean commentRequired;
 
     private String crossId;
 
+=======
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
     private List<String> excludedGroups;
 
     private String generalConditions;
 
     private int order;
-
-    private ZonedDateTime publishedAt;
 
     private String selectionRule;
 

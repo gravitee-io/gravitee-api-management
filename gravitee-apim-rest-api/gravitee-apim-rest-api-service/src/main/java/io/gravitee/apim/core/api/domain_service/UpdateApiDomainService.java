@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
@@ -24,5 +24,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * @author GraviteeSource Team
  */
 public interface UpdateApiDomainService {
+<<<<<<< HEAD
     Api update(String apiId, ApiCRD crd, AuditInfo auditInfo);
+=======
+    Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo);
+
+    Api updateV4(Api api, AuditInfo auditInfo);
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 }

@@ -16,12 +16,16 @@
 package io.gravitee.rest.api.management.v2.rest.spring;
 
 import inmemory.*;
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/test/java/io/gravitee/rest/api/management/v2/rest/spring/InMemoryConfiguration.java
 import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.search.Indexer;
+=======
+import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/test/java/inmemory/spring/InMemoryConfiguration.java
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -223,7 +227,57 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/test/java/io/gravitee/rest/api/management/v2/rest/spring/InMemoryConfiguration.java
     public MembershipCrudServiceInMemory membershipCrudServiceInMemory() {
         return new MembershipCrudServiceInMemory();
+=======
+    public NoopTemplateResolverDomainService noopTemplateResolverDomainService() {
+        return new NoopTemplateResolverDomainService();
+    }
+
+    @Bean
+    public NoopSwaggerOpenApiResolver noopSwaggerOpenApiResolver() {
+        return new NoopSwaggerOpenApiResolver();
+    }
+
+    @Bean
+    public IntegrationCrudServiceInMemory integrationCrudService() {
+        return new IntegrationCrudServiceInMemory();
+    }
+
+    @Bean
+    public IntegrationQueryServiceInMemory integrationQueryService(IntegrationCrudServiceInMemory integrationCrudServiceInMemory) {
+        return new IntegrationQueryServiceInMemory(integrationCrudServiceInMemory);
+    }
+
+    @Bean
+    public MetadataCrudServiceInMemory metadataCrudService() {
+        return new MetadataCrudServiceInMemory();
+    }
+
+    @Bean
+    public IntegrationAgentInMemory integrationAgent() {
+        return new IntegrationAgentInMemory();
+    }
+
+    @Bean
+    public ApiCategoryQueryServiceInMemory apiCategoryQueryService() {
+        return new ApiCategoryQueryServiceInMemory();
+    }
+
+    @Bean
+    public PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService() {
+        return new PrimaryOwnerDomainServiceInMemory();
+    }
+
+    @Bean
+    public ApiCRDExportDomainServiceInMemory apiCRDExportDomainService() {
+        return new ApiCRDExportDomainServiceInMemory();
+    }
+
+    @Bean
+    public ThemeQueryServiceInMemory themeQueryService() {
+        return new ThemeQueryServiceInMemory();
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/test/java/inmemory/spring/InMemoryConfiguration.java
     }
 }

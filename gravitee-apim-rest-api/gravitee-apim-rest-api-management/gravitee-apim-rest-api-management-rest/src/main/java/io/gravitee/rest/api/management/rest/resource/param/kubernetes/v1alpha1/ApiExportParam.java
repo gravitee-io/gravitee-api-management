@@ -28,28 +28,28 @@ import lombok.Setter;
 @Setter
 public class ApiExportParam {
 
-    @Parameter(description = "whether to remove all ids from the exported crd (default is false)")
+    @Parameter(description = "whether to remove all ids from the exported spec (default is false)")
     @QueryParam("removeIds")
     private boolean removeIds;
 
-    @Parameter(description = "the context path to assign to the exported crd (default is the existing context path of the exported API")
+    @Parameter(description = "the context path to assign to the exported spec (default is the existing context path of the exported API")
     @QueryParam("contextPath")
     private String contextPath;
 
-    @Parameter(description = "the API version to assign to the exported crd (default is the existing version of the exported API")
+    @Parameter(description = "the API version to assign to the exported spec (default is the existing version of the exported API")
     @QueryParam("version")
     private String version;
 
-    @Parameter(description = "the management context name to assign to the exported crd (if not defined, no context is added)")
+    @Parameter(description = "the management context name to assign to the exported spec (if not defined, no context is added)")
     @QueryParam("managementContextName")
     private String managementContextName;
 
-    @Parameter(description = "the management context namespace to assign to the exported crd (default is 'default')")
+    @Parameter(description = "the management context namespace to assign to the exported spec (default is 'default')")
     @QueryParam("managementContextNamespace")
     @DefaultValue("default")
     private String managementContextNamespace;
 
-    @Parameter(description = "fields to exclude from the exported crd (default is none)")
+    @Parameter(description = "fields to exclude from the exported spec (default is none)")
     @QueryParam("exclude")
     @DefaultValue("")
     private String exclude;

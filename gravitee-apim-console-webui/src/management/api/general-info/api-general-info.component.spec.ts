@@ -606,6 +606,30 @@ describe('ApiGeneralInfoComponent', () => {
       await expectExportV4GetRequest(API_ID);
     });
 
+    it('should export api CRD', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+      fixture.detectChanges();
+      expectApiVerifyDeployment(api, true);
+
+      const button = await loader.getHarness(MatButtonHarness.with({ text: /Export/ }));
+      await button.click();
+
+      const apiGeneralInfoExportV4Dialog = await rootLoader.getHarness(ApiGeneralInfoExportV4DialogHarness);
+
+      await apiGeneralInfoExportV4Dialog.selectCRDTab();
+
+      await apiGeneralInfoExportV4Dialog.export();
+
+      expectExportV4CRDGetRequest(API_ID);
+    });
+
     it('should duplicate HTTP api', async () => {
       const api = fakeApiV4({
         id: API_ID,
@@ -719,6 +743,16 @@ describe('ApiGeneralInfoComponent', () => {
   function expectExportV4GetRequest(apiId: string) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_export/definition`, method: 'GET' })
+      .flush(new Blob(['a'], { type: 'text/json' }));
+    fixture.detectChanges();
+  }
+
+  function expectExportV4CRDGetRequest(apiId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_export/crd`,
+        method: 'GET',
+      })
       .flush(new Blob(['a'], { type: 'text/json' }));
     fixture.detectChanges();
   }
