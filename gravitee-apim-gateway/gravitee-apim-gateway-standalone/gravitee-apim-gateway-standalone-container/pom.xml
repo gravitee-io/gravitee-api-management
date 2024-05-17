@@ -459,6 +459,22 @@
                 </dependency>
             </dependencies>
         </profile>
+
+        <profile>
+            <id>bundle-default</id>
+            <activation>
+                <property>
+                    <name>bundle</name>
+                </property>
+            </activation>
+            <dependencies>
+                <!-- Cloud -->
+                <dependency>
+                    <groupId>com.graviteesource.cloud</groupId>
+                    <artifactId>gravitee-cloud-initializer</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
 </project>

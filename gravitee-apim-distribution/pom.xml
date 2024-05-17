@@ -1262,6 +1262,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.reporter</groupId>
+                    <artifactId>gravitee-reporter-cloud</artifactId>
+                    <version>${gravitee-reporter-cloud.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Policies -->
                 <dependency>

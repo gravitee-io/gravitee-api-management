@@ -348,7 +348,7 @@ reporters:
 #    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
   # Elasticsearch reporter
   elasticsearch:
-    enabled: true # Is the reporter enabled or not (default to true)
+    # enabled: true # Is the reporter enabled or not (default to true)
     endpoints:
       - http://${ds.elastic.host}:${ds.elastic.port}
 #    lifecycle:
