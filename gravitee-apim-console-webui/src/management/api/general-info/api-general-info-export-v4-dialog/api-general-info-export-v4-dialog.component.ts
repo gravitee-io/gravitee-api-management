@@ -92,7 +92,7 @@ export class ApiGeneralInfoExportV4DialogComponent implements OnDestroy {
 
       const excludeAdditionalData = Object.entries(exportFromValue.options)
         .filter(([_, value]) => !value)
-        .map(([key]) => key);
+        .map(([key, _]) => key);
 
       export$ = this.apiService
         .export(this.apiId, {
@@ -100,8 +100,7 @@ export class ApiGeneralInfoExportV4DialogComponent implements OnDestroy {
         })
         .pipe(map((blob) => ({ blob, fileName: `${this.fileName}.json` })));
     } else {
-      // TODO: Implement CRD export
-      // export$ = this.apiService.exportCrd(this.apiId).pipe(map((blob) => ({ blob, fileName: `${this.fileName}-crd.yml` })));
+      export$ = this.apiService.exportCRD(this.apiId).pipe(map((blob) => ({ blob, fileName: `${this.fileName}-crd.yml` })));
     }
 
     export$
@@ -109,7 +108,7 @@ export class ApiGeneralInfoExportV4DialogComponent implements OnDestroy {
         tap(({ blob, fileName }) => {
           const anchor = document.createElement('a');
           anchor.download = fileName;
-          anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+          anchor.href = ((<any>window).webkitURL || (<any>window).URL).createObjectURL(blob);
           anchor.click();
         }),
         catchError(() => {

@@ -44,17 +44,11 @@ public class PlanCRD {
 
     private List<String> characteristics;
 
-    private String commentMessage;
-
-    private boolean commentRequired;
-
     private List<String> excludedGroups;
 
     private String generalConditions;
 
     private int order;
-
-    private OffsetDateTime publishedAt;
 
     private String selectionRule;
 

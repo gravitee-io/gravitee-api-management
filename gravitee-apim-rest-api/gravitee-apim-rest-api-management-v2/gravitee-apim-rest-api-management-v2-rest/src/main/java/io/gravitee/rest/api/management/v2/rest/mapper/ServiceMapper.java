@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.v4.service.Service;

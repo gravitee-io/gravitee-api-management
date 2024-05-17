@@ -15,6 +15,7 @@
  */
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 
 export class ApiGeneralInfoExportV4DialogHarness extends ComponentHarness {
   static hostSelector = 'api-general-info-export-v4-dialog';
@@ -32,6 +33,11 @@ export class ApiGeneralInfoExportV4DialogHarness extends ComponentHarness {
         value ? await checkbox.check() : await checkbox.uncheck();
       }),
     );
+  }
+
+  public async selectCRDTab(): Promise<void> {
+    const tabs = await this.locatorFor(MatTabGroupHarness)();
+    await tabs.selectTab({ label: 'CRD API Definition' });
   }
 
   public async export() {
