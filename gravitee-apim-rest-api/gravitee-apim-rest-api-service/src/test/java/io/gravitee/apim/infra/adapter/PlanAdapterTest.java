@@ -479,8 +479,6 @@ class PlanAdapterTest {
             assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
             assertThat(planEntity.getSecurity()).isEqualTo(plan.getPlanSecurity());
             assertThat(planEntity.getCharacteristics()).isEqualTo(plan.getCharacteristics());
-            assertThat(planEntity.getCommentMessage()).isEqualTo(plan.getCommentMessage());
-            assertThat(planEntity.isCommentRequired()).isEqualTo(plan.isCommentRequired());
             assertThat(planEntity.getExcludedGroups()).isEqualTo(plan.getExcludedGroups());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
             assertThat(planEntity.getOrder()).isEqualTo(plan.getOrder());
@@ -489,7 +487,6 @@ class PlanAdapterTest {
             assertThat(planEntity.getValidation()).isEqualTo(plan.getValidation());
             assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionV4().getTags());
             assertThat(planEntity.getType()).isEqualTo(plan.getType());
-            assertThat(planEntity.getPublishedAt()).isEqualTo(plan.getPublishedAt());
         }
     }
 

@@ -66,7 +66,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -702,8 +702,8 @@ class ImportCRDUseCaseTest {
         subscriptionQueryService.initWith(Arrays.asList(subscriptions));
     }
 
-    private static ApiCRD aCRD() {
-        return ApiCRD
+    private static ApiCRDSpec aCRD() {
+        return ApiCRDSpec
             .builder()
             .analytics(Analytics.builder().enabled(false).build())
             .crossId(API_CROSS_ID)

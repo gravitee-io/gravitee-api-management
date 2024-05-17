@@ -16,6 +16,7 @@
 package inmemory.spring;
 
 import inmemory.*;
+import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -257,6 +258,11 @@ public class InMemoryConfiguration {
     @Bean
     public PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService() {
         return new PrimaryOwnerDomainServiceInMemory();
+    }
+
+    @Bean
+    public ApiCRDExportDomainServiceInMemory apiCRDExportDomainService() {
+        return new ApiCRDExportDomainServiceInMemory();
     }
 
     @Bean

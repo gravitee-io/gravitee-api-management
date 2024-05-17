@@ -17,7 +17,7 @@ package io.gravitee.apim.core.api.model.factory;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
@@ -44,7 +44,7 @@ public class ApiModelFactory {
             .build();
     }
 
-    public static Api fromCrd(ApiCRD crd, String environmentId) {
+    public static Api fromCrd(ApiCRDSpec crd, String environmentId) {
         var id = crd.getId() != null ? crd.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
         return crd

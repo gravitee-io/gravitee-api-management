@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.NewApi;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
@@ -183,7 +183,7 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
-    ApiCRD map(io.gravitee.rest.api.management.v2.rest.model.ApiCRD crd);
+    ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")

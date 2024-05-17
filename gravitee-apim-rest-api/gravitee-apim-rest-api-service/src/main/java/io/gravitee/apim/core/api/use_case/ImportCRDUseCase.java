@@ -25,7 +25,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
@@ -108,7 +108,7 @@ public class ImportCRDUseCase {
 
     public record Output(ApiCRDStatus status) {}
 
-    public record Input(AuditInfo auditInfo, ApiCRD crd) {}
+    public record Input(AuditInfo auditInfo, ApiCRDSpec crd) {}
 
     public Output execute(Input input) {
         var api = apiQueryService.findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.crd.getCrossId());
@@ -273,13 +273,10 @@ public class ImportCRDUseCase {
                     .build()
             )
             .characteristics(planCRD.getCharacteristics())
-            .commentMessage(planCRD.getCommentMessage())
-            .commentRequired(planCRD.isCommentRequired())
             .crossId(planCRD.getCrossId())
             .excludedGroups(planCRD.getExcludedGroups())
             .generalConditions(planCRD.getGeneralConditions())
             .order(planCRD.getOrder())
-            .publishedAt(planCRD.getPublishedAt())
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
             .build();

@@ -19,7 +19,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import fakes.spring.FakeConfiguration;
+import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -31,6 +33,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
@@ -365,5 +368,10 @@ public class ResourceContextConfiguration {
     @Bean
     public GetApiDefinitionUseCase getApiDefinitionUseCase() {
         return mock(GetApiDefinitionUseCase.class);
+    }
+
+    @Bean
+    public ApiCRDExportDomainServiceInMemory apiCRDExportDomainService() {
+        return new ApiCRDExportDomainServiceInMemory();
     }
 }

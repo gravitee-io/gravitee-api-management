@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
@@ -23,8 +22,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface UpdateApiDomainService {
-    Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo);
-
-    Api updateV4(Api api, AuditInfo auditInfo);
+public interface ApiCRDExportDomainService {
+    ApiCRDSpec export(String apiId, AuditInfo auditInfo);
 }

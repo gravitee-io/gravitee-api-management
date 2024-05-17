@@ -15,88 +15,17 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import lombok.Data;
+import io.gravitee.kubernetes.mapper.CustomResource;
+import io.gravitee.kubernetes.mapper.GroupVersionKind;
+import io.gravitee.kubernetes.mapper.ObjectMeta;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
-public class ApiCRD {
+public class ApiCRD extends CustomResource<ApiCRDSpec> {
 
-    @NotNull
-    @NotEmpty
-    private String id;
-
-    @NotNull
-    @NotEmpty
-    private String crossId;
-
-    @NotNull
-    @Valid
-    private DefinitionContext definitionContext;
-
-    @NotEmpty
-    private String name;
-
-    @NotEmpty
-    private String version;
-
-    @NotNull
-    private ApiType type;
-
-    private String description;
-
-    private Set<String> tags = new HashSet<>();
-
-    private List<@Valid Listener> listeners;
-
-    @NotNull
-    @Size(min = 1)
-    private List<@Valid EndpointGroupV4> endpointGroups;
-
-    private Analytics analytics;
-
-    private List<@Valid Property> properties = new ArrayList<>();
-
-    private List<@Valid Resource> resources = new ArrayList<>();
-
-    private Map<String, @Valid PlanCRD> plans = new HashMap<>();
-
-    private FlowExecution flowExecution;
-
-    private List<FlowV4> flows;
-
-    private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
-
-    private ApiServices services;
-
-    private Set<String> groups;
-
-    private Visibility visibility;
-
-    private GenericApi.StateEnum state;
-
-    private PrimaryOwner primaryOwner;
-
-    private List<String> labels = new ArrayList<>();
-
-    private List<Metadata> metadata = new ArrayList<>();
-
-    private ApiLifecycleState lifecycleState;
-
-    public DefinitionVersion getDefinitionVersion() {
-        return DefinitionVersion.V4;
+    public ApiCRD(ApiCRDSpec spec) {
+        super(GroupVersionKind.GIO_V1_ALPHA_1_API_V4_DEFINITION, new ObjectMeta(spec.getName()), spec);
     }
 }

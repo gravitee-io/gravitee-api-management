@@ -16,11 +16,9 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -67,11 +65,11 @@ public interface ApiAdapter {
     NewApiEntity toNewApiEntity(Api source);
 
     @Mapping(target = "apiVersion", source = "version")
-    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRD source);
+    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRDSpec source);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
-    UpdateApiEntity toUpdateApiEntity(ApiCRD api);
+    UpdateApiEntity toUpdateApiEntity(ApiCRDSpec api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(target = "id", source = "api.id")
@@ -86,7 +84,7 @@ public interface ApiAdapter {
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
-    ApiEntity toApiEntity(ApiCRD api);
+    ApiEntity toApiEntity(ApiCRDSpec api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
