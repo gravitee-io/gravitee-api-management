@@ -29,6 +29,7 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar.compo
 import { Category } from '../../entities/categories/categories';
 import { ApiService } from '../../services/api.service';
 import { CategoriesService } from '../../services/categories.service';
+import { ConfigService } from '../../services/config.service';
 
 export interface ApiVM {
   id: string;
@@ -66,9 +67,8 @@ export class CatalogComponent {
   filterList$: Observable<Category[]> = of([]);
   loadingPage$ = new BehaviorSubject(true);
 
-  // TODO: Get banner title + subtitle from configuration
-  bannerTitle: string = 'Welcome to Gravitee Developer Portal!';
-  bannerSubtitle: string = 'Discover powerful APIs to supercharge your projects.';
+  bannerTitle: string;
+  bannerSubtitle: string;
   selectedFilter: string = 'all';
   searchInput: string = '';
 
@@ -76,7 +76,9 @@ export class CatalogComponent {
   private categoriesService = inject(CategoriesService);
   private page$ = new BehaviorSubject(1);
 
-  constructor() {
+  constructor(private configService: ConfigService) {
+    this.bannerTitle = this.configService.portalNext.bannerTitle ?? 'Welcome to Gravitee Developer Portal!';
+    this.bannerSubtitle = this.configService.portalNext.bannerSubtitle ?? 'Discover powerful APIs to supercharge your projects.';
     this.apiPaginator$ = this.loadApis$();
     this.filterList$ = this.loadCategories$();
   }

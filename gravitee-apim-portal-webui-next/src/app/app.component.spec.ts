@@ -15,33 +15,72 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
 import { CompanyTitleHarness } from '../components/company-title/company-title.harness';
-import { AppTestingModule } from '../testing/app-testing.module';
+import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
+import { ConfigService } from '../services/config.service';
+import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
   let harnessLoader: HarnessLoader;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppComponent, AppTestingModule],
-    }).compileComponents();
-    fixture = TestBed.createComponent(AppComponent);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+  describe('default configuration', () => {
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [AppComponent, AppTestingModule],
+        providers: [provideHttpClientTesting()],
+      }).compileComponents();
+      fixture = TestBed.createComponent(AppComponent);
+      harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    it('should create the app', () => {
+      const app = fixture.componentInstance;
+      expect(app).toBeTruthy();
+    });
+
+    it(`should have the 'Developer Portal' title`, async () => {
+      const companyTitleComponent = await harnessLoader.getHarness(CompanyTitleHarness);
+      expect(companyTitleComponent).toBeTruthy();
+
+      expect(await companyTitleComponent.getTitle()).toEqual('Developer Portal');
+    });
   });
 
-  it('should create the app', () => {
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
+  describe('custom configuration', () => {
+    @Injectable()
+    class CustomConfigurationServiceStub {
+      get baseURL(): string {
+        return TESTING_BASE_URL;
+      }
+      get portalNext(): ConfigurationPortalNext {
+        return { siteTitle: 'My custom title' };
+      }
+    }
 
-  it(`should have the 'Developer Portal' title`, async () => {
-    const companyTitleComponent = await harnessLoader.getHarness(CompanyTitleHarness);
-    expect(companyTitleComponent).toBeTruthy();
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [AppComponent, AppTestingModule],
+        providers: [
+          {
+            provide: ConfigService,
+            useClass: CustomConfigurationServiceStub,
+          },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(AppComponent);
+      harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    });
+    it('should show configured title', async () => {
+      const companyTitleComponent = await harnessLoader.getHarness(CompanyTitleHarness);
+      expect(companyTitleComponent).toBeTruthy();
 
-    expect(await companyTitleComponent.getTitle()).toEqual('Developer Portal');
+      expect(await companyTitleComponent.getTitle()).toEqual('My custom title');
+    });
   });
 });

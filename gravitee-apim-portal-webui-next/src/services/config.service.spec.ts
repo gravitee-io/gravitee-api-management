@@ -17,6 +17,7 @@ import { HttpClientTestingModule, HttpTestingController, provideHttpClientTestin
 import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
+import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
 
 describe('ConfigService', () => {
   let service: ConfigService;
@@ -88,6 +89,32 @@ describe('ConfigService', () => {
 
       httpTestingController.expectOne('./assets/config.json').flush(configJson);
       httpTestingController.expectOne('http://localhost:8083/portal/ui/bootstrap?environmentId=DEFAULT').flush(configBootstrap);
+    });
+  });
+
+  describe('loadConfiguration', () => {
+    it('should load portal next', done => {
+      const portalNext: ConfigurationPortalNext = {
+        siteTitle: 'a site title',
+        bannerTitle: 'a title',
+        bannerSubtitle: 'a subtitle',
+      };
+      service.loadConfiguration().subscribe(() => {
+        expect(service.portalNext).toEqual(portalNext);
+        done();
+      });
+
+      httpTestingController.expectOne(`/configuration`).flush({ portalNext });
+    });
+
+    it('should load missing portal next', done => {
+      const portalNext: ConfigurationPortalNext = {};
+      service.loadConfiguration().subscribe(() => {
+        expect(service.portalNext).toEqual(portalNext);
+        done();
+      });
+
+      httpTestingController.expectOne(`/configuration`).flush({});
     });
   });
 });
