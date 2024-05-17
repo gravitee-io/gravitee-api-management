@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.model;
+package inmemory;
 
-import io.gravitee.kubernetes.mapper.CustomResource;
-import io.gravitee.kubernetes.mapper.GroupVersionKind;
-import io.gravitee.kubernetes.mapper.ObjectMeta;
+import fixtures.core.model.ApiCRDFixtures;
+import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiCRD extends CustomResource<ApiCRDSpec> {
+public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainService {
 
-    public ApiCRD(ApiCRDSpec spec) {
-        super(GroupVersionKind.GIO_V1_ALPHA_1_API_V4_DEFINITION, new ObjectMeta(spec.getName()), spec);
+    @Override
+    public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
+        return ApiCRDFixtures.anApiCRD();
     }
 }

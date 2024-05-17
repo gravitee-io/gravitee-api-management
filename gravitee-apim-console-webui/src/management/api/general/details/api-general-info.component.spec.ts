@@ -596,7 +596,35 @@ describe('ApiGeneralInfoComponent', () => {
       await expectExportV4GetRequest(API_ID);
     });
 
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general/details/api-general-info.component.spec.ts
     it('should duplicate api', async () => {
+=======
+    it('should export api CRD', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+      fixture.detectChanges();
+      expectApiVerifyDeployment(api, true);
+
+      const button = await loader.getHarness(MatButtonHarness.with({ text: /Export/ }));
+      await button.click();
+
+      const apiGeneralInfoExportV4Dialog = await rootLoader.getHarness(ApiGeneralInfoExportV4DialogHarness);
+
+      await apiGeneralInfoExportV4Dialog.selectCRDTab();
+
+      await apiGeneralInfoExportV4Dialog.export();
+
+      expectExportV4CRDGetRequest(API_ID);
+    });
+
+    it('should duplicate HTTP api', async () => {
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource):gravitee-apim-console-webui/src/management/api/general-info/api-general-info.component.spec.ts
       const api = fakeApiV4({
         id: API_ID,
       });
@@ -664,8 +692,35 @@ describe('ApiGeneralInfoComponent', () => {
     fixture.detectChanges();
   }
 
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general/details/api-general-info.component.spec.ts
   function expectLicenseGetRequest() {
     httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush({ features: [], packs: [] });
+=======
+  function expectExportV4CRDGetRequest(apiId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_export/crd`,
+        method: 'GET',
+      })
+      .flush(new Blob(['a'], { type: 'text/json' }));
+    fixture.detectChanges();
+  }
+
+  function expectApiVerifyDeployment(api: Api, ok: boolean) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/deployments/_verify`, method: 'GET' }).flush({
+      ok,
+    });
+  }
+
+  function expectQualityRequest(apiId: string) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/quality`, method: 'GET' });
+    fixture.detectChanges();
+  }
+
+  function expectQualityRulesRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules`, method: 'GET' });
+    fixture.detectChanges();
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource):gravitee-apim-console-webui/src/management/api/general-info/api-general-info.component.spec.ts
   }
 });
 

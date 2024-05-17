@@ -17,11 +17,31 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+<<<<<<< HEAD
+=======
+import fakes.spring.FakeConfiguration;
+import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
+import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
+import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -287,4 +307,67 @@ public class ResourceContextConfiguration {
     public UpdateApiDomainService updateApiDomainService() {
         return mock(UpdateApiDomainService.class);
     }
+<<<<<<< HEAD
+=======
+
+    @Bean
+    public SearchAuditDomainService searchAuditDomainService(
+        AuditQueryService auditQueryService,
+        AuditMetadataQueryService auditMetadataQueryService
+    ) {
+        return new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
+    }
+
+    @Bean
+    public ApiStateDomainService apiStateDomainService() {
+        return mock(ApiStateDomainService.class);
+    }
+
+    @Bean
+    public ApiEventQueryService apiEventQueryService() {
+        return mock(ApiEventQueryService.class);
+    }
+
+    @Bean
+    public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
+        return mock(ApiMetadataDecoderDomainService.class);
+    }
+
+    @Bean
+    public ValidateApiDomainService validateApiDomainService() {
+        return mock(ValidateApiDomainService.class);
+    }
+
+    @Bean
+    @Primary
+    public AcceptSubscriptionUseCase spiedAcceptSubscriptionUseCase(AcceptSubscriptionUseCase usecase) {
+        return spy(usecase);
+    }
+
+    @Bean
+    @Primary
+    public RejectSubscriptionUseCase spiedRejectSubscriptionUseCase(RejectSubscriptionUseCase usecase) {
+        return spy(usecase);
+    }
+
+    @Bean
+    public ApiImportDomainService apiImportDomainService() {
+        return mock(ApiImportDomainService.class);
+    }
+
+    @Bean
+    public RollbackApiUseCase rollbackApiUseCase() {
+        return mock(RollbackApiUseCase.class);
+    }
+
+    @Bean
+    public GetApiDefinitionUseCase getApiDefinitionUseCase() {
+        return mock(GetApiDefinitionUseCase.class);
+    }
+
+    @Bean
+    public ApiCRDExportDomainServiceInMemory apiCRDExportDomainService() {
+        return new ApiCRDExportDomainServiceInMemory();
+    }
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 }

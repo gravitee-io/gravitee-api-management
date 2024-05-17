@@ -97,7 +97,17 @@ export class ApiV2Service {
     });
   }
 
+<<<<<<< HEAD
   search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, perPage = 10): Observable<ApisResponse> {
+=======
+  exportCRD(apiId: string): Observable<Blob> {
+    return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/crd`, {
+      responseType: 'blob',
+    });
+  }
+
+  search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, perPage = 10, manageOnly = true): Observable<ApisResponse> {
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
     return this.http.post<ApisResponse>(`${this.constants.env.v2BaseURL}/apis/_search`, searchQuery, {
       params: {
         page,

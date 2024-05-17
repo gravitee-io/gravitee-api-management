@@ -21,6 +21,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -40,7 +41,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
-public class ApiCRD {
+public class ApiCRDSpec {
 
     private String id;
 
@@ -84,6 +85,17 @@ public class ApiCRD {
 
     private Analytics analytics;
 
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/api/model/crd/ApiCRD.java
+=======
+    private Failover failover;
+
+    private FlowExecution flowExecution;
+
+    private Set<String> groups;
+
+    private Set<String> categories;
+
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/api/model/crd/ApiCRDSpec.java
     public String getDefinitionVersion() {
         return "V4";
     }

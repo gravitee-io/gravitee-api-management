@@ -31,6 +31,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.Validation
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
+import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIResource;
@@ -96,6 +97,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
+        register(YamlWriter.class);
         register(JacksonFeature.class);
 
         register(OpenAPIResource.class);

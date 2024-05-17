@@ -36,4 +36,15 @@ public class ApiMetadata {
     String value;
 
     String defaultValue;
+<<<<<<< HEAD
+=======
+
+    @JsonIgnore
+    public String getFormatToString() {
+        if (this.format == null) {
+            return null;
+        }
+        return this.format.toString();
+    }
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 }

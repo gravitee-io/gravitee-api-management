@@ -29,7 +29,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
-import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
+import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
@@ -157,7 +157,7 @@ public class ApisResource extends AbstractResource {
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
-    public Response createApiWithCRD(@Valid ApiCRD crd) {
+    public Response createApiWithCRD(@Valid ApiCRDSpec crd) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
         return Response

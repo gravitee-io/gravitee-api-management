@@ -16,8 +16,15 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
+<<<<<<< HEAD
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.definition.model.DefinitionVersion;
+=======
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -52,16 +59,29 @@ public interface ApiAdapter {
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
 
     @Mapping(target = "apiVersion", source = "version")
+<<<<<<< HEAD
     io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRD source);
+=======
+    @Mapping(target = "tags", source = "apiDefinitionV4.tags")
+    @Mapping(target = "listeners", source = "apiDefinitionV4.listeners")
+    @Mapping(target = "endpointGroups", source = "apiDefinitionV4.endpointGroups")
+    @Mapping(target = "analytics", source = "apiDefinitionV4.analytics")
+    @Mapping(target = "flowExecution", source = "apiDefinitionV4.flowExecution")
+    @Mapping(target = "flows", source = "apiDefinitionV4.flows")
+    NewApiEntity toNewApiEntity(Api source);
+
+    @Mapping(target = "apiVersion", source = "version")
+    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRDSpec source);
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
-    UpdateApiEntity toUpdateApiEntity(ApiCRD api);
+    UpdateApiEntity toUpdateApiEntity(ApiCRDSpec api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
-    ApiEntity toApiEntity(ApiCRD api);
+    ApiEntity toApiEntity(ApiCRDSpec api);
 
     @Mapping(source = "state", target = "lifecycleState")
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")

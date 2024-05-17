@@ -19,6 +19,16 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -29,10 +39,12 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.exception.InvalidImageException;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
@@ -43,6 +55,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
+import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
@@ -166,6 +179,21 @@ public class ApiResource extends AbstractResource {
     @Inject
     private ApiDuplicateService duplicateApiService;
 
+<<<<<<< HEAD
+=======
+    @Inject
+    UpdateFederatedApiUseCase updateFederatedApiUseCase;
+
+    @Inject
+    ExportCRDUseCase exportCRDUseCase;
+
+    @Inject
+    private RollbackApiUseCase rollbackApiUseCase;
+
+    @Inject
+    private GetApiDefinitionUseCase getApiDefinitionUseCase;
+
+>>>>>>> afb57e3dd2 (feat: export v4 API as a kubernetes resource)
     @Context
     protected UriInfo uriInfo;
 
@@ -324,6 +352,34 @@ public class ApiResource extends AbstractResource {
             .ok(ImportExportApiMapper.INSTANCE.map(exportApiEntity))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(exportApiEntity.getApiEntity())))
             .build();
+    }
+
+    @GET
+    @Path("/_export/crd")
+    @Produces(YamlWriter.MEDIA_TYPE)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response exportApiCRD(@PathParam("apiId") String apiId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+        var input = new ExportCRDUseCase.Input(
+            apiId,
+            AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build()
+        );
+        var output = exportCRDUseCase.execute(input);
+        var spec = ApiCRDMapper.INSTANCE.map(output.spec());
+        return Response.ok(new ApiCRD(spec)).build();
     }
 
     @POST
