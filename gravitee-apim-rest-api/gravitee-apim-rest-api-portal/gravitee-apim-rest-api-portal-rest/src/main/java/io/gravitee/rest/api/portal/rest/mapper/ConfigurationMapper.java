@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import io.gravitee.rest.api.model.settings.*;
 import io.gravitee.rest.api.model.settings.PlanSettings;
 import io.gravitee.rest.api.model.settings.PortalApplicationSettings;
+import io.gravitee.rest.api.model.settings.PortalNext;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
 import org.springframework.stereotype.Component;
@@ -38,9 +39,18 @@ public class ConfigurationMapper {
         configuration.setDocumentation(convert(portalConfigEntity.getDocumentation()));
         configuration.setPlan(convert(portalConfigEntity.getPlan()));
         configuration.setPortal(convert(portalConfigEntity.getPortal(), portalConfigEntity.getApplication()));
+        configuration.setPortalNext(convert(portalConfigEntity.getPortalNext()));
         configuration.setScheduler(convert(portalConfigEntity.getScheduler()));
         configuration.setRecaptcha(convert(portalConfigEntity.getReCaptcha()));
         configuration.setAlert(convert(consoleSettingsEntity.getAlert().getEnabled()));
+        return configuration;
+    }
+
+    ConfigurationPortalNext convert(PortalNext portalNext) {
+        ConfigurationPortalNext configuration = new ConfigurationPortalNext();
+        configuration.setSiteTitle(portalNext.getSiteTitle());
+        configuration.setBannerTitle(portalNext.getBannerTitle());
+        configuration.setBannerSubtitle(portalNext.getBannerSubtitle());
         return configuration;
     }
 
