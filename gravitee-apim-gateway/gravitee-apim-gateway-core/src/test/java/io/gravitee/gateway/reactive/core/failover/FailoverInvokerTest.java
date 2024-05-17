@@ -23,8 +23,10 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
@@ -144,6 +146,29 @@ class FailoverInvokerTest {
         assertThat(executionContextArgumentCaptor.getAllValues())
             .hasSize(3)
             .allSatisfy(ctx -> assertThat(ctx.<String>getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).isEqualTo("endpoint-name"));
+    }
+
+    @Test
+    void should_invoke_endpoint_invoker_with_execution_failure_on_first_attempt_and_complete_on_second_attempt() {
+        cut =
+            new FailoverInvoker(
+                endpointInvoker,
+                Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+                API_ID
+            );
+        when(endpointInvoker.invoke(executionContext))
+            .thenReturn(executionContext.interruptWith(new ExecutionFailure(505)), Completable.complete());
+        executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
+        cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+        ArgumentCaptor<ExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
+        verify(endpointInvoker, times(2)).invoke(executionContextArgumentCaptor.capture());
+
+        assertThat(executionContextArgumentCaptor.getValue())
+            // Internal attributes should not contain ATTR_INTERNAL_EXECUTION_FAILURE as the retry executed properly
+            .satisfies(ctx ->
+                assertThat(ctx.<ExecutionFailure>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).isNull()
+            );
     }
 
     @Test

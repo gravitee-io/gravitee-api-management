@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.reactive.core.failover;
 
+import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -72,11 +75,13 @@ public class FailoverInvoker implements Invoker {
 
     @Override
     public Completable invoke(ExecutionContext ctx) {
-        final String originalEndpoint = ctx.getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT);
+        final String originalEndpoint = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
         return Completable
             .defer(() -> {
                 // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
-                ctx.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, originalEndpoint);
+                ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
+                // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
+                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
                 // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
                 return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx));
             })
