@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import '../../scss/theme/theme';
 
 .api-filter {
   --mat-standard-button-toggle-shape: 100px;
-
-  height: 40px;
-  align-items: center;
+  --mat-standard-button-toggle-selected-state-background-color: var(--mdc-filled-button-container-color);
+  --mat-standard-button-toggle-selected-state-text-color: var(--mdc-filled-button-label-text-color);
 
   &__button {
-    padding: 0 12px;
-
-    --mat-standard-button-toggle-selected-state-background-color: #eaddff;
+    min-width: 130px;
   }
 }

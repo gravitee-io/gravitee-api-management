@@ -31,13 +31,13 @@ NOTE: This file is to be deleted once material 3 has an easier way to create pal
     35: hsl($h, $s, calc($l * 0.7)),
     40: hsl($h, $s, calc($l * 0.8)),
     50: hsl($h, $s, $l),
-    60: hsl($h, $s, calc($l + (100 - l) * 0.2)),
-    70: hsl($h, $s, calc($l + (100 - l) * 0.4)),
-    80: hsl($h, $s, calc($l + (100 - l) * 0.6)),
-    90: hsl($h, $s, calc($l + (100 - l) * 0.8)),
-    95: hsl($h, $s, calc($l + (100 - l) * 0.9)),
-    98: hsl($h, $s, calc($l + (100 - l) * 0.96)),
-    99: hsl($h, $s, calc($l + (100 - l) * 0.98)),
+    60: hsl($h, $s, calc($l + (100% - $l) * 0.2)),
+    70: hsl($h, $s, calc($l + (100% - $l) * 0.4)),
+    80: hsl($h, $s, calc($l + (100% - $l) * 0.6)),
+    90: hsl($h, $s, calc($l + (100% - $l) * 0.8)),
+    95: hsl($h, $s, calc($l + (100% - $l) * 0.9)),
+    98: hsl($h, $s, calc($l + (100% - $l) * 0.96)),
+    99: hsl($h, $s, calc($l + (100% - $l) * 0.98)),
     100: hsl($h, $s, 100%)
   );
 }

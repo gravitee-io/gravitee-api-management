@@ -17,7 +17,7 @@
 -->
 <span [routerLink]="path" routerLinkActive #rla="routerLinkActive">
   @if (rla.isActive) {
-    <button [routerLink]="path" mat-flat-button color="accent">
+    <button [routerLink]="path" mat-flat-button color="primary">
       <ng-container *ngTemplateOutlet="buttonLabel"></ng-container>
     </button>
   } @else {

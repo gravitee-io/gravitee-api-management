@@ -32,7 +32,7 @@
     <mat-icon>expand_more</mat-icon>
   </mat-button-toggle>
 </mat-button-toggle-group>
-<mat-menu #restOfFilters="matMenu">
+<mat-menu #restOfFilters="matMenu" xPosition="before">
   @for (filter of filterList | slice: 4; track filter.id) {
     <button class="m3-label-large" mat-menu-item (click)="selectOption(filter)">{{ filter.name }}</button>
   }

@@ -15,7 +15,9 @@
     limitations under the License.
 
 -->
-<button class="user-avatar m3-title-medium" [matMenuTriggerFor]="user">{{ initials }}</button>
+<button mat-stroked-button color="primary" class="user-avatar m3-title-medium" [matMenuTriggerFor]="user">
+  {{ initials }}
+</button>
 <mat-menu #user="matMenu">
   <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['log-out']">Log out</button>
 </mat-menu>
