@@ -22,12 +22,17 @@
 
 .file-tree {
   &__node {
-    border-radius: 28px;
-    font-weight: 600;
+    border-radius: var(--mat-list-active-indicator-shape);
+    color: var(--mdc-list-list-item-label-text-color);
+    font-family: var(--mdc-list-list-item-label-text-font);
+    font-size: var(--mdc-list-list-item-label-text-size);
+    font-weight: var(--mdc-list-list-item-label-text-weight);
+    letter-spacing: var(--mdc-list-list-item-label-text-tracking);
+    line-height: var(--mdc-list-list-item-label-text-line-height);
     transition: 0.1s;
 
     &:hover {
-      background-color: theme.$secondary-main-color;
+      background-color: color-mix(in srgb, var(--mdc-list-list-item-hover-state-layer-color), transparent 90%);
     }
 
     &__container {
@@ -45,5 +50,6 @@
 }
 
 .active {
-  background-color: theme.$secondary-main-color;
+  background-color: var(--mat-list-active-indicator-color);
+  color: var(--mdc-list-list-item-selected-trailing-icon-color);
 }

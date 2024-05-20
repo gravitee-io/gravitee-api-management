@@ -16,12 +16,10 @@
 @import '../../scss/theme/theme';
 
 .user-avatar {
+  --mdc-outlined-button-container-height: 48px;
+  --mdc-outlined-button-container-shape: 50%;
+  --mdc-outlined-button-label-text-transform: uppercase;
+
   width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 50%;
-  background-color: $banner-background-color;
-  color: $banner-text-color;
-  cursor: pointer;
-  text-transform: uppercase;
+  min-width: 48px;
 }
