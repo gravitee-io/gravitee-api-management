@@ -79,7 +79,21 @@
                 *gioPermission="{ anyOf: ['environment-integration-d'] }"
                 [disabled]="hasFederatedAPIs"
               >
-                Delete
+                Delete Integration
+              </button>
+            </span>
+          </div>
+          <div class="danger-action" *gioPermission="{ anyOf: ['environment-api-d'] }">
+            <span>Delete all the Federated APIs associated with this integration.</span>
+            <span [matTooltipDisabled]="hasFederatedAPIs" matTooltip="There is no federated APIs to delete.">
+              <button
+                mat-button
+                color="warn"
+                (click)="deleteFederatedApis()"
+                data-testid="delete-federated-apis-button"
+                [disabled]="!hasFederatedAPIs"
+              >
+                Delete APIs
               </button>
             </span>
           </div>

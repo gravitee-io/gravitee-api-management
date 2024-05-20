@@ -64,3 +64,9 @@ export interface FederatedAPIsResponse {
   data: FederatedAPI[];
   pagination: Pagination;
 }
+
+export interface DeletedFederatedAPIsResponse {
+  deleted: number;
+  skipped: number;
+  errors: number;
+}
