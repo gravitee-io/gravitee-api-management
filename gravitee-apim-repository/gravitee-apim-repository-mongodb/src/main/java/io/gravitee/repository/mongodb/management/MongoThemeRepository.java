@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
-import io.gravitee.repository.mongodb.management.internal.ThemeMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
+import io.gravitee.repository.mongodb.management.internal.theme.ThemeMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
@@ -126,5 +129,12 @@ public class MongoThemeRepository implements ThemeRepository {
         throws TechnicalException {
         final Set<ThemeMongo> themes = internalThemeRepo.findByReferenceIdAndReferenceTypeAndType(referenceId, referenceType, type);
         return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Page<Theme> search(ThemeCriteria criteria, Pageable pageable) {
+        final Page<ThemeMongo> page = internalThemeRepo.search(criteria, pageable);
+        final List<Theme> content = page.getContent().stream().map(themeMongo -> mapper.map(themeMongo)).toList();
+        return new Page<>(content, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements());
     }
 }

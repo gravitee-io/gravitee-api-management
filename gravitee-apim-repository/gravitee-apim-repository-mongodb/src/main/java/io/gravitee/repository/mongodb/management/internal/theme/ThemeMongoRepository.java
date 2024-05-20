@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.repository.mongodb.management.internal.theme;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.ThemeCriteria;
-import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
+import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
 import java.util.Set;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ThemeRepository extends CrudRepository<Theme, String> {
-    Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type) throws TechnicalException;
-    Page<Theme> search(ThemeCriteria criteria, Pageable pageable) throws TechnicalException;
+@Repository
+public interface ThemeMongoRepository extends MongoRepository<ThemeMongo, String>, ThemeMongoRepositoryCustom {
+    Set<ThemeMongo> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type);
 }

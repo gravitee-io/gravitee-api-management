@@ -18,11 +18,15 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
+import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 import org.slf4j.Logger;
@@ -92,6 +96,51 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
             );
         } catch (final Exception ex) {
             final String error = "Failed to find themes by reference type";
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public Page<Theme> search(ThemeCriteria criteria, Pageable pageable) throws TechnicalException {
+        LOGGER.debug("JdbcThemeRepository.search({}, {})", criteria, pageable);
+        try {
+            List<Theme> result;
+            if (criteria == null) {
+                result = jdbcTemplate.query(getOrm().getSelectAllSql() + "order by name", getRowMapper());
+            } else {
+                final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
+
+                query.append(" where 1=1 ");
+
+                if (criteria.getEnabled() != null) {
+                    query.append(" and enabled = ? ");
+                }
+
+                if (criteria.getType() != null) {
+                    query.append(" and ").append(escapeReservedWord("type")).append(" = ?");
+                }
+
+                query.append(" order by name ");
+
+                result =
+                    jdbcTemplate.query(
+                        query.toString(),
+                        (PreparedStatement ps) -> {
+                            int idx = 1;
+                            if (criteria.getEnabled() != null) {
+                                idx = getOrm().setArguments(ps, List.of(criteria.getEnabled()), idx);
+                            }
+                            if (criteria.getType() != null) {
+                                getOrm().setArguments(ps, List.of(criteria.getType().name()), idx);
+                            }
+                        },
+                        getOrm().getRowMapper()
+                    );
+            }
+            return getResultAsPage(pageable, result);
+        } catch (final Exception ex) {
+            final String error = "Failed to search themes by criteria";
             LOGGER.error(error, ex);
             throw new TechnicalException(error, ex);
         }
