@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe, CommonModule, NgIf } from '@angular/common';
-import { Component, ElementRef, HostListener, Input, output } from '@angular/core';
+import { Component, effect, ElementRef, HostListener, input, Input, output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -51,6 +51,8 @@ import { Category } from '../../entities/categories/categories';
 export class ApiFilterComponent {
   @Input()
   filterList!: Category[];
+
+  filterParam = input('');
   selectedFilter = output<string>();
 
   public selectedOption!: string | undefined;
@@ -58,7 +60,19 @@ export class ApiFilterComponent {
   public isFilterOpen: boolean = false;
   public toggleControl = new FormControl(this.currentValue);
 
-  constructor(private eRef: ElementRef) {}
+  constructor(private eRef: ElementRef) {
+    effect(() => {
+      if (this.filterParam()) {
+        this.toggleControl.setValue(this.filterParam());
+        const currentParamValue = this.filterList.slice(4).filter(filter => filter.id === this.filterParam());
+        if (currentParamValue.length) {
+          this.selectedOption = currentParamValue[0].name;
+        } else {
+          this.selectedOption = '';
+        }
+      }
+    });
+  }
 
   @HostListener('document:click', ['$event']) handleClickOutside(event: Event) {
     if (this.isFilterOpen && !this.eRef.nativeElement.contains(event.target)) {

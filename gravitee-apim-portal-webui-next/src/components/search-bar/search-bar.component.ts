@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, output } from '@angular/core';
+import { Component, effect, input, OnInit, output } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,8 +29,17 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
   styleUrl: './search-bar.component.scss',
 })
 export class SearchBarComponent implements OnInit {
-  searchControl: FormControl<string> = new FormControl<string>(``, { nonNullable: true });
+  searchParam = input('');
   searchTerm = output<string>();
+  searchControl: FormControl<string> = new FormControl<string>(``, { nonNullable: true });
+
+  constructor() {
+    effect(() => {
+      if (this.searchParam()) {
+        this.searchControl.setValue(this.searchParam());
+      }
+    });
+  }
 
   ngOnInit() {
     this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(term => {

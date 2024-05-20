@@ -16,6 +16,7 @@
 import { Component, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
+import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { FooterComponent } from '../components/footer/footer.component';
 import { NavBarComponent } from '../components/nav-bar/nav-bar.component';
@@ -35,6 +36,8 @@ export class AppComponent {
 
   constructor(
     private configService: ConfigService,
+    // Don't delete BreadcrumbService from here - it's responsible for correct breadcrumb navigation
+    private breadcrumbService: BreadcrumbService,
     private title: Title,
   ) {
     this.siteTitle = configService.portalNext.siteTitle ?? 'Developer Portal';

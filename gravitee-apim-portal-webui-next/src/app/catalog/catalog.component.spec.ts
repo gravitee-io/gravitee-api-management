@@ -41,7 +41,7 @@ describe('CatalogComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
-    fixture.componentInstance.selectedFilter = 'all';
+    fixture.componentInstance.filter = 'all';
     fixture.detectChanges();
   });
 
@@ -123,7 +123,6 @@ describe('CatalogComponent', () => {
     });
 
     it('should call API list with search query', async () => {
-      fixture.componentInstance.searchInput = 'all';
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
       expect(apiCard.length).toEqual(1);
@@ -142,7 +141,7 @@ describe('CatalogComponent', () => {
         }),
         2,
         9,
-        'all',
+        '',
       );
       fixture.detectChanges();
       expectCategoriesList(fakeCategoriesResponse());
