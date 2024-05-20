@@ -61,7 +61,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
         this.form = this.formBuilder.group({
           selectedGroups: {
             value: userGroupList.map((g) => g.id),
-            disabled: this.isReadOnly,
+            disabled: this.isReadOnly || api.definitionContext?.origin === 'KUBERNETES',
           },
         });
         this.initialFormValue = this.form.getRawValue();
