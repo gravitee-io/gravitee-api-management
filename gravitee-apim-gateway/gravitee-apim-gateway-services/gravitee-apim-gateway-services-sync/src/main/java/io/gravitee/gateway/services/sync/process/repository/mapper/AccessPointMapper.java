@@ -15,27 +15,24 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
-import io.gravitee.repository.management.model.Event;
-import io.reactivex.rxjava3.core.Maybe;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@Slf4j
 public class AccessPointMapper {
 
-    private final ObjectMapper objectMapper;
-
-    public Maybe<AccessPoint> to(Event accessPointEvent) {
-        return Maybe.fromCallable(() -> {
-            try {
-                return objectMapper.readValue(accessPointEvent.getPayload(), AccessPoint.class);
-            } catch (Exception e) {
-                log.warn("Error while determining deployed access points from events payload", e);
-                return null;
-            }
-        });
+    public AccessPoint to(io.gravitee.repository.management.model.AccessPoint accessPointModel) {
+        return AccessPoint
+            .builder()
+            .id(accessPointModel.getId())
+            .referenceType(accessPointModel.getReferenceType())
+            .referenceId(accessPointModel.getReferenceId())
+            .target(accessPointModel.getTarget())
+            .host(accessPointModel.getHost())
+            .secured(accessPointModel.isSecured())
+            .overriding(accessPointModel.isOverriding())
+            .updatedAt(accessPointModel.getUpdatedAt())
+            .status(AccessPoint.Status.valueOf(accessPointModel.getStatus().name()))
+            .build();
     }
 }

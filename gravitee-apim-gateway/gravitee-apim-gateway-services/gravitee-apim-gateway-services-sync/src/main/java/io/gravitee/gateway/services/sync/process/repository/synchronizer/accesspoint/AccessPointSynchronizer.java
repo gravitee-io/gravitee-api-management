@@ -19,16 +19,14 @@ import io.gravitee.gateway.services.sync.process.common.deployer.AccessPointDepl
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMapper;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.AccessPoint;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
@@ -38,9 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AccessPointSynchronizer implements RepositorySynchronizer {
 
-    private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.PUBLISH_ACCESS_POINT);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(EventType.PUBLISH_ACCESS_POINT, EventType.UNPUBLISH_ACCESS_POINT);
-    private final LatestEventFetcher eventsFetcher;
+    private final AccessPointFetcher accessPointFetcher;
     private final AccessPointMapper accessPointMapper;
     private final DeployerFactory deployerFactory;
     private final ThreadPoolExecutor syncFetcherExecutor;
@@ -49,26 +45,20 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
     @Override
     public Completable synchronize(Long from, Long to, List<String> environments) {
         AtomicLong launchTime = new AtomicLong();
-        return eventsFetcher
-            .fetchLatest(
-                from,
-                to,
-                Event.EventProperties.ACCESS_POINT_ID,
-                environments,
-                from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES
-            )
+        return accessPointFetcher
+            .fetchLatest(from, to, environments, from == -1 ? AccessPoint.Status.CREATED : null)
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .flatMap(events ->
+            .flatMap(accessPoints ->
                 Flowable
-                    .just(events)
+                    .just(accessPoints)
                     .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.PUBLISH_ACCESS_POINT) {
-                            return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNPUBLISH_ACCESS_POINT) {
-                            return prepareForUndeployment(eventsByType);
+                    .groupBy(AccessPoint::getStatus)
+                    .flatMap(accessPointsByStatus -> {
+                        if (accessPointsByStatus.getKey() == AccessPoint.Status.CREATED) {
+                            return prepareForDeployment(accessPointsByStatus);
+                        } else if (accessPointsByStatus.getKey() == AccessPoint.Status.DELETED) {
+                            return prepareForUndeployment(accessPointsByStatus);
                         } else {
                             return Flowable.empty();
                         }
@@ -88,7 +78,7 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
                             return Flowable.empty();
                         }
                     })
-                    .sequential(eventsFetcher.bulkItems());
+                    .sequential(accessPointFetcher.bulkItems());
             })
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
@@ -107,16 +97,16 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
             .ignoreElement();
     }
 
-    private Flowable<AccessPointDeployable> prepareForDeployment(final Flowable<Event> deployEvents) {
-        return deployEvents
-            .flatMapMaybe(accessPointMapper::to)
-            .map(accessPoint -> AccessPointDeployable.builder().syncAction(SyncAction.DEPLOY).accessPoint(accessPoint).build());
+    private Flowable<AccessPointDeployable> prepareForDeployment(final Flowable<AccessPoint> accessPoints) {
+        return accessPoints.map(accessPoint ->
+            AccessPointDeployable.builder().accessPoint(accessPointMapper.to(accessPoint)).syncAction(SyncAction.DEPLOY).build()
+        );
     }
 
-    private Flowable<AccessPointDeployable> prepareForUndeployment(final Flowable<Event> undeployEvents) {
-        return undeployEvents
-            .flatMapMaybe(accessPointMapper::to)
-            .map(accessPoint -> AccessPointDeployable.builder().syncAction(SyncAction.UNDEPLOY).accessPoint(accessPoint).build());
+    private Flowable<AccessPointDeployable> prepareForUndeployment(final Flowable<AccessPoint> accessPoints) {
+        return accessPoints.map(accessPoint ->
+            AccessPointDeployable.builder().accessPoint(accessPointMapper.to(accessPoint)).syncAction(SyncAction.UNDEPLOY).build()
+        );
     }
 
     private static Flowable<AccessPointDeployable> deploy(

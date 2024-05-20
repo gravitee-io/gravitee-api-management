@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.rest.api.model.EventEntity;
@@ -70,13 +69,6 @@ public interface EventService {
         final Set<String> environmentsIds,
         EventType type,
         OrganizationEntity organizationEntity
-    );
-
-    EventEntity createAccessPointGatewayEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        AccessPoint accessPoint
     );
 
     EventEntity createEvent(

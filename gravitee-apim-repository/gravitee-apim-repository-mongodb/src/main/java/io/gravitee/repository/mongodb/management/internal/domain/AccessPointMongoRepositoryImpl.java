@@ -15,17 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management.internal.domain;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.query.Criteria;
 
 public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositoryCustom {
 
@@ -33,35 +34,64 @@ public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositor
     private MongoTemplate mongoTemplate;
 
     @Override
-    public Page<AccessPointMongo> search(AccessPointCriteria criteria, Pageable pageable) {
-        final Query query = new Query();
+    public List<AccessPointMongo> search(AccessPointCriteria criteria, Long page, Long size) {
+        final String collectionName = mongoTemplate.getCollectionName(AccessPointMongo.class);
+
+        Aggregation aggregation;
+        List<AggregationOperation> aggregationOperations = new ArrayList<>();
+
+        if (criteria != null) {
+            List<Criteria> criteriaList = buildDBCriteria(criteria);
+            if (!criteriaList.isEmpty()) {
+                aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
+            }
+        }
+
+        aggregationOperations.add(Aggregation.sort(Sort.Direction.ASC, "updatedAt", "_id"));
+
+        if (page != null && size != null && size > 0) {
+            aggregationOperations.add(Aggregation.skip(page * size));
+        }
+
+        if (size != null) {
+            aggregationOperations.add(Aggregation.limit(size));
+        }
+
+        aggregation = Aggregation.newAggregation(aggregationOperations);
+        final AggregationResults<AccessPointMongo> results = mongoTemplate.aggregate(aggregation, collectionName, AccessPointMongo.class);
+        return results.getMappedResults();
+    }
+
+    protected List<Criteria> buildDBCriteria(final AccessPointCriteria criteria) {
+        List<Criteria> criteriaList = new ArrayList<>();
 
         if (criteria.getReferenceType() != null) {
-            query.addCriteria(where("referenceType").is(criteria.getReferenceType().name()));
+            criteriaList.add(Criteria.where("referenceType").is(criteria.getReferenceType().name()));
         }
 
         if (criteria.getTarget() != null) {
-            query.addCriteria(where("target").is(criteria.getTarget().name()));
+            criteriaList.add(Criteria.where("target").is(criteria.getTarget().name()));
         }
 
         if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
-            query.addCriteria(where("updatedAt").gte(new Date(criteria.getFrom())).lte(new Date(criteria.getTo())));
+            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lte(new Date(criteria.getTo())));
         } else {
             if (criteria.getFrom() > 0) {
-                query.addCriteria(where("updatedAt").gte(new Date(criteria.getFrom())));
+                criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
             }
             if (criteria.getTo() > 0) {
-                query.addCriteria(where("updatedAt").lte(new Date(criteria.getTo())));
+                criteriaList.add(Criteria.where("updatedAt").lte(new Date(criteria.getTo())));
             }
         }
 
-        if (criteria.getEnvironments() != null) {
-            query.addCriteria(where("referenceId").in(criteria.getEnvironments()));
+        if (criteria.getReferenceIds() != null && !criteria.getReferenceIds().isEmpty()) {
+            criteriaList.add(Criteria.where("referenceId").in(criteria.getReferenceIds()));
         }
 
-        long total = mongoTemplate.count(query, AccessPointMongo.class);
-        List<AccessPointMongo> accessPoints = mongoTemplate.find(query, AccessPointMongo.class);
+        if (criteria.getStatus() != null) {
+            criteriaList.add(Criteria.where("status").is(criteria.getStatus().name()));
+        }
 
-        return new Page<>(accessPoints, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+        return criteriaList;
     }
 }
