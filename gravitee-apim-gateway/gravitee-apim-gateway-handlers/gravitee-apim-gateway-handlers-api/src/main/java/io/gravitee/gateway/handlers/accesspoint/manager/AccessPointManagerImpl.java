@@ -16,22 +16,33 @@
 package io.gravitee.gateway.handlers.accesspoint.manager;
 
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AccessPointManagerImpl implements AccessPointManager {
 
-    private final Map<String, AccessPoint> accessPoints = new ConcurrentHashMap<>();
+    private final Map<String, List<AccessPoint>> accessPoints = new ConcurrentHashMap<>();
 
     @Override
     public void register(AccessPoint accessPoint) {
-        accessPoints.put(accessPoint.getReferenceId(), accessPoint);
+        accessPoints.computeIfAbsent(accessPoint.getReferenceId(), id -> new ArrayList<>()).add(accessPoint);
     }
 
     @Override
     public void unregister(AccessPoint accessPoint) {
-        accessPoints.remove(accessPoint.getReferenceId(), accessPoint);
+        List<AccessPoint> list = accessPoints.get(accessPoint.getReferenceId());
+        if (list != null) {
+            synchronized (list) {
+                list.removeIf(ap -> Objects.equals(ap.getId(), accessPoint.getId()));
+                if (list.isEmpty()) {
+                    accessPoints.remove(accessPoint.getReferenceId());
+                }
+            }
+        }
     }
 }

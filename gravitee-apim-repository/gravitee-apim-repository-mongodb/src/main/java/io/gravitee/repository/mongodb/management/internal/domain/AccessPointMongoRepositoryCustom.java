@@ -19,7 +19,8 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
+import java.util.List;
 
 public interface AccessPointMongoRepositoryCustom {
-    Page<AccessPointMongo> search(AccessPointCriteria criteria, Pageable pageable);
+    List<AccessPointMongo> search(AccessPointCriteria criteria, Long page, Long size);
 }

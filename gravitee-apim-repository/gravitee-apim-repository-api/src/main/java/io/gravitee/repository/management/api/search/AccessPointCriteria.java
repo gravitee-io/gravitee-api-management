@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import java.util.List;
@@ -29,8 +30,6 @@ import lombok.RequiredArgsConstructor;
 @EqualsAndHashCode
 public class AccessPointCriteria {
 
-    //TODO: delete this and other repo changes if happy with event sync
-
     @Builder.Default
     private final long from = -1;
 
@@ -41,5 +40,7 @@ public class AccessPointCriteria {
 
     private final AccessPointTarget target;
 
-    private final List<String> environments;
+    private final List<String> referenceIds;
+
+    private final AccessPoint.Status status;
 }
