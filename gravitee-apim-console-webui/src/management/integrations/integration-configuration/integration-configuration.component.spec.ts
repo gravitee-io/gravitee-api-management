@@ -32,7 +32,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { IntegrationsModule } from '../integrations.module';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
+import { DeletedFederatedAPIsResponse, FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { fakeFederatedAPI } from '../../../entities/integrations/federatedAPI.fixture';
 
@@ -44,6 +44,7 @@ describe('IntegrationConfigurationComponent', (): void => {
 
   const fakeSnackBarService = {
     error: jest.fn(),
+    success: jest.fn(),
   };
 
   const init = async (
@@ -222,8 +223,54 @@ describe('IntegrationConfigurationComponent', (): void => {
     });
   });
 
+  describe('delete federated APIs button', () => {
+    it('should be disabled when federated APIS are not present', async (): Promise<void> => {
+      await init(['environment-api-d', 'environment-integration-d']);
+      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+      expectFederatedAPIsGetRequest([], 1, 10);
+
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
+      expect(await deleteButton.isDisabled()).toBeTruthy();
+    });
+
+    it('should be hidden when user has no delete API permission', async (): Promise<void> => {
+      await init(['environment-integration-d']);
+      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+      expectFederatedAPIsGetRequest([], 1, 10);
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
+      expect(deleteButton).toBeNull();
+    });
+
+    it('should send delete request with proper integration ID and display deleted items info', async (): Promise<void> => {
+      await init(['environment-api-d', 'environment-integration-d']);
+      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+      expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
+
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
+
+      await deleteButton.click();
+      fixture.detectChanges();
+
+      const dialogHarness: GioConfirmDialogHarness =
+        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      expectDeleteAPIsRequest('idToDelete123', { deleted: 5, skipped: 1, errors: 1 });
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith(
+        'Federated APIs have been deleted.\n' + '  • Deleted APIs: 5\n' + '  • Skipped APIs: 1\n' + '  • Errors: 1',
+      );
+      expectFederatedAPIsGetRequest([], 1, 10);
+    });
+  });
+
   function expectIntegrationDeleteRequest(id: string): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${id}`);
+    expect(req.request.method).toEqual('DELETE');
+  }
+
+  function expectDeleteAPIsRequest(id: string, response: DeletedFederatedAPIsResponse): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${id}/apis`);
+    req.flush(response);
     expect(req.request.method).toEqual('DELETE');
   }
 

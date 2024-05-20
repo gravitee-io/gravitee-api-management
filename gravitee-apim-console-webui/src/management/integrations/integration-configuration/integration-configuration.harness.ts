@@ -33,6 +33,9 @@ export class IntegrationConfigurationHarness extends ComponentHarness {
   private deleteIntegrationButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
     MatButtonHarness.with({ selector: '[data-testid=delete-integration-button]' }),
   );
+  private deleteFederatedApisButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="delete-federated-apis-button"]' }),
+  );
 
   public updateSectionLocator: AsyncFactoryFn<MatCardHarness> = this.locatorForOptional(
     MatCardHarness.with({ selector: '[data-testid=update-card]' }),
@@ -64,5 +67,9 @@ export class IntegrationConfigurationHarness extends ComponentHarness {
 
   public getDeleteIntegrationButton = async (): Promise<MatButtonHarness> => {
     return this.deleteIntegrationButtonLocator();
+  };
+
+  public getDeleteFederatedApisButton = async (): Promise<MatButtonHarness> => {
+    return this.deleteFederatedApisButtonLocator();
   };
 }

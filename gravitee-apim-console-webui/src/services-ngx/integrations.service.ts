@@ -21,6 +21,7 @@ import { tap } from 'rxjs/operators';
 
 import {
   CreateIntegrationPayload,
+  DeletedFederatedAPIsResponse,
   FederatedAPIsResponse,
   Integration,
   IntegrationResponse,
@@ -74,5 +75,9 @@ export class IntegrationsService {
 
   public getFederatedAPIs(id: string, page: number = 1, size: number = 10): Observable<FederatedAPIsResponse> {
     return this.httpClient.get<FederatedAPIsResponse>(`${this.url}/${id}/apis?page=${page}&perPage=${size}`);
+  }
+
+  public deleteFederatedAPIs(id: string): Observable<DeletedFederatedAPIsResponse> {
+    return this.httpClient.delete<DeletedFederatedAPIsResponse>(`${this.url}/${id}/apis`);
   }
 }

@@ -54,6 +54,10 @@ export class IntegrationConfigurationComponent implements OnInit {
 
   ngOnInit(): void {
     this.getIntegration();
+    this.checkIfHasFederatedAPIs();
+  }
+
+  private checkIfHasFederatedAPIs(): void {
     this.integrationsService
       .getFederatedAPIs(this.activatedRoute.snapshot.params.integrationId)
       .pipe(
@@ -131,6 +135,47 @@ export class IntegrationConfigurationComponent implements OnInit {
             relativeTo: this.activatedRoute,
           });
           this.snackBarService.success('Integration successfully deleted!');
+        }),
+        catchError(({ error }) => {
+          this.isLoading = false;
+          this.snackBarService.error(`Something went wrong! ${error.message}`);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  public deleteFederatedApis(): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Delete APIs',
+          content:
+            'This action deletes unpublished Federated APIs linked to this integration. ' +
+            'Please note that deleted APIs cannot be restored.',
+          confirmButton: 'Delete APIs',
+        },
+        role: 'alertdialog',
+        id: 'deleteAPIsConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm),
+        switchMap(() => {
+          this.isLoading = true;
+          return this.integrationsService.deleteFederatedAPIs(this.integration.id);
+        }),
+        tap((deletedApisResponse) => {
+          this.isLoading = false;
+          this.snackBarService.success(
+            `Federated APIs have been deleted.\n` +
+              `  \u2022 Deleted APIs: ${deletedApisResponse.deleted}\n` +
+              `  \u2022 Skipped APIs: ${deletedApisResponse.skipped}\n` +
+              `  \u2022 Errors: ${deletedApisResponse.errors}`,
+          );
+          this.checkIfHasFederatedAPIs();
         }),
         catchError(({ error }) => {
           this.isLoading = false;
