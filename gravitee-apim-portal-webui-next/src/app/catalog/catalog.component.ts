@@ -15,8 +15,9 @@
  */
 
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { ActivatedRoute, Router } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { BehaviorSubject, catchError, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -63,20 +64,25 @@ export interface ApiPaginatorVM {
   styleUrl: './catalog.component.scss',
 })
 export class CatalogComponent {
+  @Input() query!: string;
+  @Input() filter: string = 'all';
+
   apiPaginator$: Observable<ApiPaginatorVM>;
   filterList$: Observable<Category[]> = of([]);
   loadingPage$ = new BehaviorSubject(true);
 
   bannerTitle: string;
   bannerSubtitle: string;
-  selectedFilter: string = 'all';
-  searchInput: string = '';
 
   private apiService = inject(ApiService);
   private categoriesService = inject(CategoriesService);
   private page$ = new BehaviorSubject(1);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private configService: ConfigService,
+  ) {
     this.bannerTitle = this.configService.portalNext.bannerTitle ?? 'Welcome to Gravitee Developer Portal!';
     this.bannerSubtitle = this.configService.portalNext.bannerSubtitle ?? 'Discover powerful APIs to supercharge your projects.';
     this.apiPaginator$ = this.loadApis$();
@@ -92,19 +98,33 @@ export class CatalogComponent {
   }
 
   public onFilterSelection(event: string) {
-    this.selectedFilter = event;
+    this.filter = event;
+    this.router.navigate([''], {
+      relativeTo: this.route,
+      queryParams: {
+        filter: this.filter === 'all' ? '' : this.filter,
+        query: this.query,
+      },
+    });
     this.page$.next(1);
   }
 
   public onSearchResults(searchInput: string) {
-    this.searchInput = searchInput;
+    this.query = searchInput;
+    this.router.navigate([''], {
+      relativeTo: this.route,
+      queryParams: {
+        filter: this.filter,
+        query: this.query,
+      },
+    });
     this.page$.next(1);
   }
 
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.apiService.search(currentPage, this.selectedFilter, this.searchInput)),
+      switchMap(currentPage => this.apiService.search(currentPage, this.filter, this.query ?? '')),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({

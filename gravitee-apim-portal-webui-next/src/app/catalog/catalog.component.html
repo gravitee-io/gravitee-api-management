@@ -21,13 +21,11 @@
     <h5>{{ bannerSubtitle }}</h5>
   </div>
 </app-banner>
-
 @if (apiPaginator$ | async; as apis) {
   @if (filterList$ | async; as filterList) {
-    <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList"></app-api-filter>
+    <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList" [filterParam]="filter"></app-api-filter>
   }
-  <app-search-bar (searchTerm)="onSearchResults($event)" />
-
+  <app-search-bar (searchTerm)="onSearchResults($event)" [searchParam]="query" />
   @if (apis.data.length === 0) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
