@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.themes;
 
-import io.gravitee.repository.management.model.ThemeType;
-import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
-import java.util.Set;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface ThemeMongoRepository extends MongoRepository<ThemeMongo, String> {
-    Set<ThemeMongo> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type);
+@Component("TypeIndexUpgrader")
+public class TypeIndexUpgrader extends IndexUpgrader {
+
+    @Override
+    protected Index buildIndex() {
+        return Index
+            .builder()
+            .collection("themes")
+            .name("t1")
+            .key("type", ascending())
+            .build();
+    }
 }

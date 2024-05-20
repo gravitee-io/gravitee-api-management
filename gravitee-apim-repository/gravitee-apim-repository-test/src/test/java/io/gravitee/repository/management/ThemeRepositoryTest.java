@@ -18,6 +18,8 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
 import java.util.*;
@@ -35,7 +37,7 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Theme> themes = themeRepository.findAll();
 
         assertNotNull(themes);
-        assertEquals(3, themes.size());
+        assertEquals(4, themes.size());
         final Theme themeSimple = themes.stream().filter(theme -> "simple".equals(theme.getId())).findAny().get();
         assertEquals("Theme simple", themeSimple.getName());
         assertEquals("PORTAL", themeSimple.getType().name());
@@ -60,6 +62,28 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Theme dark", darkTheme.getName());
         final Theme lightTheme = themes.stream().filter(theme -> "light".equals(theme.getId())).findAny().get();
         assertEquals("Light", lightTheme.getName());
+    }
+
+    @Test
+    public void shouldSearchByType() throws TechnicalException {
+        var results = themeRepository.search(ThemeCriteria.builder().type(ThemeType.PORTAL).build(), null);
+        assertNotNull(results);
+        assertEquals(3, results.getContent().size());
+    }
+
+    @Test
+    public void shouldSearchByTypeAndEnabled() throws TechnicalException {
+        var results = themeRepository.search(ThemeCriteria.builder().type(ThemeType.PORTAL).enabled(true).build(), null);
+        assertNotNull(results);
+        assertEquals(1, results.getContent().size());
+        assertEquals("dark", results.getContent().get(0).getId());
+    }
+
+    @Test
+    public void shouldSearchAndReturnAll() throws TechnicalException {
+        var results = themeRepository.search(ThemeCriteria.builder().build(), null);
+        assertNotNull(results);
+        assertEquals(4, results.getContent().size());
     }
 
     @Test
