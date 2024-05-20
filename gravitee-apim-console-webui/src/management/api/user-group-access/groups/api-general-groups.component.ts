@@ -23,6 +23,7 @@ import { Api, Group } from '../../../../entities/management-api-v2';
 export interface ApiGroupsDialogData {
   api: Api;
   groups: Group[];
+  isKubernetesOrigin?: boolean;
 }
 export interface ApiGroupsDialogResult {
   groups: string[];
@@ -40,6 +41,7 @@ export class ApiGeneralGroupsComponent implements OnInit {
   public groups: Group[];
   public readOnlyGroupList: string;
   public isV1Api = false;
+  public isKubernetesOrigin = false;
 
   constructor(
     private readonly permissionService: GioPermissionService,
@@ -50,10 +52,11 @@ export class ApiGeneralGroupsComponent implements OnInit {
   ) {
     this.api = dialogData.api;
     this.groups = dialogData.groups;
+    this.isKubernetesOrigin = dialogData.isKubernetesOrigin;
   }
 
   ngOnInit() {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
+    this.isReadOnly = this.isKubernetesOrigin || !this.permissionService.hasAnyMatching(['api-definition-u']);
     this.isV1Api = this.api.definitionVersion === 'V1';
 
     const userGroupList: Group[] = this.groups.filter((group) => this.api.groups?.includes(group.id));
