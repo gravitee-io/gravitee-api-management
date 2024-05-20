@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GioFormSelectionInlineModule, GioIconsModule } from '@gravitee/ui-particles-angular';
@@ -45,12 +45,13 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   templateUrl: './api-import-v4.component.html',
   styleUrl: './api-import-v4.component.scss',
 })
-export class ApiImportV4Component {
+export class ApiImportV4Component implements AfterViewInit {
   private apiV2Service = inject(ApiV2Service);
   private snackBarService = inject(SnackBarService);
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
+  private changeDetectorRef = inject(ChangeDetectorRef);
   private importFileContent: string;
 
   protected importType: string;
@@ -63,9 +64,13 @@ export class ApiImportV4Component {
     { value: 'remote', label: 'Remote source', icon: 'gio:language', disabled: true },
   ];
   protected form = new FormGroup({
-    format: new FormControl(null, [Validators.required]),
-    source: new FormControl(null, [Validators.required]),
+    format: new FormControl('gravitee', [Validators.required]),
+    source: new FormControl('local', [Validators.required]),
   });
+
+  ngAfterViewInit() {
+    this.changeDetectorRef.detectChanges();
+  }
 
   protected onImportFile({ importFileContent, importType }: { importFileContent: string; importType: string }) {
     this.importType = importType;
