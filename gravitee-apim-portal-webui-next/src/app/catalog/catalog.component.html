@@ -17,8 +17,8 @@
 -->
 <app-banner>
   <div class="welcome-banner-content">
-    <h1>{{ bannerTitle }}</h1>
-    <h5>{{ bannerSubtitle }}</h5>
+    <div class="m3-headline-large">{{ bannerTitle }}</div>
+    <div class="m3-title-small">{{ bannerSubtitle }}</div>
   </div>
 </app-banner>
 @if (apiPaginator$ | async; as apis) {

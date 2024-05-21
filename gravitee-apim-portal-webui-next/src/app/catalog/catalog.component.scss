@@ -20,7 +20,10 @@
 }
 
 .welcome-banner-content {
-  padding: 0 16px;
+  display: flex;
+  flex-flow: column;
+  padding: 16px;
+  gap: 24px;
 }
 
 .api-list__container {
