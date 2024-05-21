@@ -22,7 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -37,6 +41,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +59,9 @@ public class DocumentationValidationDomainServiceTest {
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
+    PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private DocumentationValidationDomainService cut;
 
     @BeforeEach
@@ -70,7 +80,9 @@ public class DocumentationValidationDomainServiceTest {
                     membershipQueryService,
                     roleQueryService,
                     userCrudService
-                )
+                ),
+                new ApiDocumentationDomainService(pageQueryService, planQueryService),
+                pageCrudService
             );
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
@@ -151,6 +163,100 @@ public class DocumentationValidationDomainServiceTest {
         @Test
         void should_not_throw_an_exception() {
             assertDoesNotThrow(() -> cut.validateTemplate("content", API_ID, ORGANIZATION_ID));
+        }
+    }
+
+    @Nested
+    class ValidateAndSanitizeForCreation {
+
+        @ParameterizedTest
+        @NullSource
+        @EmptySource
+        void should_throw_an_error_when_name_is_not_valid(String name) {
+            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(Page.builder().name(name).build(), ORGANIZATION_ID))
+                .isInstanceOf(InvalidPageNameException.class);
+        }
+
+        @Test
+        void should_throw_error_if_markdown_content_is_unsafe() {
+            assertThatThrownBy(() ->
+                    cut.validateAndSanitizeForCreation(
+                        Page.builder().type(Page.Type.MARKDOWN).name("new page").content(getNotSafe()).build(),
+                        ORGANIZATION_ID
+                    )
+                )
+                .isInstanceOf(PageContentUnsafeException.class);
+        }
+
+        @Test
+        void should_throw_error_if_swagger_content_is_unsafe() {
+            assertThatThrownBy(() ->
+                    cut.validateAndSanitizeForCreation(
+                        Page.builder().type(Page.Type.SWAGGER).name("new page").content(getNotSafe()).build(),
+                        ORGANIZATION_ID
+                    )
+                )
+                .isInstanceOf(InvalidPageContentException.class);
+        }
+
+        @Test
+        void should_throw_error_if_parent_is_not_a_folder() {
+            var parentId = "parent-id";
+            pageCrudService.initWith(List.of(Page.builder().id(parentId).type(Page.Type.MARKDOWN).build()));
+
+            assertThatThrownBy(() ->
+                    cut.validateAndSanitizeForCreation(
+                        Page
+                            .builder()
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("")
+                            .parentId(parentId)
+                            .referenceId(API_ID)
+                            .referenceType(Page.ReferenceType.API)
+                            .build(),
+                        ORGANIZATION_ID
+                    )
+                )
+                .isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @Test
+        void should_throw_error_when_name_is_not_unique() {
+            pageQueryService.initWith(
+                List.of(
+                    Page
+                        .builder()
+                        .name("new page")
+                        .type(Page.Type.MARKDOWN)
+                        .referenceId("api-id")
+                        .referenceType(Page.ReferenceType.API)
+                        .build()
+                )
+            );
+
+            assertThatThrownBy(() ->
+                    cut.validateAndSanitizeForCreation(
+                        Page
+                            .builder()
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .build(),
+                        ORGANIZATION_ID
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
+        private String getNotSafe() {
+            String html = "";
+            html += "<script src=\"/external.jpg\" />";
+            html += "<div onClick=\"alert('test');\" style=\"margin: auto\">onclick alert<div>";
+
+            return html;
         }
     }
 }

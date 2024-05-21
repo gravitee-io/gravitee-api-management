@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,6 +45,8 @@ import inmemory.IndexerInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
+import inmemory.NoopSwaggerOpenApiResolver;
+import inmemory.NoopTemplateResolverDomainService;
 import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
@@ -68,12 +71,20 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
+import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
@@ -82,6 +93,7 @@ import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -103,6 +115,7 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -121,7 +134,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 class ImportApiDefinitionUseCaseTest {
 
@@ -158,6 +173,7 @@ class ImportApiDefinitionUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
 
     ImportApiDefinitionUseCase useCase;
 
@@ -235,6 +251,37 @@ class ImportApiDefinitionUseCaseTest {
             indexer
         );
         var apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(apiQueryService, pageQueryService, planQueryServiceInMemory);
+
+        var documentationValidationDomainService = new DocumentationValidationDomainService(
+            new HtmlSanitizerImpl(),
+            new NoopTemplateResolverDomainService(),
+            apiCrudService,
+            new NoopSwaggerOpenApiResolver(),
+            new ApiMetadataQueryServiceInMemory(),
+            new ApiPrimaryOwnerDomainService(
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            pageCrudService
+        );
+        roleQueryService.initWith(
+            List.of(
+                Role
+                    .builder()
+                    .id("role-id")
+                    .scope(Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .name("PRIMARY_OWNER")
+                    .build()
+            )
+        );
+
         useCase =
             new ImportApiDefinitionUseCase(
                 apiCrudService,
@@ -246,7 +293,8 @@ class ImportApiDefinitionUseCaseTest {
                 createPlanDomainService,
                 createApiDocumentationDomainService,
                 apiIdsCalculatorDomainService,
-                metadataCrudService
+                metadataCrudService,
+                documentationValidationDomainService
             );
 
         parametersQueryService.initWith(
@@ -511,6 +559,100 @@ class ImportApiDefinitionUseCaseTest {
             });
         }
 
+        @ParameterizedTest
+        @NullSource
+        @EmptySource
+        void should_throw_an_error_when_name_is_not_valid(String name) {
+            var page = PageFixtures.aPage().toBuilder().name(name).referenceId(null).build();
+            var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
+
+            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                .isInstanceOf(InvalidPageNameException.class);
+        }
+
+        @Test
+        void should_throw_error_if_markdown_content_is_unsafe() {
+            var page = PageFixtures
+                .aPage()
+                .toBuilder()
+                .name("page name")
+                .content(getNotSafe())
+                .referenceId(null)
+                .type(Page.Type.MARKDOWN)
+                .build();
+            var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
+
+            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                .isInstanceOf(PageContentUnsafeException.class);
+        }
+
+        @Test
+        void should_throw_error_if_swagger_content_is_unsafe() {
+            var page = PageFixtures
+                .aPage()
+                .toBuilder()
+                .name("page name")
+                .content(getNotSafe())
+                .referenceId(null)
+                .type(Page.Type.SWAGGER)
+                .build();
+            var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
+
+            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                .isInstanceOf(InvalidPageContentException.class);
+        }
+
+        @Test
+        void should_throw_error_if_parent_is_not_a_folder() {
+            var parentId = "parent-id";
+
+            var page = PageFixtures
+                .aPage()
+                .toBuilder()
+                .name("new name")
+                .content("")
+                .parentId(parentId)
+                .type(Page.Type.MARKDOWN)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .build();
+            var importDefinition = anImportDefinition()
+                .toBuilder()
+                .pages(List.of(page, Page.builder().id(parentId).type(Page.Type.MARKDOWN).name("page name").build()))
+                .build();
+
+            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                .isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @Test
+        void should_throw_error_when_name_is_not_unique() {
+            pageQueryService.initWith(
+                List.of(
+                    Page
+                        .builder()
+                        .name("page name")
+                        .type(Page.Type.MARKDOWN)
+                        .referenceId("api-id")
+                        .referenceType(Page.ReferenceType.API)
+                        .build()
+                )
+            );
+
+            var page = PageFixtures
+                .aPage()
+                .toBuilder()
+                .name("page name")
+                .content(getNotSafe())
+                .referenceId(null)
+                .type(Page.Type.SWAGGER)
+                .build();
+            var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
+
+            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
         @Test
         void should_create_a_new_api_with_a_media() {
             // Given
@@ -639,5 +781,13 @@ class ImportApiDefinitionUseCaseTest {
                 )
                 .build()
         );
+    }
+
+    private String getNotSafe() {
+        String html = "";
+        html += "<script src=\"/external.jpg\" />";
+        html += "<div onClick=\"alert('test');\" style=\"margin: auto\">onclick alert<div>";
+
+        return html;
     }
 }

@@ -30,6 +30,8 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -66,6 +68,7 @@ public class ImportApiDefinitionUseCase {
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final ApiIdsCalculatorDomainService apiIdsCalculatorDomainService;
     private final MetadataCrudService metadataCrudService;
+    private final DocumentationValidationDomainService documentationValidationDomainService;
 
     public ImportApiDefinitionUseCase(
         ApiCrudService apiCrudService,
@@ -77,7 +80,8 @@ public class ImportApiDefinitionUseCase {
         CreatePlanDomainService createPlanDomainService,
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
-        MetadataCrudService metadataCrudService
+        MetadataCrudService metadataCrudService,
+        DocumentationValidationDomainService documentationValidationDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiImportDomainService = apiImportDomainService;
@@ -89,6 +93,7 @@ public class ImportApiDefinitionUseCase {
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.apiIdsCalculatorDomainService = apiIdsCalculatorDomainService;
         this.metadataCrudService = metadataCrudService;
+        this.documentationValidationDomainService = documentationValidationDomainService;
     }
 
     public Output execute(Input input) {
@@ -170,21 +175,40 @@ public class ImportApiDefinitionUseCase {
 
     private void createPages(List<Page> pages, String apiId, AuditInfo auditInfo) {
         if (pages != null) {
-            var now = TimeProvider.now().toInstant();
+            var now = Date.from(TimeProvider.now().toInstant());
             pages
                 .stream()
-                .map(page ->
-                    page
-                        .toBuilder()
-                        .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
-                        .referenceType(Page.ReferenceType.API)
-                        .referenceId(apiId)
-                        .createdAt(Date.from(now))
-                        .updatedAt(Date.from(now))
-                        .build()
-                )
+                .map(page -> {
+                    if (page.getParentId() != null) {
+                        validatePageParent(pages, page.getParentId());
+                    }
+                    return documentationValidationDomainService.validateAndSanitizeForCreation(
+                        page
+                            .toBuilder()
+                            .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(apiId)
+                            .createdAt(now)
+                            .updatedAt(now)
+                            .build(),
+                        auditInfo.organizationId(),
+                        false
+                    );
+                })
                 .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
         }
+    }
+
+    private void validatePageParent(List<Page> pages, String parentId) {
+        pages
+            .stream()
+            .filter(parent -> parentId.equals(parent.getId()))
+            .findFirst()
+            .ifPresent(parent -> {
+                if (!(parent.isFolder() || parent.isRoot())) {
+                    throw new InvalidPageParentException(parent.getId());
+                }
+            });
     }
 
     private void createMedias(List<Media> mediaList, String apiId) {
