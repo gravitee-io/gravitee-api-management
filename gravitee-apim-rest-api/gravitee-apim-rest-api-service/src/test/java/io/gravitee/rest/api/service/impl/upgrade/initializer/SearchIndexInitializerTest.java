@@ -125,7 +125,8 @@ public class SearchIndexInitializerTest {
                 apiConverter,
                 new UserConverter(),
                 primaryOwnerService,
-                apiIndexerDomainService
+                apiIndexerDomainService,
+                userMetadataService
             );
 
         givenExistingEnvironments(
@@ -277,31 +278,10 @@ public class SearchIndexInitializerTest {
             .thenReturn(new Page<>(List.of(users), 0, users.length, users.length));
     }
 
-<<<<<<< HEAD
     @SneakyThrows
     private void givenExistingEnvironments(Environment... environments) {
         for (Environment environment : environments) {
             lenient().when(environmentRepository.findById(environment.getId())).thenReturn(Optional.of(environment));
         }
-=======
-    private User mockTestUser(String userId, String organizationId) {
-        User user = new User();
-        user.setId(userId);
-        user.setOrganizationId(organizationId);
-
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userId);
-        when(userMetadataService.findAllByUserId(user.getId())).thenReturn(List.of());
-        when(userConverter.toUserEntity(user, List.of())).thenReturn(userEntity);
-
-        return user;
-    }
-
-    private void mockEnvironment(String envId, String orgId) throws Exception {
-        Environment environment1 = new Environment();
-        environment1.setId(envId);
-        environment1.setOrganizationId(orgId);
-        when(environmentRepository.findById(envId)).thenReturn(Optional.of(environment1));
->>>>>>> df369b2ffe (fix(mapi): add lucene index on user custom fields)
     }
 }
