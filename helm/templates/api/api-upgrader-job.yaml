@@ -121,6 +121,8 @@ spec:
               value: "false"
             - name: GRAVITEE_COCKPIT_ENABLED
               value: "false"
+            - name: GRAVITEE_CLOUD_ENABLED
+              value: "false"
             {{- if $plugins }}
             - name: GRAVITEE_PLUGINS_PATH_0
               value: '${gravitee.home}/plugins'

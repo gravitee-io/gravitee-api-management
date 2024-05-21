@@ -1,0 +1,11 @@
+{{- if .Values.cloud.enabled -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}-cloud-certificates
+data:
+  keystore.p12: {{ .Values.cloud.connector.ws.ssl.keystore.value }}
+  {{- if .Values.cloud.connector.ws.ssl.truststore }}
+  truststore.p12: {{ .Values.cloud.connector.ws.ssl.truststore.value }}
+  {{- end -}}  
+{{- end -}}

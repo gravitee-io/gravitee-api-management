@@ -73,6 +73,20 @@ tests:
             name: GRAVITEE_COCKPIT_ENABLED
             value: "false"
 
+  - it: Check that cloud has been disabled
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GRAVITEE_CLOUD_ENABLED
+            value: "false"
+
   - it: Check if the helm hook annotations are present
     set:
       api:
