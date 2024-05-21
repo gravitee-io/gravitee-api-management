@@ -16,23 +16,31 @@
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPointReferenceType;
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPointStatus;
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPointTarget;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AccessPointMapper {
 
     public AccessPoint to(io.gravitee.repository.management.model.AccessPoint accessPointModel) {
-        return AccessPoint
-            .builder()
-            .id(accessPointModel.getId())
-            .referenceType(accessPointModel.getReferenceType())
-            .referenceId(accessPointModel.getReferenceId())
-            .target(accessPointModel.getTarget())
-            .host(accessPointModel.getHost())
-            .secured(accessPointModel.isSecured())
-            .overriding(accessPointModel.isOverriding())
-            .updatedAt(accessPointModel.getUpdatedAt())
-            .status(AccessPoint.Status.valueOf(accessPointModel.getStatus().name()))
-            .build();
+        AccessPoint accessPoint = new AccessPoint();
+        accessPoint.setId(accessPointModel.getId());
+        accessPoint.setReferenceId(accessPointModel.getReferenceId());
+        accessPoint.setHost(accessPointModel.getHost());
+        accessPoint.setSecured(accessPointModel.isSecured());
+        accessPoint.setOverriding(accessPointModel.isOverriding());
+        accessPoint.setUpdatedAt(accessPointModel.getUpdatedAt());
+        if (accessPointModel.getTarget() != null) {
+            accessPoint.setTarget(AccessPointTarget.valueOf(accessPointModel.getTarget().name()));
+        }
+        if (accessPointModel.getReferenceType() != null) {
+            accessPoint.setReferenceType(AccessPointReferenceType.valueOf(accessPointModel.getReferenceType().name()));
+        }
+        if (accessPointModel.getStatus() != null) {
+            accessPoint.setStatus(AccessPointStatus.valueOf(accessPointModel.getStatus().name()));
+        }
+        return accessPoint;
     }
 }

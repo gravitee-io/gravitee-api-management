@@ -22,6 +22,7 @@ import io.gravitee.gateway.services.sync.process.repository.RepositorySynchroniz
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMapper;
 import io.gravitee.repository.management.model.AccessPoint;
+import io.gravitee.repository.management.model.AccessPointStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -46,7 +47,7 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
     public Completable synchronize(Long from, Long to, List<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return accessPointFetcher
-            .fetchLatest(from, to, environments, from == -1 ? AccessPoint.Status.CREATED : null)
+            .fetchLatest(from, to, environments, from == -1 ? AccessPointStatus.CREATED : null)
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             .flatMap(accessPoints ->
@@ -55,9 +56,9 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
                     .flatMapIterable(e -> e)
                     .groupBy(AccessPoint::getStatus)
                     .flatMap(accessPointsByStatus -> {
-                        if (accessPointsByStatus.getKey() == AccessPoint.Status.CREATED) {
+                        if (accessPointsByStatus.getKey() == AccessPointStatus.CREATED) {
                             return prepareForDeployment(accessPointsByStatus);
-                        } else if (accessPointsByStatus.getKey() == AccessPoint.Status.DELETED) {
+                        } else if (accessPointsByStatus.getKey() == AccessPointStatus.DELETED) {
                             return prepareForUndeployment(accessPointsByStatus);
                         } else {
                             return Flowable.empty();

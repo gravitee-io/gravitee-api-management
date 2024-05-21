@@ -27,6 +27,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
@@ -36,6 +37,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMa
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
@@ -209,6 +211,20 @@ class DefaultDistributedSyncServiceTest {
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
+
+        @Test
+        void should_distribute_access_point() {
+            cut
+                .distributeIfNeeded(
+                    AccessPointDeployable
+                        .builder()
+                        .accessPoint(AccessPoint.builder().id("id").secured(true).overriding(true).build())
+                        .build()
+                )
+                .test()
+                .assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
     }
 
     @Nested
@@ -279,6 +295,20 @@ class DefaultDistributedSyncServiceTest {
         @Test
         void should_not_call_repository_when_distributing_license() {
             cut.distributeIfNeeded(LicenseDeployable.builder().id("id").license("license").build()).test().assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_access_point() {
+            cut
+                .distributeIfNeeded(
+                    AccessPointDeployable
+                        .builder()
+                        .accessPoint(AccessPoint.builder().id("id").secured(true).overriding(true).build())
+                        .build()
+                )
+                .test()
+                .assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
     }

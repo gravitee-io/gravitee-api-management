@@ -15,25 +15,7 @@
  */
 package io.gravitee.gateway.handlers.accesspoint.model;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Data
-public class AccessPoint {
-
-    private String id;
-    private AccessPointReferenceType referenceType;
-    private String referenceId;
-    private AccessPointTarget target;
-    private String host;
-    private boolean secured;
-    private boolean overriding;
-    private Date updatedAt;
-    private AccessPointStatus status;
+public enum AccessPointReferenceType {
+    ENVIRONMENT,
+    ORGANIZATION,
 }
