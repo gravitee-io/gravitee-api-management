@@ -113,11 +113,8 @@ public class SearchIndexInitializer implements Initializer {
         ApiConverter apiConverter,
         UserConverter userConverter,
         final PrimaryOwnerService primaryOwnerService,
-<<<<<<< HEAD
-        ApiIndexerDomainService apiIndexerDomainService
-=======
+        ApiIndexerDomainService apiIndexerDomainService,
         UserMetadataService userMetadataService
->>>>>>> df369b2ffe (fix(mapi): add lucene index on user custom fields)
     ) {
         this.apiRepository = apiRepository;
         this.genericApiMapper = genericApiMapper;
@@ -128,11 +125,8 @@ public class SearchIndexInitializer implements Initializer {
         this.apiConverter = apiConverter;
         this.userConverter = userConverter;
         this.primaryOwnerService = primaryOwnerService;
-<<<<<<< HEAD
         this.apiIndexerDomainService = apiIndexerDomainService;
-=======
         this.userMetadataService = userMetadataService;
->>>>>>> df369b2ffe (fix(mapi): add lucene index on user custom fields)
     }
 
     @Override
