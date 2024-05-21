@@ -15,13 +15,12 @@
  */
 import { Component } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 import { BreadcrumbComponent, BreadcrumbItemDirective } from 'xng-breadcrumb';
 
 @Component({
   selector: 'app-breadcrumb-navigation',
   standalone: true,
-  imports: [BreadcrumbComponent, BreadcrumbItemDirective, MatIcon, RouterLink],
+  imports: [BreadcrumbComponent, BreadcrumbItemDirective, MatIcon],
   templateUrl: './breadcrumb-navigation.component.html',
   styleUrl: './breadcrumb-navigation.component.scss',
 })
