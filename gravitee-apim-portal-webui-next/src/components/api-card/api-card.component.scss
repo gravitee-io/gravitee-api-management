@@ -15,7 +15,7 @@
  */
 :host {
   display: flex;
-  height: 25vh;
+  min-height: 256px;
   flex-flow: column;
 }
 
@@ -55,10 +55,12 @@
   &__description {
     display: -webkit-box;
     overflow: hidden;
+    max-height: 98px;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 4;
     line-clamp: 4;
     text-overflow: ellipsis;
+    word-wrap: break-word;
   }
 
   &__actions {
