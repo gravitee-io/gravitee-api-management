@@ -258,4 +258,9 @@ public class InMemoryConfiguration {
     public PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService() {
         return new PrimaryOwnerDomainServiceInMemory();
     }
+
+    @Bean
+    public ThemeQueryServiceInMemory themeQueryService() {
+        return new ThemeQueryServiceInMemory();
+    }
 }
