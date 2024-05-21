@@ -180,6 +180,30 @@ spec:
             - name: gravitee_cockpit_ssl_verifyHostname
               value: "{{ .Values.cockpit.ssl.verifyHostname }}"
             {{- end }}
+            {{- if .Values.cloud.enabled }}
+            - name: gravitee_cloud_enabled
+              value: "true"
+            - name: gravitee_cloud_url
+              value: {{ .Values.cloud.url }}
+            - name: gravitee_cloud_ws_endpoints_0
+              value: {{ .Values.cloud.controller }}
+            - name: gravitee_cloud_connector_ws_ssl_keystore_type
+              value: pkcs12
+            - name: gravitee_cloud_connector_ws_ssl_keystore_path
+              value: /opt/graviteeio-management-api/cloud/keystore.p12
+            - name: gravitee_cloud_connector_ws_ssl_keystore_password
+              {{- toYaml .Values.cloud.connector.ws.ssl.keystore.password | nindent 14}}
+            {{- if .Values.cloud.connector.ws.ssl.truststore }}
+            - name: gravitee_cloud_connector_ws_ssl_truststore_type
+              value: pkcs12
+            - name: gravitee_cloud_connector_ws_ssl_truststore_path
+              value: /opt/graviteeio-management-api/cloud/truststore.p12
+            - name: gravitee_cloud_connector_ws_ssl_truststore_password
+              {{- toYaml .Values.cloud.connector.ws.ssl.truststore.password | nindent 14}}
+            {{- end }}
+            - name: gravitee_cloud_connector_ws_ssl_verifyHostname
+              value: "{{ .Values.cloud.connector.ws.ssl.verifyHostname }}"
+            {{- end }}
             {{- if .Values.gateway.enabled }}
             - name: portal.entrypoint
               value: "https://{{ index .Values.gateway.ingress.hosts 0 }}{{ .Values.gateway.ingress.path }}"
@@ -236,6 +260,11 @@ spec:
               mountPath: /opt/graviteeio-management-api/cockpit
               readOnly: true
           {{- end }}
+          {{- if .Values.cloud.enabled }}
+            - name: gravitee-cloud-certificates
+              mountPath: /opt/graviteeio-management-api/cloud
+              readOnly: true
+          {{- end }}
           {{- with .Values.license }}
           {{- if .key }}
             - name: licensekey
@@ -275,6 +304,11 @@ spec:
         - name: gravitee-cockpit-certificates
           secret:
             secretName: {{ template "gravitee.api.fullname" . }}-cockpit-certificates
+        {{- end }}
+        {{- if .Values.cloud.enabled }}
+        - name: gravitee-cloud-certificates
+          secret:
+            secretName: {{ template "gravitee.api.fullname" . }}-cloud-certificates
         {{- end }}
         {{- with .Values.license }}
         {{- if .key }}

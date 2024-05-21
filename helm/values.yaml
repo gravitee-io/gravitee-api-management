@@ -425,6 +425,30 @@ cockpit:
   ssl:
     verifyHostname: true
 
+# Support for Gravitee.io Cloud (cloud.gravitee.io)
+cloud:
+  enabled: false
+  connector:
+    ws:
+      ssl:
+        keystore:
+          value: "base64 encoded value of the keystore provided by Gravitee Cloud (required)"
+          password:
+          #value: "keystores password provided by Gravitee Cloud"
+          #valueFrom:
+          #secretKeyRef:
+          #configMapKeyRef:
+          #truststore:
+          #value: base64 encoded value of the truststore provided by Gravitee Cloud (optional)
+          #password:
+          #value: "truststore password provided by Gravitee Cloud"
+          #valueFrom:
+          #secretKeyRef:
+          #configMapKeyRef:
+  url: https://cloud.gravitee.io
+  controller: https://cloud-controller.gravitee.io
+  ssl:
+    verifyHostname: true
 
 api:
   enabled: true
@@ -1044,7 +1068,7 @@ gateway:
     #     type: pem # Supports jks, pem, pkcs12
     #     path: ${gravitee.home}/security/redis-truststore.jks
     #     password: secret
-    #     alias:      
+    #     alias:
     #   sentinel:
     #     master: redis-master
     #     nodes:
