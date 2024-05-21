@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+import { Component } from '@angular/core';
+import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
+import { MatButton } from '@angular/material/button';
+import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule],
+@Component({
+  selector: 'api-analytics',
+  standalone: true,
+  imports: [GioCardEmptyStateModule, MatButton, MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle],
+  templateUrl: './api-analytics.component.html',
+  styleUrl: './api-analytics.component.scss',
 })
-export class ApiRuntimeLogsV4Module {}
+export class ApiAnalyticsComponent {
+  isEmptyAnalytics = true;
+}

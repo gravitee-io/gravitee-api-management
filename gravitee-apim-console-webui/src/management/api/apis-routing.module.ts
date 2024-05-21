@@ -83,6 +83,7 @@ import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiHistoryV4DeploymentInfoComponent } from './history-v4/deployment-info/api-history-v4-deployment-info.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 import { ApiImportV4Component } from './import-v4/api-import-v4.component';
+import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -860,6 +861,15 @@ const apisRoutes: Routes = [
           docs: null,
         },
         component: ApiV4PolicyStudioDesignComponent,
+      },
+      {
+        path: 'v4/analytics',
+        data: {
+          permissions: {
+            anyOf: ['api-analytics-r'],
+          },
+        },
+        component: ApiAnalyticsComponent,
       },
       {
         path: 'v4/runtime-logs',
