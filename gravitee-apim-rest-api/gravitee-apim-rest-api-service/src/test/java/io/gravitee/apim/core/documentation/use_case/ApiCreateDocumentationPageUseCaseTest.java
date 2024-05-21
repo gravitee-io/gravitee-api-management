@@ -96,7 +96,9 @@ class ApiCreateDocumentationPageUseCaseTest {
                     membershipQueryService,
                     roleQueryService,
                     userCrudService
-                )
+                ),
+                new ApiDocumentationDomainService(pageQueryService, planQueryService),
+                pageCrudService
             );
 
         createApiDocumentationDomainService =
@@ -109,9 +111,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         apiCreateDocumentationPageUsecase =
             new ApiCreateDocumentationPageUseCase(
                 createApiDocumentationDomainService,
-                new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 new HomepageDomainService(pageQueryService, pageCrudService),
-                pageCrudService,
                 pageQueryService,
                 documentationValidationDomainService
             );

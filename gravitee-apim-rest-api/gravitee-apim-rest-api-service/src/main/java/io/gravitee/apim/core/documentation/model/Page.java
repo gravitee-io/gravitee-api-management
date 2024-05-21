@@ -110,4 +110,8 @@ public class Page {
     public boolean isFolder() {
         return Type.FOLDER.equals(this.type);
     }
+
+    public boolean isRoot() {
+        return Type.ROOT.equals(this.type);
+    }
 }

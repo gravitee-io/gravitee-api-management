@@ -17,18 +17,14 @@ package io.gravitee.apim.core.documentation.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
-import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -37,9 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiCreateDocumentationPageUseCase {
 
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
-    private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final HomepageDomainService homepageDomainService;
-    private final PageCrudService pageCrudService;
     private final PageQueryService pageQueryService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
 
@@ -48,24 +42,13 @@ public class ApiCreateDocumentationPageUseCase {
         pageToCreate.setId(UuidString.generateRandom());
         pageToCreate.setCreatedAt(new Date());
         pageToCreate.setUpdatedAt(pageToCreate.getCreatedAt());
-        pageToCreate.setName(documentationValidationDomainService.sanitizeDocumentationName(pageToCreate.getName()));
 
-        if (pageToCreate.isMarkdown()) {
-            this.documentationValidationDomainService.validateContent(
-                    pageToCreate.getContent(),
-                    pageToCreate.getReferenceId(),
-                    input.auditInfo().organizationId()
-                );
-        } else if (pageToCreate.isSwagger()) {
-            this.documentationValidationDomainService.parseOpenApiContent(pageToCreate.getContent());
-        }
+        Page validatedPage =
+            this.documentationValidationDomainService.validateAndSanitizeForCreation(pageToCreate, input.auditInfo().organizationId());
 
-        this.validateParentId(pageToCreate);
-        this.validateNameIsUnique(pageToCreate);
+        this.calculateOrder(validatedPage);
 
-        this.calculateOrder(pageToCreate);
-
-        Page createdPage = createApiDocumentationDomainService.createPage(pageToCreate, input.auditInfo());
+        Page createdPage = createApiDocumentationDomainService.createPage(validatedPage, input.auditInfo());
 
         if (createdPage.isHomepage()) {
             this.homepageDomainService.setPreviousHomepageToFalse(createdPage.getReferenceId(), createdPage.getId());
@@ -82,27 +65,6 @@ public class ApiCreateDocumentationPageUseCase {
     public record Input(Page page, AuditInfo auditInfo) {}
 
     public record Output(Page createdPage) {}
-
-    private void validateParentId(Page page) {
-        var parentId = page.getParentId();
-
-        if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
-            var foundParent = pageCrudService.findById(parentId);
-
-            if (foundParent.isPresent()) {
-                if (!foundParent.get().isFolder()) {
-                    throw new InvalidPageParentException(parentId);
-                }
-                return;
-            }
-        }
-
-        page.setParentId(null);
-    }
-
-    private void validateNameIsUnique(Page page) {
-        this.apiDocumentationDomainService.validateNameIsUnique(page.getReferenceId(), page.getParentId(), page.getName(), page.getType());
-    }
 
     private void calculateOrder(Page page) {
         var lastPage = pageQueryService

@@ -18,13 +18,17 @@ package io.gravitee.apim.core.documentation.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +42,8 @@ public class DocumentationValidationDomainService {
     private final OpenApiDomainService openApiDomainService;
     private final ApiMetadataQueryService apiMetadataQueryService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
+    private final ApiDocumentationDomainService apiDocumentationDomainService;
+    private final PageCrudService pageCrudService;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
@@ -83,5 +89,47 @@ public class DocumentationValidationDomainService {
         if (content != null) {
             openApiDomainService.parseOpenApiContent(content);
         }
+    }
+
+    public Page validateAndSanitizeForCreation(Page page, String organizationId) {
+        return this.validateAndSanitizeForCreation(page, organizationId, true);
+    }
+
+    public Page validateAndSanitizeForCreation(Page page, String organizationId, boolean shouldValidateParentId) {
+        var sanitizedPage = page.toBuilder().name(this.sanitizeDocumentationName(page.getName())).build();
+
+        if (sanitizedPage.isMarkdown()) {
+            this.validateContent(sanitizedPage.getContent(), sanitizedPage.getReferenceId(), organizationId);
+        } else if (sanitizedPage.isSwagger()) {
+            this.parseOpenApiContent(sanitizedPage.getContent());
+        }
+
+        if (shouldValidateParentId) {
+            this.validateParentId(sanitizedPage);
+        }
+
+        this.validateNameIsUnique(sanitizedPage);
+
+        return sanitizedPage;
+    }
+
+    private void validateParentId(Page page) {
+        var parentId = page.getParentId();
+
+        if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
+            var foundParent = pageCrudService.findById(parentId);
+
+            if (foundParent.isPresent()) {
+                if (!foundParent.get().isFolder()) {
+                    throw new InvalidPageParentException(parentId);
+                }
+                return;
+            }
+        }
+        page.setParentId(null);
+    }
+
+    private void validateNameIsUnique(Page page) {
+        this.apiDocumentationDomainService.validateNameIsUnique(page.getReferenceId(), page.getParentId(), page.getName(), page.getType());
     }
 }
