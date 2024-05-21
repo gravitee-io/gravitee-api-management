@@ -15,9 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
+import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -43,7 +44,8 @@ public class AccessPointMongo {
     private boolean secured;
     private AccessPointTarget target;
     private boolean overriding;
-    private AccessPoint.Status status;
+    private Date updatedAt;
+    private AccessPointStatus status;
 
     @Override
     public boolean equals(Object o) {

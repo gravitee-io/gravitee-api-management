@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<AccessPoint, String> implements AccessPointRepository {
 
-    static String createdStatusClause = " and status = '" + AccessPoint.Status.CREATED.name() + "'";
+    static String createdStatusClause = " and status = '" + AccessPointStatus.CREATED.name() + "'";
 
     JdbcAccessPointRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "access_points");
@@ -59,7 +60,7 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
             .addColumn("host", Types.NVARCHAR, String.class)
             .addColumn("secured", Types.BOOLEAN, boolean.class)
             .addColumn("overriding", Types.BOOLEAN, boolean.class)
-            .addColumn("status", Types.NVARCHAR, AccessPoint.Status.class)
+            .addColumn("status", Types.NVARCHAR, AccessPointStatus.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
     }
@@ -154,7 +155,7 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     }
 
     @Override
-    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, final AccessPoint.Status status)
+    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, final AccessPointStatus status)
         throws TechnicalException {
         try {
             List<AccessPoint> accessPoints = findByCriteria(criteria, null, null);
