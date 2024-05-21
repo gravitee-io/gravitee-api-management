@@ -284,21 +284,28 @@ export class ApiV4MenuService implements ApiMenuService {
   }
 
   private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
-    const logsTabs = [];
+    const apiTrafficTabs = [];
+
+    if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
+      apiTrafficTabs.push({
+        displayName: 'Analytics',
+        routerLink: 'v4/analytics',
+      });
+    }
 
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
-      logsTabs.push({
+      apiTrafficTabs.push({
         displayName: 'Runtime Logs',
         routerLink: 'v4/runtime-logs',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {
-      logsTabs.push({
+      apiTrafficTabs.push({
         displayName: 'Settings',
         routerLink: 'v4/runtime-logs-settings',
       });
     }
-    if (logsTabs.length > 0) {
+    if (apiTrafficTabs.length > 0) {
       return {
         displayName: 'API Traffic',
         icon: 'bar-chart-2',
@@ -307,7 +314,7 @@ export class ApiV4MenuService implements ApiMenuService {
           title: 'API Traffic',
           subtitle: 'Gain actionable insights into API performance with real-time metrics, logs, and notifications',
         },
-        tabs: logsTabs,
+        tabs: apiTrafficTabs,
       };
     }
     return null;

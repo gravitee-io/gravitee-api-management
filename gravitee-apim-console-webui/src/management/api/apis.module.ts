@@ -21,7 +21,7 @@ import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
-import { ApiRuntimeLogsV4Module } from './api-traffic-v4/api-runtime-logs-v4.module';
+import { ApiTrafficV4Module } from './api-traffic-v4/api-traffic-v4.module';
 import { ApiEndpointsV4Module } from './endpoints-v4/api-endpoints-v4.module';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
@@ -94,7 +94,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiPropertiesModule,
     ApiResourcesModule,
     ApiResponseTemplatesModule,
-    ApiRuntimeLogsV4Module,
+    ApiTrafficV4Module,
     ApiRuntimeAlertsModule,
     ApiSubscriptionsModule,
     ApiV4PolicyStudioModule,
