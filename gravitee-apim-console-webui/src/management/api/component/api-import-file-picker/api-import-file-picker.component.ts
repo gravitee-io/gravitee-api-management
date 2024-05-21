@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, EventEmitter, inject, input, Output } from '@angular/core';
+import { Component, DestroyRef, effect, EventEmitter, inject, input, OnInit, Output } from '@angular/core';
 import { GioFormFilePickerModule, NewFile } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-import-file-picker',
   standalone: true,
-  imports: [CommonModule, FormsModule, GioFormFilePickerModule],
+  imports: [CommonModule, FormsModule, GioFormFilePickerModule, ReactiveFormsModule],
   templateUrl: './api-import-file-picker.component.html',
+  styleUrls: ['./api-import-file-picker.component.scss'],
 })
-export class ApiImportFilePickerComponent {
+export class ApiImportFilePickerComponent implements OnInit {
   private snackBarService = inject(SnackBarService);
+  private destroyRef = inject(DestroyRef);
   allowedFileExtensions = input<string[]>(['yml', 'yaml', 'json', 'wsdl', 'xml']);
-  filePickerValue = [];
+  filePickerControl = new FormControl();
   importType: string;
   accept: string;
   @Output() onFilePicked = new EventEmitter<{ importFile: File; importFileContent: string; importType: string }>();
@@ -40,6 +43,10 @@ export class ApiImportFilePickerComponent {
         .map((ext) => '.' + ext)
         .join(',');
     });
+  }
+
+  ngOnInit() {
+    this.filePickerControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => this.onImportFile(value));
   }
 
   protected async onImportFile(event: (NewFile | string)[] | undefined) {
@@ -105,7 +112,6 @@ export class ApiImportFilePickerComponent {
     if (message) {
       this.snackBarService.error(message);
     }
-    this.filePickerValue = [];
     this.onFilePicked.emit({ importType: undefined, importFile: undefined, importFileContent: undefined });
   }
 

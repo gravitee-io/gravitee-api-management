@@ -15,7 +15,12 @@
     limitations under the License.
 
 -->
-<gio-form-file-picker [accept]="accept" [ngModel]="filePickerValue" (ngModelChange)="onImportFile($event)">
+<gio-form-file-picker
+  class="file-picker"
+  [class.file-picker--filled]="filePickerControl.value?.length > 0"
+  [accept]="accept"
+  [formControl]="filePickerControl"
+>
   <gio-form-file-picker-add-button>
     <ng-content></ng-content>
   </gio-form-file-picker-add-button>
