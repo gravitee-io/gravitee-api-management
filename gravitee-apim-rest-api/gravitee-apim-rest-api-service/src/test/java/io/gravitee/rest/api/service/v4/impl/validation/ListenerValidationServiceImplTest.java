@@ -51,6 +51,7 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
@@ -379,6 +380,93 @@ class ListenerValidationServiceImplTest {
                     emptyList()
                 )
             );
+    }
+
+    @Test
+    void should_throw_invalid_qos_exception_when_target_endpoint_does_not_support_at_least_once_qos() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
+        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE, Qos.AUTO));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+
+        ConnectorPluginEntity endpointConnectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(endpointConnectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
+        when(endpointConnectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AUTO));
+        when(endpointService.findById("endpoint-test")).thenReturn(endpointConnectorPluginEntity);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
+    }
+
+    @Test
+    void should_throw_invalid_qos_exception_when_target_endpoint_does_not_have_connector() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
+        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE, Qos.AUTO));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        when(endpointService.findById("endpoint-test")).thenReturn(null);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
+    }
+
+    @Test
+    void should_validate_qos_config_when_targeting_endpoint() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
+        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE, Qos.AUTO));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+
+        ConnectorPluginEntity endpointConnectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(endpointConnectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
+        when(endpointConnectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
+        when(endpointService.findById("endpoint-test")).thenReturn(endpointConnectorPluginEntity);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        listenerValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            List.of(httpListener),
+            List.of(endpointGroup)
+        );
     }
 
     @Test

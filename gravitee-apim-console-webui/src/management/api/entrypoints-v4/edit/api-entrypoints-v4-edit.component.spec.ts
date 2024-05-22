@@ -124,6 +124,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
 
       createComponent(API, 'http-get');
+      expectEndpointsGetRequest();
       fixture.detectChanges();
       loader = TestbedHarnessEnvironment.loader(fixture);
     });
@@ -498,11 +499,15 @@ describe('ApiEntrypointsV4EditComponent', () => {
   };
 
   const expectEndpointsGetRequest = () => {
-    httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' })
-      .flush([
-        fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }),
-        fakeConnectorPlugin({ id: 'mock', name: 'mock', supportedApiType: 'MESSAGE', supportedModes: ['PUBLISH'] }),
-      ]);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush([
+      fakeConnectorPlugin({ id: 'kafka', name: 'kafka', supportedQos: ['AUTO', 'AT_MOST_ONCE'] }),
+      fakeConnectorPlugin({
+        id: 'mock',
+        name: 'mock',
+        supportedApiType: 'MESSAGE',
+        supportedModes: ['PUBLISH'],
+        supportedQos: ['AUTO', 'AT_MOST_ONCE'],
+      }),
+    ]);
   };
 });
