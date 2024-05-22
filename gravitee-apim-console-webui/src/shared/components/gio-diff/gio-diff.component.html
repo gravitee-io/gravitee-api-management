@@ -27,6 +27,7 @@
       <mat-button-toggle [disabled]="!hasChanges" value="side-by-side">Diff Side By Side</mat-button-toggle>
       <mat-button-toggle [disabled]="!hasChanges" value="line-by-line">Diff Line By Line</mat-button-toggle>
     </mat-button-toggle-group>
+    <span class="gio-diff__header__noChanges" *ngIf="!hasChanges">No differences between objects</span>
   </div>
 
   <div class="gio-diff__content">
@@ -34,13 +35,11 @@
 
     <div *ngIf="outputFormat === 'raw'" class="gio-diff__content__row">
       <div class="gio-diff__content__row__gv-code" [formGroup]="diffGroup">
-        <gio-monaco-editor gioMonacoEditorFormField [languageConfig]="languageConfig" formControlName="leftDiff" [disableMiniMap]="true">
-        </gio-monaco-editor>
+        <gio-monaco-editor [languageConfig]="languageConfig" formControlName="leftDiff" [disableMiniMap]="true"> </gio-monaco-editor>
         <gio-clipboard-copy-icon class="gio-diff__content__row__gv-code__copy-icon" [contentToCopy]="right"></gio-clipboard-copy-icon>
       </div>
       <div *ngIf="hasChanges" class="gio-diff__content__row__gv-code" [formGroup]="diffGroup">
-        <gio-monaco-editor gioMonacoEditorFormField [languageConfig]="languageConfig" formControlName="rightDiff" [disableMiniMap]="true">
-        </gio-monaco-editor>
+        <gio-monaco-editor [languageConfig]="languageConfig" formControlName="rightDiff" [disableMiniMap]="true"> </gio-monaco-editor>
         <gio-clipboard-copy-icon class="gio-diff__content__row__gv-code__copy-icon" [contentToCopy]="right"></gio-clipboard-copy-icon>
       </div>
     </div>
