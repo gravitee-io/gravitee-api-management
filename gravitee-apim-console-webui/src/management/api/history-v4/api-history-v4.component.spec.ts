@@ -25,6 +25,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { ApiHistoryV4Component } from './api-history-v4.component';
 import { ApiHistoryV4DeploymentsTableComponent } from './deployments-table/api-history-v4-deployments-table.component';
@@ -94,6 +95,7 @@ describe('ApiHistoryV4Component', () => {
         user: 'John Doe',
         label: 'sample-label',
         action: '',
+        checkbox: '',
       });
     });
 
@@ -214,6 +216,50 @@ describe('ApiHistoryV4Component', () => {
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       expect(dialog).toBeTruthy();
       expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version to deploy');
+
+      const diffHarness = await dialog.getHarness(GioDiffHarness);
+      expect(await diffHarness.hasNoDiffToDisplay()).toEqual(false);
+    });
+  });
+
+  describe('Compare two versions', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
+      expectApiEventsListRequest(
+        undefined,
+        undefined,
+        fakeEventsResponse({
+          data: [
+            fakeEvent({
+              id: '2',
+              type: 'PUBLISH_API',
+              properties: { DEPLOYMENT_NUMBER: '2' },
+              payload: JSON.stringify({ definition: JSON.stringify({ name: 'Foo' }) }),
+            }),
+            fakeEvent({
+              id: '1',
+              type: 'PUBLISH_API',
+              properties: { DEPLOYMENT_NUMBER: '1' },
+              payload: JSON.stringify({ definition: JSON.stringify({ name: 'Bar' }) }),
+            }),
+          ],
+        }),
+      );
+      fixture.detectChanges();
+      expectDeploymentCurrentGetRequest();
+    });
+
+    it('should open a dialog to compare two versions', async () => {
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
+      const rows = await table.getRows();
+      await (await (await rows[0].getCells({ columnName: 'checkbox' }))[0].getHarness(MatCheckboxHarness)).check();
+      await (await (await rows[1].getCells({ columnName: 'checkbox' }))[0].getHarness(MatCheckboxHarness)).check();
+
+      fixture.detectChanges();
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(dialog).toBeTruthy();
+      expect(await dialog.getTitleText()).toEqual('Comparing version 2 with version 1');
 
       const diffHarness = await dialog.getHarness(GioDiffHarness);
       expect(await diffHarness.hasNoDiffToDisplay()).toEqual(false);
