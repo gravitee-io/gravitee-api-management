@@ -22,7 +22,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 import { openRollbackDialog } from './rollback-dialog';
-import { ApiHistoryV4DeploymentCompareComponent } from './deployment-compare/api-history-v4-deployment-compare.component';
+import {
+  ApiHistoryV4DeploymentCompareDialogComponent,
+  ApiHistoryV4DeploymentCompareDialogData,
+  ApiHistoryV4DeploymentCompareDialogResult,
+} from './deployment-compare-dialog/api-history-v4-deployment-compare-dialog.component';
 
 import { Event, SearchApiEventParam } from '../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
@@ -80,38 +84,27 @@ export class ApiHistoryV4Component {
   }
 
   protected openCompareEventDialog(events: [Event, Event], deploymentStates: string) {
-    this.compareEvent = events;
     if (events[0] === null || events[1] === null) {
+      this.compareEvent = null;
       return;
     }
+    this.compareEvent = events;
     const jsonDefinitionLeft = this.extractApiDefinition(events[0]);
     const jsonDefinitionRight = this.extractApiDefinition(events[1]);
-    this.matDialog
-      .open(ApiHistoryV4DeploymentCompareComponent, {
-        autoFocus: false,
-        data: {
-          left: {
-            eventId: events[0].id,
-            hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[0].id,
-            apiDefinition: jsonDefinitionLeft,
-            version: events[0].properties['DEPLOYMENT_NUMBER'],
-          },
-          right: {
-            eventId: events[1].id,
-            hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[1].id,
-            apiDefinition: jsonDefinitionRight,
-            version: events[1].properties['DEPLOYMENT_NUMBER'],
-          },
-        },
-        width: GIO_DIALOG_WIDTH.LARGE,
-        maxHeight: 'calc(100vh - 90px)',
-      })
-      .afterClosed()
-      .pipe(
-        filter((result) => !isNil(result?.rollbackTo)),
-        tap((eventId) => openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId)),
-      )
-      .subscribe();
+    this.getCompareDialog$({
+      left: {
+        eventId: events[0].id,
+        hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[0].id,
+        apiDefinition: jsonDefinitionLeft,
+        version: events[0].properties['DEPLOYMENT_NUMBER'],
+      },
+      right: {
+        eventId: events[1].id,
+        hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[1].id,
+        apiDefinition: jsonDefinitionRight,
+        version: events[1].properties['DEPLOYMENT_NUMBER'],
+      },
+    }).subscribe();
   }
 
   protected openCompareEventWithCurrentDialog(eventToCompare: Event) {
@@ -122,32 +115,42 @@ export class ApiHistoryV4Component {
           const jsonDefinitionToCompare = this.extractApiDefinition(eventToCompare);
           const jsonCurrentDefinition = JSON.stringify(currentDeploymentDefinition, null, 2);
 
-          return this.matDialog
-            .open(ApiHistoryV4DeploymentCompareComponent, {
-              autoFocus: false,
-              data: {
-                left: {
-                  eventId: eventToCompare.id,
-                  apiDefinition: jsonDefinitionToCompare,
-                  version: eventToCompare.properties['DEPLOYMENT_NUMBER'],
-                  hideRollback: false,
-                },
-                right: {
-                  eventId: null,
-                  apiDefinition: jsonCurrentDefinition,
-                  version: 'to deploy',
-                  hideRollback: true,
-                },
-              },
-              width: GIO_DIALOG_WIDTH.LARGE,
-              maxHeight: 'calc(100vh - 90px)',
-            })
-            .afterClosed();
+          return this.getCompareDialog$({
+            left: {
+              eventId: eventToCompare.id,
+              apiDefinition: jsonDefinitionToCompare,
+              version: eventToCompare.properties['DEPLOYMENT_NUMBER'],
+              hideRollback: false,
+            },
+            right: {
+              eventId: null,
+              apiDefinition: jsonCurrentDefinition,
+              version: 'to deploy',
+              hideRollback: true,
+            },
+          });
         }),
-        filter((result) => !isNil(result?.rollbackTo)),
-        tap((eventId) => openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId)),
       )
       .subscribe();
+  }
+
+  private getCompareDialog$(data: ApiHistoryV4DeploymentCompareDialogData) {
+    return this.matDialog
+      .open<
+        ApiHistoryV4DeploymentCompareDialogComponent,
+        ApiHistoryV4DeploymentCompareDialogData,
+        ApiHistoryV4DeploymentCompareDialogResult
+      >(ApiHistoryV4DeploymentCompareDialogComponent, {
+        autoFocus: false,
+        data,
+        width: GIO_DIALOG_WIDTH.LARGE,
+        maxHeight: 'calc(100vh - 90px)',
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !isNil(result?.rollbackTo)),
+        tap(({ rollbackTo }) => openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, rollbackTo)),
+      );
   }
 
   private extractApiDefinition(event: Event): string {

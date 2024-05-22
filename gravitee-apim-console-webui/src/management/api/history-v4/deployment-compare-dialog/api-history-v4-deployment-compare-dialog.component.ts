@@ -16,17 +16,21 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
+export interface ApiHistoryV4DeploymentCompareDialogData {
+  left: { eventId: string; apiDefinition: string; version: string; hideRollback: boolean };
+  right: { eventId: string; apiDefinition: string; version: string; hideRollback: boolean };
+}
+
+export type ApiHistoryV4DeploymentCompareDialogResult = null | { rollbackTo: string };
+
 @Component({
-  selector: 'app-deployment-compare-current',
-  templateUrl: './api-history-v4-deployment-compare.component.html',
-  styleUrls: ['./api-history-v4-deployment-compare.component.scss'],
+  selector: 'app-deployment-compare-current-dialog',
+  templateUrl: './api-history-v4-deployment-compare-dialog.component.html',
+  styleUrls: ['./api-history-v4-deployment-compare-dialog.component.scss'],
 })
-export class ApiHistoryV4DeploymentCompareComponent {
+export class ApiHistoryV4DeploymentCompareDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: {
-      left: { eventId: string; apiDefinition: string; version: string; hideRollback: boolean };
-      right: { eventId: string; apiDefinition: string; version: string; hideRollback: boolean };
-    },
+    public data: ApiHistoryV4DeploymentCompareDialogData,
   ) {}
 }
