@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.2.0...1.2.1) (2024-05-22)
+
+
+### Bug Fixes
+
+* use Monitor class from reporter API ([a624526](https://github.com/gravitee-io/gravitee-reporter-common/commit/a624526ed94b142dcdf8dfd36c874a52aef2c40d))
+
 # [1.2.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.1.0...1.2.0) (2024-05-06)
 
 
