@@ -40,9 +40,4 @@ public class Theme {
     private String optionalLogo;
     private String favicon;
     private String backgroundImage;
-
-    public enum ThemeType {
-        PORTAL,
-        PORTAL_NEXT,
-    }
 }
