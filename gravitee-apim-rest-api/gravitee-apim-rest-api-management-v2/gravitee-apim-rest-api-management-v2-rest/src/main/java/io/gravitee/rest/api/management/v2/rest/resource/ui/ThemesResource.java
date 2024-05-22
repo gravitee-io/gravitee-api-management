@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
-import io.gravitee.apim.core.theme.use_case.GetPortalThemesUseCase;
+import io.gravitee.apim.core.theme.use_case.GetThemesUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ThemeType;
@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ThemesResource extends AbstractResource {
 
     @Inject
-    private GetPortalThemesUseCase getPortalThemesUseCase;
+    private GetThemesUseCase getPortalThemesUseCase;
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
@@ -52,7 +52,7 @@ public class ThemesResource extends AbstractResource {
     ) {
         var result = getPortalThemesUseCase
             .execute(
-                GetPortalThemesUseCase.Input
+                GetThemesUseCase.Input
                     .builder()
                     .type(ThemeMapper.INSTANCE.map(type))
                     .enabled(enabled)
