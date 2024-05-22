@@ -25,6 +25,10 @@ gio-diff {
         align-items: center;
         height: 36px;
       }
+      &__noChanges {
+        padding-left: 16px;
+        font-style: italic;
+      }
     }
 
     &__content {
@@ -38,9 +42,9 @@ gio-diff {
           }
 
           flex: 1 1 50%;
-          max-height: 300px;
           overflow: auto;
           position: relative;
+          min-height: 420px;
 
           &.single {
             flex: 1 1 auto;
