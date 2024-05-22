@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
@@ -46,6 +47,8 @@ public interface ThemeAdapter {
     Theme map(io.gravitee.repository.management.model.Theme theme);
 
     List<Theme> map(List<io.gravitee.repository.management.model.Theme> themes);
+
+    Theme map(NewTheme newTheme);
 
     default ThemeDefinition deserializeDefinitionPortal(io.gravitee.repository.management.model.Theme theme) {
         if (Objects.nonNull(theme.getDefinition()) && ThemeType.PORTAL.equals(theme.getType())) {
