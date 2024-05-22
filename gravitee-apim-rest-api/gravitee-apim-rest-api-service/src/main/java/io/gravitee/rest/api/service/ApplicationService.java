@@ -79,6 +79,8 @@ public interface ApplicationService {
 
     Set<String> findIdsByOrganization(String organizationId);
 
+    Set<String> findIdsByEnvironment(final ExecutionContext executionContext);
+
     Set<ApplicationListItem> findByGroups(ExecutionContext executionContext, List<String> groupId);
 
     Set<ApplicationListItem> findByGroupsAndStatus(ExecutionContext executionContext, List<String> groupId, String status);
