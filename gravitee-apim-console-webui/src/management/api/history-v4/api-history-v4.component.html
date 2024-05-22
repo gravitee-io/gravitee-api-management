@@ -35,6 +35,7 @@
       [deployments]="apiDeployments.data"
       [pagination]="apiDeployments.pagination"
       [deploymentState]="deploymentState"
+      [definitionInUseId]="definitionInUseId"
       (paginationChange)="paginationChange($event)"
       (rollback)="rollback($event)"
       (selectedEventChange)="openCompareEventDialog($event, deploymentState)"

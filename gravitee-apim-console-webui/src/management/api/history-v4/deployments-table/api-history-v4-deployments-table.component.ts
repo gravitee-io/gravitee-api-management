@@ -47,6 +47,9 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
   @Input()
   public deploymentState: string;
 
+  @Input()
+  public definitionInUseId: string;
+
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
 
