@@ -3,3 +3,17 @@
   position: relative;
   padding-right: 0;
 }
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  &__left {
+    margin-left: 16px;
+  }
+
+  &__right__rollbackBtn {
+    margin-right: 16px;
+  }
+}

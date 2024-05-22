@@ -71,21 +71,10 @@
             mat-button
             aria-label="Button to compare with current version to deploy"
             id="compareCurrentButton"
-            [disabled]="!currentDefinition"
+            [disabled]="deploymentState !== 'NEED_REDEPLOY'"
             (click)="compareWithCurrent(element)"
           >
             <mat-icon svgIcon="gio:git-pull-request"></mat-icon>
-          </button>
-        </span>
-
-        <span *gioPermission="{ anyOf: ['api-definition-u'] }" matTooltip="Rollback">
-          <button
-            [disabled]="index === 0 && deploymentStates !== 'NEED_REDEPLOY'"
-            mat-button
-            aria-label="Button to rollback"
-            (click)="rollback.emit(element.id)"
-          >
-            <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>
           </button>
         </span>
       </td>

@@ -25,8 +25,8 @@ export class ApiHistoryV4DeploymentCompareComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: {
-      left: { apiDefinition: string; version: string };
-      right: { apiDefinition: string; version: string };
+      left: { eventId: string; apiDefinition: string; version: string; hideRollback: boolean };
+      right: { eventId: string; apiDefinition: string; version: string; hideRollback: boolean };
     },
   ) {}
 }

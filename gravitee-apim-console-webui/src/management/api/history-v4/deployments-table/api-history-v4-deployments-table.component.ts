@@ -15,12 +15,10 @@
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 import { isNil } from 'lodash';
 
 import { Pagination, Event } from '../../../../entities/management-api-v2';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { ApiHistoryV4DeploymentCompareComponent } from '../deployment-compare/api-history-v4-deployment-compare.component';
 
 type EventDS = Event & { selected: boolean };
 
@@ -47,10 +45,7 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
   public deployments: Event[];
 
   @Input()
-  public currentDefinition: unknown | null;
-
-  @Input()
-  public deploymentStates: string;
+  public deploymentState: string;
 
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
@@ -60,6 +55,9 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
 
   @Output()
   public selectedEventChange = new EventEmitter<[Event, Event]>();
+
+  @Output()
+  public compareEventWithCurrentChange = new EventEmitter<Event>();
 
   public deploymentsDS: EventDS[];
 
@@ -89,20 +87,7 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
   }
 
   compareWithCurrent(eventToCompare: EventDS) {
-    const jsonDefinitionToCompare = this.extractApiDefinition(eventToCompare);
-    const jsonCurrentDefinition = JSON.stringify(this.currentDefinition, null, 2);
-    this.matDialog
-      .open(ApiHistoryV4DeploymentCompareComponent, {
-        autoFocus: false,
-        data: {
-          left: { apiDefinition: jsonDefinitionToCompare, version: eventToCompare.properties[this.DEPLOYMENT_NUMBER_PROPERTY] },
-          right: { apiDefinition: jsonCurrentDefinition, version: 'to deploy' },
-        },
-        width: GIO_DIALOG_WIDTH.LARGE,
-        maxHeight: 'calc(100vh - 90px)',
-      })
-      .afterClosed()
-      .pipe();
+    this.compareEventWithCurrentChange.emit(eventToCompare);
   }
 
   selectRow(event: EventDS) {
@@ -120,9 +105,7 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
       deployment.selected = this.getSelected(deployment.id);
       return deployment;
     });
-    if (this.selectedEvent[0] !== null && this.selectedEvent[1] !== null) {
-      this.selectedEventChange.emit(this.selectedEvent);
-    }
+    this.selectedEventChange.emit(this.selectedEvent);
   }
 
   private getSelected(deploymentId: string): boolean {
