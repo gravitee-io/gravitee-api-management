@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import assertions.MAPIAssertions;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.ThemesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -158,7 +159,7 @@ public class ThemesResourceTest extends AbstractResourceTest {
             .builder()
             .id(PORTAL_THEME_ID)
             .name(PORTAL_THEME_ID)
-            .type(Theme.ThemeType.PORTAL)
+            .type(ThemeType.PORTAL)
             .definitionPortal(portalDefinition)
             .createdAt(ZonedDateTime.now())
             .updatedAt(ZonedDateTime.now())
@@ -174,7 +175,7 @@ public class ThemesResourceTest extends AbstractResourceTest {
             .builder()
             .id(PORTAL_NEXT_THEME_ID)
             .name(PORTAL_NEXT_THEME_ID)
-            .type(Theme.ThemeType.PORTAL_NEXT)
+            .type(ThemeType.PORTAL_NEXT)
             .definitionPortalNext(portalDefinition)
             .createdAt(ZonedDateTime.now())
             .updatedAt(ZonedDateTime.now())

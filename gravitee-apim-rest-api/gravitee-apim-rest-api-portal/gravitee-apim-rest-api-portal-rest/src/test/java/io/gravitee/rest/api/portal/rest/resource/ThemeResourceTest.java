@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.model.theme.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;

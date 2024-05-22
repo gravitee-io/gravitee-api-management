@@ -18,6 +18,7 @@ package io.gravitee.apim.core.theme.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeSearchCriteria;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -26,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @UseCase
-public class GetPortalThemesUseCase {
+public class GetThemesUseCase {
 
     private final ThemeQueryService themeQueryService;
 
@@ -40,7 +41,7 @@ public class GetPortalThemesUseCase {
     }
 
     @Builder
-    public record Input(Theme.ThemeType type, Boolean enabled, int page, int size) {}
+    public record Input(ThemeType type, Boolean enabled, int page, int size) {}
 
     public record Output(Page<Theme> result) {}
 }

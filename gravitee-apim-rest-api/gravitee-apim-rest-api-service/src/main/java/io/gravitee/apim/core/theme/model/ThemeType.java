@@ -15,13 +15,7 @@
  */
 package io.gravitee.apim.core.theme.model;
 
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
-public class ThemeSearchCriteria {
-
-    private ThemeType type;
-    private Boolean enabled;
+public enum ThemeType {
+    PORTAL,
+    PORTAL_NEXT,
 }
