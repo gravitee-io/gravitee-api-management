@@ -50,6 +50,14 @@ export function fakeSubscriptionResponse(
     links: {
       self: 'test',
     },
+    metadata: {
+      'b6f88a31-777f-45aa-b88a-31777fa5aace': {
+        name: 'testPLan',
+      },
+      '99c6cbe6-eead-414d-86cb-e6eeadc14db3': {
+        name: 'testApplication',
+      },
+    },
   };
 
   if (isFunction(modifier)) {

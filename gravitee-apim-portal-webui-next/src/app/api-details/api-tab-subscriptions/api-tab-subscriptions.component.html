@@ -22,6 +22,29 @@
       <p i18n="@@subscribeToApi">Subscribe to our API and your subscription will show up here.</p>
     </div>
   } @else {
-    <p>Coming soon</p>
+    <table mat-table [dataSource]="subscriptions" class="api-tab-subscriptions__table">
+      <ng-container matColumnDef="application">
+        <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionTableColumnApplication" class="m3-title-medium">Application</th>
+        <td mat-cell *matCellDef="let element">{{ element.application }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionTableColumnPlan" class="m3-title-medium">Plan</th>
+        <td mat-cell *matCellDef="let element">{{ element.plan }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionTableColumnStatus" class="m3-title-medium">Status</th>
+        <td mat-cell *matCellDef="let element">{{ element.status | capitalizeFirst }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="expand">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let element" class="api-tab-subscriptions__table-column-expand"><mat-icon>arrow_right</mat-icon></td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row class="api-tab-subscriptions__table-row" *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
   }
 }

@@ -13,27 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Pipe, PipeTransform } from '@angular/core';
 
-@use '../../../scss/theme';
-
-.api-tab-subscription__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 0;
-}
-
-.api-tab-subscriptions__table {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, theme.$secondary-main-color 35%, transparent);
-  border-radius: 16px;
-
-  &-row {
-    background: var(--mdc-outlined-card-container-color);
-  }
-
-  &-column-expand {
-    text-align: right;
+@Pipe({
+  name: 'capitalizeFirst',
+  standalone: true,
+})
+export class CapitalizeFirstPipe implements PipeTransform {
+  transform(value: string): string {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
   }
 }

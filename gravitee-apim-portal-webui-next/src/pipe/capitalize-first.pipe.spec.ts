@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CapitalizeFirstPipe } from './capitalize-first.pipe';
 
-@use '../../../scss/theme';
+describe('CapitalizeFirstPipe', () => {
+  const pipe = new CapitalizeFirstPipe();
 
-.api-tab-subscription__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 0;
-}
+  it('transforms an empty string', () => {
+    expect(pipe.transform('')).toBe('');
+  });
 
-.api-tab-subscriptions__table {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, theme.$secondary-main-color 35%, transparent);
-  border-radius: 16px;
+  it('transforms "a" to "A"', () => {
+    expect(pipe.transform('a')).toBe('A');
+  });
 
-  &-row {
-    background: var(--mdc-outlined-card-container-color);
-  }
-
-  &-column-expand {
-    text-align: right;
-  }
-}
+  it('transforms "TesTy SentaNce" to "Testy sentence"', () => {
+    expect(pipe.transform('TesTy SenteNce')).toBe('Testy sentence');
+  });
+});
