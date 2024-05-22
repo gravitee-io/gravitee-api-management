@@ -18,7 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
@@ -26,8 +26,22 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+<<<<<<< HEAD
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+=======
+import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -41,6 +55,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +67,6 @@ public class ImportCRDUseCase {
     private final ApiQueryService apiQueryService;
     private final CreateApiDomainService createApiDomainService;
     private final CreatePlanDomainService createPlanDomainService;
-    private final ApiMetadataDomainService apiMetadataDomainService;
     private final DeployApiDomainService deployApiDomainService;
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiCrudService apiCrudService;
@@ -62,13 +76,16 @@ public class ImportCRDUseCase {
     private final SubscriptionQueryService subscriptionQueryService;
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
     private final ReorderPlanDomainService reorderPlanDomainService;
+    private final ApiImportDomainService apiImportDomainService;
+    private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
+    private final MembershipCrudService membershipCrudService;
+    private final MembershipQueryService membershipQueryService;
 
     public ImportCRDUseCase(
         ApiCrudService apiCrudService,
         ApiQueryService apiQueryService,
         CreateApiDomainService createApiDomainService,
         CreatePlanDomainService createPlanDomainService,
-        ApiMetadataDomainService apiMetadataDomainService,
         DeployApiDomainService deployApiDomainService,
         UpdateApiDomainService updateApiDomainService,
         PlanQueryService planQueryService,
@@ -76,13 +93,16 @@ public class ImportCRDUseCase {
         DeletePlanDomainService deletePlanDomainService,
         SubscriptionQueryService subscriptionQueryService,
         CloseSubscriptionDomainService closeSubscriptionDomainService,
-        ReorderPlanDomainService reorderPlanDomainService
+        ReorderPlanDomainService reorderPlanDomainService,
+        ApiImportDomainService apiImportDomainService,
+        ApiPrimaryOwnerDomainService primaryOwnerDomainService,
+        MembershipCrudService membershipCrudService,
+        MembershipQueryService membershipQueryService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
         this.createApiDomainService = createApiDomainService;
         this.createPlanDomainService = createPlanDomainService;
-        this.apiMetadataDomainService = apiMetadataDomainService;
         this.deployApiDomainService = deployApiDomainService;
         this.updateApiDomainService = updateApiDomainService;
         this.planQueryService = planQueryService;
@@ -91,6 +111,10 @@ public class ImportCRDUseCase {
         this.subscriptionQueryService = subscriptionQueryService;
         this.closeSubscriptionDomainService = closeSubscriptionDomainService;
         this.reorderPlanDomainService = reorderPlanDomainService;
+        this.apiImportDomainService = apiImportDomainService;
+        this.primaryOwnerDomainService = primaryOwnerDomainService;
+        this.membershipCrudService = membershipCrudService;
+        this.membershipQueryService = membershipQueryService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -109,6 +133,8 @@ public class ImportCRDUseCase {
         try {
             var api = createApiDomainService.create(input.crd, input.auditInfo);
             apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
+
+            createMembers(input.crd.getMembers(), createdApi.getId());
 
             var planNameIdMapping = input.crd
                 .getPlans()
@@ -189,6 +215,9 @@ public class ImportCRDUseCase {
                 deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);
             }
 
+            createMembers(input.crd.getMembers(), updated.getId());
+            deleteOrphanMemberships(updated.getId(), input);
+
             return ApiCRDStatus
                 .builder()
                 .id(api.getId())
@@ -248,5 +277,26 @@ public class ImportCRDUseCase {
             .validation(planCRD.getValidation())
             .mode(planCRD.getMode())
             .build();
+    }
+
+    private void createMembers(Set<ApiMember> members, String apiId) {
+        if (members != null && !members.isEmpty()) {
+            apiImportDomainService.createMembers(members, apiId);
+        }
+    }
+
+    private void deleteOrphanMemberships(String apiId, Input input) {
+        PrimaryOwnerEntity po = primaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo.organizationId(), apiId);
+        Map<String, String> existingApiMembers = membershipQueryService
+            .findByReference(Membership.ReferenceType.API, apiId)
+            .stream()
+            .filter(m -> !m.getMemberId().equals(po.id()))
+            .collect(toMap(Membership::getMemberId, Membership::getId));
+
+        if (input.crd != null && input.crd.getMembers() != null) {
+            input.crd.getMembers().forEach(am -> existingApiMembers.remove(am.getId()));
+        }
+
+        existingApiMembers.forEach((k, v) -> membershipCrudService.delete(v));
     }
 }

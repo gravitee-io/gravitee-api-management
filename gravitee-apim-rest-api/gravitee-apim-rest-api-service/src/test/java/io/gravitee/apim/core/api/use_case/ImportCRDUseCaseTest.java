@@ -20,10 +20,18 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
+<<<<<<< HEAD
 import static org.assertj.core.api.Assertions.tuple;
+=======
+import static org.assertj.core.api.Assertions.*;
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
@@ -45,6 +53,13 @@ import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+<<<<<<< HEAD
+=======
+import inmemory.WorkflowCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
@@ -53,11 +68,23 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -71,6 +98,7 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
+import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -82,6 +110,11 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+<<<<<<< HEAD
+=======
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -91,7 +124,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+<<<<<<< HEAD
 import org.assertj.core.api.Assertions;
+=======
+import org.assertj.core.api.SoftAssertions;
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -108,6 +145,7 @@ class ImportCRDUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final String TAG = "tag1";
+    private static final String GROUP_ID = UuidString.generateRandom();
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -122,6 +160,20 @@ class ImportCRDUseCaseTest {
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+<<<<<<< HEAD
+=======
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
+    NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
+    MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
+    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    ApiImportDomainService apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
+    MembershipCrudService membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
+    MembershipQueryService membershipQueryServiceInMemory = new MembershipQueryServiceInMemory();
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -190,8 +242,27 @@ class ImportCRDUseCaseTest {
             )
         );
 
+<<<<<<< HEAD
         var createApiDomainService = mock(CreateApiDomainService.class);
         var apiMetadataDomainService = mock(ApiMetadataDomainService.class);
+=======
+        var createApiDomainService = new CreateApiDomainService(
+            apiCrudService,
+            auditDomainService,
+            new ApiIndexerDomainService(
+                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
+                new ApiCategoryQueryServiceInMemory(),
+                indexer
+            ),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
+            apiPrimaryOwnerDomainService,
+            flowCrudService,
+            notificationConfigCrudService,
+            parametersQueryService,
+            workflowCrudService
+        );
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
         var deployApiDomainService = mock(DeployApiDomainService.class);
         updateApiDomainService = mock(UpdateApiDomainService.class);
 
@@ -201,7 +272,6 @@ class ImportCRDUseCaseTest {
                 apiQueryService,
                 createApiDomainService,
                 createPlanDomainService,
-                apiMetadataDomainService,
                 deployApiDomainService,
                 updateApiDomainService,
                 planQueryService,
@@ -209,7 +279,11 @@ class ImportCRDUseCaseTest {
                 deletePlanDomainService,
                 subscriptionQueryService,
                 closeSubscriptionDomainService,
-                reorderPlanDomainService
+                reorderPlanDomainService,
+                apiImportDomainService,
+                mock(ApiPrimaryOwnerDomainService.class),
+                membershipCrudServiceInMemory,
+                membershipQueryServiceInMemory
             );
 
         parametersQueryService.initWith(
@@ -274,12 +348,11 @@ class ImportCRDUseCaseTest {
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
                 .containsExactly(tuple("keyless-id", "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
-            Assertions.assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("plan-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("plan-flow");
         }
 
         @Test
@@ -290,8 +363,7 @@ class ImportCRDUseCaseTest {
             var result = useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
 
             // Then
-            Assertions
-                .assertThat(result.status())
+            assertThat(result.status())
                 .isEqualTo(
                     ApiCRDStatus
                         .builder()
@@ -303,6 +375,23 @@ class ImportCRDUseCaseTest {
                         .plans(Map.of("keyless-key", "keyless-id"))
                         .build()
                 );
+        }
+
+        @Test
+        void should_create_members() {
+            // Given
+
+            // When
+            ApiCRDSpec crd = aCRD();
+            Set<ApiMember> members = Set.of(
+                new ApiMember(UuidString.generateRandom(), "test_member", List.of(new ApiMemberRole("USER", RoleScope.API)))
+            );
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+
+            // Then
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
     }
 
@@ -368,8 +457,7 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(result.status())
+            assertThat(result.status())
                 .isEqualTo(
                     ApiCRDStatus
                         .builder()
@@ -427,13 +515,12 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .hasSize(2)
                 .extracting(Plan::getId, Plan::getName)
                 .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
 
-            Assertions.assertThat(flowCrudService.storage()).extracting(Flow::getName).contains("apikey-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).contains("apikey-flow");
         }
 
         @Test
@@ -465,12 +552,11 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getDescription)
                 .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
-            Assertions.assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("updated flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("updated flow");
         }
 
         @Test
@@ -488,7 +574,7 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions.assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
         }
 
         @Test
@@ -530,9 +616,8 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions.assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
-            Assertions
-                .assertThat(subscriptionCrudService.storage())
+            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(subscriptionCrudService.storage())
                 .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
                 .containsExactly(
                     tuple("sub1", SubscriptionEntity.Status.CLOSED),
@@ -559,11 +644,54 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
-                .hasSize(1)
-                .extracting(Plan::getId, Plan::getOrder)
-                .containsExactly(tuple("keyless", 1));
+            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId, Plan::getOrder).containsExactly(tuple("keyless", 1));
+        }
+
+        @Test
+        void should_add_new_members() {
+            ApiCRDSpec crd = aCRD();
+            Set<ApiMember> members = new java.util.HashSet<>(
+                Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
+            );
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+
+            reset(apiImportDomainService);
+            members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+        }
+
+        @Test
+        void should_delete_unused_members() {
+            ApiCRDSpec crd = aCRD();
+            Set<ApiMember> members = new java.util.HashSet<>(
+                Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
+            );
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+            reset(apiImportDomainService);
+
+            members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+            reset(apiImportDomainService);
+
+            crd.setMembers(Set.of());
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            verify(apiImportDomainService, never()).createMembers(any(), eq(API_ID));
+
+            assertThat(membershipQueryServiceInMemory.findByReference(Membership.ReferenceType.API, API_ID)).isEmpty();
         }
     }
 
@@ -609,7 +737,85 @@ class ImportCRDUseCaseTest {
                         .build()
                 )
             )
+<<<<<<< HEAD
             .flows(List.of())
             .build();
     }
+=======
+            .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
+            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
+            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+            .state("STARTED")
+            .tags(Set.of(TAG))
+            .type("PROXY")
+            .version("1.0.0")
+            .visibility("PRIVATE")
+            .groups(Set.of(GROUP_ID))
+            .build();
+    }
+
+    private Api expectedApi() {
+        return aProxyApiV4()
+            .toBuilder()
+            .originContext(
+                KubernetesContext
+                    .builder()
+                    .syncFrom(OriginContext.Origin.KUBERNETES.name())
+                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
+                    .build()
+            )
+            .id(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .crossId(API_CROSS_ID)
+            .visibility(Api.Visibility.PRIVATE)
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .deployedAt(null)
+            .disableMembershipNotifications(false)
+            .categories(null)
+            .picture(null)
+            .background(null)
+            .groups(null)
+            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+            .apiDefinitionV4(
+                ApiDefinitionFixtures
+                    .aHttpProxyApiV4(API_ID)
+                    .toBuilder()
+                    .id(API_ID)
+                    .name("My Api")
+                    .apiVersion("1.0.0")
+                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
+                    .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
+                    .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                    .tags(Set.of(TAG))
+                    .build()
+            )
+            .groups(Set.of(GROUP_ID))
+            .build();
+    }
+
+    private void enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode mode) {
+        parametersQueryService.initWith(
+            List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, mode.name()))
+        );
+    }
+
+    private void enableApiReview() {
+        parametersQueryService.define(
+            new Parameter(Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+        );
+    }
+
+    private void givenExistingUsers(List<BaseUserEntity> users) {
+        userCrudService.initWith(users);
+    }
+
+    private void givenExistingMemberships(List<Membership> memberships) {
+        membershipCrudService.initWith(memberships);
+    }
+
+    private void givenExistingGroup(List<Group> groups) {
+        groupQueryService.initWith(groups);
+    }
+>>>>>>> 3b9efebe14 (feat: add support for adding members and groups to API V4 using GKO)
 }
