@@ -25,6 +25,7 @@ import static io.gravitee.repository.management.model.Application.METADATA_TYPE;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -353,6 +354,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         return this.searchIds(new ExecutionContext(organizationId, null), new ApplicationQuery(), null);
+    }
+
+    @Override
+    public Set<String> findIdsByEnvironment(final ExecutionContext executionContext) {
+        LOGGER.debug("Find applications by environment {} ", executionContext.getEnvironmentId());
+        if (isBlank(executionContext.getEnvironmentId())) {
+            return Set.of();
+        }
+
+        return this.searchIds(executionContext, null, null);
     }
 
     @Override
@@ -1336,29 +1347,31 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             criteriaBuilder.environmentIds(environmentIds);
         }
 
-        if (applicationQuery.getIds() != null && !applicationQuery.getIds().isEmpty()) {
-            criteriaBuilder.ids(applicationQuery.getIds());
-        }
-
-        ApplicationStatus applicationStatus = null;
-        if (applicationQuery.getGroups() != null && !applicationQuery.getGroups().isEmpty()) {
-            criteriaBuilder.groups(applicationQuery.getGroups());
-        }
-
-        if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
-            applicationStatus = ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase());
-            criteriaBuilder.status(applicationStatus);
-        }
-
-        if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {
-            criteriaBuilder.name(applicationQuery.getName());
-        }
-        if (applicationQuery.getUser() != null && !applicationQuery.getUser().isBlank()) {
-            Set<String> userApplicationsIds = findUserApplicationsIds(executionContext, applicationQuery.getUser(), applicationStatus);
-            if (userApplicationsIds.isEmpty()) {
-                return null;
+        if (applicationQuery != null) {
+            if (applicationQuery.getIds() != null && !applicationQuery.getIds().isEmpty()) {
+                criteriaBuilder.ids(applicationQuery.getIds());
             }
-            criteriaBuilder.ids(userApplicationsIds);
+
+            ApplicationStatus applicationStatus = null;
+            if (applicationQuery.getGroups() != null && !applicationQuery.getGroups().isEmpty()) {
+                criteriaBuilder.groups(applicationQuery.getGroups());
+            }
+
+            if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
+                applicationStatus = ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase());
+                criteriaBuilder.status(applicationStatus);
+            }
+
+            if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {
+                criteriaBuilder.name(applicationQuery.getName());
+            }
+            if (applicationQuery.getUser() != null && !applicationQuery.getUser().isBlank()) {
+                Set<String> userApplicationsIds = findUserApplicationsIds(executionContext, applicationQuery.getUser(), applicationStatus);
+                if (userApplicationsIds.isEmpty()) {
+                    return null;
+                }
+                criteriaBuilder.ids(userApplicationsIds);
+            }
         }
         return criteriaBuilder.build();
     }
