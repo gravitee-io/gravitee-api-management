@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.2.0...3.2.1) (2024-05-22)
+
+
+### Bug Fixes
+
+* bump reporter-common for Monitor issue ([78c4f95](https://github.com/gravitee-io/gravitee-reporter-file/commit/78c4f950d6db0a95902332ea92fdf366a08f9e02))
+
 # [3.2.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.1.0...3.2.0) (2024-05-06)
 
 
