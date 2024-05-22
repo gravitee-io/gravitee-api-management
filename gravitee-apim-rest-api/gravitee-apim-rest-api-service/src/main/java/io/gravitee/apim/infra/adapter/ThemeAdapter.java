@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -35,6 +37,9 @@ import org.slf4j.LoggerFactory;
 public interface ThemeAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ThemeAdapter.class);
     ThemeAdapter INSTANCE = Mappers.getMapper(ThemeAdapter.class);
+
+    @Mapping(target = "definition", expression = "java(serializeDefinition(theme))")
+    io.gravitee.repository.management.model.Theme map(Theme theme);
 
     @Mapping(target = "definitionPortal", expression = "java(deserializeDefinitionPortal(theme))")
     @Mapping(target = "definitionPortalNext", expression = "java(deserializeDefinitionPortalNext(theme))")
@@ -68,5 +73,23 @@ public interface ThemeAdapter {
         }
 
         return null;
+    }
+
+    default String serializeDefinition(Theme theme) {
+        Object definition = io.gravitee.apim.core.theme.model.ThemeType.PORTAL.equals(theme.getType())
+            ? theme.getDefinitionPortal()
+            : theme.getDefinitionPortalNext();
+
+        return Optional
+            .ofNullable(definition)
+            .map(def -> {
+                try {
+                    return GraviteeJacksonMapper.getInstance().writeValueAsString(def);
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("Unable to serialize definition: {}", theme.getDefinitionPortal());
+                    return "";
+                }
+            })
+            .orElse("");
     }
 }

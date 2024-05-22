@@ -15,27 +15,17 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.core.theme.model.ThemeSearchCriteria;
-import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.common.Pageable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 
-public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlternative<Theme> {
+public class ThemeCrudServiceInMemory implements ThemeCrudService, InMemoryAlternative<Theme> {
 
-    private final List<Theme> storage;
-
-    public ThemeQueryServiceInMemory() {
-        this.storage = new ArrayList<>();
-    }
-
-    public ThemeQueryServiceInMemory(ThemeCrudServiceInMemory themeCrudServiceInMemory) {
-        this.storage = themeCrudServiceInMemory.storage();
-    }
+    private final List<Theme> storage = new ArrayList<>();
 
     @Override
     public void initWith(List<Theme> items) {
@@ -53,15 +43,20 @@ public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlt
     }
 
     @Override
-    public Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable) {
-        var themes = storage
-            .stream()
-            .filter(theme ->
-                (Objects.isNull(criteria.getType()) || criteria.getType().equals(theme.getType())) &&
-                (Objects.isNull(criteria.getEnabled()) || criteria.getEnabled().equals(theme.isEnabled()))
-            )
-            .toList();
+    public Theme create(Theme theme) {
+        this.storage.add(theme);
+        return theme;
+    }
 
-        return new Page<>(themes, 1, themes.size(), themes.size());
+    @Override
+    public Theme update(Theme theme) {
+        OptionalInt index = this.findIndex(this.storage, t -> t.getId().equals(theme.getId()));
+
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), theme);
+            return theme;
+        }
+
+        throw new IllegalStateException("Theme not found");
     }
 }

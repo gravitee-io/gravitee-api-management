@@ -263,4 +263,9 @@ public class InMemoryConfiguration {
     public ThemeQueryServiceInMemory themeQueryService() {
         return new ThemeQueryServiceInMemory();
     }
+
+    @Bean
+    public ThemeCrudServiceInMemory themeCrudService() {
+        return new ThemeCrudServiceInMemory();
+    }
 }
