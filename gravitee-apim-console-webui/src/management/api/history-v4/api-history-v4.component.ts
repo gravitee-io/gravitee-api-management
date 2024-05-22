@@ -16,7 +16,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { distinctUntilChanged, shareReplay, switchMap } from 'rxjs/operators';
+import { distinctUntilChanged, map, shareReplay, switchMap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -57,6 +57,8 @@ export class ApiHistoryV4Component {
   protected currentDeploymentDefinition$: Observable<unknown | null> = this.getLastApiFetch$.pipe(
     switchMap((api) => (api.deploymentState === 'NEED_REDEPLOY' ? this.apiService.getCurrentDeployment(this.apiId) : of(null))),
   );
+
+  protected deploymentStates$: Observable<string> = this.getLastApiFetch$.pipe(map((api) => api.deploymentState));
 
   constructor(
     private readonly eventsService: ApiEventsV2Service,

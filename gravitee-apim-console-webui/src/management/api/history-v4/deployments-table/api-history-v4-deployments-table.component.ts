@@ -44,6 +44,9 @@ export class ApiHistoryV4DeploymentsTableComponent {
   @Input()
   public currentDefinition: unknown | null;
 
+  @Input()
+  public deploymentStates: string;
+
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
 

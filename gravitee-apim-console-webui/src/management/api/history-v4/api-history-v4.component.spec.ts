@@ -89,7 +89,7 @@ describe('ApiHistoryV4Component', () => {
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
       expect(await table.getRows().then((value) => value[0].getCellTextByColumnName())).toEqual({
-        version: '1',
+        version: '1  In use',
         createdAt: 'Jan 1, 2021, 12:00:00 AM',
         user: 'John Doe',
         label: 'sample-label',
@@ -163,7 +163,7 @@ describe('ApiHistoryV4Component', () => {
   describe('Rollback', () => {
     beforeEach(() => {
       fixture.detectChanges();
-      expectApiGetRequest(fakeApiV4({ id: API_ID }));
+      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
     });
 
     it('should rollback an API', async () => {
@@ -175,6 +175,7 @@ describe('ApiHistoryV4Component', () => {
         }),
       );
       fixture.detectChanges();
+      expectDeploymentCurrentGetRequest();
 
       const rollbackButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback"]' }));
       await rollbackButton.click();
@@ -204,7 +205,7 @@ describe('ApiHistoryV4Component', () => {
       expectDeploymentCurrentGetRequest();
     });
 
-    fit('should open a dialog to compare the current definition with the selected event', async () => {
+    it('should open a dialog to compare the current definition with the selected event', async () => {
       const compareButton = await loader.getHarness(
         MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to deploy"]' }),
       );
