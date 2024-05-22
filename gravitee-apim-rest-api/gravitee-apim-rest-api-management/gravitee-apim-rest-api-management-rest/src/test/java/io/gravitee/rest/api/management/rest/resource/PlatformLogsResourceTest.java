@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Objects;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,19 +63,20 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
             )
         )
             .thenReturn(true);
+        when(applicationService.findIdsByEnvironment(any(ExecutionContext.class))).thenReturn(Set.of("app1"));
+        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api1"));
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService, never()).findIdsByUser(any(ExecutionContext.class), any());
-        verify(apiAuthorizationServiceV4, never())
-            .findIdsByUser(any(ExecutionContext.class), anyString(), any(ApiQuery.class), anyBoolean());
+        verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
+        verify(apiAuthorizationServiceV4).findIdsByEnvironment(GraviteeContext.getCurrentEnvironment());
 
         verify(logsService)
             .findPlatform(
                 any(ExecutionContext.class),
                 argThat(query ->
-                    Objects.equals(query.getQuery(), "foo:bar") &&
+                    Objects.equals(query.getQuery(), "(foo:bar) AND (application:(app1) OR api:(api1))") &&
                     query.getPage() == 1 &&
                     query.getSize() == 10 &&
                     query.getFrom() == 0 &&
