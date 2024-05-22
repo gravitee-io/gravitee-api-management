@@ -16,11 +16,12 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_LOG;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static java.util.Collections.emptySet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -66,13 +67,23 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldGetPlatformLogsAsNonAdmin() {
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
-        when(applicationService.findIdsByUser(any(ExecutionContext.class), anyString())).thenReturn(Set.of("app1"));
+        when(
+            applicationService.findIdsByUserAndPermission(
+                any(ExecutionContext.class),
+                eq(USER_NAME),
+                isNull(),
+                eq(APPLICATION_LOG),
+                eq(READ)
+            )
+        )
+            .thenReturn(Set.of("app1"));
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
             .thenReturn(Set.of("api1"));
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+        verify(applicationService)
+            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
         verify(logsService)
             .findPlatform(
@@ -92,13 +103,23 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldGetPlatformLogsAsNonAdminFilterOnlyApp() {
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
-        when(applicationService.findIdsByUser(any(ExecutionContext.class), anyString())).thenReturn(Set.of("app1"));
+        when(
+            applicationService.findIdsByUserAndPermission(
+                any(ExecutionContext.class),
+                eq(USER_NAME),
+                isNull(),
+                eq(APPLICATION_LOG),
+                eq(READ)
+            )
+        )
+            .thenReturn(Set.of("app1"));
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
             .thenReturn(emptySet());
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+        verify(applicationService)
+            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
         verify(logsService)
             .findPlatform(
@@ -118,14 +139,24 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldGetPlatformLogsAsNonAdminFilterOnlyAPI() {
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
-        when(applicationService.findIdsByUser(any(ExecutionContext.class), anyString())).thenReturn(emptySet());
+        when(
+            applicationService.findIdsByUserAndPermission(
+                any(ExecutionContext.class),
+                eq(USER_NAME),
+                isNull(),
+                eq(APPLICATION_LOG),
+                eq(READ)
+            )
+        )
+            .thenReturn(emptySet());
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
             .thenReturn(Set.of("api1"));
 
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+        verify(applicationService)
+            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
         verify(logsService)
             .findPlatform(
@@ -144,7 +175,16 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoLogsAsNonAdminWithNoAPINoApp() {
-        when(applicationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME))).thenReturn(emptySet());
+        when(
+            applicationService.findIdsByUserAndPermission(
+                any(ExecutionContext.class),
+                eq(USER_NAME),
+                isNull(),
+                eq(APPLICATION_LOG),
+                eq(READ)
+            )
+        )
+            .thenReturn(emptySet());
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
             .thenReturn(emptySet());
         Response logs = sendRequest();
@@ -153,7 +193,8 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
         JsonNode jsonNode = logs.readEntity(JsonNode.class);
         assertEquals(0, jsonNode.get("total").intValue());
         assertNull(jsonNode.get("logs"));
-        verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+        verify(applicationService)
+            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
         verify(logsService, never()).findPlatform(any(ExecutionContext.class), any(LogQuery.class));
     }
