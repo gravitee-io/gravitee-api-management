@@ -15,9 +15,9 @@
  */
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { distinctUntilChanged, map, shareReplay, switchMap } from 'rxjs/operators';
-import { isEqual } from 'lodash';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { isEqual, isNil } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
@@ -54,13 +54,13 @@ export class ApiHistoryV4Component {
     switchMap(({ page, perPage }) =>
       this.eventsService.searchApiEvents(this.apiId, { page: page, perPage: perPage, types: 'PUBLISH_API' }),
     ),
+    tap((events) => {
+      this.definitionInUseId = this.filter$.value.page === 1 && !isNil(events.data[0]) ? events.data[0].id || null : null;
+    }),
   );
+  public definitionInUseId = null;
 
-  protected currentDeploymentDefinition$: Observable<unknown | null> = this.getLastApiFetch$.pipe(
-    switchMap((api) => (api.deploymentState === 'NEED_REDEPLOY' ? this.apiService.getCurrentDeployment(this.apiId) : of(null))),
-  );
-
-  protected deploymentStates$: Observable<string> = this.getLastApiFetch$.pipe(map((api) => api.deploymentState));
+  protected deploymentState$: Observable<string> = this.getLastApiFetch$.pipe(map((api) => api.deploymentState));
 
   protected compareEvent?: [Event, Event];
 
@@ -79,22 +79,75 @@ export class ApiHistoryV4Component {
     openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId);
   }
 
-  protected openCompareEventDialog(events: [Event, Event]) {
+  protected openCompareEventDialog(events: [Event, Event], deploymentStates: string) {
     this.compareEvent = events;
+    if (events[0] === null || events[1] === null) {
+      return;
+    }
     const jsonDefinitionLeft = this.extractApiDefinition(events[0]);
     const jsonDefinitionRight = this.extractApiDefinition(events[1]);
     this.matDialog
       .open(ApiHistoryV4DeploymentCompareComponent, {
         autoFocus: false,
         data: {
-          left: { apiDefinition: jsonDefinitionLeft, version: events[0].properties['DEPLOYMENT_NUMBER'] },
-          right: { apiDefinition: jsonDefinitionRight, version: events[1].properties['DEPLOYMENT_NUMBER'] },
+          left: {
+            eventId: events[0].id,
+            hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[0].id,
+            apiDefinition: jsonDefinitionLeft,
+            version: events[0].properties['DEPLOYMENT_NUMBER'],
+          },
+          right: {
+            eventId: events[1].id,
+            hideRollback: deploymentStates !== 'NEED_REDEPLOY' && this.definitionInUseId === events[1].id,
+            apiDefinition: jsonDefinitionRight,
+            version: events[1].properties['DEPLOYMENT_NUMBER'],
+          },
         },
         width: GIO_DIALOG_WIDTH.LARGE,
         maxHeight: 'calc(100vh - 90px)',
       })
       .afterClosed()
-      .pipe();
+      .pipe(
+        filter((result) => !isNil(result?.rollbackTo)),
+        tap((eventId) => openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId)),
+      )
+      .subscribe();
+  }
+
+  protected openCompareEventWithCurrentDialog(eventToCompare: Event) {
+    this.apiService
+      .getCurrentDeployment(this.apiId)
+      .pipe(
+        switchMap((currentDeploymentDefinition) => {
+          const jsonDefinitionToCompare = this.extractApiDefinition(eventToCompare);
+          const jsonCurrentDefinition = JSON.stringify(currentDeploymentDefinition, null, 2);
+
+          return this.matDialog
+            .open(ApiHistoryV4DeploymentCompareComponent, {
+              autoFocus: false,
+              data: {
+                left: {
+                  eventId: eventToCompare.id,
+                  apiDefinition: jsonDefinitionToCompare,
+                  version: eventToCompare.properties['DEPLOYMENT_NUMBER'],
+                  hideRollback: false,
+                },
+                right: {
+                  eventId: null,
+                  apiDefinition: jsonCurrentDefinition,
+                  version: 'to deploy',
+                  hideRollback: true,
+                },
+              },
+              width: GIO_DIALOG_WIDTH.LARGE,
+              maxHeight: 'calc(100vh - 90px)',
+            })
+            .afterClosed();
+        }),
+        filter((result) => !isNil(result?.rollbackTo)),
+        tap((eventId) => openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId)),
+      )
+      .subscribe();
   }
 
   private extractApiDefinition(event: Event): string {

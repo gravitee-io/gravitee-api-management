@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<mat-card>
+<mat-card *ngIf="deploymentState$ | async as deploymentState; else loading">
   <mat-card-header>
     <mat-card-title>API deployment history</mat-card-title>
     <mat-card-subtitle
@@ -24,7 +24,7 @@
     </mat-card-subtitle>
     <div class="history__headerRightBtn">
       <span [matTooltip]="compareEvent ? 'Compare selected versions' : 'Select two versions to compare'">
-        <button mat-stroked-button [disabled]="!compareEvent" (click)="openCompareEventDialog(compareEvent)">
+        <button mat-stroked-button [disabled]="!compareEvent" (click)="openCompareEventDialog(compareEvent, deploymentState)">
           <mat-icon svgIcon="gio:git-pull-request"></mat-icon> Compare
         </button>
       </span>
@@ -34,15 +34,16 @@
     <api-deployments-table
       [deployments]="apiDeployments.data"
       [pagination]="apiDeployments.pagination"
-      [currentDefinition]="currentDeploymentDefinition$ | async"
-      [deploymentStates]="deploymentStates$ | async"
+      [deploymentState]="deploymentState"
       (paginationChange)="paginationChange($event)"
       (rollback)="rollback($event)"
-      (selectedEventChange)="openCompareEventDialog($event)"
+      (selectedEventChange)="openCompareEventDialog($event, deploymentState)"
+      (compareEventWithCurrentChange)="openCompareEventWithCurrentDialog($event)"
     >
     </api-deployments-table>
   </ng-container>
-  <ng-template #loading>
-    <gio-loader></gio-loader>
-  </ng-template>
 </mat-card>
+
+<ng-template #loading>
+  <gio-loader></gio-loader>
+</ng-template>

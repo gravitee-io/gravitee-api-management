@@ -11,6 +11,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .history {
   &__headerRightBtn {
-    margin: auto;
+    margin: auto 0 auto auto;
   }
 }
