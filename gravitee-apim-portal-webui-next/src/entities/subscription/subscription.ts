@@ -16,6 +16,7 @@
 export interface Subscription {
   data: SubscriptionData[];
   links: SubscriptionLinks;
+  metadata: SubscriptionMetadata;
 }
 
 export interface SubscriptionData {
@@ -33,4 +34,7 @@ export interface SubscriptionData {
 
 export interface SubscriptionLinks {
   self?: string;
+}
+export interface SubscriptionMetadata {
+  [key: string]: { [key: string]: object | string };
 }
