@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model.crd;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -94,9 +95,11 @@ public class ApiCRDSpec {
 
     private Failover failover;
 
-    private FlowExecution flowExecution;
-
     private Set<String> groups;
+
+    private Set<ApiMember> members;
+
+    private FlowExecution flowExecution;
 
     private Set<String> categories;
 
@@ -131,7 +134,8 @@ public class ApiCRDSpec {
                     )
                     .mode(KubernetesContext.Mode.FULLY_MANAGED)
                     .build()
-            );
+            )
+            .groups(groups);
     }
 
     /**

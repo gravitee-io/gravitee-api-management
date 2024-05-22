@@ -20,11 +20,14 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
@@ -58,6 +61,7 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -69,16 +73,20 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -93,6 +101,7 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
+import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -116,6 +125,7 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -127,7 +137,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -145,6 +154,7 @@ class ImportCRDUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final String TAG = "tag1";
+    private static final String GROUP_ID = UuidString.generateRandom();
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -167,6 +177,9 @@ class ImportCRDUseCaseTest {
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    ApiImportDomainService apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
+    MembershipCrudService membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
+    MembershipQueryService membershipQueryServiceInMemory = new MembershipQueryServiceInMemory();
 
     ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
@@ -272,7 +285,6 @@ class ImportCRDUseCaseTest {
             parametersQueryService,
             workflowCrudService
         );
-        var apiMetadataDomainService = mock(ApiMetadataDomainService.class);
         var deployApiDomainService = mock(DeployApiDomainService.class);
         updateApiDomainService = mock(UpdateApiDomainService.class);
 
@@ -284,7 +296,6 @@ class ImportCRDUseCaseTest {
                 validateApiDomainService,
                 createApiDomainService,
                 createPlanDomainService,
-                apiMetadataDomainService,
                 deployApiDomainService,
                 updateApiDomainService,
                 planQueryService,
@@ -292,7 +303,11 @@ class ImportCRDUseCaseTest {
                 deletePlanDomainService,
                 subscriptionQueryService,
                 closeSubscriptionDomainService,
-                reorderPlanDomainService
+                reorderPlanDomainService,
+                apiImportDomainService,
+                mock(ApiPrimaryOwnerDomainService.class),
+                membershipCrudServiceInMemory,
+                membershipQueryServiceInMemory
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -387,12 +402,11 @@ class ImportCRDUseCaseTest {
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
                 .containsExactly(tuple("keyless-id", "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
-            Assertions.assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("plan-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("plan-flow");
         }
 
         @Test
@@ -403,8 +417,7 @@ class ImportCRDUseCaseTest {
             var result = useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
 
             // Then
-            Assertions
-                .assertThat(result.status())
+            assertThat(result.status())
                 .isEqualTo(
                     ApiCRDStatus
                         .builder()
@@ -416,6 +429,23 @@ class ImportCRDUseCaseTest {
                         .plans(Map.of("keyless-key", "keyless-id"))
                         .build()
                 );
+        }
+
+        @Test
+        void should_create_members() {
+            // Given
+
+            // When
+            ApiCRDSpec crd = aCRD();
+            Set<ApiMember> members = Set.of(
+                new ApiMember(UuidString.generateRandom(), "test_member", List.of(new ApiMemberRole("USER", RoleScope.API)))
+            );
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+
+            // Then
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
     }
 
@@ -481,8 +511,7 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(result.status())
+            assertThat(result.status())
                 .isEqualTo(
                     ApiCRDStatus
                         .builder()
@@ -540,13 +569,12 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .hasSize(2)
                 .extracting(Plan::getId, Plan::getName)
                 .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
 
-            Assertions.assertThat(flowCrudService.storage()).extracting(Flow::getName).contains("apikey-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).contains("apikey-flow");
         }
 
         @Test
@@ -578,12 +606,11 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getDescription)
                 .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
-            Assertions.assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("updated flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("updated flow");
         }
 
         @Test
@@ -601,7 +628,7 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions.assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
         }
 
         @Test
@@ -646,9 +673,8 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions.assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
-            Assertions
-                .assertThat(subscriptionCrudService.storage())
+            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(subscriptionCrudService.storage())
                 .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
                 .containsExactly(
                     tuple("sub1", SubscriptionEntity.Status.CLOSED),
@@ -675,11 +701,54 @@ class ImportCRDUseCaseTest {
             );
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
-                .hasSize(1)
-                .extracting(Plan::getId, Plan::getOrder)
-                .containsExactly(tuple("keyless", 1));
+            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId, Plan::getOrder).containsExactly(tuple("keyless", 1));
+        }
+
+        @Test
+        void should_add_new_members() {
+            ApiCRDSpec crd = aCRD();
+            Set<ApiMember> members = new java.util.HashSet<>(
+                Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
+            );
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+
+            reset(apiImportDomainService);
+            members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+        }
+
+        @Test
+        void should_delete_unused_members() {
+            ApiCRDSpec crd = aCRD();
+            Set<ApiMember> members = new java.util.HashSet<>(
+                Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
+            );
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+            reset(apiImportDomainService);
+
+            members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
+            crd.setMembers(members);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+            reset(apiImportDomainService);
+
+            crd.setMembers(Set.of());
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            verify(apiImportDomainService, never()).createMembers(any(), eq(API_ID));
+
+            assertThat(membershipQueryServiceInMemory.findByReference(Membership.ReferenceType.API, API_ID)).isEmpty();
         }
     }
 
@@ -766,6 +835,7 @@ class ImportCRDUseCaseTest {
             .type("PROXY")
             .version("1.0.0")
             .visibility("PRIVATE")
+            .groups(Set.of(GROUP_ID))
             .build();
     }
 
@@ -805,6 +875,7 @@ class ImportCRDUseCaseTest {
                     .tags(Set.of(TAG))
                     .build()
             )
+            .groups(Set.of(GROUP_ID))
             .build();
     }
 
