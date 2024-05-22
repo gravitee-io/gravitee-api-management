@@ -27,14 +27,14 @@
 
     <groupId>io.gravitee.reporter</groupId>
     <artifactId>gravitee-reporter-elasticsearch</artifactId>
-    <version>5.3.0</version>
+    <version>5.3.1-apim-4595-fix-node-monitoring-SNAPSHOT</version>
 
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
         <gravitee-bom.version>6.0.47</gravitee-bom.version>
         <gravitee-common.version>3.4.1</gravitee-common.version>
-        <gravitee-reporter-common.version>1.2.0</gravitee-reporter-common.version>
+        <gravitee-reporter-common.version>1.2.1</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>5.1.0</gravitee-common-elasticsearch.version>
         <gravitee-gateway-api.version>3.5.0</gravitee-gateway-api.version>
         <gravitee-node-api.version>4.8.6</gravitee-node-api.version>

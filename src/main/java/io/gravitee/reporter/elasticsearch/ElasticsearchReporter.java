@@ -20,10 +20,7 @@ import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
-import io.gravitee.reporter.api.health.EndpointStatus;
-import io.gravitee.reporter.api.http.Metrics;
-import io.gravitee.reporter.api.log.Log;
-import io.gravitee.reporter.api.monitor.Monitor;
+import io.gravitee.reporter.common.MetricsType;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.Indexer;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
@@ -32,6 +29,8 @@ import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +55,8 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
      */
     private Indexer indexer;
 
+    private final Set<Class<? extends Reportable>> acceptableReportables = new HashSet<>();
+
     @Override
     protected void doStart() throws Exception {
         if (configuration.isEnabled()) {
@@ -66,6 +67,11 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             if (!beanRegister.registerBeans(retrieveElasticSearchInfo(), configuration)) {
                 LOGGER.info("Starting Elastic reporter engine... ERROR");
                 return;
+            }
+
+            // Initialize available reportable classes
+            for (MetricsType type : MetricsType.values()) {
+                acceptableReportables.add(type.getClazz());
             }
 
             IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
@@ -107,17 +113,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
 
     @Override
     public boolean canHandle(Reportable reportable) {
-        return (
-            reportable instanceof Metrics ||
-            reportable instanceof EndpointStatus ||
-            reportable instanceof Monitor ||
-            reportable instanceof Log ||
-            // Api V4
-            reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics ||
-            reportable instanceof io.gravitee.reporter.api.v4.metric.MessageMetrics ||
-            reportable instanceof io.gravitee.reporter.api.v4.log.Log ||
-            reportable instanceof io.gravitee.reporter.api.v4.log.MessageLog
-        );
+        return acceptableReportables.contains(reportable.getClass());
     }
 
     @Override
