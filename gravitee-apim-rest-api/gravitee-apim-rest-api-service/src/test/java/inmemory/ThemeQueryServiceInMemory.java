@@ -34,7 +34,7 @@ public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlt
     }
 
     public ThemeQueryServiceInMemory(ThemeCrudServiceInMemory themeCrudServiceInMemory) {
-        this.storage = themeCrudServiceInMemory.storage();
+        storage = themeCrudServiceInMemory.storage;
     }
 
     @Override

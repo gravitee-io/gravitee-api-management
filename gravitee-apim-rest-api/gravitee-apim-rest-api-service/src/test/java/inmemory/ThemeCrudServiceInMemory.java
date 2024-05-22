@@ -20,12 +20,11 @@ import io.gravitee.apim.core.theme.model.Theme;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.OptionalInt;
 
 public class ThemeCrudServiceInMemory implements ThemeCrudService, InMemoryAlternative<Theme> {
 
-    private final List<Theme> storage = new ArrayList<>();
+    final List<Theme> storage = new ArrayList<>();
 
     @Override
     public void initWith(List<Theme> items) {
