@@ -93,6 +93,10 @@ export class ApiV2Service {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments/_verify`);
   }
 
+  getCurrentDeployment(apiId: string): Observable<unknown> {
+    return this.http.get<unknown>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments/current`);
+  }
+
   duplicate(apiId: string, options: DuplicateApiOptions): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_duplicate`, options);
   }

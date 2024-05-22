@@ -24,6 +24,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { ApiHistoryV4Component } from './api-history-v4.component';
 import { ApiHistoryV4DeploymentsTableComponent } from './deployments-table/api-history-v4-deployments-table.component';
@@ -33,6 +34,7 @@ import { Api, fakeApiV4, fakeEvent, fakeEventsResponse, Pagination, SearchApiEve
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioDiffHarness } from '../../../shared/components/gio-diff/gio-diff.harness';
 
 describe('ApiHistoryV4Component', () => {
   const API_ID = 'an-api-id';
@@ -64,15 +66,18 @@ describe('ApiHistoryV4Component', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-    expectApiGetRequest(fakeApiV4({ id: API_ID }));
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  describe('Events', () => {
+  describe('Events table', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'DEPLOYED' }));
+    });
+
     it('should display events', async () => {
       expectApiEventsListRequest(
         undefined,
@@ -153,29 +158,64 @@ describe('ApiHistoryV4Component', () => {
         expect(await paginator.isPreviousPageDisabled()).toEqual(false);
       });
     });
+  });
 
-    describe('rollback', () => {
-      it('should rollback an API', async () => {
-        expectApiEventsListRequest(
-          undefined,
-          undefined,
-          fakeEventsResponse({
-            data: [fakeEvent({ type: 'PUBLISH_API' })],
-          }),
-        );
-        fixture.detectChanges();
+  describe('Rollback', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID }));
+    });
 
-        const rollbackButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback"]' }));
-        await rollbackButton.click();
+    it('should rollback an API', async () => {
+      expectApiEventsListRequest(
+        undefined,
+        undefined,
+        fakeEventsResponse({
+          data: [fakeEvent({ type: 'PUBLISH_API' })],
+        }),
+      );
+      fixture.detectChanges();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+      const rollbackButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback"]' }));
+      await rollbackButton.click();
 
-        httpTestingController.expectOne({
-          method: 'POST',
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
-        });
+      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
       });
+    });
+  });
+
+  describe('Compare With Current', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
+      expectApiEventsListRequest(
+        undefined,
+        undefined,
+        fakeEventsResponse({
+          data: [fakeEvent({ type: 'PUBLISH_API', payload: JSON.stringify({ definition: JSON.stringify({ name: 'Diff' }) }) })],
+        }),
+      );
+      fixture.detectChanges();
+      expectDeploymentCurrentGetRequest();
+    });
+
+    fit('should open a dialog to compare the current definition with the selected event', async () => {
+      const compareButton = await loader.getHarness(
+        MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to deploy"]' }),
+      );
+      await compareButton.click();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(dialog).toBeTruthy();
+      expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version to deploy');
+
+      const diffHarness = await dialog.getHarness(GioDiffHarness);
+      expect(await diffHarness.hasNoDiffToDisplay()).toEqual(false);
     });
   });
 
@@ -194,5 +234,11 @@ describe('ApiHistoryV4Component', () => {
       }${filters.to ? '&to=' + filters.to : ''}${filters.types ? '&types=' + filters.types : ''}`,
     );
     req.flush(response);
+  }
+
+  function expectDeploymentCurrentGetRequest() {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/deployments/current`, method: 'GET' })
+      .flush({});
   }
 });

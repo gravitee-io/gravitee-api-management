@@ -28,6 +28,7 @@
     <api-deployments-table
       [deployments]="apiDeployments.data"
       [pagination]="apiDeployments.pagination"
+      [currentDefinition]="currentDeploymentDefinition$ | async"
       (paginationChange)="paginationChange($event)"
       (rollback)="rollback($event)"
     >

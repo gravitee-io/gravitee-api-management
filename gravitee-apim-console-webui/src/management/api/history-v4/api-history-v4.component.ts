@@ -15,8 +15,8 @@
  */
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { distinctUntilChanged, shareReplay, switchMap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -43,12 +43,19 @@ export class ApiHistoryV4Component {
 
   protected filter$ = new BehaviorSubject<SearchApiEventParam>(INITIAL_SEARCH_PARAM);
 
-  protected apiEvents$ = this.apiService.getLastApiFetch(this.apiId).pipe(
+  // Locally share the last API fetch to avoid multiple fetches
+  private getLastApiFetch$ = this.apiService.getLastApiFetch(this.apiId).pipe(shareReplay(1));
+
+  protected apiEvents$ = this.getLastApiFetch$.pipe(
     switchMap(() => this.filter$),
     distinctUntilChanged(isEqual),
-    switchMap(({ page, perPage }) => {
-      return this.eventsService.searchApiEvents(this.apiId, { page: page, perPage: perPage, types: 'PUBLISH_API' });
-    }),
+    switchMap(({ page, perPage }) =>
+      this.eventsService.searchApiEvents(this.apiId, { page: page, perPage: perPage, types: 'PUBLISH_API' }),
+    ),
+  );
+
+  protected currentDeploymentDefinition$: Observable<unknown | null> = this.getLastApiFetch$.pipe(
+    switchMap((api) => (api.deploymentState === 'NEED_REDEPLOY' ? this.apiService.getCurrentDeployment(this.apiId) : of(null))),
   );
 
   constructor(
@@ -58,7 +65,6 @@ export class ApiHistoryV4Component {
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
-
   protected paginationChange(searchParam: SearchApiEventParam) {
     this.filter$.next({ ...this.filter$.getValue(), page: searchParam.page, perPage: searchParam.perPage });
   }
