@@ -2,8 +2,19 @@
   text-align: left;
 }
 
+.mat-column-checkbox {
+  width: 0%;
+  white-space: nowrap;
+}
+
+.mat-column-version {
+  width: 0%;
+  white-space: nowrap;
+}
+
 .mat-column-action {
-  text-align: right;
+  width: 0%;
+  white-space: nowrap;
 }
 
 .pre-wrapper {

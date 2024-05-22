@@ -19,10 +19,12 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay, switchMap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 import { openRollbackDialog } from './rollback-dialog';
+import { ApiHistoryV4DeploymentCompareComponent } from './deployment-compare/api-history-v4-deployment-compare.component';
 
-import { SearchApiEventParam } from '../../../entities/management-api-v2';
+import { Event, SearchApiEventParam } from '../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -60,6 +62,8 @@ export class ApiHistoryV4Component {
 
   protected deploymentStates$: Observable<string> = this.getLastApiFetch$.pipe(map((api) => api.deploymentState));
 
+  protected compareEvent?: [Event, Event];
+
   constructor(
     private readonly eventsService: ApiEventsV2Service,
     private readonly apiService: ApiV2Service,
@@ -73,5 +77,29 @@ export class ApiHistoryV4Component {
 
   protected rollback(eventId: string) {
     openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId);
+  }
+
+  protected openCompareEventDialog(events: [Event, Event]) {
+    this.compareEvent = events;
+    const jsonDefinitionLeft = this.extractApiDefinition(events[0]);
+    const jsonDefinitionRight = this.extractApiDefinition(events[1]);
+    this.matDialog
+      .open(ApiHistoryV4DeploymentCompareComponent, {
+        autoFocus: false,
+        data: {
+          left: { apiDefinition: jsonDefinitionLeft, version: events[0].properties['DEPLOYMENT_NUMBER'] },
+          right: { apiDefinition: jsonDefinitionRight, version: events[1].properties['DEPLOYMENT_NUMBER'] },
+        },
+        width: GIO_DIALOG_WIDTH.LARGE,
+        maxHeight: 'calc(100vh - 90px)',
+      })
+      .afterClosed()
+      .pipe();
+  }
+
+  private extractApiDefinition(event: Event): string {
+    const payload = JSON.parse(event.payload);
+    const definition = JSON.parse(payload.definition);
+    return JSON.stringify(definition, null, 2);
   }
 }

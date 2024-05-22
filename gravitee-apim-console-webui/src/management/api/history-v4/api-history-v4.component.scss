@@ -10,11 +10,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .history {
-  &__header {
-    margin-bottom: 24px;
-
-    &__title {
-      margin-bottom: 0;
-    }
+  &__headerRightBtn {
+    margin: auto;
   }
 }
