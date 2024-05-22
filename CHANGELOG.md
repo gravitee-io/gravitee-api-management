@@ -1,3 +1,10 @@
+## [5.3.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.3.0...5.3.1) (2024-05-22)
+
+
+### Bug Fixes
+
+* bump reporter-common for Monitor issue ([aa0b439](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/aa0b43943c441714c6e33258fe1fdc54898e1e23))
+
 # [5.3.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.2.0...5.3.0) (2024-05-06)
 
 
