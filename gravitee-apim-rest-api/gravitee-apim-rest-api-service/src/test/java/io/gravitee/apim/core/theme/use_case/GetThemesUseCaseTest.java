@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,14 +28,14 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class GetPortalThemesUseCaseTest {
+public class GetThemesUseCaseTest {
 
     public final ThemeQueryServiceInMemory themeQueryServiceInMemory = new ThemeQueryServiceInMemory();
-    private GetPortalThemesUseCase cut;
+    private GetThemesUseCase cut;
 
     @BeforeEach
     void setUp() {
-        cut = new GetPortalThemesUseCase(themeQueryServiceInMemory);
+        cut = new GetThemesUseCase(themeQueryServiceInMemory);
     }
 
     @AfterEach
@@ -44,20 +45,16 @@ public class GetPortalThemesUseCaseTest {
 
     @Test
     void should_return_empty_page() {
-        var result = cut
-            .execute(GetPortalThemesUseCase.Input.builder().page(1).size(10).enabled(false).type(Theme.ThemeType.PORTAL).build())
-            .result();
+        var result = cut.execute(GetThemesUseCase.Input.builder().page(1).size(10).enabled(false).type(ThemeType.PORTAL).build()).result();
 
         assertThat(result).hasFieldOrPropertyWithValue("content", List.of());
     }
 
     @Test
     void should_return_page_of_results() {
-        var portalTheme = Theme.builder().id("portal-id").type(Theme.ThemeType.PORTAL).enabled(true).build();
+        var portalTheme = Theme.builder().id("portal-id").type(ThemeType.PORTAL).enabled(true).build();
         themeQueryServiceInMemory.initWith(List.of(portalTheme));
-        var result = cut
-            .execute(GetPortalThemesUseCase.Input.builder().page(1).size(10).enabled(true).type(Theme.ThemeType.PORTAL).build())
-            .result();
+        var result = cut.execute(GetThemesUseCase.Input.builder().page(1).size(10).enabled(true).type(ThemeType.PORTAL).build()).result();
 
         assertThat(result).hasFieldOrPropertyWithValue("content", List.of(portalTheme));
     }
