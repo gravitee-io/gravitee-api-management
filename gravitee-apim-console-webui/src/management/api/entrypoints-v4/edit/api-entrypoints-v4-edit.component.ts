@@ -44,6 +44,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   public entrypoint: Entrypoint;
   public entrypointName: string;
   public entrypointSchema: GioJsonSchema;
+  public supportQos: boolean;
   public supportedQos: Qos[];
   public supportDlq: boolean;
   public enabledDlq: boolean;
@@ -82,6 +83,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
               const matchingEntrypoint = this.availableEntrypoints.find((entrypoint) => entrypoint.id === this.entrypoint.type);
               if (matchingEntrypoint) {
                 this.entrypointName = matchingEntrypoint.name;
+                this.supportQos = !!matchingEntrypoint.supportedQos?.length;
                 this.supportedQos = matchingEntrypoint.supportedQos;
 
                 this.supportDlq = matchingEntrypoint.availableFeatures?.includes('DLQ');
@@ -96,11 +98,22 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         tap((schema) => {
           this.entrypointSchema = schema;
         }),
-        switchMap((_) => (this.supportDlq ? this.connectorPluginsV2Service.listEndpointPlugins() : of(null))),
+        switchMap((_) => (this.supportDlq || this.supportQos ? this.connectorPluginsV2Service.listEndpointPlugins() : of(null))),
         tap((plugins: ConnectorPlugin[] | null) => {
           this.form = new UntypedFormGroup({});
           this.form.addControl(`${this.entrypoint.type}-config`, new UntypedFormControl(this.entrypoint.configuration));
           this.form.addControl(`${this.entrypoint.type}-qos`, new UntypedFormControl(this.entrypoint.qos));
+
+          if (this.supportQos && plugins) {
+            const eligibleEndpointTypesForQos = this.getEligibleEndpointTypesForQos(plugins);
+
+            this.api.endpointGroups.forEach((endpointGroup) => {
+              const eligibleEndpointType = eligibleEndpointTypesForQos.find((value) => value.id === endpointGroup.type);
+              if (eligibleEndpointType) {
+                this.supportedQos = this.supportedQos.filter((value) => eligibleEndpointType.supportedQos.includes(value));
+              }
+            });
+          }
 
           if (this.supportDlq && plugins) {
             this.dlqElements = this.getEligibleApiEndpointsAndEndpointGroupsForDlq(plugins);
@@ -160,6 +173,14 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
       .filter((plugin) => plugin.supportedModes.includes('PUBLISH') && plugin.supportedApiType === 'MESSAGE')
       .map((plugin) => {
         return { id: plugin.id, name: plugin.name, icon: this.iconService.registerSvg(plugin.id, plugin.icon) };
+      });
+  }
+
+  private getEligibleEndpointTypesForQos(plugins: ConnectorPlugin[]) {
+    return plugins
+      .filter((plugin) => plugin.supportedApiType === 'MESSAGE')
+      .map((plugin) => {
+        return { id: plugin.id, name: plugin.name, supportedQos: plugin.supportedQos };
       });
   }
 

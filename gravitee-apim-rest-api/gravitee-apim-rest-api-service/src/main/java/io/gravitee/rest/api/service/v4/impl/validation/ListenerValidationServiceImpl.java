@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -170,13 +171,17 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             final ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
 
             checkEntrypointListenerType(type, connectorPlugin);
-            checkEntrypointQos(entrypoint, connectorPlugin);
+            checkEntrypointQos(entrypoint, endpointGroups, connectorPlugin);
             checkEntrypointDlq(entrypoint, endpointGroups, connectorPlugin);
             checkEntrypointConfiguration(entrypoint);
         });
     }
 
-    private void checkEntrypointQos(final Entrypoint entrypoint, final ConnectorPluginEntity connectorPlugin) {
+    private void checkEntrypointQos(
+        final Entrypoint entrypoint,
+        final List<EndpointGroup> endpointGroups,
+        final ConnectorPluginEntity connectorPlugin
+    ) {
         if (connectorPlugin.getSupportedApiType() == ApiType.MESSAGE) {
             if (entrypoint.getQos() == null) {
                 throw new ListenerEntrypointInvalidQosException(entrypoint.getType());
@@ -187,7 +192,25 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             ) {
                 throw new ListenerEntrypointUnsupportedQosException(entrypoint.getType(), entrypoint.getQos().getLabel());
             }
+
+            if (!checkEntrypointQosEndpoint(endpointGroups, entrypoint.getQos())) {
+                throw new ListenerEntrypointInvalidQosException(entrypoint.getType());
+            }
         }
+    }
+
+    private boolean checkEntrypointQosEndpoint(List<EndpointGroup> endpointGroups, Qos qos) {
+        return endpointGroups
+            .stream()
+            .allMatch(endpointGroup -> {
+                final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+                return (
+                    endpointConnectorPlugin != null &&
+                    endpointConnectorPlugin.getSupportedApiType() == ApiType.MESSAGE &&
+                    endpointConnectorPlugin.getSupportedQos() != null &&
+                    endpointConnectorPlugin.getSupportedQos().contains(qos)
+                );
+            });
     }
 
     private void checkEntrypointDlq(
