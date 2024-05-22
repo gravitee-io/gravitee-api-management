@@ -21,9 +21,12 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static java.lang.String.format;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.model.wrapper.PlatformRequestItemSearchLogResponse;
 import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
+import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.log.ApiRequest;
 import io.gravitee.rest.api.model.log.PlatformRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
@@ -44,7 +47,9 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -86,35 +91,41 @@ public class PlatformLogsResource extends AbstractResource {
         logQuery.setField(param.getField());
         logQuery.setOrder(param.isOrder());
 
-        if (!isAdmin()) {
-            String extraFilter = getExtratFilterForAccessibleAPIsAndApplications(logQuery);
-            if (extraFilter == null) {
-                return new SearchLogResponse<>(0);
-            } else if (logQuery.getQuery() == null || logQuery.getQuery().isEmpty()) {
-                logQuery.setQuery(extraFilter);
-            } else {
-                logQuery.setQuery(format("(%s) AND (%s)", logQuery.getQuery(), extraFilter));
-            }
+        String extraFilter = getExtraFilterForAccessibleAPIsAndApplications(logQuery);
+        if (extraFilter == null) {
+            return new SearchLogResponse<>(0);
+        } else if (logQuery.getQuery() == null || logQuery.getQuery().isEmpty()) {
+            logQuery.setQuery(extraFilter);
+        } else {
+            logQuery.setQuery(format("(%s) AND (%s)", logQuery.getQuery(), extraFilter));
         }
 
         return logsService.findPlatform(GraviteeContext.getExecutionContext(), logQuery);
     }
 
-    private String getExtratFilterForAccessibleAPIsAndApplications(LogQuery logQuery) {
+    private String getExtraFilterForAccessibleAPIsAndApplications(LogQuery logQuery) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        List<String> applicationIds = applicationService
-            .findIdsByUser(executionContext, getAuthenticatedUser())
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_LOG, appId, READ))
-            .collect(Collectors.toList());
+        Set<String> applicationIds;
+        if (isAdmin()) {
+            applicationIds = applicationService.findIdsByEnvironment(executionContext);
+        } else {
+            applicationIds =
+                applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_LOG, READ);
+        }
         String applicationsFilter = getExtraFilter("application", applicationIds);
 
-        List<String> apiIds = apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
-            .collect(Collectors.toList());
+        Set<String> apiIds;
+        if (isAdmin()) {
+            apiIds = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+        } else {
+            apiIds =
+                apiAuthorizationService
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
+                    .stream()
+                    .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
+                    .collect(Collectors.toSet());
+        }
         String apisFilter = getExtraFilter("api", apiIds);
 
         String extraFilter;
@@ -167,9 +178,9 @@ public class PlatformLogsResource extends AbstractResource {
             .build();
     }
 
-    private String getExtraFilter(String fieldName, List<String> ids) {
+    private String getExtraFilter(String fieldName, Set<String> ids) {
         if (ids != null && !ids.isEmpty()) {
-            return fieldName + ":(" + ids.stream().collect(Collectors.joining(" OR ")) + ")";
+            return fieldName + ":(" + String.join(" OR ", ids) + ")";
         }
         return null;
     }
