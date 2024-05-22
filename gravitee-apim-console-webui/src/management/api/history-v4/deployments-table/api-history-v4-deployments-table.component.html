@@ -26,7 +26,10 @@
     <!-- Version Column -->
     <ng-container matColumnDef="version">
       <th mat-header-cell *matHeaderCellDef>Version</th>
-      <td mat-cell *matCellDef="let element">{{ element.properties[DEPLOYMENT_NUMBER_PROPERTY] }}</td>
+      <td mat-cell *matCellDef="let element; let index = index">
+        {{ element.properties[DEPLOYMENT_NUMBER_PROPERTY] }}
+        <span *ngIf="index === 0" class="gio-badge-accent" matTooltip="Current definition used by the Gateway"> In use </span>
+      </td>
     </ng-container>
 
     <!-- Date Column -->
@@ -50,7 +53,7 @@
     <!-- Action Column -->
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef id="action">Action</th>
-      <td mat-cell *matCellDef="let element">
+      <td mat-cell *matCellDef="let element; let index = index">
         <button mat-button aria-label="Button to show version" matTooltip="Show version" routerLink="{{ element.id }}" id="actionButton">
           <mat-icon svgIcon="gio:eye-empty"></mat-icon>
         </button>
@@ -66,15 +69,17 @@
             <mat-icon svgIcon="gio:git-pull-request"></mat-icon>
           </button>
         </span>
-        <button
-          *gioPermission="{ anyOf: ['api-definition-u'] }"
-          mat-button
-          aria-label="Button to rollback"
-          matTooltip="Rollback"
-          (click)="rollback.emit(element.id)"
-        >
-          <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>
-        </button>
+
+        <span *gioPermission="{ anyOf: ['api-definition-u'] }" matTooltip="Rollback">
+          <button
+            [disabled]="index === 0 && deploymentStates !== 'NEED_REDEPLOY'"
+            mat-button
+            aria-label="Button to rollback"
+            (click)="rollback.emit(element.id)"
+          >
+            <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>
+          </button>
+        </span>
       </td>
     </ng-container>
 

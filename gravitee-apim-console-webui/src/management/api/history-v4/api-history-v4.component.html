@@ -29,6 +29,7 @@
       [deployments]="apiDeployments.data"
       [pagination]="apiDeployments.pagination"
       [currentDefinition]="currentDeploymentDefinition$ | async"
+      [deploymentStates]="deploymentStates$ | async"
       (paginationChange)="paginationChange($event)"
       (rollback)="rollback($event)"
     >
