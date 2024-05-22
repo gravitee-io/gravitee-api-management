@@ -55,6 +55,17 @@
           <mat-icon svgIcon="gio:eye-empty"></mat-icon>
         </button>
 
+        <span matTooltip="Compare with current version to deploy">
+          <button
+            mat-button
+            aria-label="Button to compare with current version to deploy"
+            id="compareCurrentButton"
+            [disabled]="!currentDefinition"
+            (click)="compareWithCurrent(element)"
+          >
+            <mat-icon svgIcon="gio:git-pull-request"></mat-icon>
+          </button>
+        </span>
         <button
           *gioPermission="{ anyOf: ['api-definition-u'] }"
           mat-button

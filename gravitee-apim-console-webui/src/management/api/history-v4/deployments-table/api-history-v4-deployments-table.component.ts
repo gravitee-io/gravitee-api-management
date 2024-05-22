@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 import { Pagination, Event } from '../../../../entities/management-api-v2';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiHistoryV4DeploymentCompareComponent } from '../deployment-compare/api-history-v4-deployment-compare.component';
 
 @Component({
   selector: 'api-deployments-table',
@@ -26,15 +29,20 @@ import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-
 export class ApiHistoryV4DeploymentsTableComponent {
   DEPLOYMENT_NUMBER_PROPERTY = 'DEPLOYMENT_NUMBER';
   LABEL_PROPERTY = 'DEPLOYMENT_LABEL';
-  displayedColumns: string[] = ['version', 'createdAt', 'user', 'label', 'action'];
+  displayedColumns = ['version', 'createdAt', 'user', 'label', 'action'];
   protected tableWrapperPagination: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   };
   protected total = 0;
 
+  constructor(private readonly matDialog: MatDialog) {}
+
   @Input()
   public deployments: Event[];
+
+  @Input()
+  public currentDefinition: unknown | null;
 
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
@@ -59,5 +67,28 @@ export class ApiHistoryV4DeploymentsTableComponent {
         size: pagination.perPage,
       },
     };
+  }
+
+  compareWithCurrent(eventToCompare: Event) {
+    const jsonDefinitionToCompare = this.extractApiDefinition(eventToCompare);
+    const jsonCurrentDefinition = JSON.stringify(this.currentDefinition, null, 2);
+    this.matDialog
+      .open(ApiHistoryV4DeploymentCompareComponent, {
+        autoFocus: false,
+        data: {
+          left: { apiDefinition: jsonDefinitionToCompare, version: eventToCompare.properties[this.DEPLOYMENT_NUMBER_PROPERTY] },
+          right: { apiDefinition: jsonCurrentDefinition, version: 'to deploy' },
+        },
+        width: GIO_DIALOG_WIDTH.LARGE,
+        maxHeight: 'calc(100vh - 90px)',
+      })
+      .afterClosed()
+      .pipe();
+  }
+
+  private extractApiDefinition(event: Event): string {
+    const payload = JSON.parse(event.payload);
+    const definition = JSON.parse(payload.definition);
+    return JSON.stringify(definition, null, 2);
   }
 }
