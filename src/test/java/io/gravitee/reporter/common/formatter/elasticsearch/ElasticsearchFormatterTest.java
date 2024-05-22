@@ -20,7 +20,7 @@ import static io.gravitee.reporter.common.formatter.Mappers.JSON_LINES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
-import io.gravitee.node.api.monitor.Monitor;
+import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.common.formatter.AbstractFormatterTest;
 import io.gravitee.reporter.common.formatter.Type;
 import java.io.IOException;
