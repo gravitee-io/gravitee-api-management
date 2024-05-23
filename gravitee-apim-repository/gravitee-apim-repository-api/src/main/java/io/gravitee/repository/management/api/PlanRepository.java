@@ -29,13 +29,14 @@ import java.util.Set;
  */
 public interface PlanRepository extends CrudRepository<Plan, String> {
     /**
-     * Find plans by api ids.
-     * @param apiIds the list of id of the apis to which to retrieve plans.
+     * Find plans by api ids and environments
+     * @param apiIds the list of id of the apis to which to retrieve plans. Cannot NOT be null or empty
+     * @param environments the list of environments to which to retrieve plans. Could be null or empty
      *
      * @return the list of plans linked to the specified api ids.
      * @throws TechnicalException
      */
-    List<Plan> findByApis(List<String> apiIds) throws TechnicalException;
+    List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) throws TechnicalException;
 
     /**
      * Returns the list of plans for a given API.

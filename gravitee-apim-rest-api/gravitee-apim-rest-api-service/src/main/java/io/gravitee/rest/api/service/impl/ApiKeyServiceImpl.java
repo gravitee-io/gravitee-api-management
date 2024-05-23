@@ -186,7 +186,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             LOGGER.debug("Renew API Key for application {}", application.getId());
 
-            ApiKey newApiKey = generateForApplication(application.getId());
+            ApiKey newApiKey = generateForApplication(application);
             newApiKey = apiKeyRepository.create(newApiKey);
 
             // Expire previously generated keys
@@ -307,6 +307,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         ApiKey apiKey = generateForApplication(subscription.getApplication(), customApiKey);
         apiKey.setSubscriptions(List.of(subscription.getId()));
+        apiKey.setEnvironmentId(subscription.getEnvironmentId());
 
         // By default, the API Key will expire when subscription is closed
         apiKey.setExpireAt(subscription.getEndingAt());
@@ -320,8 +321,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      * @param application
      * @return An API Key
      */
-    private ApiKey generateForApplication(String application) {
-        return generateForApplication(application, null);
+    private ApiKey generateForApplication(ApplicationEntity application) {
+        return generateForApplication(application.getId(), null);
     }
 
     /**
@@ -335,6 +336,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         ApiKey apiKey = new ApiKey();
         apiKey.setId(UuidString.generateRandom());
         apiKey.setApplication(application);
+        apiKey.setEnvironmentId(apiKey.getEnvironmentId());
         apiKey.setCreatedAt(new Date());
         apiKey.setUpdatedAt(apiKey.getCreatedAt());
         apiKey.setKey(isNotEmpty(customApiKey) ? customApiKey : apiKeyGenerator.generate());
@@ -468,6 +470,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             checkApiKeyExpired(executionContext, key);
 
+            key.setEnvironmentId(apiKeyEntity.getEnvironmentId());
             key.setSubscriptions(apiKeyEntity.getSubscriptionIds());
             key.setPaused(apiKeyEntity.isPaused());
             updateExpirationDate(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
@@ -629,6 +632,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyEntity.setRevoked(apiKey.isRevoked());
         apiKeyEntity.setRevokedAt(apiKey.getRevokedAt());
         apiKeyEntity.setUpdatedAt(apiKey.getUpdatedAt());
+        apiKeyEntity.setEnvironmentId(apiKey.getEnvironmentId());
 
         apiKeyEntity.setSubscriptions(subscriptionService.findByIdIn(apiKey.getSubscriptions()));
 
@@ -650,6 +654,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             .expireBefore(query.getExpireBefore());
         if (query.getSubscriptions() != null) {
             apiKeyCriteriaBuilder.subscriptions(query.getSubscriptions());
+        }
+        if (query.getEnvironmentIds() != null) {
+            apiKeyCriteriaBuilder.environments(query.getEnvironmentIds());
         }
         return apiKeyCriteriaBuilder.build();
     }

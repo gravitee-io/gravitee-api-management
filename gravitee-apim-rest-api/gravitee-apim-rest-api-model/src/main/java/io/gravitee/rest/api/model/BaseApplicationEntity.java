@@ -50,6 +50,9 @@ public class BaseApplicationEntity {
     )
     private String description;
 
+    @Schema(description = "Application's environment Id.", example = "DEFAULT")
+    private String environmentId;
+
     @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 

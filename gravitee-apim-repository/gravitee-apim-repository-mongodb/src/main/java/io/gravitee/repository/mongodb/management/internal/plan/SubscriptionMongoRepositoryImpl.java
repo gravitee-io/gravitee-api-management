@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,6 +79,10 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             } else {
                 dataPipeline.add(match(in("api", criteria.getApis())));
             }
+        }
+
+        if (!CollectionUtils.isEmpty(criteria.getEnvironments())) {
+            dataPipeline.add(match(in("environmentId", criteria.getEnvironments())));
         }
 
         if (criteria.getPlans() != null && !criteria.getPlans().isEmpty()) {

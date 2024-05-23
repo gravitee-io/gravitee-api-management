@@ -23,9 +23,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -54,9 +57,25 @@ class ApiKeyFetcherTest {
 
     @Test
     void should_fetch_api_keys() throws TechnicalException {
+        Instant to = Instant.now();
+        Instant from = to.minus(1000, ChronoUnit.MILLIS);
         ApiKey apiKey = new ApiKey();
-        when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(apiKey));
-        cut.fetchLatest(null, null).test().assertValueCount(1).assertValue(apiKeys -> apiKeys.contains(apiKey));
+        when(
+            apiKeyRepository.findByCriteria(
+                argThat(argument ->
+                    argument.getEnvironments().contains("env") &&
+                    argument.getFrom() < from.toEpochMilli() &&
+                    argument.getTo() > to.toEpochMilli()
+                ),
+                any()
+            )
+        )
+            .thenReturn(List.of(apiKey));
+        cut
+            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+            .test()
+            .assertValueCount(1)
+            .assertValue(apiKeys -> apiKeys.contains(apiKey));
     }
 
     @Test
@@ -73,12 +92,16 @@ class ApiKeyFetcherTest {
             )
         )
             .thenReturn(List.of(apiKey));
-        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli()).test().assertValueCount(1).assertValue(apiKeys -> apiKeys.contains(apiKey));
+        cut
+            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of())
+            .test()
+            .assertValueCount(1)
+            .assertValue(apiKeys -> apiKeys.contains(apiKey));
     }
 
     @Test
     void should_emit_on_error_when_repository_thrown_exception() throws TechnicalException {
         when(apiKeyRepository.findByCriteria(any(), any())).thenThrow(new RuntimeException());
-        cut.fetchLatest(-1L, -1L).test().assertError(RuntimeException.class);
+        cut.fetchLatest(-1L, -1L, Set.of()).test().assertError(RuntimeException.class);
     }
 }

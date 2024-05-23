@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.kubernetes;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.subscriptions;
 
-import io.reactivex.rxjava3.core.Completable;
-import java.util.Set;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface KubernetesSynchronizer {
-    Completable synchronize(final Set<String> environments);
+@Component("SubscriptionsEnvironmentIdIndexUpgrader")
+public class EnvironmentIdIndexUpgrader extends IndexUpgrader {
+
+    @Override
+    protected Index buildIndex() {
+        return Index
+            .builder()
+            .collection("subscriptions")
+            .name("e1")
+            .key("environmentId", ascending())
+            .build();
+    }
 }

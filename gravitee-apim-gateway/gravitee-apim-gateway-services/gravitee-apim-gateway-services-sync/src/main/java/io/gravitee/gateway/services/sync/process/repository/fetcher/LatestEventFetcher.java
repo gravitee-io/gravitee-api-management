@@ -46,7 +46,7 @@ public class LatestEventFetcher {
         Long from,
         Long to,
         Event.EventProperties group,
-        List<String> environments,
+        Set<String> environments,
         Set<EventType> eventTypes
     ) {
         return Flowable.<List<Event>, EventPageable>generate(

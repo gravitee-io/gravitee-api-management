@@ -56,7 +56,7 @@ class LatestEventFetcherTest {
         Event event = new Event();
         when(eventLatestRepository.search(any(), any(), any(), any())).thenReturn(List.of(event)).thenReturn(null);
         cut
-            .fetchLatest(null, null, Event.EventProperties.API_ID, List.of(), Set.of())
+            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
             .test()
             .assertValueCount(1)
             .assertValue(events -> events.contains(event));
@@ -68,7 +68,7 @@ class LatestEventFetcherTest {
         Event event = new Event();
         when(eventLatestRepository.search(any(), any(), any(), any())).thenReturn(List.of(event)).thenReturn(null);
         cut
-            .fetchLatest(null, null, Event.EventProperties.API_ID, List.of(), Set.of())
+            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
             .test()
             .assertValueCount(1)
             .assertValue(events -> events.contains(event))
@@ -96,13 +96,7 @@ class LatestEventFetcherTest {
         )
             .thenReturn(List.of(event));
         cut
-            .fetchLatest(
-                from.toEpochMilli(),
-                to.toEpochMilli(),
-                Event.EventProperties.API_ID,
-                List.of("env"),
-                Set.of(EventType.PUBLISH_API)
-            )
+            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Event.EventProperties.API_ID, Set.of("env"), Set.of(EventType.PUBLISH_API))
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(event));
@@ -119,7 +113,7 @@ class LatestEventFetcherTest {
             .thenReturn(List.of(event3))
             .thenReturn(null);
         cut
-            .fetchLatest(null, null, Event.EventProperties.API_ID, List.of(), Set.of())
+            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
             .test(0)
             .requestMore(1)
             .assertValueAt(0, List.of(event1))
@@ -135,13 +129,13 @@ class LatestEventFetcherTest {
 
     @Test
     void should_not_fetch_new_latest_event_without_downstream_request() {
-        cut.fetchLatest(null, null, Event.EventProperties.API_ID, List.of(), Set.of()).test(0).assertNotComplete();
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test(0).assertNotComplete();
         verifyNoInteractions(eventLatestRepository);
     }
 
     @Test
     void should_emit_on_error_when_repository_thrown_exception() {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException());
-        cut.fetchLatest(null, null, Event.EventProperties.API_ID, List.of(), Set.of()).test().assertError(RuntimeException.class);
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertError(RuntimeException.class);
     }
 }

@@ -76,7 +76,7 @@ class DefaultSyncManagerTest {
         cut.start();
         InOrder inOrder = inOrder(route, synchronizer1, synchronizer2);
         inOrder.verify(route).handler(argThat(argument -> argument instanceof SyncHandler));
-        inOrder.verify(synchronizer1).synchronize(eq(-1L), any(), anyList());
-        inOrder.verify(synchronizer2).synchronize(eq(-1L), any(), anyList());
+        inOrder.verify(synchronizer1).synchronize(eq(-1L), any(), anySet());
+        inOrder.verify(synchronizer2).synchronize(eq(-1L), any(), anySet());
     }
 }

@@ -51,6 +51,7 @@ public class PlanMapper {
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
         entity.setApiId(plan.getApi());
+        entity.setEnvironmentId(plan.getEnvironmentId());
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
         entity.setClosedAt(plan.getClosedAt());

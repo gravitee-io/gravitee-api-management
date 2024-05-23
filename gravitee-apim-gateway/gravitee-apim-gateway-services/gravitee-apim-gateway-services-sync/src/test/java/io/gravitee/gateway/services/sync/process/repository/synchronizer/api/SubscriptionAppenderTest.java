@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +26,8 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +73,7 @@ class SubscriptionAppenderTest {
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("plan2"))
             .build();
-        List<ApiReactorDeployable> appends = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> appends = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2), Set.of("env"));
         assertThat(appends).hasSize(2);
         assertThat(appends.get(0).subscriptions()).isEmpty();
         assertThat(appends.get(1).subscriptions()).isEmpty();
@@ -90,14 +93,20 @@ class SubscriptionAppenderTest {
         io.gravitee.repository.management.model.Subscription subscription2 = new io.gravitee.repository.management.model.Subscription();
         subscription2.setId("sub2");
         subscription2.setApi("api1");
-        when(subscriptionRepository.search(any(), any())).thenReturn(List.of(subscription1, subscription2));
+        when(
+            subscriptionRepository.search(
+                argThat(argument -> argument.getPlans().contains("plan1") && argument.getEnvironments().contains("env")),
+                any()
+            )
+        )
+            .thenReturn(List.of(subscription1, subscription2));
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
             .builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("nosubscriptionplan"))
             .build();
-        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2), Set.of("env"));
         assertThat(deployables).hasSize(2);
         assertThat(deployables.get(0).subscriptions()).hasSize(2);
         assertThat(deployables.get(1).subscriptions()).isEmpty();

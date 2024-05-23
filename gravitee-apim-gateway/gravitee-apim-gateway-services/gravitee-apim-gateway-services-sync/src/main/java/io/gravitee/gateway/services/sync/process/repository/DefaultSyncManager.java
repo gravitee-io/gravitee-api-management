@@ -34,6 +34,7 @@ import io.vertx.ext.web.Router;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +64,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private final DistributedSyncService distributedSyncService;
     private final int delay;
     private final TimeUnit unit;
-    private final List<String> environments;
+    private final Set<String> environments;
 
     private final AtomicLong syncCounter = new AtomicLong(0);
     private final AtomicBoolean initialSync = new AtomicBoolean(false);
@@ -94,7 +95,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         this.delay = delay;
         this.unit = unit;
         this.retryAttempt = retryAttempt;
-        this.environments = new ArrayList<>((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS));
+        this.environments = new HashSet<>((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS));
     }
 
     @Override

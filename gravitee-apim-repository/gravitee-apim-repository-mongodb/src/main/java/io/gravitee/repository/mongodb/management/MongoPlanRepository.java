@@ -44,8 +44,8 @@ public class MongoPlanRepository implements PlanRepository {
     private PlanMongoRepository internalPlanRepository;
 
     @Override
-    public List<Plan> findByApis(List<String> apiIds) {
-        return internalPlanRepository.findByApiIn(apiIds).stream().map(this::map).collect(Collectors.toList());
+    public List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) {
+        return internalPlanRepository.findByApiInAndEnvironments(apiIds, environments).stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override

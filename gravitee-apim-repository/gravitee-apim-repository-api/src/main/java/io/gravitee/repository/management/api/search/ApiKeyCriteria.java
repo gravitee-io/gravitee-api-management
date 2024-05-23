@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import java.util.Collection;
 import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -27,11 +26,14 @@ import lombok.Singular;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode
 public class ApiKeyCriteria {
+
+    @Singular
+    private final Set<String> environments;
 
     @Singular
     private final Set<String> subscriptions;

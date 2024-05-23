@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.0_add_missing_environment_id
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}keys
+            columns:
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
+        - sql:
+            update ${gravitee_prefix}keys set environment_id = api.environment_id from ${gravitee_prefix}apis api where api = api.id;
+        - addNotNullConstraint:
+            columnName: environment_id
+            tableName: ${gravitee_prefix}keys
+            validate: true
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
+        - sql:
+            update ${gravitee_prefix}subscriptions set environment_id = api.environment_id from ${gravitee_prefix}apis api where api = api.id;
+        - addNotNullConstraint:
+            columnName: environment_id
+            tableName: ${gravitee_prefix}subscriptions
+            validate: true

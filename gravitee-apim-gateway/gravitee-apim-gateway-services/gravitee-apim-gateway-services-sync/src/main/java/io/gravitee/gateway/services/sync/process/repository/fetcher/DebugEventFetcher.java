@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -36,7 +37,7 @@ public class DebugEventFetcher {
     private final EventRepository eventRepository;
     private final Node node;
 
-    public Flowable<List<Event>> fetchLatest(final Long from, final Long to, List<String> environments) {
+    public Flowable<List<Event>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         return Flowable.generate(emitter -> {
             EventCriteria eventCriteria = EventCriteria
                 .builder()

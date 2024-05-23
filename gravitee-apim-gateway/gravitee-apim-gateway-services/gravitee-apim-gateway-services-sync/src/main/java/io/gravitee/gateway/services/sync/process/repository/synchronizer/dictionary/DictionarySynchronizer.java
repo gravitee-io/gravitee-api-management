@@ -53,7 +53,7 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
     private final ThreadPoolExecutor syncDeployerExecutor;
 
     @Override
-    public Completable synchronize(final Long from, final Long to, final List<String> environments) {
+    public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
             .fetchLatest(from, to, DICTIONARY_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
