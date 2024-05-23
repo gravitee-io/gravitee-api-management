@@ -1182,6 +1182,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
         applicationEntity.setId(application.getId());
+        applicationEntity.setEnvironmentId(application.getEnvironmentId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
         applicationEntity.setDomain(application.getDomain());

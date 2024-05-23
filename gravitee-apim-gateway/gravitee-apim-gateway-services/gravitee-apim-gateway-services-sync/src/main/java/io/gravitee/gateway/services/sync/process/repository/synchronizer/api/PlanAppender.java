@@ -49,13 +49,13 @@ public class PlanAppender {
      * @param deployables the deployables to update
      * @return the deployables updated with plans
      */
-    public List<ApiReactorDeployable> appends(final List<ApiReactorDeployable> deployables) {
+    public List<ApiReactorDeployable> appends(final List<ApiReactorDeployable> deployables, final Set<String> environments) {
         // Fetch v1 api
         List<ApiReactorDeployable> v1ApiDeployables = deployables
             .stream()
             .filter(deployable -> deployable.reactableApi().getDefinitionVersion() == DefinitionVersion.V1)
             .collect(Collectors.toList());
-        fetchV1ApiPlans(v1ApiDeployables);
+        fetchV1ApiPlans(v1ApiDeployables, environments);
 
         // Fetch v1 api
         return deployables
@@ -82,7 +82,7 @@ public class PlanAppender {
             .collect(Collectors.toList());
     }
 
-    private void fetchV1ApiPlans(final List<ApiReactorDeployable> deployables) {
+    private void fetchV1ApiPlans(final List<ApiReactorDeployable> deployables, final Set<String> environments) {
         final Map<String, Api> apiById = deployables
             .stream()
             .map(deployable -> (Api) deployable.reactableApi())
@@ -93,7 +93,7 @@ public class PlanAppender {
 
         try {
             final Map<String, List<Plan>> plansByApi = planRepository
-                .findByApis(apiV1Ids)
+                .findByApisAndEnvironments(apiV1Ids, environments)
                 .stream()
                 .collect(Collectors.groupingBy(Plan::getApi));
 

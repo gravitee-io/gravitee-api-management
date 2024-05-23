@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
-import static io.gravitee.repository.management.model.Subscription.Status.*;
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
+import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
+import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
@@ -58,7 +61,7 @@ class SubscriptionFetcherTest {
     void should_fetch_subscriptions() throws TechnicalException {
         Subscription subscription = new Subscription();
         when(subscriptionRepository.search(any(), any())).thenReturn(List.of(subscription));
-        cut.fetchLatest(null, null).test().assertValueCount(1).assertValue(subscriptions -> subscriptions.contains(subscription));
+        cut.fetchLatest(null, null, Set.of()).test().assertValueCount(1).assertValue(subscriptions -> subscriptions.contains(subscription));
     }
 
     @Test
@@ -69,6 +72,7 @@ class SubscriptionFetcherTest {
         when(
             subscriptionRepository.search(
                 argThat(argument ->
+                    argument.getEnvironments().contains("env") &&
                     argument.getStatuses().containsAll(Set.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name())) &&
                     argument.getFrom() < from.toEpochMilli() &&
                     argument.getTo() > to.toEpochMilli()
@@ -78,7 +82,7 @@ class SubscriptionFetcherTest {
         )
             .thenReturn(List.of(subscription));
         cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli())
+            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()
             .assertValueCount(1)
             .assertValue(subscriptions -> subscriptions.contains(subscription));
@@ -87,6 +91,6 @@ class SubscriptionFetcherTest {
     @Test
     void should_emit_on_error_when_repository_thrown_exception() throws TechnicalException {
         when(subscriptionRepository.search(any(), any())).thenThrow(new RuntimeException());
-        cut.fetchLatest(-1L, -1L).test().assertError(RuntimeException.class);
+        cut.fetchLatest(-1L, -1L, Set.of()).test().assertError(RuntimeException.class);
     }
 }

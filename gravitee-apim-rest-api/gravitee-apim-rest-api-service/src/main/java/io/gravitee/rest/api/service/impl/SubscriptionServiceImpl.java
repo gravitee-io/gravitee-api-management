@@ -108,6 +108,7 @@ import io.gravitee.rest.api.service.exceptions.PlanOAuth2OrJWTAlreadySubscribedE
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionMismatchEnvironmentException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
@@ -368,6 +369,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new ApplicationArchivedException(applicationEntity.getName());
             }
 
+            if (
+                !executionContext.getEnvironmentId().equals(applicationEntity.getEnvironmentId()) &&
+                !executionContext.getEnvironmentId().equals(genericPlanEntity.getEnvironmentId())
+            ) {
+                throw new SubscriptionMismatchEnvironmentException(applicationEntity.getId(), genericPlanEntity.getId());
+            }
             // Check existing subscriptions
             List<Subscription> subscriptions = subscriptionRepository.search(
                 SubscriptionCriteria
@@ -490,6 +497,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setPlan(plan);
             subscription.setId(UuidString.generateRandom());
             subscription.setApplication(application);
+            subscription.setEnvironmentId(executionContext.getEnvironmentId());
             subscription.setCreatedAt(new Date());
             subscription.setUpdatedAt(subscription.getCreatedAt());
             subscription.setStatus(Subscription.Status.PENDING);

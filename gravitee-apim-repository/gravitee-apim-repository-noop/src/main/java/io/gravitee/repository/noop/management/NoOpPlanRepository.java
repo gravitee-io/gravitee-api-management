@@ -29,7 +29,7 @@ import java.util.Set;
 public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, String> implements PlanRepository {
 
     @Override
-    public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
+    public List<Plan> findByApisAndEnvironments(final List<String> apiIds, final Set<String> environments) throws TechnicalException {
         return List.of();
     }
 
@@ -39,7 +39,7 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     }
 
     @Override
-    public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
+    public Set<Plan> findByIdIn(final Collection<String> ids) throws TechnicalException {
         return Set.of();
     }
 }

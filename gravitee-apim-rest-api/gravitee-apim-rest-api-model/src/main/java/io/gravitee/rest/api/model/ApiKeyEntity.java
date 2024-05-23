@@ -44,6 +44,8 @@ public class ApiKeyEntity {
     @Builder.Default
     private Set<SubscriptionEntity> subscriptions = new HashSet<>();
 
+    private String environmentId;
+
     private ApplicationEntity application;
 
     @JsonProperty("expire_at")

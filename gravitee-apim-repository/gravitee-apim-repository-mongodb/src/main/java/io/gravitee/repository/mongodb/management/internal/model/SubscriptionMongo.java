@@ -41,6 +41,11 @@ public class SubscriptionMongo extends Auditable {
     private String api;
 
     /**
+     * The environment related to this subscription
+     */
+    private String environmentId;
+
+    /**
      * The subscribed {@link Plan}.
      */
     private String plan;
@@ -137,6 +142,15 @@ public class SubscriptionMongo extends Auditable {
 
     public void setApi(String api) {
         this.api = api;
+    }
+
+    public String environmentId() {
+        return environmentId;
+    }
+
+    public SubscriptionMongo setEnvironmentId(final String environmentId) {
+        this.environmentId = environmentId;
+        return this;
     }
 
     public String getPlan() {

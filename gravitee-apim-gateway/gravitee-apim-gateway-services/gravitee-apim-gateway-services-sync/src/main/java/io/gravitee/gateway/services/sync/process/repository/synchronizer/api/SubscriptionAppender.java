@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
-import static io.gravitee.repository.management.model.Subscription.Status.*;
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
+import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
+import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.gateway.api.service.Subscription;
@@ -30,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +52,11 @@ public class SubscriptionAppender {
      * @param deployables the deployables to update
      * @return the deployables updated with subscriptions
      */
-    public List<ApiReactorDeployable> appends(final boolean initialSync, final List<ApiReactorDeployable> deployables) {
+    public List<ApiReactorDeployable> appends(
+        final boolean initialSync,
+        final List<ApiReactorDeployable> deployables,
+        final Set<String> environments
+    ) {
         final Map<String, ApiReactorDeployable> deployableByApi = deployables
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
@@ -60,7 +68,7 @@ public class SubscriptionAppender {
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
         if (!allPlans.isEmpty()) {
-            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans);
+            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 deployable.subscriptions(subscriptions);
@@ -69,8 +77,15 @@ public class SubscriptionAppender {
         return deployables;
     }
 
-    protected Map<String, List<Subscription>> loadSubscriptions(final boolean initialSync, final List<String> plans) {
-        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder().plans(plans);
+    protected Map<String, List<Subscription>> loadSubscriptions(
+        final boolean initialSync,
+        final List<String> plans,
+        final Set<String> environments
+    ) {
+        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria
+            .builder()
+            .plans(plans)
+            .environments(environments);
         if (initialSync) {
             criteriaBuilder.statuses(INITIAL_STATUS).endingAtAfter(Instant.now().toEpochMilli()).includeWithoutEnd(true);
         } else {

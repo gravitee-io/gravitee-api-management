@@ -87,6 +87,11 @@ public class Plan {
     private String api;
 
     /**
+     * The ID of the environment related to this plan
+     */
+    private String environmentId;
+
+    /**
      * Plan creation date
      */
     private Date createdAt;
@@ -151,6 +156,7 @@ public class Plan {
         this.status = cloned.status;
         this.order = cloned.order;
         this.api = cloned.api;
+        this.environmentId = cloned.environmentId;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
         this.publishedAt = cloned.publishedAt;
@@ -197,6 +203,9 @@ public class Plan {
             '\'' +
             ", api='" +
             api +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
             '\'' +
             ", name='" +
             name +

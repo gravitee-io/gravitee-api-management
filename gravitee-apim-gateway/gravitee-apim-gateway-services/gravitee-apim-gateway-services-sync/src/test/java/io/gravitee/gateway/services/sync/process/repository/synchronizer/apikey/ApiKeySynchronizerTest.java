@@ -16,8 +16,10 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -34,6 +36,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -53,8 +56,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiKeySynchronizerTest {
-
-    private final ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
     private ApiKeyFetcher apiKeyFetcher;
@@ -96,21 +97,21 @@ class ApiKeySynchronizerTest {
 
         @Test
         void should_not_fetch_init_events() {
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of("env")).test().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env")).test().assertComplete();
             verifyNoInteractions(apiKeyFetcher);
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
-            when(apiKeyFetcher.fetchLatest(any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(1L, 1L, List.of("env")).test().await().assertComplete();
-            verify(apiKeyFetcher).fetchLatest(eq(1L), eq(1L));
+            when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.empty());
+            cut.synchronize(1L, 1L, Set.of("env")).test().await().assertComplete();
+            verify(apiKeyFetcher).fetchLatest(1L, 1L, Set.of("env"));
         }
 
         @Test
         void should_not_synchronize_api_keys_when_no_events() throws InterruptedException {
-            when(apiKeyFetcher.fetchLatest(any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.empty());
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verifyNoInteractions(apiKeyDeployer);
         }
@@ -133,8 +134,8 @@ class ApiKeySynchronizerTest {
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name());
             when(subscriptionService.getById("subscription")).thenReturn(Optional.of(subscription));
 
-            when(apiKeyFetcher.fetchLatest(any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(apiKeyDeployer).deploy(any());
             verify(apiKeyDeployer).doAfterDeployment(any());
@@ -154,8 +155,8 @@ class ApiKeySynchronizerTest {
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.CLOSED.name());
             when(subscriptionService.getById("subscription")).thenReturn(Optional.of(subscription));
 
-            when(apiKeyFetcher.fetchLatest(any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(apiKeyDeployer).undeploy(any());
         }

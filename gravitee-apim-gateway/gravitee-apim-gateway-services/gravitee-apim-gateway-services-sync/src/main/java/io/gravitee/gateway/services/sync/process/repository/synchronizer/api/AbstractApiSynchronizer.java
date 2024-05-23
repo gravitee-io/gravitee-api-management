@@ -29,6 +29,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.flowables.GroupedFlowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,11 @@ public abstract class AbstractApiSynchronizer {
 
     protected abstract int bulkEvents();
 
-    protected Flowable<ApiReactorDeployable> processEvents(final boolean initialSync, final Flowable<List<Event>> eventsFlowable) {
+    protected Flowable<ApiReactorDeployable> processEvents(
+        final boolean initialSync,
+        final Flowable<List<Event>> eventsFlowable,
+        final Set<String> environments
+    ) {
         return eventsFlowable
             // fetch per page
             .flatMap(events ->
@@ -63,7 +68,7 @@ public abstract class AbstractApiSynchronizer {
                     .groupBy(Event::getType)
                     .flatMap(eventsByType -> {
                         if (eventsByType.getKey() == EventType.PUBLISH_API || eventsByType.getKey() == EventType.START_API) {
-                            return prepareForDeployment(initialSync, eventsByType);
+                            return prepareForDeployment(initialSync, eventsByType, environments);
                         } else if (eventsByType.getKey() == EventType.UNPUBLISH_API || eventsByType.getKey() == EventType.STOP_API) {
                             return prepareForUndeployment(eventsByType);
                         } else {
@@ -94,7 +99,8 @@ public abstract class AbstractApiSynchronizer {
 
     private Flowable<ApiReactorDeployable> prepareForDeployment(
         final boolean initialSync,
-        final GroupedFlowable<EventType, Event> eventsByType
+        final GroupedFlowable<EventType, Event> eventsByType,
+        final Set<String> environments
     ) {
         return eventsByType
             .flatMapMaybe(apiMapper::to)
@@ -111,9 +117,9 @@ public abstract class AbstractApiSynchronizer {
                                 .build()
                         )
                         .buffer(bulkEvents())
-                        .map(planAppender::appends)
-                        .map(deployables -> subscriptionAppender.appends(initialSync, deployables))
-                        .map(deployables -> apiKeyAppender.appends(initialSync, deployables))
+                        .map(deployables -> planAppender.appends(deployables, environments))
+                        .map(deployables -> subscriptionAppender.appends(initialSync, deployables, environments))
+                        .map(deployables -> apiKeyAppender.appends(initialSync, deployables, environments))
                         .flatMapIterable(d -> d);
                 } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
                     return reactableByAction.map(reactableApi ->

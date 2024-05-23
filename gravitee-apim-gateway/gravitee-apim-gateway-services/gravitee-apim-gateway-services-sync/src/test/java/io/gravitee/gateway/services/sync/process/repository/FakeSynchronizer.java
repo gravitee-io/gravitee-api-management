@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository;
 
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -30,7 +31,7 @@ public class FakeSynchronizer implements RepositorySynchronizer {
     private final int order;
 
     @Override
-    public Completable synchronize(final Long from, final Long to, final List<String> environments) {
+    public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         return synchronize;
     }
 

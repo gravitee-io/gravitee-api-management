@@ -26,6 +26,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class LicenseSynchronizer implements RepositorySynchronizer {
     private final ThreadPoolExecutor syncDeployerExecutor;
 
     @Override
-    public Completable synchronize(final Long from, final Long to, final List<String> environments) {
+    public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return licenseFetcher
             .fetchLatest(from, to)

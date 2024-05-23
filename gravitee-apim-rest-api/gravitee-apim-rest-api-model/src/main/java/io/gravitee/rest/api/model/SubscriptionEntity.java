@@ -36,6 +36,8 @@ public class SubscriptionEntity {
 
     private String api;
 
+    private String environmentId;
+
     private String plan;
 
     private String application;
@@ -117,6 +119,15 @@ public class SubscriptionEntity {
 
     public void setApi(String api) {
         this.api = api;
+    }
+
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public SubscriptionEntity setEnvironmentId(final String environmentId) {
+        this.environmentId = environmentId;
+        return this;
     }
 
     public String getPlan() {

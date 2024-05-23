@@ -4,6 +4,7 @@
       "name":"Free plan",
       "description": "Description of the free plan",
       "api": "api1",
+      "environmentId" : "DEFAULT",
       "security": "API_KEY",
       "validation": "AUTO",
       "type": "API",
@@ -31,6 +32,7 @@
       "description": "Description of the free plan",
       "definitionVersion": "4.0.0",
       "api": "api2",
+      "environmentId" : "DEFAULT",
       "security": "API_KEY",
       "validation": "AUTO",
       "type": "API",
@@ -47,6 +49,7 @@
       "id":"updated-plan",
       "name":"old plan",
       "api": "api3",
+      "environmentId" : "DEFAULT",
       "commentRequired": true
    },
    {
@@ -54,6 +57,7 @@
       "name":"Products",
       "description": "Description for products view",
       "api": "api1",
+      "environmentId" : "DEFAULT",
       "characteristics": [],
       "excludedGroups": [],
       "commentRequired": false
@@ -62,7 +66,8 @@
       "id":"stores",
       "name":"Stores",
       "description": "Description for stores view",
-      "api": "api3"
+      "api": "api3",
+      "environmentId" : "DEFAULT"
    },
    {
       "id": "plan-oauth2",
@@ -77,6 +82,7 @@
       "mode": "PUSH",
       "status": "STAGING",
       "api": "4e0db366-f772-4489-8db3-66f772b48989",
+      "environmentId" : "DEFAULT",
       "order": 0,
       "characteristics": [],
       "createdAt": 1455148800000,
