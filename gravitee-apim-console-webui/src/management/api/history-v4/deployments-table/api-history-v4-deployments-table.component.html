@@ -64,10 +64,10 @@
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef id="action">Action</th>
       <td mat-cell *matCellDef="let element; let index = index">
-        <span matTooltip="Compare with current version to deploy">
+        <span matTooltip="Compare with current changes to be deployed">
           <button
             mat-button
-            aria-label="Button to compare with current version to deploy"
+            aria-label="Button to compare with current version to be deployed"
             id="compareCurrentButton"
             [disabled]="deploymentState !== 'NEED_REDEPLOY'"
             (click)="compareWithCurrent(element)"

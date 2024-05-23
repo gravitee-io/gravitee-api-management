@@ -19,13 +19,12 @@
   <mat-card-header>
     <mat-card-title>API deployment history</mat-card-title>
     <mat-card-subtitle
-      >View all API deployment changes. The history concerns the API definition with details known by the gateway. Select two versions to
-      compare.
+      >View all API deployment changes. The history concerns the API definition with details known by the gateway.
     </mat-card-subtitle>
     <div class="history__headerRightBtn">
       <span [matTooltip]="compareEvent ? 'Compare selected versions' : 'Select two versions to compare'">
         <button mat-stroked-button [disabled]="!compareEvent" (click)="openCompareEventDialog(compareEvent, deploymentState)">
-          <mat-icon svgIcon="gio:git-pull-request"></mat-icon> Compare
+          <mat-icon svgIcon="gio:git-pull-request"></mat-icon> {{ compareEvent ? 'Compare ' + compareEventLabel : 'Select to compare' }}
         </button>
       </span>
     </div>

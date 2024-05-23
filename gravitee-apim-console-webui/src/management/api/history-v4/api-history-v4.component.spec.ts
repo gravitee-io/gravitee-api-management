@@ -181,7 +181,7 @@ describe('ApiHistoryV4Component', () => {
       fixture.detectChanges();
 
       const compareCurrentButton = await loader.getHarness(
-        MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to deploy"]' }),
+        MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to be deployed"]' }),
       );
       await compareCurrentButton.click();
       expectDeploymentCurrentGetRequest();
@@ -199,7 +199,7 @@ describe('ApiHistoryV4Component', () => {
     });
   });
 
-  describe('Compare With Current', () => {
+  describe('Compare with version to be deployed', () => {
     beforeEach(() => {
       fixture.detectChanges();
       expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
@@ -213,16 +213,16 @@ describe('ApiHistoryV4Component', () => {
       );
     });
 
-    it('should open a dialog to compare the current definition with the selected event', async () => {
+    it('should open a dialog to compare version "to be deployed" with the selected event', async () => {
       const compareButton = await loader.getHarness(
-        MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to deploy"]' }),
+        MatButtonHarness.with({ selector: '[aria-label="Button to compare with current version to be deployed"]' }),
       );
       await compareButton.click();
       expectDeploymentCurrentGetRequest();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       expect(dialog).toBeTruthy();
-      expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version to deploy');
+      expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version to be deployed');
 
       const diffHarness = await dialog.getHarness(GioDiffHarness);
       expect(await diffHarness.hasNoDiffToDisplay()).toEqual(false);

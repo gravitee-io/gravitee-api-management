@@ -12,5 +12,9 @@ $typography: map.get(gio.$mat-theme, typography);
 .history {
   &__headerRightBtn {
     margin: auto 0 auto auto;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 8px;
   }
 }
