@@ -17,7 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 export class CompanyTitleHarness extends ComponentHarness {
   public static hostSelector = 'app-company-title';
-  protected locateTitle = this.locatorFor('.site-title');
+  protected locateTitle = this.locatorFor('div');
 
   public async getTitle(): Promise<string> {
     const div = await this.locateTitle();
