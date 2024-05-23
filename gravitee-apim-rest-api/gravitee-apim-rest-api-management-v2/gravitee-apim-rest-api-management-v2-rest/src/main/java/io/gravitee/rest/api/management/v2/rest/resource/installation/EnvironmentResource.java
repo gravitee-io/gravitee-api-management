@@ -19,10 +19,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
-import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
+import io.gravitee.rest.api.management.v2.rest.resource.portal.PortalResource;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -32,8 +31,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
-import java.util.Collection;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -57,9 +54,9 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(GroupsResource.class);
     }
 
-    @Path("/ui/themes")
-    public ThemesResource getThemesResource() {
-        return resourceContext.getResource(ThemesResource.class);
+    @Path("/portal")
+    public PortalResource getPortalResource() {
+        return resourceContext.getResource(PortalResource.class);
     }
 
     @GET

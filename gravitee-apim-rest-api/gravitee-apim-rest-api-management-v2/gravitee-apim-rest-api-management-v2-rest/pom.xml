@@ -262,6 +262,15 @@
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation.yaml</inputSpec>
 						</configuration>
 					</execution>
+                    <execution>
+                        <id>model-portal</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-portal.yaml</inputSpec>
+                        </configuration>
+                    </execution>
 					<execution>
 						<id>model-ui</id>
 						<goals>

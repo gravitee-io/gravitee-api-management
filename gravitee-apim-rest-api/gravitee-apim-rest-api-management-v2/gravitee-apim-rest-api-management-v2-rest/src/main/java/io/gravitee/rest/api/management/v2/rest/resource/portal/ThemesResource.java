@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.ui;
+package io.gravitee.rest.api.management.v2.rest.resource.portal;
 
 import io.gravitee.apim.core.theme.use_case.GetThemesUseCase;
 import io.gravitee.common.http.MediaType;
