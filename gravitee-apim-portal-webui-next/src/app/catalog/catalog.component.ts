@@ -98,10 +98,11 @@ export class CatalogComponent {
   }
 
   public onFilterSelection(event: string) {
+    this.filter = event;
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {
-        filter: event === 'all' ? '' : event,
+        filter: this.filter === 'all' ? '' : this.filter,
         query: this.query,
       },
     });
@@ -109,11 +110,12 @@ export class CatalogComponent {
   }
 
   public onSearchResults(searchInput: string) {
+    this.query = searchInput;
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {
         filter: this.filter,
-        query: searchInput,
+        query: this.query,
       },
     });
     this.page$.next(1);
