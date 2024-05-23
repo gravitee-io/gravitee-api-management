@@ -33,7 +33,24 @@
 
 <span mat-dialog-title>Version {{ data.version }}</span>
 
-<mat-dialog-content>
+<mat-dialog-content class="content">
+  <dl class="gio-description-list">
+    @if (data.createdAt) {
+      <dt>Date</dt>
+      <dd>{{ data.createdAt | date: 'medium' }}</dd>
+    }
+
+    @if (data.user) {
+      <dt>User</dt>
+      <dd>{{ data.user }}</dd>
+    }
+
+    @if (data.label) {
+      <dt>Label</dt>
+      <dd>{{ data.label }}</dd>
+    }
+  </dl>
+
   <div class="content__codeblock">
     <mat-form-field class="content__codeblock__form">
       <mat-label>API definition</mat-label>
@@ -43,4 +60,16 @@
     </mat-form-field>
   </div>
 </mat-dialog-content>
-<mat-dialog-actions> </mat-dialog-actions>
+
+<mat-dialog-actions class="actions">
+  <button
+    *gioPermission="{ anyOf: ['api-definition-u'] }"
+    mat-stroked-button
+    aria-label="Button to rollback"
+    [matTooltip]="'Rollback to version ' + this.data.version"
+    [mat-dialog-close]="{ rollbackTo: this.data.eventId }"
+  >
+    <mat-icon svgIcon="gio:rotate-ccw"></mat-icon> Rollback
+  </button>
+  <button mat-raised-button mat-dialog-close color="primary">Close</button>
+</mat-dialog-actions>

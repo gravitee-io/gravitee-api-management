@@ -80,7 +80,6 @@ import { ApiNotificationComponent } from './api-notification/api-notification.co
 import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 import { ApiDocumentationV4MetadataComponent } from './documentation-v4/documentation-metadata/api-documentation-v4-metadata.component';
 import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
-import { ApiHistoryV4DeploymentInfoComponent } from './history-v4/deployment-info/api-history-v4-deployment-info.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 import { ApiImportV4Component } from './import-v4/api-import-v4.component';
 import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
@@ -1031,15 +1030,6 @@ const apisRoutes: Routes = [
       {
         path: 'v4/history',
         component: ApiHistoryV4Component,
-        data: {
-          permissions: {
-            anyOf: ['api-event-r'],
-          },
-        },
-      },
-      {
-        path: 'v4/history/:apiVersionId',
-        component: ApiHistoryV4DeploymentInfoComponent,
         data: {
           permissions: {
             anyOf: ['api-event-r'],

@@ -19,9 +19,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual, isNil } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { openRollbackDialog } from './rollback-dialog';
 import {
   ApiHistoryV4DeploymentCompareDialogComponent,
   ApiHistoryV4DeploymentCompareDialogData,
@@ -87,10 +86,6 @@ export class ApiHistoryV4Component {
     this.filter$.next({ ...this.filter$.getValue(), page: searchParam.page, perPage: searchParam.perPage });
   }
 
-  protected rollback(eventId: string) {
-    openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId);
-  }
-
   protected openCompareEventDialog(events: [Event, Event], deploymentStates: string) {
     if (events[0] === null || events[1] === null) {
       this.compareEvent = null;
@@ -153,7 +148,7 @@ export class ApiHistoryV4Component {
               {
                 data: {
                   version: 'to be deployed',
-                  apiDefinition: currentDeploymentDefinition,
+                  apiDefinition: JSON.stringify(currentDeploymentDefinition, null, 2),
                 },
                 width: GIO_DIALOG_WIDTH.LARGE,
                 maxHeight: 'calc(100vh - 90px)',
@@ -161,6 +156,31 @@ export class ApiHistoryV4Component {
             )
             .afterClosed(),
         ),
+      )
+      .subscribe();
+  }
+
+  protected openVersionInfoDialog(event: Event) {
+    this.matDialog
+      .open<ApiHistoryV4DeploymentInfoDialogComponent, ApiHistoryV4DeploymentInfoDialogData, ApiHistoryV4DeploymentInfoDialogResult>(
+        ApiHistoryV4DeploymentInfoDialogComponent,
+        {
+          data: {
+            version: event.properties['DEPLOYMENT_NUMBER'],
+            apiDefinition: this.extractApiDefinition(event),
+            eventId: event.id,
+            createdAt: event.createdAt,
+            label: event.properties['DEPLOYMENT_LABEL'],
+            user: event.initiator.displayName,
+          },
+          width: GIO_DIALOG_WIDTH.LARGE,
+          maxHeight: 'calc(100vh - 90px)',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((result) => !isNil(result?.rollbackTo)),
+        tap(({ rollbackTo }) => this.openRollbackDialog(this.apiId, rollbackTo)),
       )
       .subscribe();
   }
@@ -180,7 +200,7 @@ export class ApiHistoryV4Component {
       .afterClosed()
       .pipe(
         filter((result) => !isNil(result?.rollbackTo)),
-        tap(({ rollbackTo }) => openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, rollbackTo)),
+        tap(({ rollbackTo }) => this.openRollbackDialog(this.apiId, rollbackTo)),
       );
   }
 
@@ -188,5 +208,29 @@ export class ApiHistoryV4Component {
     const payload = JSON.parse(event.payload);
     const definition = JSON.parse(payload.definition);
     return JSON.stringify(definition, null, 2);
+  }
+
+  private openRollbackDialog(apiId: string, eventId: string) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Rollback API',
+          content: 'Are you sure you want to rollback this API? This change will update the API with this deployment version.',
+        },
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap(() => this.apiService.rollback(apiId, eventId)),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('API deployment has been rolled back successfully');
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'An error occurred while rolling back the API deployment!');
+        },
+      });
   }
 }

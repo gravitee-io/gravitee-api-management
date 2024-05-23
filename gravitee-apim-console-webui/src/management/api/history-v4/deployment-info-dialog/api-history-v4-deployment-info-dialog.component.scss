@@ -1,4 +1,5 @@
 .content {
+  color: inherit;
   &__codeblock {
     position: relative;
 
@@ -11,4 +12,10 @@
       top: 20px;
     }
   }
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
 }

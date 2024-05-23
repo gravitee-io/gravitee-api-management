@@ -296,6 +296,40 @@ describe('ApiHistoryV4Component', () => {
     });
   });
 
+  describe('View version details', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'DEPLOYED' }));
+      fixture.detectChanges();
+      expectApiEventsListRequest(
+        undefined,
+        undefined,
+        fakeEventsResponse({
+          data: [fakeEvent({ type: 'PUBLISH_API', properties: { DEPLOYMENT_NUMBER: '1', DEPLOYMENT_LABEL: 'sample-label' } })],
+        }),
+      );
+    });
+
+    it('should open a dialog to view the version info', async () => {
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
+      const rows = await table.getRows();
+      await (
+        await (
+          await rows[0].getCells({ columnName: 'action' })
+        )[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to show version"]' }))
+      ).click();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(dialog).toBeTruthy();
+      expect(await dialog.getTitleText()).toEqual('Version 1');
+
+      const contentText = await dialog.getContentText();
+      expect(contentText).toContain('sample-label');
+      expect(contentText).toContain('Jan 1, 2021, 12:00:00 AM');
+      expect(contentText).toContain('John Doe');
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }

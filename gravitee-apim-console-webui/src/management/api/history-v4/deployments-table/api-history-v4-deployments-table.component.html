@@ -76,7 +76,13 @@
           </button>
         </span>
 
-        <button mat-button aria-label="Button to show version" matTooltip="Show version" routerLink="{{ element.id }}" id="actionButton">
+        <button
+          mat-button
+          aria-label="Button to show version"
+          matTooltip="Show version"
+          (click)="openVersionInfoChange.emit(element)"
+          id="actionButton"
+        >
           <mat-icon svgIcon="gio:eye-empty"></mat-icon>
         </button>
       </td>
