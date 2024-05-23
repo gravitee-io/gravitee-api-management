@@ -256,10 +256,12 @@ describe('IntegrationConfigurationComponent', (): void => {
       await dialogHarness.confirm();
 
       expectDeleteAPIsRequest('idToDelete123', { deleted: 5, skipped: 1, errors: 1 });
-      expect(fakeSnackBarService.success).toHaveBeenCalledWith(
-        'Federated APIs have been deleted.\n' + '  • Deleted APIs: 5\n' + '  • Skipped APIs: 1\n' + '  • Errors: 1',
-      );
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('We’re deleting Federated APIs from this integration...');
       expectFederatedAPIsGetRequest([], 1, 10);
+
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith(
+        'Federated APIs have been deleted.\n' + '  • Deleted: 5\n' + '  • Not deleted: 1\n' + '  • Errors: 1',
+      );
     });
   });
 

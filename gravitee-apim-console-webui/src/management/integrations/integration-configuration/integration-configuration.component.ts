@@ -152,9 +152,7 @@ export class IntegrationConfigurationComponent implements OnInit {
         width: GIO_DIALOG_WIDTH.SMALL,
         data: {
           title: 'Delete APIs',
-          content:
-            'This action deletes unpublished Federated APIs linked to this integration. ' +
-            'Please note that deleted APIs cannot be restored.',
+          content: "Published APIs won't be deleted. Deleted APIs cannot be restored.",
           confirmButton: 'Delete APIs',
         },
         role: 'alertdialog',
@@ -165,14 +163,15 @@ export class IntegrationConfigurationComponent implements OnInit {
         filter((confirm) => confirm),
         switchMap(() => {
           this.isLoading = true;
+          this.snackBarService.success('We’re deleting Federated APIs from this integration...');
           return this.integrationsService.deleteFederatedAPIs(this.integration.id);
         }),
         tap((deletedApisResponse) => {
           this.isLoading = false;
           this.snackBarService.success(
             `Federated APIs have been deleted.\n` +
-              `  \u2022 Deleted APIs: ${deletedApisResponse.deleted}\n` +
-              `  \u2022 Skipped APIs: ${deletedApisResponse.skipped}\n` +
+              `  \u2022 Deleted: ${deletedApisResponse.deleted}\n` +
+              `  \u2022 Not deleted: ${deletedApisResponse.skipped}\n` +
               `  \u2022 Errors: ${deletedApisResponse.errors}`,
           );
           this.checkIfHasFederatedAPIs();
