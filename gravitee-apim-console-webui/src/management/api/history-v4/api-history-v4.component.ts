@@ -53,8 +53,7 @@ export class ApiHistoryV4Component {
   private getLastApiFetch$ = this.apiService.getLastApiFetch(this.apiId).pipe(shareReplay(1));
 
   protected apiEvents$ = this.getLastApiFetch$.pipe(
-    switchMap(() => this.filter$),
-    distinctUntilChanged(isEqual),
+    switchMap(() => this.filter$.pipe(distinctUntilChanged(isEqual))),
     switchMap(({ page, perPage }) =>
       this.eventsService.searchApiEvents(this.apiId, { page: page, perPage: perPage, types: 'PUBLISH_API' }),
     ),
@@ -67,6 +66,9 @@ export class ApiHistoryV4Component {
   protected deploymentState$: Observable<string> = this.getLastApiFetch$.pipe(map((api) => api.deploymentState));
 
   protected compareEvent?: [Event, Event];
+  get compareEventLabel(): string {
+    return `version ${this.compareEvent[0]?.properties['DEPLOYMENT_NUMBER']} with ${this.compareEvent[1]?.properties['DEPLOYMENT_NUMBER']}`;
+  }
 
   constructor(
     private readonly eventsService: ApiEventsV2Service,
@@ -75,6 +77,7 @@ export class ApiHistoryV4Component {
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
+
   protected paginationChange(searchParam: SearchApiEventParam) {
     this.filter$.next({ ...this.filter$.getValue(), page: searchParam.page, perPage: searchParam.perPage });
   }
@@ -125,7 +128,7 @@ export class ApiHistoryV4Component {
             right: {
               eventId: null,
               apiDefinition: jsonCurrentDefinition,
-              version: 'to deploy',
+              version: 'to be deployed',
               hideRollback: true,
             },
           });

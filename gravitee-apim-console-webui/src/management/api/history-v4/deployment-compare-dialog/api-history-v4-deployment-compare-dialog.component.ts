@@ -24,7 +24,7 @@ export interface ApiHistoryV4DeploymentCompareDialogData {
 export type ApiHistoryV4DeploymentCompareDialogResult = null | { rollbackTo: string };
 
 @Component({
-  selector: 'app-deployment-compare-current-dialog',
+  selector: 'app-deployment-compare-dialog',
   templateUrl: './api-history-v4-deployment-compare-dialog.component.html',
   styleUrls: ['./api-history-v4-deployment-compare-dialog.component.scss'],
 })
