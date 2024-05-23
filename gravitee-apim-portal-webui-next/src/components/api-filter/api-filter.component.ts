@@ -63,11 +63,12 @@ export class ApiFilterComponent {
   constructor(private eRef: ElementRef) {
     effect(() => {
       if (this.filterParam()) {
-        this.toggleControl.setValue(this.filterParam());
         const currentParamValue = this.filterList.slice(4).filter(filter => filter.id === this.filterParam());
         if (currentParamValue.length) {
           this.selectedOption = currentParamValue[0].name;
         } else {
+          this.currentValue = this.filterParam();
+          this.toggleControl.setValue(this.filterParam());
           this.selectedOption = '';
         }
       }
@@ -86,9 +87,7 @@ export class ApiFilterComponent {
 
   onSelectedFilter(filterId: string | undefined): void {
     if (filterId) {
-      this.currentValue = filterId;
       this.selectedFilter.emit(filterId);
-      this.selectedOption = '';
     } else {
       this.toggleControl.setValue(this.currentValue);
     }
