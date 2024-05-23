@@ -62,6 +62,13 @@ public class ApiKeyMongo {
     private Set<String> subscriptions = new HashSet<>();
 
     /**
+     * API Key's environment id
+     */
+    @Setter
+    @Getter
+    private String environmentId;
+
+    /**
      * The subscription for which the API Key is generated
      *
      * @deprecated

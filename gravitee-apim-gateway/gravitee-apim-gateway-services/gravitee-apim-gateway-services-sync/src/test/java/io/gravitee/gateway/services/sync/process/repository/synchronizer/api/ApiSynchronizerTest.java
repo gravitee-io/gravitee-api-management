@@ -157,7 +157,7 @@ class ApiSynchronizerTest {
         @Test
         void should_not_synchronize_apis_when_no_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verifyNoInteractions(apiManager);
             verifyNoInteractions(apiDeployer);
@@ -170,7 +170,7 @@ class ApiSynchronizerTest {
             Event event = new Event();
             event.setId("event");
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verifyNoInteractions(apiManager);
             verifyNoInteractions(apiDeployer);
@@ -181,21 +181,21 @@ class ApiSynchronizerTest {
         @Test
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of("event")).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
             verify(eventsFetcher)
-                .fetchLatest(eq(-1L), any(), eq(API_ID), eq(List.of("event")), eq(Set.of(EventType.PUBLISH_API, EventType.START_API)));
+                .fetchLatest(eq(-1L), any(), eq(API_ID), eq(Set.of("event")), eq(Set.of(EventType.PUBLISH_API, EventType.START_API)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of("event")).test().await().assertComplete();
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
             verify(eventsFetcher)
                 .fetchLatest(
                     any(),
                     any(),
                     eq(API_ID),
-                    eq(List.of("event")),
+                    eq(Set.of("event")),
                     eq(Set.of(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API))
                 );
         }
@@ -240,7 +240,7 @@ class ApiSynchronizerTest {
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(apiDeployer).deploy(any());
             verify(apiDeployer).doAfterDeployment(any());
@@ -258,7 +258,7 @@ class ApiSynchronizerTest {
             event.setType(STOP_API);
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(apiDeployer).undeploy(any());
             verify(subscriptionDeployer).undeploy(any());
@@ -305,7 +305,7 @@ class ApiSynchronizerTest {
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(apiDeployer).deploy(any());
             verify(apiDeployer).doAfterDeployment(any());
@@ -323,7 +323,7 @@ class ApiSynchronizerTest {
             event.setType(STOP_API);
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(apiDeployer).undeploy(any());
             verify(subscriptionDeployer).undeploy(any());

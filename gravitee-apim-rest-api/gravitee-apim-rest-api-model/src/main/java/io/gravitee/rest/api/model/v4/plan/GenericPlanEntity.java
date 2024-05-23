@@ -36,6 +36,8 @@ public interface GenericPlanEntity extends Identifiable {
 
     String getApiId();
 
+    String getEnvironmentId();
+
     List<String> getExcludedGroups();
 
     boolean isCommentRequired();

@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.EventType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -60,7 +61,7 @@ class DebugEventFetcherTest {
     void should_fetch_debug_event() {
         Event event = new Event();
         when(eventRepository.search(any())).thenReturn(List.of(event));
-        cut.fetchLatest(null, null, List.of()).test().assertValueCount(1).assertValue(apiKeys -> apiKeys.contains(event));
+        cut.fetchLatest(null, null, Set.of()).test().assertValueCount(1).assertValue(apiKeys -> apiKeys.contains(event));
     }
 
     @Test
@@ -83,7 +84,7 @@ class DebugEventFetcherTest {
         )
             .thenReturn(List.of(event));
         cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), List.of("env"))
+            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(event));
@@ -92,6 +93,6 @@ class DebugEventFetcherTest {
     @Test
     void should_emit_on_error_when_repository_thrown_exception() throws TechnicalException {
         when(eventRepository.search(any())).thenThrow(new RuntimeException());
-        cut.fetchLatest(null, null, List.of()).test().assertError(RuntimeException.class);
+        cut.fetchLatest(null, null, Set.of()).test().assertError(RuntimeException.class);
     }
 }

@@ -18,9 +18,12 @@ package io.gravitee.gateway.services.sync.process.kubernetes;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
+import io.gravitee.node.api.Node;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,8 +37,19 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
 
     private final List<KubernetesSynchronizer> synchronizers;
     private final DistributedSyncService distributedSyncService;
+    private final Set<String> environments;
 
     private Disposable watcherDisposable;
+
+    public KubernetesSyncManager(
+        final Node node,
+        final List<KubernetesSynchronizer> synchronizers,
+        final DistributedSyncService distributedSyncService
+    ) {
+        this.synchronizers = synchronizers;
+        this.distributedSyncService = distributedSyncService;
+        this.environments = new HashSet<>((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS));
+    }
 
     @Override
     protected void doStart() {
@@ -44,7 +58,7 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
             watcherDisposable =
                 Flowable
                     .fromIterable(synchronizers)
-                    .concatMapCompletable(KubernetesSynchronizer::synchronize)
+                    .concatMapCompletable(kubernetesSynchronizer -> kubernetesSynchronizer.synchronize(environments))
                     .doOnError(throwable -> log.error("An error occurred during kubernetes synchronization refresh. Restarting.", throwable)
                     )
                     .retry()

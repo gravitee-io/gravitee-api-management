@@ -263,13 +263,16 @@ public class SubscriptionServiceTest {
         planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setApi(API_ID);
+        planEntity.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
         planEntityV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planEntityV4.setId(PLAN_ID);
         planEntityV4.setApiId(API_ID);
+        planEntityV4.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
         application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
+        application.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
         when(subscriptionAdapter.map(any())).thenAnswer(invocation -> new SubscriptionAdapterImpl().map(invocation.getArgument(0)));
     }

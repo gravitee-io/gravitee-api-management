@@ -98,6 +98,10 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             pipeline.add(match(in("subscriptions", filter.getSubscriptions())));
         }
 
+        if (!CollectionUtils.isEmpty(filter.getEnvironments())) {
+            pipeline.add(match(in("environmentId", filter.getEnvironments())));
+        }
+
         if (sortable != null) {
             if (sortable.order().equals(Order.ASC)) {
                 pipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));

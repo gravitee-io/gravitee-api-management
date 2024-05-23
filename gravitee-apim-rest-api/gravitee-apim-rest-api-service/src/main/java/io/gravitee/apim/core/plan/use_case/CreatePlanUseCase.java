@@ -17,7 +17,6 @@ package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.exception.PlanInvalidException;
@@ -43,6 +42,7 @@ public class CreatePlanUseCase {
         }
 
         var plan = input.plan;
+        plan.setEnvironmentId(api.getEnvironmentId());
         plan.setApiId(input.apiId);
         plan.setType(Plan.PlanType.API);
         plan.setPlanStatus(PlanStatus.STAGING);
@@ -51,7 +51,7 @@ public class CreatePlanUseCase {
         }
 
         PlanWithFlows createdPlan = createPlanDomainService.create(
-            input.plan,
+            plan,
             input.flows == null ? List.of() : input.flows,
             api,
             input.auditInfo

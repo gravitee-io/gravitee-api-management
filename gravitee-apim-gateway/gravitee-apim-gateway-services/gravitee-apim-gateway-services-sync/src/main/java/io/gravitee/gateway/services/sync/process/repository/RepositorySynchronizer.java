@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository;
 
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -28,9 +29,9 @@ public interface RepositorySynchronizer {
      *
      * @param from the beginning timestamp for this synchronization. If <code>-1</code> a <i>full</i> synchronization will be performed, otherwise a <i>incremental</i> synchronization will be made.
      * @param to the end timestamp for this synchronization
-     * @param environments the list of environments to filter events to synchronize
+     * @param environments the set of environments to filter elements to synchronize
      */
-    Completable synchronize(final Long from, final Long to, final List<String> environments);
+    Completable synchronize(final Long from, final Long to, final Set<String> environments);
 
     int order();
 }

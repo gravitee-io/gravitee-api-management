@@ -67,6 +67,13 @@ public class ApiKey implements Serializable {
     private List<String> subscriptions = new ArrayList<>();
 
     /**
+     * The ID of the environment the apiKey is attached to
+     */
+    @Setter
+    @Getter
+    private String environmentId;
+
+    /**
      * The subscription for which the API Key is generated
      *
      * @deprecated
@@ -175,6 +182,7 @@ public class ApiKey implements Serializable {
         this.federated = cloned.federated;
         this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
         this.api = cloned.api;
+        this.environmentId = cloned.environmentId;
     }
 
     public ApiKey revoke() {

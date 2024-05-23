@@ -29,7 +29,7 @@ import lombok.Singular;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode

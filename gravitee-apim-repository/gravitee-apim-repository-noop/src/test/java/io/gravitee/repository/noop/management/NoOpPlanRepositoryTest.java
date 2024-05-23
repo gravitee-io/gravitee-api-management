@@ -36,8 +36,8 @@ public class NoOpPlanRepositoryTest extends AbstractNoOpRepositoryTest {
     private PlanRepository cut;
 
     @Test
-    public void findByApis() throws TechnicalException {
-        List<Plan> plans = cut.findByApis(List.of("test_id"));
+    public void findByApisAndEnvironments() throws TechnicalException {
+        List<Plan> plans = cut.findByApisAndEnvironments(List.of("test_id"), Set.of("DEFAULT"));
 
         assertNotNull(plans);
         assertTrue(plans.isEmpty());

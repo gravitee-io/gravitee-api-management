@@ -30,6 +30,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -81,8 +82,8 @@ class PlanAppenderTest {
             plan2.setId("planId2");
             plan2.setApi("apiId");
             plan2.setStatus(Plan.Status.CLOSED);
-            when(planRepository.findByApis(List.of("apiId"))).thenReturn(List.of(plan, plan2));
-            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable));
+            when(planRepository.findByApisAndEnvironments(List.of("apiId"), Set.of("env"))).thenReturn(List.of(plan, plan2));
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).hasSize(1);
             assertThat(appends.get(0).subscribablePlans()).hasSize(1);
         }
@@ -95,8 +96,8 @@ class PlanAppenderTest {
             io.gravitee.gateway.handlers.api.definition.Api reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(apiV1);
 
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
-            when(planRepository.findByApis(List.of("apiId"))).thenReturn(List.of());
-            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable));
+            when(planRepository.findByApisAndEnvironments(List.of("apiId"), Set.of("env"))).thenReturn(List.of());
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
         }
     }
@@ -123,7 +124,7 @@ class PlanAppenderTest {
             io.gravitee.gateway.handlers.api.definition.Api reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(apiV2);
 
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
-            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable));
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).hasSize(1);
             assertThat(appends.get(0).subscribablePlans()).hasSize(1);
         }
@@ -136,7 +137,7 @@ class PlanAppenderTest {
             io.gravitee.gateway.handlers.api.definition.Api reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(apiV2);
 
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
-            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable));
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
         }
     }
@@ -167,7 +168,7 @@ class PlanAppenderTest {
             Api reactableApi = new Api(apiV4);
 
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
-            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable));
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).hasSize(1);
             assertThat(appends.get(0).subscribablePlans()).hasSize(1);
         }
@@ -180,7 +181,7 @@ class PlanAppenderTest {
             Api reactableApi = new Api(apiV4);
 
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
-            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable));
+            List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
         }
     }

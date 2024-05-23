@@ -54,6 +54,10 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         if (definitionVersion != null) {
             parent.setDefinitionVersion(DefinitionVersion.valueOf(definitionVersion));
         }
+        var environmentId = rs.getString("environment_id");
+        if (environmentId != null) {
+            parent.setEnvironmentId(environmentId);
+        }
     };
 
     JdbcPlanRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -260,12 +264,13 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     @Override
-    public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.findByApis({})", apiIds);
+    public List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.findByApisAndEnvironments({})", apiIds);
         if (isEmpty(apiIds)) {
             return Collections.emptyList();
         }
         try {
+            List<String> args = new ArrayList<>();
             var query =
                 getOrm().getSelectAllSql() +
                 " p left join " +
@@ -274,9 +279,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
                 " where p.api in (" +
                 getOrm().buildInClause(apiIds) +
                 ")";
+            args.addAll(apiIds);
+            if (environments != null && !environments.isEmpty()) {
+                query = query + " AND api.environment_id in (" + getOrm().buildInClause(environments) + ")";
+                args.addAll(environments);
+            }
             var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
-            jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, apiIds, 1), rowMapper);
+            jdbcTemplate.query(query, rowMapper, args.toArray());
 
             List<Plan> plans = rowMapper.getRows();
             for (Plan plan : plans) {

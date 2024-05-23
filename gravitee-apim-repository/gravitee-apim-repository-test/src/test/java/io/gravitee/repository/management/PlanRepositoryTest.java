@@ -87,6 +87,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                     .name("Free plan")
                     .description("Description of the free plan")
                     .api("api2")
+                    .environmentId("DEFAULT")
                     .security(Plan.PlanSecurityType.API_KEY)
                     .validation(Plan.PlanValidationType.AUTO)
                     .type(Plan.PlanType.API)
@@ -215,8 +216,8 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByApis() throws Exception {
-        final List<Plan> plans = planRepository.findByApis(Arrays.asList("api1", "api2"));
+    public void findByApisAndEnvironments() throws Exception {
+        final List<Plan> plans = planRepository.findByApisAndEnvironments(Arrays.asList("api1", "api2"), Set.of("DEFAULT"));
 
         assertThat(plans)
             .hasSize(3)
@@ -237,7 +238,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByApis_andReturnEmptyListIfInputIsEmpty() throws Exception {
-        final List<Plan> plans = planRepository.findByApis(Arrays.asList());
+        final List<Plan> plans = planRepository.findByApisAndEnvironments(List.of(), Set.of("DEFAULT"));
         assertNotNull(plans);
         assertEquals(0, plans.size());
     }
@@ -254,6 +255,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         plan.setType(Plan.PlanType.API);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("api1");
+        plan.setEnvironmentId("DEFAULT");
         plan.setGeneralConditions("general_conditions");
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));
@@ -290,6 +292,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
             .name("Plan V4")
             .description("Description of the V4 plan")
             .api("api2")
+            .environmentId("DEFAULT")
             .security(Plan.PlanSecurityType.API_KEY)
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
@@ -318,6 +321,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         plan.setType(Plan.PlanType.API);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("my-api");
+        plan.setEnvironmentId("DEFAULT");
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));
         plan.setPublishedAt(parse("13/02/2016"));

@@ -4,6 +4,7 @@
     "plan": "plan1",
     "application": "app1",
     "api": "api1",
+    "environmentId" : "DEFAULT",
     "request": "request",
     "reason": "reason",
     "status": "PENDING",
@@ -32,6 +33,7 @@
     "id":"sub2",
     "plan": "plan3",
     "application": "app2",
+    "environmentId" : "DEFAULT",
     "status": "PENDING",
     "createdAt": 1639022010883,
     "clientId": "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
@@ -40,6 +42,7 @@
     "id":"sub3",
     "plan": "plan3",
     "application": "app1",
+    "environmentId" : "DEFAULT",
     "status": "PENDING",
     "createdAt": 1739022010883,
     "updatedAt": 1739022010883
@@ -48,6 +51,7 @@
     "id":"sub4",
     "plan": "plan2",
     "application": "app1",
+    "environmentId" : "DEFAULT",
     "status": "PENDING",
     "createdAt": 1539022010883
   },
@@ -55,6 +59,7 @@
     "id":"sub5",
     "plan": "plan5",
     "application": "app4",
+    "environmentId" : "DEFAULT",
     "status": "ACCEPTED",
     "createdAt": 1539023010884
   }

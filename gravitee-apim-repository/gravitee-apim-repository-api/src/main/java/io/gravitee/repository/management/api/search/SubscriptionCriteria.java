@@ -16,22 +16,26 @@
 package io.gravitee.repository.management.api.search;
 
 import java.util.Collection;
+import java.util.List;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Singular;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode
 public class SubscriptionCriteria {
 
     private final Collection<String> ids;
+
+    private final Collection<String> environments;
 
     private final Collection<String> excludedApis;
 

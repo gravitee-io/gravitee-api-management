@@ -16,8 +16,10 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -91,21 +93,21 @@ class SubscriptionSynchronizerTest {
 
         @Test
         void should_not_fetch_init_events() {
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of("env")).test().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env")).test().assertComplete();
             verifyNoInteractions(subscriptionFetcher);
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
-            when(subscriptionFetcher.fetchLatest(any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(1L, 1L, List.of("env")).test().await().assertComplete();
-            verify(subscriptionFetcher).fetchLatest(eq(1L), eq(1L));
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.empty());
+            cut.synchronize(1L, 1L, Set.of("env")).test().await().assertComplete();
+            verify(subscriptionFetcher).fetchLatest(1L, 1L, Set.of("env"));
         }
 
         @Test
         void should_not_synchronize_api_keys_when_no_events() throws InterruptedException {
-            when(subscriptionFetcher.fetchLatest(any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.empty());
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verifyNoInteractions(subscriptionDeployer);
         }
@@ -122,8 +124,8 @@ class SubscriptionSynchronizerTest {
             subscription.setPlan("plan");
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);
 
-            when(subscriptionFetcher.fetchLatest(any(), any())).thenReturn(Flowable.just(List.of(subscription)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(subscription)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verifyNoInteractions(subscriptionDeployer);
         }
@@ -138,8 +140,8 @@ class SubscriptionSynchronizerTest {
 
             planCache.register(ApiReactorDeployable.builder().apiId("api").subscribablePlans(Set.of("plan")).build());
 
-            when(subscriptionFetcher.fetchLatest(any(), any())).thenReturn(Flowable.just(List.of(subscription)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(subscription)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(subscriptionDeployer).deploy(any());
             verify(subscriptionDeployer).doAfterDeployment(any());
@@ -154,8 +156,8 @@ class SubscriptionSynchronizerTest {
             subscription.setStatus(Subscription.Status.CLOSED);
             planCache.register(ApiReactorDeployable.builder().apiId("api").subscribablePlans(Set.of("plan")).build());
 
-            when(subscriptionFetcher.fetchLatest(any(), any())).thenReturn(Flowable.just(List.of(subscription)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(subscription)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(subscriptionDeployer).undeploy(any());
         }

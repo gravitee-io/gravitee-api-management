@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,11 @@ public class ApiKeyAppender {
      * @param deployables the deployables to update
      * @return the deployables updated with API Keys
      */
-    public List<ApiReactorDeployable> appends(final boolean initialSync, final List<ApiReactorDeployable> deployables) {
+    public List<ApiReactorDeployable> appends(
+        final boolean initialSync,
+        final List<ApiReactorDeployable> deployables,
+        final Set<String> environments
+    ) {
         final Map<String, ApiReactorDeployable> deployableByApi = deployables
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
@@ -61,7 +66,7 @@ public class ApiKeyAppender {
             )
             .collect(Collectors.toList());
         if (!allApiKeySubscriptions.isEmpty()) {
-            Map<String, List<ApiKey>> apiKeyByApi = loadApiKey(initialSync, allApiKeySubscriptions);
+            Map<String, List<ApiKey>> apiKeyByApi = loadApiKey(initialSync, allApiKeySubscriptions, environments);
             apiKeyByApi.forEach((api, apiKeys) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 deployable.apiKeys(apiKeys);
@@ -70,10 +75,17 @@ public class ApiKeyAppender {
         return deployables;
     }
 
-    private Map<String, List<ApiKey>> loadApiKey(final boolean initialSync, final List<Subscription> subscriptions) {
+    private Map<String, List<ApiKey>> loadApiKey(
+        final boolean initialSync,
+        final List<Subscription> subscriptions,
+        final Set<String> environments
+    ) {
         try {
             Map<String, Subscription> subscriptionsById = subscriptions.stream().collect(Collectors.toMap(Subscription::getId, s -> s));
-            ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria.builder().subscriptions(subscriptionsById.keySet());
+            ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria
+                .builder()
+                .subscriptions(subscriptionsById.keySet())
+                .environments(environments);
             if (initialSync) {
                 criteriaBuilder.includeRevoked(false).expireAfter(Instant.now().toEpochMilli()).includeWithoutExpiration(true);
             } else {
