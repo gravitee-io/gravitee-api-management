@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { forkJoin, Subject } from 'rxjs';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -36,7 +36,10 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
 
   private fetchAnalyticsRequest$ = new Subject<TimeRangeParams>();
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  constructor(private readonly statsService: AnalyticsService) {}
+  constructor(
+    private readonly statsService: AnalyticsService,
+    private changeDetectorRef: ChangeDetectorRef,
+  ) {}
 
   topApis?: TopApisData;
   requestStats?: RequestStats;
@@ -79,7 +82,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // API lifecycle state
     this.fetchAnalyticsRequest$
@@ -96,7 +99,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap((data) => (this.apiLifecycleState = data)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // API state
     this.fetchAnalyticsRequest$
@@ -113,7 +116,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap((data) => (this.apiState = data)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // API response status
     this.fetchAnalyticsRequest$
@@ -131,7 +134,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap((data) => (this.apiResponseStatus = data)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // Top APIs
     this.fetchAnalyticsRequest$
@@ -141,7 +144,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap((data) => (this.topApis = data)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // Request Stats
     this.fetchAnalyticsRequest$
@@ -151,7 +154,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap((data) => (this.requestStats = data)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // Fetch Analytics when timeRange change
     this.timeRangeControl.valueChanges
@@ -159,7 +162,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
         tap(() => this.fetchAnalyticsRequest()),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     // First fetch
     this.fetchAnalyticsRequest();
