@@ -33,6 +33,8 @@ public class SubscriptionEntity {
     private String id;
     /** The subscribed API. */
     private String apiId;
+    /** The environmentId related to this subscription. */
+    private String environmentId;
     /** The subscribed Plan. */
     private String planId;
     /** The application linked to the subscription */

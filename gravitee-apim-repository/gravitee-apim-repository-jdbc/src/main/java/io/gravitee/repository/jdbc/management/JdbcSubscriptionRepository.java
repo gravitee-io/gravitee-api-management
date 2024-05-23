@@ -88,6 +88,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
             .addColumn("api", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("starting_at", Types.TIMESTAMP, Date.class)
             .addColumn("ending_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -249,6 +250,13 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         if (!isEmpty(criteria.getPlanSecurityTypes())) {
             builder.append("INNER JOIN " + plansTableName + " p ON s." + escapeReservedWord("plan") + " = p.id ");
             started = addStringsWhereClause(criteria.getPlanSecurityTypes(), "p.security", argsList, builder, started);
+        }
+
+        if (!isEmpty(criteria.getEnvironments())) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append(" ( k.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            argsList.addAll(criteria.getEnvironments());
+            started = true;
         }
         if (criteria.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);

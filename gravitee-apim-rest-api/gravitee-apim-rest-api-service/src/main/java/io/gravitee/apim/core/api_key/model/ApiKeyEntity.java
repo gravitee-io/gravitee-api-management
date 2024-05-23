@@ -41,6 +41,8 @@ public class ApiKeyEntity {
 
     private List<String> subscriptions = new ArrayList<>();
 
+    private String environmentId;
+
     private ZonedDateTime expireAt;
 
     private ZonedDateTime createdAt;
@@ -134,6 +136,7 @@ public class ApiKeyEntity {
             .updatedAt(now)
             .key(customApiKey)
             .subscriptions(List.of(subscription.getId()))
+            .environmentId(subscription.getEnvironmentId())
             // By default, the API Key will expire when subscription is closed
             .expireAt(subscription.getEndingAt())
             .federated(federated)

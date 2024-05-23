@@ -26,7 +26,6 @@ import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -73,14 +72,14 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
     }
 
     @Override
-    public Completable synchronize(final Long from, final Long to, final List<String> environments) {
+    public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         boolean initialSync = from == null || from == -1;
         return eventsFetcher
             .fetchLatest(from, to, API_ID, environments, initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(eventsFlowable -> processEvents(initialSync, eventsFlowable))
+            .compose(eventsFlowable -> processEvents(initialSync, eventsFlowable, environments))
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {

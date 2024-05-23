@@ -25,6 +25,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class ApiKeyQuery {
 
+    private Collection<String> environmentIds;
     private Collection<String> subscriptions;
 
     private long from = -1;

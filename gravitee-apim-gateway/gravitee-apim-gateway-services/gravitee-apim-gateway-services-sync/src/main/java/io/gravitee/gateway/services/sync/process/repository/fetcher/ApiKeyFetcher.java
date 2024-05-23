@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKey;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -34,7 +35,7 @@ public class ApiKeyFetcher {
 
     private final ApiKeyRepository apiKeyRepository;
 
-    public Flowable<List<ApiKey>> fetchLatest(Long from, Long to) {
+    public Flowable<List<ApiKey>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         // The following doesn't paginate over the result because for now we don't see any value, but it could be implemented same as EventFetcher
         return Flowable.generate(emitter -> {
             ApiKeyCriteria criteriaBuilder = ApiKeyCriteria
@@ -42,6 +43,7 @@ public class ApiKeyFetcher {
                 .includeRevoked(true)
                 .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
                 .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .environments(environments)
                 .build();
             try {
                 List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(

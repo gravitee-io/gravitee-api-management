@@ -91,6 +91,8 @@ public class BasePlanEntity implements GenericPlanEntity {
     @DeploymentRequired
     private String api;
 
+    private String environmentId;
+
     private int order;
 
     /**

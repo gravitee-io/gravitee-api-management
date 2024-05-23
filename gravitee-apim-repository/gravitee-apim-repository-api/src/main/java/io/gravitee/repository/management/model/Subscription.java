@@ -53,6 +53,10 @@ public class Subscription implements Serializable {
      */
     private String api;
     /**
+     * The environment related to this subscription
+     */
+    private String environmentId;
+    /**
      * The subscribed {@link Plan}.
      */
     private String plan;

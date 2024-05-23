@@ -13,27 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api.search;
+package io.gravitee.repository.mongodb.management.internal.plan;
 
-import io.gravitee.repository.management.model.License;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
+import java.util.List;
+import java.util.Set;
+import org.springframework.stereotype.Repository;
 
-@Builder(toBuilder = true)
-@Getter
-@RequiredArgsConstructor
-@EqualsAndHashCode
-public class LicenseCriteria {
-
-    @Builder.Default
-    private final long from = -1;
-
-    @Builder.Default
-    private final long to = -1;
-
-    private final License.ReferenceType referenceType;
-
-    private final String referenceId;
+/**
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Repository
+public interface PlanMongoRepositoryCustom {
+    List<PlanMongo> findByApiInAndEnvironments(List<String> apis, Set<String> environments);
 }

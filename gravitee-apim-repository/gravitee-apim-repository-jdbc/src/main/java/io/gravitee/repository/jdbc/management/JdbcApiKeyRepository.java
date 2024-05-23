@@ -78,6 +78,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         return JdbcObjectMapper
             .builder(ApiKey.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("subscription", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
@@ -163,6 +164,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                     .append(getOrm().buildInClause(criteria.getSubscriptions()))
                     .append(" ) )");
                 args.addAll(criteria.getSubscriptions());
+            }
+
+            if (!isEmpty(criteria.getEnvironments())) {
+                first = addClause(first, query);
+                query.append(" ( k.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+                args.addAll(criteria.getEnvironments());
             }
 
             if (!criteria.isIncludeRevoked()) {

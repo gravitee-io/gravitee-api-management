@@ -55,6 +55,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         ApiKey apiKey = new ApiKey();
         apiKey.setId(id);
         apiKey.setKey("apiKey");
+        apiKey.setEnvironmentId("DEFAULT");
         apiKey.setCreatedAt(new Date());
         apiKey.setRevoked(true);
         apiKey.setPaused(true);
@@ -89,6 +90,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             .builder()
             .id(id)
             .key("apiKey")
+            .environmentId("DEFAULT")
             .subscriptions(List.of("subscription-id"))
             .createdAt(new Date())
             .federated(true)

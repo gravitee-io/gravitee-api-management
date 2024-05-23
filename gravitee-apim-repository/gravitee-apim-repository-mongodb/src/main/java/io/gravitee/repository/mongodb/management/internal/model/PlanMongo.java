@@ -68,6 +68,11 @@ public class PlanMongo extends Auditable {
     private String api;
 
     /**
+     * The environment related to this plan
+     */
+    private String environmentId;
+
+    /**
      * The JSON payload of all policies to apply for this plan
      */
     private String definition;

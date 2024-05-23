@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,7 +70,7 @@ class ApiKeyAppenderTest {
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription2").plan("plan2").build()))
             .build();
-        List<ApiReactorDeployable> appends = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> appends = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2), Set.of("env"));
         assertThat(appends).hasSize(2);
         assertThat(appends.get(0).apiKeys()).isEmpty();
         assertThat(appends.get(1).apiKeys()).isEmpty();
@@ -93,14 +94,15 @@ class ApiKeyAppenderTest {
         e1.setSubscriptions(List.of("subscription1"));
         ApiKey e2 = new ApiKey();
         e2.setSubscriptions(List.of("subscription1"));
-        when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(e1, e2));
+        when(apiKeyRepository.findByCriteria(argThat(argument -> argument.getEnvironments().equals(Set.of("env"))), any()))
+            .thenReturn(List.of(e1, e2));
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
             .builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription2").api("api2").plan("noapikeyplan").build()))
             .build();
-        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2), Set.of("env"));
         assertThat(deployables).hasSize(2);
         assertThat(deployables.get(0).apiKeys()).hasSize(2);
         assertThat(deployables.get(1).apiKeys()).isEmpty();

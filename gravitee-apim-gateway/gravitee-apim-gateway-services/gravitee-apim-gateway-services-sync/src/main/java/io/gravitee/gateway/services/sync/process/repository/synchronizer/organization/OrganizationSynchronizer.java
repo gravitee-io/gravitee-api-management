@@ -52,7 +52,7 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
     private final ThreadPoolExecutor syncDeployerExecutor;
 
     @Override
-    public Completable synchronize(final Long from, final Long to, final List<String> environments) {
+    public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
             .fetchLatest(from, to, ORGANIZATION_ID, environments, EVENT_TYPES)

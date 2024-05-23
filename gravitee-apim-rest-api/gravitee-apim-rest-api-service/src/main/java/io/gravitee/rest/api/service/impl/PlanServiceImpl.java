@@ -178,6 +178,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             newPlan.setId(id);
             Plan plan = planConverter.toPlan(newPlan, getApiDefinitionVersion(api));
+            plan.setEnvironmentId(executionContext.getEnvironmentId());
             plan = planRepository.create(plan);
 
             flowService.save(FlowReferenceType.PLAN, plan.getId(), newPlan.getFlows());

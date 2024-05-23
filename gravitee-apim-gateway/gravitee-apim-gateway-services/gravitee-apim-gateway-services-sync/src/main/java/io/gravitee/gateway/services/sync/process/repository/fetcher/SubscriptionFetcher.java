@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -37,7 +38,7 @@ public class SubscriptionFetcher {
     private static final List<String> STATUSES = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
     private final SubscriptionRepository subscriptionRepository;
 
-    public Flowable<List<Subscription>> fetchLatest(Long from, Long to) {
+    public Flowable<List<Subscription>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         // The following doesn't paginate over the result because for now we don't see any value, but it could be implemented same as EventFetcher
         return Flowable.generate(emitter -> {
             SubscriptionCriteria criteriaBuilder = SubscriptionCriteria
@@ -45,6 +46,7 @@ public class SubscriptionFetcher {
                 .statuses(STATUSES)
                 .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
                 .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .environments(environments)
                 .build();
             try {
                 List<Subscription> subscriptions = subscriptionRepository.search(

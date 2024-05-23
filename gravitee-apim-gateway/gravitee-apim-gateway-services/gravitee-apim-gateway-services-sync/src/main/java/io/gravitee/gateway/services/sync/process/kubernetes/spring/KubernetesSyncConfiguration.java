@@ -31,6 +31,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.kubernetes.client.KubernetesClient;
+import io.gravitee.node.api.Node;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -105,9 +106,10 @@ public class KubernetesSyncConfiguration {
 
     @Bean
     public KubernetesSyncManager kubernetesSyncManager(
-        List<KubernetesSynchronizer> kubernetesSynchronizers,
-        DistributedSyncService distributedSyncService
+        final Node node,
+        final List<KubernetesSynchronizer> kubernetesSynchronizers,
+        final DistributedSyncService distributedSyncService
     ) {
-        return new KubernetesSyncManager(kubernetesSynchronizers, distributedSyncService);
+        return new KubernetesSyncManager(node, kubernetesSynchronizers, distributedSyncService);
     }
 }

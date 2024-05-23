@@ -77,6 +77,8 @@ public class Plan implements GenericPlanEntity {
 
     private String apiId;
 
+    private String environmentId;
+
     private int order;
 
     @Builder.Default
