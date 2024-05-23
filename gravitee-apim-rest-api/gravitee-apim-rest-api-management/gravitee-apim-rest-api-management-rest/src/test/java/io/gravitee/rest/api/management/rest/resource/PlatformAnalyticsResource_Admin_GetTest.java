@@ -41,7 +41,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
     @Before
     public void init() {
-        reset(applicationService, apiAuthorizationService, permissionService);
+        reset(applicationService, apiAuthorizationServiceV4, permissionService);
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -55,7 +55,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
     @Test
     public void should_return_no_content_when_user_admin_and_application_analytics() {
-        when(applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), null)).thenReturn(Set.of());
+        when(applicationService.findIdsByEnvironment(GraviteeContext.getExecutionContext())).thenReturn(Set.of());
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -74,12 +74,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(applicationService, never()).findIdsByUser(any(), any(), any());
+        verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
     }
 
     @Test
     public void should_return_no_content_when_user_admin_and_api_analytics() {
-        when(apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of());
+        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of());
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -97,12 +97,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(apiAuthorizationService, never()).findIdsByUser(any(), any(), anyBoolean());
+        verify(apiAuthorizationServiceV4).findIdsByEnvironment(any());
     }
 
     @Test
     public void should_return_analytics_when_user_admin_and_application_analytics() {
-        when(applicationService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), eq(null))).thenReturn(Set.of("app-1"));
+        when(applicationService.findIdsByEnvironment(GraviteeContext.getExecutionContext())).thenReturn(Set.of("app-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
@@ -129,12 +129,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(applicationService, never()).findIdsByUser(any(), any(), any());
+        verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
     }
 
     @Test
     public void should_return_analytics_when_user_admin_and_api_analytics() {
-        when(apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api-1"));
+        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
@@ -160,6 +160,6 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(applicationService, never()).findIdsByUser(any(), any(), any());
+        verify(apiAuthorizationServiceV4).findIdsByEnvironment(any());
     }
 }
