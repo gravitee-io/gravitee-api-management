@@ -79,6 +79,11 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     }
 
     @Override
+    public Flowable<IntegrationApi> discoverApis(String integrationId) {
+        return Flowable.fromIterable(storage).filter(asset -> asset.integrationId().equals(integrationId));
+    }
+
+    @Override
     public void initWith(List<IntegrationApi> items) {
         this.storage.addAll(items);
     }

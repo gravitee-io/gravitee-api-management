@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.PlanFixtures;
+import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.Integration;
@@ -30,6 +31,10 @@ import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.integration.api.command.discover.DiscoverCommand;
+import io.gravitee.integration.api.command.discover.DiscoverCommandPayload;
+import io.gravitee.integration.api.command.discover.DiscoverReply;
+import io.gravitee.integration.api.command.discover.DiscoverReplyPayload;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
@@ -324,5 +329,80 @@ class IntegrationAgentImplTest {
             )
             .pages(List.of(new Page(PageType.SWAGGER, "swaggerDoc")))
             .build();
+    }
+
+    @Nested
+    class Discover {
+
+        @BeforeEach
+        void setUp() {
+            when(controller.sendCommand(any(), any()))
+                .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of(buildApi(1), buildApi(2))))));
+        }
+
+        @Test
+        void should_send_command_to_discover() {
+            agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS);
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            assertThat(captor.getValue())
+                .isInstanceOf(DiscoverCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(new DiscoverCommandPayload());
+        }
+
+        @Test
+        void should_discover_apis() {
+            var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
+
+            assertThat(result)
+                .containsExactly(
+                    new IntegrationApi(
+                        INTEGRATION_ID,
+                        "asset-uid-1",
+                        "asset-1",
+                        "asset-name-1",
+                        "asset-description-1",
+                        "asset-version-1",
+                        Map.of("url", "https://example.com/1"),
+                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY)),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
+                    ),
+                    new IntegrationApi(
+                        INTEGRATION_ID,
+                        "asset-uid-2",
+                        "asset-2",
+                        "asset-name-2",
+                        "asset-description-2",
+                        "asset-version-2",
+                        Map.of("url", "https://example.com/2"),
+                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY)),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
+                    )
+                );
+        }
+
+        @Test
+        void should_return_empty_when_nothing_discovered() {
+            when(controller.sendCommand(any(), any()))
+                .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of()))));
+
+            agent.fetchAllApis(INTEGRATION).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
+        }
+
+        @Test
+        void should_throw_exception_when_command_fails() {
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", "Fail to discover")));
+
+            agent
+                .discoverApis(INTEGRATION_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(IntegrationDiscoveryException.class).hasMessage("Fail to discover");
+                    return true;
+                });
+        }
     }
 }

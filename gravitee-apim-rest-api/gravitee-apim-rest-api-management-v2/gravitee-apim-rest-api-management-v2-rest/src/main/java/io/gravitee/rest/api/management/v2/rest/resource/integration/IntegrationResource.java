@@ -21,12 +21,14 @@ import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
+import io.gravitee.apim.core.integration.use_case.PreviewNewIntegrationApisUseCase;
 import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
@@ -64,6 +66,9 @@ public class IntegrationResource extends AbstractResource {
 
     @Inject
     private IngestIntegrationApisUseCase ingestIntegrationApisUseCase;
+
+    @Inject
+    private PreviewNewIntegrationApisUseCase previewNewIntegrationApisUseCase;
 
     @Inject
     private DeleteIntegrationUseCase deleteIntegrationUseCase;
@@ -141,6 +146,35 @@ public class IntegrationResource extends AbstractResource {
                 () -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build()),
                 response::resume
             );
+    }
+
+    @GET
+    @Path("/_preview")
+    @Produces(MediaType.APPLICATION_JSON)
+    public IngestionPreviewResponse previewNewIntegrationApis(@PathParam("integrationId") String integrationId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        if (
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.READ
+            ) ||
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_API,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.CREATE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
+
+        AuditInfo audit = getAuditInfo();
+
+        var output = previewNewIntegrationApisUseCase.execute(new PreviewNewIntegrationApisUseCase.Input(integrationId, audit));
+
+        return IngestionPreviewResponse.builder().totalCount(output.newApisCount()).build();
     }
 
     @GET

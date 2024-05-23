@@ -25,10 +25,12 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
@@ -39,6 +41,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
@@ -73,6 +76,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Autowired
     ApiCrudServiceInMemory apiCrudServiceInMemory;
+
+    @Autowired
+    IntegrationAgentInMemory integrationAgentInMemory;
 
     @Autowired
     LicenseManager licenseManager;
@@ -559,6 +565,70 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             final Response response = target.path("/apis").request().delete();
 
             assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class PreviewNewFederatedApis {
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget().path("_preview");
+        }
+
+        @ParameterizedTest(name = "[{index}] {arguments}")
+        @CsvSource(
+            delimiterString = "|",
+            useHeadersInDisplayName = true,
+            textBlock = """
+        ENVIRONMENT_INTEGRATION[READ] |  ENVIRONMENT_API[CREATE]
+        false                  |  false
+        true                   |  false
+        false                  |  true
+     """
+        )
+        public void should_get_error_if_user_does_not_have_correct_permissions(
+            boolean environmentIntegrationRead,
+            boolean environmentApiCreate
+        ) {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_INTEGRATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(environmentIntegrationRead);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.CREATE
+                )
+            )
+                .thenReturn(environmentApiCreate);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        public void should_return_new_integration_apis_count() {
+            //Given
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+            integrationAgentInMemory.initWith(List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)));
+
+            //When
+            Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(IngestionPreviewResponse.class)
+                .extracting(IngestionPreviewResponse::getTotalCount)
+                .isEqualTo(1);
         }
     }
 }

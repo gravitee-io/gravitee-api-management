@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.integration;
 
+import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.Integration;
@@ -27,6 +28,8 @@ import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.integration.api.command.discover.DiscoverCommand;
+import io.gravitee.integration.api.command.discover.DiscoverReply;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
@@ -127,6 +130,24 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             });
     }
 
+    @Override
+    public Flowable<IntegrationApi> discoverApis(String integrationId) {
+        var command = new DiscoverCommand();
+
+        log.debug("Discover all assets for [integrationId={}]", integrationId);
+        return sendDiscoverCommand(command, integrationId)
+            .toFlowable()
+            .flatMap(discoverReply -> {
+                if (discoverReply.getCommandStatus() == CommandStatus.ERROR) {
+                    return Flowable.error(new IntegrationDiscoveryException(discoverReply.getErrorDetails()));
+                }
+                log.debug("Discovered APIs for [integrationId={}] total: [{}]", integrationId, discoverReply.getPayload().apis().size());
+                return Flowable
+                    .fromIterable(discoverReply.getPayload().apis())
+                    .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId));
+            });
+    }
+
     private Single<IngestReply> sendIngestCommand(IngestCommand fetchCommand, String integrationId) {
         return exchangeController
             .sendCommand(fetchCommand, integrationId)
@@ -146,5 +167,12 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             .sendCommand(command, integrationId)
             .cast(UnsubscribeReply.class)
             .onErrorReturn(throwable -> new UnsubscribeReply(command.getId(), throwable.getMessage()));
+    }
+
+    private Single<DiscoverReply> sendDiscoverCommand(DiscoverCommand command, String integrationId) {
+        return exchangeController
+            .sendCommand(command, integrationId)
+            .cast(DiscoverReply.class)
+            .onErrorReturn(throwable -> new DiscoverReply(command.getId(), throwable.getMessage()));
     }
 }
