@@ -27,6 +27,11 @@ import {
   ApiHistoryV4DeploymentCompareDialogData,
   ApiHistoryV4DeploymentCompareDialogResult,
 } from './deployment-compare-dialog/api-history-v4-deployment-compare-dialog.component';
+import {
+  ApiHistoryV4DeploymentInfoDialogComponent,
+  ApiHistoryV4DeploymentInfoDialogData,
+  ApiHistoryV4DeploymentInfoDialogResult,
+} from './deployment-info-dialog/api-history-v4-deployment-info-dialog.component';
 
 import { Event, SearchApiEventParam } from '../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
@@ -133,6 +138,29 @@ export class ApiHistoryV4Component {
             },
           });
         }),
+      )
+      .subscribe();
+  }
+
+  protected openToDeployInfoDialog() {
+    this.apiService
+      .getCurrentDeployment(this.apiId)
+      .pipe(
+        switchMap((currentDeploymentDefinition) =>
+          this.matDialog
+            .open<ApiHistoryV4DeploymentInfoDialogComponent, ApiHistoryV4DeploymentInfoDialogData, ApiHistoryV4DeploymentInfoDialogResult>(
+              ApiHistoryV4DeploymentInfoDialogComponent,
+              {
+                data: {
+                  version: 'to be deployed',
+                  apiDefinition: currentDeploymentDefinition,
+                },
+                width: GIO_DIALOG_WIDTH.LARGE,
+                maxHeight: 'calc(100vh - 90px)',
+              },
+            )
+            .afterClosed(),
+        ),
       )
       .subscribe();
   }
