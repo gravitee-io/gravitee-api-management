@@ -22,6 +22,14 @@
       >View all API deployment changes. The history concerns the API definition with details known by the gateway.
     </mat-card-subtitle>
     <div class="history__headerRightBtn">
+      <button
+        mat-stroked-button
+        matTooltip="API is out of sync, preview its definition"
+        [disabled]="deploymentState !== 'NEED_REDEPLOY'"
+        (click)="openToDeployInfoDialog()"
+      >
+        <mat-icon svgIcon="gio:eye-empty"></mat-icon> View version to be deployed
+      </button>
       <span [matTooltip]="compareEvent ? 'Compare selected versions' : 'Select two versions to compare'">
         <button mat-stroked-button [disabled]="!compareEvent" (click)="openCompareEventDialog(compareEvent, deploymentState)">
           <mat-icon svgIcon="gio:git-pull-request"></mat-icon> {{ compareEvent ? 'Compare ' + compareEventLabel : 'Select to compare' }}

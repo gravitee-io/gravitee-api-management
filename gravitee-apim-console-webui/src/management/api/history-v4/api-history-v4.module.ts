@@ -39,6 +39,7 @@ import { ApiHistoryV4DeploymentCompareDialogComponent } from './deployment-compa
 import { ApiHistoryV4DeploymentInfoComponent } from './deployment-info/api-history-v4-deployment-info.component';
 import { ApiHistoryV4DeploymentsTableComponent } from './deployments-table/api-history-v4-deployments-table.component';
 import { ApiHistoryV4Component } from './api-history-v4.component';
+import { ApiHistoryV4DeploymentInfoDialogComponent } from './deployment-info-dialog/api-history-v4-deployment-info-dialog.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -75,6 +76,7 @@ import { GioDiffModule } from '../../../shared/components/gio-diff/gio-diff.modu
     GioLoaderModule,
     GioDiffModule,
     GioClipboardModule,
+    ApiHistoryV4DeploymentInfoDialogComponent,
   ],
 })
 export class ApiHistoryV4Module {}

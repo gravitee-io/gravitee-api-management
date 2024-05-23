@@ -271,6 +271,31 @@ describe('ApiHistoryV4Component', () => {
     });
   });
 
+  describe('View version to be deployed', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY' }));
+      fixture.detectChanges();
+      expectApiEventsListRequest(
+        undefined,
+        undefined,
+        fakeEventsResponse({
+          data: [fakeEvent({ type: 'PUBLISH_API', payload: JSON.stringify({ definition: JSON.stringify({ name: 'Diff' }) }) })],
+        }),
+      );
+    });
+
+    it('should open a dialog to view the version to be deployed', async () => {
+      const viewToDeployButton = await loader.getHarness(MatButtonHarness.with({ text: /View version to be deployed/ }));
+      await viewToDeployButton.click();
+      expectDeploymentCurrentGetRequest();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(dialog).toBeTruthy();
+      expect(await dialog.getTitleText()).toEqual('Version to be deployed');
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
