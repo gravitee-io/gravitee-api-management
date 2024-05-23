@@ -16,6 +16,9 @@
 
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_LOG;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -48,7 +51,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
 
     @Before
     public void init() {
-        reset(applicationService, apiAuthorizationService, permissionService);
+        reset(applicationService, apiAuthorizationServiceV4, permissionService);
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -62,7 +65,16 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
 
     @Test
     public void should_return_no_content_when_user_not_admin_and_application_analytics() {
-        when(applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), null)).thenReturn(Set.of());
+        when(
+            applicationService.findIdsByUserAndPermission(
+                GraviteeContext.getExecutionContext(),
+                USER_NAME,
+                null,
+                APPLICATION_ANALYTICS,
+                READ
+            )
+        )
+            .thenReturn(Set.of());
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -81,12 +93,13 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(applicationService, never()).findIdsByUser(any(), any(), any());
+        verify(applicationService)
+            .findIdsByUserAndPermission(GraviteeContext.getExecutionContext(), USER_NAME, null, APPLICATION_ANALYTICS, READ);
     }
 
     @Test
     public void should_return_no_content_when_user_not_admin_and_api_analytics() {
-        when(apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true)).thenReturn(Set.of());
+        when(apiAuthorizationServiceV4.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true)).thenReturn(Set.of());
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -104,7 +117,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(apiAuthorizationService, never()).findIdsByEnvironment(any());
+        verify(apiAuthorizationServiceV4).findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
     }
 
     @Test
@@ -114,8 +127,8 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 GraviteeContext.getExecutionContext(),
                 USER_NAME,
                 null,
-                RolePermission.APPLICATION_ANALYTICS,
-                RolePermissionAction.READ
+                APPLICATION_ANALYTICS,
+                READ
             )
         )
             .thenReturn(Set.of("app-1"));
@@ -145,12 +158,13 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(apiAuthorizationService, never()).findIdsByEnvironment(any());
+        verify(applicationService)
+            .findIdsByUserAndPermission(GraviteeContext.getExecutionContext(), USER_NAME, null, APPLICATION_ANALYTICS, READ);
     }
 
     @Test
     public void should_return_analytics_when_user_not_admin_and_api_analytics() {
-        when(apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true)).thenReturn(Set.of("api-1"));
+        when(apiAuthorizationServiceV4.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true)).thenReturn(Set.of("api-1"));
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -185,6 +199,6 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 "DEFAULT",
                 RolePermissionAction.READ
             );
-        verify(apiAuthorizationService, never()).findIdsByEnvironment(any());
+        verify(apiAuthorizationServiceV4).findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
     }
 }
