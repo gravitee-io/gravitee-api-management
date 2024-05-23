@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { isNil } from 'lodash';
 
-import { Pagination, Event } from '../../../../entities/management-api-v2';
+import { Event, Pagination } from '../../../../entities/management-api-v2';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 type EventDS = Event & { selected: boolean };
@@ -39,8 +38,6 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
 
   private selectedEvent: [Event, Event] = [null, null];
 
-  constructor(private readonly matDialog: MatDialog) {}
-
   @Input()
   public deployments: Event[];
 
@@ -54,13 +51,13 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
   public paginationChange = new EventEmitter<Pagination>();
 
   @Output()
-  public rollback = new EventEmitter<string>();
-
-  @Output()
   public selectedEventChange = new EventEmitter<[Event, Event]>();
 
   @Output()
   public compareEventWithCurrentChange = new EventEmitter<Event>();
+
+  @Output()
+  public openVersionInfoChange = new EventEmitter<Event>();
 
   public deploymentsDS: EventDS[];
 
@@ -116,11 +113,5 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
       .filter((e) => !isNil(e))
       .map((e) => e.id)
       .includes(deploymentId);
-  }
-
-  private extractApiDefinition(event: Event): string {
-    const payload = JSON.parse(event.payload);
-    const definition = JSON.parse(payload.definition);
-    return JSON.stringify(definition, null, 2);
   }
 }

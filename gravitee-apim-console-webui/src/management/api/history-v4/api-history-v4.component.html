@@ -44,9 +44,9 @@
       [deploymentState]="deploymentState"
       [definitionInUseId]="definitionInUseId"
       (paginationChange)="paginationChange($event)"
-      (rollback)="rollback($event)"
       (selectedEventChange)="openCompareEventDialog($event, deploymentState)"
       (compareEventWithCurrentChange)="openCompareEventWithCurrentDialog($event)"
+      (openVersionInfoChange)="openVersionInfoDialog($event)"
     >
     </api-deployments-table>
   </ng-container>

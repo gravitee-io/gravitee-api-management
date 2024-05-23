@@ -16,20 +16,26 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { NgIf } from '@angular/common';
+import { DatePipe, NgIf } from '@angular/common';
 import { GioClipboardModule, GioIconsModule, GioMonacoEditorModule, MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
+import { MatCardActions } from '@angular/material/card';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.module';
 
 export interface ApiHistoryV4DeploymentInfoDialogData {
   version: string;
-  apiDefinition: unknown;
+  eventId?: string;
+  createdAt?: Date;
+  label?: string;
+  user?: string;
+  apiDefinition: string;
 }
 
-export type ApiHistoryV4DeploymentInfoDialogResult = null;
+export type ApiHistoryV4DeploymentInfoDialogResult = null | { rollbackTo: string };
 
 @Component({
   selector: 'app-deployment-info-dialog',
@@ -48,6 +54,9 @@ export type ApiHistoryV4DeploymentInfoDialogResult = null;
     GioPermissionModule,
     GioMonacoEditorModule,
     GioClipboardModule,
+    DatePipe,
+    MatCardActions,
+    MatTooltip,
   ],
 })
 export class ApiHistoryV4DeploymentInfoDialogComponent {
@@ -60,7 +69,7 @@ export class ApiHistoryV4DeploymentInfoDialogComponent {
     public dialogRef: MatDialogRef<ApiHistoryV4DeploymentInfoDialogComponent, ApiHistoryV4DeploymentInfoDialogResult>,
   ) {
     this.control = new UntypedFormControl({
-      value: JSON.stringify(data.apiDefinition, null, 2),
+      value: data.apiDefinition,
       disabled: true,
     });
   }
