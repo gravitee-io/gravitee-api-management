@@ -114,7 +114,7 @@ public class ApiModelFactory {
      * @param integration The integration
      * @return The generated id
      */
-    private static String generateFederatedApiId(IntegrationApi integrationApi, Integration integration) {
+    public static String generateFederatedApiId(IntegrationApi integrationApi, Integration integration) {
         return UuidString.generateForEnvironment(integration.getEnvironmentId(), integration.getId(), integrationApi.uniqueId());
     }
 }

@@ -383,7 +383,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                              type: object
+                                type: object
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/deployments/_verify:
@@ -496,16 +496,16 @@ paths:
                   required: false
                   description: Exclude additional data from the API definition export
                   schema:
-                    type: array
-                    items:
-                      type: string
-                      enum:
-                        - groups
-                        - members
-                        - metadata
-                        - pages
-                        - plans
-                    default: [ 'groups', 'members', 'metadata', 'pages', 'plans' ]
+                      type: array
+                      items:
+                          type: string
+                          enum:
+                              - groups
+                              - members
+                              - metadata
+                              - pages
+                              - plans
+                      default: ["groups", "members", "metadata", "pages", "plans"]
             tags:
                 - APIs
             summary: Export an API
@@ -642,29 +642,29 @@ paths:
                     $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/_rollback:
-      parameters:
-          - $ref: "#/components/parameters/envIdParam"
-          - $ref: "#/components/parameters/apiIdParam"
-      post:
-          tags:
-              - APIs
-          summary: Rollback an API
-          description: |-
-              Rollback an API to a previous version.
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Rollback an API
+            description: |-
+                Rollback an API to a previous version.
 
-              User must have the API_DEFINITION[UPDATE] permission.
-          operationId: rollbackApi
-          requestBody:
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/ApiRollback"
-              required: true
-          responses:
-              "204":
-                description: API successfully rollbacked
-              default:
-                $ref: "#/components/responses/Error"
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: rollbackApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiRollback"
+                required: true
+            responses:
+                "204":
+                    description: API successfully rollbacked
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Reviews
     /environments/{envId}/apis/{apiId}/reviews/_ask:
@@ -1228,6 +1228,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/IntegrationIngestionResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}/_preview:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            tags:
+                - Integrations
+            summary: Preview APIs to ingest for a specific Integration
+            description: |-
+                Preview APIs to ingest before actual ingestion.
+
+                User must have both the ENVIRONMENT_INTEGRATION[READ] and the ENVIRONMENT_API[CREATE] permission 
+                to perform ingestion preview.
+            operationId: previewIntegration
+            responses:
+                "200":
+                    description: Preview successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/IngestionPreviewResponse"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/integrations/{integrationId}/apis:
@@ -1820,61 +1843,61 @@ paths:
 
     # Analytics
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - Analytics - Requests count
-        summary: Get API Analytics requests count
-        description: |-
-          Get API analytics request count.
-          TCP Proxy APIs are not supported.
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getApiAnalyticsRequestCount
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiAnalyticsRequestsCountResponse"
-          default:
-            $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/average-messages-per-request:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - Analytics - Average messages per request
-        summary: Get API Analytics average messages per request
-        description: |-
-          Get API analytics average messages per request.
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Analytics - Requests count
+            summary: Get API Analytics requests count
+            description: |-
+                Get API analytics request count.
+                TCP Proxy APIs are not supported.
 
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getAverageMessagesPerRequest
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiAnalyticsAverageMessagesPerRequestResponse"
-          default:
-            $ref: "#/components/responses/Error"
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getApiAnalyticsRequestCount
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsRequestsCountResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/average-messages-per-request:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Analytics - Average messages per request
+            summary: Get API Analytics average messages per request
+            description: |-
+                Get API analytics average messages per request.
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getAverageMessagesPerRequest
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsAverageMessagesPerRequestResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/average-connection-duration:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - Analytics - Average connection duration
-        summary: Get API Analytics average connection duration
-        description: |-
-          Get API analytics average connection duration. Duration is only computed for ended requests.
-          TCP Proxy APIs are not supported.
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getAverageConnectionDuration
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - Analytics - Average connection duration
+            summary: Get API Analytics average connection duration
+            description: |-
+                Get API analytics average connection duration. Duration is only computed for ended requests.
+                TCP Proxy APIs are not supported.
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getAverageConnectionDuration
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     # Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -2494,9 +2517,9 @@ components:
                     type: string
                     description: The name of the role that will be assigned to the current primary owner after the transfer.
         ApiRollback:
-              type: object
-              properties:
-                 eventId:
+            type: object
+            properties:
+                eventId:
                     type: string
                     description: The event ID to rollback to.
 
@@ -3398,6 +3421,14 @@ components:
                     enum:
                         - CONNECTED
                         - DISCONNECTED
+
+        IngestionPreviewResponse:
+            type: object
+            properties:
+                totalCount:
+                    type: number
+                    description: number of new APIs found to ingest
+                    example: 12
 
         IntegrationIngestionResponse:
             type: object
@@ -6868,59 +6899,59 @@ components:
 
         # Analytics
         ApiAnalyticsRequestsCountResponse:
-          description: Analytics for requests count by entrypoint
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsRequestsCountResponse"
-                description: API Analytics for requests count by entrypoint.
-                properties:
-                  total:
-                    type: integer
-                    format: int64
-                    description: The total count of requests
-                    example: 100
-                  countsByEntrypoint:
-                    type: object
-                    additionalProperties:
-                      description: A map of metrics by entrypoint
-                      type: number
+            description: Analytics for requests count by entrypoint
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsRequestsCountResponse"
+                        description: API Analytics for requests count by entrypoint.
+                        properties:
+                            total:
+                                type: integer
+                                format: int64
+                                description: The total count of requests
+                                example: 100
+                            countsByEntrypoint:
+                                type: object
+                                additionalProperties:
+                                    description: A map of metrics by entrypoint
+                                    type: number
         ApiAnalyticsAverageMessagesPerRequestResponse:
-          description: Analytics for average messages per request by entrypoint
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsAverageMessagesPerRequestResponse"
-                description: API Analytics for average messages per request by entrypoint.
-                properties:
-                  average:
-                    type: number
-                    format: double
-                    description: The rounded global average of messages per request
-                    example: 1000
-                  averagesByEntrypoint:
-                    type: object
-                    additionalProperties:
-                      description: A map of rounded average messages request by entrypoint
-                      type: number
+            description: Analytics for average messages per request by entrypoint
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsAverageMessagesPerRequestResponse"
+                        description: API Analytics for average messages per request by entrypoint.
+                        properties:
+                            average:
+                                type: number
+                                format: double
+                                description: The rounded global average of messages per request
+                                example: 1000
+                            averagesByEntrypoint:
+                                type: object
+                                additionalProperties:
+                                    description: A map of rounded average messages request by entrypoint
+                                    type: number
         ApiAnalyticsAverageConnectionDurationResponse:
-          description: Analytics for average connection duration by entrypoint
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsAverageConnectionDurationResponse"
-                description: API Analytics for average connection duration by entrypoint.
-                properties:
-                  average:
-                    type: number
-                    format: double
-                    description: The rounded global average of connection duration
-                    example: 1000
-                  averagesByEntrypoint:
-                    type: object
-                    additionalProperties:
-                      description: A map of rounded average connection duration by entrypoint
-                      type: number
+            description: Analytics for average connection duration by entrypoint
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsAverageConnectionDurationResponse"
+                        description: API Analytics for average connection duration by entrypoint.
+                        properties:
+                            average:
+                                type: number
+                                format: double
+                                description: The rounded global average of connection duration
+                                example: 1000
+                            averagesByEntrypoint:
+                                type: object
+                                additionalProperties:
+                                    description: A map of rounded average connection duration by entrypoint
+                                    type: number
 
         # Analytics - Logs
         ApiLogsResponse:

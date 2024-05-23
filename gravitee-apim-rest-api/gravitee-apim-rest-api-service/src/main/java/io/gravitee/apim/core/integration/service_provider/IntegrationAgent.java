@@ -24,6 +24,7 @@ import io.gravitee.definition.model.federation.FederatedPlan;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 
 public interface IntegrationAgent {
     Flowable<IntegrationApi> fetchAllApis(Integration integration);
@@ -54,4 +55,6 @@ public interface IntegrationAgent {
      * @return {Completable}
      */
     Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription);
+
+    Flowable<IntegrationApi> discoverApis(String integrationId);
 }
