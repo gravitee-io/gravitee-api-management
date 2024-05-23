@@ -143,7 +143,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
     private Set<String> findApplicationIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
-            return applicationService.findIdsByUser(executionContext, null);
+            return applicationService.findIdsByEnvironment(executionContext);
         }
         return applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
     }
