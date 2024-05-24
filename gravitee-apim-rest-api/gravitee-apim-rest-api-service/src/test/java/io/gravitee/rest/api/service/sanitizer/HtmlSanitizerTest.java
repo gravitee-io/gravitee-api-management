@@ -18,18 +18,24 @@ package io.gravitee.rest.api.service.sanitizer;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.assertj.core.api.BDDSoftAssertions;
+import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.rules.ErrorCollector;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(SoftAssertionsExtension.class)
 public class HtmlSanitizerTest {
 
-    @Rule
-    public ErrorCollector collector = new ErrorCollector();
+    @InjectSoftAssertions
+    public BDDSoftAssertions softly;
 
     private static String ONLY_OPENED_IMG_TAG = "<img src=\"myPic.png\">";
     private static String SELF_CLOSING_IMG_TAG = "<img src=\"myPic.png\"/>";
@@ -84,6 +90,24 @@ public class HtmlSanitizerTest {
         assertEquals("[Tag not allowed: script]", sanitizeInfos.getRejectedMessage());
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        {
+            "<!-><img src=x onerror=alert(1) />",
+            "<!--><img src=x onerror=alert(1) />",
+            "<!---><img src=x onerror=alert(1) />",
+            "<!--->\\n<img src=x onerror=alert(1) />",
+            "<!--->\\n\\n\\n\\n<img src=x onerror=alert(1) />",
+            "<!------->\\n<img src=x onerror=alert(1) />",
+        }
+    )
+    public void isXssNotSafe(String content) {
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(content);
+
+        assertFalse(sanitizeInfos.isSafe());
+        assertEquals("[Attribute not allowed: [img][onerror]]", sanitizeInfos.getRejectedMessage());
+    }
+
     private String getSafe() {
         String html = "";
         html += "<div>Test div</div>";
@@ -117,65 +141,62 @@ public class HtmlSanitizerTest {
 
     @Test
     public void shouldBeSafe() {
-        collector.checkThat("ONLY_OPENED_IMG_TAG", HtmlSanitizer.isSafe(ONLY_OPENED_IMG_TAG).isSafe(), is(true));
-        collector.checkThat("SELF_CLOSING_IMG_TAG", HtmlSanitizer.isSafe(SELF_CLOSING_IMG_TAG).isSafe(), is(true));
-        collector.checkThat("CLOSED_IMG_TAG", HtmlSanitizer.isSafe(CLOSED_IMG_TAG).isSafe(), is(true));
-        collector.checkThat("BASE64_IMG_TAG", HtmlSanitizer.isSafe(BASE64_IMG_TAG).isSafe(), is(true));
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE).isSafe(),
-            is(true)
-        );
-        collector.checkThat(
-            "DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON",
-            HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON).isSafe(),
-            is(true)
-        );
-        collector.checkThat("SUMMARY_DETAILS", HtmlSanitizer.isSafe(SUMMARY_DETAILS).isSafe(), is(true));
+        softly.then(HtmlSanitizer.isSafe(ONLY_OPENED_IMG_TAG).isSafe()).as("ONLY_OPENED_IMG_TAG").isTrue();
+        softly.then(HtmlSanitizer.isSafe(SELF_CLOSING_IMG_TAG).isSafe()).as("SELF_CLOSING_IMG_TAG").isTrue();
+        softly.then(HtmlSanitizer.isSafe(CLOSED_IMG_TAG).isSafe()).as("CLOSED_IMG_TAG").isTrue();
+        softly.then(HtmlSanitizer.isSafe(BASE64_IMG_TAG).isSafe()).as("BASE64_IMG_TAG").isTrue();
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD")
+            .isTrue();
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON")
+            .isTrue();
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON")
+            .isTrue();
+
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE")
+            .isTrue();
+        softly
+            .then(HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON).isSafe())
+            .as("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON")
+            .isTrue();
+
+        softly.then(HtmlSanitizer.isSafe(SUMMARY_DETAILS).isSafe()).as("SUMMARY_DETAILS").isTrue();
     }
 }
