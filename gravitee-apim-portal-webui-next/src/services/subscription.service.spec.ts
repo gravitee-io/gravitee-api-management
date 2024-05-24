@@ -25,6 +25,7 @@ describe('SubscriptionService', () => {
   let service: SubscriptionService;
   let httpTestingController: HttpTestingController;
   const apiId = 'testId';
+  const status = 'PENDING';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -40,12 +41,12 @@ describe('SubscriptionService', () => {
 
   it('should return subscription list', done => {
     const subscriptionResponse: Subscription = fakeSubscriptionResponse();
-    service.list(apiId).subscribe(response => {
+    service.list(apiId, status).subscribe(response => {
       expect(response).toMatchObject(subscriptionResponse);
       done();
     });
 
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=testId`);
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=testId&statuses=PENDING`);
     expect(req.request.method).toEqual('GET');
 
     req.flush(subscriptionResponse);
