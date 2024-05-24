@@ -39,6 +39,7 @@ import { ApiPortalHeaderModule } from './api-portal-header/api-portal-header.mod
 import { IdentityProvidersModule } from './identity-providers/identity-providers.module';
 import { PortalSettingsModule } from './portal-settings/portal-settings.module';
 import { TopApisModule } from './top-apis/top-apis.module';
+import { CategoriesNgxModule } from './categories/migrated/categories-ngx/categories-ngx.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
@@ -59,6 +60,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     EnvironmentNotificationModule,
     PortalSettingsModule,
     ApiPortalHeaderModule,
+    CategoriesNgxModule,
   ],
   declarations: [
     SettingsNavigationComponent,

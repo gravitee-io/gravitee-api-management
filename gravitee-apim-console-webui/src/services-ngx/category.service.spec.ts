@@ -55,4 +55,56 @@ describe('CategoryService', () => {
         .flush(response);
     });
   });
+  describe('update', () => {
+    it('should call the API', (done) => {
+      const requestBody: Category = { id: 'Id', name: 'Fox', key: 'fox' };
+      const responseBody: Category = { id: 'Id', name: 'Fox 2', key: 'fox 2' };
+
+      categoryService.update(requestBody).subscribe((result) => {
+        expect(result).toMatchObject(responseBody);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/configuration/categories/${requestBody.id}`,
+      });
+      expect(req.request.body).toEqual(requestBody);
+      req.flush(responseBody);
+    });
+  });
+  describe('updateList', () => {
+    it('should call the API', (done) => {
+      const requestBody: Category[] = [{ id: 'Id', name: 'Fox', key: 'fox' }];
+      const responseBody: Category[] = [{ id: 'Id', name: 'Fox 2', key: 'fox 2' }];
+
+      categoryService.updateList(requestBody).subscribe((result) => {
+        expect(result).toMatchObject(responseBody);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/configuration/categories`,
+      });
+      expect(req.request.body).toEqual(requestBody);
+      req.flush(responseBody);
+    });
+  });
+  describe('delete', () => {
+    it('should call the API', (done) => {
+      const categoryId = 'cat-id';
+      categoryService.delete(categoryId).subscribe((result) => {
+        expect(result).toMatchObject({});
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/configuration/categories/${categoryId}`,
+        })
+        .flush({});
+    });
+  });
 });
