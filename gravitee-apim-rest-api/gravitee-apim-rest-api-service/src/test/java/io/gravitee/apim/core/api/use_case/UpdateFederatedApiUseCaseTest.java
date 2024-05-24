@@ -17,6 +17,9 @@ package io.gravitee.apim.core.api.use_case;
 
 import static assertions.CoreAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
@@ -34,6 +37,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.GroupValidationService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
@@ -43,10 +47,13 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -72,6 +79,7 @@ class UpdateFederatedApiUseCaseTest {
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateFederatedApiUseCase usecase;
+    CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
 
     @BeforeEach
     void setUp() {
@@ -115,7 +123,7 @@ class UpdateFederatedApiUseCaseTest {
             new UpdateFederatedApiUseCase(
                 apiCrudService,
                 apiPrimaryOwnerService,
-                new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService)),
+                new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
                 auditDomainService,
                 new ApiIndexerDomainService(
                     new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
@@ -148,6 +156,7 @@ class UpdateFederatedApiUseCaseTest {
         //given
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+        String categoryKey = "categoryKey-1";
         var apiToUpdate = ApiFixtures
             .aFederatedApi()
             .toBuilder()
@@ -155,13 +164,17 @@ class UpdateFederatedApiUseCaseTest {
             .description("updated-description")
             .version("2.0.0")
             .labels(List.of("label-1"))
-            .categories(Set.of("category-1"))
+            .categories(Set.of(categoryKey))
             .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
             .build();
 
+        CategoryEntity categoryEntity = new CategoryEntity();
+        String categoryId = "categoryId-1";
+        categoryEntity.setId(categoryId);
+        when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
+
         //when
         var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
-
         //then
         SoftAssertions.assertSoftly(soft -> {
             var updatedApi = output.updatedApi();
@@ -169,7 +182,75 @@ class UpdateFederatedApiUseCaseTest {
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
-            assertThat(updatedApi.getCategories()).containsExactly("category-1");
+            assertThat(updatedApi.getCategories()).containsExactly(categoryId);
+            assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
+        });
+    }
+
+    @Test
+    public void update_federation_api_with_basic_configuration_info_without_category() {
+        //given
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+        var apiToUpdate = ApiFixtures
+            .aFederatedApi()
+            .toBuilder()
+            .name("updated-name")
+            .description("updated-description")
+            .version("2.0.0")
+            .labels(List.of("label-1"))
+            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+            .build();
+
+        CategoryEntity categoryEntity = new CategoryEntity();
+        String categoryId = "categoryId-1";
+        categoryEntity.setId(categoryId);
+
+        //when
+        var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
+        //then
+        SoftAssertions.assertSoftly(soft -> {
+            var updatedApi = output.updatedApi();
+            assertThat(updatedApi.getName()).isEqualTo("updated-name");
+            assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
+            assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
+            assertThat(updatedApi.getLabels()).containsExactly("label-1");
+            assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
+        });
+    }
+
+    @Test
+    public void update_federation_api_with_basic_configuration_info_with_category_id() {
+        //given
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+        String categoryId = "categoryId-1";
+
+        var apiToUpdate = ApiFixtures
+            .aFederatedApi()
+            .toBuilder()
+            .name("updated-name")
+            .description("updated-description")
+            .version("2.0.0")
+            .labels(List.of("label-1"))
+            .categories(Set.of(categoryId))
+            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+            .build();
+
+        CategoryEntity categoryEntity = new CategoryEntity();
+        categoryEntity.setId(categoryId);
+        when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
+
+        //when
+        var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
+        //then
+        SoftAssertions.assertSoftly(soft -> {
+            var updatedApi = output.updatedApi();
+            assertThat(updatedApi.getName()).isEqualTo("updated-name");
+            assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
+            assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
+            assertThat(updatedApi.getLabels()).containsExactly("label-1");
+            assertThat(updatedApi.getCategories()).containsExactly(categoryId);
             assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
         });
     }

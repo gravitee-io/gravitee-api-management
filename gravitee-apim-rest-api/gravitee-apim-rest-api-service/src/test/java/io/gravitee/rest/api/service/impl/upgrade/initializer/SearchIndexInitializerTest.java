@@ -260,7 +260,7 @@ public class SearchIndexInitializerTest {
                         );
                 } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
                     lenient()
-                        .when(apiConverter.toApiEntity(any(), any(), any(), any(), eq(false)))
+                        .when(apiConverter.toApiEntity(any(), any(), any(), eq(false)))
                         .thenReturn(
                             ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
                         );

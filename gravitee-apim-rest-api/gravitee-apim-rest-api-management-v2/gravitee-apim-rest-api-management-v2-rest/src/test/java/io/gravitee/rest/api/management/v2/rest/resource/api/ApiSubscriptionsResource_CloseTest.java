@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.apim.core.api.model.Api.*;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -140,6 +141,8 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
                     .build()
             )
         );
+
+        apiCrudService.initWith(List.of(builder().id(API).build()));
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertThat(response)

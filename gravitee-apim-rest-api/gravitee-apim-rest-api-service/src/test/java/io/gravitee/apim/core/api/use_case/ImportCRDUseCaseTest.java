@@ -359,8 +359,6 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_and_index_a_new_api() {
-            // Given
-
             // When
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
 

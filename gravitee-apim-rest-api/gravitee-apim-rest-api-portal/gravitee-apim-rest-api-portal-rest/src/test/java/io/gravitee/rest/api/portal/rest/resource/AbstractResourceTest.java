@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.mockito.Mockito.reset;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -324,6 +325,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected CategoryDomainService categoryDomainService;
 
     public AbstractResourceTest() {
         super(

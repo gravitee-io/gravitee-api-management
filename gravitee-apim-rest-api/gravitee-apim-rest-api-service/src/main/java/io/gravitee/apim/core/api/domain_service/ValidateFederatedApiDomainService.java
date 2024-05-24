@@ -25,9 +25,11 @@ import io.gravitee.definition.model.DefinitionVersion;
 public class ValidateFederatedApiDomainService {
 
     GroupValidationService groupValidationService;
+    private final CategoryDomainService categoryDomainService;
 
-    public ValidateFederatedApiDomainService(GroupValidationService groupValidationService) {
+    public ValidateFederatedApiDomainService(GroupValidationService groupValidationService, CategoryDomainService categoryDomainService) {
         this.groupValidationService = groupValidationService;
+        this.categoryDomainService = categoryDomainService;
     }
 
     public Api validateAndSanitizeForCreation(final Api api) {
@@ -48,6 +50,8 @@ public class ValidateFederatedApiDomainService {
             primaryOwnerEntity
         );
         updateApi.setGroups(groupIds);
+
+        updateApi.setCategories(categoryDomainService.toCategoryId(existingApi, existingApi.getEnvironmentId()));
 
         var lifecycleState = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
             existingApi.getApiLifecycleState(),

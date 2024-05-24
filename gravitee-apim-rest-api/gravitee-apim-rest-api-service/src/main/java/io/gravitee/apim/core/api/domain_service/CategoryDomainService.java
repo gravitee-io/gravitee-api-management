@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiCategoryService {
-    Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
-
-    void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
-
-    Map<String, Long> countApisPublishedGroupedByCategoriesForUser(String userId);
+public interface CategoryDomainService {
+    Set<String> toCategoryId(Api api, String environmentId);
 }

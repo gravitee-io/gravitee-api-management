@@ -52,18 +52,13 @@ public class GenericApiMapper {
         }
     }
 
-    public GenericApiEntity toGenericApi(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        final List<CategoryEntity> categories
-    ) {
+    public GenericApiEntity toGenericApi(final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            return apiMapper.toEntity(executionContext, api, primaryOwner, categories, true);
+            return apiMapper.toEntity(executionContext, api, primaryOwner, true);
         } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
             return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
         } else {
-            return apiConverter.toApiEntity(executionContext, api, primaryOwner, categories, true);
+            return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
         }
     }
 }

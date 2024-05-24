@@ -112,7 +112,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -147,7 +146,6 @@ class IngestIntegrationApisUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
-
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
 
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
@@ -155,7 +153,7 @@ class IngestIntegrationApisUseCaseTest {
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
 
-    ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null));
+    ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null, null));
     IngestIntegrationApisUseCase useCase;
 
     @BeforeAll

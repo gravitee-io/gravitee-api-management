@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.apim.infra.domain_service.api;
 
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collection;
-import java.util.Map;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiCategoryService {
-    Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
+@Service
+@AllArgsConstructor
+public class CategoryDomainServiceImpl implements CategoryDomainService {
 
-    void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
+    private final CategoryMapper categoryMapper;
 
-    Map<String, Long> countApisPublishedGroupedByCategoriesForUser(String userId);
+    @Override
+    public Set<String> toCategoryId(Api api, String environmentId) {
+        return categoryMapper.toCategoryId(environmentId, api.getCategories());
+    }
 }
