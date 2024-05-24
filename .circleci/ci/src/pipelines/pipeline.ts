@@ -26,6 +26,7 @@ import { generateReleaseConfig } from './pipeline-release';
 import { generateBuildRpmAndDockerImagesConfig } from './pipeline-build-rpm-and-docker-images';
 import { generatePullRequestsConfig } from './pipeline-pull-requests';
 import { generateFullReleaseConfig } from './pipeline-full-release';
+import { generateHelmTestsConfig } from './pipeline-helm-tests';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
@@ -51,6 +52,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateBridgeCompatibilityTestsConfig(environment);
     case 'publish_docker_images':
       return generatePublishDockerImagesConfig(environment);
+    case 'helm_tests':
+      return generateHelmTestsConfig();
   }
   return null;
 }
