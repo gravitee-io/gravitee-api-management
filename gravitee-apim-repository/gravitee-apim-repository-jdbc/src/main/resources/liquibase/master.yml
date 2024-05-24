@@ -179,5 +179,3 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_4_0/03_store_sync_from.yml
   - include:
       - file: liquibase/changelogs/v4_4_0/04_add_theme_type.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/05_update_access_points.yml

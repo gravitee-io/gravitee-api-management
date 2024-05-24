@@ -13,8 +13,8 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: status
-                  type: nvarchar(32)
-                  defaultValue: CREATED
-                  constraints:
-                    nullable: false
+                name: status
+                type: nvarchar(32)
+                defaultValue: CREATED
+                constraints:
+                  nullable: false

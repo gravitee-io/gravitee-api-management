@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.domain;
 
-import io.gravitee.repository.management.model.AccessPointStatus;
+import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -29,17 +29,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccessPointMongoRepository extends MongoRepository<AccessPointMongo, String>, AccessPointMongoRepositoryCustom {
     @Query(value = "{ 'host': ?0, 'status': ?1 }")
-    AccessPointMongo findByHost(String host, AccessPointStatus status);
+    AccessPointMongo findByHost(String host, AccessPoint.Status status);
 
     @Query(value = "{ 'target': ?0, 'status': ?1 }")
-    List<AccessPointMongo> findAllByTarget(final String target, AccessPointStatus status);
+    List<AccessPointMongo> findAllByTarget(final String target, AccessPoint.Status status);
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1 , 'target': ?2, 'status': ?3 }")
     List<AccessPointMongo> findAllByReferenceAndTarget(
         final String referenceType,
         final String referenceIds,
         final String target,
-        AccessPointStatus status
+        AccessPoint.Status status
     );
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1}", delete = true)

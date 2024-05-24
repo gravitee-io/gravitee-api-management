@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.accesspoint.model;
 
+import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,5 +37,10 @@ public class AccessPoint {
     private boolean secured;
     private boolean overriding;
     private Date updatedAt;
-    private AccessPointStatus status;
+    private Status status;
+
+    public enum Status {
+        CREATED,
+        DELETED,
+    }
 }
