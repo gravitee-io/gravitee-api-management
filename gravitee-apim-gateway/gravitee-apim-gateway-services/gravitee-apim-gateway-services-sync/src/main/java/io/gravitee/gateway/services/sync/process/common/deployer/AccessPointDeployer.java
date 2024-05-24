@@ -50,30 +50,7 @@ public class AccessPointDeployer implements Deployer<AccessPointDeployable> {
     }
 
     @Override
-    public Completable undeploy(AccessPointDeployable deployable) {
-        return Completable.fromRunnable(() -> {
-            try {
-                accessPointManager.unregister(deployable.accessPoint());
-            } catch (Exception e) {
-                log.warn("Access point cannot be unregistered for environment [{}].", deployable.accessPoint().getReferenceId(), e);
-                throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to undeploy access point for environment %s.",
-                        deployable.accessPoint().getReferenceId()
-                    ),
-                    e
-                );
-            }
-        });
-    }
-
-    @Override
     public Completable doAfterDeployment(AccessPointDeployable deployable) {
-        return distributedSyncService.distributeIfNeeded(deployable);
-    }
-
-    @Override
-    public Completable doAfterUndeployment(AccessPointDeployable deployable) {
         return distributedSyncService.distributeIfNeeded(deployable);
     }
 }

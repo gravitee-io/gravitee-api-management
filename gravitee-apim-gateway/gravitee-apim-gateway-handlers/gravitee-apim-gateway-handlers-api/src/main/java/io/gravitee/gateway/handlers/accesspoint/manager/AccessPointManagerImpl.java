@@ -29,9 +29,4 @@ public class AccessPointManagerImpl implements AccessPointManager {
     public void register(AccessPoint accessPoint) {
         accessPoints.put(accessPoint.getReferenceId(), accessPoint);
     }
-
-    @Override
-    public void unregister(AccessPoint accessPoint) {
-        accessPoints.remove(accessPoint.getReferenceId(), accessPoint);
-    }
 }

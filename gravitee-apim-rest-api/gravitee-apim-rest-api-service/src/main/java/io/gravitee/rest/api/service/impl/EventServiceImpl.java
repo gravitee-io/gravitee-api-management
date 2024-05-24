@@ -32,7 +32,6 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.Event;
@@ -214,24 +213,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         EventEntity event = createEvent(executionContext, environmentsIds, type, organization, eventProperties);
         if (organization != null) {
             createOrPatchLatestEvent(organization.getId(), event);
-        }
-        return event;
-    }
-
-    @Override
-    public EventEntity createAccessPointGatewayEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        AccessPoint accessPoint
-    ) {
-        Map<String, String> eventProperties = new HashMap<>();
-        if (accessPoint != null) {
-            eventProperties.put(Event.EventProperties.ACCESS_POINT_ID.getValue(), accessPoint.getId());
-        }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, accessPoint, eventProperties);
-        if (accessPoint != null) {
-            createOrPatchLatestEvent(accessPoint.getId(), event);
         }
         return event;
     }

@@ -5822,7 +5822,6 @@ components:
                 - PUBLISH_DICTIONARY
                 - PUBLISH_ORGANIZATION
                 - PUBLISH_ORGANIZATION_LICENSE
-                - PUBLISH_ACCESS_POINT
                 - START_API
                 - START_DICTIONARY
                 - STOP_API
@@ -5830,7 +5829,6 @@ components:
                 - UNPUBLISH_API
                 - UNPUBLISH_API_RESULT
                 - UNPUBLISH_DICTIONARY
-                - UNPUBLISH_ACCESS_POINT
 
         # Documentation pages
         AccessControl:
