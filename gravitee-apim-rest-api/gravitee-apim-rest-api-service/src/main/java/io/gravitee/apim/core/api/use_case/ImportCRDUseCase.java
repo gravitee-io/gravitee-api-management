@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.*;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.UseCase;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -51,6 +53,7 @@ import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,6 +84,7 @@ public class ImportCRDUseCase {
     private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
     private final MembershipCrudService membershipCrudService;
     private final MembershipQueryService membershipQueryService;
+    private final GroupQueryService groupQueryService;
 
     public ImportCRDUseCase(
         ApiCrudService apiCrudService,
@@ -100,7 +104,8 @@ public class ImportCRDUseCase {
         ApiImportDomainService apiImportDomainService,
         ApiPrimaryOwnerDomainService primaryOwnerDomainService,
         MembershipCrudService membershipCrudService,
-        MembershipQueryService membershipQueryService
+        MembershipQueryService membershipQueryService,
+        GroupQueryService groupQueryService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
@@ -120,6 +125,7 @@ public class ImportCRDUseCase {
         this.primaryOwnerDomainService = primaryOwnerDomainService;
         this.membershipCrudService = membershipCrudService;
         this.membershipQueryService = membershipQueryService;
+        this.groupQueryService = groupQueryService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -141,6 +147,8 @@ public class ImportCRDUseCase {
 
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
+            cleanGroups(input.crd);
+
             var createdApi = createApiDomainService.create(
                 ApiModelFactory.fromCrd(input.crd, environmentId),
                 primaryOwner,
@@ -148,7 +156,7 @@ public class ImportCRDUseCase {
                 api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
             );
 
-            createMembers(input.crd.getMembers(), createdApi.getId());
+            createMembers(input.crd.getMembers(), input.auditInfo.organizationId(), createdApi.getId());
 
             var planNameIdMapping = input.crd
                 .getPlans()
@@ -186,6 +194,8 @@ public class ImportCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            cleanGroups(input.crd);
+
             var updated = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
 
             // update state and definition context because legacy service does not update it
@@ -237,7 +247,7 @@ public class ImportCRDUseCase {
                 deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);
             }
 
-            createMembers(input.crd.getMembers(), updated.getId());
+            createMembers(input.crd.getMembers(), input.auditInfo.organizationId(), updated.getId());
             deleteOrphanMemberships(updated.getId(), input);
 
             return ApiCRDStatus
@@ -303,7 +313,16 @@ public class ImportCRDUseCase {
             .build();
     }
 
-    private void createMembers(Set<ApiMember> members, String apiId) {
+    private void cleanGroups(ApiCRDSpec spec) {
+        if (!isEmpty(spec.getGroups())) {
+            var groups = new HashSet<>(spec.getGroups());
+            var existingGroups = groupQueryService.findByIds(spec.getGroups());
+            groups.removeIf(groupId -> existingGroups.stream().noneMatch(group -> groupId.equals(group.getId())));
+            spec.setGroups(groups);
+        }
+    }
+
+    private void createMembers(Set<ApiMember> members, String orgId, String apiId) {
         if (members != null && !members.isEmpty()) {
             apiImportDomainService.createMembers(members, apiId);
         }

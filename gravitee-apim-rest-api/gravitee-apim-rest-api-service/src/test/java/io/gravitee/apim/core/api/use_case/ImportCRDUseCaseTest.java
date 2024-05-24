@@ -307,7 +307,8 @@ class ImportCRDUseCaseTest {
                 apiImportDomainService,
                 mock(ApiPrimaryOwnerDomainService.class),
                 membershipCrudServiceInMemory,
-                membershipQueryServiceInMemory
+                membershipQueryServiceInMemory,
+                groupQueryService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -327,6 +328,8 @@ class ImportCRDUseCaseTest {
         givenExistingUsers(
             List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
+
+        groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
     }
 
     @AfterEach
@@ -835,7 +838,7 @@ class ImportCRDUseCaseTest {
             .type("PROXY")
             .version("1.0.0")
             .visibility("PRIVATE")
-            .groups(Set.of(GROUP_ID))
+            .groups(Set.of(GROUP_ID, "non-existing-group"))
             .build();
     }
 

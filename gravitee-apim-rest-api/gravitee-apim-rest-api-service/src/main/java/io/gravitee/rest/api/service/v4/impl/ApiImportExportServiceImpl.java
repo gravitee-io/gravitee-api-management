@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MediaEntity;
@@ -198,7 +199,12 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         assert (poRole != null);
         String poRoleName = poRole.getName();
 
+        var defaultApiRole = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API);
+
         for (MemberEntity member : members) {
+            if (CollectionUtils.isEmpty(member.getRoles())) {
+                member.setRoles(defaultApiRole);
+            }
             List<RoleEntity> rolesToImport = member
                 .getRoles()
                 .stream()
@@ -209,15 +215,16 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                         role.getName(),
                         executionContext.getOrganizationId()
                     );
+
                     if (roleEntity.isPresent()) {
                         return roleEntity.get();
                     }
 
                     log.warn("Unable to find role '{}' to import", role.getName());
-                    return null;
+                    return defaultApiRole.iterator().next();
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
 
             rolesToImport.forEach(role -> {
                 try {
