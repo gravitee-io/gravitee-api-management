@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;

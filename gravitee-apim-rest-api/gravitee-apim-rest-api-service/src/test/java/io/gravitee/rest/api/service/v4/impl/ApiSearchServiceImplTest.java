@@ -63,6 +63,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -70,7 +71,6 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,12 +135,6 @@ public class ApiSearchServiceImplTest {
     @Mock
     private WorkflowService workflowService;
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(categoryService);
-
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
-
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
@@ -168,14 +162,17 @@ public class ApiSearchServiceImplTest {
 
     @Before
     public void setUp() {
-        ApiMapper apiMapper = new ApiMapper(
+        var categoryMapper = new CategoryMapper(categoryService);
+        var apiConverter = new ApiConverter(
             new ObjectMapper(),
-            planServiceV4,
-            flowServiceV4,
+            planService,
+            flowService,
+            categoryMapper,
             parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
+            workflowService
         );
+
+        var apiMapper = new ApiMapper(new ObjectMapper(), planServiceV4, flowServiceV4, parameterService, workflowService, categoryMapper);
         apiSearchService =
             new ApiSearchServiceImpl(
                 apiRepository,
@@ -314,28 +311,32 @@ public class ApiSearchServiceImplTest {
 
     @Test
     public void shouldFindV2GenericApiWithV2DefinitionVersion() throws TechnicalException {
+        String categoryId1 = "categoryId1";
+        String categoryId2 = "categoryId2";
+        String categoryKey1 = "categoryKey1";
+        String categoryKey2 = "categoryKey2";
         Api api = new Api();
         api.setId(API_ID);
         api.setEnvironmentId("DEFAULT");
         api.setDefinitionVersion(DefinitionVersion.V2);
-        api.setCategories(Set.of("cat1", "cat2"));
+        api.setCategories(Set.of(categoryKey1, categoryKey2));
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
         when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
         CategoryEntity category1 = new CategoryEntity();
-        category1.setId("cat1");
-        category1.setKey("category1");
+        category1.setId(categoryId1);
+        category1.setKey(categoryKey1);
         CategoryEntity category2 = new CategoryEntity();
-        category2.setId("cat2");
-        category2.setKey("category2");
+        category2.setId(categoryId2);
+        category2.setKey(categoryKey2);
         when(categoryService.findAll("DEFAULT")).thenReturn(List.of(category1, category2));
         final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
         assertThat(indexableApi).isNotNull();
         assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);
-        assertThat(indexableApi.getCategories()).isEqualTo(Set.of("category1", "category2"));
+        Assertions.assertThat(indexableApi.getCategories()).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
     }
 
     @Test(expected = ApiNotFoundException.class)
@@ -478,7 +479,9 @@ public class ApiSearchServiceImplTest {
         CategoryEntity category = new CategoryEntity();
         category.setId("cat1");
         category.setKey("category1");
+        var categoryList = List.of(category);
         when(categoryService.findById("cat1", GraviteeContext.getCurrentEnvironment())).thenReturn(category);
+        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(categoryList);
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");

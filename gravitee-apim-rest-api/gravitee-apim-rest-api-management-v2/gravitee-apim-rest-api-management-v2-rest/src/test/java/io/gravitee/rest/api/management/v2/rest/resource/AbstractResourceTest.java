@@ -26,6 +26,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -176,6 +177,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected GroupQueryServiceInMemory groupQueryServiceInMemory;
+
+    @Autowired
+    protected CategoryDomainService categoryDomainService;
 
     @BeforeEach
     public void setUp() {

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 
 import assertions.CoreAssertions;
 import fixtures.core.model.ApiFixtures;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
@@ -60,6 +61,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Mock
     ApiValidationService apiValidationService;
+
+    @Mock
+    CategoryDomainService categoryDomainService;
 
     @InjectMocks
     ValidateApiDomainServiceLegacyWrapper service;

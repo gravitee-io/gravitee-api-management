@@ -205,7 +205,7 @@ public class SearchIndexInitializer implements Initializer {
         try {
             // V2 APIs have a null definitionVersion attribute in the Repository
             if (api.getDefinitionVersion() == null) {
-                indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, null, false);
+                indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, false);
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
 

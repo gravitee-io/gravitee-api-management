@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
@@ -162,7 +163,6 @@ public class ApiMapper {
         final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
-        List<CategoryEntity> categories,
         final boolean readDatabaseFlows
     ) {
         ApiEntity apiEntity = toEntity(api, primaryOwner);
@@ -175,7 +175,7 @@ public class ApiMapper {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toIdentifier(executionContext, api.getCategories(), categories));
+        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
 
         if (
             parameterService.findAsBoolean(
@@ -271,7 +271,7 @@ public class ApiMapper {
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(updateApiEntity));
 
-        repoApi.setCategories(categoryMapper.toIdentifier(executionContext, updateApiEntity.getCategories(), null));
+        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
 
         if (updateApiEntity.getLabels() != null) {
             repoApi.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
@@ -332,7 +332,7 @@ public class ApiMapper {
             repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(apiEntity.getLifecycleState().name()));
         }
         repoApi.setBackground(apiEntity.getBackground());
-        repoApi.setCategories(categoryMapper.toIdentifier(executionContext, apiEntity.getCategories(), null));
+        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
         repoApi.setCrossId(apiEntity.getCrossId());
         repoApi.setCreatedAt(apiEntity.getCreatedAt());
         repoApi.setDefinition(toApiDefinition(apiEntity));

@@ -535,7 +535,6 @@ class ImportApiDefinitionUseCaseTest {
             // Given
             var page = PageFixtures.aPage().toBuilder().referenceId(null).build();
             var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
-
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 

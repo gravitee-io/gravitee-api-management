@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.GroupQueryServiceInMemory;
@@ -37,11 +38,12 @@ class ValidateFederatedApiDomainServiceTest {
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
 
     ValidateFederatedApiDomainService service;
+    CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
 
     @BeforeEach
     void setUp() {
         var groupValidationService = new GroupValidationService(groupQueryService);
-        service = new ValidateFederatedApiDomainService(groupValidationService);
+        service = new ValidateFederatedApiDomainService(groupValidationService, categoryDomainService);
         groupQueryService.initWith(List.of(Group.builder().id("group-1").name("group-1").build()));
     }
 
