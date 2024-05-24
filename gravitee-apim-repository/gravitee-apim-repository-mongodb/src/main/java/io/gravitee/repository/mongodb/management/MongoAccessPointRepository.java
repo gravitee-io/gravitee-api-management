@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
@@ -65,7 +67,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     @Override
     public Optional<AccessPoint> findByHost(final String host) {
         log.debug("Find access point by host [{}]", host);
-        final AccessPointMongo accessPointMongo = internalRepository.findByHost(host, AccessPoint.Status.CREATED);
+        final AccessPointMongo accessPointMongo = internalRepository.findByHost(host);
         AccessPoint res = map(accessPointMongo);
         log.debug("Find access point by host value [{}] - Done", host);
         return Optional.ofNullable(res);
@@ -80,21 +82,27 @@ public class MongoAccessPointRepository implements AccessPointRepository {
         final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByReferenceAndTarget(
             referenceType.name(),
             referenceId,
-            target.name(),
-            AccessPoint.Status.CREATED
+            target.name()
         );
         return accessPointMongos.stream().map(this::map).toList();
     }
 
     @Override
-    public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException {
-        List<AccessPointMongo> accessPointMongos = internalRepository.search(criteria, page, size);
-        return accessPointMongos.stream().map(this::map).toList();
+    public Page<AccessPoint> findByCriteria(AccessPointCriteria criteria, Pageable pageable) throws TechnicalException {
+        final Page<AccessPointMongo> accessPointMongoPage = internalRepository.search(criteria, pageable);
+        final List<AccessPoint> content = accessPointMongoPage.getContent().stream().map(this::map).toList();
+
+        return new Page(
+            content,
+            accessPointMongoPage.getPageNumber(),
+            (int) accessPointMongoPage.getPageElements(),
+            accessPointMongoPage.getTotalElements()
+        );
     }
 
     @Override
     public List<AccessPoint> findByTarget(final AccessPointTarget target) {
-        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTarget(target.name(), AccessPoint.Status.CREATED);
+        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTarget(target.name());
         return accessPointMongos.stream().map(this::map).toList();
     }
 
@@ -103,18 +111,6 @@ public class MongoAccessPointRepository implements AccessPointRepository {
         log.debug("Delete access point by reference [{}, {}]", referenceType, referenceId);
         List<AccessPointMongo> accessPointMongos = internalRepository.deleteAllByReference(referenceType.name(), referenceId);
         log.debug("Delete access point by reference [{}, {}] - Done", referenceType, referenceId);
-        return accessPointMongos.stream().map(this::map).toList();
-    }
-
-    @Override
-    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, AccessPoint.Status status) throws TechnicalException {
-        List<AccessPointMongo> accessPointMongos = internalRepository.search(criteria, null, null);
-
-        for (AccessPointMongo accessPointMongo : accessPointMongos) {
-            accessPointMongo.setStatus(status);
-            internalRepository.save(accessPointMongo);
-        }
-
         return accessPointMongos.stream().map(this::map).toList();
     }
 

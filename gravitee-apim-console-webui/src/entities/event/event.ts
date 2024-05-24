@@ -30,7 +30,9 @@ export type EventType =
   | 'STOP_DICTIONARY'
   | 'ALERT_NOTIFICATION'
   | 'PUBLISH_ORGANIZATION'
-  | 'DEBUG_API';
+  | 'DEBUG_API'
+  | 'PUBLISH_ACCESS_POINT'
+  | 'UNPUBLISH_ACCESS_POINT';
 
 export interface Event {
   id: string;

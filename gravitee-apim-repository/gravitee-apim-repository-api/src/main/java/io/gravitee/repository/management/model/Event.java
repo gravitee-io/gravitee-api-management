@@ -16,9 +16,11 @@
 package io.gravitee.repository.management.model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -93,7 +95,8 @@ public class Event implements Serializable {
         API_DEBUG_STATUS("api_debug_status"),
         GATEWAY_ID("gateway_id"),
         ENVIRONMENTS_HRIDS_PROPERTY("environments_hrids"),
-        ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids");
+        ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids"),
+        ACCESS_POINT_ID("access_point_id");
 
         private final String value;
     }

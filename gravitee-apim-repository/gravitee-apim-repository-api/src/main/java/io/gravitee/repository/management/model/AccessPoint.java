@@ -39,11 +39,4 @@ public class AccessPoint {
     private boolean secured;
     private boolean overriding;
     private Date updatedAt;
-    private Status status;
-
-    //TODO: probably move out
-    public enum Status {
-        CREATED,
-        DELETED,
-    }
 }

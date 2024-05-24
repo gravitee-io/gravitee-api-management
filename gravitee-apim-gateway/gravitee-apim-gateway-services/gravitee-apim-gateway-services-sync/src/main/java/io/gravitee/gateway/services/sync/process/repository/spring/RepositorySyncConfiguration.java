@@ -26,7 +26,6 @@ import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchron
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
@@ -96,8 +95,8 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public AccessPointMapper accessPointMapper() {
-        return new AccessPointMapper();
+    public AccessPointMapper accessPointMapper(ObjectMapper objectMapper) {
+        return new AccessPointMapper(objectMapper);
     }
 
     @Bean
@@ -129,14 +128,6 @@ public class RepositorySyncConfiguration {
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
         return new LicenseFetcher(licenseRepository, bulkItems);
-    }
-
-    @Bean
-    public AccessPointFetcher accessPointFetcher(
-        AccessPointRepository accessPointRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
-        return new AccessPointFetcher(accessPointRepository, bulkItems);
     }
 
     @Bean
@@ -260,14 +251,14 @@ public class RepositorySyncConfiguration {
 
     @Bean
     public AccessPointSynchronizer accessPointSynchronizer(
-        AccessPointFetcher accessPointFetcher,
+        LatestEventFetcher latestEventFetcher,
         AccessPointMapper accessPointMapper,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
         return new AccessPointSynchronizer(
-            accessPointFetcher,
+            latestEventFetcher,
             accessPointMapper,
             deployerFactory,
             syncFetcherExecutor,
