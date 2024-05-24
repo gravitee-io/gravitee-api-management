@@ -118,6 +118,7 @@
             <unpack>false</unpack>
             <includes>
                 <include>io.gravitee.*:*:jar</include>
+                <include>com.graviteesource.*:*:*</include>
             </includes>
             <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
