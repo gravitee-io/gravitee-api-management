@@ -15,11 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
-import io.gravitee.repository.management.api.search.AccessPointCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
@@ -85,19 +82,6 @@ public class MongoAccessPointRepository implements AccessPointRepository {
             target.name()
         );
         return accessPointMongos.stream().map(this::map).toList();
-    }
-
-    @Override
-    public Page<AccessPoint> findByCriteria(AccessPointCriteria criteria, Pageable pageable) throws TechnicalException {
-        final Page<AccessPointMongo> accessPointMongoPage = internalRepository.search(criteria, pageable);
-        final List<AccessPoint> content = accessPointMongoPage.getContent().stream().map(this::map).toList();
-
-        return new Page(
-            content,
-            accessPointMongoPage.getPageNumber(),
-            (int) accessPointMongoPage.getPageElements(),
-            accessPointMongoPage.getTotalElements()
-        );
     }
 
     @Override

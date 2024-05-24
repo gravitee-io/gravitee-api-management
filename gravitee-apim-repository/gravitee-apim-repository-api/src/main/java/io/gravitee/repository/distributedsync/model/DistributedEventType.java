@@ -22,5 +22,4 @@ public enum DistributedEventType {
     SUBSCRIPTION,
     API_KEY,
     LICENSE,
-    ACCESS_POINT,
 }

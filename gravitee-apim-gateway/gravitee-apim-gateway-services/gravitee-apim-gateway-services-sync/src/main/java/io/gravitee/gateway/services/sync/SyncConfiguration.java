@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -184,7 +183,6 @@ public class SyncConfiguration {
         EventManager eventManager,
         LicenseManager licenseManager,
         LicenseFactory licenseFactory,
-        AccessPointManager accessPointManager,
         DistributedSyncService distributedSyncService
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
@@ -202,7 +200,6 @@ public class SyncConfiguration {
             eventManager,
             licenseManager,
             licenseFactory,
-            accessPointManager,
             distributedSyncService
         );
     }

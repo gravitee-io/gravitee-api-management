@@ -26,7 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface AccessPointMongoRepository extends MongoRepository<AccessPointMongo, String>, AccessPointMongoRepositoryCustom {
+public interface AccessPointMongoRepository extends MongoRepository<AccessPointMongo, String> {
     @Query(value = "{ 'host': ?0 }")
     AccessPointMongo findByHost(String host);
 

@@ -101,6 +101,6 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
 
     @Override
     public int order() {
-        return 2;
+        return 1;
     }
 }
