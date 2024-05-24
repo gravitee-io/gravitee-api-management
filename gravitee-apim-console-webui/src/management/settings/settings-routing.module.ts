@@ -37,6 +37,7 @@ import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
+import { CategoriesNgxComponent } from './categories/migrated/categories-ngx/categories-ngx.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -131,6 +132,16 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-categories',
           },
+          permissions: {
+            anyOf: ['environment-category-r'],
+            unauthorizedFallbackTo: '../client-registration-providers',
+          },
+        },
+      },
+      {
+        path: 'categories-ngx',
+        component: CategoriesNgxComponent,
+        data: {
           permissions: {
             anyOf: ['environment-category-r'],
             unauthorizedFallbackTo: '../client-registration-providers',

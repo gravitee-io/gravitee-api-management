@@ -23,5 +23,6 @@ export interface Category {
    * id of the page used for category documentation.
    */
   page?: string;
-  total_apis?: number;
+  totalApis?: number;
+  hidden?: boolean;
 }

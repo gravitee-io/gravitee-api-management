@@ -62,7 +62,7 @@ export class SettingsNavigationService {
           },
           {
             displayName: 'Categories',
-            routerLink: './categories',
+            routerLink: './categories-ngx',
             permissions: ['environment-category-r'],
           },
           {
