@@ -24,7 +24,6 @@ import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.model.AccessPointTarget;
-import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Arrays;
 import java.util.List;
@@ -50,9 +49,6 @@ class AccessPointCrudServiceImplTest {
     @Mock
     EventManager eventManager;
 
-    @Mock
-    EventService eventService;
-
     AccessPointCrudServiceImpl service;
 
     @BeforeAll
@@ -68,7 +64,7 @@ class AccessPointCrudServiceImplTest {
     @BeforeEach
     void setUp() {
         accessPointRepository = mock(AccessPointRepository.class);
-        service = new AccessPointCrudServiceImpl(accessPointRepository, eventManager, eventService);
+        service = new AccessPointCrudServiceImpl(accessPointRepository, eventManager);
     }
 
     @Nested

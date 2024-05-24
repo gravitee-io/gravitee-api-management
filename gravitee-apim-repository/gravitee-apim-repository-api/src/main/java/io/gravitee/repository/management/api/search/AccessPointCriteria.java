@@ -29,8 +29,6 @@ import lombok.RequiredArgsConstructor;
 @EqualsAndHashCode
 public class AccessPointCriteria {
 
-    //TODO: delete this and other repo changes if happy with event sync
-
     @Builder.Default
     private final long from = -1;
 
