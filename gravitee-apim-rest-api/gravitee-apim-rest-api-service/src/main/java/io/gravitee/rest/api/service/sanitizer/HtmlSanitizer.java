@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
+import com.vladsch.flexmark.ast.HtmlCommentBlock;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.ast.Document;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
 import com.vladsch.flexmark.util.data.MutableDataSet;
+import com.vladsch.flexmark.util.sequence.BasedSequence;
 import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,8 +78,7 @@ public final class HtmlSanitizer {
         .toFactory();
 
     /**
-     * Allow a set of HTML tags to support GitHub Flavoured Markdown.
-     * Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
+     * Allow a set of HTML tags to support GitHub Flavoured Markdown. Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
      */
     private static final PolicyFactory GITHUB_FLAVOURED_MARKDOWN = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
 
@@ -117,8 +121,13 @@ public final class HtmlSanitizer {
         if (content == null || content.isEmpty()) {
             return new SanitizeInfos(true);
         }
+        Document document = mdParser.parse(content);
 
-        String toSanitize = htmlRenderer.render(mdParser.parse(content));
+        // Create a custom visitor to remove invalid comments
+        InvalidCommentVisitor visitor = new InvalidCommentVisitor();
+        visitor.visit(document);
+
+        String toSanitize = htmlRenderer.render(document);
         List<String> sanitizedChanges = new ArrayList<>();
         HtmlChangeListener<List<String>> listener = new HtmlChangeListener<List<String>>() {
             @Override
@@ -156,6 +165,21 @@ public final class HtmlSanitizer {
 
         public String getRejectedMessage() {
             return rejectedMessage;
+        }
+    }
+
+    static class InvalidCommentVisitor extends NodeVisitor {
+
+        InvalidCommentVisitor() {
+            super(
+                new VisitHandler<>(
+                    HtmlCommentBlock.class,
+                    htmlBlock -> {
+                        String removedInvalidComments = htmlBlock.getChars().toString().replaceAll("<!-{2,3}>", "");
+                        htmlBlock.setChars(BasedSequence.of(removedInvalidComments));
+                    }
+                )
+            );
         }
     }
 }
