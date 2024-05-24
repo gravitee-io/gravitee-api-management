@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../../orbs';
 import { BaseExecutor } from '../../executors';
+import { AnyParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { config } from '../../config';
 
 export class TestApimChartsJob {
@@ -25,9 +26,13 @@ export class TestApimChartsJob {
   public static create(dynamicConfig: Config): Job {
     dynamicConfig.importOrb(orbs.helm);
 
+    const params: parameters.CustomParametersList<AnyParameterLiteral> = new parameters.CustomParametersList([
+      new parameters.CustomParameter('helmClientVersion', 'string', config.helm.defaultVersion, 'Version of helm to test'),
+    ]);
+
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: config.helm.defaultVersion }),
+      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: '<< parameters.helmClientVersion >>' }),
       new commands.Run({
         name: 'Install helm-unittest plugin',
         command: `helm plugin install https://github.com/helm-unittest/helm-unittest.git --version ${config.helm.helmUnitVersion}`,
@@ -44,6 +49,6 @@ export class TestApimChartsJob {
         path: 'apim-result.xml',
       }),
     ];
-    return new Job(TestApimChartsJob.jobName, BaseExecutor.create('small'), steps);
+    return new reusable.ParameterizedJob(TestApimChartsJob.jobName, BaseExecutor.create('small'), params, steps);
   }
 }
