@@ -134,13 +134,18 @@ commands:
       - cmd-docker-azure-logout
 jobs:
   job-test-apim-charts:
+    parameters:
+      helmClientVersion:
+        type: string
+        default: v3.12.3
+        description: Version of helm to test
     docker:
       - image: cimg/base:stable
     resource_class: small
     steps:
       - checkout
       - helm/install_helm_client:
-          version: v3.12.3
+          version: << parameters.helmClientVersion >>
       - run:
           name: Install helm-unittest plugin
           command: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 0.5.1
