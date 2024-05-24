@@ -17,6 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { ApiTabSubscriptionsComponent } from './api-tab-subscriptions.component';
@@ -47,14 +48,14 @@ describe('ApiTabSubscriptionsComponent', () => {
 
   describe('empty component', () => {
     it('should show empty Subscription list', async () => {
-      expectSubscriptionList(fakeSubscriptionResponse({ data: [] }), 'testId');
+      expectSubscriptionList(fakeSubscriptionResponse({ data: [] }), 'testId', '');
       expect(fixture.nativeElement.querySelector('#no-subscriptions')).toBeDefined();
     });
   });
 
   describe('populated subscription list', () => {
     beforeEach(() => {
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testId');
+      expectSubscriptionList(fakeSubscriptionResponse(), 'testId', '');
     });
 
     it('should show subscription list', async () => {
@@ -67,9 +68,20 @@ describe('ApiTabSubscriptionsComponent', () => {
         status: 'Rejected',
       });
     });
+
+    it('should show filtered subscription list', async () => {
+      const filterSelect = await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[id=api-tab-subscription__select]' }));
+      expect(filterSelect).toBeTruthy();
+      await filterSelect.clickOptions({ text: 'Pending' });
+      expect(await filterSelect.getValueText()).toBe('Pending');
+
+      expectSubscriptionList(fakeSubscriptionResponse(), 'testId', 'PENDING');
+    });
   });
 
-  function expectSubscriptionList(subscriptionResponse: Subscription = fakeSubscriptionResponse(), apiId: string) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}`).flush(subscriptionResponse);
+  function expectSubscriptionList(subscriptionResponse: Subscription = fakeSubscriptionResponse(), apiId: string, status: string) {
+    httpTestingController
+      .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}`)
+      .flush(subscriptionResponse);
   }
 });

@@ -29,9 +29,9 @@ export class SubscriptionService {
     private configService: ConfigService,
   ) {}
 
-  list(apiId: string): Observable<Subscription> {
+  list(apiId: string, statuses: string | null): Observable<Subscription> {
     return this.http.get<Subscription>(`${this.configService.baseURL}/subscriptions`, {
-      params: { apiId: apiId },
+      params: { apiId: apiId, statuses: statuses ?? [] },
     });
   }
 }

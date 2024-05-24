@@ -35,6 +35,15 @@ export interface SubscriptionData {
 export interface SubscriptionLinks {
   self?: string;
 }
+
 export interface SubscriptionMetadata {
   [key: string]: { [key: string]: object | string };
 }
+
+export const SubscriptionStatusEnum = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  CLOSED: 'CLOSED',
+  REJECTED: 'REJECTED',
+  PAUSED: 'PAUSED',
+};
