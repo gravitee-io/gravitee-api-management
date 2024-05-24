@@ -71,6 +71,11 @@ const executor = {
   },
 };
 
+const helm = {
+  defaultVersion: 'v3.12.3',
+  helmUnitVersion: '0.2.11',
+};
+
 const jobContext = ['cicd-orchestrator'];
 
 const maven = {
@@ -136,6 +141,7 @@ export const config = {
   cache,
   dockerImages,
   executor,
+  helm,
   jobContext,
   maven,
   orbs,
