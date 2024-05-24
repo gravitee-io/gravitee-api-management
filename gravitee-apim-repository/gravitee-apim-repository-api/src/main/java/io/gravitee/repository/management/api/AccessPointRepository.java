@@ -15,10 +15,7 @@
  */
 package io.gravitee.repository.management.api;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.AccessPointCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
@@ -39,8 +36,6 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
         final String referenceId,
         final AccessPointTarget target
     ) throws TechnicalException;
-
-    Page<AccessPoint> findByCriteria(AccessPointCriteria criteria, Pageable pageable) throws TechnicalException;
 
     List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) throws TechnicalException;
 }

@@ -26,7 +26,6 @@ import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import java.util.Date;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -56,7 +55,6 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 if (ap.getId() == null) {
                     ap.setId(UuidString.generateRandom());
                 }
-                ap.setUpdatedAt(new Date());
                 io.gravitee.repository.management.model.AccessPoint createdAccessPoint = accessPointRepository.create(ap);
                 eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
             }
@@ -72,10 +70,6 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 AccessPointReferenceType.valueOf(referenceType.name()),
                 referenceId
             );
-
-            //TODO: add to repo with deleted status for synchronization and then handle add/remove on deployer?
-            //TODO: Or use event service for update and delete access points events and use this in the synchronizer
-
             if (deleteAccessPoints != null) {
                 deleteAccessPoints
                     .stream()

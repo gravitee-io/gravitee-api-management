@@ -26,7 +26,6 @@ import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchron
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
@@ -40,7 +39,6 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationM
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
@@ -53,7 +51,6 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.organiz
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SubscriptionSynchronizer;
 import io.gravitee.node.api.Node;
-import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
@@ -123,14 +120,6 @@ public class RepositorySyncConfiguration {
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
         return new LicenseFetcher(licenseRepository, bulkItems);
-    }
-
-    @Bean
-    public AccessPointFetcher accessPointFetcher(
-        AccessPointRepository accessPointRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
-        return new AccessPointFetcher(accessPointRepository, bulkItems);
     }
 
     @Bean
@@ -250,16 +239,6 @@ public class RepositorySyncConfiguration {
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
         return new LicenseSynchronizer(licenseFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
-    }
-
-    @Bean
-    public AccessPointSynchronizer accessPointSynchronizer(
-        AccessPointFetcher accessPointFetcher,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
-        return new AccessPointSynchronizer(accessPointFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean

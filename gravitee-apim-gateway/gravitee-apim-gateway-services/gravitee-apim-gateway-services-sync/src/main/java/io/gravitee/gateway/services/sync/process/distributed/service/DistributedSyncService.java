@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.service;
 
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
@@ -54,6 +53,4 @@ public interface DistributedSyncService {
     Completable distributeIfNeeded(final DictionaryDeployable deployable);
 
     Completable distributeIfNeeded(final LicenseDeployable deployable);
-
-    Completable distributeIfNeeded(final AccessPointDeployable deployable);
 }
