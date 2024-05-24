@@ -1970,10 +1970,10 @@ components:
                           $ref: "#/components/schemas/PrimaryOwner"
                       categories:
                           type: array
-                          description: The list of category ids associated with this API.
+                          description: The list of category keys associated with this API.
                           example:
-                              - 6c530064-0b2c-4004-9300-640b2ce0047b
-                              - 12559b64-0b2c-4004-9300-640b2ce0047b
+                              - health
+                              - media
                           items:
                               type: string
                       definitionContext:
@@ -2324,10 +2324,12 @@ components:
                     $ref: "#/components/schemas/Visibility"
                 categories:
                     type: array
-                    description: The list of category ids associated with this API.
+                    description: The list of category ids or keys associated with this API.
                     example:
                         - 6c530064-0b2c-4004-9300-640b2ce0047b
                         - 12559b64-0b2c-4004-9300-640b2ce0047b
+                        - media
+                        - health
                     items:
                         type: string
                 labels:

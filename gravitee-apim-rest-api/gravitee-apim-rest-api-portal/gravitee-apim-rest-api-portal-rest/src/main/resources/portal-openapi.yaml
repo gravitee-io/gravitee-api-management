@@ -3799,7 +3799,7 @@ components:
           type: boolean
           description: Whether or not the API is running.
         entrypoints:
-          description: List of all the avaible endpoints to call the API.
+          description: List of all the available endpoints to call the API.
           type: array
           items:
             type: string
@@ -3811,7 +3811,7 @@ components:
         owner:
           $ref: '#/components/schemas/User'
         created_at:
-          description: create date and time.
+          description: Create date and time.
           type: string
           format: date-time
         updated_at:
@@ -3819,7 +3819,9 @@ components:
           type: string
           format: date-time
         categories:
-          description: List of categories this API belongs to.
+          description: |
+                List of category keys this API belongs to.
+                Example: ["media", "health"]
           type: array
           items:
             type: string
