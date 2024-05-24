@@ -17,6 +17,7 @@ import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../../orbs';
 import { BaseExecutor } from '../../executors';
+import { config } from '../../config';
 
 export class TestApimChartsJob {
   private static jobName = 'job-test-apim-charts';
@@ -26,10 +27,10 @@ export class TestApimChartsJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: 'v3.12.3' }),
+      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: config.helm.defaultVersion }),
       new commands.Run({
         name: 'Install helm-unittest plugin',
-        command: `helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11`,
+        command: `helm plugin install https://github.com/quintush/helm-unittest --version ${config.helm.helmUnitVersion}`,
       }),
       new commands.Run({
         name: 'Lint the helm charts available in helm/',
