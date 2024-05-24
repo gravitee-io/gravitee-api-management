@@ -48,6 +48,11 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+<<<<<<< HEAD
+=======
+import io.gravitee.rest.api.service.common.ReferenceContext;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.Date;

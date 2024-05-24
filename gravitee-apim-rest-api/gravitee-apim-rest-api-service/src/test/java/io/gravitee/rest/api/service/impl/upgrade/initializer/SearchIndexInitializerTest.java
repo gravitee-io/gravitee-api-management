@@ -224,6 +224,7 @@ public class SearchIndexInitializerTest {
         assertEquals(InitializerOrder.SEARCH_INDEX_INITIALIZER, initializer.getOrder());
     }
 
+<<<<<<< HEAD
     private void mockTestApis() throws Exception {
         Stream<Api> apis = Stream.of(
             mockTestApi("api1", "env1"),
@@ -232,6 +233,33 @@ public class SearchIndexInitializerTest {
             mockTestApi("api4", "env3")
         );
         when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(apis);
+=======
+    private void givenExistingApis(Api... apis) {
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(apis));
+
+        Stream
+            .of(apis)
+            .forEach(api -> {
+                if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+                    lenient()
+                        .when(apiIndexerDomainService.toIndexableApi(any(Indexer.IndexationContext.class), any()))
+                        .thenAnswer(invocation ->
+                            new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
+                        );
+                } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+                    lenient()
+                        .when(apiConverter.toApiEntity(any(), any(), any(), eq(false)))
+                        .thenReturn(
+                            ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
+                        );
+                    lenient()
+                        .when(apiConverter.toApiEntity(any(), any()))
+                        .thenReturn(
+                            ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
+                        );
+                }
+            });
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
     }
 
     private Api mockTestApi(String apiId, String environmentId) {

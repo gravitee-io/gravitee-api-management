@@ -19,7 +19,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+=======
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -330,6 +334,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected CategoryDomainService categoryDomainService;
 
     public AbstractResourceTest() {
         super(

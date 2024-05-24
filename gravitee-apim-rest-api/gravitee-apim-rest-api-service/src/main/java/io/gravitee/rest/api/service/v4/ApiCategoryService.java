@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Map;

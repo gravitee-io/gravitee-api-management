@@ -18,6 +18,20 @@ package io.gravitee.rest.api.management.v2.rest.resource;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
+<<<<<<< HEAD
+=======
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
+import inmemory.InMemoryAlternative;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.management.v2.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfiguration;
@@ -112,7 +126,47 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected ApiWorkflowStateService apiWorkflowStateService;
 
+<<<<<<< HEAD
     @Before
+=======
+    @Autowired
+    protected RoleService roleService;
+
+    @Autowired
+    protected ApiDuplicatorService apiDuplicatorService;
+
+    @Autowired
+    protected ApiDuplicateService apiDuplicateService;
+
+    @Autowired
+    protected VerifyApiPathDomainService verifyApiPathDomainService;
+
+    @Autowired
+    protected ParametersQueryServiceInMemory parametersQueryService;
+
+    @Autowired
+    protected RoleQueryServiceInMemory roleQueryService;
+
+    @Autowired
+    protected UserCrudServiceInMemory userCrudService;
+
+    @Autowired
+    protected ApiCrudServiceInMemory apiCrudService;
+
+    @Autowired
+    protected PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService;
+
+    @Autowired
+    protected MembershipQueryServiceInMemory membershipQueryServiceInMemory;
+
+    @Autowired
+    protected GroupQueryServiceInMemory groupQueryServiceInMemory;
+
+    @Autowired
+    protected CategoryDomainService categoryDomainService;
+
+    @BeforeEach
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }

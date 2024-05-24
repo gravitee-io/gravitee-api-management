@@ -132,6 +132,7 @@ import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
@@ -144,9 +145,21 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+<<<<<<< HEAD
 import io.gravitee.rest.api.service.v4.*;
+=======
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -289,6 +302,9 @@ public class ApiServiceImplTest {
     @Mock
     private TagsValidationService tagsValidationService;
 
+    @Mock
+    private CategoryMapper categoryMapper;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -357,7 +373,8 @@ public class ApiServiceImplTest {
                 apiNotificationService,
                 tagsValidationService,
                 apiAuthorizationService,
-                groupService
+                groupService,
+                categoryMapper
             );
         apiSearchService =
             new ApiSearchServiceImpl(

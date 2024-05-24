@@ -198,10 +198,17 @@ public class SearchIndexInitializer implements Initializer {
             LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
         }
         try {
+<<<<<<< HEAD
             if (api.getDefinitionVersion() == DefinitionVersion.V4) {
                 indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
             } else {
                 indexable = apiConverter.toApiEntity(api, primaryOwner);
+=======
+            // V2 APIs have a null definitionVersion attribute in the Repository
+            if (api.getDefinitionVersion() == null) {
+                indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, false);
+                return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
             }
         } catch (Exception e) {
             LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);

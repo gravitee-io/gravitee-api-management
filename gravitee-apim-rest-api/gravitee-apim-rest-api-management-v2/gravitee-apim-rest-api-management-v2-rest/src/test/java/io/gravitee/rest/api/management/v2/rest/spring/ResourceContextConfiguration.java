@@ -17,7 +17,42 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+<<<<<<< HEAD
 import io.gravitee.node.api.license.NodeLicenseService;
+=======
+import fakes.spring.FakeConfiguration;
+import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
+import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
+import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
+import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
+import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
+import io.gravitee.node.api.license.LicenseManager;
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -119,6 +154,11 @@ public class ResourceContextConfiguration {
     @Bean
     public EntrypointConnectorPluginService entrypointConnectorPluginService() {
         return mock(EntrypointConnectorPluginService.class);
+    }
+
+    @Bean
+    public CategoryDomainService categoryDomainService() {
+        return mock(CategoryDomainService.class);
     }
 
     @Bean

@@ -95,16 +95,26 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findV4RepositoryApiById(executionContext, apiId);
+<<<<<<< HEAD
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
+=======
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+        return apiMapper.toEntity(executionContext, api, primaryOwner, true);
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
     }
 
     @Override
     public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findRepositoryApiById(executionContext, apiId);
+<<<<<<< HEAD
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
         return genericApiMapper.toGenericApi(executionContext, api, primaryOwner, categories);
+=======
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+        return genericApiMapper.toGenericApi(executionContext, api, primaryOwner);
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
     }
 
     @Override
@@ -275,9 +285,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         Stream<GenericApiEntity> apisStream;
 
         if (mapToFullGenericApiEntity) {
-            final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-            apisStream =
-                apis.stream().map(api -> genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()), categories));
+            apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId())));
         } else {
             // Map to simple GenericApiEntity
             apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())));
@@ -437,10 +445,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             log.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
-        final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-
         return streamApis
-            .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId()), categories))
+            .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
             .collect(Collectors.toSet());
     }
 }

@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+<<<<<<< HEAD
+=======
+import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.apim.core.api.model.Api.*;
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -122,6 +127,8 @@ public class ApiSubscriptionsResource_CloseTest extends ApiSubscriptionsResource
 
         when(subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
             .thenReturn(subscriptionEntity.toBuilder().status(SubscriptionStatus.CLOSED).build());
+
+        apiCrudService.initWith(List.of(builder().id(API).build()));
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(OK_200, response.getStatus());

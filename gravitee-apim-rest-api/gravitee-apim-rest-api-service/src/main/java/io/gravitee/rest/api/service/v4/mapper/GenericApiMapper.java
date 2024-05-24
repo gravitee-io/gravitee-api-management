@@ -48,16 +48,17 @@ public class GenericApiMapper {
         }
     }
 
-    public GenericApiEntity toGenericApi(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        final List<CategoryEntity> categories
-    ) {
+    public GenericApiEntity toGenericApi(final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+<<<<<<< HEAD
             return apiMapper.toEntity(executionContext, api, primaryOwner, categories, true);
+=======
+            return apiMapper.toEntity(executionContext, api, primaryOwner, true);
+        } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
+>>>>>>> 5daac60c8f (feat(service): save category id instead of key in apis table and REST responds with category key)
         } else {
-            return apiConverter.toApiEntity(executionContext, api, primaryOwner, categories, true);
+            return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
         }
     }
 }
