@@ -46,7 +46,12 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
     const roleName = 'IMPORT_TEST_ROLE';
     let importedApi: ApiV4;
     let member: UserEntity;
+<<<<<<< HEAD
     let primaryOwner: UserEntity;
+=======
+    let memberWithUnknownRole: UserEntity;
+    let memberWithNoRole: UserEntity;
+>>>>>>> c3e3c6d451 (refactor(import): fallback to default API role on membert imports)
     let customRole: RoleEntity;
 
     test('should create member, primary owner and custom role', async () => {
@@ -58,7 +63,19 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
         }),
       );
 
+<<<<<<< HEAD
       primaryOwner = await succeed(
+=======
+      memberWithUnknownRole = await succeed(
+        v1UsersResourceAsAdmin.createUserRaw({
+          orgId,
+          envId,
+          newPreRegisterUserEntity: UsersFaker.newNewPreRegisterUserEntity(),
+        }),
+      );
+
+      memberWithNoRole = await succeed(
+>>>>>>> c3e3c6d451 (refactor(import): fallback to default API role on membert imports)
         v1UsersResourceAsAdmin.createUserRaw({
           orgId,
           envId,
@@ -98,6 +115,21 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
                   },
                 ],
               }),
+              MAPIV2MembersFaker.member({
+                id: memberWithUnknownRole.id,
+                displayName: member.displayName,
+                roles: [
+                  {
+                    name: 'NOT_FOUND',
+                    scope: customRole.scope,
+                  },
+                ],
+              }),
+              MAPIV2MembersFaker.member({
+                id: memberWithNoRole.id,
+                displayName: member.displayName,
+                roles: [],
+              }),
             ],
           }),
         }),
@@ -123,11 +155,21 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
         }),
       );
       expect(members).toBeTruthy();
-      expect(members).toHaveLength(2);
+      expect(members).toHaveLength(4);
       const memberResult = members.find((m) => m.displayName === member.displayName);
       expect(memberResult.id).toBeTruthy();
       expect(memberResult.role).toEqual(customRole.name);
+<<<<<<< HEAD
       const poMemberResult = members.find((m) => m.displayName === primaryOwner.displayName);
+=======
+      const memberWithUnknownRoleResult = members.find((m) => m.displayName === memberWithUnknownRole.displayName);
+      expect(memberWithUnknownRoleResult.id).toBeTruthy();
+      expect(memberWithUnknownRoleResult.role).toEqual('USER');
+      const memberWithNoRoleResult = members.find((m) => m.displayName === memberWithNoRole.displayName);
+      expect(memberWithNoRoleResult.id).toBeTruthy();
+      expect(memberWithNoRoleResult.role).toEqual('USER');
+      const poMemberResult = members.find((m) => m.displayName === process.env.API_USERNAME);
+>>>>>>> c3e3c6d451 (refactor(import): fallback to default API role on membert imports)
       expect(poMemberResult.id).toBeTruthy();
       expect(poMemberResult.role).toEqual('PRIMARY_OWNER');
     });

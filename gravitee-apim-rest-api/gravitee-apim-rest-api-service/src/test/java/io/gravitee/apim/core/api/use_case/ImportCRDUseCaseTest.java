@@ -283,7 +283,8 @@ class ImportCRDUseCaseTest {
                 apiImportDomainService,
                 mock(ApiPrimaryOwnerDomainService.class),
                 membershipCrudServiceInMemory,
-                membershipQueryServiceInMemory
+                membershipQueryServiceInMemory,
+                groupQueryService
             );
 
         parametersQueryService.initWith(
@@ -296,6 +297,7 @@ class ImportCRDUseCaseTest {
             .thenAnswer(invocation -> invocation.getArgument(1));
         when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
 
+<<<<<<< HEAD
         // Simulate API creation for while we are using Legacy services
         when(createApiDomainService.create(any(ApiCRD.class), any(AuditInfo.class)))
             .thenAnswer(invocation -> {
@@ -316,6 +318,14 @@ class ImportCRDUseCaseTest {
                     .lifecycleState(Api.LifecycleState.valueOf(apiCRD.getState()))
                     .build();
             });
+=======
+        roleQueryService.resetSystemRoles(ORGANIZATION_ID);
+        givenExistingUsers(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
+
+        groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
+>>>>>>> c3e3c6d451 (refactor(import): fallback to default API role on membert imports)
     }
 
     @AfterEach
@@ -750,7 +760,7 @@ class ImportCRDUseCaseTest {
             .type("PROXY")
             .version("1.0.0")
             .visibility("PRIVATE")
-            .groups(Set.of(GROUP_ID))
+            .groups(Set.of(GROUP_ID, "non-existing-group"))
             .build();
     }
 
