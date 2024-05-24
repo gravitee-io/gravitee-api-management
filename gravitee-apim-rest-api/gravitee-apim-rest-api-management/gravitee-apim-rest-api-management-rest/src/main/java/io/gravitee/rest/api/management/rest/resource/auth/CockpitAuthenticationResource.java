@@ -113,7 +113,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @PostConstruct
     public void afterPropertiesSet() {
-        enabled = environment.getProperty("cockpit.enabled", Boolean.class, false);
+        enabled = getProperty("cockpit.enabled", "cloud.enabled", Boolean.class, false);
 
         if (enabled) {
             try {
@@ -216,33 +216,35 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     private Key getPublicKey() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         final KeyStore trustStore = loadTrustStore();
         final Certificate cert = trustStore.getCertificate(
-            getProperty("cockpit.connector.ws.ssl.keystore.key.alias", "cockpit.keystore.key.alias", "cockpit-client")
+            getProperty("cockpit.keystore.key.alias", "cloud.connector.ws.ssl.keystore.key.alias", "cockpit-client")
         );
 
         return cert.getPublicKey();
     }
 
     private KeyStore loadTrustStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
-        final KeyStore keystore = KeyStore.getInstance(
-            getProperty("cockpit.connector.ws.ssl.keystore.type", "cockpit.keystore.type", null)
-        );
+        final KeyStore keystore = KeyStore.getInstance(getProperty("cockpit.keystore.type", "cloud.connector.ws.ssl.keystore.type", null));
 
         try (
-            InputStream is = new File(getProperty("cockpit.connector.ws.ssl.keystore.path", "cockpit.keystore.path", null))
+            InputStream is = new File(getProperty("cockpit.keystore.path", "cloud.connector.ws.ssl.keystore.path", null))
                 .toURI()
                 .toURL()
                 .openStream()
         ) {
-            final String password = getProperty("cockpit.connector.ws.ssl.keystore.password", "cockpit.keystore.password", null);
+            final String password = getProperty("cockpit.keystore.password", "cloud.connector.ws.ssl.keystore.password", null);
             keystore.load(is, null == password ? null : password.toCharArray());
         }
         return keystore;
     }
 
     private String getProperty(final String property, final String fallback, final String defaultValue) {
-        String value = environment.getProperty(property);
+        return getProperty(property, fallback, String.class, defaultValue);
+    }
+
+    <T> T getProperty(final String property, final String fallback, Class<T> targetType, final T defaultValue) {
+        T value = environment.getProperty(property, targetType);
         if (value == null) {
-            value = environment.getProperty(fallback);
+            value = environment.getProperty(fallback, targetType);
         }
         return value != null ? value : defaultValue;
     }

@@ -18,18 +18,16 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
- *
- * Usefull to validate retro-compatibility after rebranding
  */
-public class CockpitAuthenticationResourceTest extends AbstractCloudAuthenticationResourceTest {
+public class CloudAuthenticationResourceTest extends AbstractCloudAuthenticationResourceTest {
 
     @Override
     protected String getPropertyPrefix() {
-        return "cockpit";
+        return "cloud";
     }
 
     @Override
     protected String getKeystorePropertyPrefix() {
-        return "cockpit";
+        return "cloud.connector.ws.ssl";
     }
 }

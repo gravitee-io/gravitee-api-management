@@ -44,7 +44,7 @@ public class InstallationServiceImpl implements InstallationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstallationServiceImpl.class);
 
-    @Value("${cockpit.url:https://cockpit.gravitee.io}")
+    @Value("${cockpit.url:${cloud.url:https://cockpit.gravitee.io}}")
     private String cockpitURL;
 
     @Lazy
