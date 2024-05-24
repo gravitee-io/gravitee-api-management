@@ -30,7 +30,21 @@ export class CategoryService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public list(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.constants.env.baseURL}/configuration/categories`);
+  public list(includeTotalApis = false): Observable<Category[]> {
+    return this.http.get<Category[]>(
+      `${this.constants.env.baseURL}/configuration/categories${includeTotalApis ? '?include=total-apis' : ''}`,
+    );
+  }
+
+  public update(category: Category): Observable<Category> {
+    return this.http.put<Category>(`${this.constants.env.baseURL}/configuration/categories/${category.id}`, category);
+  }
+
+  public updateList(categoryList: Category[]): Observable<Category[]> {
+    return this.http.put<Category[]>(`${this.constants.env.baseURL}/configuration/categories`, categoryList);
+  }
+
+  public delete(categoryId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/categories/${categoryId}`);
   }
 }
