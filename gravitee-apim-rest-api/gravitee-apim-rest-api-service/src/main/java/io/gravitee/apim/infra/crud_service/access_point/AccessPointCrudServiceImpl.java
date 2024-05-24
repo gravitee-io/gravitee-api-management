@@ -22,8 +22,11 @@ import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
-import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
@@ -38,10 +41,16 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
 
     private final AccessPointRepository accessPointRepository;
     private EventManager eventManager;
+    private EventService eventService;
 
-    public AccessPointCrudServiceImpl(@Lazy AccessPointRepository accessPointRepository, EventManager eventManager) {
+    public AccessPointCrudServiceImpl(
+        @Lazy AccessPointRepository accessPointRepository,
+        EventManager eventManager,
+        EventService eventService
+    ) {
         this.accessPointRepository = accessPointRepository;
         this.eventManager = eventManager;
+        this.eventService = eventService;
     }
 
     @Override
@@ -51,19 +60,28 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         final List<AccessPoint> accessPoints
     ) {
         try {
-            Date updateStartTime = new Date();
+            this.deleteAccessPoints(referenceType, referenceId);
+
             for (AccessPoint accessPoint : accessPoints) {
                 var ap = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
                 if (ap.getId() == null) {
                     ap.setId(UuidString.generateRandom());
                 }
                 ap.setUpdatedAt(new Date());
-                ap.setStatus(io.gravitee.repository.management.model.AccessPoint.Status.CREATED);
                 io.gravitee.repository.management.model.AccessPoint createdAccessPoint = accessPointRepository.create(ap);
                 eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
-            }
 
-            this.deleteAccessPointsBeforeUpdateTime(referenceType, referenceId, updateStartTime);
+                if (
+                    ap.getTarget().equals(AccessPointTarget.GATEWAY) && ap.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT)
+                ) {
+                    eventService.createAccessPointGatewayEvent(
+                        new ExecutionContext(null, ap.getReferenceId()),
+                        Collections.singleton(ap.getReferenceId()),
+                        EventType.PUBLISH_ACCESS_POINT,
+                        createdAccessPoint
+                    );
+                }
+            }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while creating access points", e);
         }
@@ -71,32 +89,28 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
 
     @Override
     public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
-        this.deleteAccessPointsBeforeUpdateTime(referenceType, referenceId, null);
-    }
-
-    private void deleteAccessPointsBeforeUpdateTime(
-        final AccessPoint.ReferenceType referenceType,
-        final String referenceId,
-        Date updateStartTime
-    ) {
         try {
-            AccessPointCriteria accessPointCriteria = AccessPointCriteria
-                .builder()
-                .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
-                .referenceIds(Collections.singletonList(referenceId))
-                .status(io.gravitee.repository.management.model.AccessPoint.Status.CREATED)
-                .to(updateStartTime.getTime())
-                .build();
-            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.updateStatusByCriteria(
-                accessPointCriteria,
-                io.gravitee.repository.management.model.AccessPoint.Status.DELETED
+            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.deleteByReference(
+                AccessPointReferenceType.valueOf(referenceType.name()),
+                referenceId
             );
 
             if (deleteAccessPoints != null) {
-                deleteAccessPoints
-                    .stream()
-                    .map(AccessPointAdapter.INSTANCE::toEntity)
-                    .forEach(accessPoint -> eventManager.publishEvent(AccessPointEvent.DELETED, accessPoint));
+                for (io.gravitee.repository.management.model.AccessPoint accessPoint : deleteAccessPoints) {
+                    eventManager.publishEvent(AccessPointEvent.DELETED, AccessPointAdapter.INSTANCE.toEntity(accessPoint));
+
+                    if (
+                        accessPoint.getTarget().equals(AccessPointTarget.GATEWAY) &&
+                        accessPoint.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT)
+                    ) {
+                        eventService.createAccessPointGatewayEvent(
+                            new ExecutionContext(null, accessPoint.getReferenceId()),
+                            Collections.singleton(accessPoint.getReferenceId()),
+                            EventType.UNPUBLISH_ACCESS_POINT,
+                            accessPoint
+                        );
+                    }
+                }
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while deleting access points", e);
