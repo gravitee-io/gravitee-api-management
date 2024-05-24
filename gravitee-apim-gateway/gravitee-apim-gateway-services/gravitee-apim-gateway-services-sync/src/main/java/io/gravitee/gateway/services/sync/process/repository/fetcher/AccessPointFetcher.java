@@ -20,7 +20,6 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
-import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
@@ -39,7 +38,7 @@ public class AccessPointFetcher {
     @Accessors(fluent = true)
     private final int bulkItems;
 
-    public Flowable<List<AccessPoint>> fetchLatest(Long from, Long to, List<String> environments, AccessPointStatus status) {
+    public Flowable<List<AccessPoint>> fetchLatest(Long from, Long to, List<String> environments, AccessPoint.Status status) {
         return Flowable.generate(
             () ->
                 AccessPointPageable

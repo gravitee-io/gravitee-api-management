@@ -20,7 +20,6 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
-import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.repository.mongodb.management.internal.domain.AccessPointMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
@@ -66,7 +65,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     @Override
     public Optional<AccessPoint> findByHost(final String host) {
         log.debug("Find access point by host [{}]", host);
-        final AccessPointMongo accessPointMongo = internalRepository.findByHost(host, AccessPointStatus.CREATED);
+        final AccessPointMongo accessPointMongo = internalRepository.findByHost(host, AccessPoint.Status.CREATED);
         AccessPoint res = map(accessPointMongo);
         log.debug("Find access point by host value [{}] - Done", host);
         return Optional.ofNullable(res);
@@ -82,7 +81,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
             referenceType.name(),
             referenceId,
             target.name(),
-            AccessPointStatus.CREATED
+            AccessPoint.Status.CREATED
         );
         return accessPointMongos.stream().map(this::map).toList();
     }
@@ -95,7 +94,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
 
     @Override
     public List<AccessPoint> findByTarget(final AccessPointTarget target) {
-        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTarget(target.name(), AccessPointStatus.CREATED);
+        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTarget(target.name(), AccessPoint.Status.CREATED);
         return accessPointMongos.stream().map(this::map).toList();
     }
 
@@ -108,7 +107,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     }
 
     @Override
-    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, AccessPointStatus status) throws TechnicalException {
+    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, AccessPoint.Status status) throws TechnicalException {
         List<AccessPointMongo> accessPointMongos = internalRepository.search(criteria, null, null);
 
         for (AccessPointMongo accessPointMongo : accessPointMongos) {
