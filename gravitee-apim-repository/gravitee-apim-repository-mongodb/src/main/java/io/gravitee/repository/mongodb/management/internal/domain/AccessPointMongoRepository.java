@@ -29,13 +29,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccessPointMongoRepository extends MongoRepository<AccessPointMongo, String>, AccessPointMongoRepositoryCustom {
     @Query(value = "{ 'host': ?0, 'status': ?1 }")
-    AccessPointMongo findByHostAndStatus(String host, AccessPointStatus status);
+    AccessPointMongo findByHost(String host, AccessPointStatus status);
 
     @Query(value = "{ 'target': ?0, 'status': ?1 }")
-    List<AccessPointMongo> findAllByTargetAndStatus(final String target, AccessPointStatus status);
+    List<AccessPointMongo> findAllByTarget(final String target, AccessPointStatus status);
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1 , 'target': ?2, 'status': ?3 }")
-    List<AccessPointMongo> findAllByReferenceAndTargetAndStatus(
+    List<AccessPointMongo> findAllByReferenceAndTarget(
         final String referenceType,
         final String referenceIds,
         final String target,

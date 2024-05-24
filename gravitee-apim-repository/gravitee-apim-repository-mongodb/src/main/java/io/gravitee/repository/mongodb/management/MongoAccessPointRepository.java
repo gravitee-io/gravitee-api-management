@@ -66,7 +66,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     @Override
     public Optional<AccessPoint> findByHost(final String host) {
         log.debug("Find access point by host [{}]", host);
-        final AccessPointMongo accessPointMongo = internalRepository.findByHostAndStatus(host, AccessPointStatus.CREATED);
+        final AccessPointMongo accessPointMongo = internalRepository.findByHost(host, AccessPointStatus.CREATED);
         AccessPoint res = map(accessPointMongo);
         log.debug("Find access point by host value [{}] - Done", host);
         return Optional.ofNullable(res);
@@ -78,7 +78,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
         String referenceId,
         AccessPointTarget target
     ) {
-        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByReferenceAndTargetAndStatus(
+        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByReferenceAndTarget(
             referenceType.name(),
             referenceId,
             target.name(),
@@ -95,10 +95,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
 
     @Override
     public List<AccessPoint> findByTarget(final AccessPointTarget target) {
-        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTargetAndStatus(
-            target.name(),
-            AccessPointStatus.CREATED
-        );
+        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTarget(target.name(), AccessPointStatus.CREATED);
         return accessPointMongos.stream().map(this::map).toList();
     }
 
