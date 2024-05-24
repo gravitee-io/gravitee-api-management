@@ -14,35 +14,40 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatOption, MatSelect } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, startWith, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { SubscriptionMetadata, SubscriptionData } from '../../../entities/subscription/subscription';
+import { SubscriptionMetadata, SubscriptionData, SubscriptionStatusEnum } from '../../../entities/subscription/subscription';
 import { CapitalizeFirstPipe } from '../../../pipe/capitalize-first.pipe';
 import { SubscriptionService } from '../../../services/subscription.service';
 
 @Component({
   selector: 'app-api-tab-subscriptions',
   standalone: true,
-  imports: [AsyncPipe, MatTableModule, MatIcon, CapitalizeFirstPipe],
   providers: [CapitalizeFirstPipe],
+  imports: [AsyncPipe, MatTableModule, MatIcon, CapitalizeFirstPipe, MatFormField, MatLabel, MatSelect, ReactiveFormsModule, MatOption],
   templateUrl: './api-tab-subscriptions.component.html',
   styleUrl: './api-tab-subscriptions.component.scss',
 })
-export class ApiTabSubscriptionsComponent implements OnInit {
+export class ApiTabSubscriptionsComponent {
   @Input()
   apiId!: string;
 
-  subscriptionsList$!: Observable<SubscriptionData[]>;
-  displayedColumns: string[] = ['application', 'plan', 'status', 'expand'];
-  private subscriptionService = inject(SubscriptionService);
+  public displayedColumns: string[] = ['application', 'plan', 'status', 'expand'];
+  public subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
+  public subscriptionsStatus = new FormControl();
+  public subscriptionsList$!: Observable<SubscriptionData[]>;
 
-  constructor(private capitalizeFirstPipe: CapitalizeFirstPipe) {}
-
-  ngOnInit(): void {
+  constructor(
+    private capitalizeFirstPipe: CapitalizeFirstPipe,
+    private subscriptionService: SubscriptionService,
+  ) {
     this.subscriptionsList$ = this.loadSubscriptions$();
   }
 
@@ -55,7 +60,10 @@ export class ApiTabSubscriptionsComponent implements OnInit {
   }
 
   private loadSubscriptions$(): Observable<SubscriptionData[]> {
-    return this.subscriptionService.list(this.apiId).pipe(
+    return this.subscriptionsStatus.valueChanges.pipe(
+      map(status => status.map((value: string) => value.toUpperCase())),
+      startWith(this.subscriptionsStatus.value),
+      switchMap(status => this.subscriptionService.list(this.apiId, status)),
       map(response => {
         return response.data
           ? response.data.map(sub => ({
