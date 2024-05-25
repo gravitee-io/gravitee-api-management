@@ -20,6 +20,8 @@ import { Observable } from 'rxjs';
 
 import { Category } from '../entities/category/Category';
 import { Constants } from '../entities/Constants';
+import { NewCategory } from '../entities/category/NewCategory';
+import { UpdateCategory } from '../entities/category/UpdateCategory';
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +38,7 @@ export class CategoryService {
     );
   }
 
-  public update(category: Category): Observable<Category> {
+  public update(category: UpdateCategory): Observable<Category> {
     return this.http.put<Category>(`${this.constants.env.baseURL}/configuration/categories/${category.id}`, category);
   }
 
@@ -46,5 +48,13 @@ export class CategoryService {
 
   public delete(categoryId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/categories/${categoryId}`);
+  }
+
+  public get(categoryId: string): Observable<Category> {
+    return this.http.get<Category>(`${this.constants.env.baseURL}/configuration/categories/${categoryId}`);
+  }
+
+  public create(newCategory: NewCategory): Observable<Category> {
+    return this.http.post<Category>(`${this.constants.env.baseURL}/configuration/categories`, newCategory);
   }
 }
