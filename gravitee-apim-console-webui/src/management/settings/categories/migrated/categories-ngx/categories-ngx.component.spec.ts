@@ -33,6 +33,7 @@ import { EnvironmentSettingsService } from '../../../../../services-ngx/environm
 import { EnvSettings } from '../../../../../entities/Constants';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { UpdateCategory } from '../../../../../entities/category/UpdateCategory';
 
 describe('CategoriesNgxComponent', () => {
   let fixture: ComponentFixture<CategoriesNgxComponent>;
@@ -253,13 +254,13 @@ describe('CategoriesNgxComponent', () => {
   function expectGetCategoriesList(list: Category[] = []) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories?include=total-apis`).flush(list);
   }
-  function expectPutCategory(category: Category) {
+  function expectPutCategory(category: UpdateCategory) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories/${category.id}`);
     expect(req.request.body).toEqual(category);
     req.flush(category);
   }
 
-  function expectPutCategoryList(categoryList: Category[]) {
+  function expectPutCategoryList(categoryList: UpdateCategory[]) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories`);
     expect(req.request.body).toEqual(categoryList);
     req.flush(categoryList);

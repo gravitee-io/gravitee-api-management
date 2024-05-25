@@ -98,10 +98,6 @@ export class CategoriesNgxComponent implements OnInit {
     this.switchCategoryPlaces(categoryList[index + 1], categoryList[index]);
   }
 
-  createCategory() {
-    // console.log('create category');
-  }
-
   showCategory(category: Category) {
     const categoryToUpdate: Category = { ...category, hidden: false };
     this.categoryService

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Category {
+export interface UpdateCategory {
   id: string;
   name: string;
-  key: string;
   description?: string;
+  defaultCategory?: boolean;
   order?: number;
   /**
    * id of the page used for category documentation.
@@ -26,6 +26,8 @@ export interface Category {
   totalApis?: number;
   hidden?: boolean;
   highlightApi?: string;
+  picture?: string;
   picture_url?: string;
+  background?: string;
   background_url?: string;
 }
