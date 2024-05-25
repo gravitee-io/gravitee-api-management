@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Category {
-  id: string;
+export class NewCategory {
   name: string;
-  key: string;
   description?: string;
   order?: number;
   /**
    * id of the page used for category documentation.
    */
   page?: string;
-  totalApis?: number;
   hidden?: boolean;
   highlightApi?: string;
-  picture_url?: string;
-  background_url?: string;
+  picture?: string;
+  background?: string;
 }

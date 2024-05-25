@@ -19,7 +19,7 @@ import { isNil } from 'lodash';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { Page } from '../entities/page';
+import { Page, PageType } from '../entities/page';
 
 export interface DocumentationQuery {
   api?: string;
@@ -47,5 +47,17 @@ export class DocumentationService {
     return this.http.get<Page[]>(
       `${this.constants.env.baseURL}/apis/${apiId}/pages${queryParams.length ? `?${queryParams.join('&')}` : ''}`,
     );
+  }
+
+  listPortalPages(type: PageType, published: boolean): Observable<Page[]> {
+    const queryParams = [];
+    if (type) {
+      queryParams.push(`type=${type}`);
+    }
+    if (published) {
+      queryParams.push(`published=${published}`);
+    }
+
+    return this.http.get<Page[]>(`${this.constants.env.baseURL}/portal/pages${queryParams.length ? `?${queryParams.join('&')}` : ''}`);
   }
 }
