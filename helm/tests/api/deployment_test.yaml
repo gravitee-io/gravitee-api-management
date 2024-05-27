@@ -149,7 +149,7 @@ tests:
     set:
       apim:
         managedServiceAccount: false
-        serviceAccount: ""
+        serviceAccount:
     asserts:
       - hasDocuments:
           count: 1

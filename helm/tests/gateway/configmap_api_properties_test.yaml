@@ -6,7 +6,7 @@ tests:
     template: gateway/gateway-configmap.yaml
     asserts:
       - notMatchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             api:
               properties:
@@ -21,7 +21,7 @@ tests:
               secret: aSecret
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             api:
               properties:
@@ -39,7 +39,7 @@ tests:
           validateSubscription: true
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             api:
               properties:

@@ -105,10 +105,10 @@ tests:
             helm.sh/hook: pre-upgrade
             helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
       - equal:
-          path: metadata.annotations.[helm.sh/hook]
+          path: metadata.annotations["helm.sh/hook"]
           value: pre-upgrade
       - equal:
-          path: metadata.annotations.[helm.sh/hook-delete-policy]
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
           value: before-hook-creation,hook-succeeded
 
   - it: Check if the upgrader manifest is disabled by default
