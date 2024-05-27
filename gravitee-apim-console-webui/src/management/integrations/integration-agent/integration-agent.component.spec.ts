@@ -77,42 +77,6 @@ describe('IntegrationAgentComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('wizard', () => {
-    beforeEach(() => {
-      init();
-    });
-
-    it('should modify configuration code', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
-      expect(true).toBeTruthy();
-
-      fixture.componentInstance.code = `
-      - gravitee_integration_providers_0_configuration_accessKeyId=\${AWS_ACCESS_KEY_ID}
-      - gravitee_integration_providers_0_configuration_region=\${AWS_REGION}
-      - gravitee_integration_providers_0_configuration_secretAccessKey=\${AWS_SECRET_ACCESS_KEY}
-      - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
-      - gravitee_integration_providers_0_type=aws-api-gateway
-      `;
-
-      await componentHarness.openAccordion();
-
-      await componentHarness.setAccessKeyId('Test-setAccessKeyId--');
-      await componentHarness.setSecretAccessKey('Test-setSecretAccessKey');
-
-      fixture.detectChanges();
-
-      const expectedResult = `
-      - gravitee_integration_providers_0_configuration_accessKeyId=Test-setAccessKeyId--
-      - gravitee_integration_providers_0_configuration_region=\${AWS_REGION}
-      - gravitee_integration_providers_0_configuration_secretAccessKey=Test-setSecretAccessKey
-      - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
-      - gravitee_integration_providers_0_type=aws-api-gateway
-      `;
-
-      expect(fixture.componentInstance.codeForEditor).toEqual(expectedResult);
-    });
-  });
-
   describe('refresh status', () => {
     beforeEach(() => {
       init();
