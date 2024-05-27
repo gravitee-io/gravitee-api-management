@@ -15,15 +15,14 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -39,22 +38,23 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
     private final ApiImportExportService exportService;
 
-    private final ApiService apiService;
+    private final ApiCrudService apiCrudService;
 
     @Override
     public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity());
-        return generateAndSaveCrossId(spec, auditInfo);
+        return ensureCrossId(spec);
     }
 
-    private ApiCRDSpec generateAndSaveCrossId(ApiCRDSpec spec, AuditInfo auditInfo) {
+    private ApiCRDSpec ensureCrossId(ApiCRDSpec spec) {
         if (StringUtils.isEmpty(spec.getCrossId())) {
-            var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-            spec.setCrossId(UuidString.generateRandom());
-            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(spec);
-            apiService.update(executionContext, updateApiEntity.getId(), updateApiEntity, auditInfo.actor().userId());
+            var crossId = UuidString.generateRandom();
+            var api = apiCrudService.get(spec.getId());
+            api.setCrossId(crossId);
+            apiCrudService.update(api);
+            spec.setCrossId(crossId);
         }
         return spec;
     }

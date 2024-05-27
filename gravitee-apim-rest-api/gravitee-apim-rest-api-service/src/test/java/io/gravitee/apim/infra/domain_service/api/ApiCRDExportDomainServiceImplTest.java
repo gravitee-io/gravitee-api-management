@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -27,11 +29,9 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -57,13 +57,13 @@ class ApiCRDExportDomainServiceImplTest {
     ApiImportExportService exportService;
 
     @Mock
-    ApiService apiService;
+    ApiCrudService apiCrudService;
 
     ApiCRDExportDomainService apiCRDExportDomainService;
 
     @BeforeEach
     void setUp() {
-        apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(exportService, apiService);
+        apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(exportService, apiCrudService);
     }
 
     @Test
@@ -71,18 +71,16 @@ class ApiCRDExportDomainServiceImplTest {
         when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
             .thenReturn(exportApiEntity(apiEntity().build()));
 
+        when(apiCrudService.get(API_ID)).thenReturn(new Api());
+
         var spec = apiCRDExportDomainService.export(
             API_ID,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
-        verify(apiService, times(1))
-            .update(
-                eq(new ExecutionContext(ORG_ID, ENV_ID)),
-                eq(API_ID),
-                argThat(api -> StringUtils.isNotBlank(api.getCrossId())),
-                eq(USER_ID)
-            );
+        verify(apiCrudService, times(1)).get(API_ID);
+
+        verify(apiCrudService, times(1)).update(argThat(api -> StringUtils.isNotBlank(api.getCrossId())));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
@@ -105,7 +103,7 @@ class ApiCRDExportDomainServiceImplTest {
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
-        verify(apiService, never()).update(any(ExecutionContext.class), anyString(), any(UpdateApiEntity.class), anyString());
+        verify(apiCrudService, never()).update(any());
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
