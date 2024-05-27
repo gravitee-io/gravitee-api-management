@@ -21,10 +21,11 @@ import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.infra.adapter.GroupAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,6 +87,25 @@ public class GroupQueryServiceImpl implements GroupQueryService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups by event", ex);
+        }
+    }
+
+    @Override
+    public List<Group> findByName(String environmentId, String name) {
+        try {
+            log.debug("findByName {}", name);
+            if (name == null) {
+                return Collections.emptyList();
+            }
+            Set<io.gravitee.repository.management.model.Group> groups = groupRepository.findAllByEnvironment(environmentId);
+            return groups
+                .stream()
+                .filter(group -> group.getName().equals(name))
+                .map(GroupAdapter.INSTANCE::toModel)
+                .sorted(Comparator.comparing(Group::getName))
+                .toList();
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException("An error occurs while trying to find groups by name", ex);
         }
     }
 }

@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPaths;
@@ -47,6 +49,7 @@ import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -120,6 +123,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ImportApiDefinitionUseCase importApiDefinitionUseCase;
+
+    @Inject
+    private OAIToImportApiUseCase oaiToImportApiUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -213,6 +219,46 @@ public class ApisResource extends AbstractResource {
                     .status()
             )
             .build();
+    }
+
+    @POST
+    @Path("/_import/swagger")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    public Response createApiFromSwagger(@Valid @NotNull ImportSwaggerDescriptor descriptor) {
+        try {
+            var userDetails = getAuthenticatedUserDetails();
+            var executionContext = GraviteeContext.getExecutionContext();
+            var audit = AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build();
+            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder().payload(descriptor.getPayload()).build();
+
+            OAIToImportApiUseCase.Output output = oaiToImportApiUseCase.execute(
+                new OAIToImportApiUseCase.Input(importSwaggerDescriptor, audit)
+            );
+            ImportApiDefinitionUseCase.Output importOutput = importApiDefinitionUseCase.execute(
+                new ImportApiDefinitionUseCase.Input(output.importDefinition(), audit)
+            );
+            boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
+
+            return Response
+                .created(this.getLocationHeader(importOutput.apiWithFlows().getId()))
+                .entity(ApiMapper.INSTANCE.map(importOutput.apiWithFlows(), uriInfo, isSynchronized))
+                .build();
+        } catch (InvalidPathsException e) {
+            throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
     }
 
     @POST

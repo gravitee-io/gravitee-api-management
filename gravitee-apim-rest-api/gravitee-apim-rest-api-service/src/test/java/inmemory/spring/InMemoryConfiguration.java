@@ -269,4 +269,9 @@ public class InMemoryConfiguration {
     public ThemeQueryServiceInMemory themeQueryService() {
         return new ThemeQueryServiceInMemory();
     }
+
+    @Bean
+    public TagQueryServiceInMemory tagQueryService() {
+        return new TagQueryServiceInMemory();
+    }
 }

@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -45,6 +46,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
@@ -621,5 +623,15 @@ public class ResourceContextConfiguration {
     @Bean
     public RollbackApiUseCase rollbackApiUseCase() {
         return mock(RollbackApiUseCase.class);
+    }
+
+    @Bean
+    public OAIDomainService oaiDomainService() {
+        return mock(OAIDomainService.class);
+    }
+
+    @Bean
+    public EndpointConnectorPluginDomainService endpointConnectorPluginDomainService() {
+        return mock(EndpointConnectorPluginDomainService.class);
     }
 }
