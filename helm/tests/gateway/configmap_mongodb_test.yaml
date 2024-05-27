@@ -16,7 +16,7 @@ tests:
           authSource: authSource
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             management:
               type: mongodb
@@ -43,7 +43,7 @@ tests:
           source: authSource
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             management:
               type: mongodb
@@ -78,7 +78,7 @@ tests:
           source: authSource
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             management:
               type: mongodb
@@ -97,7 +97,7 @@ tests:
           keyPassword: 'keyPassword'
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             management:
               type: mongodb
@@ -128,7 +128,7 @@ tests:
           password: 'truststorePassword'
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             management:
               type: mongodb

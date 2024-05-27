@@ -12,7 +12,7 @@ tests:
             type: jaeger
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * tracing:\n
                      *  enabled: true"
   - it: Enable jaeger tracing and set common values
@@ -28,7 +28,7 @@ tests:
               port: 14250
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * tracing:\n
                      *  enabled: true\n
                      *  type: \"jaeger\"\n
@@ -60,7 +60,7 @@ tests:
                   type: "pem"
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * tracing:\n
                      *  enabled: true\n
                      *  type: \"jaeger\"\n

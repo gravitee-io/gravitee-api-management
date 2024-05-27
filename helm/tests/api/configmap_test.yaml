@@ -9,22 +9,22 @@ tests:
         key: value
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "expire-after: 604800"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "email-registration-expire-after: 86400"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "issuer: gravitee-management-auth"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "cookie-path: /"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "cookie-domain: apim.example.com"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "cookie-secure: false"
   - it: Set jwt attributes with provided values
     template: api/api-configmap.yaml
@@ -39,22 +39,22 @@ tests:
           secure: true
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "expire-after: 1000"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "email-registration-expire-after: 2000"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "issuer: gravitee-management-auth-test"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "cookie-path: /test"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "cookie-domain: apim.test"
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "cookie-secure: true"
   - it: Set console Pendo analytics attributes with provided values
     template: api/api-configmap.yaml
@@ -66,7 +66,7 @@ tests:
             apiKey: "myPendoKey"
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "apiKey: myPendoKey"
   - it: Set management.url with classical ingress path
     template: api/api-configmap.yaml
@@ -79,7 +79,7 @@ tests:
             - apim.example.com
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "management:\n  url: https://apim.example.com/console/"
   - it: Set management.url with a path containing authorized special characters
     template: api/api-configmap.yaml
@@ -92,7 +92,7 @@ tests:
             - apim.example.com
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "management:\n  url: https://apim.example.com/mg.mt_-_ui~/"
   - it: Set user password policy pattern
     template: api/api-configmap.yaml
@@ -104,7 +104,7 @@ tests:
               pattern: ^regex$
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "pattern: \\^regex\\$"
   - it: Check DB Less mode
     set:
@@ -122,7 +122,7 @@ tests:
       adminAccountEnable: false
     asserts:
       - notMatchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * users:\n
 				    *  - user:\n
                     *  - user:"
@@ -131,7 +131,7 @@ tests:
     template: api/api-configmap.yaml
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "gateway:\n  unknown-expire-after: 604800"
 
   - it: Set api.gateway.unknownExpireAfter to 60
@@ -142,5 +142,5 @@ tests:
           unknownExpireAfter: 60
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: "gateway:\n  unknown-expire-after: 60"
