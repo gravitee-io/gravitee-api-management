@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.group.query_service;
+package io.gravitee.apim.core.tag.model;
 
-import io.gravitee.apim.core.group.model.Group;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
 
-public interface GroupQueryService {
-    Optional<Group> findById(String id);
-    Set<Group> findByIds(Set<String> ids);
-    Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
-    List<Group> findByName(String environmentId, String name);
+@Data
+@Builder(toBuilder = true)
+@With
+public class Tag {
+
+    private String id;
+    private String name;
+    private String description;
+    private List<String> restrictedGroups;
+    private String referenceId;
+    private TagReferenceType referenceType;
+
+    public enum TagReferenceType {
+        ORGANIZATION,
+    }
 }

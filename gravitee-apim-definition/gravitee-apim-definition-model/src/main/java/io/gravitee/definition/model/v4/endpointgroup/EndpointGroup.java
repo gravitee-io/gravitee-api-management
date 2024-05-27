@@ -35,7 +35,7 @@ import lombok.*;
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  */
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
