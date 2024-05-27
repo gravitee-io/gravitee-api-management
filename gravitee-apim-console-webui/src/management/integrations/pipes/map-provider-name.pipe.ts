@@ -31,7 +31,7 @@ export class MapProviderNamePipe implements PipeTransform {
     kong: 'Kong',
     'ibm-api-connect': 'IBM API Connect',
     mulesoft: 'Mulesoft',
-    'dell-boomi': 'Dell Boomi',
+    'dell-boomi': 'Boomi',
   };
 
   transform(value: string): string {
