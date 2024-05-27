@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export const agentConfiguration: string = `
+const awsConfigurationCode = `
 version: '3.8'
 
 services:
@@ -31,3 +31,28 @@ services:
       - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
       - gravitee_integration_providers_0_type=aws-api-gateway
 `;
+
+const solaceConfigurationCode = `
+version: '3.8'
+
+services:
+  integration-agent:
+    image: \${APIM_REGISTRY:-graviteeio}/federation-agent-solace:\${AGENT_VERSION:-latest}
+    restart: always
+    environment:
+      - gravitee_integration_connector_ws_endpoints_0=\${WS_ENDPOINTS}
+      - gravitee_integration_connector_ws_headers_0_name=Authorization
+      - gravitee_integration_connector_ws_headers_0_value=bearer \${WS_AUTH_TOKEN}
+      - gravitee_integration_providers_0_configuration_authToken=\${SOLACE_AUTH_TOKEN}
+      - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
+      - gravitee_integration_providers_0_type=solace
+      - gravitee_integration_providers_0_configuration_url=\${SOLACE_ENDPOINT:-https://apim-production-api.solace.cloud/api/v2/apim}
+      # optionals
+      - gravitee_integration_providers_0_configuration_0_appDomains=\${SOLACE_APPLICATION_0_DOMAIN}
+      - gravitee_integration_providers_0_configuration_1_appDomains=\${SOLACE_APPLICATION_1_DOMAIN}
+`;
+
+export const configurationCode = {
+  'aws-api-gateway': awsConfigurationCode,
+  solace: solaceConfigurationCode,
+};
