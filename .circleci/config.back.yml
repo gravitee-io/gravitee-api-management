@@ -2005,7 +2005,7 @@ jobs:
                   version: v3.12.3
             - run:
                   name: install helm-unittest plugin
-                  command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
+                  command: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 0.5.1
             - cmd-helm-lint:
                   folder: helm/
             - cmd-helm-tests:

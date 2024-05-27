@@ -22,9 +22,9 @@ tests:
       - hasDocuments:
           count: 1
       - isNull:
-          path: data.logback\.xml
+          path: data["logback.xml"]
       - isNotNull:
-          path: data.gravitee\.yml
+          path: data["gravitee.yml"]
 
   - it: Should generate gateway-configmap.yaml  when logging.debug is true
     template: gateway/gateway-configmap.yaml
@@ -36,9 +36,9 @@ tests:
       - hasDocuments:
           count: 1
       - isNotNull:
-          path: data.logback\.xml
+          path: data["logback.xml"]
       - isNotNull:
-          path: data.gravitee\.yml
+          path: data["gravitee.yml"]
 
   - it: Should generate gateway-configmap.yaml when logging.debug is true and extraVolumes 'config' is defined
     template: gateway/gateway-configmap.yaml
@@ -54,9 +54,9 @@ tests:
       - hasDocuments:
           count: 1
       - isNotNull:
-          path: data.logback\.xml
+          path: data["logback.xml"]
       - isNull:
-          path: data.gravitee\.yml
+          path: data["gravitee.yml"]
 
   - it: Should generate a volume named config in gateway-deployment.yaml
     template: gateway/gateway-deployment.yaml
