@@ -16,7 +16,7 @@ tests:
           authSource: authSource
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * mongodb:\n
                      *  sslEnabled: true\n
                      *  socketKeepAlive: true\n
@@ -40,7 +40,7 @@ tests:
           source: authSource
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * mongodb:\n
                      *   sslEnabled: true\n
                      *   socketKeepAlive: true\n
@@ -72,7 +72,7 @@ tests:
           source: authSource
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * mongodb:\n
                      *   sslEnabled: true\n
                      *   socketKeepAlive: true\n
@@ -88,7 +88,7 @@ tests:
           keyPassword: 'keyPassword'
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * mongodb:\n
                     (.|\n)*\n
                      *   keystore:\n
@@ -106,7 +106,7 @@ tests:
           password: 'truststorePassword'
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * mongodb:\n
                     (.|\n)*\n
                      *   truststore:\n

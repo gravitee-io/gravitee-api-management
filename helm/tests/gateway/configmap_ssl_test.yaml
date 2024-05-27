@@ -19,7 +19,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *  secured: true\n
                      *  ssl:\n
                      *    keystore:\n
@@ -44,7 +44,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *  secured: true\n
                      *  ssl:\n
                      *    keystore:\n
@@ -67,7 +67,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *  secured: true\n
                      *  ssl:\n
                      *    keystore:\n
