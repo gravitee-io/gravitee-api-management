@@ -30,7 +30,7 @@ export class TestApimChartsJob {
       new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: config.helm.defaultVersion }),
       new commands.Run({
         name: 'Install helm-unittest plugin',
-        command: `helm plugin install https://github.com/quintush/helm-unittest --version ${config.helm.helmUnitVersion}`,
+        command: `helm plugin install https://github.com/helm-unittest/helm-unittest.git --version ${config.helm.helmUnitVersion}`,
       }),
       new commands.Run({
         name: 'Lint the helm charts available in helm/',
@@ -38,7 +38,7 @@ export class TestApimChartsJob {
       }),
       new commands.Run({
         name: 'Execute the units tests in helm/',
-        command: "helm unittest -3 -f 'tests/**/*.yaml' helm/ -t JUnit -o apim-result.xml",
+        command: "helm unittest -f 'tests/**/*.yaml' helm/ -t JUnit -o apim-result.xml",
       }),
       new commands.StoreTestResults({
         path: 'apim-result.xml',

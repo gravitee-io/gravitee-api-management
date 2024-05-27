@@ -70,7 +70,7 @@ const executor = {
 
 const helm = {
   defaultVersion: 'v3.12.3',
-  helmUnitVersion: '0.2.11',
+  helmUnitVersion: '0.5.1',
 };
 
 const jobContext = ['cicd-orchestrator'];
