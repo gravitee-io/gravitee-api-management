@@ -149,15 +149,14 @@ tests:
     set:
       apim:
         managedServiceAccount: false
-        serviceAccount: ""
+        serviceAccount:
     asserts:
       - hasDocuments:
           count: 1
       - isKind:
           of: Deployment
-      - equal:
+      - isEmpty:
           path: spec.template.spec.serviceAccountName
-          value: null
 
   - it: Deploy with custom managed ServiceAccount
     template: gateway/gateway-deployment.yaml

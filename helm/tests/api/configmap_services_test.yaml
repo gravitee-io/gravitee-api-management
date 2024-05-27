@@ -12,7 +12,7 @@ tests:
             pre-expiration-notification-schedule: 15,10,5
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * subscription:\n
                      *   enabled: true\n
                      *   pre-expiration-notification-schedule: 15,10,5"

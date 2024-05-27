@@ -13,7 +13,7 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: extensions/v1beta1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
 
   - it: Check Ingress networking.k8s.io/v1beta1
@@ -32,12 +32,12 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1beta1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
       - isNotEmpty:
-          path: metadata.annotations.[kubernetes.io/ingress.class]
+          path: metadata.annotations["kubernetes.io/ingress.class"]
       - isNotEmpty:
-          path: metadata.annotations.[my-annotation]
+          path: metadata.annotations["my-annotation"]
 
   - it: Check Ingress networking.k8s.io/v1 without IngressClassName
     set:
@@ -53,12 +53,12 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
       - isNotEmpty:
-          path: metadata.annotations.[kubernetes.io/ingress.class]
+          path: metadata.annotations["kubernetes.io/ingress.class"]
       - isNotEmpty:
-          path: metadata.annotations.[my-annotation]
+          path: metadata.annotations["my-annotation"]
 
   - it: Check Ingress networking.k8s.io/v1 with IngressClassName
     set:
@@ -76,12 +76,12 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1
-      - isEmpty:
-          path: metadata.annotations.[kubernetes.io/ingress.class]
+      - notExists:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
       - isNotEmpty:
-          path: metadata.annotations.[my-annotation]
+          path: metadata.annotations["my-annotation"]
       - isNotEmpty:
-          path: metadata.annotations.[nginx.ingress.kubernetes.io/rewrite-target]
+          path: metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
 
   - it: Check Ingress networking.k8s.io/v1 with ingress.class notNginx
     set:
@@ -99,12 +99,12 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1
-      - isEmpty:
-          path: metadata.annotations.[kubernetes.io/ingress.class]
+      - notExists:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
       - isNotEmpty:
-          path: metadata.annotations.[my-annotation]
-      - isEmpty:
-          path: metadata.annotations.[nginx.ingress.kubernetes.io/rewrite-target]
+          path: metadata.annotations["my-annotation"]
+      - notExists:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
 
   - it: Check Ingress pathType and path
     set:

@@ -31,5 +31,5 @@ tests:
           path: metadata.name
           value: gravitee-license
       - equal:
-          path: data.license\.key
+          path: data["license.key"]
           value: myLicenceInBase64==

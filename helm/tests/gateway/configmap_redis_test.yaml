@@ -14,7 +14,7 @@ tests:
             port: 6379
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * redis:\n
                      *  host: redis\n
                      *  port: 6379\n"
@@ -32,7 +32,7 @@ tests:
             ssl: true
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * redis:\n
                      *  host: redis\n
                      *  port: 6379\n
@@ -57,7 +57,7 @@ tests:
                   port: 26379
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * redis:\n
                      *  host: redis\n
                      *  port: 6379\n
@@ -105,7 +105,7 @@ tests:
 
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * redis:\n
                      *   host: redis\n
                      *   port: 6379\n
