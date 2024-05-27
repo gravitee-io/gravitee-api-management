@@ -355,8 +355,10 @@ data:
     reporters:
       # Elasticsearch reporter
       elasticsearch:
-        {{- if (hasKey ((.Values.gateway).reporters).elasticsearch "enabled") }}
+        {{- if ((.Values.gateway).reporters).elasticsearch }}
+        {{- if hasKey .Values.gateway.reporters.elasticsearch "enabled" }}
         enabled: {{ .Values.gateway.reporters.elasticsearch.enabled }}
+        {{- end }}
         {{- end }}
         {{- with .Values.es.endpoints }}
         endpoints:
