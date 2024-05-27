@@ -1,0 +1,110 @@
+{
+  "id": "http-get-entrypoint-mqtt5-endpoint",
+  "name": "my-api-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "qos": "none",
+          "configuration": {
+            "messagesLimitCount": 2,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": false,
+            "metadataInPayload": false
+          }
+        },
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mqtt5",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "invalid-host",
+            "serverPort": "-1"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topic": "test-topic"
+            },
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic"
+            },
+            "sessionExpiryInterval": 3600
+          }
+        },
+        {
+          "name": "second",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topic": "test-topic"
+            },
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic"
+            },
+            "sessionExpiryInterval": 3600
+          }
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "maxFailures": 2,
+    "perSubscription": false
+  },
+  "flows": [
+    {
+      "name": "Flow ready",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Message Flow Ready",
+          "description": "Detect the message flow is ready",
+          "enabled": true,
+          "policy": "message-flow-ready"
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
