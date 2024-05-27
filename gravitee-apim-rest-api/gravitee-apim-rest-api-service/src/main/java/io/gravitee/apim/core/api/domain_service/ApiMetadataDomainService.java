@@ -24,7 +24,6 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.metadata.model.MetadataId;
@@ -41,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 @DomainService
 @Slf4j
 public class ApiMetadataDomainService {
+
+    private static final String EMAIL_SUPPORT_NAME = "email-support";
 
     private final MetadataCrudService metadataCrudService;
     private final ApiMetadataQueryService apiMetadataQueryService;
@@ -67,13 +68,12 @@ public class ApiMetadataDomainService {
      */
     public void createDefaultApiMetadata(String apiId, AuditInfo auditInfo) {
         var now = TimeProvider.now();
-        String name = "email-support";
         var emailSupportMetadata = metadataCrudService.create(
             Metadata
                 .builder()
-                .key(IdGenerator.generate(name))
+                .key(IdGenerator.generate(EMAIL_SUPPORT_NAME))
                 .format(Metadata.MetadataFormat.MAIL)
-                .name(name)
+                .name(EMAIL_SUPPORT_NAME)
                 .value("${(api.primaryOwner.email)!''}")
                 .referenceType(Metadata.ReferenceType.API)
                 .referenceId(apiId)
@@ -85,7 +85,43 @@ public class ApiMetadataDomainService {
     }
 
     public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
-        throw new TechnicalDomainException("Not yet implemented");
+        var previousMetadata = apiMetadataQueryService.findApiMetadata(apiId);
+
+        if (metadata != null) {
+            for (var metadataEntry : metadata) {
+                metadataEntry.setApiId(apiId);
+                createOrUpdateApiMetadataEntry(apiId, metadataEntry, auditInfo);
+                previousMetadata.remove(metadataEntry.getKey());
+            }
+        }
+
+        previousMetadata.remove(EMAIL_SUPPORT_NAME);
+
+        for (var metadataEntry : previousMetadata.values()) {
+            var id = MetadataId.builder().key(metadataEntry.getKey()).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build();
+            metadataCrudService.delete(id);
+        }
+    }
+
+    private void createOrUpdateApiMetadataEntry(String apiId, ApiMetadata metadataEntry, AuditInfo auditInfo) {
+        var id = MetadataId.builder().key(metadataEntry.getKey()).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build();
+        metadataCrudService
+            .findById(id)
+            .ifPresentOrElse(
+                existing -> update(existing.toBuilder().name(metadataEntry.getName()).value(metadataEntry.getValue()).build(), auditInfo),
+                () ->
+                    create(
+                        NewApiMetadata
+                            .builder()
+                            .apiId(apiId)
+                            .key(metadataEntry.getKey())
+                            .value(metadataEntry.getValue())
+                            .name(metadataEntry.getName())
+                            .format(metadataEntry.getFormat())
+                            .build(),
+                        auditInfo
+                    )
+            );
     }
 
     public ApiMetadata create(NewApiMetadata newApiMetadata, AuditInfo auditInfo) {

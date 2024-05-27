@@ -16,8 +16,14 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.media.model.Media;
+import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
+import io.gravitee.apim.core.metadata.model.Metadata;
+import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.apim.infra.adapter.MediaAdapter;
 import io.gravitee.apim.infra.adapter.MemberAdapter;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -34,6 +40,10 @@ import org.springframework.stereotype.Service;
 public class ApiImportDomainServiceLegacyWrapper implements ApiImportDomainService {
 
     private final ApiImportExportService apiImportExportService;
+
+    private final MetadataCrudService metadataCrudService;
+
+    private final ApiMetadataDomainService apiMetadataDomainService;
 
     @Override
     public void createPageAndMedia(List<Media> mediaList, String apiId) {
