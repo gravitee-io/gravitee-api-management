@@ -87,6 +87,7 @@ export class ApiService {
     params: {
       order?: string;
       environmentId?: string;
+      category?: string;
     } = {},
   ): Observable<Api[]> {
     let baseURL = this.constants.env.baseURL;
@@ -98,6 +99,7 @@ export class ApiService {
     return this.http.get<Api[]>(`${baseURL}/apis`, {
       params: {
         ...(params.order ? { order: params.order } : {}),
+        ...(params.category ? { category: params.category } : {}),
       },
     });
   }
