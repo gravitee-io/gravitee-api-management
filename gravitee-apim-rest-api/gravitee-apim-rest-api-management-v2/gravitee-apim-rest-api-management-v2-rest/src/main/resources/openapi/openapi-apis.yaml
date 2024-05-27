@@ -114,6 +114,37 @@ paths:
                                 $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/_import/swagger:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Import API definition
+            description: |-
+                ⚠️ Support only v4 API for the moment. ⚠️<br>
+                Create an API by importing from an Open API descriptor. <br>
+                This definition can be retrieved from `GET /environments/{envId}/apis/{apiId}/_export/definition`
+
+                User must have the ENVIRONMENT_API[CREATE] permission.
+            operationId: createApiFromSwagger
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportSwaggerDescriptor"
+                required: true
+            responses:
+                "201":
+                    description: API successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/_import/definition:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2703,6 +2734,13 @@ components:
                     description: The list of API's media used in pages.
                     items:
                         $ref: "#/components/schemas/Media"
+
+        ImportSwaggerDescriptor:
+          type: object
+          properties:
+            payload:
+              type: string
+              description: The Swagger/OpenAPI content.
 
         UpdateApi:
             oneOf:

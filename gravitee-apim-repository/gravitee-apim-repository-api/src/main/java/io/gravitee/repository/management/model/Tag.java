@@ -17,11 +17,21 @@ package io.gravitee.repository.management.model;
 
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Tag {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -36,54 +46,6 @@ public class Tag {
     private List<String> restrictedGroups;
     private String referenceId;
     private TagReferenceType referenceType;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<String> getRestrictedGroups() {
-        return restrictedGroups;
-    }
-
-    public void setRestrictedGroups(List<String> restrictedGroups) {
-        this.restrictedGroups = restrictedGroups;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public TagReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(TagReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.group.query_service;
+package io.gravitee.apim.core.plugin.domain_service;
 
-import io.gravitee.apim.core.group.model.Group;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-public interface GroupQueryService {
-    Optional<Group> findById(String id);
-    Set<Group> findByIds(Set<String> ids);
-    Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
-    List<Group> findByName(String environmentId, String name);
+public interface EndpointConnectorPluginDomainService {
+    String getSharedConfigurationSchema(String connectorId);
 }

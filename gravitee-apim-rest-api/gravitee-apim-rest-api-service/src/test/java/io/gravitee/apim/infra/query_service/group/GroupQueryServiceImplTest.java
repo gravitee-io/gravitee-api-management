@@ -229,6 +229,57 @@ class GroupQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindByName {
+
+        @Test
+        @SneakyThrows
+        void should_find_groups_matching_the_event_provided() {
+            when(groupRepository.findAllByEnvironment(any(String.class)))
+                .thenAnswer(invocation ->
+                    Set.of(
+                        aGroup("1").environmentId(invocation.getArgument(0)).name("group-1").build(),
+                        aGroup("2").environmentId(invocation.getArgument(0)).name("group-2").build()
+                    )
+                );
+
+            var groups = service.findByName("environment-id", "group-2");
+
+            Assertions.assertThat(groups).hasSize(1).extracting(Group::getId).containsExactly("2");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_adapt_groups() {
+            when(groupRepository.findAllByEnvironment(any(String.class)))
+                .thenAnswer(invocation -> Set.of(aGroup("1").environmentId(invocation.getArgument(0)).name("group-1").build()));
+
+            var groups = service.findByName("environment-id", "group-1");
+
+            Assertions
+                .assertThat(groups)
+                .hasSize(1)
+                .containsExactly(
+                    Group
+                        .builder()
+                        .id("1")
+                        .name("group-1")
+                        .environmentId("environment-id")
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .maxInvitation(12)
+                        .lockApiRole(true)
+                        .lockApplicationRole(true)
+                        .systemInvitation(true)
+                        .emailInvitation(true)
+                        .disableMembershipNotifications(true)
+                        .apiPrimaryOwner("api-po-id")
+                        .build()
+                );
+        }
+    }
+
     io.gravitee.repository.management.model.Group.GroupBuilder aGroup(String id) {
         return io.gravitee.repository.management.model.Group
             .builder()
