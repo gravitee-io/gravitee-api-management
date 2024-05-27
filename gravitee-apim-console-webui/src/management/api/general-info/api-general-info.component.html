@@ -111,6 +111,13 @@
               <dt>Created</dt>
               <dd>{{ apiCreatedAt | date: 'medium' }}</dd>
 
+              @if (integrationId) {
+                <dt>From integration</dt>
+                <dd>
+                  <a [routerLink]="'../../integrations/' + integrationId"> {{ integrationName }} </a>
+                </dd>
+              }
+
               <dt>Last connection</dt>
               <dd>{{ apiLastDeploymentAt | date: 'medium' }}</dd>
             </dl>

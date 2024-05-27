@@ -17,11 +17,10 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder } from '@angular/forms';
 import { EMPTY } from 'rxjs';
-import { catchError, debounceTime } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 
-import { agentConfiguration } from './integration-agent.configuration';
+import { configurationCode } from './integration-agent.configuration';
 
 import { Integration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
@@ -34,19 +33,11 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 })
 export class IntegrationAgentComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
-  private AWS_ACCESS_KEY_ID: string = '';
-  private AWS_SECRET_ACCESS_KEY: string = '';
   public isLoading: boolean = true;
   public integration: Integration;
-  public code: string = agentConfiguration;
-  public codeForEditor: string = this.code;
-  public form = this.formBuilder.group({
-    accessKeyId: [''],
-    secretAccessKey: [''],
-  });
+  public codeForEditor: string = '';
 
   constructor(
-    private formBuilder: FormBuilder,
     private integrationsService: IntegrationsService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
@@ -55,29 +46,6 @@ export class IntegrationAgentComponent implements OnInit {
 
   ngOnInit(): void {
     this.getIntegration();
-    this.generateCodeForEditor();
-  }
-
-  generateCodeForEditor() {
-    this.form
-      .get('accessKeyId')
-      .valueChanges.pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
-      .subscribe((accessKeyId: string): void => {
-        this.codeForEditor = this.code
-          .replace('${AWS_ACCESS_KEY_ID}', accessKeyId || '${AWS_ACCESS_KEY_ID}')
-          .replace('${AWS_SECRET_ACCESS_KEY}', this.AWS_SECRET_ACCESS_KEY || '${AWS_SECRET_ACCESS_KEY}');
-        this.AWS_ACCESS_KEY_ID = accessKeyId;
-      });
-
-    this.form
-      .get('secretAccessKey')
-      .valueChanges.pipe(debounceTime(50), takeUntilDestroyed(this.destroyRef))
-      .subscribe((secretAccessKey: string): void => {
-        this.codeForEditor = this.code
-          .replace('${AWS_SECRET_ACCESS_KEY}', secretAccessKey || '${AWS_SECRET_ACCESS_KEY}')
-          .replace('${AWS_ACCESS_KEY_ID}', this.AWS_ACCESS_KEY_ID || '${AWS_ACCESS_KEY_ID}');
-        this.AWS_SECRET_ACCESS_KEY = secretAccessKey;
-      });
   }
 
   private getIntegration(): void {
@@ -97,6 +65,7 @@ export class IntegrationAgentComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((integration: Integration): void => {
+        this.codeForEditor = configurationCode[integration.provider] || '';
         this.integration = integration;
         this.isLoading = false;
       });

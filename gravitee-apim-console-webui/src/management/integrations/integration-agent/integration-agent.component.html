@@ -80,39 +80,8 @@
               <div class="wizard__item">
                 <div class="order">1</div>
                 <div class="content">
-                  <h5 class="content__title">AWS Authentication</h5>
-                  <p class="content__desc">
-                    Optionally enter the credentials that the agent should use to connect to the provider. We don't store this sensitive
-                    information or even upload to our servers.
-                  </p>
-                </div>
-                <form [formGroup]="form" class="form" autocomplete="off">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <input id="accessKeyId" type="text" matInput formControlName="accessKeyId" data-testid="accessKeyId-input" />
-                    <mat-label>Access Key ID</mat-label>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <input
-                      id="secretAccessKey"
-                      type="text"
-                      matInput
-                      formControlName="secretAccessKey"
-                      data-testid="secretAccessKey-input"
-                    />
-                    <mat-label>Secret Access Key</mat-label>
-                    <mat-hint align="start" class="hint">
-                      Learn more about creating credentials for your provider on our documentation
-                    </mat-hint>
-                  </mat-form-field>
-                </form>
-              </div>
-
-              <div class="wizard__item">
-                <div class="order">2</div>
-                <div class="content">
                   <h5 class="content__title">Agent Configuration</h5>
-                  <p class="content__desc">Generate and copy the configuration files, and place them in the same folder.</p>
+                  <p class="content__desc">Copy the configuration files and place them in the same folder.</p>
 
                   <code>
                     <div class="editor code-area">
@@ -136,10 +105,13 @@
               </div>
 
               <div class="wizard__item">
-                <div class="order">3</div>
+                <div class="order">2</div>
                 <div class="content">
                   <h5 class="content__title">Agent Deployment</h5>
-                  <p class="content__desc">Execute the following commands in the same directory as the previously downloaded files.</p>
+                  <p class="content__desc">
+                    Replace placeholders in the configuration file with providers data. Execute the following commands in the same directory
+                    as the previously downloaded files.
+                  </p>
                   <code>
                     <span gioClipboardCopyWrapper [alwaysVisible]="true" contentToCopy="docker compose up -d" class="command code-area">
                       <span class="command__text">docker compose up -d</span>

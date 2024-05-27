@@ -16,10 +16,10 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { NewFile } from '@gravitee/ui-particles-angular';
-import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   ApiGeneralInfoDuplicateDialogComponent,
@@ -48,6 +48,8 @@ import { GioApiImportDialogComponent, GioApiImportDialogData } from '../componen
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { Integration } from '../../integrations/integrations.model';
+import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
 @Component({
   selector: 'api-general-info',
@@ -90,6 +92,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public isReadOnly = false;
   public isKubernetesOrigin = false;
 
+  public integrationName = '';
+  public integrationId = '';
+
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
@@ -99,6 +104,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly integrationsService: IntegrationsService,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
@@ -219,6 +225,18 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
           this.isQualitySupported = this.api.definitionVersion === 'V2' || this.api.definitionVersion === 'V1';
+        }),
+        switchMap(([api]) => {
+          if ('integrationId' in api.originContext) {
+            return this.integrationsService.getIntegration(api.originContext.integrationId);
+          }
+          return of(null);
+        }),
+        tap((integration: Integration | null) => {
+          if (integration) {
+            this.integrationName = integration.name;
+            this.integrationId = integration.id;
+          }
         }),
         takeUntil(this.unsubscribe$),
       )
