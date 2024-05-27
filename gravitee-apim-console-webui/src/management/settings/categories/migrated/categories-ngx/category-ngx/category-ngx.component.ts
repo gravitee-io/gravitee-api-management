@@ -17,9 +17,10 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Observable, of, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NewFile } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, NewFile } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 
 import { Page, PageType } from '../../../../../../entities/page';
 import { Category } from '../../../../../../entities/category/Category';
@@ -29,6 +30,15 @@ import { NewCategory } from '../../../../../../entities/category/NewCategory';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { UpdateCategory } from '../../../../../../entities/category/UpdateCategory';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiService } from '../../../../../../services-ngx/api.service';
+import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
+
+interface ApiVM {
+  id: string;
+  name: string;
+  version: string;
+  contextPath: string;
+}
 
 @Component({
   selector: 'app-category-ngx',
@@ -46,22 +56,29 @@ export class CategoryNgxComponent implements OnInit {
     page: FormControl<string>;
     picture: FormControl<unknown[]>;
     background: FormControl<unknown[]>;
+    highlightApi: FormControl<string>;
   }>;
+  highlightApiControl: FormControl<string>;
   categoryDetailsInitialValue: unknown;
 
   retrieveCategory = new BehaviorSubject(1);
   category$: Observable<Category>;
   pages$: Observable<Page[]>;
+  apis$: Observable<ApiVM[]>;
 
   private destroyRef = inject(DestroyRef);
+  displayedColumns = ['name', 'version', 'contextPath', 'actions'];
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private categoryService: CategoryService,
     private documentationService: DocumentationService,
+    private apiService: ApiService,
+    private apiV2Service: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private matDialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -77,6 +94,7 @@ export class CategoryNgxComponent implements OnInit {
         return of({} as Category);
       }),
       tap((category) => {
+        this.highlightApiControl = new FormControl<string>(category.highlightApi);
         this.categoryDetails = new FormGroup({
           name: new FormControl<string>(category.name, { validators: Validators.required }),
           description: new FormControl<string>(category.description),
@@ -84,6 +102,7 @@ export class CategoryNgxComponent implements OnInit {
           page: new FormControl<string>(category.page),
           picture: new FormControl<unknown[]>(category.picture_url ? [category.picture_url] : []),
           background: new FormControl<unknown[]>(category.background_url ? [category.background_url] : []),
+          highlightApi: this.highlightApiControl,
         });
         this.categoryDetailsInitialValue = this.categoryDetails.getRawValue();
         this.handleReadOnly();
@@ -122,6 +141,7 @@ export class CategoryNgxComponent implements OnInit {
           description: newValues.description,
           page: newValues.page,
           hidden: newValues.hidden,
+          highlightApi: newValues.highlightApi,
         };
 
         if (newValues.picture.length && newValues.picture[0] instanceof NewFile) {
