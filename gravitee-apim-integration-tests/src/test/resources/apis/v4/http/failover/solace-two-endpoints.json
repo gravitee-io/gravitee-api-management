@@ -1,0 +1,106 @@
+{
+  "id": "http-get-entrypoint-kafka-endpoint",
+  "name": "my-api-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount": 2,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": true,
+            "metadataInPayload": true
+          }
+        },
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "solace",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "solace",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "url": "solace-invalid-url",
+            "vpnName": "default"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            },
+            "producer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
+            }
+          }
+        },
+        {
+          "name": "second",
+          "type": "solace",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "url": "solace-url",
+            "vpnName": "default"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            },
+            "producer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "maxFailures": 2,
+    "perSubscription": false
+  },
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
