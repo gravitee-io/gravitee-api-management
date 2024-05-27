@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -43,6 +44,7 @@ import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
@@ -379,5 +381,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiCRDExportDomainServiceInMemory apiCRDExportDomainService() {
         return new ApiCRDExportDomainServiceInMemory();
+    }
+
+    @Bean
+    public OAIDomainService oaiDomainService() {
+        return mock(OAIDomainService.class);
+    }
+
+    @Bean
+    public EndpointConnectorPluginDomainService endpointConnectorPluginDomainService() {
+        return mock(EndpointConnectorPluginDomainService.class);
     }
 }
