@@ -10,7 +10,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             alpn: true
 
@@ -26,7 +26,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             alpn: true
 
@@ -42,7 +42,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             alpn: false
 
@@ -54,11 +54,11 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             requestTimeout: 30000
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             requestTimeoutGraceDelay: 30
 
@@ -75,10 +75,10 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             requestTimeout: 60000
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             requestTimeoutGraceDelay: 60
