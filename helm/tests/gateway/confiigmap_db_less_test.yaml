@@ -15,7 +15,7 @@ tests:
       - isKind:
           of: ConfigMap
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             api:
               validateSubscription: false
@@ -28,7 +28,7 @@ tests:
         dbLess: true
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             management:
               type: none
