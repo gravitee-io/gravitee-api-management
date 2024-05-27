@@ -70,6 +70,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
@@ -87,6 +88,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -133,6 +135,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -186,6 +189,7 @@ class ImportCRDUseCaseTest {
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateApiDomainService updateApiDomainService;
+    ApiMetadataDomainService apiMetadataDomainService = mock(ApiMetadataDomainService.class);
 
     ImportCRDUseCase useCase;
 
@@ -260,6 +264,7 @@ class ImportCRDUseCaseTest {
             roleQueryService,
             userCrudService
         );
+
         var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
             auditDomainService,
             groupQueryService,
@@ -308,10 +313,11 @@ class ImportCRDUseCaseTest {
                 mock(ApiPrimaryOwnerDomainService.class),
                 membershipCrudServiceInMemory,
                 membershipQueryServiceInMemory,
-                groupQueryService
+                groupQueryService,
+                apiMetadataDomainService
             );
 
-        enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
+        enableApiPrimaryOwnerMode();
         parametersQueryService.define(
             new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
         );
@@ -361,14 +367,11 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_not_create_api_if_validation_fails() {
-            // Given
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
                 .thenThrow(new ValidationDomainException("Validation error"));
 
-            // When
-            var throwable = catchThrowable(() -> useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD())));
+            var throwable = catchThrowable(() -> useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
 
-            // Then
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
                 soft.assertThat(apiCrudService.storage()).isEmpty();
@@ -377,11 +380,10 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_and_index_a_new_api() {
-            // When
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
-
-            // Then
             var expected = expectedApi();
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
+
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expected);
                 soft
@@ -399,12 +401,8 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_plans() {
-            // Given
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
 
-            // When
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
-
-            // Then
             assertThat(planCrudService.storage())
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
@@ -414,12 +412,8 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_return_CRD_status() {
-            // Given
+            var result = useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
 
-            // When
-            var result = useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD()));
-
-            // Then
             assertThat(result.status())
                 .isEqualTo(
                     ApiCRDStatus
@@ -436,18 +430,12 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_members() {
-            // Given
-
-            // When
-            ApiCRDSpec crd = aCRD();
-            Set<ApiMember> members = Set.of(
+            var members = Set.of(
                 new ApiMember(UuidString.generateRandom(), "test_member", List.of(new ApiMemberRole("USER", RoleScope.API)))
             );
-            crd.setMembers(members);
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
 
-            // Then
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
     }
@@ -472,16 +460,13 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_return_CRD_status() {
-            // Given
-            givenExistingApi(API_PROXY_V4);
+            givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
 
-            // When
             var result = useCase.execute(
                 new ImportCRDUseCase.Input(
                     AUDIT_INFO,
                     aCRD()
-                        .toBuilder()
                         .plans(
                             Map.of(
                                 "keyless-key",
@@ -513,7 +498,6 @@ class ImportCRDUseCaseTest {
                 )
             );
 
-            // Then
             assertThat(result.status())
                 .isEqualTo(
                     ApiCRDStatus
@@ -530,16 +514,13 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_new_plans() {
-            // Given
-            givenExistingApi(API_PROXY_V4);
+            givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
 
-            // When
             useCase.execute(
                 new ImportCRDUseCase.Input(
                     AUDIT_INFO,
                     aCRD()
-                        .toBuilder()
                         .plans(
                             Map.of(
                                 "keyless-key",
@@ -583,7 +564,7 @@ class ImportCRDUseCaseTest {
         @Test
         void should_update_existing_plans() {
             // Given
-            givenExistingApi(API_PROXY_V4);
+            givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
 
             // When
@@ -591,7 +572,6 @@ class ImportCRDUseCaseTest {
                 new ImportCRDUseCase.Input(
                     AUDIT_INFO,
                     aCRD()
-                        .toBuilder()
                         .plans(
                             Map.of(
                                 "keyless-key",
@@ -618,28 +598,23 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_delete_existing_plans_not_present_in_crd_anymore() {
-            // Given
-            givenExistingApi(API_PROXY_V4);
+            givenExistingApi();
             givenExistingPlans(List.of(KEYLESS, API_KEY));
 
-            // When
             useCase.execute(
-                new ImportCRDUseCase.Input(
-                    AUDIT_INFO,
-                    aCRD().toBuilder().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build()
-                )
+                new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build())
             );
 
-            // Then
             assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
         }
 
         @Test
         void should_close_any_active_subscriptions_before_deleting_plans() {
-            // Given
-            givenExistingApi(API_PROXY_V4);
+            givenExistingApi();
             givenExistingPlans(List.of(KEYLESS, API_KEY));
+
             var application = givenExistingApplication(anApplicationEntity());
+
             givenExistingSubscriptions(
                 aSubscription()
                     .toBuilder()
@@ -669,10 +644,7 @@ class ImportCRDUseCaseTest {
 
             // When
             useCase.execute(
-                new ImportCRDUseCase.Input(
-                    AUDIT_INFO,
-                    aCRD().toBuilder().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build()
-                )
+                new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build())
             );
 
             // Then
@@ -688,75 +660,77 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_refresh_remaining_plan_order_after_deletion() {
-            // Given
-            givenExistingApi(API_PROXY_V4);
+            givenExistingApi();
             givenExistingPlans(List.of(KEYLESS.toBuilder().order(2).build(), API_KEY.toBuilder().order(1).build()));
 
-            // When
             useCase.execute(
                 new ImportCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .toBuilder()
-                        .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS.toBuilder().order(2).build())))
-                        .build()
+                    aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS.toBuilder().order(2).build()))).build()
                 )
             );
 
-            // Then
             assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId, Plan::getOrder).containsExactly(tuple("keyless", 1));
         }
 
         @Test
         void should_add_new_members() {
-            ApiCRDSpec crd = aCRD();
-            Set<ApiMember> members = new java.util.HashSet<>(
+            var members = new HashSet<>(
                 Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
             );
-            crd.setMembers(members);
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
 
             reset(apiImportDomainService);
             members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
-            crd.setMembers(members);
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
 
         @Test
         void should_delete_unused_members() {
-            ApiCRDSpec crd = aCRD();
-            Set<ApiMember> members = new java.util.HashSet<>(
+            var members = new HashSet<>(
                 Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
             );
-            crd.setMembers(members);
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+
             reset(apiImportDomainService);
 
             members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
-            crd.setMembers(members);
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
+
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+
             reset(apiImportDomainService);
 
-            crd.setMembers(Set.of());
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, crd));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of()).build()));
+
             verify(apiImportDomainService, never()).createMembers(any(), eq(API_ID));
 
             assertThat(membershipQueryServiceInMemory.findByReference(Membership.ReferenceType.API, API_ID)).isEmpty();
         }
     }
 
-    void givenExistingApi(Api api) {
-        apiQueryService.initWith(List.of(api));
+    @Test
+    void should_save_metadata() {
+        var metadata = List.of(
+            ApiMetadata.builder().apiId(API_ID).key("metadata-key").value("metadata-value").format(Metadata.MetadataFormat.STRING).build()
+        );
+
+        useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().metadata(metadata).build()));
+
+        verify(apiMetadataDomainService, times(1)).saveApiMetadata(API_ID, metadata, AUDIT_INFO);
+    }
+
+    void givenExistingApi() {
+        apiQueryService.initWith(List.of(Update.API_PROXY_V4));
     }
 
     void givenExistingPlans(List<Plan> plans) {
@@ -772,7 +746,7 @@ class ImportCRDUseCaseTest {
         subscriptionQueryService.initWith(Arrays.asList(subscriptions));
     }
 
-    private static ApiCRDSpec aCRD() {
+    private static ApiCRDSpec.ApiCRDSpecBuilder aCRD() {
         return ApiCRDSpec
             .builder()
             .analytics(Analytics.builder().enabled(false).build())
@@ -838,8 +812,7 @@ class ImportCRDUseCaseTest {
             .type("PROXY")
             .version("1.0.0")
             .visibility("PRIVATE")
-            .groups(Set.of(GROUP_ID, "non-existing-group"))
-            .build();
+            .groups(Set.of(GROUP_ID, "non-existing-group"));
     }
 
     private Api expectedApi() {
@@ -882,27 +855,20 @@ class ImportCRDUseCaseTest {
             .build();
     }
 
-    private void enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode mode) {
+    private void enableApiPrimaryOwnerMode() {
         parametersQueryService.initWith(
-            List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, mode.name()))
-        );
-    }
-
-    private void enableApiReview() {
-        parametersQueryService.define(
-            new Parameter(Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            List.of(
+                new Parameter(
+                    Key.API_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name()
+                )
+            )
         );
     }
 
     private void givenExistingUsers(List<BaseUserEntity> users) {
         userCrudService.initWith(users);
-    }
-
-    private void givenExistingMemberships(List<Membership> memberships) {
-        membershipCrudService.initWith(memberships);
-    }
-
-    private void givenExistingGroup(List<Group> groups) {
-        groupQueryService.initWith(groups);
     }
 }

@@ -23,6 +23,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MetadataCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
@@ -36,10 +37,9 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -95,8 +95,7 @@ class ApiMetadataDomainServiceTest {
         void should_create_email_support_metadata() {
             service.createDefaultApiMetadata(API_ID, AUDIT_INFO);
 
-            Assertions
-                .assertThat(metadataCrudService.storage())
+            assertThat(metadataCrudService.storage())
                 .contains(
                     Metadata
                         .builder()
@@ -147,8 +146,7 @@ class ApiMetadataDomainServiceTest {
                 AUDIT_INFO
             );
 
-            Assertions
-                .assertThat(metadataCrudService.storage())
+            assertThat(metadataCrudService.storage())
                 .contains(
                     Metadata
                         .builder()
@@ -171,7 +169,7 @@ class ApiMetadataDomainServiceTest {
         @Test
         void should_update_existing_metadata_value() {
             metadataCrudService.initWith(
-                Collections.singletonList(
+                List.of(
                     Metadata
                         .builder()
                         .key("metadata-key")
@@ -199,7 +197,7 @@ class ApiMetadataDomainServiceTest {
 
             service.update(updatedMetadata, AUDIT_INFO);
 
-            Assertions.assertThat(metadataCrudService.storage()).contains(updatedMetadata);
+            assertThat(metadataCrudService.storage()).contains(updatedMetadata);
         }
     }
 
@@ -236,6 +234,153 @@ class ApiMetadataDomainServiceTest {
                         .properties(Map.of("METADATA", "email-support"))
                         .event(ApiAuditEvent.METADATA_DELETED.name())
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+    }
+
+    @Nested
+    class SaveApiMetadata {
+
+        @BeforeEach
+        void setUp() {
+            service.createDefaultApiMetadata(API_ID, AUDIT_INFO);
+        }
+
+        @Test
+        void should_reset_metadata() {
+            metadataCrudService.initWith(
+                List.of(
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
+            );
+
+            service.saveApiMetadata(API_ID, List.of(), AUDIT_INFO);
+
+            assertThat(metadataCrudService.storage())
+                .isNotNull()
+                .hasSize(1)
+                .contains(
+                    Metadata
+                        .builder()
+                        .key("email-support")
+                        .format(Metadata.MetadataFormat.MAIL)
+                        .name(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
+                        .value("${(api.primaryOwner.email)!''}")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_replace_metadata() {
+            metadataCrudService.initWith(
+                List.of(
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
+            );
+
+            service.saveApiMetadata(
+                API_ID,
+                List.of(
+                    ApiMetadata
+                        .builder()
+                        .key("another-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("another-name")
+                        .value("another-value")
+                        .apiId(API_ID)
+                        .build()
+                ),
+                AUDIT_INFO
+            );
+
+            assertThat(metadataCrudService.storage())
+                .isNotNull()
+                .hasSize(2)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                .contains(
+                    Metadata
+                        .builder()
+                        .key("another-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("another-name")
+                        .value("another-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .build()
+                );
+        }
+
+        @Test
+        void should_update_metadata() {
+            metadataCrudService.initWith(
+                List.of(
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
+            );
+
+            service.saveApiMetadata(
+                API_ID,
+                List.of(
+                    ApiMetadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("another-name")
+                        .value("another-value")
+                        .apiId(API_ID)
+                        .build()
+                ),
+                AUDIT_INFO
+            );
+
+            assertThat(metadataCrudService.storage())
+                .isNotNull()
+                .hasSize(2)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                .contains(
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("another-name")
+                        .value("another-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
                         .build()
                 );
         }
