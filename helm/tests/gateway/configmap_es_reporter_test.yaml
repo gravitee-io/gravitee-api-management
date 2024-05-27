@@ -7,7 +7,7 @@ tests:
   - it: Check that ingest plugins takes default values if not set
     asserts:
       - matchRegex:
-          path: data.gravitee\.yml
+          path: data["gravitee.yml"]
           pattern: "[ ]+ingest: geoip, user_agent\n"
 
   - it: Check that ingest plugins are set with given values
@@ -18,7 +18,7 @@ tests:
             ingest: my-test-ingest-plugin, another-plugin
     asserts:
       - matchRegex:
-          path: data.gravitee\.yml
+          path: data["gravitee.yml"]
           pattern: "[ ]+ingest: my-test-ingest-plugin, another-plugin\n"
 
   - it: Check that ingest plugins are set empty, if user want to disable them
@@ -29,7 +29,7 @@ tests:
             ingest:
     asserts:
       - matchRegex:
-          path: data.gravitee\.yml
+          path: data["gravitee.yml"]
           pattern: "[ ]+ingest: \n"
 
   - it: Check default es settings
@@ -38,7 +38,7 @@ tests:
       - hasDocuments:
           count: 1
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             reporters:
               # Elasticsearch reporter
@@ -70,7 +70,7 @@ tests:
       - hasDocuments:
           count: 1
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             reporters:
               # Elasticsearch reporter
@@ -101,7 +101,7 @@ tests:
       - hasDocuments:
           count: 1
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             reporters:
               # Elasticsearch reporter
@@ -119,7 +119,7 @@ tests:
       - hasDocuments:
           count: 1
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: |
             reporters:
               # Elasticsearch reporter

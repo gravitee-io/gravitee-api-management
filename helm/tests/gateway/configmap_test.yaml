@@ -15,7 +15,7 @@ tests:
                   password: password
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " * ssl:\n
                      *  keystore:\n
                      *   type: PKCS12\n
@@ -35,7 +35,7 @@ tests:
             port: 9092
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *servers:\n
                      * - type: http\n
                      *   port: 8082\n

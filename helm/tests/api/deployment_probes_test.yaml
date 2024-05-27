@@ -9,7 +9,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
           value: http
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].readinessProbe.httpGet
 
   - it: Check default livenessProbe
@@ -18,7 +18,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
           value: http
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].readinessProbe.httpGet
 
   - it: Check default startupProbe
@@ -27,7 +27,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
           value: http
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].readinessProbe.httpGet
 
   - it: Check custom readinessProbe
@@ -46,7 +46,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
           value: /_node/health?probes=sync-process
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
 
   - it: Check custom livenessProbe
@@ -65,7 +65,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.path
           value: /_node/health?probes=sync-process
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].livenessProbe.tcpSocket
 
   - it: Check custom startupProbe
@@ -84,7 +84,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
           value: /_node/health?probes=sync-process
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].startupProbe.tcpSocket
 
   - it: Check default startupProbe with Kubernetes >= 1.18-0
@@ -95,5 +95,5 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
           value: http
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].readinessProbe.httpGet

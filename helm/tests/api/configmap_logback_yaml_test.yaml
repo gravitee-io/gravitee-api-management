@@ -15,7 +15,7 @@ tests:
       - hasDocuments:
           count: 1
       - equal:
-          path: data.[logback.xml]
+          path: data["logback.xml"]
           value: |-
             <?xml version="1.0" encoding="UTF-8"?>
             <!--
@@ -81,7 +81,7 @@ tests:
       - hasDocuments:
           count: 1
       - equal:
-          path: data.[logback.xml]
+          path: data["logback.xml"]
           value: |-
             <?xml version="1.0" encoding="UTF-8"?>
             <!--
@@ -155,7 +155,7 @@ tests:
       - hasDocuments:
           count: 1
       - equal:
-          path: data.[logback.xml]
+          path: data["logback.xml"]
           value: |-
             <?xml version="1.0" encoding="UTF-8"?>
             <!--

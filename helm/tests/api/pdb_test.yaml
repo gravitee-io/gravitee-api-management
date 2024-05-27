@@ -43,5 +43,5 @@ tests:
       - equal:
           path: spec.maxUnavailable
           value: 50%
-      - isEmpty:
+      - notExists:
           path: spec.minAvailable
