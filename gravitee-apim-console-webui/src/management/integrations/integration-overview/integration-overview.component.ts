@@ -129,6 +129,7 @@ export class IntegrationOverviewComponent implements OnInit {
         filter((confirm) => !!confirm),
         switchMap(() => {
           this.isIngesting = true;
+          this.snackBarService.success('We’re discovering assets from the provider...');
           return this.integrationsService.ingestIntegration(this.integration.id);
         }),
         tap(() => {
