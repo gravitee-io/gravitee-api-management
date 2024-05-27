@@ -23,7 +23,11 @@ import { of } from 'rxjs';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { GioFormFilePickerInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioFormFilePickerInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
+import { MatIconHarness } from '@angular/material/icon/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { CategoryNgxComponent } from './category-ngx.component';
 
@@ -33,6 +37,9 @@ import { UpdateCategory } from '../../../../../../entities/category/UpdateCatego
 import { CategoriesNgxModule } from '../categories-ngx.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { Category } from '../../../../../../entities/category/Category';
+import { Api as MAPIApi } from '../../../../../../entities/api';
+import { fakeApi as fakeApiMAPI } from '../../../../../../entities/api/Api.fixture';
+import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeApiMAPIv2 } from '../../../../../../entities/management-api-v2';
 
 describe('CategoryNgxComponent', () => {
   let component: CategoryNgxComponent;
@@ -51,6 +58,7 @@ describe('CategoryNgxComponent', () => {
     hidden: false,
     picture_url: 'picture_url',
     background_url: 'background_url',
+    highlightApi: 'highlight',
   };
 
   const init = async (categoryId: string) => {
@@ -63,7 +71,13 @@ describe('CategoryNgxComponent', () => {
           useValue: { params: of({ categoryId }) },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(CategoryNgxComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -92,6 +106,7 @@ describe('CategoryNgxComponent', () => {
         hidden: false,
         picture: [],
         background: [],
+        highlightApi: null,
       });
     });
     it('should be able to create', async () => {
@@ -122,6 +137,7 @@ describe('CategoryNgxComponent', () => {
 
       expectPortalPagesList();
       expect(component.mode).toEqual('edit');
+      expectGetApisByCategory(CATEGORY);
     });
 
     it('should initialize with category input', () => {
@@ -132,6 +148,7 @@ describe('CategoryNgxComponent', () => {
         hidden: false,
         picture: ['picture_url'],
         background: ['background_url'],
+        highlightApi: 'highlight',
       });
     });
     it('should be able to update', async () => {
@@ -175,7 +192,6 @@ describe('CategoryNgxComponent', () => {
     });
   });
 
-  // Form
   describe('Form', () => {
     beforeEach(async () => {
       await init(CATEGORY.id);
@@ -183,6 +199,7 @@ describe('CategoryNgxComponent', () => {
       fixture.detectChanges();
 
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
     it('should require name', async () => {
       const nameInput = await getNameInput();
@@ -207,6 +224,84 @@ describe('CategoryNgxComponent', () => {
     });
   });
 
+  describe('API List', () => {
+    const APIS: MAPIApi[] = [fakeApiMAPI({ id: 'lowlight', name: 'Lowlight' }), fakeApiMAPI({ id: 'highlight', name: 'Highlight' })];
+    const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
+
+    beforeEach(async () => {
+      await init(CAT_API_LIST.id);
+      expectGetCategory(CAT_API_LIST);
+      fixture.detectChanges();
+
+      expectPortalPagesList();
+    });
+    it('should show empty APIs', async () => {
+      expectGetApisByCategory(CAT_API_LIST);
+      const rows = await getTableRows();
+      expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
+    });
+    it('should show API list', async () => {
+      expectGetApisByCategory(CAT_API_LIST, APIS);
+      expect(await getNameByRowIndex(0)).toEqual('Lowlight');
+      expect(await getNameByRowIndex(1)).toEqual('Highlight');
+    });
+    it('should show highlight badge', async () => {
+      expectGetApisByCategory(CAT_API_LIST, APIS);
+      const rows = await getTableRows();
+      expect(await rows[1].getCells().then((cells) => cells[0].getHarnessOrNull(MatIconHarness))).toBeTruthy();
+    });
+    it('should update Category when choosing another API to highlight', async () => {
+      expectGetApisByCategory(CAT_API_LIST, APIS);
+      const highlightBtn = await getActionButtonByRowIndexAndTooltip(0, 'Highlight API');
+      expect(highlightBtn).toBeTruthy();
+      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(false);
+
+      await highlightBtn.click();
+      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(true);
+      await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+
+      expectGetCategory(CATEGORY);
+      expectPutCategory({ ...CATEGORY, highlightApi: APIS[0].id });
+
+      expectGetCategory(CATEGORY);
+      expectPortalPagesList();
+    });
+
+    it('should update Category when removing highlighted API', async () => {
+      expectGetApisByCategory(CAT_API_LIST, APIS);
+      const removeHighlightBtn = await getActionButtonByRowIndexAndTooltip(1, 'Remove Highlighted API');
+      expect(removeHighlightBtn).toBeTruthy();
+      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(false);
+
+      await removeHighlightBtn.click();
+      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(true);
+      await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+
+      expectGetCategory(CATEGORY);
+      expectPutCategory({ ...CATEGORY, highlightApi: null });
+
+      expectGetCategory(CATEGORY);
+      expectPortalPagesList();
+    });
+
+    it('should remove API from category', async () => {
+      expectGetApisByCategory(CAT_API_LIST, APIS);
+      const removeApiBtn = await getActionButtonByRowIndexAndTooltip(0, 'Remove API');
+      expect(removeApiBtn).toBeTruthy();
+      await removeApiBtn.click();
+
+      const removeApiDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await removeApiDialog.confirm();
+
+      const api = fakeApiMAPIv2({ id: 'lowlight', categories: [CAT_API_LIST.key, 'other-category'] });
+      expectGetApi(api);
+      expectUpdateApi({ ...api, categories: ['other-category'] }, { ...api, categories: ['other-category'] });
+
+      expectGetCategory(CATEGORY);
+      expectPortalPagesList();
+    });
+  });
+
   function expectPortalPagesList(pages: Page[] = [{ id: 'page-1', name: 'Page 1' }]) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/portal/pages?type=MARKDOWN&published=true`).flush(pages);
   }
@@ -225,6 +320,20 @@ describe('CategoryNgxComponent', () => {
     const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories`, method: 'POST' });
     expect(req.request.body).toEqual(newCategory);
     req.flush(category);
+  }
+
+  function expectGetApisByCategory(category: Category, apis: MAPIApi[] = []) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis?category=${category.key}`).flush(apis);
+  }
+
+  function expectGetApi(api: MAPIv2Api) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
+  }
+
+  function expectUpdateApi(request: UpdateApi, response: MAPIv2Api) {
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${response.id}`, method: 'PUT' });
+    expect(req.request.body).toEqual(request);
+    req.flush(response);
   }
 
   // Access components
@@ -248,5 +357,25 @@ describe('CategoryNgxComponent', () => {
   }
   async function getBackgroundPicker(): Promise<GioFormFilePickerInputHarness> {
     return await harnessLoader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
+  }
+  async function getTableRows(): Promise<MatRowHarness[]> {
+    return await harnessLoader.getHarness(MatTableHarness).then((table) => table.getRows());
+  }
+  async function getNameByRowIndex(index: number): Promise<string> {
+    return await getTextByColumnNameAndRowIndex('name', index);
+  }
+  async function getTextByColumnNameAndRowIndex(columnName: string, index: number): Promise<string> {
+    return await harnessLoader
+      .getHarness(MatTableHarness)
+      .then((table) => table.getRows())
+      .then((rows) => rows[index])
+      .then((row) => row.getCellTextByIndex({ columnName }).then((cell) => cell[0]));
+  }
+
+  async function getActionButtonByRowIndexAndTooltip(rowIndex: number, tooltipText: string): Promise<MatButtonHarness | null> {
+    return await getTableRows()
+      .then((rows) => rows[rowIndex].getCells({ columnName: 'actions' }))
+      .then((cells) => cells[0])
+      .then((actionCell) => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
   }
 });
