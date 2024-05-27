@@ -6,7 +6,7 @@ tests:
     template: api/api-configmap.yaml
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *metrics:\n
                      *  enabled: false\n
                      *  prometheus:\n
@@ -25,7 +25,7 @@ tests:
               enabled: true
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *metrics:\n
                      *  enabled: true\n
                      *  labels:\n
@@ -44,7 +44,7 @@ tests:
               enabled: true
     asserts:
       - matchRegex:
-          path: data.[gravitee.yml]
+          path: data["gravitee.yml"]
           pattern: " *metrics:\n
                      *  enabled: true\n
                      *  prometheus:\n

@@ -37,7 +37,7 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: extensions/v1beta1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
 
   - it: Check bridge ingress enabled
@@ -91,7 +91,7 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1beta1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
 
   - it: Check bridge Ingress networking.k8s.io/v1 without IngressClassName
@@ -115,7 +115,7 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
 
   - it: Check bridge Ingress networking.k8s.io/v1 with IngressClassName and kube < 1.18-0
@@ -136,7 +136,7 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1beta1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
 
   - it: Check bridge ingress with ingressClassName and kube >= 1.18-0
@@ -179,7 +179,7 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1beta1
-      - isEmpty:
+      - notExists:
           path: spec.ingressClassName
 
   - it: Check Ingress pathType and path
