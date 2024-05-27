@@ -31,7 +31,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
           value: /_node/health?probes=sync-process
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
 
   - it: Check custom livenessProbe
@@ -48,7 +48,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.path
           value: /_node/health?probes=sync-process
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].livenessProbe.tcpSocket
 
   - it: Check custom startupProbe
@@ -65,5 +65,5 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
           value: /_node/health?probes=sync-process
-      - isEmpty:
+      - notExists:
           path: spec.template.spec.containers[0].startupProbe.tcpSocket
