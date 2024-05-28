@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
-
+    
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-
+    
             http://www.apache.org/licenses/LICENSE-2.0
-
+    
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,23 +15,22 @@
     limitations under the License.
 
 -->
-
-<mat-card class="analytics">
-  <mat-card-header>
-    <mat-card-title>Analytics</mat-card-title>
-    <mat-card-subtitle>Gain actionable insights into API performance with real-time metrics</mat-card-subtitle>
-  </mat-card-header>
-  @if (isEmptyAnalytics) {
-    <mat-card-content>
-      <gio-card-empty-state
-        icon="folder-plus"
-        title="Enable Analytics"
-        subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
-      ></gio-card-empty-state>
-    </mat-card-content>
-  } @else {
-    <ng-container>
-      <div class="container"></div>
-    </ng-container>
-  }
+<mat-card class="card">
+  <mat-card-content>
+    <div class="title">{{ title }}</div>
+    <div class="list">
+      @for (requestStat of requestsStats; track requestStat.label) {
+        <div class="list__row">
+          <span class="list__row__value">
+            @if (requestStat.isLoading) {
+              <gio-loader></gio-loader>
+            } @else {
+              {{ requestStat.value }}
+            }
+          </span>
+          <span class="list__row__label">{{ requestStat.label }}</span>
+        </div>
+      }
+    </div>
+  </mat-card-content>
 </mat-card>
