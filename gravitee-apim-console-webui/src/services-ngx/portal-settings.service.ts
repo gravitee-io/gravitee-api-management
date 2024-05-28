@@ -47,7 +47,7 @@ export class PortalSettingsService {
   save(portalSettings: PortalSettings): Observable<PortalSettings> {
     return this.http.post<PortalSettings>(`${this.constants.env.baseURL}/settings`, portalSettings).pipe(
       tap(() => {
-        this.environmentSettingsService.load();
+        this.environmentSettingsService.load().subscribe();
       }),
     );
   }

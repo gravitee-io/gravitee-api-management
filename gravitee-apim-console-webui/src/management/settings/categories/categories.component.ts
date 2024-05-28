@@ -26,6 +26,7 @@ import { EnvironmentSettingsService } from '../../../services-ngx/environment-se
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Category } from '../../../entities/category/Category';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 
 @Component({
   selector: 'app-categories',
@@ -36,6 +37,7 @@ export class CategoriesComponent implements OnInit {
   categoriesDS$: Observable<Category[]> = of([]);
   displayedColumns: string[] = ['picture', 'name', 'description', 'count', 'actions'];
   portalSettingsForm: FormGroup<{ enabled: FormControl<boolean> }>;
+  portalSettingsInitialValue: unknown;
 
   private categoryList = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
@@ -46,6 +48,7 @@ export class CategoriesComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
+    private portalSettingsService: PortalSettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -54,9 +57,8 @@ export class CategoriesComponent implements OnInit {
       this.displayedColumns.pop();
     }
 
-    this.portalSettingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
-      enabled: new FormControl(this.environmentSettingsService.getSnapshot().portal.apis.categoryMode.enabled),
-    });
+    this.initializeSettings(this.environmentSettingsService.getSnapshot().portal.apis.categoryMode.enabled);
+
     this.categoriesDS$ = this.categoryList.pipe(
       switchMap((_) => this.categoryService.list(true)),
       map((categories) => categories.sort((a, b) => a.order - b.order)),
@@ -104,6 +106,29 @@ export class CategoriesComponent implements OnInit {
 
   hideCategory(category: Category) {
     this.updateCategoryVisibility(true, category);
+  }
+
+  saveSettings() {
+    this.portalSettingsService
+      .get()
+      .pipe(
+        switchMap((settings) => {
+          const newSettings = { ...settings };
+          newSettings.portal.apis.categoryMode.enabled = this.portalSettingsForm.getRawValue().enabled;
+          return this.portalSettingsService.save(newSettings);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ portal }) => {
+        this.initializeSettings(portal.apis.categoryMode.enabled);
+      });
+  }
+
+  private initializeSettings(enabled: boolean) {
+    this.portalSettingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
+      enabled: new FormControl(enabled),
+    });
+    this.portalSettingsInitialValue = this.portalSettingsForm.getRawValue();
   }
 
   private switchCategoryPlaces(categoryToMoveUp: Category, categoryToMoveDown: Category): void {
