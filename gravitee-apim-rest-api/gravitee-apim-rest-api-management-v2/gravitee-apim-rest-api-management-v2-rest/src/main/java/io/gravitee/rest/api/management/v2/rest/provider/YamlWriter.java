@@ -16,10 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.provider;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.ws.rs.Produces;
@@ -47,6 +44,7 @@ public class YamlWriter<T> implements MessageBodyWriter<T> {
     static {
         JSON_MAPPER.registerModule(new JavaTimeModule());
         JSON_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        JSON_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     public static final String MEDIA_TYPE = "application/x-yaml";
