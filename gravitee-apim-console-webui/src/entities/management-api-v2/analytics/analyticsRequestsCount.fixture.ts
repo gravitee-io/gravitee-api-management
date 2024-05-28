@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { AnalyticsRequestsCount } from './analyticsRequestsCount';
 
-export class ApiAnalyticsHarness extends ComponentHarness {
-  static hostSelector = 'api-analytics';
+export const fakeAnalyticsRequestsCount = (modifier?: Partial<AnalyticsRequestsCount>): AnalyticsRequestsCount => {
+  const base: AnalyticsRequestsCount = {
+    total: 0,
+    countsByEntrypoint: {},
+  };
 
-  public emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
-
-  async isEmptyPanelDisplayed(): Promise<boolean> {
-    return (await this.emptyPanelHarness()) !== null;
-  }
-}
+  return {
+    ...base,
+    ...modifier,
+  };
+};

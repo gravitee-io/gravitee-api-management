@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
 
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { ApiAnalyticsProxyComponent } from './analytics/api-analytics-proxy.component';
+export type AnalyticsRequestStats = { label: string; value?: number; isLoading: boolean }[];
 
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule, ApiAnalyticsProxyComponent],
+@Component({
+  selector: 'app-api-analytics-request-stats',
+  standalone: true,
+  imports: [CommonModule, GioLoaderModule, MatCardModule],
+  templateUrl: './api-analytics-request-stats.component.html',
+  styleUrl: './api-analytics-request-stats.component.scss',
 })
-export class ApiTrafficV4Module {}
+export class ApiAnalyticsRequestStatsComponent {
+  @Input()
+  title: string;
+
+  @Input()
+  requestsStats: AnalyticsRequestStats;
+}
