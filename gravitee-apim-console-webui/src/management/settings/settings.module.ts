@@ -22,8 +22,6 @@ import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
-import { CategoriesComponent } from './categories/categories.component';
-import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
 import { GroupComponent } from './groups/group/group.component';
 import { EnvironmentMetadataModule } from './metadata/environment-metadata.module';
@@ -39,7 +37,7 @@ import { ApiPortalHeaderModule } from './api-portal-header/api-portal-header.mod
 import { IdentityProvidersModule } from './identity-providers/identity-providers.module';
 import { PortalSettingsModule } from './portal-settings/portal-settings.module';
 import { TopApisModule } from './top-apis/top-apis.module';
-import { CategoriesNgxModule } from './categories/migrated/categories-ngx/categories-ngx.module';
+import { CategoriesModule } from './categories/categories.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
@@ -60,14 +58,12 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     EnvironmentNotificationModule,
     PortalSettingsModule,
     ApiPortalHeaderModule,
-    CategoriesNgxModule,
+    CategoriesModule,
   ],
   declarations: [
     SettingsNavigationComponent,
     SettingsAnalyticsComponent,
     SettingsAnalyticsDashboardComponent,
-    CategoriesComponent,
-    CategoryComponent,
     GroupsComponent,
     GroupComponent,
     PortalThemeComponent,

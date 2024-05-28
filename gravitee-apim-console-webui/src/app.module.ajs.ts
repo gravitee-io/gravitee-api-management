@@ -120,11 +120,7 @@ import PlatformLogsController from './management/analytics/logs/platform-logs.co
 import PlatformLogsComponentAjs from './management/analytics/logs/platform-logs.component.ajs';
 import PlatformLogComponentAjs from './management/analytics/logs/platform-log.component.ajs';
 
-import CategoriesController from './management/settings/categories/categories.controller';
-import CategoryController from './management/settings/categories/category/category.controller';
 import CategoryService from './services/category.service';
-import DeleteCategoryDialogController from './management/settings/categories/delete.category.dialog.controller';
-import DeleteAPICategoryDialogController from './management/settings/categories/category/delete-api-category.dialog.controller';
 import DialogAddGroupMemberController from './management/settings/groups/group/addMemberDialog.controller';
 import SubscriptionService from './services/subscription.service';
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
@@ -135,9 +131,6 @@ import DialogConfirmController from './components/dialog/confirmDialog.controlle
 import DialogConfirmAndValidateController from './components/dialog/confirmAndValidateDialog.controller';
 import DialogDynamicProviderHttpController from './management/api/properties-v1/dynamic-provider-http-dialog.controller';
 import TenantService from './services/tenant.service';
-
-import CategoriesComponentAjs from './management/settings/categories/categories.component.ajs';
-import CategoryComponentAjs from './management/settings/categories/category/category.component.ajs';
 
 import RoleService from './services/role.service';
 
@@ -459,10 +452,6 @@ graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDa
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.component('alertsActivityComponentAjs', AlertsActivityComponentAjs);
 graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);
-graviteeManagementModule.controller('CategoriesController', CategoriesController);
-graviteeManagementModule.controller('CategoryController', CategoryController);
-graviteeManagementModule.controller('DeleteCategoryDialogController', DeleteCategoryDialogController);
-graviteeManagementModule.controller('DeleteAPICategoryDialogController', DeleteAPICategoryDialogController);
 graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
 graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
@@ -533,9 +522,6 @@ graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMa
 graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent);
 graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
 graviteeManagementModule.controller('ErrorController', ErrorController);
-
-graviteeManagementModule.component('settingsCategoriesAjs', CategoriesComponentAjs);
-graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentAjs);
 
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
 

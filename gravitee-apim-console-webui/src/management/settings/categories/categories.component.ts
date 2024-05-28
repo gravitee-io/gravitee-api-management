@@ -13,32 +13,126 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
-import { UpgradeComponent } from '@angular/upgrade/static';
-import { ActivatedRoute } from '@angular/router';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { FormControl, FormGroup } from '@angular/forms';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+
+import { CategoryService } from '../../../services-ngx/category.service';
+import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Category } from '../../../entities/category/Category';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
-  template: '',
-  selector: 'settings-categories',
-  host: {
-    class: 'bootstrap gv-sub-content',
-  },
+  selector: 'app-categories',
+  templateUrl: './categories.component.html',
+  styleUrl: './categories.component.scss',
 })
-export class CategoriesComponent extends UpgradeComponent {
+export class CategoriesComponent implements OnInit {
+  categoriesDS$: Observable<Category[]> = of([]);
+  displayedColumns: string[] = ['picture', 'name', 'description', 'count', 'actions'];
+  portalSettingsForm: FormGroup<{ enabled: FormControl<boolean> }>;
+
+  private categoryList = new BehaviorSubject(1);
+  private destroyRef = inject(DestroyRef);
+
   constructor(
-    elementRef: ElementRef,
-    injector: Injector,
-    private readonly activatedRoute: ActivatedRoute,
-  ) {
-    super('settingsCategoriesAjs', elementRef, injector);
+    private categoryService: CategoryService,
+    private environmentSettingsService: EnvironmentSettingsService,
+    private readonly snackBarService: SnackBarService,
+    private matDialog: MatDialog,
+    private readonly permissionService: GioPermissionService,
+  ) {}
+
+  ngOnInit(): void {
+    // If read-only, remove actions column
+    if (!this.permissionService.hasAnyMatching(['environment-category-u', 'environment-category-d'])) {
+      this.displayedColumns.pop();
+    }
+
+    this.portalSettingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
+      enabled: new FormControl(this.environmentSettingsService.getSnapshot().portal.apis.categoryMode.enabled),
+    });
+    this.categoriesDS$ = this.categoryList.pipe(
+      switchMap((_) => this.categoryService.list(true)),
+      map((categories) => categories.sort((a, b) => a.order - b.order)),
+      catchError((_) => of([])),
+    );
   }
 
-  override ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    this.ngOnChanges({
-      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
-    });
+  deleteCategory(category: Category) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Delete Category',
+          content: `Are you sure you want to delete the category '${category.name}'?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'confirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed),
+        switchMap((_) => this.categoryService.delete(category.id)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success(`'${category.name}' deleted successfully`);
+          this.categoryList.next(1);
+        },
+        error: ({ error }) => this.snackBarService.error(error?.message ?? 'Error during deletion'),
+      });
+  }
 
-    super.ngOnInit();
+  moveUp(index: number, categoryList: Category[]) {
+    this.switchCategoryPlaces(categoryList[index], categoryList[index - 1]);
+  }
+
+  moveDown(index: number, categoryList: Category[]) {
+    this.switchCategoryPlaces(categoryList[index + 1], categoryList[index]);
+  }
+
+  showCategory(category: Category) {
+    this.updateCategoryVisibility(false, category);
+  }
+
+  hideCategory(category: Category) {
+    this.updateCategoryVisibility(true, category);
+  }
+
+  private switchCategoryPlaces(categoryToMoveUp: Category, categoryToMoveDown: Category): void {
+    categoryToMoveDown.order += 1;
+    categoryToMoveUp.order -= 1;
+
+    this.categoryService
+      .updateList([categoryToMoveUp, categoryToMoveDown])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success(`Category order has been changed`);
+          this.categoryList.next(1);
+        },
+        error: ({ error }) => this.snackBarService.error(error.message),
+      });
+  }
+
+  private updateCategoryVisibility(isHidden: boolean, category: Category): void {
+    const categoryToUpdate: Category = { ...category, hidden: isHidden };
+    this.categoryService
+      .update(categoryToUpdate)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success(`Category [${category.name}] is now ${isHidden ? 'shown' : 'hidden'}`);
+          this.categoryList.next(1);
+        },
+        error: ({ error }) => this.snackBarService.error(error.message),
+      });
   }
 }
