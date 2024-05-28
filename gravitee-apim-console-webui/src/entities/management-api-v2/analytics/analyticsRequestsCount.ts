@@ -13,18 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
-
-@Component({
-  selector: 'api-analytics',
-  standalone: true,
-  imports: [GioCardEmptyStateModule, MatButton, MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle],
-  templateUrl: './api-analytics.component.html',
-  styleUrl: './api-analytics.component.scss',
-})
-export class ApiAnalyticsComponent {
-  isEmptyAnalytics = true;
+export interface AnalyticsRequestsCount {
+  total: number;
+  countsByEntrypoint: { [key: string]: number };
 }

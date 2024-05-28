@@ -1,0 +1,24 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.analytics {
+  &__gridContent {
+    padding-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    @include gio-layout.desktop {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    @include gio-layout.large-desktop {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    gap: 16px;
+  }
+}
