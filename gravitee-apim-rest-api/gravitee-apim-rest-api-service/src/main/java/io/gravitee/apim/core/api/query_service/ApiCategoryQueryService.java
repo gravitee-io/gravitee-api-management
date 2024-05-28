@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.query_service;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.category.model.Category;
 import java.util.Collection;
 
 public interface ApiCategoryQueryService {
@@ -25,4 +26,6 @@ public interface ApiCategoryQueryService {
      * @return The category keys.
      */
     Collection<String> findApiCategoryKeys(Api api);
+
+    Collection<Category> findByEnvironmentId(String environmentId);
 }

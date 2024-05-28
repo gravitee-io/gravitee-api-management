@@ -27,12 +27,12 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.AbstractDomainException;
@@ -88,6 +88,7 @@ public class ImportCRDUseCase {
     private final MembershipQueryService membershipQueryService;
     private final GroupQueryService groupQueryService;
     private final ApiMetadataDomainService apiMetadataDomainService;
+    private final ApiCategoryQueryService apiCategoryQueryService;
 
     public ImportCRDUseCase(
         ApiCrudService apiCrudService,
@@ -109,7 +110,8 @@ public class ImportCRDUseCase {
         MembershipCrudService membershipCrudService,
         MembershipQueryService membershipQueryService,
         GroupQueryService groupQueryService,
-        ApiMetadataDomainService apiMetadataDomainService
+        ApiMetadataDomainService apiMetadataDomainService,
+        ApiCategoryQueryService apiCategoryQueryService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
@@ -131,6 +133,7 @@ public class ImportCRDUseCase {
         this.membershipQueryService = membershipQueryService;
         this.groupQueryService = groupQueryService;
         this.apiMetadataDomainService = apiMetadataDomainService;
+        this.apiCategoryQueryService = apiCategoryQueryService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -153,6 +156,7 @@ public class ImportCRDUseCase {
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
             cleanGroups(input.crd);
+            cleanCategories(environmentId, input.crd);
 
             var createdApi = createApiDomainService.create(
                 ApiModelFactory.fromCrd(input.crd, environmentId),
@@ -202,6 +206,7 @@ public class ImportCRDUseCase {
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
             cleanGroups(input.crd);
+            cleanCategories(input.auditInfo.environmentId(), input.crd);
 
             var updated = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
 
@@ -328,6 +333,17 @@ public class ImportCRDUseCase {
             var existingGroups = groupQueryService.findByIds(spec.getGroups());
             groups.removeIf(groupId -> existingGroups.stream().noneMatch(group -> groupId.equals(group.getId())));
             spec.setGroups(groups);
+        }
+    }
+
+    private void cleanCategories(String environmentId, ApiCRDSpec spec) {
+        if (!isEmpty(spec.getCategories())) {
+            var categories = new HashSet<>(spec.getCategories());
+            var existingCategories = apiCategoryQueryService.findByEnvironmentId(environmentId);
+            categories.removeIf(keyOrId ->
+                existingCategories.stream().noneMatch(category -> category.getKey().equals(keyOrId) || category.getId().equals(keyOrId))
+            );
+            spec.setCategories(categories);
         }
     }
 

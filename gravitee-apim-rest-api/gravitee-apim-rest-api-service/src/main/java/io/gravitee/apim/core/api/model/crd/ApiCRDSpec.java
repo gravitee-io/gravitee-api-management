@@ -124,6 +124,7 @@ public class ApiCRDSpec {
             .type(ApiType.valueOf(type))
             .apiLifecycleState(Api.ApiLifecycleState.valueOf(lifecycleState))
             .lifecycleState(Api.LifecycleState.valueOf(state))
+            .categories(categories)
             .originContext(
                 KubernetesContext
                     .builder()

@@ -13,6 +13,7 @@
   "visibility": "PRIVATE",
   "lifecycle_state": "CREATED",
   "tags": [],
+  "categories": ["existing", "unknown"],
   "proxy": {
     "context_path": "/test",
     "endpoints": [

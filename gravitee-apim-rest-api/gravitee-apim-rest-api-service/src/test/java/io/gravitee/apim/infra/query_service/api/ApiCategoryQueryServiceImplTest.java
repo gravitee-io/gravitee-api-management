@@ -28,11 +28,8 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
-import jakarta.validation.constraints.Null;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -106,7 +103,7 @@ class ApiCategoryQueryServiceImplTest {
             var categories = service.findApiCategoryKeys(API);
 
             // then
-            Assertions.assertThat(categories).containsExactlyInAnyOrder("key-" + CATEGORY_ID_1, "key-" + CATEGORY_ID_2);
+            assertThat(categories).containsExactlyInAnyOrder("key-" + CATEGORY_ID_1, "key-" + CATEGORY_ID_2);
         }
 
         @ParameterizedTest
@@ -118,7 +115,7 @@ class ApiCategoryQueryServiceImplTest {
             var categories = service.findApiCategoryKeys(API.toBuilder().categories(categoryIds).build());
 
             // then
-            Assertions.assertThat(categories).isEmpty();
+            assertThat(categories).isEmpty();
             verifyNoInteractions(categoryRepository);
         }
 
@@ -133,6 +130,38 @@ class ApiCategoryQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessageContaining("An error occurs while trying to find Categories for the api: " + API.getId())
+                .hasCauseInstanceOf(TechnicalException.class)
+                .hasRootCauseMessage("error");
+        }
+    }
+
+    @Nested
+    class FindByEnvironmentId {
+
+        @Test
+        @SneakyThrows
+        void should_return_categories() {
+            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID))
+                .thenReturn(
+                    Set.of(
+                        Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
+                        Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
+                    )
+                );
+
+            assertThat(service.findByEnvironmentId(ENVIRONMENT_ID))
+                .extracting("id")
+                .containsExactlyInAnyOrder(CATEGORY_ID_1, CATEGORY_ID_2);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_failing_to_fetch_categories() {
+            when(categoryRepository.findAllByEnvironment(any())).thenThrow(new TechnicalException("error"));
+
+            assertThat(catchThrowable(() -> service.findByEnvironmentId(ENVIRONMENT_ID)))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessageContaining("Cannot find categories for environment environment-id")
                 .hasCauseInstanceOf(TechnicalException.class)
                 .hasRootCauseMessage("error");
         }
