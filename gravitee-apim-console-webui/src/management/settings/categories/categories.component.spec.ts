@@ -25,18 +25,18 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
-import { CategoriesNgxModule } from './categories-ngx.module';
-import { CategoriesNgxComponent } from './categories-ngx.component';
+import { CategoriesModule } from './categories.module';
+import { CategoriesComponent } from './categories.component';
 
-import { Category } from '../../../../../entities/category/Category';
-import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
-import { EnvSettings } from '../../../../../entities/Constants';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { UpdateCategory } from '../../../../../entities/category/UpdateCategory';
+import { Category } from '../../../entities/category/Category';
+import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
+import { EnvSettings } from '../../../entities/Constants';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { UpdateCategory } from '../../../entities/category/UpdateCategory';
 
-describe('CategoriesNgxComponent', () => {
-  let fixture: ComponentFixture<CategoriesNgxComponent>;
+describe('CategoriesComponent', () => {
+  let fixture: ComponentFixture<CategoriesComponent>;
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -79,7 +79,7 @@ describe('CategoriesNgxComponent', () => {
 
   const init = async (snapshot: Partial<EnvSettings> = DEFAULT_PORTAL_SETTINGS) => {
     await TestBed.configureTestingModule({
-      declarations: [CategoriesNgxComponent],
+      declarations: [CategoriesComponent],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -87,7 +87,7 @@ describe('CategoriesNgxComponent', () => {
         },
         { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot } },
       ],
-      imports: [NoopAnimationsModule, GioTestingModule, CategoriesNgxModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, CategoriesModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -97,7 +97,7 @@ describe('CategoriesNgxComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(CategoriesNgxComponent);
+    fixture = TestBed.createComponent(CategoriesComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
