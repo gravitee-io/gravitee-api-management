@@ -19,9 +19,9 @@ import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { isEmpty, isEqual } from 'lodash';
 
-import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
-import { Api, HttpListener, TcpListener } from '../../../../../../entities/management-api-v2';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Api, HttpListener, TcpListener } from '../../../../entities/management-api-v2';
 
 export interface AddApiToCategoryDialogData {
   categoryKey: string;

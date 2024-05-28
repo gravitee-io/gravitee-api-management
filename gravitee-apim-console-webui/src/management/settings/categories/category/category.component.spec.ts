@@ -29,23 +29,23 @@ import { MatIconHarness } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
-import { CategoryNgxComponent } from './category-ngx.component';
+import { CategoryComponent } from './category.component';
 
-import { Page } from '../../../../../../entities/page';
-import { NewCategory } from '../../../../../../entities/category/NewCategory';
-import { UpdateCategory } from '../../../../../../entities/category/UpdateCategory';
-import { CategoriesNgxModule } from '../categories-ngx.module';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
-import { Category } from '../../../../../../entities/category/Category';
-import { Api as MAPIApi } from '../../../../../../entities/api';
-import { fakeApi as fakeMAPIApi } from '../../../../../../entities/api/Api.fixture';
-import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeMAPIv2Api } from '../../../../../../entities/management-api-v2';
+import { Page } from '../../../../entities/page';
+import { NewCategory } from '../../../../entities/category/NewCategory';
+import { UpdateCategory } from '../../../../entities/category/UpdateCategory';
+import { CategoriesModule } from '../categories.module';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { Category } from '../../../../entities/category/Category';
+import { Api as MAPIApi } from '../../../../entities/api';
+import { fakeApi as fakeMAPIApi } from '../../../../entities/api/Api.fixture';
+import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeMAPIv2Api } from '../../../../entities/management-api-v2';
 import { AddApiToCategoryDialogHarness } from '../add-api-to-category-dialog/add-api-to-category-dialog.harness';
-import { GioTestingPermissionProvider } from '../../../../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
-describe('CategoryNgxComponent', () => {
-  let component: CategoryNgxComponent;
-  let fixture: ComponentFixture<CategoryNgxComponent>;
+describe('CategoryComponent', () => {
+  let component: CategoryComponent;
+  let fixture: ComponentFixture<CategoryComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
@@ -65,8 +65,8 @@ describe('CategoryNgxComponent', () => {
 
   const init = async (categoryId: string) => {
     await TestBed.configureTestingModule({
-      declarations: [CategoryNgxComponent],
-      imports: [NoopAnimationsModule, GioTestingModule, CategoriesNgxModule],
+      declarations: [CategoryComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, CategoriesModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -92,7 +92,7 @@ describe('CategoryNgxComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(CategoryNgxComponent);
+    fixture = TestBed.createComponent(CategoryComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
