@@ -22,10 +22,14 @@ import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -48,16 +52,19 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         final List<AccessPoint> accessPoints
     ) {
         try {
-            this.deleteAccessPoints(referenceType, referenceId);
-
+            Date updateStartTime = new Date();
             for (AccessPoint accessPoint : accessPoints) {
                 var ap = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
                 if (ap.getId() == null) {
                     ap.setId(UuidString.generateRandom());
                 }
+                ap.setUpdatedAt(new Date());
+                ap.setStatus(AccessPointStatus.CREATED);
                 io.gravitee.repository.management.model.AccessPoint createdAccessPoint = accessPointRepository.create(ap);
                 eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
             }
+
+            this.deleteAccessPointsBeforeUpdateTime(referenceType, referenceId, updateStartTime);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while creating access points", e);
         }
@@ -65,11 +72,27 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
 
     @Override
     public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
+        this.deleteAccessPointsBeforeUpdateTime(referenceType, referenceId, null);
+    }
+
+    private void deleteAccessPointsBeforeUpdateTime(
+        final AccessPoint.ReferenceType referenceType,
+        final String referenceId,
+        Date updateStartTime
+    ) {
         try {
-            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.deleteByReference(
-                AccessPointReferenceType.valueOf(referenceType.name()),
-                referenceId
+            AccessPointCriteria accessPointCriteria = AccessPointCriteria
+                .builder()
+                .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
+                .referenceIds(Collections.singletonList(referenceId))
+                .status(AccessPointStatus.CREATED)
+                .to(updateStartTime == null ? -1 : updateStartTime.getTime())
+                .build();
+            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.updateStatusByCriteria(
+                accessPointCriteria,
+                AccessPointStatus.DELETED
             );
+
             if (deleteAccessPoints != null) {
                 deleteAccessPoints
                     .stream()

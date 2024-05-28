@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.distributedsync.model;
+package io.gravitee.repository.mongodb.management.internal.domain;
 
-public enum DistributedEventType {
-    API,
-    DICTIONARY,
-    ORGANIZATION,
-    SUBSCRIPTION,
-    API_KEY,
-    LICENSE,
-    ACCESS_POINT,
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.AccessPointCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
+import java.util.List;
+
+public interface AccessPointMongoRepositoryCustom {
+    List<AccessPointMongo> search(AccessPointCriteria criteria, Long page, Long size);
 }
