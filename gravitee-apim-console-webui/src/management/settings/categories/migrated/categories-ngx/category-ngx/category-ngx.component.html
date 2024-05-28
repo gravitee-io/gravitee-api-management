@@ -84,16 +84,16 @@
       </mat-card-content>
     </mat-card>
     @if (mode === 'edit') {
-      <mat-card>
+      <mat-card *gioPermission="{ anyOf: ['environment-api-r'] }">
         <mat-card-content>
           <div class="apis__title">
             <h2>APIs</h2>
             <button
               class="add-button"
-              (click)="addApiToCategory()"
+              (click)="addApiToCategory(category)"
               mat-raised-button
               color="primary"
-              *gioPermission="{ anyOf: ['environment-category-u'] }"
+              *gioPermission="{ anyOf: ['environment-api-u'] }"
             >
               <mat-icon>add</mat-icon> Add API to Category
             </button>
@@ -134,15 +134,30 @@
                 <td mat-cell *matCellDef="let element">
                   <div class="apis__table__actions">
                     @if (element.id === highlightApiControl.value) {
-                      <button mat-icon-button (click)="removeHighlightedApi()" matTooltip="Remove Highlighted API">
+                      <button
+                        mat-icon-button
+                        (click)="removeHighlightedApi()"
+                        matTooltip="Remove Highlighted API"
+                        *gioPermission="{ anyOf: ['environment-category-u'] }"
+                      >
                         <mat-icon svgIcon="gio:cancel"></mat-icon>
                       </button>
                     } @else {
-                      <button mat-icon-button (click)="addHighlightedApi(element.id)" matTooltip="Highlight API">
+                      <button
+                        mat-icon-button
+                        (click)="addHighlightedApi(element.id)"
+                        matTooltip="Highlight API"
+                        *gioPermission="{ anyOf: ['environment-category-u'] }"
+                      >
                         <mat-icon svgIcon="gio:star-outline"></mat-icon>
                       </button>
                     }
-                    <button mat-icon-button (click)="removeApiFromCategory(element, category)" matTooltip="Remove API">
+                    <button
+                      mat-icon-button
+                      (click)="removeApiFromCategory(element, category)"
+                      matTooltip="Remove API"
+                      *gioPermission="{ anyOf: ['environment-api-u'] }"
+                    >
                       <mat-icon svgIcon="gio:trash"></mat-icon>
                     </button>
                   </div>
