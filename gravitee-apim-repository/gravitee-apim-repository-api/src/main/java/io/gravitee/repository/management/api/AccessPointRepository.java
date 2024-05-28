@@ -42,4 +42,6 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
     List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException;
 
     List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, final AccessPointStatus status) throws TechnicalException;
 }
