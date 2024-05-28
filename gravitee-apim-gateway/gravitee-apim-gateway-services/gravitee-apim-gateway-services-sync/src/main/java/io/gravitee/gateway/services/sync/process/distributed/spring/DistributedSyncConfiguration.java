@@ -20,6 +20,7 @@ import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_I
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
@@ -27,6 +28,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMappe
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
@@ -76,6 +78,11 @@ public class DistributedSyncConfiguration {
     @Bean
     public OrganizationMapper distributedOrganizationMapper(ObjectMapper objectMapper) {
         return new OrganizationMapper(objectMapper);
+    }
+
+    @Bean
+    public AccessPointMapper distributedAccessPointMapper(ObjectMapper objectMapper) {
+        return new AccessPointMapper(objectMapper);
     }
 
     @Bean
@@ -194,6 +201,23 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public DistributedAccessPointSynchronizer distributedAccessPointSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        AccessPointMapper accessPointMapper
+    ) {
+        return new DistributedAccessPointSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            accessPointMapper
+        );
+    }
+
+    @Bean
     public DefaultDistributedSyncService distributedSyncService(
         final Node node,
         final ClusterManager clusterManager,
@@ -205,7 +229,8 @@ public class DistributedSyncConfiguration {
         final ApiKeyMapper apiKeyMapper,
         final OrganizationMapper organizationMapper,
         final DictionaryMapper dictionaryMapper,
-        final LicenseMapper licenseMapper
+        final LicenseMapper licenseMapper,
+        final AccessPointMapper accessPointMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -218,7 +243,8 @@ public class DistributedSyncConfiguration {
             apiKeyMapper,
             organizationMapper,
             dictionaryMapper,
-            licenseMapper
+            licenseMapper,
+            accessPointMapper
         );
     }
 }

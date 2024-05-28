@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.repository.noop.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
@@ -24,22 +25,34 @@ import io.gravitee.repository.management.model.AccessPointTarget;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface AccessPointRepository extends CrudRepository<AccessPoint, String> {
-    Optional<AccessPoint> findByHost(final String host) throws TechnicalException;
+public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<AccessPoint, String> implements AccessPointRepository {
 
-    List<AccessPoint> findByTarget(final AccessPointTarget target) throws TechnicalException;
+    @Override
+    public Optional<AccessPoint> findByHost(String host) {
+        return Optional.empty();
+    }
 
-    List<AccessPoint> findByReferenceAndTarget(
-        final AccessPointReferenceType referenceType,
-        final String referenceId,
-        final AccessPointTarget target
-    ) throws TechnicalException;
+    @Override
+    public List<AccessPoint> findByTarget(AccessPointTarget target) {
+        return List.of();
+    }
 
-    List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException;
+    @Override
+    public List<AccessPoint> findByReferenceAndTarget(
+        AccessPointReferenceType referenceType,
+        String referenceId,
+        AccessPointTarget target
+    ) {
+        return List.of();
+    }
 
-    List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) throws TechnicalException;
+    @Override
+    public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) {
+        return List.of();
+    }
+
+    @Override
+    public List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) {
+        return List.of();
+    }
 }
