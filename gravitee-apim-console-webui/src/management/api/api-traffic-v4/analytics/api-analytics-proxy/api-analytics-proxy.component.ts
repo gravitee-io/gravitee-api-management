@@ -25,13 +25,12 @@ import { CommonModule } from '@angular/common';
 import {
   AnalyticsRequestStats,
   ApiAnalyticsRequestStatsComponent,
-} from './components/api-analytics-requests-stats/api-analytics-request-stats.component';
-
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
-import { AnalyticsRequestsCount } from '../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
-import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
-import { AnalyticsAverageConnectionDuration } from '../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
+} from '../components/api-analytics-requests-stats/api-analytics-request-stats.component';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
+import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
+import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
+import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -40,7 +39,7 @@ type ApiAnalyticsVM = {
 };
 
 @Component({
-  selector: 'api-analytics',
+  selector: 'api-analytics-proxy',
   standalone: true,
   imports: [CommonModule, MatButton, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsRequestStatsComponent],
   templateUrl: './api-analytics-proxy.component.html',

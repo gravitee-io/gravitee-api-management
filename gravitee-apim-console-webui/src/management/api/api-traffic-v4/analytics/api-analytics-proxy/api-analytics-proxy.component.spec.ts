@@ -23,12 +23,12 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiAnalyticsProxyComponent } from './api-analytics-proxy.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
-import { fakeAnalyticsRequestsCount } from '../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
-import { AnalyticsRequestsCount } from '../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
-import { AnalyticsAverageConnectionDuration } from '../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
-import { fakeAnalyticsAverageConnectionDuration } from '../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
+import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
+import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
+import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -78,6 +78,7 @@ describe('ApiAnalyticsProxyComponent', () => {
     beforeEach(async () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
     });
+
     it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
       const requestStats = await componentHarness.getRequestStatsHarness('HTTP Proxy Entrypoint - Request Stats');
