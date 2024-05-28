@@ -431,6 +431,7 @@ cloud:
   connector:
     ws:
       ssl:
+        verifyHost: true
         keystore:
           value: "base64 encoded value of the keystore provided by Gravitee Cloud (required)"
           password:
@@ -447,8 +448,6 @@ cloud:
           #configMapKeyRef:
   url: https://cloud.gravitee.io
   controller: https://cloud-controller.gravitee.io
-  ssl:
-    verifyHostname: true
 
 api:
   enabled: true
