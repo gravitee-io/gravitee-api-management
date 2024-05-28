@@ -21,7 +21,9 @@ import io.gravitee.apim.core.category.model.Category;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ApiCategoryQueryServiceInMemory implements ApiCategoryQueryService, InMemoryAlternative<Category> {
@@ -44,6 +46,11 @@ public class ApiCategoryQueryServiceInMemory implements ApiCategoryQueryService,
             .filter(category -> categoriesIds.contains(category.getId()) || categoriesIds.contains(category.getKey()))
             .map(Category::getKey)
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Collection<Category> findByEnvironmentId(String environmentId) {
+        return new HashSet<>(storage);
     }
 
     @Override

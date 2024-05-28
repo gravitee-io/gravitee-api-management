@@ -79,6 +79,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
@@ -190,6 +191,7 @@ class ImportCRDUseCaseTest {
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateApiDomainService updateApiDomainService;
     ApiMetadataDomainService apiMetadataDomainService = mock(ApiMetadataDomainService.class);
+    ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
 
     ImportCRDUseCase useCase;
 
@@ -314,7 +316,8 @@ class ImportCRDUseCaseTest {
                 membershipCrudServiceInMemory,
                 membershipQueryServiceInMemory,
                 groupQueryService,
-                apiMetadataDomainService
+                apiMetadataDomainService,
+                apiCategoryQueryService
             );
 
         enableApiPrimaryOwnerMode();
@@ -727,6 +730,20 @@ class ImportCRDUseCaseTest {
         useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().metadata(metadata).build()));
 
         verify(apiMetadataDomainService, times(1)).saveApiMetadata(API_ID, metadata, AUDIT_INFO);
+    }
+
+    @Test
+    void should_clean_categories_and_keep_existing_categories() {
+        apiCategoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+
+        var categories = Set.of("existing", "unknown");
+
+        useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().categories(categories).build()));
+
+        var api = apiCrudService.get(API_ID);
+
+        assertThat(api.getCategories()).isNotEmpty();
+        assertThat(api.getCategories()).doesNotContain("unknown");
     }
 
     void givenExistingApi() {
