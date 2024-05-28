@@ -31,6 +31,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 import { AnalyticsRequestsCount } from '../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
+import { AnalyticsAverageConnectionDuration } from '../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -50,25 +51,39 @@ export class ApiAnalyticsProxyComponent {
   private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
   private readonly activatedRoute = inject(ActivatedRoute);
 
-  isAnalyticsEnabled$ = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
+  private isAnalyticsEnabled$ = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
     onlyApiV4Filter(),
     map((api) => api.analytics.enabled),
   );
 
-  getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
+  private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
     .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
     .pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
-  analyticsData$: Observable<{ requestStats: AnalyticsRequestStats }> = combineLatest([this.getRequestsCount$]).pipe(
-    map(([requestsCount]) => ({
+  private getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
+    this.apiAnalyticsService.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
+      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
+      startWith({ isLoading: true }),
+    );
+
+  private analyticsData$: Observable<{ requestStats: AnalyticsRequestStats }> = combineLatest([
+    this.getRequestsCount$,
+    this.getAverageConnectionDuration$,
+  ]).pipe(
+    map(([requestsCount, averageConnectionDuration]) => ({
       requestStats: [
         {
           label: 'Total requests',
           value: requestsCount.total,
           isLoading: requestsCount.isLoading,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: averageConnectionDuration.average,
+          isLoading: averageConnectionDuration.isLoading,
         },
       ],
     })),
