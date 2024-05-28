@@ -18,7 +18,7 @@ import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing'
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { GioTableWrapperHarness } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+import { GioTableWrapperHarness } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class AddApiToCategoryDialogHarness extends MatDialogHarness {
   static override hostSelector = 'add-api-to-category-dialog';

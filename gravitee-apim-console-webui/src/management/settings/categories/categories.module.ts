@@ -36,17 +36,17 @@ import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 
-import { CategoryNgxComponent } from './category-ngx/category-ngx.component';
-import { CategoriesNgxComponent } from './categories-ngx.component';
+import { CategoryComponent } from './category/category.component';
+import { CategoriesComponent } from './categories.component';
 import { AddApiToCategoryDialogComponent } from './add-api-to-category-dialog/add-api-to-category-dialog.component';
 
-import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  declarations: [CategoriesNgxComponent, CategoryNgxComponent, AddApiToCategoryDialogComponent],
-  exports: [CategoriesNgxComponent, CategoryNgxComponent, AddApiToCategoryDialogComponent],
+  declarations: [CategoriesComponent, CategoryComponent, AddApiToCategoryDialogComponent],
+  exports: [CategoriesComponent, CategoryComponent, AddApiToCategoryDialogComponent],
   imports: [
     CommonModule,
     GioConfirmDialogModule,
@@ -73,4 +73,4 @@ import { GioTableWrapperModule } from '../../../../../shared/components/gio-tabl
     MatRadioButton,
   ],
 })
-export class CategoriesNgxModule {}
+export class CategoriesModule {}
