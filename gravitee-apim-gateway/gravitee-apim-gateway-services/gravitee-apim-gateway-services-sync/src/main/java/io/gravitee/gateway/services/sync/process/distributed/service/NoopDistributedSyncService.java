@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.service;
 
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
@@ -73,6 +74,11 @@ public class NoopDistributedSyncService implements DistributedSyncService {
 
     @Override
     public Completable distributeIfNeeded(LicenseDeployable deployable) {
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable distributeIfNeeded(AccessPointDeployable deployable) {
         return Completable.complete();
     }
 

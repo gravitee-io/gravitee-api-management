@@ -104,6 +104,11 @@ public class GatewayTestContainer extends GatewayContainer {
         }
 
         @Bean
+        public AccessPointRepository accessPointRepository() {
+            return Mockito.mock(AccessPointRepository.class);
+        }
+
+        @Bean
         public EnvironmentRepository environmentRepository() {
             return Mockito.mock(EnvironmentRepository.class);
         }

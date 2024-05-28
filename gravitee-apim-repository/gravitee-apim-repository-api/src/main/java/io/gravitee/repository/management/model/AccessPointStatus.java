@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.distributedsync.model;
+package io.gravitee.repository.management.model;
 
-public enum DistributedEventType {
-    API,
-    DICTIONARY,
-    ORGANIZATION,
-    SUBSCRIPTION,
-    API_KEY,
-    LICENSE,
-    ACCESS_POINT,
+public enum AccessPointStatus {
+    CREATED,
+    DELETED,
 }

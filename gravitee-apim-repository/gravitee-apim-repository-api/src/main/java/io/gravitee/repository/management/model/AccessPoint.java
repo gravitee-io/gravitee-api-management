@@ -15,14 +15,11 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -41,4 +38,6 @@ public class AccessPoint {
     private String host;
     private boolean secured;
     private boolean overriding;
+    private Date updatedAt;
+    private AccessPointStatus status;
 }

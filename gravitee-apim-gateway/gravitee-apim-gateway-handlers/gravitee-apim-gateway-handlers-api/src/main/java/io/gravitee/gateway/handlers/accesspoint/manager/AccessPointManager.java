@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.distributedsync.model;
+package io.gravitee.gateway.handlers.accesspoint.manager;
 
-public enum DistributedEventType {
-    API,
-    DICTIONARY,
-    ORGANIZATION,
-    SUBSCRIPTION,
-    API_KEY,
-    LICENSE,
-    ACCESS_POINT,
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+
+public interface AccessPointManager {
+    void register(AccessPoint accessPoint);
+
+    void unregister(AccessPoint accessPoint);
 }

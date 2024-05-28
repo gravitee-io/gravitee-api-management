@@ -25,6 +25,7 @@ import io.gravitee.gateway.connector.spring.ConnectorConfiguration;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.spring.AccessPointConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
@@ -53,6 +54,7 @@ import org.springframework.context.annotation.Import;
         VertxReactorConfiguration.class,
         ReporterConfiguration.class,
         ApiHandlerConfiguration.class,
+        AccessPointConfiguration.class,
         DictionaryConfiguration.class,
         PolicyConfiguration.class,
         PlatformConfiguration.class,

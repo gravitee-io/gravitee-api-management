@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.service;
 import io.gravitee.common.util.Version;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
@@ -25,6 +26,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMappe
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
@@ -63,6 +65,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final OrganizationMapper organizationMapper;
     private final DictionaryMapper dictionaryMapper;
     private final LicenseMapper licenseMapper;
+    private final AccessPointMapper accessPointMapper;
 
     @Override
     public void validate() {
@@ -202,6 +205,18 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return licenseMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
             log.debug("Not a primary node, skipping license event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(AccessPointDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing access point event for {}", deployable.id());
+                return accessPointMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+            }
+            log.debug("Not a primary node, skipping access point event distribution");
             return Completable.complete();
         });
     }

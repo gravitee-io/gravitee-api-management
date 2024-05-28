@@ -27,14 +27,17 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
@@ -106,7 +109,8 @@ class DefaultDistributedSyncServiceTest {
                 apiKeyMapper,
                 new OrganizationMapper(objectMapper),
                 new DictionaryMapper(objectMapper),
-                new LicenseMapper()
+                new LicenseMapper(),
+                new AccessPointMapper(objectMapper)
             );
     }
 
@@ -134,6 +138,7 @@ class DefaultDistributedSyncServiceTest {
                     null,
                     distributedEventRepository,
                     distributedSyncStateRepository,
+                    null,
                     null,
                     null,
                     null,
@@ -201,6 +206,20 @@ class DefaultDistributedSyncServiceTest {
             cut
                 .distributeIfNeeded(
                     OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
+                )
+                .test()
+                .assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_access_point() {
+            cut
+                .distributeIfNeeded(
+                    AccessPointDeployable
+                        .builder()
+                        .accessPoint(AccessPoint.builder().id("id").secured(true).overriding(true).build())
+                        .build()
                 )
                 .test()
                 .assertComplete();
@@ -276,6 +295,20 @@ class DefaultDistributedSyncServiceTest {
         @Test
         void should_not_call_repository_when_distributing_license() {
             cut.distributeIfNeeded(LicenseDeployable.builder().id("id").license("license").build()).test().assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_access_point() {
+            cut
+                .distributeIfNeeded(
+                    AccessPointDeployable
+                        .builder()
+                        .accessPoint(AccessPoint.builder().id("id").secured(true).overriding(true).build())
+                        .build()
+                )
+                .test()
+                .assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
     }
