@@ -13,58 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.distributed.synchronizer.api;
+package io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint;
 
-import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.AccessPointDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.ThreadPoolExecutor;
-import lombok.extern.slf4j.Slf4j;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Slf4j
-public class DistributedApiSynchronizer extends AbstractDistributedSynchronizer<ApiReactorDeployable, ApiDeployer> {
+public class DistributedAccessPointSynchronizer extends AbstractDistributedSynchronizer<AccessPointDeployable, AccessPointDeployer> {
 
     private final DeployerFactory deployerFactory;
-    private final ApiMapper apiMapper;
+    private final AccessPointMapper accessPointMapper;
 
-    public DistributedApiSynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final ApiMapper apiMapper
+    public DistributedAccessPointSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        ThreadPoolExecutor syncFetcherExecutor,
+        ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        AccessPointMapper accessPointMapper
     ) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
-        this.apiMapper = apiMapper;
+        this.accessPointMapper = accessPointMapper;
     }
 
     @Override
     protected DistributedEventType distributedEventType() {
-        return DistributedEventType.API;
-    }
-
-    protected Maybe<ApiReactorDeployable> mapTo(final DistributedEvent distributedEvent) {
-        return apiMapper.to(distributedEvent);
+        return DistributedEventType.ACCESS_POINT;
     }
 
     @Override
-    protected ApiDeployer createDeployer() {
-        return deployerFactory.createApiDeployer();
+    protected Maybe<AccessPointDeployable> mapTo(DistributedEvent distributedEvent) {
+        return accessPointMapper.to(distributedEvent);
+    }
+
+    @Override
+    protected AccessPointDeployer createDeployer() {
+        return deployerFactory.createAccessPointDeployer();
     }
 
     @Override
     public int order() {
-        return 2;
+        return 1;
     }
 }

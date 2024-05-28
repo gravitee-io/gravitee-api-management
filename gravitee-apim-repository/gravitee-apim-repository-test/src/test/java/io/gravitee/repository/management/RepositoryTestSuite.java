@@ -27,6 +27,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
     {
+        AccessPointRepositoryTest.class,
         AlertEventRepositoryTest.class,
         AlertRepositoryTest.class,
         ApiHeaderTest.class,
