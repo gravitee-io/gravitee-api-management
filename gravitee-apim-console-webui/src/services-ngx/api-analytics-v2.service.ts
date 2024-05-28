@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
+import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 
 @Injectable({
   providedIn: 'root',
@@ -31,5 +32,11 @@ export class ApiAnalyticsV2Service {
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
     return this.http.get<AnalyticsRequestsCount>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`);
+  }
+
+  getAverageConnectionDuration(apiId: string): Observable<AnalyticsAverageConnectionDuration> {
+    return this.http.get<AnalyticsAverageConnectionDuration>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration`,
+    );
   }
 }

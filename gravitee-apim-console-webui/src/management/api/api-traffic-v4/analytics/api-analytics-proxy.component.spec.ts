@@ -27,6 +27,8 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { fakeAnalyticsRequestsCount } from '../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
 import { AnalyticsRequestsCount } from '../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
+import { AnalyticsAverageConnectionDuration } from '../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
+import { fakeAnalyticsAverageConnectionDuration } from '../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -87,14 +89,38 @@ describe('ApiAnalyticsProxyComponent', () => {
           value: '',
           isLoading: true,
         },
+        {
+          label: 'Average Connection Duration',
+          value: '',
+          isLoading: true,
+        },
       ]);
 
+      // Expect incremental loading
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total requests',
           value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '',
+          isLoading: true,
+        },
+      ]);
+
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total requests',
+          value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '42.123',
           isLoading: false,
         },
       ]);
@@ -118,5 +144,14 @@ describe('ApiAnalyticsProxyComponent', () => {
         method: 'GET',
       })
       .flush(analyticsRequestsCount);
+  }
+
+  function expectApiAnalyticsAverageConnectionDurationGetRequest(analyticsAverageConnectionDuration: AnalyticsAverageConnectionDuration) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`,
+        method: 'GET',
+      })
+      .flush(analyticsAverageConnectionDuration);
   }
 });
