@@ -32,6 +32,7 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
     public static final String API_MEDIA = "apiMedia";
     public static final String MEMBERS = "members";
     public static final String DEFINITION_CONTEXT = "definition_context";
+    public static final String CATEGORIES = "categories";
 
     public static final String DEFINITION_CONTEXT_ORIGIN = "origin";
 
@@ -53,6 +54,14 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
 
     public boolean hasDefinitionContext() {
         return getJsonNode().hasNonNull(DEFINITION_CONTEXT);
+    }
+
+    public boolean hasCategories() {
+        return hasArray(CATEGORIES);
+    }
+
+    public ArrayNode getCategoriesArray() {
+        return getArray(CATEGORIES);
     }
 
     public JsonNode getDefinitionContext() {

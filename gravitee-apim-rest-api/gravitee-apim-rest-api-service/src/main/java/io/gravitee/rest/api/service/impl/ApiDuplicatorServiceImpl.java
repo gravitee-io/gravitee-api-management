@@ -65,6 +65,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
@@ -131,6 +132,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final PlanConverter planConverter;
     private final PermissionService permissionService;
     private final ApiIdsCalculatorService apiIdsCalculatorService;
+    private final CategoryMapper categoryMapper;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -150,7 +152,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         ApiConverter apiConverter,
         PlanConverter planConverter,
         PermissionService permissionService,
-        ApiIdsCalculatorService apiIdsCalculatorService
+        ApiIdsCalculatorService apiIdsCalculatorService,
+        CategoryMapper categoryMapper
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -170,6 +173,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.planConverter = planConverter;
         this.permissionService = permissionService;
         this.apiIdsCalculatorService = apiIdsCalculatorService;
+        this.categoryMapper = categoryMapper;
     }
 
     @Override
@@ -187,6 +191,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // import
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
+
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(
                 executionContext,
                 importedApi,
@@ -349,12 +354,26 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             importedApi.setCategories(categories);
         }
 
+        if (apiJsonNode.isKubernetesOrigin()) {
+            importedApi.setCategories(cleanDefinitionCategories(executionContext.getEnvironmentId(), apiJsonNode));
+        }
+
         // merge existing plans data with plans definition data
         // cause plans definition may contain less data than plans entities (for example when rollback an API from gateway event)
         Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiJsonNode.getId());
         importedApi.setPlans(readPlansToImportFromDefinition(apiJsonNode, existingPlans));
 
         return importedApi;
+    }
+
+    private Set<String> cleanDefinitionCategories(String environmentId, ImportApiJsonNode apiNode) {
+        if (!apiNode.hasCategories() || apiNode.getCategoriesArray().isEmpty()) {
+            return Set.of();
+        }
+        var categoriesNode = apiNode.getCategoriesArray();
+        var categories = new HashSet<String>();
+        categoriesNode.forEach(category -> categories.add(category.asText()));
+        return categoryMapper.toCategoryId(environmentId, categories);
     }
 
     private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode)
