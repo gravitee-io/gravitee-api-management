@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.distributedsync.model;
+package io.gravitee.gateway.handlers.accesspoint.model;
 
-public enum DistributedEventType {
-    API,
-    DICTIONARY,
-    ORGANIZATION,
-    SUBSCRIPTION,
-    API_KEY,
-    LICENSE,
-    ACCESS_POINT,
+import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Data
+public class AccessPoint {
+
+    private String id;
+    private AccessPointReferenceType referenceType;
+    private String referenceId;
+    private AccessPointTarget target;
+    private String host;
+    private boolean secured;
+    private boolean overriding;
+    private Date updatedAt;
+    private AccessPointStatus status;
 }
