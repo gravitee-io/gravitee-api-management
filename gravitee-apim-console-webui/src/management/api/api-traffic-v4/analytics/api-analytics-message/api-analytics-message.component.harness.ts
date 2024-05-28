@@ -15,10 +15,10 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-import { ApiAnalyticsRequestStatsHarness } from './components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
+import { ApiAnalyticsRequestStatsHarness } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
 
-export class ApiAnalyticsProxyHarness extends ComponentHarness {
-  static hostSelector = 'api-analytics-proxy';
+export class ApiAnalyticsMessageHarness extends ComponentHarness {
+  static hostSelector = 'api-analytics-message';
 
   protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
   protected loaderElement = this.locatorForOptional('.loader gio-loader');
