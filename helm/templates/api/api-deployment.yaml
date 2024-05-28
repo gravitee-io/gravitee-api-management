@@ -185,7 +185,7 @@ spec:
               value: "true"
             - name: gravitee_cloud_url
               value: {{ .Values.cloud.url }}
-            - name: gravitee_cloud_ws_endpoints_0
+            - name: gravitee_cloud_connector_ws_endpoints_0
               value: {{ .Values.cloud.controller }}
             - name: gravitee_cloud_connector_ws_ssl_keystore_type
               value: pkcs12
@@ -201,8 +201,8 @@ spec:
             - name: gravitee_cloud_connector_ws_ssl_truststore_password
               {{- toYaml .Values.cloud.connector.ws.ssl.truststore.password | nindent 14}}
             {{- end }}
-            - name: gravitee_cloud_connector_ws_ssl_verifyHostname
-              value: "{{ .Values.cloud.connector.ws.ssl.verifyHostname }}"
+            - name: gravitee_cloud_connector_ws_ssl_verifyHost
+              value: "{{ .Values.cloud.connector.ws.ssl.verifyHost }}"
             {{- end }}
             {{- if .Values.gateway.enabled }}
             - name: portal.entrypoint
