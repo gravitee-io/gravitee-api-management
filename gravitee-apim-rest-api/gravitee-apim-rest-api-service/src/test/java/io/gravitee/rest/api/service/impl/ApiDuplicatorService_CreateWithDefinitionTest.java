@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
@@ -58,6 +59,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
@@ -146,6 +148,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private ApiIdsCalculatorService apiIdsCalculatorService;
+
+    @Mock
+    private CategoryMapper categoryMapper;
 
     @Before
     public void mockAuthenticatedUser() {
@@ -735,6 +740,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
+        when(categoryMapper.toCategoryId(anyString(), any())).thenReturn(Set.of("existing"));
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1))
@@ -752,6 +759,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                     final PlanEntity plan2 = plans.get(1);
                     assertEquals(planId2, plan2.getId());
                     assertEquals(apiId, plan2.getApi());
+
+                    assertEquals(argument.getCategories(), Set.of("existing"));
 
                     return true;
                 }),

@@ -147,6 +147,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
     public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
     public static final String API_DEFINITION_CONTEXT_FIELD_SYNC_FROM = "syncFrom";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
     private static final String ENDPOINTS_DELIMITER = "\n";
 

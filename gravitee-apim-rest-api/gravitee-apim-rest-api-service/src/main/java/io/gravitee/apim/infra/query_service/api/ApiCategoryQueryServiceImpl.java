@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.api;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
+import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
@@ -60,6 +61,19 @@ public class ApiCategoryQueryServiceImpl implements ApiCategoryQueryService {
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find Categories for the api: " + api.getId(), e);
+        }
+    }
+
+    @Override
+    public Collection<Category> findByEnvironmentId(String environmentId) {
+        try {
+            return categoryRepository
+                .findAllByEnvironment(environmentId)
+                .stream()
+                .map(category -> Category.builder().key(category.getKey()).name(category.getName()).id(category.getId()).build())
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Cannot find categories for environment " + environmentId, e);
         }
     }
 }
