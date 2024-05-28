@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2>Add API to Category</h2>
+@if (apiPageData$ | async; as apiPageData) {
+  <gio-table-wrapper
+    class="table"
+    searchLabel="Search for APIs"
+    [length]="apiPageData.totalApis"
+    [paginationPageSizeOptions]="[10]"
+    [filters]="filters$.getValue()"
+    (filtersChange)="filters$.next($event)"
+  >
+    <table mat-table [dataSource]="apiPageData.apis">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.name }}
+          @if (element.attachedToCategory) {
+            <span class="gio-badge-success" matTooltip="Added to Category"><mat-icon svgIcon="gio:check"></mat-icon></span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="version">
+        <th mat-header-cell *matHeaderCellDef id="version">Version</th>
+        <td mat-cell *matCellDef="let element">{{ element.version }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="access">
+        <th mat-header-cell *matHeaderCellDef>Access</th>
+        <td mat-cell *matCellDef="let element">{{ element.access }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="selectApi">
+        <th mat-header-cell *matHeaderCellDef>Add To Category</th>
+        <td mat-cell *matCellDef="let element">
+          @if (!element.attachedToCategory) {
+            <mat-radio-button [checked]="element.id === selectedApiId" (change)="selectedApiId = element.id"></mat-radio-button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayColumns"></tr>
+
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayColumns.length">
+          {{ 'There are no APIs for this category.' }}
+        </td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+}
+<mat-dialog-actions [align]="'end'">
+  <button type="button" mat-flat-button [mat-dialog-close]="false">Cancel</button>
+  <button type="submit" color="primary" mat-raised-button (click)="closeDialog()" [disabled]="!selectedApiId">Add API</button>
+</mat-dialog-actions>

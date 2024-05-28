@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -38,8 +38,10 @@ import { CategoriesNgxModule } from '../categories-ngx.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { Category } from '../../../../../../entities/category/Category';
 import { Api as MAPIApi } from '../../../../../../entities/api';
-import { fakeApi as fakeApiMAPI } from '../../../../../../entities/api/Api.fixture';
-import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeApiMAPIv2 } from '../../../../../../entities/management-api-v2';
+import { fakeApi as fakeMAPIApi } from '../../../../../../entities/api/Api.fixture';
+import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeMAPIv2Api } from '../../../../../../entities/management-api-v2';
+import { AddApiToCategoryDialogHarness } from '../add-api-to-category-dialog/add-api-to-category-dialog.harness';
+import { GioTestingPermissionProvider } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('CategoryNgxComponent', () => {
   let component: CategoryNgxComponent;
@@ -70,11 +72,22 @@ describe('CategoryNgxComponent', () => {
           provide: ActivatedRoute,
           useValue: { params: of({ categoryId }) },
         },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: [
+            'environment-category-u',
+            'environment-category-d',
+            'environment-category-c',
+            'environment-api-u',
+            'environment-api-r',
+          ],
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isFocusable: () => true, // This checks focus trap, set it to true to avoid the warning
+          isTabbable: () => true,
         },
       })
       .compileComponents();
@@ -169,6 +182,7 @@ describe('CategoryNgxComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
     it('should be able to change picture', async () => {
       const picturePicker = await getPicturePicker();
@@ -179,6 +193,7 @@ describe('CategoryNgxComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
     it('should be able to change background', async () => {
       const backgroundPicker = await getBackgroundPicker();
@@ -189,6 +204,7 @@ describe('CategoryNgxComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
   });
 
@@ -225,7 +241,7 @@ describe('CategoryNgxComponent', () => {
   });
 
   describe('API List', () => {
-    const APIS: MAPIApi[] = [fakeApiMAPI({ id: 'lowlight', name: 'Lowlight' }), fakeApiMAPI({ id: 'highlight', name: 'Highlight' })];
+    const APIS: MAPIApi[] = [fakeMAPIApi({ id: 'lowlight', name: 'Lowlight' }), fakeMAPIApi({ id: 'highlight', name: 'Highlight' })];
     const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
 
     beforeEach(async () => {
@@ -265,6 +281,7 @@ describe('CategoryNgxComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
 
     it('should update Category when removing highlighted API', async () => {
@@ -282,6 +299,7 @@ describe('CategoryNgxComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
 
     it('should remove API from category', async () => {
@@ -293,13 +311,73 @@ describe('CategoryNgxComponent', () => {
       const removeApiDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
       await removeApiDialog.confirm();
 
-      const api = fakeApiMAPIv2({ id: 'lowlight', categories: [CAT_API_LIST.key, 'other-category'] });
+      const api = fakeMAPIv2Api({ id: 'lowlight', categories: [CAT_API_LIST.key, 'other-category'] });
       expectGetApi(api);
       expectUpdateApi({ ...api, categories: ['other-category'] }, { ...api, categories: ['other-category'] });
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
+      expectGetApisByCategory(CATEGORY);
     });
+  });
+
+  describe('Add API to Category', () => {
+    const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
+
+    beforeEach(async () => {
+      await init(CAT_API_LIST.id);
+      expectGetCategory(CAT_API_LIST);
+      fixture.detectChanges();
+
+      expectPortalPagesList();
+      expectGetApisByCategory(CAT_API_LIST);
+      fixture.detectChanges();
+      await addApiToCategory();
+    });
+
+    it('should show empty row message', fakeAsync(async () => {
+      const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+
+      expectSearchApi('', []);
+
+      const rows = await dialog.getRows();
+      expect(rows).toHaveLength(1);
+      expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
+    }));
+
+    it('should not allow user to choose API already in category', fakeAsync(async () => {
+      const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+
+      expectSearchApi('', [
+        fakeMAPIv2Api({ id: 'api-1', name: 'API 1', categories: [] }),
+        fakeMAPIv2Api({ id: 'api-2', name: 'API 2', categories: ['other-category', CATEGORY.key] }),
+      ]);
+
+      expect(await dialog.getSelectApiByIndex(0)).toBeTruthy();
+      expect(await dialog.getSelectApiByIndex(1)).toBeFalsy();
+    }));
+    it('should add API to category', fakeAsync(async () => {
+      const apiToAdd = fakeMAPIv2Api({ id: 'api-1', name: 'API 1', categories: [] });
+      const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+
+      expectSearchApi('', [apiToAdd, fakeMAPIv2Api({ id: 'api-2', name: 'API 2', categories: ['other-category', CAT_API_LIST.key] })]);
+
+      const submitBtn = await dialog.getSubmitButton();
+      expect(await submitBtn.isDisabled()).toEqual(true);
+
+      const selectApi1 = await dialog.getSelectApiByIndex(0);
+      await selectApi1.check();
+
+      expect(await submitBtn.isDisabled()).toEqual(false);
+      await submitBtn.click();
+
+      expectGetApi(apiToAdd);
+      expectUpdateApi({ ...apiToAdd, categories: [CAT_API_LIST.key] }, { ...apiToAdd, categories: [CAT_API_LIST.key] });
+
+      flush();
+
+      expectGetApisByCategory(CAT_API_LIST);
+    }));
   });
 
   function expectPortalPagesList(pages: Page[] = [{ id: 'page-1', name: 'Page 1' }]) {
@@ -328,6 +406,15 @@ describe('CategoryNgxComponent', () => {
 
   function expectGetApi(api: MAPIv2Api) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
+  }
+
+  function expectSearchApi(query: string, apis: MAPIv2Api[]) {
+    fixture.detectChanges();
+    tick(400);
+
+    httpTestingController
+      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?${query ? `q=${query}&` : ''}page=1&perPage=10`)
+      .flush({ data: apis, pagination: { totalCount: apis.length } });
   }
 
   function expectUpdateApi(request: UpdateApi, response: MAPIv2Api) {
@@ -377,5 +464,8 @@ describe('CategoryNgxComponent', () => {
       .then((rows) => rows[rowIndex].getCells({ columnName: 'actions' }))
       .then((cells) => cells[0])
       .then((actionCell) => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
+  }
+  async function addApiToCategory(): Promise<void> {
+    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.add-button' })).then((btn) => btn.click());
   }
 });

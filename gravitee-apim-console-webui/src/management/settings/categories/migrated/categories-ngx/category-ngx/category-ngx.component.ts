@@ -21,6 +21,7 @@ import { filter, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioConfirmDialogComponent, GioConfirmDialogData, NewFile } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { isEmpty } from 'lodash';
 
 import { Page, PageType } from '../../../../../../entities/page';
 import { Category } from '../../../../../../entities/category/Category';
@@ -32,6 +33,11 @@ import { UpdateCategory } from '../../../../../../entities/category/UpdateCatego
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiService } from '../../../../../../services-ngx/api.service';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
+import {
+  AddApiToCategoryDialogComponent,
+  AddApiToCategoryDialogData,
+  AddApiToCategoryDialogResult,
+} from '../add-api-to-category-dialog/add-api-to-category-dialog.component';
 
 interface ApiVM {
   id: string;
@@ -46,7 +52,6 @@ interface ApiVM {
   styleUrl: './category-ngx.component.scss',
 })
 export class CategoryNgxComponent implements OnInit {
-  categoryId: string;
   mode: 'new' | 'edit' = 'new';
 
   categoryDetails: FormGroup<{
@@ -61,13 +66,15 @@ export class CategoryNgxComponent implements OnInit {
   highlightApiControl: FormControl<string>;
   categoryDetailsInitialValue: unknown;
 
-  retrieveCategory = new BehaviorSubject(1);
   category$: Observable<Category>;
   pages$: Observable<Page[]>;
   apis$: Observable<ApiVM[]>;
 
-  private destroyRef = inject(DestroyRef);
   displayedColumns = ['name', 'version', 'contextPath', 'actions'];
+
+  private refreshData = new BehaviorSubject(1);
+  private category = new BehaviorSubject<Category>(null);
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -82,18 +89,18 @@ export class CategoryNgxComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.category$ = this.retrieveCategory.pipe(
+    this.category$ = this.refreshData.pipe(
       switchMap((_) => this.activatedRoute.params),
       switchMap(({ categoryId }) => {
         if (!!categoryId && categoryId !== 'new') {
           this.mode = 'edit';
-          this.categoryId = categoryId;
           return this.categoryService.get(categoryId);
         }
-        this.categoryId = 'new';
         return of({} as Category);
       }),
       tap((category) => {
+        this.category.next(category);
+
         this.highlightApiControl = new FormControl<string>(category.highlightApi);
         this.categoryDetails = new FormGroup({
           name: new FormControl<string>(category.name, { validators: Validators.required }),
@@ -109,7 +116,13 @@ export class CategoryNgxComponent implements OnInit {
       }),
     );
 
-    this.pages$ = this.retrieveCategory.pipe(switchMap((_) => this.documentationService.listPortalPages(PageType.MARKDOWN, true)));
+    this.apis$ = this.category.pipe(
+      filter((category) => !isEmpty(category)),
+      switchMap((category) => this.apiService.getAll({ category: category.key })),
+      map((apis) => apis.map((api) => ({ id: api.id, name: api.name, version: api.version, contextPath: api.context_path }))),
+    );
+
+    this.pages$ = this.refreshData.pipe(switchMap((_) => this.documentationService.listPortalPages(PageType.MARKDOWN, true)));
   }
 
   onSubmit() {
@@ -124,7 +137,7 @@ export class CategoryNgxComponent implements OnInit {
           if (this.mode === 'new') {
             this.router.navigate(['..', category.id], { relativeTo: this.activatedRoute });
           } else {
-            this.retrieveCategory.next(1);
+            this.refreshData.next(1);
           }
         },
         error: ({ error }) => this.snackBarService.error(error.message),
@@ -132,7 +145,7 @@ export class CategoryNgxComponent implements OnInit {
   }
 
   private updateCategory$(): Observable<Category> {
-    return this.categoryService.get(this.categoryId).pipe(
+    return this.categoryService.get(this.category.getValue().id).pipe(
       switchMap((category) => {
         const newValues = this.categoryDetails.getRawValue();
         const categoryToUpdate: UpdateCategory = {
@@ -182,10 +195,78 @@ export class CategoryNgxComponent implements OnInit {
     return this.categoryService.create(newCategory);
   }
 
+  addApiToCategory(category: Category) {
+    this.matDialog
+      .open<AddApiToCategoryDialogComponent, AddApiToCategoryDialogData, AddApiToCategoryDialogResult>(AddApiToCategoryDialogComponent, {
+        data: { categoryId: category.id, categoryKey: category.key },
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result?.apiId),
+        switchMap(({ apiId }) => this.apiV2Service.get(apiId)),
+        switchMap((api) => {
+          const updatedCategories = api.categories ? [...api.categories, category.key] : [category.key];
+          return this.apiV2Service.update(api.id, { ...api, categories: updatedCategories });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (api) => {
+          this.snackBarService.success(`API [${api.name}] has been added to the category.`);
+          this.category.next(category);
+        },
+        error: ({ error }) => this.snackBarService.error(error.message),
+      });
+  }
+
+  removeApiFromCategory(api: ApiVM, category: Category) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Remove API',
+          content: `Are you sure you want to remove API '${api.name}' from the category '${category.name}'?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'confirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed),
+        switchMap((_) => this.apiV2Service.get(api.id)),
+        switchMap((api) => {
+          const categories = api.categories.filter((c) => c !== category.key);
+          return this.apiV2Service.update(api.id, { ...api, categories });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success(`'${api.name}' removed successfully`);
+          this.refreshData.next(1);
+        },
+        error: ({ error }) => this.snackBarService.error(error?.message ?? 'Error during API removal'),
+      });
+  }
+
+  removeHighlightedApi() {
+    this.highlightApiControl.setValue(null);
+    this.categoryDetails.markAsDirty();
+  }
+
+  addHighlightedApi(apiId: string) {
+    this.highlightApiControl.setValue(apiId);
+    this.categoryDetails.markAsDirty();
+  }
   private handleReadOnly(): void {
     // User cannot change category details
     if (!this.permissionService.hasAnyMatching(['environment-category-u'])) {
       this.categoryDetails.disable();
+
+      // User cannot edit an API either
+      if (!this.permissionService.hasAnyMatching(['environment-api-u'])) {
+        this.displayedColumns.pop();
+      }
     }
   }
 }
