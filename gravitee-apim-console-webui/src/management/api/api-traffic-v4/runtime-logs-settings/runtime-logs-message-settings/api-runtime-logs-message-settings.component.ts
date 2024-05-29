@@ -36,8 +36,6 @@ import { ConsoleSettingsService } from '../../../../../services-ngx/console-sett
 export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy {
   @Input() public api: ApiV4;
   form: UntypedFormGroup;
-  samplingType: SamplingTypeEnum;
-  loggingModeDisabled = false;
   initialFormValue: unknown;
   settings: ConsoleSettings;
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -55,9 +53,8 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((settings) => {
         this.settings = settings;
-        this.loggingModeDisabled = !this.api?.analytics?.logging?.mode?.entrypoint && !this.api?.analytics?.logging?.mode?.endpoint;
-        this.samplingType = this.api?.analytics?.sampling?.type;
         this.initForm();
+        this.handleEnabledChanges();
         this.handleSamplingTypeChanges();
         this.handleLoggingModeChanges();
       });
@@ -76,7 +73,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
           const formValues = this.form.getRawValue();
           const sampling = formValues.samplingType ? { type: formValues.samplingType, value: formValues.samplingValue?.toString() } : null;
           const analytics: Analytics = {
-            enabled: api.analytics.enabled,
+            enabled: formValues.enabled,
             logging: {
               mode: {
                 entrypoint: formValues.entrypoint,
@@ -117,36 +114,95 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   }
 
   private initForm(): void {
+    const analyticsEnabled = this.api.analytics?.enabled;
+    const loggingModeDisabled = !(this.api?.analytics?.logging?.mode?.entrypoint || this.api?.analytics?.logging?.mode?.endpoint);
+
     this.form = new UntypedFormGroup({
-      entrypoint: new UntypedFormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
-      endpoint: new UntypedFormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
-      request: new UntypedFormControl(this.api?.analytics?.logging?.phase?.request ?? false),
-      response: new UntypedFormControl(this.api?.analytics?.logging?.phase?.response ?? false),
+      enabled: new UntypedFormControl(analyticsEnabled),
+      entrypoint: new UntypedFormControl({
+        value: this.api?.analytics?.logging?.mode?.entrypoint ?? false,
+        disabled: !analyticsEnabled,
+      }),
+      endpoint: new UntypedFormControl({
+        value: this.api?.analytics?.logging?.mode?.endpoint ?? false,
+        disabled: !analyticsEnabled,
+      }),
+      request: new UntypedFormControl({
+        value: this.api?.analytics?.logging?.phase?.request ?? false,
+        disabled: !analyticsEnabled,
+      }),
+      response: new UntypedFormControl({
+        value: this.api?.analytics?.logging?.phase?.response ?? false,
+        disabled: !analyticsEnabled,
+      }),
       messageContent: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
-        disabled: this.loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled,
       }),
       messageHeaders: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
-        disabled: this.loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled,
       }),
       messageMetadata: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
-        disabled: this.loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled,
       }),
       headers: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.headers ?? false,
-        disabled: this.loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled,
       }),
-      requestCondition: new UntypedFormControl(this.api?.analytics?.logging?.condition),
-      messageCondition: new UntypedFormControl(this.api?.analytics?.logging?.messageCondition),
-      samplingType: new UntypedFormControl(this.samplingType, Validators.required),
+      requestCondition: new UntypedFormControl({
+        value: this.api?.analytics?.logging?.condition,
+        disabled: !analyticsEnabled,
+      }),
+      messageCondition: new UntypedFormControl({
+        value: this.api?.analytics?.logging?.messageCondition,
+        disabled: !analyticsEnabled,
+      }),
+      samplingType: new UntypedFormControl(
+        {
+          value: this.api?.analytics?.sampling?.type,
+          disabled: !analyticsEnabled,
+        },
+        Validators.required,
+      ),
       samplingValue: new UntypedFormControl(
-        this.api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(this.samplingType),
-        this.getSamplingValueValidators(this.samplingType),
+        {
+          value: this.api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(this.api?.analytics?.sampling?.type),
+          disabled: !analyticsEnabled,
+        },
+        this.getSamplingValueValidators(this.api?.analytics?.sampling?.type),
       ),
     });
     this.initialFormValue = this.form.getRawValue();
+  }
+
+  private handleEnabledChanges(): void {
+    this.form
+      .get('enabled')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((enabled) => {
+        if (!enabled) {
+          Object.entries(this.form.controls)
+            .filter(([key]) => key !== 'enabled')
+            .forEach(([_, control]) => {
+              control.disable();
+            });
+        } else {
+          Object.entries(this.form.controls)
+            .filter(([key]) => key !== 'enabled')
+            .forEach(([key, control]) => {
+              if (['messageContent', 'messageHeaders', 'messageMetadata', 'headers'].includes(key)) {
+                const loggingModeDisabled = !(this.form.get('entrypoint').value || this.form.get('endpoint').value);
+                if (!loggingModeDisabled) {
+                  control.enable();
+                }
+              } else {
+                control.enable();
+              }
+            });
+        }
+      });
   }
 
   private handleSamplingTypeChanges(): void {
@@ -154,7 +210,6 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       .get('samplingType')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
       .subscribe((value) => {
-        this.samplingType = value;
         const samplingValueControl = this.form.get('samplingValue');
         samplingValueControl.setValue(this.getSamplingDefaultValue(value));
         samplingValueControl.setValidators(this.getSamplingValueValidators(value));
@@ -168,8 +223,8 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => {
         const formValues = this.form.getRawValue();
-        this.loggingModeDisabled = !formValues.entrypoint && !formValues.endpoint;
-        if (this.loggingModeDisabled) {
+        const loggingModeDisabled = !(formValues.entrypoint || formValues.endpoint);
+        if (loggingModeDisabled) {
           this.disableAndUncheck('messageContent');
           this.disableAndUncheck('messageHeaders');
           this.disableAndUncheck('messageMetadata');
