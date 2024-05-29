@@ -75,12 +75,13 @@ export class ApiAnalyticsProxyComponent {
     map(([requestsCount, averageConnectionDuration]) => ({
       requestStats: [
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: requestsCount.total,
           isLoading: requestsCount.isLoading,
         },
         {
           label: 'Average Connection Duration',
+          unitLabel: 'ms',
           value: averageConnectionDuration.average,
           isLoading: averageConnectionDuration.isLoading,
         },
