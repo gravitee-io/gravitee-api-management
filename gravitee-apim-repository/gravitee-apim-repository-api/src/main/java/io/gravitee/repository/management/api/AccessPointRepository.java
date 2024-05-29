@@ -39,7 +39,7 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
         final AccessPointTarget target
     ) throws TechnicalException;
 
-    default List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) {
+    default List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException {
         throw new IllegalStateException();
     }
 
