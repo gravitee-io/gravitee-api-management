@@ -63,8 +63,18 @@ describe('ApiAnalyticsMessageComponent', () => {
     fixture.autoDetectChanges(true);
   });
 
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
   it('should display loading', async () => {
     expect(await componentHarness.isLoaderDisplayed()).toBeTruthy();
+
+    expectGetEntrypoints();
+    httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      method: 'GET',
+    });
   });
 
   describe('GIVEN an API with analytics.enabled=false', () => {
@@ -102,7 +112,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
     it('should display All Entrypoints - Request Stats', async () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
-      const requestStats = await componentHarness.getRequestStatsHarness('All Entrypoints - Request Stats');
+      const requestStats = await componentHarness.getRequestStatsHarness('overview-request-stats');
 
       // Expect loading
       expect(await requestStats.getValues()).toEqual([
@@ -151,12 +161,12 @@ describe('ApiAnalyticsMessageComponent', () => {
 
     it('should display HTTP GET - Request Stats', async () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
-      const requestStats = await componentHarness.getRequestStatsHarness('HTTP GET Entrypoint - Request Stats');
+      const requestStats = await componentHarness.getRequestStatsHarness('http-get-request-stats');
 
       // Expect loading
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '',
           isLoading: true,
         },
@@ -178,7 +188,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       );
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '42',
           isLoading: false,
         },
@@ -188,6 +198,41 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: false,
         },
       ]);
+    });
+
+    it('should refresh', async () => {
+      const requestStats = await componentHarness.getRequestStatsHarness('overview-request-stats');
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total Requests',
+          value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '42.123ms',
+          isLoading: false,
+        },
+      ]);
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.refresh();
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total Requests',
+          value: '',
+          isLoading: true,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '',
+          isLoading: true,
+        },
+      ]);
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
     });
   });
 

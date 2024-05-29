@@ -12,32 +12,34 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
 
-  @include gio-layout.desktop {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-  @include gio-layout.large-desktop {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
   gap: 16px;
 }
 
-.analytics {
-  &__gridContent {
-    @include gridContent;
-  }
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
 
-  &__entrypoints {
-    padding-top: 16px;
+.loader {
+  padding: 24px;
+}
 
-    &__rows {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+.entrypoints {
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 
-      &__row {
-        &__gridContent {
-          @include gridContent;
-        }
+    &__row {
+      padding-top: 8px;
+
+      &:first-child {
+        padding-top: 0;
+      }
+
+      &__gridContent {
+        @include gridContent;
       }
     }
   }

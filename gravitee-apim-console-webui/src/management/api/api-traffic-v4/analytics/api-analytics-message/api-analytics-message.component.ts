@@ -17,7 +17,7 @@ import { Component, inject } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { combineLatest, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -35,6 +35,7 @@ import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
+import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -51,7 +52,16 @@ type ApiAnalyticsVM = {
 @Component({
   selector: 'api-analytics-message',
   standalone: true,
-  imports: [CommonModule, MatButton, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsRequestStatsComponent, MatIcon],
+  imports: [
+    CommonModule,
+    MatButton,
+    MatCardModule,
+    GioLoaderModule,
+    GioCardEmptyStateModule,
+    ApiAnalyticsRequestStatsComponent,
+    MatIcon,
+    ApiAnalyticsFiltersBarComponent,
+  ],
   templateUrl: './api-analytics-message.component.html',
   styleUrl: './api-analytics-message.component.scss',
 })
@@ -75,9 +85,12 @@ export class ApiAnalyticsMessageComponent {
       startWith({ isLoading: true }),
     );
 
+  filters$ = new BehaviorSubject<void>(undefined);
+
   apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
     this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
+    this.filters$,
   ]).pipe(
     switchMap(([api, availableEntrypoints]) => {
       if (api.analytics.enabled) {
