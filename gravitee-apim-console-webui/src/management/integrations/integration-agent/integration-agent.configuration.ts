@@ -14,6 +14,25 @@
  * limitations under the License.
  */
 
+const apigeeConfigurationCode = `
+version: '3.8'
+
+services:
+  integration-agent:
+    image: \${APIM_REGISTRY:-graviteeio}/federation-agent-apigee:\${AGENT_VERSION:-latest}
+    restart: always
+    volumes:
+      - \${SERVICE_ACCOUNT_KEY_PATH}:/opt/graviteeio-integration-agent/config/key/key.json
+    environment:
+      - gravitee_integration_connector_ws_endpoints_0=\${WS_ENDPOINTS}
+      - gravitee_integration_connector_ws_headers_0_name=Authorization
+      - gravitee_integration_connector_ws_headers_0_value=bearer \${WS_AUTH_TOKEN}
+      - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
+      - gravitee_integration_providers_0_configuration_gcpOrganizationId=\${GCP_ORGANIZATION_ID}
+      - gravitee_integration_providers_0_type=apigee
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/graviteeio-integration-agent/config/key/key.json
+`;
+
 const awsConfigurationCode = `
 version: '3.8'
 
@@ -48,11 +67,12 @@ services:
       - gravitee_integration_providers_0_type=solace
       - gravitee_integration_providers_0_configuration_url=\${SOLACE_ENDPOINT:-https://apim-production-api.solace.cloud/api/v2/apim}
       # optionals
-      - gravitee_integration_providers_0_configuration_0_appDomains=\${SOLACE_APPLICATION_0_DOMAIN}
-      - gravitee_integration_providers_0_configuration_1_appDomains=\${SOLACE_APPLICATION_1_DOMAIN}
+      - gravitee_integration_providers_0_configuration_0_appDomains=\${SOLACE_APPLICATION_0_DOMAIN:-}
+      - gravitee_integration_providers_0_configuration_1_appDomains=\${SOLACE_APPLICATION_1_DOMAIN:-}
 `;
 
 export const configurationCode = {
   'aws-api-gateway': awsConfigurationCode,
   solace: solaceConfigurationCode,
+  apigee: apigeeConfigurationCode,
 };
