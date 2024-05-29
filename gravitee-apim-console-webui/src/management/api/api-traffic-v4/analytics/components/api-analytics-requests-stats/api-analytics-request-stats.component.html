@@ -16,21 +16,23 @@
 
 -->
 <mat-card class="card">
-  <mat-card-content>
-    <div class="title">{{ title }}</div>
-    <div class="list">
-      @for (requestStat of requestsStats; track requestStat.label) {
-        <div class="list__row">
-          <span class="list__row__value">
-            @if (requestStat.isLoading) {
-              <gio-loader></gio-loader>
+  <div class="title">{{ title }}</div>
+  <div class="list">
+    @for (requestStat of requestsStats; track requestStat.label) {
+      <div class="list__row">
+        <span class="list__row__value">
+          @if (requestStat.isLoading) {
+            <gio-loader></gio-loader>
+          } @else {
+            @if (isNumber(requestStat.value)) {
+              {{ requestStat.value | number: '.0-3' }}{{ requestStat.unitLabel || '' }}
             } @else {
-              {{ requestStat.value | number: '.0-3' }}
+              -
             }
-          </span>
-          <span class="list__row__label">{{ requestStat.label }}</span>
-        </div>
-      }
-    </div>
-  </mat-card-content>
+          }
+        </span>
+        <span class="list__row__label">{{ requestStat.label }}</span>
+      </div>
+    }
+  </div>
 </mat-card>

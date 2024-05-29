@@ -17,8 +17,9 @@ import { Component, Input } from '@angular/core';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
+import { isNumber } from 'lodash';
 
-export type AnalyticsRequestStats = { label: string; value?: number; isLoading: boolean }[];
+export type AnalyticsRequestStats = { label: string; unitLabel?: string; value?: number; isLoading: boolean }[];
 
 @Component({
   selector: 'app-api-analytics-request-stats',
@@ -33,4 +34,6 @@ export class ApiAnalyticsRequestStatsComponent {
 
   @Input()
   requestsStats: AnalyticsRequestStats;
+
+  isNumber = isNumber;
 }
