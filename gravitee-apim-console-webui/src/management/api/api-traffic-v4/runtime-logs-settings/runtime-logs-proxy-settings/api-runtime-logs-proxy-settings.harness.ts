@@ -17,10 +17,12 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiRuntimeLogsProxySettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-proxy-settings';
 
+  private getEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
   private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
   private getEndpointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="endpoint"]' }));
   private getRequestPhaseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="request"]' }));
@@ -30,6 +32,8 @@ export class ApiRuntimeLogsProxySettingsHarness extends ComponentHarness {
   private getConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
 
+  public isEnabledChecked = async () => (await this.getEnabledToggle()).isChecked();
+  public toggleEnabled = async () => (await this.getEnabledToggle()).toggle();
   public isEntrypointChecked = async () => (await this.getEntrypointCheckbox()).isChecked();
   public isEntrypointDisabled = async () => (await this.getEntrypointCheckbox()).isDisabled();
   public toggleEntrypoint = async () => (await this.getEntrypointCheckbox()).toggle();

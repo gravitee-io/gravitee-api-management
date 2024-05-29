@@ -17,13 +17,14 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { GioBannerModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 
@@ -45,6 +46,8 @@ import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-s
     GioBannerModule,
     GioIconsModule,
     GioSaveBarModule,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
   ],
 })
 export class ApiRuntimeLogsProxySettingsModule {}

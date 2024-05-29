@@ -55,7 +55,6 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
       .pipe(
         tap((api: ApiV4) => {
           this.initForm(api);
-          this.onEnabledChanges();
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -77,6 +76,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
             ...api,
             analytics: {
               ...api.analytics,
+              enabled: configurationValues.enabled,
               logging: {
                 condition: configurationValues.condition,
                 mode: {
@@ -114,29 +114,66 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
   }
 
   private initForm(api: ApiV4) {
-    const enabled = api.analytics?.logging?.mode?.entrypoint || api.analytics?.logging?.mode?.endpoint;
+    const analyticsEnabled = api.analytics?.enabled;
+    const atLeastModeIsEnabled = api.analytics?.logging?.mode?.entrypoint || api.analytics?.logging?.mode?.endpoint;
     const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+
     this.form = new UntypedFormGroup({
-      entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: isReadOnly }),
-      endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: isReadOnly }),
-      request: new UntypedFormControl({ value: api.analytics?.logging?.phase?.request, disabled: !enabled || isReadOnly }),
-      response: new UntypedFormControl({ value: api.analytics?.logging?.phase?.response, disabled: !enabled || isReadOnly }),
-      headers: new UntypedFormControl({ value: api.analytics?.logging?.content?.headers, disabled: !enabled || isReadOnly }),
-      payload: new UntypedFormControl({ value: api.analytics?.logging?.content?.payload, disabled: !enabled || isReadOnly }),
-      condition: new UntypedFormControl({ value: api.analytics?.logging?.condition, disabled: !enabled || isReadOnly }),
+      enabled: new UntypedFormControl({ value: analyticsEnabled, disabled: isReadOnly }),
+      entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: !analyticsEnabled || isReadOnly }),
+      endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: !analyticsEnabled || isReadOnly }),
+      request: new UntypedFormControl({
+        value: api.analytics?.logging?.phase?.request,
+        disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
+      }),
+      response: new UntypedFormControl({
+        value: api.analytics?.logging?.phase?.response,
+        disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
+      }),
+      headers: new UntypedFormControl({
+        value: api.analytics?.logging?.content?.headers,
+        disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
+      }),
+      payload: new UntypedFormControl({
+        value: api.analytics?.logging?.content?.payload,
+        disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
+      }),
+      condition: new UntypedFormControl({
+        value: api.analytics?.logging?.condition,
+        disabled: !analyticsEnabled || !atLeastModeIsEnabled || isReadOnly,
+      }),
     });
 
     this.defaultConfiguration = this.form.getRawValue();
-  }
 
-  private onEnabledChanges(): void {
+    this.form
+      .get('enabled')
+      .valueChanges.pipe(
+        tap((enabled: boolean) => {
+          if (enabled) {
+            this.form.get('entrypoint').enable();
+            this.form.get('endpoint').enable();
+          } else {
+            this.form.get('entrypoint').disable();
+            this.form.get('endpoint').disable();
+            this.form.get('request').disable();
+            this.form.get('response').disable();
+            this.form.get('headers').disable();
+            this.form.get('payload').disable();
+            this.form.get('condition').disable();
+          }
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     merge(this.form.get('entrypoint').valueChanges, this.form.get('endpoint').valueChanges)
       .pipe(
         tap(() => {
           if (this.form.get('entrypoint').value || this.form.get('endpoint').value) {
-            this.enableFormFields();
+            this.enableLoggingFormFields();
           } else {
-            this.clearAndDisableFormFields();
+            this.clearAndDisableLoggingFormFields();
           }
         }),
         takeUntil(this.unsubscribe$),
@@ -144,7 +181,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
       .subscribe();
   }
 
-  private enableFormFields() {
+  private enableLoggingFormFields() {
     this.form.get('request').enable();
     this.form.get('response').enable();
     this.form.get('headers').enable();
@@ -152,7 +189,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
     this.form.get('condition').enable();
   }
 
-  private clearAndDisableFormFields() {
+  private clearAndDisableLoggingFormFields() {
     this.form.get('request').setValue(false);
     this.form.get('request').disable();
     this.form.get('response').setValue(false);
