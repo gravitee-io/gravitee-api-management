@@ -21,6 +21,8 @@ import { combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
+import { flatten, get } from 'lodash';
+import { MatIcon } from '@angular/material/icon';
 
 import {
   AnalyticsRequestStats,
@@ -31,17 +33,25 @@ import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
 import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
+import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { IconService } from '../../../../../services-ngx/icon.service';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
-  requestStats?: AnalyticsRequestStats;
+  globalRequestStats?: AnalyticsRequestStats;
+  entrypoints?: {
+    id: string;
+    name: string;
+    icon: string;
+    requestStats?: AnalyticsRequestStats;
+  }[];
 };
 
 @Component({
   selector: 'api-analytics-message',
   standalone: true,
-  imports: [CommonModule, MatButton, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsRequestStatsComponent],
+  imports: [CommonModule, MatButton, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsRequestStatsComponent, MatIcon],
   templateUrl: './api-analytics-message.component.html',
   styleUrl: './api-analytics-message.component.scss',
 })
@@ -49,11 +59,8 @@ export class ApiAnalyticsMessageComponent {
   private readonly apiService = inject(ApiV2Service);
   private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
   private readonly activatedRoute = inject(ActivatedRoute);
-
-  private isAnalyticsEnabled$ = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
-    onlyApiV4Filter(),
-    map((api) => api.analytics.enabled),
-  );
+  private readonly connectorPluginsV2Service = inject(ConnectorPluginsV2Service);
+  private readonly iconService = inject(IconService);
 
   private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
     .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
@@ -68,35 +75,66 @@ export class ApiAnalyticsMessageComponent {
       startWith({ isLoading: true }),
     );
 
-  private analyticsData$: Observable<{ requestStats: AnalyticsRequestStats }> = combineLatest([
-    this.getRequestsCount$,
-    this.getAverageConnectionDuration$,
+  apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
+    this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
+    this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
   ]).pipe(
-    map(([requestsCount, averageConnectionDuration]) => ({
-      requestStats: [
-        {
-          label: 'Total Requests',
-          value: requestsCount.total,
-          isLoading: requestsCount.isLoading,
-        },
-        {
-          label: 'Average Connection Duration',
-          unitLabel: 'ms',
-          value: averageConnectionDuration.average,
-          isLoading: averageConnectionDuration.isLoading,
-        },
-      ],
-    })),
-  );
+    switchMap(([api, availableEntrypoints]) => {
+      if (api.analytics.enabled) {
+        const apiEntrypointsType = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
+        const entrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints
+          .filter((e) => apiEntrypointsType.includes(e.id))
+          .map((e) => ({
+            id: e.id,
+            name: e.name,
+            icon: this.iconService.registerSvg(e.id, e.icon),
+          }));
 
-  apiAnalyticsVM$: Observable<ApiAnalyticsVM> = this.isAnalyticsEnabled$.pipe(
-    switchMap((isAnalyticsEnabled) => {
-      if (isAnalyticsEnabled) {
-        return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
+        return this.analyticsData$(entrypoints).pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
       }
       return of({ isAnalyticsEnabled: false });
     }),
     map((analyticsData) => ({ isLoading: false, ...analyticsData })),
     startWith({ isLoading: true }),
   );
+
+  private analyticsData$(
+    entrypoints: ApiAnalyticsVM['entrypoints'],
+  ): Observable<Pick<ApiAnalyticsVM, 'globalRequestStats' | 'entrypoints'>> {
+    return combineLatest([this.getRequestsCount$, this.getAverageConnectionDuration$]).pipe(
+      map(([requestsCount, averageConnectionDuration]) => ({
+        entrypoints: entrypoints.map((entrypoint) => {
+          return {
+            ...entrypoint,
+            requestStats: [
+              {
+                label: 'Total Requests',
+                value: get(requestsCount, `countsByEntrypoint.${entrypoint.id}`),
+                isLoading: requestsCount.isLoading,
+              },
+              {
+                label: 'Average Connection Duration',
+                unitLabel: 'ms',
+                value: get(averageConnectionDuration, `averagesByEntrypoint.${entrypoint.id}`),
+                isLoading: averageConnectionDuration.isLoading,
+              },
+            ],
+          };
+        }),
+        globalRequestStats: [
+          {
+            label: 'Total Requests',
+            value: requestsCount.total,
+            isLoading: requestsCount.isLoading,
+          },
+          {
+            label: 'Average Connection Duration',
+            unitLabel: 'ms',
+            value: averageConnectionDuration.average,
+            isLoading: averageConnectionDuration.isLoading,
+          },
+        ],
+      })),
+    );
+  }
 }
