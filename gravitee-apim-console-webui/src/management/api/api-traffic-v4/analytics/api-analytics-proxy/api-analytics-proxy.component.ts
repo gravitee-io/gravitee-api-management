@@ -17,7 +17,7 @@ import { Component, inject } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { combineLatest, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -31,6 +31,7 @@ import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
 import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
+import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -41,7 +42,15 @@ type ApiAnalyticsVM = {
 @Component({
   selector: 'api-analytics-proxy',
   standalone: true,
-  imports: [CommonModule, MatButton, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsRequestStatsComponent],
+  imports: [
+    CommonModule,
+    MatButton,
+    MatCardModule,
+    GioLoaderModule,
+    GioCardEmptyStateModule,
+    ApiAnalyticsRequestStatsComponent,
+    ApiAnalyticsFiltersBarComponent,
+  ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
@@ -49,11 +58,6 @@ export class ApiAnalyticsProxyComponent {
   private readonly apiService = inject(ApiV2Service);
   private readonly apiAnalyticsService = inject(ApiAnalyticsV2Service);
   private readonly activatedRoute = inject(ActivatedRoute);
-
-  private isAnalyticsEnabled$ = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
-    onlyApiV4Filter(),
-    map((api) => api.analytics.enabled),
-  );
 
   private getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsService
     .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
@@ -89,7 +93,13 @@ export class ApiAnalyticsProxyComponent {
     })),
   );
 
-  apiAnalyticsVM$: Observable<ApiAnalyticsVM> = this.isAnalyticsEnabled$.pipe(
+  filters$ = new BehaviorSubject<void>(undefined);
+
+  apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
+    this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter()),
+    this.filters$,
+  ]).pipe(
+    map(([api]) => api.analytics.enabled),
     switchMap((isAnalyticsEnabled) => {
       if (isAnalyticsEnabled) {
         return this.analyticsData$.pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));

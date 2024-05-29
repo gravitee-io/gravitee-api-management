@@ -59,8 +59,17 @@ describe('ApiAnalyticsProxyComponent', () => {
     fixture.autoDetectChanges(true);
   });
 
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
   it('should display loading', async () => {
     expect(await componentHarness.isLoaderDisplayed()).toBeTruthy();
+
+    httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      method: 'GET',
+    });
   });
 
   describe('GIVEN an API with analytics.enabled=false', () => {
@@ -125,6 +134,41 @@ describe('ApiAnalyticsProxyComponent', () => {
           isLoading: false,
         },
       ]);
+    });
+
+    it('should refresh', async () => {
+      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total Requests',
+          value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '42.123ms',
+          isLoading: false,
+        },
+      ]);
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.refresh();
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total Requests',
+          value: '',
+          isLoading: true,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '',
+          isLoading: true,
+        },
+      ]);
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
     });
   });
 

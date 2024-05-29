@@ -7,18 +7,9 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.analytics {
-  &__gridContent {
-    padding-top: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+.gridContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 
-    @include gio-layout.desktop {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    @include gio-layout.large-desktop {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    gap: 16px;
-  }
+  gap: 16px;
 }
