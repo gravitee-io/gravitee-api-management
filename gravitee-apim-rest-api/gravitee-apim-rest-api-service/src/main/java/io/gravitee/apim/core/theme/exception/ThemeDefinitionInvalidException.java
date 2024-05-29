@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.theme.model;
+package io.gravitee.apim.core.theme.exception;
 
-import lombok.Builder;
-import lombok.Data;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.theme.model.ThemeType;
+import java.util.Map;
+import java.util.Optional;
 
-@Data
-@Builder
-public class ThemeSearchCriteria {
+public class ThemeDefinitionInvalidException extends ValidationDomainException {
 
-    private ThemeType type;
-    private Boolean enabled;
+    public ThemeDefinitionInvalidException(ThemeType type, Object definition) {
+        super(
+            "Theme definition invalid for theme type [" + type.name() + "]",
+            Map.of("themeDefinition", Optional.ofNullable(definition).map(def -> definition.toString()).orElse(""))
+        );
+    }
 }

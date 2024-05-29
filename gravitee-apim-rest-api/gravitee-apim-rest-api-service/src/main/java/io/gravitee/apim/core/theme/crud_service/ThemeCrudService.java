@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.theme.model;
+package io.gravitee.apim.core.theme.crud_service;
 
-import lombok.Builder;
-import lombok.Data;
+import io.gravitee.apim.core.theme.model.Theme;
 
-@Data
-@Builder
-public class ThemeSearchCriteria {
-
-    private ThemeType type;
-    private Boolean enabled;
+public interface ThemeCrudService {
+    Theme create(Theme theme);
+    Theme update(Theme theme);
 }

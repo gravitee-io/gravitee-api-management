@@ -17,7 +17,10 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -26,9 +29,10 @@ import lombok.Setter;
  */
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Theme {
-
-    public Theme() {}
 
     public Theme(Theme cloned) {
         this.id = cloned.getId();

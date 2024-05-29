@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.ui;
+package io.gravitee.rest.api.management.v2.rest.resource.portal;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 import assertions.MAPIAssertions;
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.management.v2.rest.model.ThemesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -53,7 +53,7 @@ public class ThemesResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/ui/themes";
+        return "/environments/" + ENVIRONMENT + "/portal/themes";
     }
 
     @BeforeEach
@@ -158,7 +158,7 @@ public class ThemesResourceTest extends AbstractResourceTest {
             .builder()
             .id(PORTAL_THEME_ID)
             .name(PORTAL_THEME_ID)
-            .type(Theme.ThemeType.PORTAL)
+            .type(ThemeType.PORTAL)
             .definitionPortal(portalDefinition)
             .createdAt(ZonedDateTime.now())
             .updatedAt(ZonedDateTime.now())
@@ -174,7 +174,7 @@ public class ThemesResourceTest extends AbstractResourceTest {
             .builder()
             .id(PORTAL_NEXT_THEME_ID)
             .name(PORTAL_NEXT_THEME_ID)
-            .type(Theme.ThemeType.PORTAL_NEXT)
+            .type(ThemeType.PORTAL_NEXT)
             .definitionPortalNext(portalDefinition)
             .createdAt(ZonedDateTime.now())
             .updatedAt(ZonedDateTime.now())

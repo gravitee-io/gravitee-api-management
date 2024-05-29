@@ -15,29 +15,7 @@
  */
 package io.gravitee.apim.core.theme.model;
 
-import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
-import java.time.ZonedDateTime;
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder(toBuilder = true)
-public class Theme {
-
-    private String id;
-    private String name;
-
-    private ThemeDefinition definitionPortal;
-    private io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition definitionPortalNext;
-
-    private ThemeType type;
-
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
-
-    private boolean enabled;
-    private String logo;
-    private String optionalLogo;
-    private String favicon;
-    private String backgroundImage;
+public enum ThemeType {
+    PORTAL,
+    PORTAL_NEXT,
 }

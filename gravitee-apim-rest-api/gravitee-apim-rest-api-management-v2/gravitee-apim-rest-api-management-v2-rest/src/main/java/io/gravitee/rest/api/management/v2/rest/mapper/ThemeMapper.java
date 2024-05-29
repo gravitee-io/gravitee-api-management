@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.management.v2.rest.model.ThemePortal;
 import io.gravitee.rest.api.management.v2.rest.model.ThemePortalNext;
-import io.gravitee.rest.api.management.v2.rest.model.ThemeType;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -28,7 +28,7 @@ import org.mapstruct.factory.Mappers;
 public interface ThemeMapper {
     ThemeMapper INSTANCE = Mappers.getMapper(ThemeMapper.class);
 
-    Theme.ThemeType map(ThemeType type);
+    ThemeType map(io.gravitee.rest.api.management.v2.rest.model.ThemeType type);
 
     @Mapping(source = "definitionPortal", target = "definition")
     ThemePortal mapToThemePortal(Theme theme);
@@ -37,10 +37,10 @@ public interface ThemeMapper {
     ThemePortalNext mapToThemePortalNext(Theme theme);
 
     default io.gravitee.rest.api.management.v2.rest.model.Theme map(Theme theme) {
-        if (Theme.ThemeType.PORTAL.equals(theme.getType())) {
+        if (ThemeType.PORTAL.equals(theme.getType())) {
             return new io.gravitee.rest.api.management.v2.rest.model.Theme(this.mapToThemePortal(theme));
         }
-        if (Theme.ThemeType.PORTAL_NEXT.equals(theme.getType())) {
+        if (ThemeType.PORTAL_NEXT.equals(theme.getType())) {
             return new io.gravitee.rest.api.management.v2.rest.model.Theme(this.mapToThemePortalNext(theme));
         }
         return null;

@@ -27,7 +27,15 @@ import java.util.Objects;
 
 public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlternative<Theme> {
 
-    private final List<Theme> storage = new ArrayList<>();
+    private final List<Theme> storage;
+
+    public ThemeQueryServiceInMemory() {
+        this.storage = new ArrayList<>();
+    }
+
+    public ThemeQueryServiceInMemory(ThemeCrudServiceInMemory themeCrudServiceInMemory) {
+        storage = themeCrudServiceInMemory.storage;
+    }
 
     @Override
     public void initWith(List<Theme> items) {
