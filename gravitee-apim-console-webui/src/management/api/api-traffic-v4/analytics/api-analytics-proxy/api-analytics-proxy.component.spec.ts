@@ -81,12 +81,12 @@ describe('ApiAnalyticsProxyComponent', () => {
 
     it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
-      const requestStats = await componentHarness.getRequestStatsHarness('HTTP Proxy Entrypoint - Request Stats');
+      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
 
       // Expect loading
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '',
           isLoading: true,
         },
@@ -101,7 +101,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '0',
           isLoading: false,
         },
@@ -115,13 +115,13 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '0',
           isLoading: false,
         },
         {
           label: 'Average Connection Duration',
-          value: '42.123',
+          value: '42.123ms',
           isLoading: false,
         },
       ]);

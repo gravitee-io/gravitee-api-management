@@ -86,7 +86,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       // Expect loading
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '',
           isLoading: true,
         },
@@ -101,7 +101,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '0',
           isLoading: false,
         },
@@ -115,13 +115,13 @@ describe('ApiAnalyticsMessageComponent', () => {
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
       expect(await requestStats.getValues()).toEqual([
         {
-          label: 'Total requests',
+          label: 'Total Requests',
           value: '0',
           isLoading: false,
         },
         {
           label: 'Average Connection Duration',
-          value: '42.123',
+          value: '42.123ms',
           isLoading: false,
         },
       ]);
