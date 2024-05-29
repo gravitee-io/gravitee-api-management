@@ -642,13 +642,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
                 rolesToImport.forEach(role -> {
                     try {
-                        membershipService.deleteReferenceMember(
-                            executionContext,
-                            MembershipReferenceType.API,
-                            apiId,
-                            MembershipMemberType.USER,
-                            userEntity.getId()
-                        );
                         membershipService.addRoleToMemberOnReference(
                             executionContext,
                             MembershipReferenceType.API,
