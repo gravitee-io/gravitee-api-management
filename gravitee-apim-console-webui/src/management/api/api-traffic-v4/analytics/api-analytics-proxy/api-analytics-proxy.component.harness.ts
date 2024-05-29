@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 
 import { ApiAnalyticsRequestStatsHarness } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
+import { ApiAnalyticsFiltersBarHarness } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component.harness';
 
 export class ApiAnalyticsProxyHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-proxy';
@@ -23,6 +24,8 @@ export class ApiAnalyticsProxyHarness extends ComponentHarness {
   protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
   protected loaderElement = this.locatorForOptional('.loader gio-loader');
   protected requestStats = (title: string) => this.locatorForOptional(ApiAnalyticsRequestStatsHarness.with({ title }));
+
+  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsFiltersBarHarness);
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
     return (await this.emptyPanelHarness()) !== null;
