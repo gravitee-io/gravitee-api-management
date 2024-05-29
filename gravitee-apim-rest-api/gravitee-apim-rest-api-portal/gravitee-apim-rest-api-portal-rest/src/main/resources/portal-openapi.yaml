@@ -4013,7 +4013,7 @@ components:
           description: Description of the plan.
           type: string
         characteristics:
-          description: List of additionnal terms to describe the plan.
+          description: List of additional terms to describe the plan.
           type: array
           items:
             type: string
@@ -4037,6 +4037,41 @@ components:
           type: string
         mode:
           $ref: "#/components/schemas/PlanMode"
+        usage_configuration:
+          $ref: "#/components/schemas/PlanUsageConfiguration"
+
+    PlanUsageConfiguration:
+      type: object
+      description: Properties affecting how a plan can be used by API Consumers, such as rate-limit and quota.
+      properties:
+        rate_limit:
+          $ref: "#/components/schemas/TimePeriodConfiguration"
+        quota:
+          $ref: "#/components/schemas/TimePeriodConfiguration"
+
+    PeriodTimeUnit:
+      type: string
+      enum:
+        - SECONDS
+        - MINUTES
+        - HOURS
+        - DAYS
+        - WEEKS
+        - MONTHS
+
+    TimePeriodConfiguration:
+      required:
+        - type
+      type: object
+      description: Configuration of how a plan can be used.
+      properties:
+        period_time:
+          type: number
+        period_time_unit:
+          $ref: "#/components/schemas/PeriodTimeUnit"
+        limit:
+          type: number
+          description: Maximum number of requests.
 
     PlanMode:
       type: string

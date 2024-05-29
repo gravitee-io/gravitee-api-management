@@ -15,13 +15,28 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.gravitee.rest.api.portal.rest.model.PeriodTimeUnit;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
 import io.gravitee.rest.api.portal.rest.model.PlanMode;
+import io.gravitee.rest.api.portal.rest.model.PlanUsageConfiguration;
+import io.gravitee.rest.api.portal.rest.model.TimePeriodConfiguration;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,6 +45,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PlanMapper {
+
+    private final GraviteeMapper mapper = new GraviteeMapper();
+    private final String POLICY_CONFIGURATION_LIMIT = "limit";
+    private final String POLICY_CONFIGURATION_DYNAMIC_LIMIT = "dynamicLimit";
+    private final String POLICY_CONFIGURATION_PERIOD_TIME = "periodTime";
+    private final String POLICY_CONFIGURATION_PERIOD_TIME_UNIT = "periodTimeUnit";
+    private final String RATE_LIMIT_POLICY_ID = "rate-limit";
+    private final String QUOTA_POLICY_ID = "quota";
+    private final Map<String, String> POLICY_CONFIGURATION_ATTRIBUTES = Map.of(QUOTA_POLICY_ID, "quota", RATE_LIMIT_POLICY_ID, "rate");
 
     public Plan convert(PlanEntity plan) {
         return convert((GenericPlanEntity) plan);
@@ -52,6 +76,126 @@ public class PlanMapper {
         planItem.setValidation(ValidationEnum.fromValue(plan.getPlanValidation().name()));
         planItem.setGeneralConditions(plan.getGeneralConditions());
         planItem.setMode(PlanMode.valueOf(plan.getPlanMode().name()));
+
+        planItem.setUsageConfiguration(this.toUsageConfiguration(plan));
+
         return planItem;
+    }
+
+    private PlanUsageConfiguration toUsageConfiguration(GenericPlanEntity plan) {
+        var configuration = new PlanUsageConfiguration();
+        configuration.setRateLimit(this.getMostRestrictivePolicyConfiguration(RATE_LIMIT_POLICY_ID, plan));
+        configuration.setQuota(this.getMostRestrictivePolicyConfiguration(QUOTA_POLICY_ID, plan));
+        return configuration;
+    }
+
+    /**
+     * Get the most restrictive configuration pertaining to the given policy
+     *
+     * @param policyId -- Filter by policyId, ex. "rate-limit"
+     * @param plan -- GenericPlanEntity
+     * @return A TimePeriodConfiguration with the longest duration between calls. Null if no valid configuration exists.
+     */
+    private TimePeriodConfiguration getMostRestrictivePolicyConfiguration(String policyId, GenericPlanEntity plan) {
+        List<String> policyConfigurations = this.getEnabledConfigurationsByPolicyId(policyId, plan);
+
+        // Configuration with the longest minimum duration between calls
+        var longestMinimumDuration = new AtomicReference<TimePeriodConfiguration>();
+        policyConfigurations
+            .stream()
+            .map(stepConfiguration -> {
+                try {
+                    return mapper.readTree(stepConfiguration);
+                } catch (JsonProcessingException e) {
+                    return JsonNodeFactory.instance.objectNode();
+                }
+            })
+            .map(configuration -> {
+                var policyAttribute = POLICY_CONFIGURATION_ATTRIBUTES.get(policyId);
+                return configuration.has(policyAttribute) ? configuration.get(policyAttribute) : JsonNodeFactory.instance.objectNode();
+            })
+            .forEach(configuration -> {
+                if (!configuration.has(POLICY_CONFIGURATION_LIMIT) && !configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT)) {
+                    return;
+                }
+
+                var configAsTimePeriodConfiguration = new TimePeriodConfiguration();
+                configAsTimePeriodConfiguration.setLimit(this.getLimitToUse(configuration));
+                configAsTimePeriodConfiguration.setPeriodTime(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME).intValue());
+                configAsTimePeriodConfiguration.setPeriodTimeUnit(
+                    PeriodTimeUnit.valueOf(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME_UNIT).asText())
+                );
+
+                var configDuration = this.calculateDuration(configAsTimePeriodConfiguration);
+                var currentLongestMinimumDuration = this.calculateDuration(longestMinimumDuration.get());
+                if (
+                    Objects.isNull(currentLongestMinimumDuration) ||
+                    (Objects.nonNull(configDuration) && currentLongestMinimumDuration.compareTo(configDuration) < 0)
+                ) {
+                    longestMinimumDuration.set(configAsTimePeriodConfiguration);
+                }
+            });
+
+        return longestMinimumDuration.get();
+    }
+
+    private Duration calculateDuration(TimePeriodConfiguration configuration) {
+        if (
+            Objects.isNull(configuration) ||
+            Objects.isNull(configuration.getLimit()) ||
+            Objects.isNull(configuration.getPeriodTime()) ||
+            Objects.isNull(configuration.getPeriodTimeUnit())
+        ) {
+            return null;
+        }
+        return ChronoUnit
+            .valueOf(configuration.getPeriodTimeUnit().getValue())
+            .getDuration()
+            .multipliedBy(configuration.getPeriodTime().intValue())
+            .dividedBy(configuration.getLimit().intValue());
+    }
+
+    private long getLimitToUse(JsonNode configuration) {
+        if (!configuration.has(POLICY_CONFIGURATION_LIMIT) || configuration.get(POLICY_CONFIGURATION_LIMIT).intValue() == 0) {
+            return configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT).intValue();
+        }
+        return configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT).longValue();
+    }
+
+    /**
+     * Extract the Configuration strings from the policies that are enabled
+     *
+     * @param policyId -- Filter by policyId, ex. "rate-limit"
+     * @param plan -- GenericPlanEntity
+     * @return List of configurations for the given policy
+     */
+    private List<String> getEnabledConfigurationsByPolicyId(String policyId, GenericPlanEntity plan) {
+        switch (plan.getDefinitionVersion()) {
+            case V2 -> {
+                var planV2 = (PlanEntity) plan;
+                return planV2
+                    .getFlows()
+                    .stream()
+                    .filter(Flow::isEnabled)
+                    .flatMap(flow -> flow.getPre().stream())
+                    .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
+                    .map(io.gravitee.definition.model.flow.Step::getConfiguration)
+                    .toList();
+            }
+            case V4 -> {
+                var planV4 = (io.gravitee.rest.api.model.v4.plan.PlanEntity) plan;
+                return planV4
+                    .getFlows()
+                    .stream()
+                    .filter(io.gravitee.definition.model.v4.flow.Flow::isEnabled)
+                    .flatMap(flow -> flow.getRequest().stream())
+                    .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
+                    .map(Step::getConfiguration)
+                    .toList();
+            }
+            default -> {
+                return List.of();
+            }
+        }
     }
 }

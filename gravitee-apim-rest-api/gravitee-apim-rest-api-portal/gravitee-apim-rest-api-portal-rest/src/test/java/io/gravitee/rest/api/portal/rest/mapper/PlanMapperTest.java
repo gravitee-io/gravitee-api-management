@@ -20,17 +20,21 @@ import static org.junit.Assert.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.portal.rest.model.PeriodTimeUnit;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
 import io.gravitee.rest.api.portal.rest.model.PlanMode;
+import io.gravitee.rest.api.portal.rest.model.PlanUsageConfiguration;
 import java.time.Instant;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -54,59 +58,45 @@ public class PlanMapperTest {
     private static final String PLAN_SECURITY_DEFINITINON = "my-plan-security-definition";
     private static final String PLAN_SELECTION_RULE = "my-plan-selection-rule";
     private static final String PLAN_TAG = "my-plan-tag";
+    private static final String RATE_LIMIT = "rate-limit";
+    private static final String QUOTA = "quota";
 
-    private PlanEntity planEntity;
+    private PlanEntity planEntityV2;
+    private io.gravitee.rest.api.model.v4.plan.PlanEntity planEntityV4;
+    private final Instant now = Instant.now();
+    private final Date nowDate = Date.from(now);
 
-    @InjectMocks
-    private PlanMapper planMapper;
+    private final PlanMapper planMapper = new PlanMapper();
 
     @Before
     public void init() {
-        Instant now = Instant.now();
-        Date nowDate = Date.from(now);
-
-        //init
-        planEntity = new PlanEntity();
-
-        planEntity.setApi(PLAN_API);
-        planEntity.setCharacteristics(Arrays.asList(PLAN_CHARACTERISTIC));
-        planEntity.setClosedAt(nowDate);
-        planEntity.setCommentMessage(PLAN_COMMENT_MESSAGE);
-        planEntity.setCommentRequired(true);
-        planEntity.setCreatedAt(nowDate);
-        planEntity.setDescription(PLAN_DESCRIPTION);
-        planEntity.setExcludedGroups(Arrays.asList(PLAN_GROUP));
-        planEntity.setId(PLAN_ID);
-        planEntity.setName(PLAN_NAME);
-        planEntity.setNeedRedeployAt(nowDate);
-        planEntity.setOrder(1);
-
-        Policy policy = new Policy();
-        policy.setConfiguration(PLAN_RULE_POLICY_CONFIGURATION);
-        policy.setName(PLAN_RULE_POLICY_NAME);
-        Rule rule = new Rule();
-        rule.setDescription(PLAN_RULE_DESCRIPTION);
-        rule.setEnabled(true);
-        rule.setMethods(new HashSet<HttpMethod>(Arrays.asList(HttpMethod.GET)));
-        rule.setPolicy(policy);
-        Map<String, List<Rule>> paths = new HashMap<>();
-        paths.put(PLAN_PATH, Arrays.asList(rule));
-        planEntity.setPaths(paths);
-
-        planEntity.setPublishedAt(nowDate);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setSecurityDefinition(PLAN_SECURITY_DEFINITINON);
-        planEntity.setSelectionRule(PLAN_SELECTION_RULE);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setTags(new HashSet<String>(Arrays.asList(PLAN_TAG)));
-        planEntity.setType(PlanType.API);
-        planEntity.setUpdatedAt(nowDate);
-        planEntity.setValidation(PlanValidationType.AUTO);
+        this.preparePlanEntityV2();
+        this.preparePlanEntityV4();
     }
 
     @Test
-    public void testConvertWithSubscriptions() {
-        Plan responsePlan = planMapper.convert(planEntity);
+    public void testConvertWithSubscriptionsV2() {
+        Plan responsePlan = planMapper.convert(planEntityV2);
+        assertNotNull(responsePlan);
+
+        List<String> characteristics = responsePlan.getCharacteristics();
+        assertNotNull(characteristics);
+        assertEquals(1, characteristics.size());
+        assertEquals(PLAN_CHARACTERISTIC, characteristics.get(0));
+        assertEquals(PLAN_COMMENT_MESSAGE, responsePlan.getCommentQuestion());
+        assertTrue(responsePlan.getCommentRequired());
+        assertEquals(PLAN_DESCRIPTION, responsePlan.getDescription());
+        assertEquals(PLAN_ID, responsePlan.getId());
+        assertEquals(PLAN_NAME, responsePlan.getName());
+        assertEquals(1, responsePlan.getOrder().intValue());
+        assertEquals(SecurityEnum.API_KEY, responsePlan.getSecurity());
+        assertEquals(ValidationEnum.AUTO, responsePlan.getValidation());
+        assertEquals(PlanMode.STANDARD, responsePlan.getMode());
+    }
+
+    @Test
+    public void testConvertWithSubscriptionsV4() {
+        Plan responsePlan = planMapper.convert(planEntityV4);
         assertNotNull(responsePlan);
 
         List<String> characteristics = responsePlan.getCharacteristics();
@@ -126,11 +116,274 @@ public class PlanMapperTest {
 
     @Test
     public void testConvertPushPlan() {
-        planEntity.setSecurity(null);
-        planEntity.setSecurityDefinition(null);
-        Plan responsePlan = planMapper.convert(planEntity);
+        planEntityV2.setSecurity(null);
+        planEntityV2.setSecurityDefinition(null);
+        Plan responsePlan = planMapper.convert(planEntityV2);
         assertNotNull(responsePlan);
 
         assertNull(responsePlan.getSecurity());
+    }
+
+    @Test
+    public void shouldMapNoRateLimitOrQuotaV2() {
+        Plan responsePlan = planMapper.convert(planEntityV2);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        assertNull(responsePlan.getUsageConfiguration().getRateLimit());
+        assertNull(responsePlan.getUsageConfiguration().getQuota());
+    }
+
+    @Test
+    public void shouldMapNoRateLimitOrQuotaV4() {
+        Plan responsePlan = planMapper.convert(planEntityV4);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        assertNull(responsePlan.getUsageConfiguration().getRateLimit());
+        assertNull(responsePlan.getUsageConfiguration().getQuota());
+    }
+
+    @Test
+    public void shouldMapMultipleRateLimitsToOneV2() {
+        var stepNoLimit = new Step();
+        stepNoLimit.setPolicy(RATE_LIMIT);
+        stepNoLimit.setConfiguration("{ \"rate\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
+        stepNoLimit.setEnabled(true);
+
+        var stepDynamicLimitMostRestrictive = new Step();
+        stepDynamicLimitMostRestrictive.setPolicy(RATE_LIMIT);
+        stepDynamicLimitMostRestrictive.setConfiguration(
+            "{ \"rate\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }"
+        );
+        stepDynamicLimitMostRestrictive.setEnabled(true);
+
+        var stepLowLimit = new Step();
+        stepLowLimit.setPolicy(RATE_LIMIT);
+        stepLowLimit.setConfiguration(
+            "{ \"rate\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
+        );
+        stepLowLimit.setEnabled(true);
+
+        var stepDisabledLowestLimit = new Step();
+        stepDisabledLowestLimit.setPolicy(RATE_LIMIT);
+        stepDisabledLowestLimit.setConfiguration("{ \"rate\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
+        stepDisabledLowestLimit.setEnabled(false);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(stepNoLimit, stepDynamicLimitMostRestrictive));
+
+        var flow2 = new Flow();
+        flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
+
+        planEntityV2.setFlows(List.of(flow1, flow2));
+        Plan responsePlan = planMapper.convert(planEntityV2);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimitConfig = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimitConfig);
+        assertEquals(25L, rateLimitConfig.getLimit());
+        assertEquals(4, rateLimitConfig.getPeriodTime());
+        assertEquals(PeriodTimeUnit.HOURS, rateLimitConfig.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldMapMultipleRateLimitsToOneV4() {
+        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepNoLimit.setPolicy(RATE_LIMIT);
+        stepNoLimit.setConfiguration("{ \"rate\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
+        stepNoLimit.setEnabled(true);
+
+        var stepEnabledLongestDuration = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepEnabledLongestDuration.setPolicy(RATE_LIMIT);
+        stepEnabledLongestDuration.setConfiguration(
+            "{ \"rate\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }"
+        );
+        stepEnabledLongestDuration.setEnabled(true);
+
+        var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepLowLimit.setPolicy(RATE_LIMIT);
+        stepLowLimit.setConfiguration(
+            "{ \"rate\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
+        );
+        stepLowLimit.setEnabled(true);
+
+        var stepDisabledLowestLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepDisabledLowestLimit.setPolicy(RATE_LIMIT);
+        stepDisabledLowestLimit.setConfiguration("{ \"rate\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
+        stepDisabledLowestLimit.setEnabled(false);
+
+        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        flow1.setRequest(List.of(stepNoLimit, stepEnabledLongestDuration));
+        flow1.setEnabled(true);
+
+        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
+        disabledFlow.setEnabled(false);
+
+        planEntityV4.setFlows(List.of(flow1, disabledFlow));
+
+        Plan responsePlan = planMapper.convert(planEntityV4);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimitConfig = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimitConfig);
+        assertEquals(25L, rateLimitConfig.getLimit());
+        assertEquals(4, rateLimitConfig.getPeriodTime());
+        assertEquals(PeriodTimeUnit.HOURS, rateLimitConfig.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldMapMultipleQuotaToOneV2() {
+        var stepNoLimit = new Step();
+        stepNoLimit.setPolicy(QUOTA);
+        stepNoLimit.setConfiguration("{ \"quota\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
+        stepNoLimit.setEnabled(true);
+
+        var stepDynamicLimitMostRestrictive = new Step();
+        stepDynamicLimitMostRestrictive.setPolicy(QUOTA);
+        stepDynamicLimitMostRestrictive.setConfiguration(
+            "{ \"quota\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }"
+        );
+        stepDynamicLimitMostRestrictive.setEnabled(true);
+
+        var stepLowLimit = new Step();
+        stepLowLimit.setPolicy(QUOTA);
+        stepLowLimit.setConfiguration(
+            "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
+        );
+        stepLowLimit.setEnabled(true);
+
+        var stepDisabledLowestLimit = new Step();
+        stepDisabledLowestLimit.setPolicy(QUOTA);
+        stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
+        stepDisabledLowestLimit.setEnabled(false);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(stepNoLimit, stepDynamicLimitMostRestrictive));
+
+        var flow2 = new Flow();
+        flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
+
+        planEntityV2.setFlows(List.of(flow1, flow2));
+
+        Plan responsePlan = planMapper.convert(planEntityV2);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var quotaConfig = responsePlan.getUsageConfiguration().getQuota();
+        assertNotNull(quotaConfig);
+        assertEquals(25L, quotaConfig.getLimit());
+        assertEquals(4, quotaConfig.getPeriodTime());
+        assertEquals(PeriodTimeUnit.HOURS, quotaConfig.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldMapMultipleQuotaToOneV4() {
+        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepNoLimit.setPolicy(QUOTA);
+        stepNoLimit.setConfiguration("{ \"quota\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
+        stepNoLimit.setEnabled(true);
+
+        var stepDynamicLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepDynamicLimit.setPolicy(QUOTA);
+        stepDynamicLimit.setConfiguration("{ \"quota\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }");
+        stepDynamicLimit.setEnabled(true);
+
+        var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepLowLimit.setPolicy(QUOTA);
+        stepLowLimit.setConfiguration(
+            "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
+        );
+        stepLowLimit.setEnabled(true);
+
+        var stepDisabledLowestLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepDisabledLowestLimit.setPolicy(QUOTA);
+        stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
+        stepDisabledLowestLimit.setEnabled(false);
+
+        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        flow1.setRequest(List.of(stepNoLimit, stepDynamicLimit));
+        flow1.setEnabled(true);
+
+        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
+        disabledFlow.setEnabled(false);
+
+        planEntityV4.setFlows(List.of(flow1, disabledFlow));
+
+        Plan responsePlan = planMapper.convert(planEntityV4);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var quotaConfig = responsePlan.getUsageConfiguration().getQuota();
+        assertNotNull(quotaConfig);
+        assertEquals(25L, quotaConfig.getLimit());
+        assertEquals(4, quotaConfig.getPeriodTime());
+        assertEquals(PeriodTimeUnit.HOURS, quotaConfig.getPeriodTimeUnit());
+    }
+
+    private void preparePlanEntityV2() {
+        planEntityV2 = new PlanEntity();
+
+        planEntityV2.setApi(PLAN_API);
+        planEntityV2.setCharacteristics(Arrays.asList(PLAN_CHARACTERISTIC));
+        planEntityV2.setClosedAt(nowDate);
+        planEntityV2.setCommentMessage(PLAN_COMMENT_MESSAGE);
+        planEntityV2.setCommentRequired(true);
+        planEntityV2.setCreatedAt(nowDate);
+        planEntityV2.setDescription(PLAN_DESCRIPTION);
+        planEntityV2.setExcludedGroups(Arrays.asList(PLAN_GROUP));
+        planEntityV2.setId(PLAN_ID);
+        planEntityV2.setName(PLAN_NAME);
+        planEntityV2.setNeedRedeployAt(nowDate);
+        planEntityV2.setOrder(1);
+
+        Policy policy = new Policy();
+        policy.setConfiguration(PLAN_RULE_POLICY_CONFIGURATION);
+        policy.setName(PLAN_RULE_POLICY_NAME);
+        Rule rule = new Rule();
+        rule.setDescription(PLAN_RULE_DESCRIPTION);
+        rule.setEnabled(true);
+        rule.setMethods(new HashSet<HttpMethod>(Arrays.asList(HttpMethod.GET)));
+        rule.setPolicy(policy);
+        Map<String, List<Rule>> paths = new HashMap<>();
+        paths.put(PLAN_PATH, Arrays.asList(rule));
+        planEntityV2.setPaths(paths);
+
+        planEntityV2.setPublishedAt(nowDate);
+        planEntityV2.setSecurity(PlanSecurityType.API_KEY);
+        planEntityV2.setSecurityDefinition(PLAN_SECURITY_DEFINITINON);
+        planEntityV2.setSelectionRule(PLAN_SELECTION_RULE);
+        planEntityV2.setStatus(PlanStatus.PUBLISHED);
+        planEntityV2.setTags(new HashSet<String>(Arrays.asList(PLAN_TAG)));
+        planEntityV2.setType(PlanType.API);
+        planEntityV2.setUpdatedAt(nowDate);
+        planEntityV2.setValidation(PlanValidationType.AUTO);
+    }
+
+    private void preparePlanEntityV4() {
+        planEntityV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+
+        planEntityV4.setApiId(PLAN_API);
+        planEntityV4.setCharacteristics(Arrays.asList(PLAN_CHARACTERISTIC));
+        planEntityV4.setClosedAt(nowDate);
+        planEntityV4.setCommentMessage(PLAN_COMMENT_MESSAGE);
+        planEntityV4.setCommentRequired(true);
+        planEntityV4.setCreatedAt(nowDate);
+        planEntityV4.setDescription(PLAN_DESCRIPTION);
+        planEntityV4.setExcludedGroups(Arrays.asList(PLAN_GROUP));
+        planEntityV4.setId(PLAN_ID);
+        planEntityV4.setName(PLAN_NAME);
+        planEntityV4.setNeedRedeployAt(nowDate);
+        planEntityV4.setOrder(1);
+        planEntityV4.setMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
+
+        planEntityV4.setPublishedAt(nowDate);
+        var planSecurity = new PlanSecurity();
+        planSecurity.setConfiguration(PLAN_SECURITY_DEFINITINON);
+        planSecurity.setType(PlanSecurityType.API_KEY.name());
+        planEntityV4.setSecurity(planSecurity);
+        planEntityV4.setStatus(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED);
+        planEntityV4.setTags(new HashSet<String>(Arrays.asList(PLAN_TAG)));
+        planEntityV4.setType(io.gravitee.rest.api.model.v4.plan.PlanType.API);
+        planEntityV4.setUpdatedAt(nowDate);
+        planEntityV4.setValidation(io.gravitee.rest.api.model.v4.plan.PlanValidationType.AUTO);
     }
 }
