@@ -88,7 +88,7 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     }
 
     @Override
-    public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException {
+    public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) {
         List<AccessPointMongo> accessPointMongos = internalRepository.search(criteria, page, size);
         return accessPointMongos.stream().map(this::map).toList();
     }
