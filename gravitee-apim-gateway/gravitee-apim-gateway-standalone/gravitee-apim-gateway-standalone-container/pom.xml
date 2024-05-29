@@ -188,6 +188,12 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-rx-java3</artifactId>
         </dependency>
+        
+        <!-- As vertx-rx-java3 makes use of vertx-auth-jwt, it must be included to avoid classpath issue when auth-jwt is used -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-auth-jwt</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.netty</groupId>
