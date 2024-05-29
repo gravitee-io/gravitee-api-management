@@ -15,9 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.media.model.Media;
 import java.util.List;
 import java.util.Set;

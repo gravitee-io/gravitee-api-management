@@ -16,12 +16,9 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static java.util.Collections.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -61,14 +58,12 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
@@ -80,7 +75,6 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
-import io.gravitee.rest.api.service.v4.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -90,8 +84,6 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.AdditionalAnswers;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -102,7 +94,6 @@ public class ApiImportExportServiceImplTest {
     private static final String OWNER = "OWNER";
     private static final String MEMBER_ID = "memberId";
     private static final String PO_MEMBER_ID = "poMemberId";
-    public static final String DUMMY = "dummy";
 
     @Mock
     private ApiMetadataService apiMetadataService;
@@ -295,6 +286,125 @@ public class ApiImportExportServiceImplTest {
         assertNull(export.getPages());
         assertNotNull(export.getApiEntity());
         assertNull(export.getApiEntity().getGroups());
+    }
+
+    @Test
+    public void should_create_member_removing_previous_role() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var poRole = RoleEntity.builder().id("po-role-id").scope(RoleScope.API).name("PRIMARY_OWNER").build();
+
+        var memberRole = RoleEntity.builder().id("role-id").scope(RoleScope.API).name("OWNER").build();
+
+        var defaultRole = RoleEntity.builder().id("default-role-id").scope(RoleScope.API).name("USER").build();
+
+        var member = MemberEntity
+            .builder()
+            .id("member-id")
+            .type(MembershipMemberType.USER)
+            .referenceType(MembershipReferenceType.API)
+            .referenceId(API_ID)
+            .roles(List.of(memberRole))
+            .build();
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(poRole);
+
+        when(roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(List.of(defaultRole));
+
+        when(roleService.findByScopeAndName(RoleScope.API, "OWNER", executionContext.getOrganizationId()))
+            .thenReturn(Optional.of(memberRole));
+
+        cut.createMembers(executionContext, API_ID, Set.of(member));
+
+        verify(membershipService, times(1))
+            .deleteReferenceMember(executionContext, MembershipReferenceType.API, API_ID, MembershipMemberType.USER, member.getId());
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                executionContext,
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId(),
+                memberRole.getId()
+            );
+    }
+
+    @Test
+    public void should_create_member_using_default_role_if_no_roles() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var poRole = RoleEntity.builder().id("po-role-id").scope(RoleScope.API).name("PRIMARY_OWNER").build();
+
+        var defaultRole = RoleEntity.builder().id("default-role-id").scope(RoleScope.API).name("USER").build();
+
+        var member = MemberEntity
+            .builder()
+            .id("member-id")
+            .type(MembershipMemberType.USER)
+            .referenceType(MembershipReferenceType.API)
+            .referenceId(API_ID)
+            .build();
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(poRole);
+
+        when(roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(List.of(defaultRole));
+
+        cut.createMembers(executionContext, API_ID, Set.of(member));
+
+        verify(membershipService, times(1))
+            .deleteReferenceMember(executionContext, MembershipReferenceType.API, API_ID, MembershipMemberType.USER, member.getId());
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                executionContext,
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId(),
+                defaultRole.getId()
+            );
+    }
+
+    @Test
+    public void should_create_member_using_default_role_if_role_not_found() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var memberRole = RoleEntity.builder().id("role-id").scope(RoleScope.API).name("OWNER").build();
+
+        var poRole = RoleEntity.builder().id("po-role-id").scope(RoleScope.API).name("PRIMARY_OWNER").build();
+
+        var defaultRole = RoleEntity.builder().id("default-role-id").scope(RoleScope.API).name("USER").build();
+
+        var member = MemberEntity
+            .builder()
+            .id("member-id")
+            .type(MembershipMemberType.USER)
+            .referenceType(MembershipReferenceType.API)
+            .referenceId(API_ID)
+            .roles(List.of(memberRole))
+            .build();
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(poRole);
+
+        when(roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(List.of(defaultRole));
+
+        when(roleService.findByScopeAndName(RoleScope.API, "OWNER", executionContext.getOrganizationId())).thenReturn(Optional.empty());
+
+        cut.createMembers(executionContext, API_ID, Set.of(member));
+
+        verify(membershipService, times(1))
+            .deleteReferenceMember(executionContext, MembershipReferenceType.API, API_ID, MembershipMemberType.USER, member.getId());
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                executionContext,
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId(),
+                defaultRole.getId()
+            );
     }
 
     private void mockPermissions(boolean member, boolean metadata, boolean plan, boolean documentation) {
