@@ -49,6 +49,16 @@
                 [value]="provider.value"
                 class="gio-radio-button"
               >
+                <img
+                  class="gio-radio-button__logo"
+                  [src]="
+                    'assets/logos/' +
+                    provider.value +
+                    (provider.value === chooseProviderForm.controls.provider.getRawValue() ? '_accent' : '') +
+                    '.svg'
+                  "
+                  [alt]="provider.value + ' logo'"
+                />
                 <gio-form-selection-inline-card-content>
                   <gio-card-content-title>
                     {{ provider.value | mapProviderName }}
@@ -68,6 +78,7 @@
                 class="gio-radio-button"
                 [disabled]="true"
               >
+                <img class="gio-radio-button__logo" [src]="'assets/logos/' + provider.value + '_gray.svg'" alt="Google Logo" />
                 <gio-form-selection-inline-card-content>
                   <gio-card-content-title>
                     {{ provider.value | mapProviderName }}
