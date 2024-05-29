@@ -7,18 +7,38 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
+@mixin gridContent {
+  padding-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  @include gio-layout.desktop {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  @include gio-layout.large-desktop {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  gap: 16px;
+}
+
 .analytics {
   &__gridContent {
-    padding-top: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    @include gridContent;
+  }
 
-    @include gio-layout.desktop {
-      grid-template-columns: 1fr 1fr 1fr;
+  &__entrypoints {
+    padding-top: 16px;
+
+    &__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      &__row {
+        &__gridContent {
+          @include gridContent;
+        }
+      }
     }
-    @include gio-layout.large-desktop {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    gap: 16px;
   }
 }
