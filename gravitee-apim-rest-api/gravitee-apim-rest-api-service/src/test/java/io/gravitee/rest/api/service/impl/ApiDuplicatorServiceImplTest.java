@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -407,6 +408,77 @@ public class ApiDuplicatorServiceImplTest {
         );
 
         verify(membershipService).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void should_create_member_removing_previous_role() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var currentPo = new ApiDuplicatorServiceImpl.MemberToImport("gravitee", "po", List.of("PRIMARY_OWNER"), "po_role_id");
+        var memberToImport = new ApiDuplicatorServiceImpl.MemberToImport("gravitee", "member", List.of("REVIEWER"), "member_role_id");
+
+        UserEntity member = UserEntity.builder().id("user_id").build();
+        when(userService.findBySource(any(), any(), any(), eq(false))).thenReturn(member);
+
+        apiDuplicatorService.addOrUpdateMembers(
+            executionContext,
+            API_ID,
+            currentPo.getSourceId(),
+            currentPo,
+            memberToImport,
+            memberToImport.getRoles(),
+            false
+        );
+        verify(membershipService, times(1))
+            .deleteReferenceMember(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId()
+            );
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId(),
+                "REVIEWER"
+            );
+
+        // Set new role
+        memberToImport.setRoles(List.of("OWNER"));
+
+        // reset the mock
+        reset(membershipService);
+
+        apiDuplicatorService.addOrUpdateMembers(
+            executionContext,
+            API_ID,
+            currentPo.getSourceId(),
+            currentPo,
+            memberToImport,
+            memberToImport.getRoles(),
+            false
+        );
+        verify(membershipService, times(1))
+            .deleteReferenceMember(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId()
+            );
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId(),
+                "OWNER"
+            );
     }
 
     /*
