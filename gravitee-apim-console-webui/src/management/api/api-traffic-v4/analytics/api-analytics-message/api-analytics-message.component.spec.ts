@@ -24,11 +24,15 @@ import { ApiAnalyticsMessageComponent } from './api-analytics-message.component'
 import { ApiAnalyticsMessageHarness } from './api-analytics-message.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, ConnectorPlugin, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
 import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
+
+const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
+  { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
+];
 
 describe('ApiAnalyticsMessageComponent', () => {
   const API_ID = 'api-id';
@@ -66,6 +70,7 @@ describe('ApiAnalyticsMessageComponent', () => {
   describe('GIVEN an API with analytics.enabled=false', () => {
     beforeEach(async () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
+      expectGetEntrypoints();
     });
 
     it('should display empty panel', async () => {
@@ -76,7 +81,23 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+      expectApiGetRequest(
+        fakeApiV4({
+          id: API_ID,
+          analytics: { enabled: true },
+          listeners: [
+            {
+              type: 'HTTP',
+              entrypoints: [
+                {
+                  type: 'http-get',
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      expectGetEntrypoints();
     });
 
     it('should display All Entrypoints - Request Stats', async () => {
@@ -112,11 +133,53 @@ describe('ApiAnalyticsMessageComponent', () => {
         },
       ]);
 
+      // Expect data
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
           value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '42.123ms',
+          isLoading: false,
+        },
+      ]);
+    });
+
+    it('should display HTTP GET - Request Stats', async () => {
+      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
+      const requestStats = await componentHarness.getRequestStatsHarness('HTTP GET Entrypoint - Request Stats');
+
+      // Expect loading
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total requests',
+          value: '',
+          isLoading: true,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '',
+          isLoading: true,
+        },
+      ]);
+
+      // Expect data
+      expectApiAnalyticsAverageConnectionDurationGetRequest(
+        fakeAnalyticsAverageConnectionDuration({ averagesByEntrypoint: { 'http-get': 42.1234556 } }),
+      );
+      expectApiAnalyticsRequestsCountGetRequest(
+        fakeAnalyticsRequestsCount({
+          countsByEntrypoint: { 'http-get': 42 },
+        }),
+      );
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total requests',
+          value: '42',
           isLoading: false,
         },
         {
@@ -154,5 +217,9 @@ describe('ApiAnalyticsMessageComponent', () => {
         method: 'GET',
       })
       .flush(analyticsAverageConnectionDuration);
+  }
+
+  function expectGetEntrypoints(): void {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(ENTRYPOINTS);
   }
 });

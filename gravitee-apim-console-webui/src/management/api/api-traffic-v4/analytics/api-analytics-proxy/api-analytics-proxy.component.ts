@@ -68,7 +68,7 @@ export class ApiAnalyticsProxyComponent {
       startWith({ isLoading: true }),
     );
 
-  private analyticsData$: Observable<{ requestStats: AnalyticsRequestStats }> = combineLatest([
+  private analyticsData$: Observable<Pick<ApiAnalyticsVM, 'requestStats'>> = combineLatest([
     this.getRequestsCount$,
     this.getAverageConnectionDuration$,
   ]).pipe(
