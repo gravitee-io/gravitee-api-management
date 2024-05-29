@@ -18,13 +18,22 @@ import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { MatCardModule } from '@angular/material/card';
 
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule } from './components';
 import { QuickFiltersStoreService } from './services';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule, MatButtonModule, MatIconModule, GioLoaderModule],
+  imports: [
+    CommonModule,
+    ApiRuntimeLogsListModule,
+    ApiRuntimeLogsQuickFiltersModule,
+    MatButtonModule,
+    MatIconModule,
+    GioLoaderModule,
+    MatCardModule,
+  ],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
   providers: [QuickFiltersStoreService],
