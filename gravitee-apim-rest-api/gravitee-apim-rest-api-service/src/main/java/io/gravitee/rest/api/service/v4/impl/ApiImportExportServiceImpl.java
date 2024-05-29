@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.*;
+
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -198,9 +200,10 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         String poRoleName = poRole.getName();
 
         var defaultApiRole = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API);
+        assert (!isEmpty(defaultApiRole));
 
         for (MemberEntity member : members) {
-            if (CollectionUtils.isEmpty(member.getRoles())) {
+            if (isEmpty(member.getRoles())) {
                 member.setRoles(defaultApiRole);
             }
             List<RoleEntity> rolesToImport = member
@@ -226,6 +229,13 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
 
             rolesToImport.forEach(role -> {
                 try {
+                    membershipService.deleteReferenceMember(
+                        executionContext,
+                        MembershipReferenceType.API,
+                        apiId,
+                        MembershipMemberType.USER,
+                        member.getId()
+                    );
                     membershipService.addRoleToMemberOnReference(
                         executionContext,
                         MembershipReferenceType.API,
