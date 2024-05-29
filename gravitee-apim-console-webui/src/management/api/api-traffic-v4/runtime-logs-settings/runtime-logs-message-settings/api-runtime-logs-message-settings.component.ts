@@ -116,60 +116,64 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   private initForm(): void {
     const analyticsEnabled = this.api.analytics?.enabled;
     const loggingModeDisabled = !(this.api?.analytics?.logging?.mode?.entrypoint || this.api?.analytics?.logging?.mode?.endpoint);
+    const isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES';
 
     this.form = new UntypedFormGroup({
-      enabled: new UntypedFormControl(analyticsEnabled),
+      enabled: new UntypedFormControl({
+        value: analyticsEnabled,
+        disabled: isReadOnly,
+      }),
       entrypoint: new UntypedFormControl({
         value: this.api?.analytics?.logging?.mode?.entrypoint ?? false,
-        disabled: !analyticsEnabled,
+        disabled: !analyticsEnabled || isReadOnly,
       }),
       endpoint: new UntypedFormControl({
         value: this.api?.analytics?.logging?.mode?.endpoint ?? false,
-        disabled: !analyticsEnabled,
+        disabled: !analyticsEnabled || isReadOnly,
       }),
       request: new UntypedFormControl({
         value: this.api?.analytics?.logging?.phase?.request ?? false,
-        disabled: !analyticsEnabled,
+        disabled: !analyticsEnabled || isReadOnly,
       }),
       response: new UntypedFormControl({
         value: this.api?.analytics?.logging?.phase?.response ?? false,
-        disabled: !analyticsEnabled,
+        disabled: !analyticsEnabled || isReadOnly,
       }),
       messageContent: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
-        disabled: !analyticsEnabled || loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       messageHeaders: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
-        disabled: !analyticsEnabled || loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       messageMetadata: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
-        disabled: !analyticsEnabled || loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       headers: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.headers ?? false,
-        disabled: !analyticsEnabled || loggingModeDisabled,
+        disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       requestCondition: new UntypedFormControl({
         value: this.api?.analytics?.logging?.condition,
-        disabled: !analyticsEnabled,
+        disabled: !analyticsEnabled || isReadOnly,
       }),
       messageCondition: new UntypedFormControl({
         value: this.api?.analytics?.logging?.messageCondition,
-        disabled: !analyticsEnabled,
+        disabled: !analyticsEnabled || isReadOnly,
       }),
       samplingType: new UntypedFormControl(
         {
           value: this.api?.analytics?.sampling?.type,
-          disabled: !analyticsEnabled,
+          disabled: !analyticsEnabled || isReadOnly,
         },
         Validators.required,
       ),
       samplingValue: new UntypedFormControl(
         {
           value: this.api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(this.api?.analytics?.sampling?.type),
-          disabled: !analyticsEnabled,
+          disabled: !analyticsEnabled || isReadOnly,
         },
         this.getSamplingValueValidators(this.api?.analytics?.sampling?.type),
       ),
