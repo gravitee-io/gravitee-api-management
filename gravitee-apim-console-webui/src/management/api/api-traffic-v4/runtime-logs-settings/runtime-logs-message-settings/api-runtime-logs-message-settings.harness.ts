@@ -20,10 +20,12 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
 
+  private getEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
   public getLogsBanner = this.locatorFor(DivHarness.with({ text: /Logging smartly/ }));
   private getSaveButton = this.locatorFor(GioSaveBarHarness);
   private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
@@ -40,6 +42,9 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   public getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
   private getSamplingValueFormField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=sampling_value]' }));
 
+  public isEnabledChecked = async () => (await this.getEnabledToggle()).isChecked();
+  public toggleEnabled = async () => (await this.getEnabledToggle()).toggle();
+
   public saveSettings = async (): Promise<void> => {
     return this.getSaveButton().then((saveButton) => saveButton.clickSubmit());
   };
@@ -55,6 +60,7 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   public isEntrypointChecked = async (): Promise<boolean> => {
     return await this.getEntrypointCheckbox().then((checkbox) => checkbox.isChecked());
   };
+  public isEntrypointDisabled = async () => (await this.getEntrypointCheckbox()).isDisabled();
 
   public toggleEntrypoint = async (): Promise<void> => {
     return await this.getEntrypointCheckbox().then((checkbox) => checkbox.toggle());
@@ -63,6 +69,7 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   public isEndpointChecked = async (): Promise<boolean> => {
     return await this.getEndpointCheckbox().then((checkbox) => checkbox.isChecked());
   };
+  public isEndpointDisabled = async () => (await this.getEndpointCheckbox()).isDisabled();
 
   public toggleEndpoint = async (): Promise<void> => {
     return await this.getEndpointCheckbox().then((checkbox) => checkbox.toggle());

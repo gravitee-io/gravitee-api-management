@@ -104,105 +104,157 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('save tests', () => {
-    describe('logging mode tests', () => {
-      it('should enable logging mode on entrypoint and endpoint', async () => {
-        await initComponent();
-        expect(await componentHarness.isEntrypointChecked()).toBe(false);
-        expect(await componentHarness.isEndpointChecked()).toBe(false);
+  it('should enable and disable all form fields according to analytics enabled', async () => {
+    await initComponent();
 
-        await componentHarness.toggleEntrypoint();
+    expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
 
-        await componentHarness.toggleEndpoint();
-        await componentHarness.saveSettings();
+    // Expect all fields enabled
+    expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
+    expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
+    await componentHarness.toggleEntrypoint();
+    expect(await componentHarness.isMessageContentDisabled()).toEqual(false);
+    expect(await componentHarness.isMessageHeadersDisabled()).toEqual(false);
+    expect(await componentHarness.isMessageMetadataDisabled()).toEqual(false);
+    expect(await componentHarness.isHeadersDisabled()).toEqual(false);
+    await componentHarness.checkMessageContent();
 
-        expectApiGetRequest(testApi);
-        expectApiPutRequest({
+    await componentHarness.toggleEnabled();
+
+    // Expect all fields disabled
+    expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
+    expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
+    expect(await componentHarness.isMessageContentDisabled()).toEqual(true);
+    expect(await componentHarness.isMessageHeadersDisabled()).toEqual(true);
+    expect(await componentHarness.isMessageMetadataDisabled()).toEqual(true);
+    expect(await componentHarness.isHeadersDisabled()).toEqual(true);
+
+    await componentHarness.toggleEnabled();
+
+    // Expect all fields enabled like before
+    expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
+    expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
+    expect(await componentHarness.isMessageContentDisabled()).toEqual(false);
+    expect(await componentHarness.isMessageHeadersDisabled()).toEqual(false);
+    expect(await componentHarness.isMessageMetadataDisabled()).toEqual(false);
+    expect(await componentHarness.isHeadersDisabled()).toEqual(false);
+    // With previous state
+    expect(await componentHarness.isEntrypointChecked()).toStrictEqual(true);
+    expect(await componentHarness.isMessageContentChecked()).toEqual(true);
+  });
+
+  describe('logging mode tests', () => {
+    it('should enable logging mode on entrypoint and endpoint', async () => {
+      await initComponent();
+      expect(await componentHarness.isEntrypointChecked()).toBe(false);
+      expect(await componentHarness.isEndpointChecked()).toBe(false);
+
+      await componentHarness.toggleEntrypoint();
+
+      await componentHarness.toggleEndpoint();
+      await componentHarness.saveSettings();
+
+      expectApiGetRequest(testApi);
+      expectApiPutRequest({
+        ...testApi,
+        analytics: {
+          ...testApi.analytics,
+          logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
+        },
+      });
+    });
+
+    it('should have logging mode enabled with entrypoint and endpoint', async () => {
+      await initComponent(
+        fakeApiV4({
           ...testApi,
           analytics: {
             ...testApi.analytics,
             logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
           },
-        });
-      });
+        }),
+      );
+      expect(await componentHarness.isEntrypointChecked()).toBe(true);
+      expect(await componentHarness.isEndpointChecked()).toBe(true);
 
-      it('should have logging mode enabled with entrypoint and endpoint', async () => {
-        await initComponent(
-          fakeApiV4({
-            ...testApi,
-            analytics: {
-              ...testApi.analytics,
-              logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
-            },
-          }),
-        );
-        expect(await componentHarness.isEntrypointChecked()).toBe(true);
-        expect(await componentHarness.isEndpointChecked()).toBe(true);
+      await componentHarness.toggleEntrypoint();
 
-        await componentHarness.toggleEntrypoint();
-
-        await componentHarness.toggleEndpoint();
-        await componentHarness.saveSettings();
-
-        expectApiGetRequest(testApi);
-        expectApiPutRequest({
-          ...testApi,
-          analytics: {
-            ...testApi.analytics,
-            logging: { ...testApi.analytics.logging, mode: { entrypoint: false, endpoint: false } },
-          },
-        });
-      });
-
-      it('should enable/disable message checkboxes according to logging mode', async () => {
-        await initComponent();
-        expect(await componentHarness.isEntrypointChecked()).toBe(false);
-        expect(await componentHarness.isEndpointChecked()).toBe(false);
-        expect(await componentHarness.isMessageContentDisabled()).toBe(true);
-        expect(await componentHarness.isMessageHeadersDisabled()).toBe(true);
-        expect(await componentHarness.isMessageMetadataDisabled()).toBe(true);
-        expect(await componentHarness.isHeadersDisabled()).toBe(true);
-
-        await componentHarness.toggleEntrypoint();
-        expect(await componentHarness.isEntrypointChecked()).toBe(true);
-        expect(await componentHarness.isMessageContentDisabled()).toBe(false);
-        expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
-        expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
-        expect(await componentHarness.isHeadersDisabled()).toBe(false);
-
-        await componentHarness.toggleEntrypoint();
-        await componentHarness.toggleEndpoint();
-        expect(await componentHarness.isEntrypointChecked()).toBe(false);
-        expect(await componentHarness.isEndpointChecked()).toBe(true);
-        expect(await componentHarness.isMessageContentDisabled()).toBe(false);
-        expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
-        expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
-        expect(await componentHarness.isHeadersDisabled()).toBe(false);
-
-        await componentHarness.toggleEntrypoint();
-        expect(await componentHarness.isEntrypointChecked()).toBe(true);
-        expect(await componentHarness.isEndpointChecked()).toBe(true);
-        expect(await componentHarness.isMessageContentDisabled()).toBe(false);
-        expect(await componentHarness.isMessageContentChecked()).toBe(false);
-        expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
-        expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
-        expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
-        expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
-        expect(await componentHarness.isHeadersDisabled()).toBe(false);
-      });
-    });
-
-    it('should enable logging phase on request and response', async () => {
-      await initComponent();
-      expect(await componentHarness.isRequestPhaseChecked()).toBe(false);
-      expect(await componentHarness.isResponsePhaseChecked()).toBe(false);
-
-      await componentHarness.checkRequestPhase();
-      await componentHarness.checkResponsePhase();
+      await componentHarness.toggleEndpoint();
       await componentHarness.saveSettings();
 
       expectApiGetRequest(testApi);
       expectApiPutRequest({
+        ...testApi,
+        analytics: {
+          ...testApi.analytics,
+          logging: { ...testApi.analytics.logging, mode: { entrypoint: false, endpoint: false } },
+        },
+      });
+    });
+
+    it('should enable/disable message checkboxes according to logging mode', async () => {
+      await initComponent();
+      expect(await componentHarness.isEntrypointChecked()).toBe(false);
+      expect(await componentHarness.isEndpointChecked()).toBe(false);
+      expect(await componentHarness.isMessageContentDisabled()).toBe(true);
+      expect(await componentHarness.isMessageHeadersDisabled()).toBe(true);
+      expect(await componentHarness.isMessageMetadataDisabled()).toBe(true);
+      expect(await componentHarness.isHeadersDisabled()).toBe(true);
+
+      await componentHarness.toggleEntrypoint();
+      expect(await componentHarness.isEntrypointChecked()).toBe(true);
+      expect(await componentHarness.isMessageContentDisabled()).toBe(false);
+      expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
+      expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
+      expect(await componentHarness.isHeadersDisabled()).toBe(false);
+
+      await componentHarness.toggleEntrypoint();
+      await componentHarness.toggleEndpoint();
+      expect(await componentHarness.isEntrypointChecked()).toBe(false);
+      expect(await componentHarness.isEndpointChecked()).toBe(true);
+      expect(await componentHarness.isMessageContentDisabled()).toBe(false);
+      expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
+      expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
+      expect(await componentHarness.isHeadersDisabled()).toBe(false);
+
+      await componentHarness.toggleEntrypoint();
+      expect(await componentHarness.isEntrypointChecked()).toBe(true);
+      expect(await componentHarness.isEndpointChecked()).toBe(true);
+      expect(await componentHarness.isMessageContentDisabled()).toBe(false);
+      expect(await componentHarness.isMessageContentChecked()).toBe(false);
+      expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
+      expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
+      expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
+      expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
+      expect(await componentHarness.isHeadersDisabled()).toBe(false);
+    });
+  });
+
+  it('should enable logging phase on request and response', async () => {
+    await initComponent();
+    expect(await componentHarness.isRequestPhaseChecked()).toBe(false);
+    expect(await componentHarness.isResponsePhaseChecked()).toBe(false);
+
+    await componentHarness.checkRequestPhase();
+    await componentHarness.checkResponsePhase();
+    await componentHarness.saveSettings();
+
+    expectApiGetRequest(testApi);
+    expectApiPutRequest({
+      ...testApi,
+      analytics: {
+        ...testApi.analytics,
+        logging: {
+          ...testApi.analytics.logging,
+          phase: { request: true, response: true },
+        },
+      },
+    });
+  });
+
+  it('should have logging phase enabled with request and response', async () => {
+    await initComponent(
+      fakeApiV4({
         ...testApi,
         analytics: {
           ...testApi.analytics,
@@ -211,27 +263,88 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             phase: { request: true, response: true },
           },
         },
-      });
+      }),
+    );
+    expect(await componentHarness.isRequestPhaseChecked()).toBe(true);
+    expect(await componentHarness.isResponsePhaseChecked()).toBe(true);
+
+    await componentHarness.uncheckRequestPhase();
+    await componentHarness.uncheckResponsePhase();
+    await componentHarness.saveSettings();
+
+    expectApiGetRequest(testApi);
+    expectApiPutRequest({
+      ...testApi,
+      analytics: {
+        ...testApi.analytics,
+        logging: {
+          ...testApi.analytics.logging,
+          phase: { request: false, response: false },
+        },
+      },
     });
+  });
 
-    it('should have logging phase enabled with request and response', async () => {
-      await initComponent(
-        fakeApiV4({
-          ...testApi,
-          analytics: {
-            ...testApi.analytics,
-            logging: {
-              ...testApi.analytics.logging,
-              phase: { request: true, response: true },
-            },
-          },
-        }),
-      );
-      expect(await componentHarness.isRequestPhaseChecked()).toBe(true);
-      expect(await componentHarness.isResponsePhaseChecked()).toBe(true);
+  it('should enable logging content on payload, headers and metadata', async () => {
+    await initComponent();
+    expect(await componentHarness.isMessageContentChecked()).toBe(false);
+    expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
+    expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
+    expect(await componentHarness.isHeadersChecked()).toBe(false);
 
-      await componentHarness.uncheckRequestPhase();
-      await componentHarness.uncheckResponsePhase();
+    await componentHarness.toggleEndpoint();
+    await componentHarness.toggleEntrypoint();
+    await componentHarness.checkMessageContent();
+    await componentHarness.checkMessageHeaders();
+    await componentHarness.checkMessageMetadata();
+    await componentHarness.checkHeaders();
+    await componentHarness.saveSettings();
+
+    expectApiGetRequest(testApi);
+    expectApiPutRequest({
+      ...testApi,
+      analytics: {
+        ...testApi.analytics,
+        logging: {
+          ...testApi.analytics.logging,
+          mode: { entrypoint: true, endpoint: true },
+          content: { messagePayload: true, messageHeaders: true, messageMetadata: true, headers: true },
+        },
+      },
+    });
+  });
+
+  it('should save settings with conditions on request and messages', async () => {
+    await initComponent();
+    expect(await componentHarness.getRequestCondition()).toEqual('');
+    expect(await componentHarness.getMessageCondition()).toEqual('');
+
+    await componentHarness.addMessageCondition('message condition');
+    await componentHarness.addRequestCondition('request condition');
+    await componentHarness.saveSettings();
+
+    expectApiGetRequest(testApi);
+    expectApiPutRequest({
+      ...testApi,
+      analytics: {
+        ...testApi.analytics,
+        logging: {
+          ...testApi.analytics.logging,
+          condition: 'request condition',
+          messageCondition: 'message condition',
+        },
+      },
+    });
+  });
+
+  describe('sampling tests', () => {
+    it('should save sampling settings', async () => {
+      await initComponent();
+      expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
+      expect(await componentHarness.getSamplingValue()).toStrictEqual('50');
+
+      await componentHarness.choseSamplingType('Probabilistic');
+      await componentHarness.addSamplingValue('0.5');
       await componentHarness.saveSettings();
 
       expectApiGetRequest(testApi);
@@ -239,187 +352,111 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         ...testApi,
         analytics: {
           ...testApi.analytics,
-          logging: {
-            ...testApi.analytics.logging,
-            phase: { request: false, response: false },
-          },
+          sampling: { type: 'PROBABILITY', value: '0.5' },
         },
       });
     });
 
-    it('should enable logging content on payload, headers and metadata', async () => {
+    it('should validate sampling value with COUNT type', async () => {
       await initComponent();
-      expect(await componentHarness.isMessageContentChecked()).toBe(false);
-      expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
-      expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
-      expect(await componentHarness.isHeadersChecked()).toBe(false);
+      expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
+      // Component is initialized with an api with sampling count, so form should use its value
+      expect(await componentHarness.getSamplingValue()).toStrictEqual(testApi.analytics.sampling.value);
 
-      await componentHarness.toggleEndpoint();
-      await componentHarness.toggleEntrypoint();
-      await componentHarness.checkMessageContent();
-      await componentHarness.checkMessageHeaders();
-      await componentHarness.checkMessageMetadata();
-      await componentHarness.checkHeaders();
-      await componentHarness.saveSettings();
+      await componentHarness.addSamplingValue(null);
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
-      expectApiGetRequest(testApi);
-      expectApiPutRequest({
-        ...testApi,
-        analytics: {
-          ...testApi.analytics,
-          logging: {
-            ...testApi.analytics.logging,
-            mode: { entrypoint: true, endpoint: true },
-            content: { messagePayload: true, messageHeaders: true, messageMetadata: true, headers: true },
-          },
-        },
-      });
+      await componentHarness.addSamplingValue('5');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 40.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('42');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });
 
-    it('should save settings with conditions on request and messages', async () => {
+    it('should validate sampling value with PROBABILITY type', async () => {
       await initComponent();
-      expect(await componentHarness.getRequestCondition()).toEqual('');
-      expect(await componentHarness.getMessageCondition()).toEqual('');
+      await componentHarness.choseSamplingType('Probabilistic');
+      expect(await componentHarness.getSamplingType()).toStrictEqual('Probabilistic');
 
-      await componentHarness.addMessageCondition('message condition');
-      await componentHarness.addRequestCondition('request condition');
-      await componentHarness.saveSettings();
+      await componentHarness.addSamplingValue(null);
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
-      expectApiGetRequest(testApi);
-      expectApiPutRequest({
-        ...testApi,
-        analytics: {
-          ...testApi.analytics,
-          logging: {
-            ...testApi.analytics.logging,
-            condition: 'request condition',
-            messageCondition: 'message condition',
-          },
-        },
-      });
+      await componentHarness.addSamplingValue('-1');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 0.01.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('42');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('max')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be lower than 0.52.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('0.3');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });
 
-    describe('sampling tests', () => {
-      it('should save sampling settings', async () => {
-        await initComponent();
-        expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
-        expect(await componentHarness.getSamplingValue()).toStrictEqual('50');
-
-        await componentHarness.choseSamplingType('Probabilistic');
-        await componentHarness.addSamplingValue('0.5');
-        await componentHarness.saveSettings();
-
-        expectApiGetRequest(testApi);
-        expectApiPutRequest({
-          ...testApi,
-          analytics: {
-            ...testApi.analytics,
-            sampling: { type: 'PROBABILITY', value: '0.5' },
-          },
-        });
-      });
-
-      it('should validate sampling value with COUNT type', async () => {
-        await initComponent();
-        expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
-        // Component is initialized with an api with sampling count, so form should use its value
-        expect(await componentHarness.getSamplingValue()).toStrictEqual(testApi.analytics.sampling.value);
-
-        await componentHarness.addSamplingValue(null);
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('5');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 40.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('42');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
-        expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
-      });
-
-      it('should validate sampling value with PROBABILITY type', async () => {
-        await initComponent();
-        await componentHarness.choseSamplingType('Probabilistic');
-        expect(await componentHarness.getSamplingType()).toStrictEqual('Probabilistic');
-
-        await componentHarness.addSamplingValue(null);
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('-1');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 0.01.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('42');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('max')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be lower than 0.52.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('0.3');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
-        expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
-      });
-
-      it('should validate sampling value with TEMPORAL type', async () => {
-        await initComponent();
-        await componentHarness.choseSamplingType('Temporal');
-        expect(await componentHarness.getSamplingType()).toStrictEqual('Temporal');
-
-        await componentHarness.addSamplingValue(null);
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('PT1S');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('minTemporal')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than PT10S.']);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('PT');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-        expect(fixture.componentInstance.form.get('samplingValue').hasError('invalidISO8601Duration')).toBeTruthy();
-        expect(await componentHarness.getSamplingValueErrors()).toEqual([
-          'The sampling value should use ISO-8601 duration format, e.g. PT10S.',
-        ]);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
-
-        await componentHarness.addSamplingValue('PT11S');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
-        expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
-        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
-      });
-    });
-
-    it('should reset the form', async () => {
+    it('should validate sampling value with TEMPORAL type', async () => {
       await initComponent();
-      expect(await componentHarness.isEntrypointChecked()).toBe(false);
-      expect(await componentHarness.isEndpointChecked()).toBe(false);
+      await componentHarness.choseSamplingType('Temporal');
+      expect(await componentHarness.getSamplingType()).toStrictEqual('Temporal');
 
-      await componentHarness.toggleEntrypoint();
-      await componentHarness.toggleEndpoint();
-      expect(await componentHarness.isEntrypointChecked()).toBe(true);
-      expect(await componentHarness.isEndpointChecked()).toBe(true);
+      await componentHarness.addSamplingValue(null);
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
-      await componentHarness.resetSettings();
+      await componentHarness.addSamplingValue('PT1S');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('minTemporal')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than PT10S.']);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
-      expect(await componentHarness.isEntrypointChecked()).toBe(false);
-      expect(await componentHarness.isEndpointChecked()).toBe(false);
+      await componentHarness.addSamplingValue('PT');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+      expect(fixture.componentInstance.form.get('samplingValue').hasError('invalidISO8601Duration')).toBeTruthy();
+      expect(await componentHarness.getSamplingValueErrors()).toEqual([
+        'The sampling value should use ISO-8601 duration format, e.g. PT10S.',
+      ]);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+      await componentHarness.addSamplingValue('PT11S');
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+      expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });
+  });
+
+  it('should reset the form', async () => {
+    await initComponent();
+    expect(await componentHarness.isEntrypointChecked()).toBe(false);
+    expect(await componentHarness.isEndpointChecked()).toBe(false);
+
+    await componentHarness.toggleEntrypoint();
+    await componentHarness.toggleEndpoint();
+    expect(await componentHarness.isEntrypointChecked()).toBe(true);
+    expect(await componentHarness.isEndpointChecked()).toBe(true);
+
+    await componentHarness.resetSettings();
+
+    expect(await componentHarness.isEntrypointChecked()).toBe(false);
+    expect(await componentHarness.isEndpointChecked()).toBe(false);
   });
 
   function expectApiGetRequest(api: ApiV4) {

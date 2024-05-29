@@ -6,18 +6,12 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include gio-layout.gio-responsive-margin-container;
 }
 
 .settings {
-  &__title {
-    margin-bottom: 0;
-  }
-
-  &__subtitle {
-    margin-bottom: 24px;
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.typography-level($typography, 'body-2');
+  &__headerRightBtn {
+    margin: auto 0 auto auto;
   }
 
   &__form-control {
@@ -41,10 +35,6 @@ $typography: map.get(gio.$mat-theme, typography);
       margin-bottom: 16px;
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       @include mat.typography-level($typography, 'body-2');
-    }
-
-    &__form-field {
-      margin-bottom: -1.25em;
     }
 
     &__info {

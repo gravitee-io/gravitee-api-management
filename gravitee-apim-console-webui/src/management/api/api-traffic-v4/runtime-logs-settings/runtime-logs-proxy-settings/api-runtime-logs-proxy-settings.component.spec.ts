@@ -46,10 +46,37 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
   };
 
   describe('with an API', () => {
-    const api = fakeProxyApiV4({ id: API_ID, analytics: { logging: { mode: { entrypoint: false, endpoint: false } } } });
+    const api = fakeProxyApiV4({ id: API_ID, analytics: { enabled: true, logging: { mode: { entrypoint: false, endpoint: false } } } });
 
     beforeEach(async () => {
       await initComponent();
+    });
+
+    it('should enable and disable all form fields according to analytics enabled', async () => {
+      expectApiGetRequest(api);
+
+      expect(await componentHarness.isEnabledChecked()).toStrictEqual(true);
+
+      // Expect all fields enabled
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
+      await componentHarness.toggleEntrypoint();
+      await checkLoggingFieldsEnabled();
+
+      await componentHarness.toggleEnabled();
+
+      // Expect all fields disabled
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
+      await checkLoggingFieldsDisabled();
+
+      await componentHarness.toggleEnabled();
+
+      // Expect all fields enabled like before
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
+      expect(await componentHarness.isEntrypointChecked()).toStrictEqual(true);
+      await checkLoggingFieldsEnabled();
     });
 
     it('should enable and disable form fields according to logging mode', async () => {

@@ -10,8 +10,8 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .settings {
-  &__title {
-    margin-bottom: 0;
+  &__headerRightBtn {
+    margin: auto 0 auto auto;
   }
 
   &__form-control {
