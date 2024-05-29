@@ -39,9 +39,9 @@ export class CreateIntegrationComponent {
     active: [
       { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
       { icon: 'solace', value: 'solace' },
+      { icon: 'apigee', value: 'apigee' },
     ],
     comingSoon: [
-      { icon: 'apigee', value: 'apigee' },
       { icon: 'confluent', value: 'confluent' },
       { icon: 'azure', value: 'azure' },
       { icon: 'kong', value: 'kong' },
