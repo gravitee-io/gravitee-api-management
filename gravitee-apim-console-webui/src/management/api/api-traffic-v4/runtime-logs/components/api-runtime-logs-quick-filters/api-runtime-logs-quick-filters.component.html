@@ -84,6 +84,7 @@
             (removed)="removeFilter($any(filter))"
             [matTooltip]="$any(filter.value) | chipValue"
             [disabled]="loading"
+            [selectable]="false"
           >
             <span class="quick-filters__chip__key">{{ filter.key }}:</span>
             <span class="quick-filters__chip__value" *ngIf="!['from', 'to'].includes(filter.key); else dateBlock">
