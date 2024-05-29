@@ -35,8 +35,9 @@
           subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
         ></gio-card-empty-state>
       } @else {
+        <h2>Entrypoint</h2>
         <div class="analytics__gridContent">
-          <app-api-analytics-request-stats title="HTTP Proxy Entrypoint - Request Stats" [requestsStats]="apiAnalyticsVM.requestStats">
+          <app-api-analytics-request-stats title="Request Stats" [requestsStats]="apiAnalyticsVM.requestStats">
           </app-api-analytics-request-stats>
         </div>
       }
