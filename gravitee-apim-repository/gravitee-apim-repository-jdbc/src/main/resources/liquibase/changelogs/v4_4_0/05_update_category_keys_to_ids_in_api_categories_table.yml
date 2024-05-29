@@ -1,0 +1,139 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.0_update_category_keys_to_ids_in_api_categories_table
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            dbms: mariadb, mysql, postgresql, mssql
+            splitStatements: false
+            sql: |
+              DROP TABLE IF EXISTS ${gravitee_prefix}category_mapping;
+
+        - createTable:
+            tableName: ${gravitee_prefix}category_mapping
+            columns:
+              - column:
+                  name: category_key
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+        - sql:
+            dbms: mariadb, mysql, postgresql
+            splitStatements: false
+            sql: |
+              INSERT INTO ${gravitee_prefix}category_mapping (category_key, category_id)
+              SELECT key, id FROM ${gravitee_prefix}categories
+              ON CONFLICT DO NOTHING;
+
+        - sql:
+            dbms: mssql
+            splitStatements: false
+            sql: |
+              MERGE ${gravitee_prefix}category_mapping AS target
+              USING (SELECT key, id FROM ${gravitee_prefix}categories) AS source (category_key, category_id)
+              ON (target.category_key = source.category_key)
+              WHEN NOT MATCHED BY TARGET THEN
+                INSERT (category_key, category_id)
+                VALUES (source.category_key, source.category_id);
+
+        - sql:
+            dbms: mariadb, mysql, postgresql
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE 
+                BATCH_SIZE INT := 100;
+                start_id VARCHAR(255) := '';
+                end_id VARCHAR(255);
+              BEGIN
+                LOOP
+                  CREATE TEMP TABLE IF NOT EXISTS tmp_updated_api_categories (
+                    api_id VARCHAR(64),
+                    category_id VARCHAR(64),
+                    category_key VARCHAR(255)
+                  );
+
+                  INSERT INTO tmp_updated_api_categories (api_id, category_id, category_key)
+                  SELECT
+                    ac.api_id,
+                    cm.category_id AS category_id,
+                    cm.category_key AS category_key
+                  FROM ${gravitee_prefix}api_categories ac
+                  INNER JOIN ${gravitee_prefix}category_mapping cm ON ac.category = cm.category_key
+                  WHERE ac.api_id > start_id
+                  ORDER BY ac.api_id
+                  LIMIT BATCH_SIZE;
+
+                  UPDATE ${gravitee_prefix}api_categories
+                  SET category = tmp.category_id
+                  FROM tmp_updated_api_categories tmp
+                  WHERE ${gravitee_prefix}api_categories.api_id = tmp.api_id
+                    AND ${gravitee_prefix}api_categories.category = tmp.category_key;
+
+                  SELECT MAX(api_id) INTO end_id FROM tmp_updated_api_categories;
+                  TRUNCATE tmp_updated_api_categories;
+              
+                  IF end_id IS NULL OR end_id = start_id THEN
+                    EXIT;
+                  END IF;
+
+                  start_id := end_id;
+                END LOOP;
+              
+                DROP TABLE IF EXISTS tmp_updated_api_categories;
+                DROP TABLE IF EXISTS ${gravitee_prefix}category_mapping;
+              END $$;
+
+        - sql:
+            dbms: mssql
+            splitStatements: false
+            sql: |
+              BEGIN TRANSACTION;
+
+              DECLARE @batch_size INT = 100;
+              DECLARE @start_id NVARCHAR(255) = '';
+              DECLARE @end_id NVARCHAR(255);
+
+              CREATE TABLE #tmp_updated_api_categories (
+                api_id NVARCHAR(64),
+                category_id NVARCHAR(64),
+                category_key NVARCHAR(255)
+              );
+
+              WHILE (1 = 1)
+              BEGIN
+                INSERT INTO #tmp_updated_api_categories (api_id, category_id, category_key)
+                SELECT TOP (@batch_size)
+                  ac.api_id,
+                  cm.category_id AS category_id,
+                  cm.category_key AS category_key
+                FROM ${gravitee_prefix}api_categories ac
+                INNER JOIN ${gravitee_prefix}category_mapping cm ON ac.category = cm.category_key
+                WHERE ac.api_id > @start_id
+                ORDER BY ac.api_id;
+
+                UPDATE ${gravitee_prefix}api_categories
+                SET category = uac.category_id
+                FROM #tmp_updated_api_categories uac
+                WHERE ${gravitee_prefix}api_categories.api_id = uac.api_id
+                  AND ${gravitee_prefix}api_categories.category = uac.category_key;
+
+                SET @end_id = (SELECT MAX(api_id) FROM #tmp_updated_api_categories);
+                TRUNCATE TABLE #tmp_updated_api_categories;
+                IF @end_id IS NULL OR @end_id = @start_id
+                  BREAK;
+
+                SET @start_id = @end_id;
+              END;
+
+              DROP TABLE #tmp_updated_api_categories;
+              DROP TABLE ${gravitee_prefix}category_mapping;
+
+              COMMIT TRANSACTION;
