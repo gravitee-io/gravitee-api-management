@@ -58,14 +58,7 @@
         </mat-form-field>
       </div>
 
-      <gio-save-bar
-        *ngIf="form.dirty"
-        [form]="form"
-        [opened]="form.dirty"
-        [formInitialValues]="defaultConfiguration"
-        (resetClicked)="discard()"
-        (submitted)="submit()"
-      ></gio-save-bar>
     </form>
   </mat-card-content>
 </mat-card>
+      <gio-save-bar [form]="form" [formInitialValues]="defaultConfiguration" (submitted)="submit()"></gio-save-bar>

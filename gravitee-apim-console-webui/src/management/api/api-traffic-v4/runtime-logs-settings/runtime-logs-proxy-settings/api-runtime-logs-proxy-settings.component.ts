@@ -67,12 +67,6 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
     this.unsubscribe$.unsubscribe();
   }
 
-  discard() {
-    if (!this.defaultConfiguration.endpoint && !this.defaultConfiguration.entrypoint) {
-      this.clearAndDisableFormFields();
-    }
-  }
-
   submit() {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
