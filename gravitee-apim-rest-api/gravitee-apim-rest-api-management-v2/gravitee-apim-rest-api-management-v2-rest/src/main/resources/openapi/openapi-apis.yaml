@@ -52,8 +52,14 @@ tags:
       description: Everything about API members
     - name: API Plans
       description: Everything about API plans
+    - name: API Analytics
+      description: Everything about API analytics
     - name: API Subscriptions
       description: Everything about API subscriptions
+    - name: API Events
+      description: Everything about API events
+    - name: API Audits
+      description: Everything about API audits
     - name: Groups
       description: Everything about groups
     - name: Integration
@@ -1841,14 +1847,14 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    # Analytics
+    # API Analytics
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
-                - Analytics - Requests count
+                - API Analytics
             summary: Get API Analytics requests count
             description: |-
                 Get API analytics request count.
@@ -1867,7 +1873,7 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
-                - Analytics - Average messages per request
+                - API Analytics
             summary: Get API Analytics average messages per request
             description: |-
                 Get API analytics average messages per request.
@@ -1885,7 +1891,7 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
-                - Analytics - Average connection duration
+                - API Analytics
             summary: Get API Analytics average connection duration
             description: |-
                 Get API analytics average connection duration. Duration is only computed for ended requests.
@@ -1898,7 +1904,7 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    # Analytics - Logs
+    # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1913,7 +1919,7 @@ paths:
                 - $ref: "#/components/parameters/planIds"
                 - $ref: "#/components/parameters/methods"
             tags:
-                - Analytics - Logs
+                - API Analytics
             summary: Get API logs
             description: |-
                 Get API logs.
@@ -1932,7 +1938,7 @@ paths:
             - $ref: "#/components/parameters/requestIdParam"
         get:
             tags:
-                - Analytics - Logs
+                - API Analytics
             summary: Get API log for a request
             description: |-
                 Get API log for a request.
@@ -1954,7 +1960,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - Analytics - Logs
+                - API Analytics
             summary: Get API Messages logs
             description: |-
                 Get API Messages logs.
@@ -1967,7 +1973,7 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    # Audits
+    # API Audits
     /environments/{envId}/apis/{apiId}/audits:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1980,7 +1986,7 @@ paths:
                 - $ref: "#/components/parameters/to"
                 - $ref: "#/components/parameters/auditEvents"
             tags:
-                - Audits
+                - API Audits
             summary: Get API Audit
             description: |-
                 Get API Audit.
@@ -1998,7 +2004,7 @@ paths:
                 - $ref: "#/components/parameters/envIdParam"
                 - $ref: "#/components/parameters/apiIdParam"
             tags:
-                - Audits Events
+                - API Audits
             summary: List available audit event type for API
             description: |-
                 List available audit event type for API.
