@@ -36,6 +36,7 @@ import { AnalyticsAverageConnectionDuration } from '../../../../../entities/mana
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
+import { AnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
@@ -85,6 +86,12 @@ export class ApiAnalyticsMessageComponent {
       startWith({ isLoading: true }),
     );
 
+  private getAverageMessagesPerRequest$: Observable<Partial<AnalyticsAverageMessagesPerRequest> & { isLoading: boolean }> =
+    this.apiAnalyticsService.getAverageMessagesPerRequest(this.activatedRoute.snapshot.params.apiId).pipe(
+      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
+      startWith({ isLoading: true }),
+    );
+
   filters$ = new BehaviorSubject<void>(undefined);
 
   apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
@@ -114,8 +121,8 @@ export class ApiAnalyticsMessageComponent {
   private analyticsData$(
     entrypoints: ApiAnalyticsVM['entrypoints'],
   ): Observable<Pick<ApiAnalyticsVM, 'globalRequestStats' | 'entrypoints'>> {
-    return combineLatest([this.getRequestsCount$, this.getAverageConnectionDuration$]).pipe(
-      map(([requestsCount, averageConnectionDuration]) => ({
+    return combineLatest([this.getRequestsCount$, this.getAverageConnectionDuration$, this.getAverageMessagesPerRequest$]).pipe(
+      map(([requestsCount, averageConnectionDuration, averageMessagesPerRequest]) => ({
         entrypoints: entrypoints.map((entrypoint) => {
           return {
             ...entrypoint,
@@ -124,6 +131,11 @@ export class ApiAnalyticsMessageComponent {
                 label: 'Total Requests',
                 value: get(requestsCount, `countsByEntrypoint.${entrypoint.id}`),
                 isLoading: requestsCount.isLoading,
+              },
+              {
+                label: 'Average Messages Per Request',
+                value: get(averageMessagesPerRequest, `averagesByEntrypoint.${entrypoint.id}`),
+                isLoading: averageMessagesPerRequest.isLoading,
               },
               {
                 label: 'Average Connection Duration',
@@ -139,6 +151,11 @@ export class ApiAnalyticsMessageComponent {
             label: 'Total Requests',
             value: requestsCount.total,
             isLoading: requestsCount.isLoading,
+          },
+          {
+            label: 'Average Messages Per Request',
+            value: averageMessagesPerRequest.average,
+            isLoading: averageMessagesPerRequest.isLoading,
           },
           {
             label: 'Average Connection Duration',
