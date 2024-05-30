@@ -29,6 +29,8 @@ import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-a
 import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
+import { AnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
+import { fakeAnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 
 const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
@@ -122,6 +124,11 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: true,
         },
         {
+          label: 'Average Messages Per Request',
+          value: '',
+          isLoading: true,
+        },
+        {
           label: 'Average Connection Duration',
           value: '',
           isLoading: true,
@@ -137,6 +144,11 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: false,
         },
         {
+          label: 'Average Messages Per Request',
+          value: '',
+          isLoading: true,
+        },
+        {
           label: 'Average Connection Duration',
           value: '',
           isLoading: true,
@@ -145,9 +157,15 @@ describe('ApiAnalyticsMessageComponent', () => {
 
       // Expect data
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
+          value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Messages Per Request',
           value: '0',
           isLoading: false,
         },
@@ -171,6 +189,11 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: true,
         },
         {
+          label: 'Average Messages Per Request',
+          value: '',
+          isLoading: true,
+        },
+        {
           label: 'Average Connection Duration',
           value: '',
           isLoading: true,
@@ -186,10 +209,16 @@ describe('ApiAnalyticsMessageComponent', () => {
           countsByEntrypoint: { 'http-get': 42 },
         }),
       );
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
           value: '42',
+          isLoading: false,
+        },
+        {
+          label: 'Average Messages Per Request',
+          value: '-',
           isLoading: false,
         },
         {
@@ -204,9 +233,15 @@ describe('ApiAnalyticsMessageComponent', () => {
       const requestStats = await componentHarness.getRequestStatsHarness('overview-request-stats');
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
+          value: '0',
+          isLoading: false,
+        },
+        {
+          label: 'Average Messages Per Request',
           value: '0',
           isLoading: false,
         },
@@ -226,6 +261,11 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: true,
         },
         {
+          label: 'Average Messages Per Request',
+          value: '',
+          isLoading: true,
+        },
+        {
           label: 'Average Connection Duration',
           value: '',
           isLoading: true,
@@ -233,6 +273,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       ]);
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
     });
   });
 
@@ -262,6 +303,15 @@ describe('ApiAnalyticsMessageComponent', () => {
         method: 'GET',
       })
       .flush(analyticsAverageConnectionDuration);
+  }
+
+  function expectApiAnalyticsAverageMessagesPerRequestGetRequest(analyticsAverageMessagesPerRequest: AnalyticsAverageMessagesPerRequest) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-messages-per-request`,
+        method: 'GET',
+      })
+      .flush(analyticsAverageMessagesPerRequest);
   }
 
   function expectGetEntrypoints(): void {
