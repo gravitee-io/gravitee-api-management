@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,6 +82,9 @@ public class ApiMapperTest {
     private CategoryService categoryService;
 
     @Mock
+    private CategoryMapper categoryMapper;
+
+    @Mock
     private ParameterService parameterService;
 
     @Mock
@@ -90,8 +95,7 @@ public class ApiMapperTest {
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
-        apiMapper =
-            new ApiMapper(objectMapper, planService, flowService, parameterService, workflowService, new CategoryMapper(categoryService));
+        apiMapper = new ApiMapper(objectMapper, planService, flowService, parameterService, workflowService, categoryMapper);
     }
 
     @Test
@@ -129,6 +133,8 @@ public class ApiMapperTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
 
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        when(categoryMapper.toCategoryKey(any(), eq(api.getCategories()))).thenReturn(api.getCategories());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
@@ -194,6 +200,8 @@ public class ApiMapperTest {
         api.setVisibility(Visibility.PUBLIC);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setDefinition("wrong api definition");
+
+        when(categoryMapper.toCategoryKey(eq(api.getEnvironmentId()), eq(api.getCategories()))).thenReturn(api.getCategories());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = apiMapper.toEntity(api, null);
 
@@ -307,8 +315,8 @@ public class ApiMapperTest {
         existingCategoryByIdEntity.setId("existingCatId");
         CategoryEntity existingCategoryByKeyEntity = new CategoryEntity();
         existingCategoryByKeyEntity.setKey("existingCatKey");
-        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment()))
-            .thenReturn(List.of(existingCategoryByIdEntity, existingCategoryByKeyEntity));
+
+        when(categoryMapper.toCategoryId(any(), eq(updateApiEntity.getCategories()))).thenReturn(updateApiEntity.getCategories());
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
 
@@ -328,7 +336,7 @@ public class ApiMapperTest {
         assertThat(api.getPicture()).isEqualTo(updateApiEntity.getPicture());
         assertThat(api.getBackground()).isEqualTo(updateApiEntity.getBackground());
         assertThat(api.getGroups().size()).isEqualTo(2);
-        assertThat(api.getCategories().size()).isEqualTo(2);
+        assertThat(api.getCategories().size()).isEqualTo(3);
         assertThat(api.getLabels().size()).isEqualTo(2);
         assertThat(api.isDisableMembershipNotifications()).isTrue();
         assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
@@ -385,8 +393,8 @@ public class ApiMapperTest {
         existingCategoryByIdEntity.setId("existingCatId");
         CategoryEntity existingCategoryByKeyEntity = new CategoryEntity();
         existingCategoryByKeyEntity.setKey("existingCatKey");
-        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment()))
-            .thenReturn(List.of(existingCategoryByIdEntity, existingCategoryByKeyEntity));
+
+        when(categoryMapper.toCategoryId(any(), eq(apiEntity.getCategories()))).thenReturn(apiEntity.getCategories());
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -406,7 +414,7 @@ public class ApiMapperTest {
         assertThat(api.getPicture()).isEqualTo(apiEntity.getPicture());
         assertThat(api.getBackground()).isEqualTo(apiEntity.getBackground());
         assertThat(api.getGroups().size()).isEqualTo(2);
-        assertThat(api.getCategories().size()).isEqualTo(2);
+        assertThat(api.getCategories().size()).isEqualTo(3);
         assertThat(api.getLabels().size()).isEqualTo(2);
         assertThat(api.isDisableMembershipNotifications()).isTrue();
         assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);

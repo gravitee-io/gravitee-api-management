@@ -97,8 +97,13 @@ public class ApiConverter {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
+<<<<<<< HEAD
         apiEntity.setCategories(api.getCategories());
         apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode()));
+=======
+        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode(), api.getSyncFrom()));
+>>>>>>> 60912a102d (feat(openapi): upgrader for api.categories from key to id)
 
         if (api.getDefinition() != null) {
             try {

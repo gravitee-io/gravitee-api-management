@@ -36,11 +36,21 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
+<<<<<<< HEAD
+=======
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
+>>>>>>> 60912a102d (feat(openapi): upgrader for api.categories from key to id)
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.vertx.core.Vertx;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+<<<<<<< HEAD
+=======
+import java.util.List;
+import java.util.Set;
+>>>>>>> 60912a102d (feat(openapi): upgrader for api.categories from key to id)
 import java.util.concurrent.Executor;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -88,6 +98,18 @@ public class DynamicPropertiesServiceTest {
     @Mock
     private Executor executor;
 
+<<<<<<< HEAD
+=======
+    @Mock
+    private CategoryMapper categoryMapper;
+
+    @Mock
+    private ObjectMapper objectMapper = Mockito.spy(new GraviteeMapper());
+
+    @InjectMocks
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+
+>>>>>>> 60912a102d (feat(openapi): upgrader for api.categories from key to id)
     @InjectMocks
     private DynamicPropertiesService cut;
 
@@ -130,7 +152,13 @@ public class DynamicPropertiesServiceTest {
         final ApiEntity apiEntity = createApiEntity();
         apiEntity.setState(Lifecycle.State.STOPPED);
 
+<<<<<<< HEAD
         cut.onEvent(new SimpleEvent<>(ApiEvent.UNDEPLOY, apiEntity));
+=======
+        when(categoryMapper.toCategoryKey(anyString(), any())).thenReturn(Set.of());
+
+        cut.onEvent(new SimpleEvent<>(ApiEvent.UNDEPLOY, api));
+>>>>>>> 60912a102d (feat(openapi): upgrader for api.categories from key to id)
 
         verifyNoInteractions(apiService);
         verifyNoInteractions(vertx);
