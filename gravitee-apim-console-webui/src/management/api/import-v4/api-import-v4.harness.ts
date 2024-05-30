@@ -17,6 +17,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { GioFormFilePickerInputHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class ApiImportV4Harness extends ComponentHarness {
   static hostSelector = 'api-api-import-v4';
@@ -26,6 +27,7 @@ export class ApiImportV4Harness extends ComponentHarness {
   private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
   private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
+  private getFormatErrorBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
 
   public async save() {
     return this.getSaveButton().then((btn) => btn.click());
@@ -49,5 +51,9 @@ export class ApiImportV4Harness extends ComponentHarness {
 
   public async pickFiles(files: File[]) {
     return this.getFilePicker().then((filePicker) => filePicker.dropFiles(files));
+  }
+
+  public async isFormatErrorBannerDisplayed() {
+    return this.getFormatErrorBanner().then((banner) => banner !== null);
   }
 }

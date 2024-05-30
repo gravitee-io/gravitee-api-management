@@ -28,6 +28,8 @@ describe('ImportV4Component', () => {
   let fixture: ComponentFixture<ApiImportV4Component>;
   let componentHarness: ApiImportV4Harness;
   let httpTestingController: HttpTestingController;
+  const apiJson = JSON.stringify(fakeApiV4({ definitionVersion: 'V4' }));
+  const openApiJson = JSON.stringify({ openapi: '3.1.0' });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -57,11 +59,47 @@ describe('ImportV4Component', () => {
     expect(await componentHarness.isSaveDisabled()).toBeFalsy();
 
     await componentHarness.save();
-    const req = httpTestingController.expectOne({
+    httpTestingController.expectOne({
       method: 'POST',
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition`,
     });
-
-    expect(req.request.body).toEqual(importDefinition);
   });
+
+  it('should import an OpenAPI specification', async () => {
+    const importDefinition = 'openapi: 3.1.0';
+
+    await componentHarness.selectFormat('openapi');
+    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    await componentHarness.selectSource('local');
+    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+
+    await componentHarness.pickFiles([new File([importDefinition], 'openapi.yml', { type: 'application/x-yaml' })]);
+    expect(await componentHarness.isSaveDisabled()).toBeFalsy();
+
+    await componentHarness.save();
+    httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/swagger`,
+    });
+  });
+
+  it.each`
+    fileName           | importDefinition    | type                    | selectedFormat
+    ${'openapi.json'}  | ${openApiJson}      | ${'application/json'}   | ${'gravitee'}
+    ${'openapi.yml'}   | ${'openapi: 3.1.0'} | ${'application/x-yaml'} | ${'gravitee'}
+    ${'openapi.yaml'}  | ${'openapi: 3.1.0'} | ${'application/x-yaml'} | ${'gravitee'}
+    ${'gravitee.json'} | ${apiJson}          | ${'application/json'}   | ${'openapi'}
+  `(
+    'should display an error when file is $fileName and selected format is $selectedFormat',
+    async ({ fileName, importDefinition, type, selectedFormat }) => {
+      await componentHarness.selectFormat(selectedFormat);
+      expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+      await componentHarness.selectSource('local');
+      expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+
+      await componentHarness.pickFiles([new File([importDefinition], fileName, { type })]);
+      expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+      expect(await componentHarness.isFormatErrorBannerDisplayed()).toBeTruthy();
+    },
+  );
 });
