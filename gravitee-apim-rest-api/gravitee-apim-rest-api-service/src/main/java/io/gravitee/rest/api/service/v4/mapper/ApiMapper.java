@@ -135,7 +135,7 @@ public class ApiMapper {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
-        apiEntity.setCategories(api.getCategories());
+        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         apiEntity.setPicture(api.getPicture());
         apiEntity.setBackground(api.getBackground());
         apiEntity.setLabels(api.getLabels());
