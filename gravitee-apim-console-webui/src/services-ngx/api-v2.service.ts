@@ -34,6 +34,7 @@ import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTrans
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { VerifyApiDeployResponse } from '../entities/management-api-v2/api/verifyApiDeploy';
+import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
 
 export interface HostValidatorParams {
   currentHost?: string;
@@ -117,6 +118,14 @@ export class ApiV2Service {
 
   import(importApi: any): Observable<ApiV4> {
     return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/definition`, importApi, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  importSwaggerApi(descriptor: ImportSwaggerDescriptor) {
+    return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/swagger`, descriptor, {
       headers: {
         'Content-Type': 'application/json',
       },
