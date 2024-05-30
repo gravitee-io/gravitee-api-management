@@ -24,35 +24,66 @@ $borderColor: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter80');
   width: 100%;
 }
 
-.api-navigation-title {
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid $borderColor;
-  padding: 0 8px 20px;
-
-  &__states {
+:host-context(gio-submenu) {
+  .api-navigation-title {
     display: flex;
-    align-items: center;
-    border-radius: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    border-bottom: 1px solid $borderColor;
+    padding: 0 8px 20px;
 
-    .gio-badge-primary {
-      margin-bottom: 4px;
+    &__states {
+      display: flex;
+      align-items: center;
+      border-radius: 8px;
+      flex-wrap: wrap;
+
+      .gio-badge-primary {
+        margin-bottom: 4px;
+      }
+
+      &__icon {
+        margin-right: 4px;
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+      }
     }
 
-    &__icon {
-      margin-right: 4px;
-      width: 12px;
-      height: 12px;
-      flex-shrink: 0;
+    &__name {
+      padding-left: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 10px;
     }
   }
+}
 
-  &__name {
-    padding-left: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 10px;
+:host-context(gio-breadcrumb) {
+  .api-navigation-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    &__states {
+      display: flex;
+      align-items: center;
+      border-radius: 8px;
+      flex-wrap: wrap;
+
+      &__icon {
+        margin-right: 4px;
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+      }
+    }
+
+    &__name {
+      padding-left: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }
