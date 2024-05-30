@@ -523,4 +523,21 @@ describe('ApiV2Service', () => {
         .flush(fakeApiV4());
     });
   });
+
+  describe('importSwaggerApi', () => {
+    it('should call the API', (done) => {
+      const descriptor = 'dumb descriptor';
+
+      apiV2Service.importSwaggerApi({ payload: descriptor }).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/swagger`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ payload: descriptor });
+      req.flush(null);
+    });
+  });
 });

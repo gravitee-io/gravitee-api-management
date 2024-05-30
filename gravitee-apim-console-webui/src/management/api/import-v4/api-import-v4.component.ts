@@ -15,24 +15,26 @@
  */
 import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { GioFormSelectionInlineModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { GioBannerModule, GioFormSelectionInlineModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { EMPTY } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiImportFilePickerComponent } from '../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { ApiV4 } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-import-v4',
   standalone: true,
   imports: [
     FormsModule,
+    GioBannerModule,
     GioFormSelectionInlineModule,
     GioIconsModule,
     MatButtonModule,
@@ -56,17 +58,20 @@ export class ApiImportV4Component implements AfterViewInit {
 
   protected importType: string;
   protected formats = [
-    { value: 'gravitee', label: 'Gravitee definition', icon: 'gio:gravitee', disabled: false },
-    { value: 'openapi', label: 'OpenAPI specification', icon: 'gio:open-api', disabled: true },
+    { value: 'gravitee', label: 'Gravitee definition', icon: 'gio:gravitee' },
+    { value: 'openapi', label: 'OpenAPI specification', icon: 'gio:open-api' },
   ];
   protected sources = [
     { value: 'local', label: 'Local file', icon: 'gio:laptop', disabled: false },
     { value: 'remote', label: 'Remote source', icon: 'gio:language', disabled: true },
   ];
-  protected form = new FormGroup({
-    format: new FormControl('gravitee', [Validators.required]),
-    source: new FormControl('local', [Validators.required]),
-  });
+  protected form = new FormGroup(
+    {
+      format: new FormControl('gravitee', [Validators.required]),
+      source: new FormControl('local', [Validators.required]),
+    },
+    [this.fileFormatValidator()],
+  );
 
   ngAfterViewInit() {
     // FIXME: Check on gravitee-ui-particles why we have an ExpressionHasChangedAfterCheckedError.
@@ -76,26 +81,48 @@ export class ApiImportV4Component implements AfterViewInit {
   protected onImportFile({ importFileContent, importType }: { importFileContent: string; importType: string }) {
     this.importType = importType;
     this.importFileContent = importFileContent;
+    this.form.updateValueAndValidity();
   }
 
   protected import() {
+    let result: Observable<ApiV4>;
     if (this.form.controls.source.value === 'local' && this.form.controls.format.value === 'gravitee' && this.importType === 'MAPI_V2') {
-      this.apiV2Service
-        .import(this.importFileContent)
-        .pipe(
-          tap((createdApi) => {
-            this.snackBarService.success('API imported successfully');
-            this.router.navigate([`../../${createdApi.id}`], { relativeTo: this.activatedRoute });
-          }),
-          catchError(({ error }) => {
-            this.snackBarService.error(error.message ?? 'An error occurred while importing the API');
-            return EMPTY;
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe();
+      result = this.apiV2Service.import(this.importFileContent);
+    } else if (
+      this.form.controls.source.value === 'local' &&
+      this.form.controls.format.value === 'openapi' &&
+      this.importType === 'SWAGGER'
+    ) {
+      result = this.apiV2Service.importSwaggerApi({ payload: this.importFileContent });
     } else {
       this.snackBarService.error('Unsupported type for V4 API import');
     }
+
+    result
+      .pipe(
+        tap((createdApi) => {
+          this.snackBarService.success('API imported successfully');
+          this.router.navigate([`../../${createdApi.id}`], { relativeTo: this.activatedRoute });
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message ?? 'An error occurred while importing the API');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  fileFormatValidator(): ValidatorFn {
+    return (formGroup: FormGroup) => {
+      const format = formGroup.get('format');
+      if (
+        this.importType != null &&
+        ((format.value === 'openapi' && this.importType !== 'SWAGGER') || (format.value === 'gravitee' && this.importType !== 'MAPI_V2'))
+      ) {
+        return { mismatchFileFormat: true };
+      }
+      return null;
+    };
   }
 }

@@ -16,18 +16,16 @@
 
 -->
 <mat-card class="import">
+  <mat-card-header>
+    <mat-card-title>Import API</mat-card-title>
+  </mat-card-header>
   <mat-card-content>
-    <h2>Import API</h2>
     <form [formGroup]="form">
       <div class="import__row">
         <h3>API format</h3>
         <gio-form-selection-inline formControlName="format">
           @for (format of formats; track format.value) {
-            <gio-form-selection-inline-card
-              [value]="format.value"
-              [disabled]="format.disabled"
-              [matTooltip]="format.disabled ? 'Coming soon' : null"
-            >
+            <gio-form-selection-inline-card [value]="format.value">
               <gio-form-selection-inline-card-content [icon]="format.icon">
                 <gio-card-content-title>{{ format.label }}</gio-card-content-title>
               </gio-form-selection-inline-card-content>
@@ -55,13 +53,16 @@
 
       <div class="import__row">
         <h3>File</h3>
-        <api-import-file-picker [allowedFileExtensions]="['json']" (onFilePicked)="onImportFile($event)">
+        <api-import-file-picker [allowedFileExtensions]="['yml', 'yaml', 'json']" (onFilePicked)="onImportFile($event)">
           <div class="import__file-picker">
             <mat-icon svgIcon="gio:upload"></mat-icon>
             <p class="mat-body-strong">Drag and drop a file</p>
-            <p class="mat-body">Supported file formats: json</p>
+            <p class="mat-body">Supported file formats: yml, yaml, json</p>
           </div>
         </api-import-file-picker>
+        @if (form.hasError('mismatchFileFormat')) {
+          <gio-banner-error>The file does not match the selected API format</gio-banner-error>
+        }
       </div>
 
       <div class="import__row">
