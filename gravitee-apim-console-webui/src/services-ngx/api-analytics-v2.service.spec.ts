@@ -21,6 +21,7 @@ import { ApiAnalyticsV2Service } from './api-analytics-v2.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
+import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 
 describe('ApiAnalyticsV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -72,6 +73,24 @@ describe('ApiAnalyticsV2Service', () => {
           method: 'GET',
         })
         .flush(fakeAnalyticsAverageConnectionDuration());
+    });
+  });
+
+  describe('getAverageMessagesPerRequest', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api-id';
+
+      service.getAverageMessagesPerRequest(apiId).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsAverageMessagesPerRequest());
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request`,
+          method: 'GET',
+        })
+        .flush(fakeAnalyticsAverageMessagesPerRequest());
     });
   });
 });
