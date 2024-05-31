@@ -106,6 +106,21 @@ public class ApiV4CategoriesUpgraderTest {
     }
 
     @Test
+    public void shouldNotMigrateV4ApiCategoriesWhenCategoriesNull() throws Exception {
+        Api api = new Api();
+        api.setCategories(null);
+        api.setEnvironmentId("env1");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+
+        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
+        when(categoryRepository.findAllByEnvironment("env1")).thenReturn(Set.of());
+
+        apiV4CategoriesUpgrader.upgrade();
+
+        verify(apiRepository, never()).update(any());
+    }
+
+    @Test
     public void shouldReturnFalseWhenExceptionOccursDuringUpgrade() throws Exception {
         when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
         boolean result = apiV4CategoriesUpgrader.upgrade();
