@@ -181,3 +181,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_4_0/04_add_theme_type.yml
   - include:
       - file: liquibase/changelogs/v4_4_0/05_add_environment_id.yml
+  - include:
+      - file: liquibase/changelogs/v4_4_0/06_create_api_categories_table.yml
