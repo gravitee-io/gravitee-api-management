@@ -57,6 +57,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   page: Page;
   iconUrl: string;
   iconTooltip: string;
+  isReadOnly: boolean = false;
 
   private existingNames: string[] = [];
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -117,6 +118,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((api) => {
           this.api = api;
+          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
           return this.mode === 'edit' ? this.loadEditPage() : of({});
         }),
         switchMap((_) => this.apiDocumentationService.getApiPages(this.api.id, this.getParentId())),

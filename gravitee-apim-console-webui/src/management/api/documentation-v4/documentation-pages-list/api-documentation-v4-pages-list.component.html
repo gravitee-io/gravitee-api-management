@@ -94,24 +94,42 @@
         <div class="documentation-pages-list__table__actions">
           <ng-container *gioPermission="{ anyOf: ['api-documentation-u'] }">
             <ng-container *ngIf="page.type === 'FOLDER'">
-              <button mat-icon-button (click)="onEditFolder.emit(page)" aria-label="Edit folder" matTooltip="Edit folder">
+              <button
+                mat-icon-button
+                [disabled]="isReadOnly"
+                (click)="onEditFolder.emit(page)"
+                aria-label="Edit folder"
+                matTooltip="Edit folder"
+              >
                 <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>
               <div *ngIf="pagesIncludeNonFolders" class="empty-icon-button"></div>
             </ng-container>
 
             <ng-container *ngIf="page.type !== 'FOLDER'">
-              <button mat-icon-button (click)="onEditPage.emit(page.id)" aria-label="Edit page" matTooltip="Edit page">
+              <button
+                mat-icon-button
+                (click)="onEditPage.emit(page.id)"
+                [disabled]="isReadOnly"
+                aria-label="Edit page"
+                matTooltip="Edit page"
+              >
                 <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>
               <ng-container *ngIf="!page.published">
-                <button mat-icon-button (click)="onPublishPage.emit(page.id)" matTooltip="Publish page" aria-label="Publish page">
+                <button
+                  mat-icon-button
+                  (click)="onPublishPage.emit(page.id)"
+                  [disabled]="isReadOnly"
+                  matTooltip="Publish page"
+                  aria-label="Publish page"
+                >
                   <mat-icon svgIcon="gio:upload-cloud"></mat-icon></button
               ></ng-container>
               <ng-container *ngIf="page.published">
                 <button
                   (click)="onUnpublishPage.emit(page.id)"
-                  [disabled]="page.generalConditions"
+                  [disabled]="page.generalConditions || isReadOnly"
                   mat-icon-button
                   [matTooltip]="page.generalConditions ? 'Cannot unpublish if used as General Conditions' : 'Unpublish page'"
                   aria-label="Unpublish page"
@@ -127,7 +145,7 @@
             <button
               mat-icon-button
               (click)="onMoveUp.emit(page)"
-              [disabled]="i === 0 || page.order === 0"
+              [disabled]="i === 0 || page.order === 0 || isReadOnly"
               aria-label="Move page up"
               [matTooltip]="page.type === 'FOLDER' ? 'Move folder up' : 'Move page up'"
             >
@@ -136,7 +154,7 @@
             <button
               mat-icon-button
               (click)="onMoveDown.emit(page)"
-              [disabled]="i === dataSource.data.length - 1"
+              [disabled]="i === dataSource.data.length - 1 || isReadOnly"
               aria-label="Move page down"
               [matTooltip]="page.type === 'FOLDER' ? 'Move folder down' : 'Move page down'"
             >
@@ -148,7 +166,7 @@
             mat-icon-button
             *gioPermission="{ anyOf: ['api-documentation-d'] }"
             (click)="onDeletePage.emit(page)"
-            [disabled]="page.generalConditions"
+            [disabled]="page.generalConditions || isReadOnly"
             aria-label="Delete page"
             [matTooltip]="
               page.generalConditions

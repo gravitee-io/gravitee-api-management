@@ -43,6 +43,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   pages: Page[];
   breadcrumbs: Breadcrumb[];
   isLoading = false;
+  isReadOnly = false;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -59,7 +60,10 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
     this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => (this.api = api)),
+        tap((api) => {
+          this.api = api;
+          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+        }),
         switchMap(() => this.activatedRoute.queryParams),
         switchMap((queryParams) => {
           this.parentId = queryParams.parentId || 'ROOT';
@@ -86,6 +90,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         data: {
           mode: 'create',
           existingNames: this.pages.filter((page) => page.type === 'FOLDER').map((page) => page.name.toLowerCase().trim()),
+          isReadOnly: this.isReadOnly,
         },
       })
       .afterClosed()
@@ -144,6 +149,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
           existingNames: this.pages
             .filter((page) => page.type === 'FOLDER' && page.id !== folder.id)
             .map((page) => page.name.toLowerCase().trim()),
+          isReadOnly: this.isReadOnly,
         },
       })
       .afterClosed()

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.*;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -35,6 +36,13 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
@@ -51,21 +59,26 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @UseCase
+@Slf4j
 public class ImportCRDUseCase {
 
     private final ApiQueryService apiQueryService;
@@ -77,6 +90,8 @@ public class ImportCRDUseCase {
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiCrudService apiCrudService;
     private final PlanQueryService planQueryService;
+    private final PageQueryService pageQueryService;
+    private final PageCrudService pageCrudService;
     private final UpdatePlanDomainService updatePlanDomainService;
     private final DeletePlanDomainService deletePlanDomainService;
     private final SubscriptionQueryService subscriptionQueryService;
@@ -89,6 +104,9 @@ public class ImportCRDUseCase {
     private final GroupQueryService groupQueryService;
     private final ApiMetadataDomainService apiMetadataDomainService;
     private final ApiCategoryQueryService apiCategoryQueryService;
+    private final DocumentationValidationDomainService documentationValidationDomainService;
+    private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
+    private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
 
     public ImportCRDUseCase(
         ApiCrudService apiCrudService,
@@ -111,7 +129,12 @@ public class ImportCRDUseCase {
         MembershipQueryService membershipQueryService,
         GroupQueryService groupQueryService,
         ApiMetadataDomainService apiMetadataDomainService,
-        ApiCategoryQueryService apiCategoryQueryService
+        ApiCategoryQueryService apiCategoryQueryService,
+        PageQueryService pageQueryService,
+        PageCrudService pageCrudService,
+        DocumentationValidationDomainService documentationValidationDomainService,
+        CreateApiDocumentationDomainService createApiDocumentationDomainService,
+        UpdateApiDocumentationDomainService updateApiDocumentationDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
@@ -134,6 +157,11 @@ public class ImportCRDUseCase {
         this.groupQueryService = groupQueryService;
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.apiCategoryQueryService = apiCategoryQueryService;
+        this.pageQueryService = pageQueryService;
+        this.pageCrudService = pageCrudService;
+        this.documentationValidationDomainService = documentationValidationDomainService;
+        this.createApiDocumentationDomainService = createApiDocumentationDomainService;
+        this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -165,8 +193,6 @@ public class ImportCRDUseCase {
                 api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
             );
 
-            createMembers(input.crd.getMembers(), createdApi.getId());
-
             var planNameIdMapping = input.crd
                 .getPlans()
                 .entrySet()
@@ -180,6 +206,9 @@ public class ImportCRDUseCase {
                     )
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            createMembers(input.crd.getMembers(), createdApi.getId());
+            createOrUpdatePages(input.crd.getPages(), createdApi.getId(), input.auditInfo);
 
             apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
 
@@ -208,12 +237,12 @@ public class ImportCRDUseCase {
             cleanGroups(input.crd);
             cleanCategories(input.auditInfo.environmentId(), input.crd);
 
-            var updated = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
+            var updatedApi = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
 
             // update state and definition context because legacy service does not update it
             // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
             var api = apiCrudService.update(
-                updated
+                updatedApi
                     .toBuilder()
                     .originContext(
                         new KubernetesContext(
@@ -259,8 +288,11 @@ public class ImportCRDUseCase {
                 deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);
             }
 
-            createMembers(input.crd.getMembers(), updated.getId());
-            deleteOrphanMemberships(updated.getId(), input);
+            createMembers(input.crd.getMembers(), updatedApi.getId());
+            deleteOrphanMemberships(updatedApi.getId(), input);
+
+            createOrUpdatePages(input.crd.getPages(), updatedApi.getId(), input.auditInfo);
+            deleteRemovedPages(input.crd.getPages(), updatedApi.getId());
 
             apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
 
@@ -366,5 +398,78 @@ public class ImportCRDUseCase {
         }
 
         existingApiMembers.forEach((k, v) -> membershipCrudService.delete(v));
+    }
+
+    private void deleteRemovedPages(Map<String, Page> pages, String apiId) {
+        var existingPageIds = pageQueryService.searchByApiId(apiId).stream().map(Page::getId).collect(toSet());
+        if (pages != null && !pages.isEmpty()) {
+            var givenPageIds = pages.values().stream().map(Page::getId).collect(toSet());
+            existingPageIds.removeIf(givenPageIds::contains);
+        }
+
+        try {
+            for (var id : existingPageIds) {
+                pageCrudService.delete(id);
+            }
+        } catch (RuntimeException e) {
+            log.error("An error as occurred while trying to remove a page with kubernetes origin");
+        }
+    }
+
+    private void createOrUpdatePages(Map<String, Page> pages, String apiId, AuditInfo auditInfo) {
+        if (pages == null || pages.isEmpty()) {
+            return;
+        }
+
+        var now = Date.from(TimeProvider.now().toInstant());
+        pages
+            .values()
+            .forEach(page -> {
+                page.setReferenceId(apiId);
+                page.setReferenceType(Page.ReferenceType.API);
+                if (page.getParentId() != null) {
+                    validatePageParent(new ArrayList<>(pages.values()), page.getParentId());
+                }
+
+                pageCrudService
+                    .findById(page.getId())
+                    .ifPresentOrElse(
+                        oldPage -> {
+                            var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForUpdate(
+                                page,
+                                auditInfo.organizationId(),
+                                false
+                            );
+                            updateApiDocumentationDomainService.updatePage(
+                                sanitizedPage.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
+                                oldPage,
+                                auditInfo
+                            );
+                        },
+                        () -> {
+                            var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForCreation(
+                                page,
+                                auditInfo.organizationId(),
+                                false
+                            );
+                            createApiDocumentationDomainService.createPage(
+                                sanitizedPage.toBuilder().createdAt(now).updatedAt(now).build(),
+                                auditInfo
+                            );
+                        }
+                    );
+            });
+    }
+
+    private void validatePageParent(List<Page> pages, String parentId) {
+        pages
+            .stream()
+            .filter(page -> parentId.equals(page.getId()))
+            .findFirst()
+            .ifPresent(parent -> {
+                if (!(parent.isFolder() || parent.isRoot())) {
+                    throw new InvalidPageParentException(parent.getId());
+                }
+            });
     }
 }
