@@ -27,6 +27,8 @@ export class ApiDocumentationV4ListNavigationHeaderComponent {
   @Input()
   breadcrumbs: Breadcrumb[];
   @Input()
+  isReadOnly: boolean;
+  @Input()
   hasPages: boolean;
   @Output()
   onAddFolder = new EventEmitter<void>();

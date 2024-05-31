@@ -41,6 +41,9 @@ public class IndexablePage implements Indexable {
 
     @Override
     public void setId(String id) {
+        if (page == null) {
+            page = Page.builder().id(id).build();
+        }
         page.setId(id);
     }
 

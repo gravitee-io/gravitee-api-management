@@ -99,13 +99,7 @@ public class DocumentationValidationDomainService {
     public Page validateAndSanitizeForCreation(Page page, String organizationId, boolean shouldValidateParentId) {
         var sanitizedPage = page.toBuilder().name(this.sanitizeDocumentationName(page.getName())).build();
 
-        pageSourceDomainService.setContentFromSource(sanitizedPage);
-
-        if (sanitizedPage.isMarkdown()) {
-            this.validateContent(sanitizedPage.getContent(), sanitizedPage.getReferenceId(), organizationId);
-        } else if (sanitizedPage.isSwagger()) {
-            this.parseOpenApiContent(sanitizedPage.getContent());
-        }
+        validatePageContent(organizationId, sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);
@@ -114,6 +108,26 @@ public class DocumentationValidationDomainService {
         this.validateNameIsUnique(sanitizedPage);
 
         return sanitizedPage;
+    }
+
+    public Page validateAndSanitizeForUpdate(Page page, String organizationId, boolean shouldValidateParentId) {
+        validatePageContent(organizationId, page);
+
+        if (shouldValidateParentId) {
+            this.validateParentId(page);
+        }
+
+        return page;
+    }
+
+    private void validatePageContent(String organizationId, Page sanitizedPage) {
+        pageSourceDomainService.setContentFromSource(sanitizedPage);
+
+        if (sanitizedPage.isMarkdown()) {
+            this.validateContent(sanitizedPage.getContent(), sanitizedPage.getReferenceId(), organizationId);
+        } else if (sanitizedPage.isSwagger()) {
+            this.parseOpenApiContent(sanitizedPage.getContent());
+        }
     }
 
     private void validateParentId(Page page) {

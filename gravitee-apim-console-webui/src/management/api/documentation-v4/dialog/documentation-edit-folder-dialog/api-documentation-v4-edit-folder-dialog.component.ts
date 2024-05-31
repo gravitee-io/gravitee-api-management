@@ -25,6 +25,7 @@ export interface ApiDocumentationV4EditFolderDialogData {
   name?: string;
   visibility?: Visibility;
   existingNames?: string[];
+  isReadOnly?: boolean;
 }
 
 @Component({
@@ -39,6 +40,7 @@ export class ApiDocumentationV4EditFolderDialog implements OnInit {
 
   public title: string;
   public submitButtonText: string;
+  public isReadOnly: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>,
@@ -51,6 +53,7 @@ export class ApiDocumentationV4EditFolderDialog implements OnInit {
   ngOnInit(): void {
     this.title = this.data.mode === 'create' ? 'Add new folder' : 'Configure folder';
     this.submitButtonText = this.data.mode === 'create' ? 'Add folder' : 'Save';
+    this.isReadOnly = this.data.isReadOnly;
 
     this.formGroup = this.formBuilder.group({
       name: this.formBuilder.control(this.data?.name ?? '', [Validators.required, this.folderNameUniqueValidator()]),

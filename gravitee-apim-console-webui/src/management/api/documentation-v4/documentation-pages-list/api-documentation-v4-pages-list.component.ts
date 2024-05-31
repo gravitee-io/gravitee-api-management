@@ -28,6 +28,9 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   @Input()
   pages: Page[];
 
+  @Input()
+  isReadOnly: boolean;
+
   @Output()
   onEditPage = new EventEmitter<string>();
 
