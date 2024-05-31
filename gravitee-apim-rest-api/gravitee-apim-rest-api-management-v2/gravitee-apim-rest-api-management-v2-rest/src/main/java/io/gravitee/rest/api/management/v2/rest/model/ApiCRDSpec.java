@@ -101,6 +101,8 @@ public class ApiCRDSpec {
 
     private Set<ApiMember> members;
 
+    private Map<String, PageCRD> pages;
+
     public DefinitionVersion getDefinitionVersion() {
         return DefinitionVersion.V4;
     }

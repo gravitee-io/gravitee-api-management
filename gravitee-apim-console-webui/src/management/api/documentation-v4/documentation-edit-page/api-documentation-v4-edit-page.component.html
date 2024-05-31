@@ -34,14 +34,14 @@
           mat-stroked-button
           *ngIf="mode === 'edit'"
           (click)="deletePage()"
-          [disabled]="!!page?.generalConditions"
+          [disabled]="!!page?.generalConditions || isReadOnly"
           [matTooltip]="!!page?.generalConditions ? 'Cannot delete if used as General Conditions' : undefined"
         >
           Delete page
         </button>
       </ng-container>
 
-      <button class="header__exit" mat-stroked-button (click)="goBackToPageList()">
+      <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="goBackToPageList()">
         {{ exitLabel }}
       </button>
     </div>
@@ -100,13 +100,14 @@
           <div class="stepper__content">
             <api-documentation-content
               formControlName="content"
-              [published]="page?.published"
+              [published]="page?.published || isReadOnly"
               [pageType]="pageType"
               *ngIf="form.value?.source === 'FILL'"
             ></api-documentation-content>
             <api-documentation-file-upload
               formControlName="content"
               [pageType]="pageType"
+              [disabled]="isReadOnly"
               *ngIf="form.value?.source === 'IMPORT'"
             ></api-documentation-file-upload>
             <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
@@ -118,7 +119,7 @@
                   *gioPermission="{ anyOf: ['api-documentation-u'] }"
                   mat-flat-button
                   color="primary"
-                  [disabled]="form.invalid"
+                  [disabled]="form.invalid || isReadOnly"
                   (click)="createAndPublish()"
                 >
                   Save and publish
@@ -133,7 +134,7 @@
                   *gioPermission="{ anyOf: ['api-documentation-u'] }"
                   mat-flat-button
                   color="primary"
-                  [disabled]="form.invalid || form.pristine || formUnchanged"
+                  [disabled]="form.invalid || form.pristine || formUnchanged || isReadOnly"
                   (click)="updateAndPublish()"
                 >
                   Save and publish
@@ -141,7 +142,7 @@
                 <button
                   *gioPermission="{ anyOf: ['api-documentation-u'] }"
                   mat-stroked-button
-                  [disabled]="form.invalid || form.pristine || formUnchanged"
+                  [disabled]="form.invalid || form.pristine || formUnchanged || isReadOnly"
                   (click)="update()"
                 >
                   Save
@@ -153,7 +154,7 @@
                   *gioPermission="{ anyOf: ['api-documentation-u'] }"
                   mat-flat-button
                   color="primary"
-                  [disabled]="form.invalid || form.pristine || formUnchanged"
+                  [disabled]="form.invalid || form.pristine || formUnchanged || isReadOnly"
                   (click)="update()"
                 >
                   Publish changes
