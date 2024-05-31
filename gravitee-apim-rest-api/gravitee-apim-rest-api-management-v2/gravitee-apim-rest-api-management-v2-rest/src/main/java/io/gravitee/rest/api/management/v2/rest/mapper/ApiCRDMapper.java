@@ -15,12 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
+import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
-import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -53,6 +54,9 @@ public interface ApiCRDMapper {
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanCRD map(io.gravitee.apim.core.api.model.crd.PlanCRD plan);
+
+    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
+    PageCRD map(Page plan);
 
     Listener map(io.gravitee.definition.model.v4.listener.Listener listener);
 

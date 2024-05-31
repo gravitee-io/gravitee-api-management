@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
+import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
@@ -73,6 +75,7 @@ import org.slf4j.LoggerFactory;
         RuleMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
+        ConfigurationSerializationMapper.class,
     }
 )
 public interface ApiMapper {
@@ -184,6 +187,9 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
+
+    @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
+    Page map(PageCRD crd);
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")

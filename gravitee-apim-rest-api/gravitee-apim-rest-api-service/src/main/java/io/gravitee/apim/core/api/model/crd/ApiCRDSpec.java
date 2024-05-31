@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model.crd;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -102,6 +103,8 @@ public class ApiCRDSpec {
     private FlowExecution flowExecution;
 
     private Set<String> categories;
+
+    private Map<String, Page> pages;
 
     public String getDefinitionVersion() {
         return "V4";
