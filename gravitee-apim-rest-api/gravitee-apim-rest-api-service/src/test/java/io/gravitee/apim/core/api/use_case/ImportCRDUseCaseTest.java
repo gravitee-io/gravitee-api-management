@@ -50,8 +50,12 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
+import inmemory.NoopSwaggerOpenApiResolver;
+import inmemory.NoopTemplateResolverDomainService;
 import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -80,6 +84,11 @@ import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
@@ -106,6 +115,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
@@ -136,10 +146,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
@@ -166,6 +179,7 @@ class ImportCRDUseCaseTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
@@ -294,6 +308,36 @@ class ImportCRDUseCaseTest {
         );
         var deployApiDomainService = mock(DeployApiDomainService.class);
         updateApiDomainService = mock(UpdateApiDomainService.class);
+        var documentationValidationDomainService = new DocumentationValidationDomainService(
+            new HtmlSanitizerImpl(),
+            new NoopTemplateResolverDomainService(),
+            apiCrudService,
+            new NoopSwaggerOpenApiResolver(),
+            new ApiMetadataQueryServiceInMemory(),
+            new ApiPrimaryOwnerDomainService(
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            pageCrudService
+        );
+        PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
+        var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            auditDomainService,
+            indexer
+        );
+        var updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
+        );
 
         useCase =
             new ImportCRDUseCase(
@@ -317,7 +361,12 @@ class ImportCRDUseCaseTest {
                 membershipQueryServiceInMemory,
                 groupQueryService,
                 apiMetadataDomainService,
-                apiCategoryQueryService
+                apiCategoryQueryService,
+                pageQueryService,
+                pageCrudService,
+                documentationValidationDomainService,
+                createApiDocumentationDomainService,
+                updateApiDocumentationDomainService
             );
 
         enableApiPrimaryOwnerMode();
@@ -440,6 +489,26 @@ class ImportCRDUseCaseTest {
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+        }
+
+        @Test
+        void should_create_pages() {
+            var pages = new HashMap<String, Page>();
+            var folder = getMarkdownsFolderPage();
+            pages.put("markdowns-folder", folder);
+
+            var markdown = getMarkdownPage(folder);
+            pages.put("markdown", markdown);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+
+            assertThat(pageCrudService.storage())
+                .hasSize(2)
+                .extracting(Page::getId, Page::getCrossId, Page::getName)
+                .containsExactly(
+                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
+                );
         }
     }
 
@@ -719,6 +788,42 @@ class ImportCRDUseCaseTest {
 
             assertThat(membershipQueryServiceInMemory.findByReference(Membership.ReferenceType.API, API_ID)).isEmpty();
         }
+
+        @Test
+        void should_update_pages() {
+            var pages = new HashMap<String, Page>();
+            var folder = getMarkdownsFolderPage();
+            pages.put("markdowns-folder", folder);
+
+            var markdown = getMarkdownPage(folder);
+            pages.put("markdown", markdown);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+
+            assertThat(pageCrudService.storage())
+                .hasSize(2)
+                .extracting(Page::getId, Page::getCrossId, Page::getName)
+                .containsExactly(
+                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
+                );
+
+            folder.setName("new-markdowns-folder");
+            pages.put("markdowns-folder", folder);
+
+            markdown.setName("new-markdown");
+            pages.put("markdown", markdown);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+
+            assertThat(pageCrudService.storage())
+                .hasSize(2)
+                .extracting(Page::getId, Page::getCrossId, Page::getName)
+                .containsExactly(
+                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
+                );
+        }
     }
 
     @Test
@@ -887,5 +992,32 @@ class ImportCRDUseCaseTest {
 
     private void givenExistingUsers(List<BaseUserEntity> users) {
         userCrudService.initWith(users);
+    }
+
+    private Page getMarkdownPage(Page folder) {
+        return Page
+            .builder()
+            .id(UUID.randomUUID().toString())
+            .crossId(UUID.randomUUID().toString())
+            .parentId(folder.getId())
+            .name("hello-markdown")
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .type(Page.Type.MARKDOWN)
+            .parentId("markdowns-folder")
+            .content("Hello world!")
+            .build();
+    }
+
+    private Page getMarkdownsFolderPage() {
+        return Page
+            .builder()
+            .id(UUID.randomUUID().toString())
+            .crossId(UUID.randomUUID().toString())
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .name("markdowns")
+            .type(Page.Type.FOLDER)
+            .build();
     }
 }

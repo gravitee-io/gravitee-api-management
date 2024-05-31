@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -41,11 +43,20 @@ public interface ApiCRDAdapter {
     @Mapping(target = "metadata", source = "exportEntity.metadata")
     @Mapping(target = "definitionContext", ignore = true)
     @Mapping(target = "plans", expression = "java(mapPlans(exportEntity))")
+    @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity);
 
     PlanCRD toCRDPlan(PlanEntity planEntity);
 
     default Map<String, PlanCRD> mapPlans(ExportApiEntity definition) {
         return definition.getPlans().stream().map(this::toCRDPlan).collect(toMap(PlanCRD::getName, identity()));
+    }
+
+    Page toCRDPage(PageEntity pageEntity);
+
+    default Map<String, Page> mapPages(ExportApiEntity definition) {
+        return definition.getPages() != null
+            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(Page::getName, identity()))
+            : null;
     }
 }

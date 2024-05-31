@@ -19,6 +19,7 @@
 <mat-card>
   <api-documentation-list-navigation-header
     [breadcrumbs]="breadcrumbs || []"
+    [isReadOnly]="isReadOnly"
     [hasPages]="pages && pages.length > 0"
     (onAddFolder)="addFolder()"
     (onAddPage)="addPage($event)"
@@ -27,6 +28,7 @@
   <api-documentation-v4-pages-list
     *ngIf="pages && pages.length > 0; else emptyState"
     [pages]="pages"
+    [isReadOnly]="isReadOnly"
     (onGoToFolder)="navigateTo($event)"
     (onEditPage)="editPage($event)"
     (onEditFolder)="editFolder($event)"
