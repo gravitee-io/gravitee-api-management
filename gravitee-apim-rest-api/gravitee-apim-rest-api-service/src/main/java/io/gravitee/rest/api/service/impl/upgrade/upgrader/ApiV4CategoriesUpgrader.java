@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Category;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +83,7 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
                 try {
                     var categories = categoriesMapByEnv.computeIfAbsent(v4Api.getEnvironmentId(), this::getCategoriesMapByEnv);
 
-                    if (!v4Api.getCategories().isEmpty() && !categories.isEmpty()) {
+                    if (Objects.nonNull(v4Api.getCategories()) && !v4Api.getCategories().isEmpty() && !categories.isEmpty()) {
                         var newCategories = v4Api.getCategories().stream().map(categories::get).collect(Collectors.toSet());
                         v4Api.setCategories(newCategories);
                         apiRepository.update(v4Api);
