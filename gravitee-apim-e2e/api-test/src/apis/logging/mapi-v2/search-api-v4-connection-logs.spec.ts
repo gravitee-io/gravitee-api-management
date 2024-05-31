@@ -26,7 +26,7 @@ import { forManagementAsAppUser, forManagementV2AsApiUser } from '@gravitee/util
 import { afterAll, beforeEach, describe, expect, test } from '@jest/globals';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { AnalyticsLogsApi, APIPlansApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIAnalyticsApi, APIPlansApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { fetchGatewaySuccess, fetchRestApiSuccess } from '@gravitee/utils/apim-http';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
@@ -35,7 +35,7 @@ import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFak
 const envId = 'DEFAULT';
 const orgId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
-const v2ApiLogsResourceAsApiPublisher = new AnalyticsLogsApi(forManagementV2AsApiUser());
+const v2ApiLogsResourceAsApiPublisher = new APIAnalyticsApi(forManagementV2AsApiUser());
 const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());
 const v2ApiSubscriptionApiAsApiUser = new APISubscriptionsApi(forManagementV2AsApiUser());
 const v2ApiPlanApiAsApiUser = new APIPlansApi(forManagementV2AsApiUser());
