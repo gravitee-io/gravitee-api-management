@@ -48,6 +48,7 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
         this.apiRepository = apiRepository;
     }
 
+    // TODO: Handle when search criteria includes categories
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
         return ApiAdapter.INSTANCE.toCoreModelStream(

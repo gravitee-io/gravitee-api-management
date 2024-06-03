@@ -26,7 +26,6 @@ public class ApiSearchCriteria {
 
     private List<String> ids;
     private List<String> groups;
-    private String category;
     private String label;
     private Api.LifecycleState state;
     private Api.Visibility visibility;

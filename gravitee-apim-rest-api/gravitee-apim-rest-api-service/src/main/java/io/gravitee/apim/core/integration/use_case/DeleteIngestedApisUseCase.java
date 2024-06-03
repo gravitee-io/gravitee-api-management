@@ -160,6 +160,8 @@ public class DeleteIngestedApisUseCase {
         //Delete API
         apiCrudService.delete(api.getId());
 
+        // TODO: Delete category relations
+
         //Audit
         createAuditLog(auditInfo, api);
     }

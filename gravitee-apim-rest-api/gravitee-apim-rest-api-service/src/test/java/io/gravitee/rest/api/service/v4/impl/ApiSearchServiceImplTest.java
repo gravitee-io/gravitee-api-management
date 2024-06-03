@@ -319,7 +319,7 @@ public class ApiSearchServiceImplTest {
         api.setId(API_ID);
         api.setEnvironmentId("DEFAULT");
         api.setDefinitionVersion(DefinitionVersion.V2);
-        api.setCategories(Set.of(categoryKey1, categoryKey2));
+        //        api.setCategories(Set.of(categoryKey1, categoryKey2));
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         UserEntity userEntity = new UserEntity();
@@ -441,7 +441,7 @@ public class ApiSearchServiceImplTest {
         api1.setId("api1");
         api1.setCrossId("api1");
         api1.setName("api1");
-        api1.setCategories(Set.of("cat1"));
+        //        api1.setCategories(Set.of("cat1"));
         api1.setGroups(Set.of("group1"));
         api1.setLifecycleState(LifecycleState.STARTED);
         api1.setVisibility(Visibility.PUBLIC);
@@ -460,7 +460,7 @@ public class ApiSearchServiceImplTest {
                 eq(
                     new ApiCriteria.Builder()
                         .environmentId("DEFAULT")
-                        .category("cat1")
+                        //                        .category("cat1")
                         .groups(List.of("group1"))
                         .state(LifecycleState.STARTED)
                         .visibility(Visibility.PUBLIC)

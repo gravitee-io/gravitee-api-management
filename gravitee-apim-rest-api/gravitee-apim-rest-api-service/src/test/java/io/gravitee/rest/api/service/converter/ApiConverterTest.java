@@ -74,7 +74,7 @@ public class ApiConverterTest {
         apiDefinition.setProxy(new Proxy());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
-        when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
+        //        when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 
         ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
 
@@ -91,7 +91,7 @@ public class ApiConverterTest {
         apiDefinition.setProxy(new Proxy());
         apiDefinition.setFlows(null);
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
-        when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
+        //        when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 
         ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
 

@@ -365,9 +365,10 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         }
         builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
 
-        if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
-        }
+        // TODO: Handle when api query contains category filter
+        //        if (!isBlank(query.getCategory())) {
+        //            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+        //        }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups());
         }

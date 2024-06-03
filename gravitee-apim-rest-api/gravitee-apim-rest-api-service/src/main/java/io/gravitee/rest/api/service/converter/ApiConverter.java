@@ -101,7 +101,8 @@ public class ApiConverter {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
-        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        // TODO: Keep this method but only pass apiId
+        //        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode(), api.getSyncFrom()));
 
         if (api.getDefinition() != null) {
@@ -183,8 +184,8 @@ public class ApiConverter {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }
-
-        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        // TODO: Keep this method but only pass apiId
+        //        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
 
         if (
             parameterService.findAsBoolean(

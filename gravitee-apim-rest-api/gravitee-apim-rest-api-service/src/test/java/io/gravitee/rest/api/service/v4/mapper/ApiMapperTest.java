@@ -130,7 +130,7 @@ public class ApiMapperTest {
         api.setDescription("description");
         api.setGroups(Set.of("group1"));
         api.setEnvironmentId("environmentId");
-        api.setCategories(Set.of("category"));
+        //        api.setCategories(Set.of("category"));
         api.setPicture("picture");
         api.setBackground("background");
         api.setLabels(List.of("label"));
@@ -140,7 +140,7 @@ public class ApiMapperTest {
 
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
-        when(categoryMapper.toCategoryKey(any(), eq(api.getCategories()))).thenReturn(api.getCategories());
+        //        when(categoryMapper.toCategoryKey(any(), eq(api.getCategories()))).thenReturn(api.getCategories());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
@@ -209,7 +209,6 @@ public class ApiMapperTest {
         api.setDescription("description");
         api.setGroups(Set.of("group1"));
         api.setEnvironmentId("environmentId");
-        api.setCategories(Set.of("category"));
         api.setPicture("picture");
         api.setBackground("background");
         api.setLabels(List.of("label"));
@@ -218,7 +217,7 @@ public class ApiMapperTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setDefinition("wrong api definition");
 
-        when(categoryMapper.toCategoryKey(eq(api.getEnvironmentId()), eq(api.getCategories()))).thenReturn(api.getCategories());
+        //        when(categoryMapper.toCategoryKey(eq(api.getEnvironmentId()), eq(api.getCategories()))).thenReturn(api.getCategories());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = apiMapper.toEntity(api, null);
 
@@ -370,7 +369,6 @@ public class ApiMapperTest {
         assertThat(api.getPicture()).isEqualTo(updateApiEntity.getPicture());
         assertThat(api.getBackground()).isEqualTo(updateApiEntity.getBackground());
         assertThat(api.getGroups().size()).isEqualTo(2);
-        assertThat(api.getCategories().size()).isEqualTo(3);
         assertThat(api.getLabels().size()).isEqualTo(2);
         assertThat(api.isDisableMembershipNotifications()).isTrue();
         assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
@@ -459,7 +457,6 @@ public class ApiMapperTest {
         assertThat(api.getPicture()).isEqualTo(apiEntity.getPicture());
         assertThat(api.getBackground()).isEqualTo(apiEntity.getBackground());
         assertThat(api.getGroups().size()).isEqualTo(2);
-        assertThat(api.getCategories().size()).isEqualTo(3);
         assertThat(api.getLabels().size()).isEqualTo(2);
         assertThat(api.isDisableMembershipNotifications()).isTrue();
         assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);

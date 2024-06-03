@@ -1174,9 +1174,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
                 api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
             }
-            if (updateApiEntity.getCategories() == null) {
-                api.setCategories(apiToUpdate.getCategories());
-            }
+            // TODO: Update categories
+            //            if (updateApiEntity.getCategories() == null) {
+            //                api.setCategories(apiToUpdate.getCategories());
+            //            }
 
             if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
                 GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiToCheck);
@@ -1505,6 +1506,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);
+
+            // TODO: Delete all api categories with apiId
 
             // Delete top API
             topApiService.delete(executionContext, apiId);
@@ -2279,9 +2282,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
 
-        if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
-        }
+        // TODO: Handle when ApiQuery wants to search by category
+        //        if (!isBlank(query.getCategory())) {
+        //            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+        //        }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups());
         }
@@ -2470,7 +2474,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
 
-        api.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories())); // V2 before DB save
+        // TODO: Map categories to ApiEntity
+        //        api.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories())); // V2 before DB save
 
         if (updateApiEntity.getLabels() != null) {
             api.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
@@ -2559,12 +2564,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    // TODO: Move to ApiCategoryService
     @Override
     public long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId) {
         List<ApiCriteria> apiCriteriaList;
 
         if (isEnvironmentAdmin()) {
-            apiCriteriaList = List.of(new ApiCriteria.Builder().category(categoryId).build());
+            //            apiCriteriaList = List.of(new ApiCriteria.Builder().category(categoryId).build());
+            apiCriteriaList = List.of(new ApiCriteria.Builder().build());
         } else {
             ApiQuery apiQuery = new ApiQuery();
             apiQuery.setCategory(categoryId);

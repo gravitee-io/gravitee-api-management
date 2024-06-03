@@ -52,6 +52,7 @@ public class OrphanCategoryUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
+            // TODO: Remove all ApiCategory that do not match an existing Category id
             Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
             for (Api api : updatedApis) {
                 log.info("Removing orphan categories for API [{}]", api.getId());
@@ -76,18 +77,19 @@ public class OrphanCategoryUpgrader implements Upgrader {
     }
 
     private void removeOrphanCategories(Api api, Set<String> existingCategoryIds) {
-        HashSet<String> updatedCategories = new HashSet<>(api.getCategories());
-        updatedCategories.retainAll(existingCategoryIds);
-        api.setCategories(updatedCategories);
+        //        HashSet<String> updatedCategories = new HashSet<>(api.getCategories());
+        //        updatedCategories.retainAll(existingCategoryIds);
+        //        api.setCategories(updatedCategories);
     }
 
     private boolean hasOrphanCategories(Api api, Set<String> existingCategoryIds) {
-        if (CollectionUtils.isEmpty(api.getCategories())) {
-            return false;
-        }
-        HashSet<String> orphanCategories = new HashSet<>(api.getCategories());
-        orphanCategories.removeAll(existingCategoryIds);
-        return !orphanCategories.isEmpty();
+        //        if (CollectionUtils.isEmpty(api.getCategories())) {
+        //            return false;
+        //        }
+        //        HashSet<String> orphanCategories = new HashSet<>(api.getCategories());
+        //        orphanCategories.removeAll(existingCategoryIds);
+        //        return !orphanCategories.isEmpty();
+        return false;
     }
 
     private Set<String> getExistingCategoryIds() throws TechnicalException {

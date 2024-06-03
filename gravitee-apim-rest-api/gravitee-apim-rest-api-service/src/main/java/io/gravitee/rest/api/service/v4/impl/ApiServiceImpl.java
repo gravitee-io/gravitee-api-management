@@ -471,9 +471,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
                 api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
             }
-            if (updateApiEntity.getCategories() == null) {
-                api.setCategories(apiToUpdate.getCategories());
-            }
 
             if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
                 GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, existingApiEntity);
@@ -492,6 +489,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     plan.setApiId(api.getId());
                     planService.createOrUpdatePlan(executionContext, plan);
                 });
+
+            // TODO: If updatedApiEntity is not null, then update category relations
 
             // Audit
             auditService.createApiAuditLog(
@@ -600,6 +599,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);
+
+            // TODO: Delete api categories with apiId
 
             // Delete top API
             topApiService.delete(executionContext, apiId);

@@ -580,7 +580,6 @@ class RollbackApiUseCaseTest {
             .lifecycleState(LifecycleState.STARTED)
             .picture("my-picture")
             .groups(Set.of("group-1"))
-            .categories(Set.of("category-1"))
             .labels(List.of("label-1"))
             .disableMembershipNotifications(true)
             .apiLifecycleState(ApiLifecycleState.PUBLISHED)

@@ -563,10 +563,10 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         if (query.getDefinitionVersions() != null && !query.getDefinitionVersions().isEmpty()) {
             builder.definitionVersion(query.getDefinitionVersions());
         }
-
-        if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
-        }
+        // TODO: Handle when query includes category filter
+        //        if (!isBlank(query.getCategory())) {
+        //            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+        //        }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups());
         }

@@ -135,7 +135,8 @@ public class ApiMapper {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
-        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        // TODO: Keep this method but only keep apiId
+        //        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         apiEntity.setPicture(api.getPicture());
         apiEntity.setBackground(api.getBackground());
         apiEntity.setLabels(api.getLabels());
@@ -175,7 +176,8 @@ public class ApiMapper {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        // TODO: Keep this method but only keep apiId
+        //        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
 
         if (
             parameterService.findAsBoolean(
@@ -271,7 +273,8 @@ public class ApiMapper {
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(updateApiEntity));
 
-        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
+        // TODO: Keep this method but only keep apiId
+        //        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
 
         if (updateApiEntity.getLabels() != null) {
             repoApi.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
@@ -332,7 +335,8 @@ public class ApiMapper {
             repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(apiEntity.getLifecycleState().name()));
         }
         repoApi.setBackground(apiEntity.getBackground());
-        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
+        // TODO: Keep this method but only keep apiId
+        //        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
         repoApi.setCrossId(apiEntity.getCrossId());
         repoApi.setCreatedAt(apiEntity.getCreatedAt());
         repoApi.setDefinition(toApiDefinition(apiEntity));

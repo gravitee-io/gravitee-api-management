@@ -273,7 +273,6 @@ class ApiAdapterTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.PUBLISHED);
                 soft.assertThat(api.getBackground()).isEqualTo("api-background");
-                soft.assertThat(api.getCategories()).containsExactly("category-1");
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
                 soft
@@ -309,7 +308,6 @@ class ApiAdapterTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.PUBLISHED);
                 soft.assertThat(api.getBackground()).isEqualTo("api-background");
-                soft.assertThat(api.getCategories()).containsExactly("category-1");
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
                 soft
@@ -419,7 +417,6 @@ class ApiAdapterTest {
             .lifecycleState(LifecycleState.STARTED)
             .picture("my-picture")
             .groups(Set.of("group-1"))
-            .categories(Set.of("category-1"))
             .labels(List.of("label-1"))
             .disableMembershipNotifications(true)
             .apiLifecycleState(ApiLifecycleState.PUBLISHED)
@@ -450,7 +447,6 @@ class ApiAdapterTest {
             .lifecycleState(LifecycleState.STARTED)
             .picture("my-picture")
             .groups(Set.of("group-1"))
-            .categories(Set.of("category-1"))
             .labels(List.of("label-1"))
             .disableMembershipNotifications(true)
             .apiLifecycleState(ApiLifecycleState.PUBLISHED)
