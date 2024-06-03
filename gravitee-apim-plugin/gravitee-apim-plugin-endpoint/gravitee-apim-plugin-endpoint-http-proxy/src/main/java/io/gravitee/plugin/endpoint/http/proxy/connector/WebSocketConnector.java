@@ -67,8 +67,9 @@ public class WebSocketConnector extends HttpConnector {
             return httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxWebSocket(webSocketConnectOptions)
-                .flatMap(endpointWebSocket ->
-                    request
+                .flatMap(endpointWebSocket -> {
+                    endpointWebSocket.pause();
+                    return request
                         .webSocket()
                         .upgrade()
                         .doOnSuccess(requestWebSocket -> {
@@ -87,8 +88,9 @@ public class WebSocketConnector extends HttpConnector {
                                 serverWebSocket.close()
                             );
                             endpointWebSocket.exceptionHandler(throwable -> serverWebSocket.close((short) HttpStatusCode.BAD_REQUEST_400));
-                        })
-                )
+                            endpointWebSocket.resume();
+                        });
+                })
                 .ignoreElement()
                 .onErrorResumeNext(throwable -> {
                     if (throwable instanceof UpgradeRejectedException) {
