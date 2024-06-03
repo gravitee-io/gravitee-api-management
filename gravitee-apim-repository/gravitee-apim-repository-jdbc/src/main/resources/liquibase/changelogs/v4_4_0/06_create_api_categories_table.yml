@@ -20,100 +20,119 @@ databaseChangeLog:
       id: 4.4.0_migrate_api_categories_table
       author: GraviteeSource Team
       changes:
-        # Step 1 -- Update api_categories with category ids on join
-        # Step 2 -- Rename category column --> category_id
-        # Step 3 -- Add category_key and order columns
-        # Step 4 -- Update category_key on join
-        # Step 5 -- Update order by row when partitioned by category_id
-
         #####################
-        #### POSTGRES
+        #### Step 1 - Update api_categories with category ids on join
         #####################
         - sql:
             dbms: postgresql
             sql: |
-              update api_categories ac
+              update ${gravitee_prefix}api_categories ac
                 set category = search.catId
                 from (
                   select ac.api_id as apiId,
                     ac.category as catKey,
                     c.id as catId
-                  FROM api_categories ac
-                    JOIN apis a on a.id = ac.api_id
-                    JOIN categories c on c.key = ac.category and c.environment_id = a.environment_id
+                  FROM ${gravitee_prefix}api_categories ac
+                    JOIN ${gravitee_prefix}apis a on a.id = ac.api_id
+                    JOIN ${gravitee_prefix}categories c on c.key = ac.category and c.environment_id = a.environment_id
                 ) as search
                 where ac.api_id = search.apiId and ac.category = search.catKey;
         - sql:
-            dbms: postgresql
-            sql: |
-              alter table api_categories 
-              	rename column category to category_id;
-        - sql:
-            dbms: postgresql
-            sql: |
-              alter table api_categories 
-                add category_key varchar(255),
-                add "order" integer;
-        - sql:
-            dbms: postgresql
-            sql: |
-              update api_categories ac
-                set category_key = c.key
-                from categories c
-                where ac.category_id = c.id;
-        - sql:
-            dbms: postgresql
-            sql: |
-              update api_categories ac
-                set "order"=subquery.order
-                from (
-                  select category_id, api_id,
-                    -1 + row_number() over (partition by category_id order by category_id) as "order"
-                    from api_categories order by category_id
-                ) as subquery
-                where ac.api_id=subquery.api_id and ac.category_id=subquery.category_id;
-        #####################
-        #####  MYSQL + MARIADB
-        #####################
-        - sql:
             dbms: mysql, mariadb
             sql: |
-              UPDATE api_categories ac
+              UPDATE ${gravitee_prefix}api_categories ac
                 JOIN (
                   SELECT ac.api_id AS apiId,
                     ac.category AS catKey,
                     c.id AS catId
-                  FROM api_categories ac
-                  JOIN apis a ON a.id = ac.api_id
-                  JOIN categories c ON c.key = ac.category AND c.environment_id = a.environment_id
+                  FROM ${gravitee_prefix}api_categories ac
+                    JOIN ${gravitee_prefix}apis a ON a.id = ac.api_id
+                    JOIN ${gravitee_prefix}categories c ON c.key = ac.category AND c.environment_id = a.environment_id
                 ) AS search
                 ON ac.api_id = search.apiId AND ac.category = search.catKey
                 SET ac.category = search.catId;
         - sql:
-            dbms: mysql, mariadb
+            dbms: mssql
             sql: |
-              ALTER TABLE api_categories 
-                CHANGE COLUMN category category_id VARCHAR(255);
+              UPDATE ac
+                SET ac.category = search.catId
+                FROM ${gravitee_prefix}api_categories ac
+                JOIN (
+                  SELECT ac.api_id AS apiId,
+                    ac.category AS catKey,
+                    c.id AS catId
+                  FROM ${gravitee_prefix}api_categories ac
+                    JOIN ${gravitee_prefix}apis a ON a.id = ac.api_id
+                    JOIN ${gravitee_prefix}categories c ON c.[key] = ac.category AND c.environment_id = a.environment_id
+                ) AS search
+                ON ac.api_id = search.apiId AND ac.category = search.catKey;
+        #####################
+        #### Step 2 - Rename category column --> category_id
+        #####################
+        - renameColumn:
+            tableName: ${gravitee_prefix}api_categories
+            newColumnName: category_id
+            oldColumnName: category
+            columnDataType: nvarchar(64)
+        #####################
+        #### Step 3 - Add category_key and order columns
+        #####################
+        - addColumn:
+            tableName: ${gravitee_prefix}api_categories
+            columns:
+              - column:
+                  name: category_key
+                  type: varchar(64)
+                  required: true
+              - column:
+                  name: order
+                  type: integer
+                  required: true
+        #####################
+        #### Step 4 - Update category_key on join
+        #####################
+        - sql:
+            dbms: postgresql
+            sql: |
+              update ${gravitee_prefix}api_categories ac
+                set category_key = c.key
+                from ${gravitee_prefix}categories c
+                where ac.category_id = c.id;
         - sql:
             dbms: mysql, mariadb
             sql: |
-              ALTER TABLE api_categories 
-                ADD COLUMN category_key VARCHAR(255),
-                ADD COLUMN `order` INT;
-        - sql:
-            dbms: mysql, mariadb
-            sql: |
-              UPDATE api_categories ac
-                JOIN categories c ON ac.category_id = c.id
+              UPDATE ${gravitee_prefix}api_categories ac
+                JOIN ${gravitee_prefix}categories c ON ac.category_id = c.id
                 SET ac.category_key = c.key;
+        - sql:
+            dbms: mssql
+            sql: |
+              UPDATE ac
+              SET ac.category_key = c.[key]
+              FROM ${gravitee_prefix}api_categories ac
+              JOIN ${gravitee_prefix}categories c ON ac.category_id = c.id;
+        #####################
+        #### Step 5 - Update order by row when partitioned by category_id
+        #####################
+        - sql:
+            dbms: postgresql
+            sql: |
+              update ${gravitee_prefix}api_categories ac
+                set "order"=subquery.order
+                from (
+                  select category_id, api_id,
+                    -1 + row_number() over (partition by category_id order by category_id) as "order"
+                    from ${gravitee_prefix}api_categories order by category_id
+                ) as subquery
+                where ac.api_id=subquery.api_id and ac.category_id=subquery.category_id;
         - sql:
             dbms: mysql
             sql: |
-              UPDATE api_categories ac
+              UPDATE ${gravitee_prefix}api_categories ac
                 JOIN (
                   SELECT category_id, api_id,
                     -1 + ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY category_id) AS `order`
-                  FROM api_categories
+                  FROM ${gravitee_prefix}api_categories
                   ORDER BY category_id
                 ) AS subquery
                 ON ac.api_id = subquery.api_id AND ac.category_id = subquery.category_id
@@ -121,60 +140,25 @@ databaseChangeLog:
         - sql:
             dbms: mariadb
             sql: |
-              UPDATE api_categories ac
+              UPDATE ${gravitee_prefix}api_categories ac
                 JOIN (
                   SELECT category_id, api_id,
                     -1 + (@row_num := IF(@prev_category = category_id, @row_num + 1, 1)) AS `order`,
                     @prev_category := category_id
-                  FROM api_categories, (SELECT @row_num := 0, @prev_category := '') AS vars
+                  FROM ${gravitee_prefix}api_categories, (SELECT @row_num := 0, @prev_category := '') AS vars
                   ORDER BY category_id
                 ) AS subquery
                 ON ac.api_id = subquery.api_id AND ac.category_id = subquery.category_id
                 SET ac.order = subquery.order;
-        #####################
-        #### MSSQL
-        #####################
-        - sql:
-            dbms: mssql
-            sql: |
-              UPDATE ac
-                SET ac.category = search.catId
-                FROM api_categories ac
-                JOIN (
-                  SELECT ac.api_id AS apiId,
-                    ac.category AS catKey,
-                    c.id AS catId
-                  FROM api_categories ac
-                  JOIN apis a ON a.id = ac.api_id
-                  JOIN categories c ON c.[key] = ac.category AND c.environment_id = a.environment_id
-                ) AS search
-                ON ac.api_id = search.apiId AND ac.category = search.catKey;
-        - sql:
-            dbms: mssql
-            sql: |
-              EXEC sp_rename 'api_categories.category', 'category_id', 'COLUMN';
-        - sql:
-            dbms: mssql
-            sql: |
-              ALTER TABLE api_categories 
-                ADD category_key VARCHAR(150),
-                [order] INT;
-        - sql:
-            dbms: mssql
-            sql: |
-              UPDATE ac
-              SET ac.category_key = c.[key]
-              FROM api_categories ac
-              JOIN categories c ON ac.category_id = c.id;
         - sql:
             dbms: mssql
             sql: |
               UPDATE ac
               SET ac.[order] = subquery.[order]
-              FROM api_categories ac
+              FROM ${gravitee_prefix}api_categories ac
               JOIN (
                 SELECT category_id, api_id,
                   -1 + ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY category_id) AS [order]
-                FROM api_categories
+                FROM ${gravitee_prefix}api_categories
               ) AS subquery
               ON ac.api_id = subquery.api_id AND ac.category_id = subquery.category_id
