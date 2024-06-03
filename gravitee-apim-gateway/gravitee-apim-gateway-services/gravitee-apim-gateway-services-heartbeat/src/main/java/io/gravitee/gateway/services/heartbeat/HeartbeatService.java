@@ -23,11 +23,10 @@ import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
 import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.gateway.services.heartbeat.impl.HeartbeatEventScheduler;
 import io.gravitee.gateway.services.heartbeat.spring.configuration.HeartbeatStrategyConfiguration;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.Organization;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -125,40 +124,31 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
         return event;
     }
 
-    private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties)
-        throws TechnicalException {
+    private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties) {
         final Optional<List<String>> optOrganizationsList = heartbeatStrategyConfiguration.gatewayConfiguration().organizations();
+        optOrganizationsList.ifPresent(organizationsHrids ->
+            properties.put(Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), String.join(", ", organizationsHrids))
+        );
+
         final Optional<List<String>> optEnvironmentsList = heartbeatStrategyConfiguration.gatewayConfiguration().environments();
+        Set<String> environmentsHrids = optEnvironmentsList
+            .map(HashSet::new)
+            .orElseGet(() -> {
+                HashSet<String> defaultHrids = new HashSet<>();
+                defaultHrids.add("DEFAULT");
+                return defaultHrids;
+            });
+        properties.put(Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), String.join(", ", environmentsHrids));
 
-        Set<String> organizationsHrids = optOrganizationsList.map(HashSet::new).orElseGet(HashSet::new);
-        Set<String> environmentsHrids = optEnvironmentsList.map(HashSet::new).orElseGet(HashSet::new);
-
-        Set<String> organizationsIds = new HashSet<>();
-        if (!organizationsHrids.isEmpty()) {
-            final Set<Organization> orgs = heartbeatStrategyConfiguration.organizationRepository().findByHrids(organizationsHrids);
-            organizationsIds = orgs.stream().map(Organization::getId).collect(Collectors.toSet());
-        }
-
-        Set<Environment> environments;
-        if (organizationsIds.isEmpty() && environmentsHrids.isEmpty()) {
-            environments = heartbeatStrategyConfiguration.environmentRepository().findAll();
-        } else {
-            environments =
-                heartbeatStrategyConfiguration.environmentRepository().findByOrganizationsAndHrids(organizationsIds, environmentsHrids);
-        }
-
-        Set<String> environmentsIds = environments.stream().map(Environment::getId).collect(Collectors.toSet());
-
+        Set<String> environmentsIds = new HashSet<>(
+            (Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS)
+        );
         // The first time APIM starts, if the Gateway is launched before the environments collection is created by the Rest API, then environmentsIds will be empty.
         // We must put at least "DEFAULT" environment.
         if (environmentsIds.isEmpty()) {
             environmentsIds.add("DEFAULT");
-            environmentsHrids = environmentsHrids.isEmpty() ? Collections.singleton("DEFAULT") : environmentsHrids;
         }
         event.setEnvironments(environmentsIds);
-
-        properties.put(Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), String.join(", ", environmentsHrids));
-        properties.put(Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), String.join(", ", organizationsHrids));
     }
 
     private InstanceEventPayload createInstanceInfo() {
