@@ -25,9 +25,13 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.page-header {
-  margin-bottom: 24px;
+.create-integration {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
+.page-header {
   &__page-title {
     @include mat.typography-level($typography, headline-6);
     margin: 0 0 4px 0;

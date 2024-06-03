@@ -29,7 +29,12 @@ $typography: map.get(gio.$mat-theme, typography);
   @include mat.typography-level($typography, body-1);
 }
 
-.integration-agent,
+.integration-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .page-cards {
   display: flex;
   flex-direction: column;

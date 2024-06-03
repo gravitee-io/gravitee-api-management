@@ -22,6 +22,11 @@
     <span class="page-header__description body-strong">Manage your integration activation and general information</span>
   </div>
 
+  <gio-banner-info class="tech-preview-banner">
+    This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for
+    production use.
+  </gio-banner-info>
+
   <div *ngIf="!isLoading && integration; else loadingTemplate" class="page-cards">
     <mat-card *gioPermission="{ anyOf: ['environment-integration-u'] }" data-testid="update-card">
       <div class="card-header">
