@@ -2,6 +2,23 @@ databaseChangeLog:
   - changeSet:
       id: 4.4.0_create_api_categories_table
       author: GraviteeSource Team
+###############
+####  Create pre-migrated table if missing
+###############
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: ${gravitee_prefix}api_categories
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}api_categories
+            columns:
+              - column: { name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: category, type: nvarchar(64), constraints: { nullable: false } }
+  - changeSet:
+      id: 4.4.0_migrate_api_categories_table
+      author: GraviteeSource Team
       changes:
         # Step 1 -- Update api_categories with category ids on join
         # Step 2 -- Rename category column --> category_id
