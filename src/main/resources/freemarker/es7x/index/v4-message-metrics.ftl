@@ -39,7 +39,7 @@
   ,"error-count":"${errorCount}"
   </#if>
   <#if countIncrement??>
-    ,"count-increment":${counIncrementt}
+    ,"count-increment":${countIncrement}
   </#if>
   <#if errorCountIncrement??>
     ,"error-count-increment":"${errorCountIncrement}"
