@@ -70,6 +70,17 @@ public interface GraviteeMapper {
 
     List<Api> mapApis(Collection<ApiMongo> toMap);
 
+    // ApiCategory mapping
+    ApiCategory map(ApiCategoryMongo toMap);
+
+    ApiCategoryMongo map(ApiCategory toMap);
+
+    Set<ApiCategory> map(Collection<ApiCategoryMongo> toMap);
+
+    ApiCategory.Id map(ApiCategoryPkMongo toMap);
+
+    ApiCategoryPkMongo map(ApiCategory.Id toMap);
+
     // Application mapping
     Application map(ApplicationMongo toMap);
 

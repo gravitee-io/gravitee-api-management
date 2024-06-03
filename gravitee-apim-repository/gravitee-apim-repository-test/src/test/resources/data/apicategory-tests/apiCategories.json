@@ -1,0 +1,18 @@
+[
+  {
+    "categoryId": "cat-1",
+    "apiId": "api-1",
+    "categoryKey": "cat-key-1",
+    "order": 0
+  },{
+    "categoryId": "cat-1",
+    "apiId": "api-2",
+    "categoryKey": "cat-key-1",
+    "order": 1
+  },{
+    "categoryId": "cat-2",
+    "apiId": "api-3",
+    "categoryKey": "cat-key-2",
+    "order": 0
+  }
+]

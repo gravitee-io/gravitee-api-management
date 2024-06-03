@@ -41,6 +41,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected ApiRepository apiRepository;
 
     @Inject
+    protected ApiCategoryRepository apiCategoryRepository;
+
+    @Inject
     protected UserRepository userRepository;
 
     @Inject
@@ -306,6 +309,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             accessPointRepository.create((AccessPoint) object);
         } else if (object instanceof Integration) {
             integrationRepository.create((Integration) object);
+        } else if (object instanceof ApiCategory) {
+            apiCategoryRepository.create((ApiCategory) object);
         }
     }
 
