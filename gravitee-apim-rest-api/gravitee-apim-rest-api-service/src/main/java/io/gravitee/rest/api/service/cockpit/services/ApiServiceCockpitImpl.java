@@ -259,7 +259,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         api.setLabels(labels);
 
         // apply update to proxy paths
-        final ContextPathValidationResult result = checkContextPath(executionContext.getEnvironmentId(), api);
+        final ContextPathValidationResult result = checkContextPath(executionContext.getEnvironmentId(), api, apiId);
         if (result.hasError()) {
             return ApiEntityResult.failure(result.getError());
         }

@@ -834,21 +834,19 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setLabels(LABELS);
 
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), any(), anyList()))
+        when(
+            verifyApiPathsDomainService.checkAndSanitizeApiPaths(
+                EXECUTION_CONTEXT.getEnvironmentId(),
+                API_ID,
+                List.of(Path.builder().path("/un-sanitized/path/").build())
+            )
+        )
             .thenReturn(List.of(Path.builder().path("/sanitized/path").build()));
         when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), any(), any(), any())).thenReturn(api);
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), any(), any())).thenReturn(api);
 
-        service.updateApi(
-            EXECUTION_CONTEXT,
-            API_CROSS_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_DOCUMENTED,
-            LABELS
-        );
+        service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
 
         verify(apiService, times(1)).updateFromSwagger(eq(EXECUTION_CONTEXT), any(), swaggerApiCaptor.capture(), any());
         assertThat(swaggerApiCaptor.getValue().getProxy().getVirtualHosts().get(0).getPath()).isEqualTo("/sanitized/path");
