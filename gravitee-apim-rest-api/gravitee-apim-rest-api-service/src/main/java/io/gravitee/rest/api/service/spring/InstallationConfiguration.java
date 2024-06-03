@@ -62,11 +62,6 @@ public class InstallationConfiguration {
             keyValue = String.format("%s[%s].%s", property, index, "value");
         }
 
-        // fallback to single value style for backward compatibility
-        if (properties.isEmpty()) {
-            properties.put(keyName.toUpperCase(), keyValue);
-        }
-
         return properties;
     }
 }
