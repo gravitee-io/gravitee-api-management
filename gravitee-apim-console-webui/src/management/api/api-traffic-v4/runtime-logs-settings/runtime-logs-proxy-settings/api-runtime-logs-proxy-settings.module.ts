@@ -19,7 +19,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
@@ -38,7 +37,6 @@ import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-s
     MatCardModule,
     MatIconModule,
     MatInputModule,
-    MatCheckboxModule,
     MatFormFieldModule,
     MatSnackBarModule,
     ReactiveFormsModule,
