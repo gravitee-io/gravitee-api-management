@@ -18,10 +18,12 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangeResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -49,6 +51,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchAverageConnectionDurationUseCase searchAverageConnectionDurationUseCase;
+
+    @Inject
+    private SearchResponseStatusRangeUseCase searchResponseStatusRangeUseCase;
 
     @Path("/requests-count")
     @GET
@@ -90,5 +95,19 @@ public class ApiAnalyticsResource extends AbstractResource {
             .averageConnectionDuration()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No connection duration found for api: " + apiId));
+    }
+
+    @Path("/response-statuses")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsResponseStatusRangeResponse getResponseStatusCodes() {
+        var request = new SearchResponseStatusRangeUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+
+        return searchResponseStatusRangeUseCase
+            .execute(request)
+            .topHitsAnalyticsByEntrypoint()
+            .map(ApiAnalyticsResponseStatusRangeResponse::ofMap)
+            .orElseThrow(() -> new NotFoundException("No response status codes found for api: " + apiId));
     }
 }

@@ -1935,6 +1935,24 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/response-statuses:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Get API Analytics response status counts
+        description: |-
+          Get API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getResponseStatusCodes
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsTopHitsByEntrypointResponse"
+          default:
+            $ref: "#/components/responses/Error"
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -6996,8 +7014,22 @@ components:
                                 additionalProperties:
                                     description: A map of rounded average connection duration by entrypoint
                                     type: number
+        ApiAnalyticsTopHitsByEntrypointResponse:
+          description: Analytics for status codes by entrypoint
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsResponseStatusRangeResponse"
+                description: API Analytics for status codes by entrypoint.
+                properties:
+                  rangeByEntrypoint:
+                    type: object
+                    description: Status ranges by endpoint.
+                    additionalProperties:
+                      description: A map of response status range and counts
+                      type: number
 
-        # Analytics - Logs
+      # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
             content:

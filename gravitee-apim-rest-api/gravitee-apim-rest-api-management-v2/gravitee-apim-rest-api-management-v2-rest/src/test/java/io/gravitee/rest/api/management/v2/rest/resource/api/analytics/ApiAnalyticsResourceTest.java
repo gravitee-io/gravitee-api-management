@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
@@ -28,7 +27,9 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangeResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
@@ -55,7 +56,7 @@ import org.junit.jupiter.api.Test;
 class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     WebTarget requestsCountTarget;
-    WebTarget averageMessagesPerRequestTarget;
+    WebTarget statusCodesByEntrypointTarget;
     WebTarget averageConnectionDurationTarget;
 
     @Inject
@@ -138,7 +139,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
         @BeforeEach
         public void prepareTarget() {
-            averageMessagesPerRequestTarget = rootTarget().path("average-messages-per-request");
+            statusCodesByEntrypointTarget = rootTarget().path("average-messages-per-request");
         }
 
         @Test
@@ -153,7 +154,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = averageMessagesPerRequestTarget.request().get();
+            final Response response = statusCodesByEntrypointTarget.request().get();
 
             MAPIAssertions
                 .assertThat(response)
@@ -173,7 +174,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
                     .build();
 
-            final Response response = averageMessagesPerRequestTarget.request().get();
+            final Response response = statusCodesByEntrypointTarget.request().get();
 
             MAPIAssertions
                 .assertThat(response)
@@ -235,6 +236,60 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .satisfies(r -> {
                     assertThat(r.getAverage()).isEqualTo(55.0);
                     assertThat(r.getAveragesByEntrypoint()).containsAllEntriesOf(Map.of("http-get", 10.0, "sse", 100.0));
+                });
+        }
+    }
+
+    @Nested
+    class StatusCodesByEntrypoint {
+
+        @BeforeEach
+        public void prepareTarget() {
+            statusCodesByEntrypointTarget = rootTarget().path("response-statuses");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = statusCodesByEntrypointTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_status_codes_by_entrypoint() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.topHitsAnalyticsByEntrypoint =
+                Map.of(
+                    "http-get",
+                    TopHitsAnalytics.ofValues(Map.of("100.0-200.0", 1L)),
+                    "http-post",
+                    TopHitsAnalytics.ofValues(Map.of("100.0-200.0", 1L))
+                );
+
+            final Response response = statusCodesByEntrypointTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsResponseStatusRangeResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getRangeByEntrypoint().keySet()).containsExactlyInAnyOrder("http-get", "http-post");
+                    assertThat(r.getRangeByEntrypoint().get("http-get")).isNotNull();
                 });
         }
     }
