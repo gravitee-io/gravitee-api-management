@@ -19,6 +19,7 @@ import static com.google.common.base.Functions.identity;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.rest.api.model.PageEntity;
@@ -28,7 +29,6 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -52,11 +52,11 @@ public interface ApiCRDAdapter {
         return definition.getPlans().stream().map(this::toCRDPlan).collect(toMap(PlanCRD::getName, identity()));
     }
 
-    Page toCRDPage(PageEntity pageEntity);
+    PageCRD toCRDPage(PageEntity pageEntity);
 
-    default Map<String, Page> mapPages(ExportApiEntity definition) {
+    default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
-            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(Page::getName, identity()))
+            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(PageCRD::getName, identity()))
             : null;
     }
 }

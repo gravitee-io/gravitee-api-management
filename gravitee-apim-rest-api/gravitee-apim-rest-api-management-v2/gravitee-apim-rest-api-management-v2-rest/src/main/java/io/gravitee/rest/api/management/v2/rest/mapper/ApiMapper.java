@@ -189,7 +189,11 @@ public interface ApiMapper {
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
 
     @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
-    Page map(PageCRD crd);
+    io.gravitee.apim.core.api.model.crd.PageCRD map(PageCRD crd);
+
+    Page map(io.gravitee.apim.core.api.model.crd.PageCRD crd);
+
+    io.gravitee.apim.core.api.model.crd.PageCRD map(Page crd);
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
