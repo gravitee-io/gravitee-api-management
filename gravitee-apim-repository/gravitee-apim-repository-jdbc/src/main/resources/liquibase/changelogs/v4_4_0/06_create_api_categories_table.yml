@@ -80,14 +80,8 @@ databaseChangeLog:
         - addColumn:
             tableName: ${gravitee_prefix}api_categories
             columns:
-              - column:
-                  name: category_key
-                  type: varchar(64)
-                  required: true
-              - column:
-                  name: order
-                  type: integer
-                  required: true
+              - column: { name: category_key, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: order, type: integer, constraints: { nullable: false } }
         #####################
         #### Step 4 - Update category_key on join
         #####################
