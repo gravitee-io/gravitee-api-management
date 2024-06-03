@@ -133,11 +133,11 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       }),
       request: new UntypedFormControl({
         value: this.api?.analytics?.logging?.phase?.request ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
+        disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       response: new UntypedFormControl({
         value: this.api?.analytics?.logging?.phase?.response ?? false,
-        disabled: !analyticsEnabled || isReadOnly,
+        disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       messageContent: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
@@ -196,7 +196,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
           Object.entries(this.form.controls)
             .filter(([key]) => key !== 'enabled')
             .forEach(([key, control]) => {
-              if (['messageContent', 'messageHeaders', 'messageMetadata', 'headers'].includes(key)) {
+              if (['request', 'response', 'messageContent', 'messageHeaders', 'messageMetadata', 'headers'].includes(key)) {
                 const loggingModeDisabled = !(this.form.get('entrypoint').value || this.form.get('endpoint').value);
                 if (!loggingModeDisabled) {
                   control.enable();
@@ -229,11 +229,15 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         const formValues = this.form.getRawValue();
         const loggingModeDisabled = !(formValues.entrypoint || formValues.endpoint);
         if (loggingModeDisabled) {
+          this.disableAndUncheck('request');
+          this.disableAndUncheck('response');
           this.disableAndUncheck('messageContent');
           this.disableAndUncheck('messageHeaders');
           this.disableAndUncheck('messageMetadata');
           this.disableAndUncheck('headers');
         } else {
+          this.form.get('request').enable();
+          this.form.get('response').enable();
           this.form.get('messageContent').enable();
           this.form.get('messageHeaders').enable();
           this.form.get('messageMetadata').enable();
