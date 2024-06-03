@@ -23,11 +23,13 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiCategoryRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiCategory;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -65,6 +67,7 @@ import org.springframework.stereotype.Component;
 public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     private final ApiRepository apiRepository;
+    private final ApiCategoryRepository apiCategoryRepository;
     private final CategoryService categoryService;
     private final ApiNotificationService apiNotificationService;
     private final AuditService auditService;
@@ -73,6 +76,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     public ApiCategoryServiceImpl(
         @Lazy final ApiRepository apiRepository,
+        @Lazy final ApiCategoryRepository apiCategoryRepository,
         final CategoryService categoryService,
         final ApiNotificationService apiNotificationService,
         final AuditService auditService,
@@ -80,6 +84,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         @Lazy final RoleService roleService
     ) {
         this.apiRepository = apiRepository;
+        this.apiCategoryRepository = apiCategoryRepository;
         this.categoryService = categoryService;
         this.apiNotificationService = apiNotificationService;
         this.auditService = auditService;
@@ -87,29 +92,40 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         this.roleService = roleService;
     }
 
+    // TODO: List categories by apiIds --> Look how it's used...
     @Override
     public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
-        try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
-            Set<String> categoryIds = apiRepository.listCategories(criteria);
-            return categoryService.findByIdIn(environment, categoryIds);
-        } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to list categories for APIs {}", apis, ex);
-            throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
-        }
+        //        try {
+        ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
+        //            Set<String> categoryIds = apiRepository.listCategories(criteria);
+        //            Set<String> categoryIds = apiRepository.listCategories(criteria);
+        return categoryService.findByIdIn(environment, Set.of());
+        //        } catch (TechnicalException ex) {
+        //            log.error("An error occurs while trying to list categories for APIs {}", apis, ex);
+        //            throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
+        //        }
     }
 
+    // TODO: Make it work -- or find how it is used...
     @Override
     public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
-        apiRepository
-            .search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())
-            .forEach(api -> removeCategory(executionContext, api, categoryId));
+        try {
+            // Find all entries with categoryId
+            // Delete each entry
+            // Fire Api notification
+            apiCategoryRepository.delete(ApiCategory.Id.builder().build());
+        } catch (TechnicalException e) {
+            throw new RuntimeException(e);
+        }
+        //         apiRepository
+        //            .search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())
+        //            .forEach(api -> removeCategory(executionContext, api, categoryId));
     }
 
     private void removeCategory(ExecutionContext executionContext, Api api, String categoryId) {
         try {
             Api apiSnapshot = new Api(api);
-            api.getCategories().remove(categoryId);
+            //            api.getCategories().remove(categoryId);
             api.setUpdatedAt(new Date());
             apiRepository.update(api);
             apiNotificationService.triggerUpdateNotification(executionContext, api);
@@ -161,11 +177,13 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             return Collections.emptyMap();
         }
 
-        return apiRepository
-            .search(new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
-            .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
-            .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
-            .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
+        // TODO: For all apis in user perimeter, find + count how many apis for each category Id
+        //        return apiRepository
+        //            .search(new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
+        //            .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
+        //            .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
+        //            .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
+        return Map.of();
     }
 
     private List<String> getUserMembershipApiIds(String userId) {
