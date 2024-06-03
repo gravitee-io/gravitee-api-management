@@ -58,7 +58,7 @@ if [ "<< parameters.execution_mode >>" = "v3" ]; then
   export V4_EMULATION_ENGINE_DEFAULT=no
 fi
 if [ -z "<< parameters.apim_client_tag >>" ]; then
-  APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_TAG=${dockerImageTag} npm run test:api:<< parameters.database >>
+  APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=${dockerImageTag} npm run test:api:<< parameters.database >>
 else 
   if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
     echo "Using custom registry for client"
