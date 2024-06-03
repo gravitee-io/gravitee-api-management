@@ -204,6 +204,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
 
         for (MemberEntity member : members) {
             if (isEmpty(member.getRoles())) {
+                log.warn("There is no role associated with this member. Default role will be applied");
                 member.setRoles(defaultApiRole);
             }
             List<RoleEntity> rolesToImport = member
