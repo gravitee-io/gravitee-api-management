@@ -23,6 +23,7 @@ import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { flatten, get } from 'lodash';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import {
   AnalyticsRequestStats,
@@ -47,6 +48,7 @@ type ApiAnalyticsVM = {
     name: string;
     icon: string;
     requestStats?: AnalyticsRequestStats;
+    isNotConfigured?: boolean;
   }[];
 };
 
@@ -62,6 +64,7 @@ type ApiAnalyticsVM = {
     ApiAnalyticsRequestStatsComponent,
     MatIcon,
     ApiAnalyticsFiltersBarComponent,
+    MatTooltip,
   ],
   templateUrl: './api-analytics-message.component.html',
   styleUrl: './api-analytics-message.component.scss',
@@ -101,16 +104,16 @@ export class ApiAnalyticsMessageComponent {
   ]).pipe(
     switchMap(([api, availableEntrypoints]) => {
       if (api.analytics.enabled) {
-        const apiEntrypointsType = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
-        const entrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints
-          .filter((e) => apiEntrypointsType.includes(e.id))
-          .map((e) => ({
-            id: e.id,
-            name: e.name,
-            icon: this.iconService.registerSvg(e.id, e.icon),
-          }));
+        const apiEntrypointsId = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
+        const allEntrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints.map((e) => ({
+          id: e.id,
+          name: e.name,
+          icon: this.iconService.registerSvg(e.id, e.icon),
+        }));
 
-        return this.analyticsData$(entrypoints).pipe(map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })));
+        return this.analyticsData$(allEntrypoints, apiEntrypointsId).pipe(
+          map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })),
+        );
       }
       return of({ isAnalyticsEnabled: false });
     }),
@@ -119,52 +122,70 @@ export class ApiAnalyticsMessageComponent {
   );
 
   private analyticsData$(
-    entrypoints: ApiAnalyticsVM['entrypoints'],
+    allEntrypoints: ApiAnalyticsVM['entrypoints'],
+    apiEntrypointsId: string[],
   ): Observable<Pick<ApiAnalyticsVM, 'globalRequestStats' | 'entrypoints'>> {
     return combineLatest([this.getRequestsCount$, this.getAverageConnectionDuration$, this.getAverageMessagesPerRequest$]).pipe(
-      map(([requestsCount, averageConnectionDuration, averageMessagesPerRequest]) => ({
-        entrypoints: entrypoints.map((entrypoint) => {
-          return {
-            ...entrypoint,
-            requestStats: [
-              {
-                label: 'Total Requests',
-                value: get(requestsCount, `countsByEntrypoint.${entrypoint.id}`),
-                isLoading: requestsCount.isLoading,
-              },
-              {
-                label: 'Average Messages Per Request',
-                value: get(averageMessagesPerRequest, `averagesByEntrypoint.${entrypoint.id}`),
-                isLoading: averageMessagesPerRequest.isLoading,
-              },
-              {
-                label: 'Average Connection Duration',
-                unitLabel: 'ms',
-                value: get(averageConnectionDuration, `averagesByEntrypoint.${entrypoint.id}`),
-                isLoading: averageConnectionDuration.isLoading,
-              },
-            ],
-          };
-        }),
-        globalRequestStats: [
-          {
-            label: 'Total Requests',
-            value: requestsCount.total,
-            isLoading: requestsCount.isLoading,
-          },
-          {
-            label: 'Average Messages Per Request',
-            value: averageMessagesPerRequest.average,
-            isLoading: averageMessagesPerRequest.isLoading,
-          },
-          {
-            label: 'Average Connection Duration',
-            unitLabel: 'ms',
-            value: averageConnectionDuration.average,
-            isLoading: averageConnectionDuration.isLoading,
-          },
-        ],
-      })),
+      map(([requestsCount, averageConnectionDuration, averageMessagesPerRequest]) => {
+        // Entrypoints that are configured in the API
+        const apiEntrypoints = allEntrypoints.filter((entrypoint) => apiEntrypointsId.includes(entrypoint.id));
+
+        // Entrypoints that are not configured in the API
+        const notApiConfiguredEntrypoints = allEntrypoints
+          .filter((entrypoint) => !apiEntrypointsId.includes(entrypoint.id))
+          .filter((entrypoint) =>
+            [
+              ...Object.keys(!requestsCount.isLoading ? requestsCount.countsByEntrypoint ?? {} : {}),
+              ...Object.keys(!averageConnectionDuration.isLoading ? averageConnectionDuration.averagesByEntrypoint ?? {} : {}),
+              ...Object.keys(!averageMessagesPerRequest.isLoading ? averageMessagesPerRequest.averagesByEntrypoint ?? {} : {}),
+            ].includes(entrypoint.id),
+          )
+          .map((entrypoint) => ({ ...entrypoint, isNotConfigured: true }));
+
+        return {
+          entrypoints: [...apiEntrypoints, ...notApiConfiguredEntrypoints].map((entrypoint) => {
+            return {
+              ...entrypoint,
+              requestStats: [
+                {
+                  label: 'Total Requests',
+                  value: get(requestsCount, `countsByEntrypoint.${entrypoint.id}`),
+                  isLoading: requestsCount.isLoading,
+                },
+                {
+                  label: 'Average Messages Per Request',
+                  value: get(averageMessagesPerRequest, `averagesByEntrypoint.${entrypoint.id}`),
+                  isLoading: averageMessagesPerRequest.isLoading,
+                },
+                {
+                  label: 'Average Connection Duration',
+                  unitLabel: 'ms',
+                  value: get(averageConnectionDuration, `averagesByEntrypoint.${entrypoint.id}`),
+                  isLoading: averageConnectionDuration.isLoading,
+                },
+              ],
+            };
+          }),
+          globalRequestStats: [
+            {
+              label: 'Total Requests',
+              value: requestsCount.total,
+              isLoading: requestsCount.isLoading,
+            },
+            {
+              label: 'Average Messages Per Request',
+              value: averageMessagesPerRequest.average,
+              isLoading: averageMessagesPerRequest.isLoading,
+            },
+            {
+              label: 'Average Connection Duration',
+              unitLabel: 'ms',
+              value: averageConnectionDuration.average,
+              isLoading: averageConnectionDuration.isLoading,
+            },
+          ],
+        };
+      }),
     );
   }
 }
