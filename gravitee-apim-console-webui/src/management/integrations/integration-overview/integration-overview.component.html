@@ -22,6 +22,11 @@
     <span class="page-header__description body-strong">Monitor and manage your integration with the provider</span>
   </div>
 
+  <gio-banner-info class="tech-preview-banner">
+    This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for
+    production use.
+  </gio-banner-info>
+
   <mat-card *ngIf="!isLoadingIntegration && integration; else loadingTemplate">
     <mat-card-header>
       <div class="card-header">
