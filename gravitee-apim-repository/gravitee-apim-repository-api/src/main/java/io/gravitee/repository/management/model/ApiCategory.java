@@ -28,7 +28,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ApiCategory {
 
-    private Id id;
+    private String categoryId;
+    private String apiId;
     private String categoryKey;
     private int order;
 
@@ -42,27 +43,7 @@ public class ApiCategory {
         private String apiId;
     }
 
-    @JsonIgnore
-    public String getApiId() {
-        return this.id.getApiId();
-    }
-
-    public void setApiId(String apiId) {
-        if (Objects.isNull(this.id)) {
-            this.id = new Id();
-        }
-        this.id.setApiId(apiId);
-    }
-
-    @JsonIgnore
-    public String getCategoryId() {
-        return this.id.getCategoryId();
-    }
-
-    public void setCategoryId(String categoryId) {
-        if (Objects.isNull(this.id)) {
-            this.id = new Id();
-        }
-        this.id.setApiId(categoryId);
+    public Id getId() {
+        return Id.builder().categoryId(this.categoryId).apiId(this.apiId).build();
     }
 }
