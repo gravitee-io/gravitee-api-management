@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.2.1...1.2.2) (2024-06-03)
+
+
+### Bug Fixes
+
+* typo in ftl for countIncrement ([0e4b08d](https://github.com/gravitee-io/gravitee-reporter-common/commit/0e4b08d27782044e0fa9aa9b7d41e94ad3945229))
+
 ## [1.2.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.2.0...1.2.1) (2024-05-22)
 
 
