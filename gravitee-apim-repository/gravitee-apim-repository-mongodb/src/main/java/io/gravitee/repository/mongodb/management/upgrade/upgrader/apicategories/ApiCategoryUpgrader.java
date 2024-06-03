@@ -117,7 +117,9 @@ public class ApiCategoryUpgrader extends MongoUpgrader {
             }
         });
 
-        template.getCollection("api_categories").insertMany(bulkActions).wasAcknowledged();
+        if (!bulkActions.isEmpty()) {
+            template.getCollection("api_categories").insertMany(bulkActions).wasAcknowledged();
+        }
 
         template.getCollection("apis").updateMany(new BsonDocument(), Updates.unset("categories"));
 
