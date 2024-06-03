@@ -19,9 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
@@ -43,6 +41,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.spring.InstallationConfiguration;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +51,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -64,6 +64,9 @@ public class HelloCommandProducerTest {
     private static final String CUSTOM_VALUE = "customValue";
     private static final String CUSTOM_KEY = "customKey";
     private static final String INSTALLATION_ID = "installation#1";
+    public static final String CUSTOM_ADDITION_INFORMATION_EXTRA_KEY = "customAdditionInformationKey";
+    public static final String CUSTOM_ADDITION_INFORMATION_EXTRA_VALUE = "customAdditionInformationValue";
+    public static final String AUTH_BASE_URL_VALUE = "http://test:8083";
 
     @Mock
     private InstallationService installationService;
@@ -87,6 +90,13 @@ public class HelloCommandProducerTest {
 
     @Before
     public void before() {
+        var environment = new MockEnvironment();
+
+        environment.setProperty("installation.additionalInformation[0].name", CUSTOM_ADDITION_INFORMATION_EXTRA_KEY);
+        environment.setProperty("installation.additionalInformation[0].value", CUSTOM_ADDITION_INFORMATION_EXTRA_VALUE);
+
+        var installationConfiguration = new InstallationConfiguration(AUTH_BASE_URL_VALUE, "http://test:8083/managment", environment);
+
         cut =
             new HelloCommandProducer(
                 node,
@@ -94,7 +104,8 @@ public class HelloCommandProducerTest {
                 environmentService,
                 organizationService,
                 installationTypeDomainService,
-                cockpitAccessService
+                cockpitAccessService,
+                installationConfiguration
             );
         when(installationTypeDomainService.get()).thenReturn(InstallationType.STANDALONE);
     }
@@ -122,8 +133,15 @@ public class HelloCommandProducerTest {
         obs.await();
         obs.assertValue(helloCommand -> {
             assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+            assertEquals(
+                CUSTOM_ADDITION_INFORMATION_EXTRA_VALUE,
+                helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_ADDITION_INFORMATION_EXTRA_KEY.toUpperCase())
+            );
+            assertEquals(
+                AUTH_BASE_URL_VALUE,
+                helloCommand.getPayload().getAdditionalInformation().get(AdditionalInfoConstants.AUTH_BASE_URL)
+            );
             assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
             assertEquals(InstallationType.STANDALONE.getLabel(), helloCommand.getPayload().getInstallationType());
 
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
