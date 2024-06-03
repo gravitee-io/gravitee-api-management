@@ -25,7 +25,12 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.integration-configuration,
+.integration-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .page-cards {
   display: flex;
   flex-direction: column;
