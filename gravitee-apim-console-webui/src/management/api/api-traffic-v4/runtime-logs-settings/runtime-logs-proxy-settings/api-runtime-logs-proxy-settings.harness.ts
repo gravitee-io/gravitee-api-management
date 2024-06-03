@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
@@ -23,35 +22,35 @@ export class ApiRuntimeLogsProxySettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-proxy-settings';
 
   private getEnabledToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-  private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
-  private getEndpointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="endpoint"]' }));
-  private getRequestPhaseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="request"]' }));
-  private getResponsePhaseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="response"]' }));
-  private getHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="headers"]' }));
-  private getPayloadCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="payload"]' }));
+  private getEntrypointToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="entrypoint"]' }));
+  private getEndpointToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="endpoint"]' }));
+  private getRequestPhaseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="request"]' }));
+  private getResponsePhaseToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="response"]' }));
+  private getHeadersToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="headers"]' }));
+  private getPayloadToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="payload"]' }));
   private getConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
 
   public isEnabledChecked = async () => (await this.getEnabledToggle()).isChecked();
   public toggleEnabled = async () => (await this.getEnabledToggle()).toggle();
-  public isEntrypointChecked = async () => (await this.getEntrypointCheckbox()).isChecked();
-  public isEntrypointDisabled = async () => (await this.getEntrypointCheckbox()).isDisabled();
-  public toggleEntrypoint = async () => (await this.getEntrypointCheckbox()).toggle();
-  public isEndpointChecked = async () => (await this.getEndpointCheckbox()).isChecked();
-  public isEndpointDisabled = async () => (await this.getEndpointCheckbox()).isDisabled();
-  public toggleEndpoint = async () => (await this.getEndpointCheckbox()).toggle();
-  public isRequestPhaseChecked = async () => (await this.getRequestPhaseCheckbox()).isChecked();
-  public isRequestPhaseDisabled = async () => (await this.getRequestPhaseCheckbox()).isDisabled();
-  public toggleRequestPhase = async () => (await this.getRequestPhaseCheckbox()).toggle();
-  public isResponsePhaseChecked = async () => (await this.getResponsePhaseCheckbox()).isChecked();
-  public isResponsePhaseDisabled = async () => (await this.getResponsePhaseCheckbox()).isDisabled();
-  public toggleResponsePhase = async () => (await this.getResponsePhaseCheckbox()).toggle();
-  public isHeadersChecked = async () => (await this.getHeadersCheckbox()).isChecked();
-  public isHeadersDisabled = async () => (await this.getHeadersCheckbox()).isDisabled();
-  public toggleHeaders = async () => (await this.getHeadersCheckbox()).toggle();
-  public isPayloadChecked = async () => (await this.getPayloadCheckbox()).isChecked();
-  public isPayloadDisabled = async () => (await this.getPayloadCheckbox()).isDisabled();
-  public togglePayload = async () => (await this.getPayloadCheckbox()).toggle();
+  public isEntrypointChecked = async () => (await this.getEntrypointToggle()).isChecked();
+  public isEntrypointDisabled = async () => (await this.getEntrypointToggle()).isDisabled();
+  public toggleEntrypoint = async () => (await this.getEntrypointToggle()).toggle();
+  public isEndpointChecked = async () => (await this.getEndpointToggle()).isChecked();
+  public isEndpointDisabled = async () => (await this.getEndpointToggle()).isDisabled();
+  public toggleEndpoint = async () => (await this.getEndpointToggle()).toggle();
+  public isRequestPhaseChecked = async () => (await this.getRequestPhaseToggle()).isChecked();
+  public isRequestPhaseDisabled = async () => (await this.getRequestPhaseToggle()).isDisabled();
+  public toggleRequestPhase = async () => (await this.getRequestPhaseToggle()).toggle();
+  public isResponsePhaseChecked = async () => (await this.getResponsePhaseToggle()).isChecked();
+  public isResponsePhaseDisabled = async () => (await this.getResponsePhaseToggle()).isDisabled();
+  public toggleResponsePhase = async () => (await this.getResponsePhaseToggle()).toggle();
+  public isHeadersChecked = async () => (await this.getHeadersToggle()).isChecked();
+  public isHeadersDisabled = async () => (await this.getHeadersToggle()).isDisabled();
+  public toggleHeaders = async () => (await this.getHeadersToggle()).toggle();
+  public isPayloadChecked = async () => (await this.getPayloadToggle()).isChecked();
+  public isPayloadDisabled = async () => (await this.getPayloadToggle()).isDisabled();
+  public togglePayload = async () => (await this.getPayloadToggle()).toggle();
   public getCondition = async () => (await this.getConditionInput()).getValue();
   public isConditionDisabled = async () => (await this.getConditionInput()).isDisabled();
   public setCondition = async (condition: string) => (await this.getConditionInput()).setValue(condition);

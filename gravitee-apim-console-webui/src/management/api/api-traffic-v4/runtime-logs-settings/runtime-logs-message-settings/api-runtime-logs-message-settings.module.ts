@@ -20,7 +20,6 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -40,7 +39,6 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
-    MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
