@@ -20,14 +20,18 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsAnalyticsByEntrypointQuery;
+import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -66,6 +70,15 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
             );
+    }
+
+    @Override
+    public Optional<Map<String, TopHitsAnalytics>> searchTopHitsByEntrypoint(ExecutionContext executionContext, String apiId) {
+        final var queryResult =  analyticsRepository
+                .searchTopHitsAnalyticsByEntrypoint(executionContext.getQueryContext(), TopHitsAnalyticsByEntrypointQuery.builder().apiId(apiId).build());
+        return queryResult.map(
+                analytics -> analytics.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> TopHitsAnalytics.ofValues(entry.getValue())))
+        );
     }
 
     @Override

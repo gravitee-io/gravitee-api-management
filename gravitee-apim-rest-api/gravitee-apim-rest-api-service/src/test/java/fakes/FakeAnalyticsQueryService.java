@@ -16,9 +16,11 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import java.util.Map;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
@@ -31,6 +33,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public RequestsCount requestsCount;
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
+    public Map<String, TopHitsAnalytics> topHitsAnalyticsByEntrypoint;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId) {
@@ -51,5 +54,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         requestsCount = null;
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
+    }
+
+    @Override
+    public Optional<Map<String, TopHitsAnalytics>> searchTopHitsByEntrypoint(ExecutionContext executionContext, String apiId) {
+        return Optional.ofNullable(topHitsAnalyticsByEntrypoint);
     }
 }

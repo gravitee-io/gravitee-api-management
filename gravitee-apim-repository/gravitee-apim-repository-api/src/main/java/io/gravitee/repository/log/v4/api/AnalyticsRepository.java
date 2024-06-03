@@ -21,6 +21,9 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsAnalyticsByEntrypointQuery;
+import io.reactivex.rxjava3.annotations.NonNull;
+import java.util.Map;
 import java.util.Optional;
 
 public interface AnalyticsRepository {
@@ -29,4 +32,6 @@ public interface AnalyticsRepository {
     Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query);
 
     Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query);
+
+    @NonNull Optional<Map<String, Map<String, Long>>> searchTopHitsAnalyticsByEntrypoint(QueryContext queryContext, TopHitsAnalyticsByEntrypointQuery query);
 }
