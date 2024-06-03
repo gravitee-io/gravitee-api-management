@@ -34,6 +34,7 @@ import { fakeAnalyticsAverageMessagesPerRequest } from '../../../../../entities/
 
 const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
+  { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: false },
 ];
 
 describe('ApiAnalyticsMessageComponent', () => {
@@ -225,6 +226,51 @@ describe('ApiAnalyticsMessageComponent', () => {
           label: 'Average Connection Duration',
           value: '42.123ms',
           isLoading: false,
+        },
+      ]);
+    });
+
+    it('should display HTTP POST (not configured) - Request Stats', async () => {
+      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
+
+      expectApiAnalyticsRequestsCountGetRequest(
+        fakeAnalyticsRequestsCount({
+          countsByEntrypoint: { 'http-post': 42 },
+        }),
+      );
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      const requestStats = await componentHarness.getRequestStatsHarness('http-post-request-stats');
+      expect(await requestStats.getValues()).toEqual([
+        {
+          label: 'Total Requests',
+          value: '42',
+          isLoading: false,
+        },
+        {
+          label: 'Average Messages Per Request',
+          value: '-',
+          isLoading: false,
+        },
+        {
+          label: 'Average Connection Duration',
+          value: '-',
+          isLoading: false,
+        },
+      ]);
+
+      expect(await componentHarness.getEntrypointRow()).toEqual([
+        {
+          name: 'Overview',
+          isNotConfigured: false,
+        },
+        {
+          name: 'HTTP GET',
+          isNotConfigured: false,
+        },
+        {
+          name: 'HTTP POST',
+          isNotConfigured: true,
         },
       ]);
     });
