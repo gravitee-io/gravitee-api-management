@@ -46,12 +46,19 @@
 
         @for (entrypoint of apiAnalyticsVM.entrypoints; track entrypoint.id) {
           <div class="entrypoints__rows__row">
-            <div class="gio-badge-primary"><mat-icon [svgIcon]="entrypoint.icon"></mat-icon>&nbsp;{{ entrypoint.name }}</div>
+            <div>
+              <span class="gio-badge-primary"><mat-icon [svgIcon]="entrypoint.icon"></mat-icon>&nbsp;{{ entrypoint.name }}</span>
+              @if (entrypoint.isNotConfigured) {
+                <span class="gio-badge-neutral" matTooltip="Some analytics are available, but the entrypoint is not configured"
+                  >Not configured</span
+                >
+              }
+            </div>
             <div class="entrypoints__rows__row__gridContent">
               <app-api-analytics-request-stats
                 title="Request Stats"
-                [attr.data-testId]="entrypoint.id + '-request-stats'"
                 [requestsStats]="entrypoint.requestStats"
+                [attr.data-testId]="entrypoint.id + '-request-stats'"
               >
               </app-api-analytics-request-stats>
             </div>
