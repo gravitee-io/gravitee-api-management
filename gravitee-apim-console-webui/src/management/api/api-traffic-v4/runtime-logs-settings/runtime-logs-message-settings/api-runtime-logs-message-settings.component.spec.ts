@@ -232,6 +232,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
   it('should enable logging phase on request and response', async () => {
     await initComponent();
+    await componentHarness.toggleEntrypoint();
+
     expect(await componentHarness.isRequestPhaseChecked()).toBe(false);
     expect(await componentHarness.isResponsePhaseChecked()).toBe(false);
 
@@ -246,6 +248,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         ...testApi.analytics,
         logging: {
           ...testApi.analytics.logging,
+          mode: { entrypoint: true, endpoint: false },
           phase: { request: true, response: true },
         },
       },
@@ -260,6 +263,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           ...testApi.analytics,
           logging: {
             ...testApi.analytics.logging,
+            mode: { entrypoint: true, endpoint: true },
             phase: { request: true, response: true },
           },
         },
@@ -279,6 +283,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         ...testApi.analytics,
         logging: {
           ...testApi.analytics.logging,
+          mode: { entrypoint: true, endpoint: true },
           phase: { request: false, response: false },
         },
       },
