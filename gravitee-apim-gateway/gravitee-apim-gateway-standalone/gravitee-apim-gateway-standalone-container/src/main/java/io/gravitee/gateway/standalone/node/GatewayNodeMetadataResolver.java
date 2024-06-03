@@ -15,19 +15,25 @@
  */
 package io.gravitee.gateway.standalone.node;
 
-import static io.gravitee.node.api.Node.*;
+import static io.gravitee.node.api.Node.META_ENVIRONMENTS;
+import static io.gravitee.node.api.Node.META_INSTALLATION;
+import static io.gravitee.node.api.Node.META_ORGANIZATIONS;
 
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.management.model.Organization;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,13 +98,16 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
             final Optional<List<String>> optOrganizationsList = configuration.organizations();
 
             if (optOrganizationsList.isPresent()) {
-                Set<String> organizationHrids = new HashSet<>(optOrganizationsList.get());
-                final Set<Organization> organizations = organizationRepository.findByHrids(new HashSet<>(organizationHrids));
-                final Set<String> organizationIds = organizations.stream().map(Organization::getId).collect(Collectors.toSet());
+                List<String> organizationsList = optOrganizationsList.get();
+                if (!organizationsList.isEmpty()) {
+                    Set<String> organizationHrids = new HashSet<>(organizationsList);
+                    final Set<Organization> organizations = organizationRepository.findByHrids(organizationHrids);
+                    final Set<String> organizationIds = organizations.stream().map(Organization::getId).collect(Collectors.toSet());
 
-                checkOrganizations(organizationHrids, organizations);
+                    checkOrganizations(organizationHrids, organizations);
 
-                return organizationIds;
+                    return organizationIds;
+                }
             }
         } catch (Exception e) {
             logger.warn("Unable to load organization ids", e);
@@ -110,23 +119,21 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
     private Set<String> getEnvironmentIds(Set<String> organizationIds) {
         try {
             final Optional<List<String>> optEnvironmentsList = configuration.environments();
-            Set<String> environmentHrids = new HashSet<>();
+            Set<String> environmentHrids = optEnvironmentsList.map(HashSet::new).orElse(new HashSet<>());
 
-            if (optEnvironmentsList.isPresent()) {
-                environmentHrids = new HashSet<>(optEnvironmentsList.get());
+            if (!organizationIds.isEmpty() || !environmentHrids.isEmpty()) {
+                final Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizationIds, environmentHrids);
+                final Set<String> environmentIds = new HashSet<>();
+
+                for (Environment env : environments) {
+                    organizationIds.add(env.getOrganizationId());
+                    environmentIds.add(env.getId());
+                }
+
+                checkEnvironments(environmentHrids, environments);
+
+                return environmentIds;
             }
-
-            final Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizationIds, environmentHrids);
-            final Set<String> environmentIds = new HashSet<>();
-
-            for (Environment env : environments) {
-                organizationIds.add(env.getOrganizationId());
-                environmentIds.add(env.getId());
-            }
-
-            checkEnvironments(environmentHrids, environments);
-
-            return environmentIds;
         } catch (Exception e) {
             logger.warn("Unable to load environment ids", e);
         }
