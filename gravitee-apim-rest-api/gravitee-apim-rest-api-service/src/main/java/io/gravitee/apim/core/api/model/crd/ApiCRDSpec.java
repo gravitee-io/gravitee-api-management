@@ -104,7 +104,7 @@ public class ApiCRDSpec {
 
     private Set<String> categories;
 
-    private Map<String, Page> pages;
+    private Map<String, PageCRD> pages;
 
     public String getDefinitionVersion() {
         return "V4";

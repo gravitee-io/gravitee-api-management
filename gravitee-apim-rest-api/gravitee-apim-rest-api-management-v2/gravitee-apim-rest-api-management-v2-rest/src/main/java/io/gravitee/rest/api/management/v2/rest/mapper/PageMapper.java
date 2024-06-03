@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -113,6 +114,8 @@ public interface PageMapper {
 
     Breadcrumb map(io.gravitee.apim.core.documentation.model.Breadcrumb breadcrumb);
     List<Breadcrumb> map(List<io.gravitee.apim.core.documentation.model.Breadcrumb> breadcrumbList);
+
+    io.gravitee.apim.core.documentation.model.Page map(PageCRD pageCRD);
 
     // UPDATE
     ApiUpdateDocumentationPageUseCase.Input map(
