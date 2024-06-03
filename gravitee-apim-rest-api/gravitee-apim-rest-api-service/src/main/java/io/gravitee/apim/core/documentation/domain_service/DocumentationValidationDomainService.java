@@ -99,6 +99,8 @@ public class DocumentationValidationDomainService {
     public Page validateAndSanitizeForCreation(Page page, String organizationId, boolean shouldValidateParentId) {
         var sanitizedPage = page.toBuilder().name(this.sanitizeDocumentationName(page.getName())).build();
 
+        pageSourceDomainService.setContentFromSource(sanitizedPage);
+
         validatePageContent(organizationId, sanitizedPage);
 
         if (shouldValidateParentId) {
@@ -111,6 +113,8 @@ public class DocumentationValidationDomainService {
     }
 
     public Page validateAndSanitizeForUpdate(Page page, String organizationId, boolean shouldValidateParentId) {
+        pageSourceDomainService.setContentFromSource(page);
+
         validatePageContent(organizationId, page);
 
         if (shouldValidateParentId) {
@@ -121,8 +125,6 @@ public class DocumentationValidationDomainService {
     }
 
     private void validatePageContent(String organizationId, Page sanitizedPage) {
-        pageSourceDomainService.setContentFromSource(sanitizedPage);
-
         if (sanitizedPage.isMarkdown()) {
             this.validateContent(sanitizedPage.getContent(), sanitizedPage.getReferenceId(), organizationId);
         } else if (sanitizedPage.isSwagger()) {

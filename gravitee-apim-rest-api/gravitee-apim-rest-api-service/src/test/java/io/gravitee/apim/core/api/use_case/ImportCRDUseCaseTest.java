@@ -56,6 +56,7 @@ import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -77,6 +78,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
@@ -146,7 +148,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -179,6 +180,7 @@ class ImportCRDUseCaseTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -323,7 +325,8 @@ class ImportCRDUseCaseTest {
                 userCrudService
             ),
             new ApiDocumentationDomainService(pageQueryService, planQueryService),
-            pageCrudService
+            pageCrudService,
+            pageSourceDomainService
         );
         PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
         var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
@@ -493,7 +496,7 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_pages() {
-            var pages = new HashMap<String, Page>();
+            var pages = new HashMap<String, PageCRD>();
             var folder = getMarkdownsFolderPage();
             pages.put("markdowns-folder", folder);
 
@@ -791,7 +794,7 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_update_pages() {
-            var pages = new HashMap<String, Page>();
+            var pages = new HashMap<String, PageCRD>();
             var folder = getMarkdownsFolderPage();
             pages.put("markdowns-folder", folder);
 
@@ -994,30 +997,28 @@ class ImportCRDUseCaseTest {
         userCrudService.initWith(users);
     }
 
-    private Page getMarkdownPage(Page folder) {
-        return Page
+    private PageCRD getMarkdownPage(PageCRD folder) {
+        return PageCRD
             .builder()
             .id(UUID.randomUUID().toString())
             .crossId(UUID.randomUUID().toString())
             .parentId(folder.getId())
             .name("hello-markdown")
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .type(Page.Type.MARKDOWN)
+            .type(PageCRD.Type.MARKDOWN)
             .parentId("markdowns-folder")
             .content("Hello world!")
+            .visibility(PageCRD.Visibility.PUBLIC)
             .build();
     }
 
-    private Page getMarkdownsFolderPage() {
-        return Page
+    private PageCRD getMarkdownsFolderPage() {
+        return PageCRD
             .builder()
             .id(UUID.randomUUID().toString())
             .crossId(UUID.randomUUID().toString())
-            .createdAt(new Date())
-            .updatedAt(new Date())
             .name("markdowns")
-            .type(Page.Type.FOLDER)
+            .type(PageCRD.Type.FOLDER)
+            .visibility(PageCRD.Visibility.PUBLIC)
             .build();
     }
 }
