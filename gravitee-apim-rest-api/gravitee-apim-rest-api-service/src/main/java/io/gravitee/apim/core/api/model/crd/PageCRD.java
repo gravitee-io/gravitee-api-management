@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.model;
+package io.gravitee.apim.core.api.model.crd;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -73,6 +73,6 @@ public class PageCRD {
     public static class PageSource {
 
         private String type;
-        private Object configuration;
+        private String configuration;
     }
 }

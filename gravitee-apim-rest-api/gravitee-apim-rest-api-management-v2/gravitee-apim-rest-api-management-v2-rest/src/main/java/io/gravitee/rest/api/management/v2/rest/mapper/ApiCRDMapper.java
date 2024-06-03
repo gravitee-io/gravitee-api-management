@@ -56,7 +56,7 @@ public interface ApiCRDMapper {
     PlanCRD map(io.gravitee.apim.core.api.model.crd.PlanCRD plan);
 
     @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
-    PageCRD map(Page plan);
+    PageCRD map(io.gravitee.apim.core.api.model.crd.PageCRD plan);
 
     Listener map(io.gravitee.definition.model.v4.listener.Listener listener);
 

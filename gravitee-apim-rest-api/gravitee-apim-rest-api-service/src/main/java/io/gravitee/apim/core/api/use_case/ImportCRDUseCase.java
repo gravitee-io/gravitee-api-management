@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
@@ -42,6 +43,7 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -59,6 +61,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -71,6 +74,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -400,10 +404,10 @@ public class ImportCRDUseCase {
         existingApiMembers.forEach((k, v) -> membershipCrudService.delete(v));
     }
 
-    private void deleteRemovedPages(Map<String, Page> pages, String apiId) {
+    private void deleteRemovedPages(Map<String, PageCRD> pages, String apiId) {
         var existingPageIds = pageQueryService.searchByApiId(apiId).stream().map(Page::getId).collect(toSet());
         if (pages != null && !pages.isEmpty()) {
-            var givenPageIds = pages.values().stream().map(Page::getId).collect(toSet());
+            var givenPageIds = pages.values().stream().map(PageCRD::getId).collect(toSet());
             existingPageIds.removeIf(givenPageIds::contains);
         }
 
@@ -416,49 +420,49 @@ public class ImportCRDUseCase {
         }
     }
 
-    private void createOrUpdatePages(Map<String, Page> pages, String apiId, AuditInfo auditInfo) {
-        if (pages == null || pages.isEmpty()) {
+    private void createOrUpdatePages(Map<String, PageCRD> pageCrds, String apiId, AuditInfo auditInfo) {
+        if (pageCrds == null || pageCrds.isEmpty()) {
             return;
         }
 
         var now = Date.from(TimeProvider.now().toInstant());
-        pages
-            .values()
-            .forEach(page -> {
-                page.setReferenceId(apiId);
-                page.setReferenceType(Page.ReferenceType.API);
-                if (page.getParentId() != null) {
-                    validatePageParent(new ArrayList<>(pages.values()), page.getParentId());
-                }
+        List<Page> pages = pageCrds.values().stream().map(this::initPageFromCRD).toList();
 
-                pageCrudService
-                    .findById(page.getId())
-                    .ifPresentOrElse(
-                        oldPage -> {
-                            var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForUpdate(
-                                page,
-                                auditInfo.organizationId(),
-                                false
-                            );
-                            updateApiDocumentationDomainService.updatePage(
-                                sanitizedPage.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
-                                oldPage,
-                                auditInfo
-                            );
-                        },
-                        () -> {
-                            var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForCreation(
-                                page,
-                                auditInfo.organizationId(),
-                                false
-                            );
-                            createApiDocumentationDomainService.createPage(
-                                sanitizedPage.toBuilder().createdAt(now).updatedAt(now).build(),
-                                auditInfo
-                            );
-                        }
-                    );
-            });
+        pages.forEach(page -> {
+            page.setReferenceId(apiId);
+            page.setReferenceType(Page.ReferenceType.API);
+            if (page.getParentId() != null) {
+                validatePageParent(pages, page.getParentId());
+            }
+
+            pageCrudService
+                .findById(page.getId())
+                .ifPresentOrElse(
+                    oldPage -> {
+                        var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForUpdate(
+                            page,
+                            auditInfo.organizationId(),
+                            false
+                        );
+                        updateApiDocumentationDomainService.updatePage(
+                            sanitizedPage.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
+                            oldPage,
+                            auditInfo
+                        );
+                    },
+                    () -> {
+                        var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForCreation(
+                            page,
+                            auditInfo.organizationId(),
+                            false
+                        );
+                        createApiDocumentationDomainService.createPage(
+                            sanitizedPage.toBuilder().createdAt(now).updatedAt(now).build(),
+                            auditInfo
+                        );
+                    }
+                );
+        });
     }
 
     private void validatePageParent(List<Page> pages, String parentId) {
@@ -471,5 +475,28 @@ public class ImportCRDUseCase {
                     throw new InvalidPageParentException(parent.getId());
                 }
             });
+    }
+
+    private Page initPageFromCRD(PageCRD pageCRD) {
+        Page page = Page
+            .builder()
+            .id(pageCRD.getId())
+            .name(pageCRD.getName())
+            .crossId(pageCRD.getCrossId())
+            .parentId(pageCRD.getParentId())
+            .type(Page.Type.valueOf(pageCRD.getType().name()))
+            .visibility(Page.Visibility.valueOf(pageCRD.getVisibility().name()))
+            .order(pageCRD.getOrder())
+            .published(pageCRD.isPublished())
+            .content(pageCRD.getContent())
+            .homepage(pageCRD.isHomepage())
+            .configuration(pageCRD.getConfiguration())
+            .build();
+
+        if (pageCRD.getSource() != null) {
+            page.setSource(new PageSource(pageCRD.getSource().getType(), pageCRD.getSource().getConfiguration()));
+        }
+
+        return page;
     }
 }
