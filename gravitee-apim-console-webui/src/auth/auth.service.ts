@@ -65,7 +65,7 @@ export class AuthService {
       this.oidcManagers[idp.id] = new UserManager({
         authority: idp.authorizationEndpoint,
         client_id: idp.clientId,
-        redirect_uri: `${window.location.origin}`,
+        redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '')}`,
         scope: idp.scopes?.join(idp.scopeDelimiter ?? ' '),
         response_type: 'code',
         post_logout_redirect_uri: `${window.location.origin + this.locationStrategy.prepareExternalUrl('/_login')}`,
