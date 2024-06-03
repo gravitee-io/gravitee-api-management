@@ -41,15 +41,27 @@
       <div class="settings__form-control">
         <div class="settings__form-control__title">Logging mode</div>
         <div class="settings__form-control__subtitle">Customize the mode included.</div>
-        <mat-checkbox formControlName="entrypoint">Entrypoint</mat-checkbox>
-        <mat-checkbox formControlName="endpoint">Endpoint</mat-checkbox>
+        <gio-form-slide-toggle>
+          <gio-form-label>Entrypoint</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="entrypoint"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Endpoint</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="endpoint"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </div>
 
       <div class="settings__form-control">
         <div class="settings__form-control__title">Logging phase</div>
         <div class="settings__form-control__subtitle">Customize the phases included.</div>
-        <mat-checkbox formControlName="request">Request</mat-checkbox>
-        <mat-checkbox formControlName="response">Response</mat-checkbox>
+        <gio-form-slide-toggle>
+          <gio-form-label>Request</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="request"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Response</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="response"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </div>
 
       <div class="settings__form-control">
@@ -58,10 +70,22 @@
         <p class="settings__form-control__info" *ngIf="form.get('messageContent').disabled">
           <mat-icon svgIcon="gio:info"></mat-icon> To select an option, ensure you’ve checked one mode or more above.
         </p>
-        <mat-checkbox formControlName="messageContent">Message content</mat-checkbox>
-        <mat-checkbox formControlName="messageHeaders">Message headers</mat-checkbox>
-        <mat-checkbox formControlName="messageMetadata">Message metadata</mat-checkbox>
-        <mat-checkbox formControlName="headers">Headers</mat-checkbox>
+        <gio-form-slide-toggle>
+          <gio-form-label>Message content</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="messageContent"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Message headers</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="messageHeaders"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Message metadata</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="messageMetadata"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Headers</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="headers"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </div>
 
       <div class="settings__form-control">
