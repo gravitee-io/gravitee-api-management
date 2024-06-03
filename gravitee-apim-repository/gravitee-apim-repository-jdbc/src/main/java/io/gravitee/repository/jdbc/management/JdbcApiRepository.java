@@ -53,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -64,23 +65,11 @@ import org.springframework.stereotype.Repository;
 public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> implements ApiRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiRepository.class);
-    private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
-        Set<String> categories = parent.getCategories();
-        if (categories == null) {
-            categories = new HashSet<>();
-            parent.setCategories(categories);
-        }
-        if (rs.getString("category") != null) {
-            categories.add(rs.getString("category"));
-        }
-    };
-    private final String API_CATEGORIES;
     private final String API_LABELS;
     private final String API_GROUPS;
 
     JdbcApiRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "apis");
-        API_CATEGORIES = getTableNameFor("api_categories");
         API_LABELS = getTableNameFor("api_labels");
         API_GROUPS = getTableNameFor("api_groups");
     }
@@ -129,13 +118,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     public Optional<Api> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcApiRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " a left join " + API_CATEGORIES + " ac on a.id = ac.api_id where a.id = ?",
-                rowMapper,
-                id
-            );
-            Optional<Api> result = rowMapper.getRows().stream().findFirst();
+            Optional<Api> result = jdbcTemplate
+                .query(getOrm().getSelectAllSql() + " a where id = ?", getOrm().getRowMapper(), id)
+                .stream()
+                .findFirst();
             if (result.isPresent()) {
                 addLabels(result.get());
                 addGroups(result.get());
@@ -155,7 +141,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeLabels(item, false);
             storeGroups(item, false);
-            storeCategories(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create api:", ex);
@@ -173,7 +158,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(api, api.getId()));
             storeLabels(api, true);
             storeGroups(api, true);
-            storeCategories(api, true);
             return findById(api.getId()).orElseThrow(() -> new IllegalStateException(format("No api found with id [%s]", api.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
@@ -187,7 +171,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     public void delete(String id) throws TechnicalException {
         jdbcTemplate.update("delete from " + API_LABELS + " where api_id = ?", id);
         jdbcTemplate.update("delete from " + API_GROUPS + " where api_id = ?", id);
-        jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id = ?", id);
         jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
@@ -218,10 +201,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             sbQuery.append(",").append(sortable.field());
         }
         sbQuery.append(" from ").append(this.tableName).append(" a ");
-        Optional<ApiCriteria> hasCategory = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getCategory())).findFirst();
-        if (hasCategory.isPresent()) {
-            sbQuery.append("left join ").append(API_CATEGORIES).append(" ac on a.id = ac.api_id ");
-        }
         Optional<ApiCriteria> hasGroups = criteria.stream().filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
         if (hasGroups.isPresent()) {
             sbQuery.append("left join ").append(API_GROUPS).append(" ag on a.id = ag.api_id ");
@@ -260,59 +239,20 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.listCategories({})", apiCriteria);
-        try {
-            boolean hasInClause = apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty();
-
-            StringBuilder queryBuilder = new StringBuilder("SELECT category from ").append(API_CATEGORIES);
-
-            if (hasInClause) {
-                queryBuilder.append(" where api_id IN (").append(getOrm().buildInClause(apiCriteria.getIds())).append(") ");
-            }
-            queryBuilder.append(" group by category order by category asc");
-
-            return jdbcTemplate.query(
-                queryBuilder.toString(),
-                ps -> {
-                    if (hasInClause) {
-                        getOrm().setArguments(ps, apiCriteria.getIds(), 1);
-                    }
-                },
-                resultSet -> {
-                    Set<String> distinctCategories = new LinkedHashSet<>();
-                    while (resultSet.next()) {
-                        String referenceId = resultSet.getString(1);
-                        distinctCategories.add(referenceId);
-                    }
-                    return distinctCategories;
-                }
-            );
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to list categories api:", ex);
-            throw new TechnicalException("Failed to list categories", ex);
-        }
-    }
-
-    @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
-        JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-        jdbcTemplate.query(
-            getOrm().getSelectAllSql() +
-            " a left join " +
-            API_CATEGORIES +
-            " ac on a.id = ac.api_id where a.environment_id = ? and a.cross_id = ?",
-            rowMapper,
+        List<Api> rows = jdbcTemplate.query(
+            getOrm().getSelectAllSql() + " where environment_id = ? and cross_id = ?",
+            getOrm().getRowMapper(),
             environmentId,
             crossId
         );
 
-        if (rowMapper.getRows().size() > 1) {
+        if (rows.size() > 1) {
             throw new TechnicalException("More than one API was found for environmentId " + environmentId + " and crossId " + crossId);
         }
 
-        Optional<Api> result = rowMapper.getRows().stream().findFirst();
+        Optional<Api> result = rows.stream().findFirst();
 
         if (result.isPresent()) {
             addLabels(result.get());
@@ -369,26 +309,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
-    // Categories
-    private void storeCategories(Api api, boolean deleteFirst) {
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id = ?", api.getId());
-        }
-        List<String> filteredCategories = getOrm().filterStrings(api.getCategories());
-        if (!filteredCategories.isEmpty()) {
-            jdbcTemplate.batchUpdate(
-                "insert into " + API_CATEGORIES + " ( api_id, category ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(api.getId(), filteredCategories)
-            );
-        }
-    }
-
     private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            CHILD_ADDER,
-            "id"
-        );
         LOGGER.debug("JdbcApiRepository.search({})", apiCriteria);
 
         String projection =
@@ -403,14 +324,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
 
         final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from ").append(this.tableName).append(" a ");
-        sbQuery.append("left join " + API_CATEGORIES + " ac on a.id = ac.api_id ");
         addCriteriaClauses(sbQuery, apiCriteria);
         if (sortable == null) {
             sortable = new SortableBuilder().field("name").setAsc(true).build();
         }
         applySortable(sortable, sbQuery);
 
-        List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
+        List<Api> apis = executeQuery(sbQuery, apiCriteria, getOrm().getRowMapper());
 
         for (final Api api : apis) {
             addLabels(api);
@@ -434,10 +354,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
-    private List<Api> executeQuery(StringBuilder sbQuery, ApiCriteria apiCriteria, JdbcHelper.CollatingRowMapper<Api> rowMapper) {
-        jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), rowMapper);
-        List<Api> apis = rowMapper.getRows();
-        return apis;
+    private List<Api> executeQuery(StringBuilder sbQuery, ApiCriteria apiCriteria, RowMapper<Api> rowMapper) {
+        return jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), rowMapper);
     }
 
     private void applySortable(Sortable sortable, StringBuilder query) {
@@ -473,9 +391,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             }
             if (hasText(apiCriteria.getVersion())) {
                 ps.setString(lastIndex++, apiCriteria.getVersion());
-            }
-            if (hasText(apiCriteria.getCategory())) {
-                ps.setString(lastIndex++, apiCriteria.getCategory());
             }
             if (apiCriteria.getVisibility() != null) {
                 ps.setString(lastIndex++, apiCriteria.getVisibility().name());
@@ -525,9 +440,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         if (hasText(apiCriteria.getVersion())) {
             clauses.add("a.version = ?");
-        }
-        if (hasText(apiCriteria.getCategory())) {
-            clauses.add("ac.category = ?");
         }
         if (apiCriteria.getVisibility() != null) {
             clauses.add("a.visibility = ?");

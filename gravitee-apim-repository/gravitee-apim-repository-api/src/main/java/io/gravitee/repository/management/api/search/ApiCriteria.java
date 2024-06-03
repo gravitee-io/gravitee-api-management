@@ -34,7 +34,6 @@ public class ApiCriteria {
 
     private Collection<String> ids;
     private Collection<String> groups;
-    private String category;
     private String label;
     private LifecycleState state;
     private Visibility visibility;
@@ -50,7 +49,6 @@ public class ApiCriteria {
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
         this.groups = builder.groups;
-        this.category = builder.category;
         this.label = builder.label;
         this.state = builder.state;
         this.visibility = builder.visibility;
@@ -70,10 +68,6 @@ public class ApiCriteria {
 
     public Collection<String> getGroups() {
         return groups;
-    }
-
-    public String getCategory() {
-        return category;
     }
 
     public String getLabel() {
@@ -140,7 +134,6 @@ public class ApiCriteria {
         return (
             Objects.equals(ids, that.ids) &&
             Objects.equals(groups, that.groups) &&
-            Objects.equals(category, that.category) &&
             Objects.equals(label, that.label) &&
             Objects.equals(state, that.state) &&
             Objects.equals(visibility, that.visibility) &&
@@ -160,7 +153,6 @@ public class ApiCriteria {
         return Objects.hash(
             ids,
             groups,
-            category,
             label,
             state,
             visibility,
@@ -179,7 +171,6 @@ public class ApiCriteria {
 
         private Collection<String> ids;
         private Collection<String> groups;
-        private String category;
         private String label;
         private LifecycleState state;
         private Visibility visibility;
@@ -209,11 +200,6 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder groups(final Collection<String> groups) {
             this.groups = groups;
-            return this;
-        }
-
-        public ApiCriteria.Builder category(final String category) {
-            this.category = category;
             return this;
         }
 

@@ -51,7 +51,6 @@ public class ApiSearchCriteriaAdapter {
             }
             builder
                 .groups(criteria.getGroups())
-                .category(criteria.getCategory())
                 .label(criteria.getLabel())
                 .version(criteria.getVersion())
                 .name(criteria.getName())

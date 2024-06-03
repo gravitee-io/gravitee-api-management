@@ -128,11 +128,6 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Set<String> listCategories(ApiCriteria apiCriteria) {
-        return internalApiRepo.listCategories(apiCriteria);
-    }
-
-    @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
     }

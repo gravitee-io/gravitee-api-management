@@ -121,7 +121,6 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             .lifecycleState(null)
             .mode(null)
             .labels(List.of())
-            .categories(Set.of())
             .groups(Set.of())
             .apiLifecycleState(CREATED)
             .syncFrom("MANAGEMENT")
@@ -148,7 +147,6 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         api.setName("New API name");
         api.setEnvironmentId("new_DEFAULT");
         api.setDescription("New description");
-        api.setCategories(new HashSet<>(asList("category1", "category2")));
         api.setDefinition("New definition");
         api.setDeployedAt(parse("11/02/2016"));
         api.setGroups(Collections.singleton("New group"));
@@ -175,7 +173,6 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
         assertEquals("Invalid saved environment id.", "new_DEFAULT", apiUpdated.getEnvironmentId());
         assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
-        assertEquals("Invalid API categories.", new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories());
         assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
         assertTrue("Invalid API deployment date.", compareDate("11/02/2016", apiUpdated.getDeployedAt()));
         assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
@@ -347,15 +344,6 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByView() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().category("my-category").build(), ApiFieldFilter.allFields());
-        assertNotNull(apis);
-        assertFalse(apis.isEmpty());
-        assertEquals(1, apis.size());
-        assertEquals("api-to-findById", apis.iterator().next().getId());
-    }
-
-    @Test
     public void shouldFindByVisibility() {
         List<Api> apis = apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
@@ -470,30 +458,6 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertEquals(1, apis.size());
         assertTrue(apis.stream().map(Api::getId).toList().contains("api-with-many-categories"));
-    }
-
-    @Test
-    public void shouldListCategories() throws TechnicalException {
-        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
-        assertNotNull(categories);
-        Set<String> expectedCategories = new LinkedHashSet<>();
-        expectedCategories.add("category-1");
-        expectedCategories.add("cycling");
-        expectedCategories.add("hiking");
-        expectedCategories.add("my-async-category");
-        expectedCategories.add("my-category");
-        expectedCategories.add("my-many-category");
-        expectedCategories.add("my-many-category-2");
-        assertEquals(expectedCategories, categories);
-    }
-
-    @Test
-    public void shouldListCategoriesWithCriteria() throws TechnicalException {
-        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids("api-to-findById").build());
-        assertNotNull(categories);
-        Set<String> expectedCategories = new LinkedHashSet<>();
-        expectedCategories.add("my-category");
-        assertEquals(expectedCategories, categories);
     }
 
     @Test

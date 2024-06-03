@@ -85,8 +85,6 @@ public class ApiMongo extends Auditable {
 
     private Set<String> groups;
 
-    private Set<String> categories;
-
     private List<String> labels;
 
     private List<ApiMetadataMongo> metadatas;
@@ -183,14 +181,6 @@ public class ApiMongo extends Auditable {
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
-    }
-
-    public Set<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
     }
 
     public List<String> getLabels() {

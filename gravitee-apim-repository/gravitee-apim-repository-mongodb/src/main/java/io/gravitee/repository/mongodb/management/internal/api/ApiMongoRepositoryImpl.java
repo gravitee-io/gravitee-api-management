@@ -147,9 +147,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getVersion() != null && !apiCriteria.getVersion().isEmpty()) {
                         criteria.add(where("version").is(apiCriteria.getVersion()));
                     }
-                    if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
-                        criteria.add(where("categories").in(apiCriteria.getCategory()));
-                    }
                     if (apiCriteria.getVisibility() != null) {
                         criteria.add(where("visibility").is(apiCriteria.getVisibility()));
                     }
@@ -182,27 +179,5 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             }
         }
         return query;
-    }
-
-    @Override
-    public Set<String> listCategories(ApiCriteria apiCriteria) {
-        List<Bson> aggregations = new ArrayList<>();
-        if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
-            aggregations.add(match(in("_id", apiCriteria.getIds())));
-        }
-        aggregations.add(unwind("$categories"));
-        aggregations.add(group("$categories"));
-        aggregations.add(sort(ascending("_id")));
-
-        AggregateIterable<Document> distinctCategories = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(ApiMongo.class))
-            .aggregate(aggregations);
-
-        Set<String> categories = new LinkedHashSet<>();
-        distinctCategories.forEach(document -> {
-            String category = document.getString("_id");
-            categories.add(category);
-        });
-        return categories;
     }
 }

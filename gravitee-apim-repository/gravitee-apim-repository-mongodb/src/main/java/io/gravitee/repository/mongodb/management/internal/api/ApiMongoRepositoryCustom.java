@@ -40,6 +40,4 @@ public interface ApiMongoRepositoryCustom {
      * @return the list of matching APIs' ids
      */
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
-
-    Set<String> listCategories(ApiCriteria apiCriteria);
 }

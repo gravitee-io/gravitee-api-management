@@ -148,10 +148,6 @@ public class Api {
      */
     private Set<String> groups;
     /**
-     * The views associated to this API
-     */
-    private Set<String> categories;
-    /**
      */
     private List<String> labels;
     /**
@@ -180,7 +176,6 @@ public class Api {
         this.picture = cloned.picture;
         this.background = cloned.background;
         this.groups = cloned.groups;
-        this.categories = cloned.categories;
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
