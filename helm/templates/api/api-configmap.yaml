@@ -538,9 +538,13 @@ data:
     auth:
       external: {{- toYaml .Values.api.auth.external | nindent 8 -}}
     {{- end }}
+    # Cloud connector
+    {{- if .Values.cloud.enabled }}
+    cloud:
+    {{- toYaml .Values.cloud | nindent 6 -}}
+    {{- end }}
 
-
-  {{- if .Values.api.logging.debug }}
+    {{- if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
     <!--
