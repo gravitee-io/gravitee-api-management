@@ -154,7 +154,7 @@ export class CategoriesComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (_) => {
-          this.snackBarService.success(`Category [${category.name}] is now ${isHidden ? 'shown' : 'hidden'}`);
+          this.snackBarService.success(`Category [${category.name}] is now ${isHidden ? 'hidden' : 'shown'}`);
           this.categoryList.next(1);
         },
         error: ({ error }) => this.snackBarService.error(error.message),
