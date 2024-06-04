@@ -132,7 +132,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             )
                             .delay(delay, unit)
                             .rebatchRequests(1)
-                            .flatMapCompletable(interval -> synchronize())
+                            .concatMapCompletable(interval -> synchronize())
                             .subscribe();
                 })
             )
