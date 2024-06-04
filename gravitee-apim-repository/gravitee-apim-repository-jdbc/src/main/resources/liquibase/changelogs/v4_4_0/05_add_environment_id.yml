@@ -8,18 +8,27 @@ databaseChangeLog:
             columns:
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
         - sql:
-            update ${gravitee_prefix}keys set environment_id = api.environment_id from ${gravitee_prefix}apis api where api = api.id;
+            dbms: 'mysql,mariadb'
+            sql: UPDATE `${gravitee_prefix}keys` k LEFT OUTER JOIN `${gravitee_prefix}apis` a ON k.api = a.id SET k.environment_id = a.environment_id;
+        - sql:
+            dbms: 'postgresql,mssql'
+            sql: UPDATE ${gravitee_prefix}keys SET environment_id = a.environment_id FROM ${gravitee_prefix}apis a WHERE api = a.id;
         - addNotNullConstraint:
-            columnName: environment_id
             tableName: ${gravitee_prefix}keys
-            validate: true
+            columnName: environment_id
+            columnDataType: VARCHAR(64)
         - addColumn:
             tableName: ${gravitee_prefix}subscriptions
             columns:
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
         - sql:
-            update ${gravitee_prefix}subscriptions set environment_id = api.environment_id from ${gravitee_prefix}apis api where api = api.id;
+            dbms: 'mysql,mariadb'
+            sql: UPDATE `${gravitee_prefix}subscriptions` s LEFT OUTER JOIN `${gravitee_prefix}apis` a ON s.api = a.id SET s.environment_id = a.environment_id;
+        - sql:
+            dbms: 'postgresql,mssql'
+            sql: UPDATE ${gravitee_prefix}subscriptions SET environment_id = a.environment_id FROM ${gravitee_prefix}apis a WHERE api = a.id;
         - addNotNullConstraint:
             columnName: environment_id
+            columnDataType: VARCHAR(64)
             tableName: ${gravitee_prefix}subscriptions
             validate: true
