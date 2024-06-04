@@ -428,26 +428,28 @@ cockpit:
 # Support for Gravitee.io Cloud (cloud.gravitee.io)
 cloud:
   enabled: false
+  url: https://cloud.gravitee.io
   connector:
     ws:
+      endpoints: https://cloud-controller.gravitee.io
       ssl:
         verifyHost: true
         keystore:
-          value: "base64 encoded value of the keystore provided by Gravitee Cloud (required)"
+          type: pkcs12
+          path: /opt/graviteeio-management-api/cloud/keystore.p12
           password:
-          #value: "keystores password provided by Gravitee Cloud"
-          #valueFrom:
-          #secretKeyRef:
-          #configMapKeyRef:
-          #truststore:
-          #value: base64 encoded value of the truststore provided by Gravitee Cloud (optional)
-          #password:
-          #value: "truststore password provided by Gravitee Cloud"
-          #valueFrom:
-          #secretKeyRef:
-          #configMapKeyRef:
-  url: https://cloud.gravitee.io
-  controller: https://cloud-controller.gravitee.io
+            #value: "keystores password provided by Cockpit"
+            #valueFrom:
+              #secretKeyRef:
+              #configMapKeyRef:
+        truststore:
+          type: pkcs12
+          path: /opt/graviteeio-management-api/cloud/truststore.p12
+          password:
+            #value: "truststore password provided by Cockpit"
+            #valueFrom:
+              #secretKeyRef:
+              #configMapKeyRef:
 
 api:
   enabled: true

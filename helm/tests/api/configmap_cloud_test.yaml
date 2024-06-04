@@ -1,0 +1,58 @@
+suite: Test Management API default configmap
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Configure Cloud
+    template: api/api-configmap.yaml
+    set:
+      cloud:
+        enabled: true
+        url: "http://localhost"
+        connector:
+          ws:
+            endpoints: "http://localhost.controller"
+            ssl:
+              verifyHost: false
+              keystore:
+                password: secret
+              truststore:
+                password: secret
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "cloud:\n
+				    *  connector:\n
+				    *    ws:\n
+				    *      endpoints: http://localhost.controller\n
+				    *      ssl:\n
+				    *        keystore:\n
+				    *          password: secret\n
+				    *          path: /opt/graviteeio-management-api/cloud/keystore.p12\n
+				    *          type: pkcs12\n
+                    *        truststore:\n
+				    *          password: secret\n
+				    *          path: /opt/graviteeio-management-api/cloud/truststore.p12\n
+				    *          type: pkcs12\n
+				    *        verifyHost: false\n
+                    *  enabled: true\n
+                    *  url: http://localhost"
+  - it: Disable Cloud
+    template: api/api-configmap.yaml
+    set:
+      cloud:
+        enabled: false
+        url: "http://localhost"
+        connector:
+          ws:
+            endpoints: "http://localhost.controller"
+            ssl:
+              verifyHost: false
+              keystore:
+                password: secret
+              truststore:
+                password: secret
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "cloud:"
+
