@@ -35,7 +35,7 @@ class SearchRequestsCountQueryAdapterTest {
               {
                   "aggs": {
                       "entrypoints": {
-                              "terms": {"field":"entrypoint-id"}
+                              "terms": {"field":"entrypoint-id.keyword"}
                       }
                   }
               }
@@ -74,7 +74,7 @@ class SearchRequestsCountQueryAdapterTest {
                                     },
                                     "aggs": {
                                         "entrypoints": {
-                                                "terms": {"field":"entrypoint-id"}
+                                                "terms": {"field":"entrypoint-id.keyword"}
                                         }
                                     }
                                 }

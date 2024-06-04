@@ -46,7 +46,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                        "aggs": {
                          "entrypoints_agg": {
                            "terms": {
-                             "field": "entrypoint-id"
+                             "field": "entrypoint-id.keyword"
                            },
                            "aggs": {
                              "avg_ended_request_duration_ms": {
@@ -101,7 +101,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                                "aggs": {
                                  "entrypoints_agg": {
                                    "terms": {
-                                     "field": "entrypoint-id"
+                                     "field": "entrypoint-id.keyword"
                                    },
                                    "aggs": {
                                      "avg_ended_request_duration_ms": {
