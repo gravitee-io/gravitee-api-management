@@ -23,29 +23,35 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@EqualsAndHashCode
 public class ApiCriteria {
 
-    private Collection<String> ids;
-    private Collection<String> groups;
-    private String category;
-    private String label;
-    private LifecycleState state;
-    private Visibility visibility;
-    private String version;
-    private String name;
-    private List<ApiLifecycleState> lifecycleStates;
-    private String environmentId;
-    private List<String> environments;
+    private final Collection<String> ids;
+    private final Collection<String> groups;
+    private final String category;
+    private final String label;
+    private final LifecycleState state;
+    private final Visibility visibility;
+    private final String version;
+    private final String name;
+    private final List<ApiLifecycleState> lifecycleStates;
+    private final String environmentId;
+    private final List<String> environments;
     private String crossId;
     private List<DefinitionVersion> definitionVersion;
     private String integrationId;
+    private String filterName;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -62,117 +68,7 @@ public class ApiCriteria {
         this.crossId = builder.crossId;
         this.definitionVersion = builder.definitionVersion;
         this.integrationId = builder.integrationId;
-    }
-
-    public Collection<String> getIds() {
-        return ids;
-    }
-
-    public Collection<String> getGroups() {
-        return groups;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public LifecycleState getState() {
-        return state;
-    }
-
-    public Visibility getVisibility() {
-        return visibility;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public List<ApiLifecycleState> getLifecycleStates() {
-        return lifecycleStates;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public List<String> getEnvironments() {
-        return environments;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
-
-    public List<DefinitionVersion> getDefinitionVersion() {
-        return definitionVersion;
-    }
-
-    public void setDefinitionVersion(List<DefinitionVersion> definitionVersion) {
-        this.definitionVersion = definitionVersion;
-    }
-
-    public String getIntegrationId() {
-        return integrationId;
-    }
-
-    public void setIntegrationId(String integrationId) {
-        this.integrationId = integrationId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ApiCriteria)) return false;
-        ApiCriteria that = (ApiCriteria) o;
-        return (
-            Objects.equals(ids, that.ids) &&
-            Objects.equals(groups, that.groups) &&
-            Objects.equals(category, that.category) &&
-            Objects.equals(label, that.label) &&
-            Objects.equals(state, that.state) &&
-            Objects.equals(visibility, that.visibility) &&
-            Objects.equals(version, that.version) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(lifecycleStates, that.lifecycleStates) &&
-            Objects.equals(environmentId, that.environmentId) &&
-            Objects.equals(environments, that.environments) &&
-            Objects.equals(crossId, that.crossId) &&
-            Objects.equals(definitionVersion, that.definitionVersion) &&
-            Objects.equals(integrationId, that.integrationId)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-            ids,
-            groups,
-            category,
-            label,
-            state,
-            visibility,
-            version,
-            name,
-            lifecycleStates,
-            environmentId,
-            environments,
-            crossId,
-            definitionVersion,
-            integrationId
-        );
+        this.filterName = builder.filterName;
     }
 
     public static class Builder {
@@ -191,6 +87,7 @@ public class ApiCriteria {
         private String crossId;
         private List<DefinitionVersion> definitionVersion;
         private String integrationId;
+        private String filterName;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -269,6 +166,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder integrationId(final String integrationId) {
             this.integrationId = integrationId;
+            return this;
+        }
+
+        public ApiCriteria.Builder filterName(final String filterName) {
+            this.filterName = filterName;
             return this;
         }
 

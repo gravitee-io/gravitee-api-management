@@ -34,7 +34,7 @@ public class GetIngestedApisUseCase {
     }
 
     public Output execute(Input input) {
-        var pageable = input.pageable.orElse(new PageableImpl(1, 10));
+        var pageable = input.pageable.orElse(PageableImpl.defaultPageable());
 
         Page<Api> ingestedApis = apiQueryService.findByIntegrationId(input.integrationId, pageable);
 

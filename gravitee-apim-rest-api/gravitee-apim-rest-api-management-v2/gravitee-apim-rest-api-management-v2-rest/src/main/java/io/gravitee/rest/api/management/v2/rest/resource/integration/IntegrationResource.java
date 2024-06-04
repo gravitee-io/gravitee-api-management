@@ -185,8 +185,7 @@ public class IntegrationResource extends AbstractResource {
         @PathParam("integrationId") String integrationId,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
-        var pageable = new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage());
-        var input = new GetIngestedApisUseCase.Input(integrationId, pageable);
+        var input = new GetIngestedApisUseCase.Input(integrationId, paginationParam.toPageable());
 
         var ingestedApis = getIngestedApisUseCase.execute(input).ingestedApis();
 

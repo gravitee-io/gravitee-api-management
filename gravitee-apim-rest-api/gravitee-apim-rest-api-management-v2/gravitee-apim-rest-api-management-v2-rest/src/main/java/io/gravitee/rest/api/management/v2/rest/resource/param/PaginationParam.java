@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.param;
 
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.DefaultValue;
@@ -30,6 +31,7 @@ public class PaginationParam {
 
     public static final String PAGE_QUERY_PARAM_NAME = "page";
     public static final String PER_PAGE_QUERY_PARAM_NAME = "perPage";
+    public static final String FILTER_QUERY_PARAM_NAME = "filter";
 
     private static final String PAGE_QUERY_PARAM_DEFAULT = "1";
     private static final String PER_PAGE_QUERY_PARAM_DEFAULT = "10";
@@ -44,6 +46,9 @@ public class PaginationParam {
     @Min(value = 1, message = "Pagination perPage param must be >= 1")
     Integer perPage;
 
+    @QueryParam(FILTER_QUERY_PARAM_NAME)
+    String filter;
+
     public PaginationParam(Integer page, Integer perPage) {
         if (perPage < 1) throw new IllegalArgumentException("Pagination perPage param must be >= 1");
 
@@ -51,7 +56,7 @@ public class PaginationParam {
         this.perPage = perPage;
     }
 
-    public io.gravitee.rest.api.model.common.Pageable toPageable() {
-        return new PageableImpl(this.getPage(), this.getPerPage());
+    public Pageable toPageable() {
+        return new PageableImpl(this.getPage(), this.getPerPage(), filter);
     }
 }

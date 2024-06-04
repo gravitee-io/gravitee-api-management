@@ -15,13 +15,21 @@
  */
 package io.gravitee.rest.api.model.common;
 
+import javax.annotation.Nullable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Pageable {
-    // must be > 0
+    /**
+     * must be > 0
+     * @return page number (starts at 1)
+     */
     int getPageNumber();
 
     int getPageSize();
+
+    @Nullable
+    String getFilter();
 }

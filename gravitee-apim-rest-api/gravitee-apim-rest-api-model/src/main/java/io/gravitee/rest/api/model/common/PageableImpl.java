@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.model.common;
 
-import lombok.EqualsAndHashCode;
+import javax.annotation.Nullable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@EqualsAndHashCode
-public class PageableImpl implements Pageable {
-
-    // must be > 0;
-    private final int pageNumber;
-    private final int pageSize;
-
-    public PageableImpl(final int pageNumber, final int pageSize) {
+public record PageableImpl(int pageNumber, int pageSize, String filter) implements Pageable {
+    public PageableImpl(final int pageNumber, final int pageSize, final String filter) {
         this.pageNumber = Math.max(1, pageNumber);
         this.pageSize = pageSize;
+        this.filter = filter;
+    }
+
+    public PageableImpl(final int pageNumber, final int pageSize) {
+        this(pageNumber, pageSize, null);
     }
 
     @Override
@@ -41,5 +40,15 @@ public class PageableImpl implements Pageable {
     @Override
     public int getPageSize() {
         return pageSize;
+    }
+
+    @Nullable
+    @Override
+    public String getFilter() {
+        return filter;
+    }
+
+    public static PageableImpl defaultPageable() {
+        return new PageableImpl(1, 10, null);
     }
 }

@@ -70,7 +70,7 @@ class ApiQueryServiceImplTest {
     void should_list_apis_matching_integration_id() {
         //Given
         var integrationId = "integration-id";
-        var pageable = new PageableImpl(1, 5);
+        var pageable = new PageableImpl(1, 5, null);
 
         var expectedApis = List.of(fixtures.repository.ApiFixtures.aFederatedApi());
         var page = new Page<>(expectedApis, pageable.getPageNumber(), expectedApis.size(), expectedApis.size());
