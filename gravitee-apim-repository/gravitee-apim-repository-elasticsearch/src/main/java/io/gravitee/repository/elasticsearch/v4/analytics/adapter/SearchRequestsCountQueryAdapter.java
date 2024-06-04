@@ -37,7 +37,7 @@ public class SearchRequestsCountQueryAdapter {
     }
 
     private static JsonObject buildEntrypointIdAggregate() {
-        return JsonObject.of("entrypoints", JsonObject.of("terms", JsonObject.of("field", "entrypoint-id")));
+        return JsonObject.of("entrypoints", JsonObject.of("terms", JsonObject.of("field", "entrypoint-id.keyword")));
     }
 
     private static JsonObject buildElasticQuery(RequestsCountQuery query) {
