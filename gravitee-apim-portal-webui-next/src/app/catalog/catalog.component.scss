@@ -31,3 +31,23 @@
   gap: 32px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+
+.catalog {
+  &__filters {
+    display: flex;
+    flex-flow: column;
+    gap: 32px;
+
+    &__bottom-row {
+      display: flex;
+      justify-content: space-between;
+
+      &__filter-labels {
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+        gap: 8px;
+      }
+    }
+  }
+}

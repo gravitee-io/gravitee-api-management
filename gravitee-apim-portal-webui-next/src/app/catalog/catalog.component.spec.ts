@@ -78,6 +78,7 @@ describe('CatalogComponent', () => {
     it('should render banner text', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       expect(compiled.querySelector('app-banner')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
+      expectCategoriesList(fakeCategoriesResponse());
     });
 
     it('should show API list', async () => {
