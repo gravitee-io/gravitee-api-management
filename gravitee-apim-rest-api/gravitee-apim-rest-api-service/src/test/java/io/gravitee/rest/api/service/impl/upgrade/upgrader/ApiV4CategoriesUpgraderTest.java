@@ -74,7 +74,7 @@ public class ApiV4CategoriesUpgraderTest {
         category2.setId("id2");
         category2.setEnvironmentId("env1");
 
-        when(categoryRepository.findAllByEnvironment("env1")).thenReturn(Set.of(category1, category2));
+        when(categoryRepository.findAll()).thenReturn(Set.of(category1, category2));
 
         apiV4CategoriesUpgrader.upgrade();
 
@@ -83,6 +83,12 @@ public class ApiV4CategoriesUpgraderTest {
 
     @Test
     public void shouldNotMigrateV4ApiCategoriesWhenNoV4ApisWithCategoriesExist() throws Exception {
+        Category category1 = new Category();
+        category1.setKey("category1");
+        category1.setId("id1");
+        category1.setEnvironmentId("env1");
+
+        when(categoryRepository.findAll()).thenReturn(Set.of(category1));
         when(apiRepository.search(any(), any(), any())).thenReturn(Stream.empty());
 
         apiV4CategoriesUpgrader.upgrade();
@@ -97,8 +103,7 @@ public class ApiV4CategoriesUpgraderTest {
         api.setEnvironmentId("env1");
         api.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
-        when(categoryRepository.findAllByEnvironment("env1")).thenReturn(Set.of());
+        when(categoryRepository.findAll()).thenReturn(Set.of());
 
         apiV4CategoriesUpgrader.upgrade();
 
@@ -107,13 +112,18 @@ public class ApiV4CategoriesUpgraderTest {
 
     @Test
     public void shouldNotMigrateV4ApiCategoriesWhenCategoriesNull() throws Exception {
+        Category category1 = new Category();
+        category1.setKey("category1");
+        category1.setId("id1");
+        category1.setEnvironmentId("env1");
+
+        when(categoryRepository.findAll()).thenReturn(Set.of(category1));
         Api api = new Api();
         api.setCategories(null);
         api.setEnvironmentId("env1");
         api.setDefinitionVersion(DefinitionVersion.V4);
 
         when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
-        when(categoryRepository.findAllByEnvironment("env1")).thenReturn(Set.of());
 
         apiV4CategoriesUpgrader.upgrade();
 
@@ -122,8 +132,60 @@ public class ApiV4CategoriesUpgraderTest {
 
     @Test
     public void shouldReturnFalseWhenExceptionOccursDuringUpgrade() throws Exception {
-        when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
+        when(categoryRepository.findAll()).thenThrow(new RuntimeException());
         boolean result = apiV4CategoriesUpgrader.upgrade();
         assertFalse(result);
+    }
+
+    @Test
+    public void shouldMapCategoryIfSavedAsIdBeforeMigration() throws Exception {
+        Api api = new Api();
+        api.setCategories(new HashSet<>(Arrays.asList("id1", "category2")));
+        api.setEnvironmentId("env1");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+
+        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
+
+        Category category1 = new Category();
+        category1.setKey("category1");
+        category1.setId("id1");
+        category1.setEnvironmentId("env1");
+
+        Category category2 = new Category();
+        category2.setKey("category2");
+        category2.setId("id2");
+        category2.setEnvironmentId("env1");
+
+        when(categoryRepository.findAll()).thenReturn(Set.of(category1, category2));
+
+        apiV4CategoriesUpgrader.upgrade();
+
+        verify(apiRepository, times(1)).update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
+    }
+
+    @Test
+    public void shouldRemoveCategoriesThatDoNotExist() throws Exception {
+        Api api = new Api();
+        api.setCategories(new HashSet<>(Arrays.asList("id1", "category2", "does-not-exist")));
+        api.setEnvironmentId("env1");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+
+        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
+
+        Category category1 = new Category();
+        category1.setKey("category1");
+        category1.setId("id1");
+        category1.setEnvironmentId("env1");
+
+        Category category2 = new Category();
+        category2.setKey("category2");
+        category2.setId("id2");
+        category2.setEnvironmentId("env1");
+
+        when(categoryRepository.findAll()).thenReturn(Set.of(category1, category2));
+
+        apiV4CategoriesUpgrader.upgrade();
+
+        verify(apiRepository, times(1)).update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
     }
 }
