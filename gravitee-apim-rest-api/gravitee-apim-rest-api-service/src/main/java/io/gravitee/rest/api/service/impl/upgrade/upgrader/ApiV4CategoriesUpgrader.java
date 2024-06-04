@@ -24,9 +24,11 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Category;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -74,34 +76,78 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
         return true;
     }
 
-    private void migrateV4ApiCategories() {
-        final Map<String, Map<String, String>> categoriesMapByEnv = new HashMap<>();
+    private void migrateV4ApiCategories() throws TechnicalException {
+        Set<Category> categories;
+        try {
+            categories = categoryRepository.findAll();
+        } catch (TechnicalException e) {
+            log.error("An error occurred when finding all categories", e);
+            throw new TechnicalException(e);
+        }
+
+        // If there are no categories, then upgrade is not necessary
+        if (Objects.isNull(categories) || categories.isEmpty()) {
+            return;
+        }
+
+        // Two different maps so that we can look up the key or the id of a category
+        var envByCategoryKeyId = new HashMap<String, Map<String, String>>();
+        var categoryIdKeyMap = new HashMap<String, String>();
+
+        categories.forEach(category -> {
+            envByCategoryKeyId.computeIfPresent(
+                category.getEnvironmentId(),
+                (envId, keyIdMap) -> {
+                    keyIdMap.put(category.getKey(), category.getId());
+                    return keyIdMap;
+                }
+            );
+            envByCategoryKeyId.computeIfAbsent(
+                category.getEnvironmentId(),
+                envId -> {
+                    var keyIdMap = new HashMap<String, String>();
+                    keyIdMap.put(category.getKey(), category.getId());
+                    return keyIdMap;
+                }
+            );
+
+            categoryIdKeyMap.put(category.getId(), category.getKey());
+        });
+
         var modelCounter = new AtomicInteger(0);
         apiRepository
             .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(), null, ApiFieldFilter.allFields())
+            .filter(v4Api -> Objects.nonNull(v4Api.getCategories()) && !v4Api.getCategories().isEmpty())
             .forEach(v4Api -> {
                 try {
-                    var categories = categoriesMapByEnv.computeIfAbsent(v4Api.getEnvironmentId(), this::getCategoriesMapByEnv);
+                    var newCategories = v4Api
+                        .getCategories()
+                        .stream()
+                        .map(category -> {
+                            // If the category is a key
+                            if (
+                                envByCategoryKeyId.containsKey(v4Api.getEnvironmentId()) &&
+                                envByCategoryKeyId.get(v4Api.getEnvironmentId()).containsKey(category)
+                            ) {
+                                return envByCategoryKeyId.get(v4Api.getEnvironmentId()).get(category);
+                            }
+                            // If the category is an id
+                            if (categoryIdKeyMap.containsKey(category)) {
+                                return category;
+                            }
+                            // If not found
+                            return null;
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
 
-                    if (Objects.nonNull(v4Api.getCategories()) && !v4Api.getCategories().isEmpty() && !categories.isEmpty()) {
-                        var newCategories = v4Api.getCategories().stream().map(categories::get).collect(Collectors.toSet());
-                        v4Api.setCategories(newCategories);
-                        apiRepository.update(v4Api);
-                        modelCounter.incrementAndGet();
-                    }
+                    v4Api.setCategories(newCategories);
+                    apiRepository.update(v4Api);
+                    modelCounter.incrementAndGet();
                 } catch (Exception e) {
                     log.error("Unable to migrate categories for api {}", v4Api.getId(), e);
                 }
             });
         log.info("{} v4 APIs have been migrated to use category ids instead of keys", modelCounter.get());
-    }
-
-    private Map<String, String> getCategoriesMapByEnv(String envId) {
-        try {
-            return categoryRepository.findAllByEnvironment(envId).stream().collect(Collectors.toMap(Category::getKey, Category::getId));
-        } catch (TechnicalException e) {
-            log.error("An error occurs while trying to get categories by environment id: {}", envId, e);
-            return new HashMap<>();
-        }
     }
 }
