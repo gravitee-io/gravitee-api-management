@@ -15,7 +15,7 @@
  */
 
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
@@ -62,6 +62,7 @@ export interface ApiPaginatorVM {
   ],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent {
   @Input() query!: string;
@@ -73,6 +74,7 @@ export class CatalogComponent {
 
   bannerTitle: string;
   bannerSubtitle: string;
+  selectedCategory: Category | undefined;
 
   private apiService = inject(ApiService);
   private categoriesService = inject(CategoriesService);
@@ -97,8 +99,9 @@ export class CatalogComponent {
     this.page$.next(paginator.page + 1);
   }
 
-  public onFilterSelection(event: string) {
+  public onFilterSelection(event: string, categories: Category[]) {
     this.filter = event;
+    this.selectedCategory = this.filter === 'all' ? undefined : categories.find(cat => cat.id === event);
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {

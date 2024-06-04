@@ -21,11 +21,29 @@
     <div class="m3-title-small">{{ bannerSubtitle }}</div>
   </div>
 </app-banner>
+@if (filterList$ | async; as filterList) {
+  <div class="catalog__filters">
+    <app-api-filter
+      (selectedFilter)="onFilterSelection($event, filterList)"
+      [filterList]="filterList"
+      [filterParam]="filter"></app-api-filter>
+    <div class="catalog__filters__bottom-row">
+      <div class="catalog__filters__bottom-row__filter-labels">
+        @if (selectedCategory) {
+          <div class="m3-headline-medium">{{ selectedCategory.name }}</div>
+          @if (selectedCategory.description) {
+            <div class="m3-label-large">{{ selectedCategory.description }}</div>
+          }
+        } @else {
+          <div class="m3-headline-medium" i18n="@@allApisLabel">All</div>
+          <div class="m3-label-large" i18n="@@allApisDescription">Explore all available APIs</div>
+        }
+      </div>
+      <app-search-bar (searchTerm)="onSearchResults($event)" [searchParam]="query" />
+    </div>
+  </div>
+}
 @if (apiPaginator$ | async; as apis) {
-  @if (filterList$ | async; as filterList) {
-    <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList" [filterParam]="filter"></app-api-filter>
-  }
-  <app-search-bar (searchTerm)="onSearchResults($event)" [searchParam]="query" />
   @if (apis.data.length === 0) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>

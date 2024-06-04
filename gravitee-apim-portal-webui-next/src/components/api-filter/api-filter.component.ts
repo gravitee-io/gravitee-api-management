@@ -50,7 +50,7 @@ import { Category } from '../../entities/categories/categories';
 })
 export class ApiFilterComponent {
   @Input()
-  filterList!: Category[];
+  filterList: Category[] = [];
 
   filterParam = input('');
   selectedFilter = output<string>();

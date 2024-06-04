@@ -16,6 +16,11 @@
 @use 'sass:map';
 @import '../../scss/theme/theme';
 
+:host {
+  --mat-form-field-subscript-text-line-height: 0;
+  --mat-form-field-subscript-text-size: 0;
+}
+
 .search-input {
   display: flex;
 
