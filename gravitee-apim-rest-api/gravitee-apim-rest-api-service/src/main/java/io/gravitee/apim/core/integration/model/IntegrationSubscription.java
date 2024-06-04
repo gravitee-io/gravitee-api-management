@@ -22,5 +22,14 @@ import lombok.Builder;
 public record IntegrationSubscription(String integrationId, Type type, String apiKey, Map<String, String> metadata) {
     public enum Type {
         API_KEY,
+        OAUTH2,
+    }
+
+    public static IntegrationSubscription apiKey(String integrationId, String apiKey, Map<String, String> metadata) {
+        return new IntegrationSubscription(integrationId, Type.API_KEY, apiKey, metadata);
+    }
+
+    public static IntegrationSubscription oAuth(String integrationId) {
+        return new IntegrationSubscription(integrationId, Type.OAUTH2, null, Map.of());
     }
 }

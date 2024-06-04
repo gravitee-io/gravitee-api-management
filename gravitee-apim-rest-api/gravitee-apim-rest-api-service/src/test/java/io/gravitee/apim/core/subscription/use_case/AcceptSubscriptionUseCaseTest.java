@@ -47,6 +47,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
+import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
@@ -388,7 +389,7 @@ class AcceptSubscriptionUseCaseTest {
                     .applicationId(subscription.getApplicationId())
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .key("api-key-" + subscription.getId() + "-" + application.getName())
+                    .key(String.join("-", IntegrationSubscription.Type.API_KEY.name(), subscription.getId(), application.getName()))
                     .subscriptions(List.of(subscription.getId()))
                     .expireAt(null)
                     .federated(true)

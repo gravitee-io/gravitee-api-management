@@ -16,6 +16,7 @@
 package fixtures.definition;
 
 import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -67,5 +68,9 @@ public class PlanFixtures {
             .status(PlanStatus.PUBLISHED)
             .security(PlanSecurity.builder().type("api-key").build())
             .build();
+    }
+
+    public static SubscriptionParameter subscriptionParameter() {
+        return new SubscriptionParameter.ApiKey(aFederatedPlan());
     }
 }
