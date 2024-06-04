@@ -22,15 +22,17 @@
       {{ filter.name }}
     </mat-button-toggle>
   }
-  <mat-button-toggle
-    class="api-filter__button"
-    (keydown.enter)="toggleDropdown()"
-    [checked]="!!selectedOption"
-    (click)="toggleDropdown()"
-    [matMenuTriggerFor]="restOfFilters">
-    {{ selectedOption }}
-    <mat-icon>expand_more</mat-icon>
-  </mat-button-toggle>
+  @if (filterList.length > 4) {
+    <mat-button-toggle
+      class="api-filter__button"
+      (keydown.enter)="toggleDropdown()"
+      [checked]="!!selectedOption"
+      (click)="toggleDropdown()"
+      [matMenuTriggerFor]="restOfFilters">
+      {{ selectedOption }}
+      <mat-icon>expand_more</mat-icon>
+    </mat-button-toggle>
+  }
 </mat-button-toggle-group>
 <mat-menu #restOfFilters="matMenu" xPosition="before">
   @for (filter of filterList | slice: 4; track filter.id) {
