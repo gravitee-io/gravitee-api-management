@@ -44,7 +44,7 @@ public class SearchAverageConnectionDurationQueryAdapter {
             ENTRYPOINTS_AGG,
             JsonObject.of(
                 "terms",
-                JsonObject.of(FIELD, "entrypoint-id"),
+                JsonObject.of(FIELD, "entrypoint-id.keyword"),
                 "aggs",
                 JsonObject.of(AVG_ENDED_REQUEST_DURATION_MS, JsonObject.of("avg", JsonObject.of(FIELD, "gateway-response-time-ms")))
             )
