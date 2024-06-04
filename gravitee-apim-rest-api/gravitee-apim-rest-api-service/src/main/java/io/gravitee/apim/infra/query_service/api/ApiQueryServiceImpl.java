@@ -70,10 +70,7 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
 
     @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
-        var searchCriteria = new ApiCriteria.Builder()
-            .integrationId(integrationId)
-            .filterName(pageable.getFilter())
-            .build();
+        var searchCriteria = new ApiCriteria.Builder().integrationId(integrationId).filterName(pageable.getFilter()).build();
         var sortable = SortableAdapter.INSTANCE.toSortableForRepository(
             Sortable.builder().field("updatedAt").order(Sortable.Order.DESC).build()
         );

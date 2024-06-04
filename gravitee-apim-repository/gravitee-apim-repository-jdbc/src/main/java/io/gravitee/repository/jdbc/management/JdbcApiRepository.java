@@ -19,6 +19,7 @@ import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -44,6 +45,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -231,7 +233,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             sbQuery.append("left join ").append(API_LABELS).append(" al on a.id = al.api_id ");
         }
 
-        List<String> clauses = criteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
+        List<String> clauses = criteria.stream().map(crit -> convert(crit, getOrm())).filter(Objects::nonNull).collect(Collectors.toList());
 
         if (!clauses.isEmpty()) {
             sbQuery.append("where (").append(String.join(") or (", clauses)).append(") ");
@@ -244,7 +246,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             (PreparedStatement ps) -> {
                 int lastIndex = 1;
                 for (ApiCriteria apiCriteria : criteria) {
-                    lastIndex = fillPreparedStatement(apiCriteria, ps, lastIndex);
+                    lastIndex = fillPreparedStatement(apiCriteria, ps, lastIndex, getOrm());
                 }
             },
             resultSet -> {
@@ -421,7 +423,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     private void addCriteriaClauses(StringBuilder sbQuery, ApiCriteria apiCriteria) {
         if (apiCriteria != null) {
-            String clauses = convert(apiCriteria);
+            String clauses = convert(apiCriteria, getOrm());
             if (clauses != null) {
                 if (!isEmpty(apiCriteria.getGroups())) {
                     sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
@@ -435,13 +437,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     private List<Api> executeQuery(StringBuilder sbQuery, ApiCriteria apiCriteria, JdbcHelper.CollatingRowMapper<Api> rowMapper) {
-        jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), rowMapper);
-        List<Api> apis = rowMapper.getRows();
-        return apis;
+        jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1, getOrm()), rowMapper);
+        return rowMapper.getRows();
     }
 
     private void applySortable(Sortable sortable, StringBuilder query) {
-        if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+        if (sortable != null && sortable.field() != null && !sortable.field().isEmpty()) {
             String field = FieldUtils.toSnakeCase(sortable.field());
             query.append("order by ");
             if ("created_at".equals(field) || "updated_at".equals(field)) {
@@ -454,13 +455,15 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
-    private int fillPreparedStatement(ApiCriteria apiCriteria, PreparedStatement ps, int lastIndex) throws java.sql.SQLException {
+    @VisibleForTesting
+    static int fillPreparedStatement(ApiCriteria apiCriteria, PreparedStatement ps, int lastIndex, JdbcObjectMapper<Api> orm)
+        throws java.sql.SQLException {
         if (apiCriteria != null) {
             if (!isEmpty(apiCriteria.getGroups())) {
-                lastIndex = getOrm().setArguments(ps, apiCriteria.getGroups(), lastIndex);
+                lastIndex = orm.setArguments(ps, apiCriteria.getGroups(), lastIndex);
             }
             if (!isEmpty(apiCriteria.getIds())) {
-                lastIndex = getOrm().setArguments(ps, apiCriteria.getIds(), lastIndex);
+                lastIndex = orm.setArguments(ps, apiCriteria.getIds(), lastIndex);
             }
             if (hasText(apiCriteria.getLabel())) {
                 ps.setString(lastIndex++, apiCriteria.getLabel());
@@ -484,35 +487,39 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 ps.setString(lastIndex++, apiCriteria.getCrossId());
             }
             if (!isEmpty(apiCriteria.getLifecycleStates())) {
-                lastIndex = getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex);
+                lastIndex = orm.setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex);
             }
             if (hasText(apiCriteria.getEnvironmentId())) {
                 ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
             }
             if (!isEmpty(apiCriteria.getEnvironments())) {
-                lastIndex = getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex);
+                lastIndex = orm.setArguments(ps, apiCriteria.getEnvironments(), lastIndex);
             }
             if (!isEmpty(apiCriteria.getDefinitionVersion())) {
                 List<DefinitionVersion> definitionVersionList = new ArrayList<>(apiCriteria.getDefinitionVersion());
                 definitionVersionList.remove(null);
                 if (!definitionVersionList.isEmpty()) {
-                    lastIndex = getOrm().setArguments(ps, definitionVersionList, lastIndex);
+                    lastIndex = orm.setArguments(ps, definitionVersionList, lastIndex);
                 }
             }
             if (hasText(apiCriteria.getIntegrationId())) {
                 ps.setString(lastIndex++, apiCriteria.getIntegrationId());
             }
+            if (hasText(apiCriteria.getFilterName())) {
+                ps.setString(lastIndex++, "%%%s%%".formatted(apiCriteria.getFilterName().toLowerCase(Locale.ROOT)));
+            }
         }
         return lastIndex;
     }
 
-    private String convert(ApiCriteria apiCriteria) {
+    @VisibleForTesting
+    static String convert(ApiCriteria apiCriteria, JdbcObjectMapper<Api> orm) {
         List<String> clauses = new ArrayList<>();
         if (!isEmpty(apiCriteria.getGroups())) {
-            clauses.add("ag.group_id in (" + getOrm().buildInClause(apiCriteria.getGroups()) + ")");
+            clauses.add("ag.group_id in (" + orm.buildInClause(apiCriteria.getGroups()) + ")");
         }
         if (!isEmpty(apiCriteria.getIds())) {
-            clauses.add("a.id in (" + getOrm().buildInClause(apiCriteria.getIds()) + ")");
+            clauses.add("a.id in (" + orm.buildInClause(apiCriteria.getIds()) + ")");
         }
         if (hasText(apiCriteria.getLabel())) {
             clauses.add("al.label = ?");
@@ -536,13 +543,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             clauses.add("a.cross_id = ?");
         }
         if (!isEmpty(apiCriteria.getLifecycleStates())) {
-            clauses.add("a.api_lifecycle_state in (" + getOrm().buildInClause(apiCriteria.getLifecycleStates()) + ")");
+            clauses.add("a.api_lifecycle_state in (" + orm.buildInClause(apiCriteria.getLifecycleStates()) + ")");
         }
         if (hasText(apiCriteria.getEnvironmentId())) {
             clauses.add("a.environment_id = ?");
         }
         if (!isEmpty(apiCriteria.getEnvironments())) {
-            clauses.add("a.environment_id in (" + getOrm().buildInClause(apiCriteria.getEnvironments()) + ")");
+            clauses.add("a.environment_id in (" + orm.buildInClause(apiCriteria.getEnvironments()) + ")");
         }
         if (hasText(apiCriteria.getIntegrationId())) {
             clauses.add("a.integration_id = ?");
@@ -559,13 +566,16 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 } else {
                     clauseBuilder
                         .append("(a.definition_version is null or a.definition_version in (")
-                        .append(getOrm().buildInClause(definitionVersionList))
+                        .append(orm.buildInClause(definitionVersionList))
                         .append("))");
                 }
             } else {
-                clauseBuilder.append("a.definition_version in (").append(getOrm().buildInClause(definitionVersionList)).append(")");
+                clauseBuilder.append("a.definition_version in (").append(orm.buildInClause(definitionVersionList)).append(")");
             }
             clauses.add(clauseBuilder.toString());
+        }
+        if (hasText(apiCriteria.getFilterName())) {
+            clauses.add("LOWER( a.name ) LIKE ?");
         }
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);

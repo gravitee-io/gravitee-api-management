@@ -18,20 +18,23 @@ package io.gravitee.repository.mongodb.management.internal.api;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Sorts.ascending;
-import static java.util.Collections.emptyList;
+import static java.util.function.Predicate.not;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.util.StringUtils.hasText;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -42,14 +45,14 @@ import org.springframework.data.mongodb.core.query.Query;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
 public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
-        final Query query = buildQuery(apiFieldFilter, criteria == null ? emptyList() : List.of(criteria));
+        final Query query = buildQuery(apiFieldFilter, criteria == null ? List.of() : List.of(criteria));
 
         Sort sort;
         if (sortable == null) {
@@ -116,72 +119,80 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         return query;
     }
 
-    private Query fillQuery(Query query, List<ApiCriteria> orCriteria) {
-        if (orCriteria != null && orCriteria.size() > 0) {
-            List<List<Criteria>> convertedCriteria = orCriteria
-                .stream()
-                .filter(Objects::nonNull)
-                .map(apiCriteria -> {
-                    List<Criteria> criteria = new ArrayList<>();
-                    if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
-                        criteria.add(where("id").in(apiCriteria.getIds()));
-                    }
-                    if (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()) {
-                        criteria.add(where("groups").in(apiCriteria.getGroups()));
-                    }
-                    if (apiCriteria.getEnvironmentId() != null) {
-                        criteria.add(where("environmentId").is(apiCriteria.getEnvironmentId()));
-                    }
-                    if (apiCriteria.getEnvironments() != null && !apiCriteria.getEnvironments().isEmpty()) {
-                        criteria.add(where("environmentId").in(apiCriteria.getEnvironments()));
-                    }
-                    if (apiCriteria.getLabel() != null && !apiCriteria.getLabel().isEmpty()) {
-                        criteria.add(where("labels").in(apiCriteria.getLabel()));
-                    }
-                    if (apiCriteria.getName() != null && !apiCriteria.getName().isEmpty()) {
-                        criteria.add(where("name").is(apiCriteria.getName()));
-                    }
-                    if (apiCriteria.getState() != null) {
-                        criteria.add(where("lifecycleState").is(apiCriteria.getState()));
-                    }
-                    if (apiCriteria.getVersion() != null && !apiCriteria.getVersion().isEmpty()) {
-                        criteria.add(where("version").is(apiCriteria.getVersion()));
-                    }
-                    if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
-                        criteria.add(where("categories").in(apiCriteria.getCategory()));
-                    }
-                    if (apiCriteria.getVisibility() != null) {
-                        criteria.add(where("visibility").is(apiCriteria.getVisibility()));
-                    }
-                    if (apiCriteria.getLifecycleStates() != null && !apiCriteria.getLifecycleStates().isEmpty()) {
-                        criteria.add(where("apiLifecycleState").in(apiCriteria.getLifecycleStates()));
-                    }
-                    if (apiCriteria.getCrossId() != null && !apiCriteria.getCrossId().isEmpty()) {
-                        criteria.add(where("crossId").is(apiCriteria.getCrossId()));
-                    }
-                    if (apiCriteria.getDefinitionVersion() != null && !apiCriteria.getDefinitionVersion().isEmpty()) {
-                        criteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
-                    }
-                    if (apiCriteria.getIntegrationId() != null && !apiCriteria.getIntegrationId().isEmpty()) {
-                        criteria.add(where("integrationId").is(apiCriteria.getIntegrationId()));
-                    }
-                    return criteria;
-                })
-                .filter(criteria -> criteria.size() > 0)
-                .collect(Collectors.toList());
-
-            if (convertedCriteria.size() > 1) {
-                query.addCriteria(
-                    new Criteria()
-                        .orOperator(
-                            convertedCriteria.stream().map(criteria -> new Criteria().andOperator(criteria)).collect(Collectors.toList())
-                        )
-                );
-            } else if (convertedCriteria.size() == 1) {
-                convertedCriteria.get(0).forEach(query::addCriteria);
-            }
+    @VisibleForTesting
+    static Query fillQuery(Query query, List<ApiCriteria> orCriteria) {
+        if (head(orCriteria) == null) {
+            return query;
         }
-        return query;
+        List<List<Criteria>> convertedCriteria = orCriteria
+            .stream()
+            .filter(Objects::nonNull)
+            .map(apiCriteria -> {
+                List<Criteria> criteria = new ArrayList<>();
+                if (head(apiCriteria.getIds()) != null) {
+                    criteria.add(where("id").in(apiCriteria.getIds()));
+                }
+                if (head(apiCriteria.getGroups()) != null) {
+                    criteria.add(where("groups").in(apiCriteria.getGroups()));
+                }
+                if (hasText(apiCriteria.getEnvironmentId())) {
+                    criteria.add(where("environmentId").is(apiCriteria.getEnvironmentId()));
+                }
+                if (head(apiCriteria.getEnvironments()) != null) {
+                    criteria.add(where("environmentId").in(apiCriteria.getEnvironments()));
+                }
+                if (hasText(apiCriteria.getLabel())) {
+                    criteria.add(where("labels").in(apiCriteria.getLabel()));
+                }
+                if (hasText(apiCriteria.getName())) {
+                    criteria.add(where("name").is(apiCriteria.getName()));
+                }
+                if (apiCriteria.getState() != null) {
+                    criteria.add(where("lifecycleState").is(apiCriteria.getState()));
+                }
+                if (hasText(apiCriteria.getVersion())) {
+                    criteria.add(where("version").is(apiCriteria.getVersion()));
+                }
+                if (hasText(apiCriteria.getCategory())) {
+                    criteria.add(where("categories").in(apiCriteria.getCategory()));
+                }
+                if (apiCriteria.getVisibility() != null) {
+                    criteria.add(where("visibility").is(apiCriteria.getVisibility()));
+                }
+                if (head(apiCriteria.getLifecycleStates()) != null) {
+                    criteria.add(where("apiLifecycleState").in(apiCriteria.getLifecycleStates()));
+                }
+                if (hasText(apiCriteria.getCrossId())) {
+                    criteria.add(where("crossId").is(apiCriteria.getCrossId()));
+                }
+                if (head(apiCriteria.getDefinitionVersion()) != null) {
+                    criteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
+                }
+                if (hasText(apiCriteria.getIntegrationId())) {
+                    criteria.add(where("integrationId").is(apiCriteria.getIntegrationId()));
+                }
+                if (hasText(apiCriteria.getFilterName())) {
+                    criteria.add(where("name").regex(Pattern.quote(apiCriteria.getFilterName()), "i"));
+                }
+                return criteria;
+            })
+            .filter(not(List::isEmpty))
+            .toList();
+
+        return switch (convertedCriteria.size()) {
+            case 1 -> {
+                head(convertedCriteria).forEach(query::addCriteria);
+                yield query;
+            }
+            case 0 -> query;
+            default -> query.addCriteria(
+                new Criteria().orOperator(convertedCriteria.stream().map(criteria -> new Criteria().andOperator(criteria)).toList())
+            );
+        };
+    }
+
+    private static <T> T head(Iterable<T> iterable) {
+        return iterable == null || !iterable.iterator().hasNext() ? null : iterable.iterator().next();
     }
 
     @Override
