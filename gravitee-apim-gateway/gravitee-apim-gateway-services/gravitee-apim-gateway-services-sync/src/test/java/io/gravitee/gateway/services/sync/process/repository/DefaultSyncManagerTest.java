@@ -15,13 +15,21 @@
  */
 package io.gravitee.gateway.services.sync.process.repository;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
 import io.gravitee.node.api.Node;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import java.util.ArrayList;
@@ -29,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -64,7 +73,7 @@ class DefaultSyncManagerTest {
         when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
         when(router.get(any())).thenReturn(route);
         when(route.produces(any())).thenReturn(route);
-        cut = new DefaultSyncManager(router, node, synchronizers, null, new NoopDistributedSyncService(), 200, TimeUnit.MILLISECONDS, 1);
+        cut = new DefaultSyncManager(router, node, synchronizers, null, new NoopDistributedSyncService(), 5, TimeUnit.SECONDS, 1);
     }
 
     @Test
@@ -78,5 +87,56 @@ class DefaultSyncManagerTest {
         inOrder.verify(route).handler(argThat(argument -> argument instanceof SyncHandler));
         inOrder.verify(synchronizer1).synchronize(eq(-1L), any(), anyList());
         inOrder.verify(synchronizer2).synchronize(eq(-1L), any(), anyList());
+    }
+
+    @Test
+    void should_synchronize_sequentially_after_initial_synchronization() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            AtomicInteger counter = new AtomicInteger(0);
+
+            RepositorySynchronizer synchronizer1 = spy(new FakeSynchronizer(Completable.complete(), 1));
+            RepositorySynchronizer synchronizer2 = spy(
+                new FakeSynchronizer(
+                    Completable.defer(() -> {
+                        if (counter.getAndIncrement() == 0) {
+                            return Completable.complete();
+                        }
+
+                        return Completable.complete().delay(8, TimeUnit.SECONDS);
+                    }),
+                    2
+                )
+            );
+            synchronizers.add(synchronizer1);
+            synchronizers.add(synchronizer2);
+
+            cut.start();
+
+            InOrder inOrder = inOrder(route, synchronizer1, synchronizer2);
+            inOrder.verify(route).handler(argThat(argument -> argument instanceof SyncHandler));
+            inOrder.verify(synchronizer1).synchronize(eq(-1L), any(), anyList());
+            inOrder.verify(synchronizer2).synchronize(eq(-1L), any(), anyList());
+
+            // Trigger a diff sync.
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // Advance time by another 5 seconds to complete the sync process and exceed the delay between 2 sync at the same time.
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // Synchronizer has been called twice, one on full sync (start), one on diff sync
+            assertThat(counter.get()).isEqualTo(2);
+
+            // Diff sync should be called with a from date != -1.
+            inOrder.verify(synchronizer1).synchronize(argThat(from -> from != -1L), any(), anyList());
+            inOrder.verify(synchronizer2).synchronize(argThat(from -> from != -1L), any(), anyList());
+        } finally {
+            RxJavaPlugins.reset();
+        }
     }
 }
