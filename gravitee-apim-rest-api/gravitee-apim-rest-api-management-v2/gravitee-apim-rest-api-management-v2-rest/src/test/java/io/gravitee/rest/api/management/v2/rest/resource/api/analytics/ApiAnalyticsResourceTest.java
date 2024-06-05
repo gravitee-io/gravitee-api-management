@@ -286,8 +286,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsResponseStatusRangesResponse.class)
                 .satisfies(r -> {
-                    assertThat(r.getRangeByEntrypoint().keySet()).containsExactlyInAnyOrder("http-get", "http-post");
-                    assertThat(r.getRangeByEntrypoint().get("http-get")).isNotNull();
+                    assertThat(r.getRangesByEntrypoint().keySet()).containsExactlyInAnyOrder("http-get", "http-post");
+                    assertThat(r.getRangesByEntrypoint().get("http-get")).isNotNull();
                 });
         }
     }
