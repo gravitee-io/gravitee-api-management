@@ -30,7 +30,7 @@ import { IntegrationOverviewComponent } from './integration-overview.component';
 import { IntegrationOverviewHarness } from './integration-overview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
-import { FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
+import { AgentStatus, FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -111,12 +111,22 @@ describe('IntegrationOverviewComponent', () => {
       init();
     });
 
+    it('button should be disabled when agent "DISCONNECTED"', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.DISCONNECTED }));
+      expectFederatedAPIsGetRequest();
+
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      expect(discoverBtn).toBeTruthy();
+      expect(discoverBtn.isDisabled()).toBeTruthy();
+    });
+
     it('should call _ingest endpoint on confirm', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
       expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       await discoverBtn.click();
+      expectPreviewGetRequest();
 
       const dialogHarness: GioConfirmDialogHarness =
         await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
@@ -136,6 +146,7 @@ describe('IntegrationOverviewComponent', () => {
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       await discoverBtn.click();
+      expectPreviewGetRequest();
 
       const dialogHarness: GioConfirmDialogHarness =
         await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
@@ -150,6 +161,7 @@ describe('IntegrationOverviewComponent', () => {
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       await discoverBtn.click();
+      expectPreviewGetRequest();
 
       const dialogHarness: GioConfirmDialogHarness =
         await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
@@ -160,7 +172,7 @@ describe('IntegrationOverviewComponent', () => {
 
       fixture.detectChanges();
 
-      expect(fakeSnackBarService.error).toHaveBeenCalledWith('An error occurred while we were importing assets from the provider');
+      expect(fakeSnackBarService.error).toHaveBeenCalledWith('Discovery error');
     });
   });
 
@@ -176,7 +188,7 @@ describe('IntegrationOverviewComponent', () => {
     });
 
     it('should display error badge', async (): Promise<void> => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'DISCONNECTED' }));
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.DISCONNECTED }));
       expectFederatedAPIsGetRequest();
 
       const errorBadge: TestElement = await componentHarness.getErrorBadge();
@@ -189,7 +201,7 @@ describe('IntegrationOverviewComponent', () => {
     });
 
     it('should display success badge', async (): Promise<void> => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'CONNECTED' }));
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
       expectFederatedAPIsGetRequest();
 
       const successBadge: TestElement = await componentHarness.getSuccessBadge();
@@ -253,6 +265,12 @@ describe('IntegrationOverviewComponent', () => {
       });
     });
   });
+
+  function expectPreviewGetRequest(totalCount = 10): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_preview`);
+    req.flush(totalCount);
+    expect(req.request.method).toEqual('GET');
+  }
 
   function expectIntegrationGetRequest(integrationMock: Integration = fakeIntegration()): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);

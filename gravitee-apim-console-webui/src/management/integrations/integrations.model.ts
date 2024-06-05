@@ -29,14 +29,17 @@ export interface IntegrationResponse {
 }
 
 export interface Integration {
-  agentStatus: string;
+  agentStatus: AgentStatus;
   id: string;
   name: string;
   provider: string;
   description: string;
   owner?: string;
-  status?: string;
-  agent?: string;
+}
+
+export enum AgentStatus {
+  CONNECTED = 'CONNECTED',
+  DISCONNECTED = 'DISCONNECTED',
 }
 
 export interface CreateIntegrationPayload {

@@ -17,7 +17,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import {
   CreateIntegrationPayload,
@@ -71,6 +71,10 @@ export class IntegrationsService {
 
   public ingestIntegration(id: string) {
     return this.httpClient.post(`${this.url}/${id}/_ingest`, null);
+  }
+
+  public previewIntegration(id: string): Observable<number> {
+    return this.httpClient.get(`${this.url}/${id}/_preview`).pipe(map((response: { totalCount: number }) => response.totalCount));
   }
 
   public getFederatedAPIs(id: string, page: number = 1, size: number = 10): Observable<FederatedAPIsResponse> {

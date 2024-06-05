@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
 
-import { AgentStatus, Integration } from '../../management/integrations/integrations.model';
+import { AgentStatus } from '../integrations.model';
 
-export function fakeIntegration(attribute?: Partial<Integration>): Integration {
-  const base: Integration = {
-    agentStatus: AgentStatus.CONNECTED,
-    id: 'test_id',
-    name: 'test_name',
-    description: 'test_description',
-    provider: 'test_provider',
-    owner: 'test_owner',
-  };
-
-  return {
-    ...base,
-    ...attribute,
-  };
+@Component({
+  selector: 'app-integration-status',
+  templateUrl: './integration-status.component.html',
+  styleUrl: './integration-status.component.scss',
+})
+export class IntegrationStatusComponent {
+  @Input() agentStatus = AgentStatus.DISCONNECTED;
+  protected readonly AgentStatus = AgentStatus;
 }

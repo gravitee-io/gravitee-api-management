@@ -14,20 +14,6 @@
  * limitations under the License.
  */
 
-import { AgentStatus, Integration } from '../../management/integrations/integrations.model';
-
-export function fakeIntegration(attribute?: Partial<Integration>): Integration {
-  const base: Integration = {
-    agentStatus: AgentStatus.CONNECTED,
-    id: 'test_id',
-    name: 'test_name',
-    description: 'test_description',
-    provider: 'test_provider',
-    owner: 'test_owner',
-  };
-
-  return {
-    ...base,
-    ...attribute,
-  };
+.icon {
+  margin-right: 5px;
 }
