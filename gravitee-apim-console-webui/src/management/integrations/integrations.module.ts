@@ -39,6 +39,7 @@ import {
   GioLicenseModule,
 } from '@gravitee/ui-particles-angular';
 
+import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
 import { CreateIntegrationComponent } from './create-integration/create-integration.component';
 import { IntegrationsRoutingModule } from './integrations-routing.module';
@@ -46,7 +47,7 @@ import { IntegrationOverviewComponent } from './integration-overview/integration
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
-import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
+import { IntegrationStatusComponent } from './integration-status/integration-status.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -59,6 +60,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationsNavigationComponent,
     IntegrationConfigurationComponent,
     IntegrationAgentComponent,
+    IntegrationStatusComponent,
   ],
   imports: [
     CommonModule,

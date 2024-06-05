@@ -27,14 +27,6 @@ $borderColor: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter20');
   border-bottom: 1px solid $borderColor;
   padding: 8px 8px 20px 8px;
   margin-bottom: 12px;
-
-  .gio-badge-primary {
-    margin-left: 0;
-  }
-
-  .icon {
-    margin-right: 4px;
-  }
 }
 
 .navigation {

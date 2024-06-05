@@ -22,7 +22,7 @@ import { catchError } from 'rxjs/operators';
 
 import { configurationCode } from './integration-agent.configuration';
 
-import { Integration } from '../integrations.model';
+import { AgentStatus, Integration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -74,4 +74,6 @@ export class IntegrationAgentComponent implements OnInit {
   public refreshStatus(): void {
     this.getIntegration();
   }
+
+  protected readonly AgentStatus = AgentStatus;
 }

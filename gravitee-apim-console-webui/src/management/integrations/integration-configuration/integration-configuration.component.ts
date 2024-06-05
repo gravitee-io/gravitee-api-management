@@ -44,12 +44,12 @@ export class IntegrationConfigurationComponent implements OnInit {
   });
 
   constructor(
-    private integrationsService: IntegrationsService,
-    private formBuilder: FormBuilder,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private snackBarService: SnackBarService,
-    private matDialog: MatDialog,
+    private readonly integrationsService: IntegrationsService,
+    private readonly formBuilder: FormBuilder,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {

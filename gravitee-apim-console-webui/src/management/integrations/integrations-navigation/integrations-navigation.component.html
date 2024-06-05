@@ -23,16 +23,7 @@
         <div class="title">
           <div class="title__name">{{ integration.name }}</div>
           <div class="title__states">
-            <span *ngIf="integration.agentStatus === 'DISCONNECTED'; else connected" class="gio-badge-error">
-              <mat-icon class="icon" svgIcon="gio:prohibition"></mat-icon>
-              Disconnected
-            </span>
-            <ng-template #connected>
-              <span class="gio-badge-success capitalize">
-                <mat-icon class="icon" svgIcon="gio:check"></mat-icon>
-                Connected
-              </span>
-            </ng-template>
+            <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
           </div>
         </div>
 

@@ -24,7 +24,7 @@ import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } fro
 import { isEqual } from 'lodash';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { FederatedAPIsResponse, Integration } from '../integrations.model';
+import { AgentStatus, FederatedAPIsResponse, Integration } from '../integrations.model';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
@@ -34,15 +34,16 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
   styleUrls: ['./integration-overview.component.scss'],
 })
 export class IntegrationOverviewComponent implements OnInit {
+  protected readonly AgentStatus = AgentStatus;
   private destroyRef: DestroyRef = inject(DestroyRef);
   public integration: Integration;
   public isLoadingIntegration = true;
   public isLoadingFederatedAPI = true;
+  public isLoadingPreview = false;
   public isIngesting = false;
-
   public federatedAPIs = [];
-
   public displayedColumns: string[] = ['name', 'actions'];
+
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
@@ -51,11 +52,11 @@ export class IntegrationOverviewComponent implements OnInit {
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private integrationsService: IntegrationsService,
-    private snackBarService: SnackBarService,
-    private matDialog: MatDialog,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
+    private readonly integrationsService: IntegrationsService,
+    private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -112,20 +113,27 @@ export class IntegrationOverviewComponent implements OnInit {
   }
 
   public ingest(): void {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.SMALL,
-        data: {
-          title: 'Discover',
-          content:
-            "By proceeding, you'll initiate the creation of new Federated APIs in Gravitee for each API uncovered at the provider. Are you ready to continue?",
-          confirmButton: 'Proceed',
-        },
-        role: 'alertdialog',
-        id: 'ingestIntegrationConfirmDialog',
-      })
-      .afterClosed()
+    this.isLoadingPreview = true;
+    this.snackBarService.success('Preparing discovery...');
+
+    this.integrationsService
+      .previewIntegration(this.activatedRoute.snapshot.paramMap.get('integrationId'))
       .pipe(
+        switchMap(({ totalCount }) => {
+          this.isLoadingPreview = false;
+          return this.matDialog
+            .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+              width: GIO_DIALOG_WIDTH.SMALL,
+              data: {
+                title: 'Discover',
+                content: `By proceeding, you'll initiate the creation of ${totalCount} new Federated APIs in Gravitee, one for each API discovered at the provider. Are you ready to continue?`,
+                confirmButton: 'Proceed',
+              },
+              role: 'alertdialog',
+              id: 'ingestIntegrationConfirmDialog',
+            })
+            .afterClosed();
+        }),
         filter((confirm) => !!confirm),
         switchMap(() => {
           this.isIngesting = true;
@@ -137,9 +145,17 @@ export class IntegrationOverviewComponent implements OnInit {
           this.snackBarService.success('APIs successfully created and ready for use!');
           this.initFederatedAPIsList();
         }),
-        catchError(() => {
+        catchError(({ error }) => {
           this.isIngesting = false;
-          this.snackBarService.error('An error occurred while we were importing assets from the provider');
+          this.isLoadingPreview = false;
+          let message = 'Discovery error';
+
+          if (error.httpStatus === 500) {
+            message = 'Internal agent error: ' + error.message;
+            this.getIntegration();
+          }
+
+          this.snackBarService.error(message);
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),

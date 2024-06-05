@@ -71,18 +71,9 @@ $typography: map.get(gio.$mat-theme, typography);
   gap: 4px;
 }
 
-.gio-badge-error,
-.gio-badge-neutral {
-  margin-left: 0;
-}
-
 gio-banner-error {
   margin: 0;
   width: 100%;
-}
-
-.icon-left {
-  margin-right: 4px;
 }
 
 .mat-card-content {
