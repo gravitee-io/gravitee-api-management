@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangeQueryAdapter.ENTRYPOINT_ID_AGG;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ENTRYPOINT_ID_AGG;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,7 +33,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SearchResponseStatusRangeResponseAdapterTest {
+class SearchResponseStatusRangesResponseAdapterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -41,7 +41,7 @@ class SearchResponseStatusRangeResponseAdapterTest {
     void should_return_empty_result_if_no_aggregation() {
         final SearchResponse searchResponse = new SearchResponse();
 
-        assertThat(SearchResponseStatusRangeResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchResponseStatusRangesResponseAdapter.adapt(searchResponse)).isEmpty();
     }
 
     @Test
@@ -49,7 +49,7 @@ class SearchResponseStatusRangeResponseAdapterTest {
         final SearchResponse searchResponse = new SearchResponse();
         searchResponse.setAggregations(Map.of());
 
-        assertThat(SearchResponseStatusRangeResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchResponseStatusRangesResponseAdapter.adapt(searchResponse)).isEmpty();
     }
 
     @ParameterizedTest
@@ -61,10 +61,8 @@ class SearchResponseStatusRangeResponseAdapterTest {
 
         aggregation.setBuckets(Arrays.stream(entrypoints).map(this::provideBucket).toList());
 
-        assertThat(SearchResponseStatusRangeResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(topHits ->
-                assertThat(topHits.getResponseStatusRangeByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
-            );
+        assertThat(SearchResponseStatusRangesResponseAdapter.adapt(searchResponse))
+            .hasValueSatisfying(topHits -> assertThat(topHits.getRangesBy().keySet()).containsExactlyInAnyOrder(entrypoints));
     }
 
     private JsonNode provideBucket(String entrypoint) {

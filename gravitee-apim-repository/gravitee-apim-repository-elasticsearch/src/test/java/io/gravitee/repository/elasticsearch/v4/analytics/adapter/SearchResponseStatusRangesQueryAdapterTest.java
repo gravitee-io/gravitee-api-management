@@ -17,17 +17,17 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
-import io.gravitee.repository.log.v4.model.analytics.TopHitsAnalyticsByEntrypointQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SearchResponseStatusRangeQueryAdapterTest {
+class SearchResponseStatusRangesQueryAdapterTest {
 
     @Test
     void should_build_query() {
-        var result = SearchResponseStatusRangeQueryAdapter.adapt(TopHitsAnalyticsByEntrypointQuery.builder().apiId("api-id").build());
+        var result = SearchResponseStatusRangesQueryAdapter.adapt(ResponseStatusRangesQuery.builder().apiId("api-id").build());
 
         assertThatJson(result)
             .isEqualTo(

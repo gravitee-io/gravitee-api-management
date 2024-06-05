@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.model;
+package io.gravitee.rest.api.model.v4.analytics;
 
-import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Data
-public class ApiAnalyticsResponseStatusRangeResponse {
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class ResponseStatusRanges {
 
-    private Map<String, TopHitsAnalytics> rangeByEntrypoint;
-
-    public static ApiAnalyticsResponseStatusRangeResponse ofMap(Map<String, TopHitsAnalytics> stringTopHitsAnalyticsMap) {
-        final var result = new ApiAnalyticsResponseStatusRangeResponse();
-        result.rangeByEntrypoint = stringTopHitsAnalyticsMap;
-        return result;
-    }
+    Map<String, Long> ranges;
+    Map<String, Map<String, Long>> rangesByEntrypoint;
 }

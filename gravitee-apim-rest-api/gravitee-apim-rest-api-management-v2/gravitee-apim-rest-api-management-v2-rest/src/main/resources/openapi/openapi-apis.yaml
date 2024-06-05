@@ -1950,7 +1950,7 @@ paths:
         operationId: getResponseStatusCodes
         responses:
           "200":
-            $ref: "#/components/responses/ApiAnalyticsTopHitsByEntrypointResponse"
+            $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
           default:
             $ref: "#/components/responses/Error"
     # API Analytics - Logs
@@ -7014,20 +7014,30 @@ components:
                                 additionalProperties:
                                     description: A map of rounded average connection duration by entrypoint
                                     type: number
-        ApiAnalyticsTopHitsByEntrypointResponse:
+        ApiAnalyticsResponseStatusRangesResponse:
           description: Analytics for status codes by entrypoint
           content:
             application/json:
               schema:
-                title: "ApiAnalyticsResponseStatusRangeResponse"
+                title: "ApiAnalyticsResponseStatusRangesResponse"
                 description: API Analytics for status codes by entrypoint.
                 properties:
-                  rangeByEntrypoint:
+                  ranges:
                     type: object
-                    description: Status ranges by endpoint.
+                    description: Global status ranges
                     additionalProperties:
                       description: A map of response status range and counts
                       type: number
+                  rangesByEntrypoint:
+                    type: object
+                    description: Status ranges by entrypoint
+                    additionalProperties:
+                      description: A map of response status range and counts
+                      type: object
+                      additionalProperties:
+                        description: Count of status code
+                        type: number
+
 
       # Analytics - Logs
         ApiLogsResponse:

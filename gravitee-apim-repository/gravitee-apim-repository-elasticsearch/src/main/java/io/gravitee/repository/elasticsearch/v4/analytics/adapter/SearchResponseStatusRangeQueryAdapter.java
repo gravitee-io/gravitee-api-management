@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import io.gravitee.repository.log.v4.model.analytics.TopHitsAnalyticsByEntrypointQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.HashMap;
@@ -24,15 +24,15 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SearchResponseStatusRangeQueryAdapter {
+public class SearchResponseStatusRangesQueryAdapter {
 
     public static final String ENTRYPOINT_ID_AGG = "entrypoint_id_agg";
     public static final String FIELD = "field";
     public static final String STATUS_RANGES = "status_ranges";
 
-    public static String adapt(TopHitsAnalyticsByEntrypointQuery query) {
+    public static String adapt(ResponseStatusRangesQuery query) {
         var jsonContent = new HashMap<String, Object>();
-        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(TopHitsAnalyticsByEntrypointQuery.builder().build()));
+        var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(ResponseStatusRangesQuery.builder().build()));
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildTopHistAnalyticsByEntrypointAggregation());
         return new JsonObject(jsonContent).encode();
@@ -44,7 +44,7 @@ public class SearchResponseStatusRangeQueryAdapter {
             JsonObject.of(
                 // Group by entrypoint id (already filtered by <connector-type: entrypoint>
                 "terms",
-                JsonObject.of(FIELD, "entrypoint-id.keyword"),
+                JsonObject.of(FIELD, "entrypoint-id"),
                 "aggs",
                 JsonObject.of(
                     // Compute count of messages for an entrypoint
@@ -71,7 +71,7 @@ public class SearchResponseStatusRangeQueryAdapter {
         );
     }
 
-    private static JsonObject buildElasticQuery(TopHitsAnalyticsByEntrypointQuery query) {
+    private static JsonObject buildElasticQuery(ResponseStatusRangesQuery query) {
         return JsonObject.of("term", JsonObject.of("api-id", query.getApiId()));
     }
 }

@@ -15,12 +15,19 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import lombok.Builder;
+import java.util.Map;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-@Builder
 @Data
-public class TopHitsAnalyticsByEntrypointQuery {
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class ResponseStatusRangesAggregate {
 
-    String apiId;
+    Map<String, Long> ranges;
+
+    Map<String, Map<String, Long>> rangesBy;
 }

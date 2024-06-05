@@ -15,17 +15,12 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
+@Builder
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-public class ResponseStatusRangeAggregate {
+public class ResponseStatusRangesQuery {
 
-    Map<String, Map<String, Long>> responseStatusRangeByEntrypoint;
+    String apiId;
 }

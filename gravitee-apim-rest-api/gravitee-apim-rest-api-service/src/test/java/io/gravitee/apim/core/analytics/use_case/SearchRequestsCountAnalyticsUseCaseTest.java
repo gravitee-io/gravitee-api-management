@@ -98,7 +98,7 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     void should_get_requests_count_for_a_v4_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.requestsCount =
-            RequestsCount.builder().total(56).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
+            RequestsCount.builder().total(56L).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
         final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
         assertThat(result.requestsCount())
             .hasValueSatisfying(requestsCount -> {

@@ -22,9 +22,8 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @UseCase
-public class SearchResponseStatusRangeUseCase {
+public class SearchResponseStatusRangesUseCase {
 
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
@@ -42,7 +41,7 @@ public class SearchResponseStatusRangeUseCase {
 
         // Verify v4 api
         return analyticsQueryService
-            .searchResponseStatusRange(GraviteeContext.getExecutionContext(), input.apiId())
+            .searchResponseStatusRanges(GraviteeContext.getExecutionContext(), input.apiId())
             .map(Output::new)
             .orElse(new Output());
     }
@@ -67,13 +66,13 @@ public class SearchResponseStatusRangeUseCase {
 
     public record Input(String apiId, String environmentId) {}
 
-    public record Output(Optional<Map<String, TopHitsAnalytics>> topHitsAnalyticsByEntrypoint) {
-        Output(Map<String, TopHitsAnalytics> topHitsAnalyticsByEntrypoint) {
-            this(Optional.of(topHitsAnalyticsByEntrypoint));
+    public record Output(Optional<ResponseStatusRanges> responseStatusRanges) {
+        Output(ResponseStatusRanges responseStatusRanges) {
+            this(Optional.of(responseStatusRanges));
         }
 
         Output() {
-            this(Optional.empty());
+            this(new ResponseStatusRanges());
         }
     }
 }

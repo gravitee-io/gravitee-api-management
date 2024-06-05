@@ -27,14 +27,14 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangeResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
-import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
@@ -119,7 +119,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         void should_return_requests_count() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
             fakeAnalyticsQueryService.requestsCount =
-                RequestsCount.builder().total(11).countsByEntrypoint(Map.of("http-get", 10L, "sse", 1L)).build();
+                RequestsCount.builder().total(11L).countsByEntrypoint(Map.of("http-get", 10L, "sse", 1L)).build();
 
             final Response response = requestsCountTarget.request().get();
 
@@ -241,7 +241,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     }
 
     @Nested
-    class StatusCodesByEntrypoint {
+    class ResponseStatusRangesAnalytics {
 
         @BeforeEach
         public void prepareTarget() {
@@ -273,20 +273,18 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         @Test
         void should_return_status_codes_by_entrypoint() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            fakeAnalyticsQueryService.topHitsAnalyticsByEntrypoint =
-                Map.of(
-                    "http-get",
-                    TopHitsAnalytics.ofValues(Map.of("100.0-200.0", 1L)),
-                    "http-post",
-                    TopHitsAnalytics.ofValues(Map.of("100.0-200.0", 1L))
-                );
+            fakeAnalyticsQueryService.responseStatusRanges =
+                ResponseStatusRanges
+                    .builder()
+                    .rangesByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
+                    .build();
 
             final Response response = statusCodesByEntrypointTarget.request().get();
 
             MAPIAssertions
                 .assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(ApiAnalyticsResponseStatusRangeResponse.class)
+                .asEntity(ApiAnalyticsResponseStatusRangesResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getRangeByEntrypoint().keySet()).containsExactlyInAnyOrder("http-get", "http-post");
                     assertThat(r.getRangeByEntrypoint().get("http-get")).isNotNull();

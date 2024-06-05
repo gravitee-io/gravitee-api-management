@@ -15,13 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangeQueryAdapter.ENTRYPOINT_ID_AGG;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangeQueryAdapter.STATUS_RANGES;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.ENTRYPOINT_ID_AGG;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter.STATUS_RANGES;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,9 +31,9 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SearchResponseStatusRangeResponseAdapter {
+public class SearchResponseStatusRangesResponseAdapter {
 
-    public static Optional<ResponseStatusRangeAggregate> adapt(SearchResponse response) {
+    public static Optional<ResponseStatusRangesAggregate> adapt(SearchResponse response) {
         final Map<String, Aggregation> aggregations = response.getAggregations();
         if (aggregations == null || aggregations.isEmpty()) {
             return Optional.empty();
@@ -43,13 +43,21 @@ public class SearchResponseStatusRangeResponseAdapter {
             return Optional.empty();
         }
 
-        final var result = entrypointsAggregation
+        final Map<String, Long> totalRange = new HashMap<>();
+        final Map<String, Map<String, Long>> result = entrypointsAggregation
             .getBuckets()
             .stream()
             .collect(
-                Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> processStatusRanges(jsonNode.get(STATUS_RANGES)))
+                Collectors.toMap(
+                    jsonNode -> jsonNode.get("key").asText(),
+                    jsonNode -> {
+                        var statusRanges = processStatusRanges(jsonNode.get(STATUS_RANGES));
+                        statusRanges.forEach((key, value) -> totalRange.merge(key, value, Long::sum));
+                        return statusRanges;
+                    }
+                )
             );
-        return Optional.of(ResponseStatusRangeAggregate.builder().responseStatusRangeByEntrypoint(result).build());
+        return Optional.of(ResponseStatusRangesAggregate.builder().rangesBy(result).ranges(totalRange).build());
     }
 
     private static Map<String, Long> processStatusRanges(JsonNode jsonNode) {

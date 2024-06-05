@@ -26,16 +26,16 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMe
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
-import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangeQueryAdapter;
-import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangeResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
-import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangeAggregate;
-import io.gravitee.repository.log.v4.model.analytics.TopHitsAnalyticsByEntrypointQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.Optional;
 
@@ -82,13 +82,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public @NonNull Optional<ResponseStatusRangeAggregate> searchResponseStatusRange(
+    public @NonNull Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(
         QueryContext queryContext,
-        TopHitsAnalyticsByEntrypointQuery query
+        ResponseStatusRangesQuery query
     ) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.search(index, null, SearchResponseStatusRangeQueryAdapter.adapt(query))
-            .map(SearchResponseStatusRangeResponseAdapter::adapt)
+        return this.client.search(index, null, SearchResponseStatusRangesQueryAdapter.adapt(query))
+            .map(SearchResponseStatusRangesResponseAdapter::adapt)
             .blockingGet();
     }
 }
