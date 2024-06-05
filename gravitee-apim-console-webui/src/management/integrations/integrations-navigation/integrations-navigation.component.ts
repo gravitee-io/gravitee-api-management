@@ -17,7 +17,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { IntegrationNavigationItem } from '../integrations.model';
+import { AgentStatus, IntegrationNavigationItem } from '../integrations.model';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
@@ -26,6 +26,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
   styleUrls: ['./integrations-navigation.component.scss'],
 })
 export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
+  protected readonly AgentStatus = AgentStatus;
   public items: IntegrationNavigationItem[] = [
     {
       routerLink: `.`,
@@ -50,8 +51,8 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
   public allowedItems: IntegrationNavigationItem[] = [];
 
   constructor(
-    public integrationsService: IntegrationsService,
-    private permissionService: GioPermissionService,
+    public readonly integrationsService: IntegrationsService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnDestroy() {

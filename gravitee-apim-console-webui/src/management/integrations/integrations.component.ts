@@ -21,7 +21,7 @@ import { catchError, distinctUntilChanged, mergeMap, switchMap } from 'rxjs/oper
 import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { Integration, IntegrationResponse } from './integrations.model';
+import { AgentStatus, Integration, IntegrationResponse } from './integrations.model';
 
 import { IntegrationsService } from '../../services-ngx/integrations.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -37,7 +37,7 @@ export class IntegrationsComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading: boolean = false;
   public integrations: Integration[] = [];
-  public displayedColumns: string[] = ['name', 'owner', 'provider', 'agent', 'action'];
+  public displayedColumns: string[] = ['name', 'provider', 'agent', 'action'];
   public isFreeTier: boolean = false;
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
@@ -102,4 +102,6 @@ export class IntegrationsComponent implements OnInit {
   public onRequestUpgrade() {
     this.licenseService.openDialog(this.licenseOptions);
   }
+
+  protected readonly AgentStatus = AgentStatus;
 }
