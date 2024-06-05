@@ -40,19 +40,10 @@
       <mat-card-content class="mat-card-content">
         <div class="status">
           <h5>Connection Status</h5>
-          <span *ngIf="integration.agentStatus === 'DISCONNECTED'; else connected" class="gio-badge-error">
-            <mat-icon class="icon-left" svgIcon="gio:prohibition"></mat-icon>
-            Disconnected
-          </span>
-          <ng-template #connected>
-            <span class="gio-badge-success">
-              <mat-icon class="icon-left" svgIcon="gio:check"></mat-icon>
-              Connected
-            </span>
-          </ng-template>
+          <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
         </div>
 
-        <gio-banner-error *ngIf="integration.agentStatus === 'DISCONNECTED'">
+        <gio-banner-error *ngIf="integration.agentStatus === AgentStatus.DISCONNECTED">
           Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.
         </gio-banner-error>
 
