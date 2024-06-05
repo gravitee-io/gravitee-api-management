@@ -17,8 +17,7 @@ import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate 
 
 export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
-  protected locateTitle = this.locatorFor('.api-card__header-content-title');
-  protected locateVersion = this.locatorFor('.api-card__header-content-version');
+  protected locateHeaderContent = this.locatorFor('.api-card__header__content');
   protected locateDescription = this.locatorFor('.api-card__description');
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
@@ -26,17 +25,24 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
   }
 
   public async getTitle(): Promise<string> {
-    const div = await this.locateTitle();
-    return await div.text();
+    return await this.getTitleAndVersion().then(res => res.title);
   }
 
   public async getVersion(): Promise<string> {
-    const div = await this.locateVersion();
-    return await div.text();
+    return await this.getTitleAndVersion().then(res => res.version);
   }
 
   public async getDescription(): Promise<string> {
     const div = await this.locateDescription();
     return await div.text();
+  }
+
+  private async getTitleAndVersion(): Promise<{ title: string; version: string }> {
+    return await this.locateHeaderContent()
+      .then(header => header.text())
+      .then(text => {
+        const split = text.split('Version: ');
+        return { title: split[0], version: split[1] };
+      });
   }
 }

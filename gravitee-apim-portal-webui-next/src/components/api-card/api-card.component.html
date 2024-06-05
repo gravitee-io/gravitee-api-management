@@ -19,12 +19,18 @@
   <mat-card-content class="api-card__content">
     <div class="api-card__header">
       <app-api-picture [picture]="picture" [name]="title" [version]="version" [size]="40" />
-      <div>
-        <div class="api-card__header-content-title">{{ title }}</div>
-        <div class="api-card__header-content-version">{{ version }}</div>
+      <div class="api-card__header__content">
+        <div class="m3-title-medium">{{ title }}</div>
+        <div class="m3-body-medium"><span i18n="@@apiVersion">Version: </span>{{ version }}</div>
       </div>
     </div>
-    <p class="api-card__description">{{ content }}</p>
+    <div class="api-card__description m3-body-medium">
+      @if (content) {
+        {{ content }}
+      } @else {
+        <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
+      }
+    </div>
   </mat-card-content>
   <mat-card-actions class="api-card__actions">
     <button i18n="@@apiCardButton" mat-stroked-button color="primary" [routerLink]="['.', 'api', id]">Learn more</button>

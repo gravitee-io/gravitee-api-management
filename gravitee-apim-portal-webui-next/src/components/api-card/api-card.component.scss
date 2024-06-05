@@ -29,27 +29,23 @@
     display: flex;
     align-items: center;
     gap: 16px;
+
+    &__content {
+      display: flex;
+      flex-flow: column;
+      gap: 4px;
+    }
   }
 
   &__header-picture {
     border-radius: 50%;
   }
 
-  &__header-content-title {
-    font-size: 16px;
-    font-weight: 500;
-  }
-
-  &__header-content-version {
-    font-size: 14px;
-    font-weight: 400;
-    letter-spacing: 0.25px;
-  }
-
   &__content {
     display: flex;
     flex: 1 1 100%;
     flex-direction: column;
+    gap: 28px;
   }
 
   &__description {
@@ -57,6 +53,7 @@
     overflow: hidden;
     max-height: 98px;
     -webkit-box-orient: vertical;
+    color: var(--mdc-outlined-text-field-label-text-color);
     -webkit-line-clamp: 4;
     line-clamp: 4;
     text-overflow: ellipsis;

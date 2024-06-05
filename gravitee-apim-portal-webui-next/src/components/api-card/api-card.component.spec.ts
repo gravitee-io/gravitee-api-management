@@ -48,8 +48,8 @@ describe('CardComponent', () => {
   });
 
   it('should display data in card', () => {
-    expect(fixture.nativeElement.querySelector('.api-card__header-content-title').textContent).toEqual('Test title');
-    expect(fixture.nativeElement.querySelector('.api-card__description').innerHTML).toEqual(
+    expect(fixture.nativeElement.querySelector('.m3-title-medium').textContent).toEqual('Test title');
+    expect(fixture.nativeElement.querySelector('.api-card__description').innerHTML).toContain(
       'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
     );
   });
