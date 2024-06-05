@@ -20,9 +20,9 @@
   <mat-card-content>
     <div class="api-details__header">
       <app-api-picture [picture]="api._links?.picture" [name]="api.name" [version]="api.version" [size]="40" />
-      <div>
-        <div>{{ api.name }}</div>
-        <div class="api-details__header-content-version">{{ api.version }}</div>
+      <div class="api-details__header__content">
+        <div class="m3-headline-small">{{ api.name }}</div>
+        <div class="m3-body-medium">{{ api.version }}</div>
       </div>
       <button i18n="@@logInOrSignUpToSubscribe" mat-flat-button disabled class="api-details__header-button secondary-button">
         Log in / Sign up to subscribe
@@ -31,8 +31,8 @@
     @if (api.description) {
       <app-banner class="api-details__banner">
         <div class="api-details__banner-content">
-          <mat-icon aria-hidden="false" aria-label="Light-bulb icon">lightbulb</mat-icon>
-          <p>{{ api.description }}</p>
+          <mat-icon class="api-details__banner-content__icon" aria-hidden="false" aria-label="Light-bulb icon">lightbulb</mat-icon>
+          <div class="m3-body-large">{{ api.description }}</div>
         </div>
       </app-banner>
     }
