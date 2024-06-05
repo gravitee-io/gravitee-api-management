@@ -48,17 +48,17 @@ export const routes: Routes = [
           {
             path: 'details',
             component: ApiTabDetailsComponent,
-            data: { breadcrumb: 'Details' },
+            data: { breadcrumb: { skip: true } },
           },
           {
             path: 'documentation',
             component: ApiTabDocumentationComponent,
-            data: { breadcrumb: 'Documentation' },
+            data: { breadcrumb: { skip: true } },
           },
           {
             path: 'subscriptions',
             component: ApiTabSubscriptionsComponent,
-            data: { breadcrumb: 'Subscriptions' },
+            data: { breadcrumb: { skip: true } },
             canActivate: [authGuard],
           },
         ],

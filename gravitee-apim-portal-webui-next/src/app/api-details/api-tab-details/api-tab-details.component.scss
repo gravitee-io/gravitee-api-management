@@ -15,21 +15,24 @@
  */
 .api-details {
   &__tab {
-    display: grid;
+    display: flex;
     height: 100%;
-    grid-gap: 1rem;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    gap: 32px;
   }
 
   &__tab-details-content {
-    grid-row: 1 / 3;
+    flex: 1 1 100%;
   }
 
   &__tab-details-info {
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-    grid-row: 1 / 2;
+    &__card {
+      --mdc-elevated-card-container-color: var(--mdc-filled-text-field-container-color);
+
+      display: flex;
+      width: 324px;
+      flex-direction: column;
+      padding: 32px;
+      gap: 32px;
+    }
   }
 }

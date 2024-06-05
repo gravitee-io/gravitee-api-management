@@ -20,36 +20,40 @@
     @if (homepageData$ | async; as homepageData) {
       @if (homepageData.result) {
         <app-page [page]="homepageData.result" [apiPages]="pages" [apiId]="api.id" />
-      } @else if (homepageData.error) {
-        <div>TODO: Implement error message</div>
       } @else {
-        <p i18n="@@noApiDetailsAvailable">Sorry, there are no available API details.</p>
+        <div class="m3-body-large" i18n="@@apiDetailsNotAvailable">No details available</div>
+        <div class="m3-body-medium" i18n="@@apiDetailsNotAvailableExplanation">
+          It seems that there is currently no details available for this API. If you’re seeking information, feel free to explore the
+          documentation available.
+        </div>
       }
     } @else {
       <app-loader />
     }
   </div>
 
-  <div class="api-details__tab-details-info">
-    @if (api.version) {
-      <div class="api-details__tab-details-info-details">
-        <p i18n="@@apiDetailsVersion" class="details-title">Version</p>
-        <p class="details-content">{{ api.version }}</p>
-      </div>
-    }
+  <div>
+    <mat-card appearance="raised" class="api-details__tab-details-info__card">
+      @if (api.version) {
+        <div>
+          <div class="m3-body-large" i18n="@@apiDetailsVersion">Version</div>
+          <div class="m3-body-medium">{{ api.version }}</div>
+        </div>
+      }
 
-    @if (api.updated_at) {
-      <div class="api-details__tab-details-info-details">
-        <p i18n="@@apiDetailsLastUpdated" class="details-title">Last updated</p>
-        <p class="details-content">{{ api.updated_at | date }}</p>
-      </div>
-    }
+      @if (api.updated_at) {
+        <div>
+          <div i18n="@@apiDetailsLastUpdated" class="m3-body-large">Last updated</div>
+          <div class="m3-body-medium">{{ api.updated_at | date }}</div>
+        </div>
+      }
 
-    @if (api.categories?.length) {
-      <div class="api-details__tab-details-info-details">
-        <p i18n="@@apiDetailsCategories" class="details-title">Categories</p>
-        <p class="details-content">{{ api.categories }}</p>
-      </div>
-    }
+      @if (api.categories?.length) {
+        <div>
+          <div i18n="@@apiDetailsCategories" class="m3-body-large">Categories</div>
+          <div class="m3-body-medium">{{ api.categories }}</div>
+        </div>
+      }
+    </mat-card>
   </div>
 </div>

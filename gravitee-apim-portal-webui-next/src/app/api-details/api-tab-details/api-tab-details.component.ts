@@ -15,6 +15,7 @@
  */
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
+import { MatCard } from '@angular/material/card';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 
 import { LoaderComponent } from '../../../components/loader/loader.component';
@@ -32,7 +33,7 @@ interface HomepageData {
 @Component({
   selector: 'app-api-tab-details',
   standalone: true,
-  imports: [MarkdownDescriptionPipe, AsyncPipe, DatePipe, PageComponent, LoaderComponent],
+  imports: [MarkdownDescriptionPipe, AsyncPipe, DatePipe, PageComponent, LoaderComponent, MatCard],
   templateUrl: './api-tab-details.component.html',
   styleUrl: './api-tab-details.component.scss',
 })
