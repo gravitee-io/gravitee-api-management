@@ -20,12 +20,12 @@
     display: flex;
     align-items: center;
     gap: 16px;
-  }
 
-  &__header-content-version {
-    font-size: 14px;
-    font-weight: 400;
-    letter-spacing: 0.25px;
+    &__content {
+      display: flex;
+      flex-flow: column;
+      gap: 4px;
+    }
   }
 
   &__header-button {
@@ -39,8 +39,12 @@
 
   &__banner-content {
     display: flex;
-    align-items: center;
-    gap: 4px;
+    padding: 0 8px;
+    gap: 12px;
+
+    &__icon {
+      min-width: max-content;
+    }
   }
 
   &__content {
