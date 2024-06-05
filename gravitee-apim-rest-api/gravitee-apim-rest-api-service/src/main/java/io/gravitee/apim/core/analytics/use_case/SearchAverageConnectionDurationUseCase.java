@@ -78,7 +78,7 @@ public class SearchAverageConnectionDurationUseCase {
         }
 
         Output() {
-            this(Optional.empty());
+            this(new AverageConnectionDuration());
         }
     }
 }
