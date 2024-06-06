@@ -75,6 +75,7 @@ public class CreateApiDocumentationDomainService {
                 .newValue(page)
                 .build()
         );
+
         return createdPage;
     }
 }

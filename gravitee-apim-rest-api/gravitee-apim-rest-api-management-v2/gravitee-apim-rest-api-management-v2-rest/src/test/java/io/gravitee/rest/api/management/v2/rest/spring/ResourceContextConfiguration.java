@@ -20,6 +20,7 @@ import static org.mockito.Mockito.spy;
 
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
@@ -41,6 +42,7 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -391,5 +393,10 @@ public class ResourceContextConfiguration {
     @Bean
     public EndpointConnectorPluginDomainService endpointConnectorPluginDomainService() {
         return mock(EndpointConnectorPluginDomainService.class);
+    }
+
+    @Bean
+    public PageSourceDomainServiceInMemory pageSourceDomainService() {
+        return new PageSourceDomainServiceInMemory();
     }
 }
