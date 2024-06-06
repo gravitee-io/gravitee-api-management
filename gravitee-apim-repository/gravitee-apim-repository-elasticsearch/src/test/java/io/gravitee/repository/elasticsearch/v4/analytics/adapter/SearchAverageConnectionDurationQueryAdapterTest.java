@@ -46,7 +46,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                        "aggs": {
                          "entrypoints_agg": {
                            "terms": {
-                             "field": "entrypoint-id.keyword"
+                             "field": "entrypoint-id"
                            },
                            "aggs": {
                              "avg_ended_request_duration_ms": {
@@ -62,21 +62,24 @@ class SearchAverageConnectionDurationQueryAdapterTest {
 
     @Test
     void should_build_query_without_filter() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(null);
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(null, true);
 
         assertThatJson(result).isEqualTo(QUERY_WITHOUT_FILTER);
     }
 
     @Test
     void should_build_query_with_empty_filter() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().build());
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().build(), true);
 
         assertThatJson(result).isEqualTo(QUERY_WITHOUT_FILTER);
     }
 
     @Test
     void should_build_query_with_api_filter() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().apiId("api-id").build());
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(
+            AverageConnectionDurationQuery.builder().apiId("api-id").build(),
+            true
+        );
 
         assertThatJson(result)
             .isEqualTo(
@@ -93,6 +96,44 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                                      {
                                        "term": {
                                          "api-id": "api-id"
+                                       }
+                                     }
+                                   ]
+                                 }
+                               },
+                               "aggs": {
+                                 "entrypoints_agg": {
+                                   "terms": {
+                                     "field": "entrypoint-id"
+                                   },
+                                   "aggs": {
+                                     "avg_ended_request_duration_ms": {
+                                       "avg": {
+                                         "field": "gateway-response-time-ms"
+                                       }
+                                     }
+                                   }
+                                 }
+                               }
+                             }
+                             """
+            );
+    }
+
+    @Test
+    void should_adapt_the_query_when_entrypoint_id_is_not_a_keyword() {
+        var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().build(), false);
+
+        assertThatJson(result)
+            .isEqualTo(
+                """
+                             {
+                               "query": {
+                                 "bool": {
+                                   "must": [
+                                     {
+                                       "term": {
+                                         "request-ended": "true"
                                        }
                                      }
                                    ]

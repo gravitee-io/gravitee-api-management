@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.springframework.util.CollectionUtils;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchAverageConnectionDurationResponseAdapter {
@@ -37,7 +38,7 @@ public class SearchAverageConnectionDurationResponseAdapter {
             return Optional.empty();
         }
         final var entrypointsAggregation = aggregations.get(ENTRYPOINTS_AGG);
-        if (entrypointsAggregation == null) {
+        if (entrypointsAggregation == null || CollectionUtils.isEmpty(entrypointsAggregation.getBuckets())) {
             return Optional.empty();
         }
 
