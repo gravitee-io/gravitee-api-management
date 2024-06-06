@@ -30,14 +30,33 @@ export interface SubscriptionData {
   request?: string;
   status?: string;
   subscribed_by?: string;
+  keys: SubscriptionDataKeys[];
 }
 
 export interface SubscriptionLinks {
   self?: string;
 }
 
+export interface SubscriptionDataKeys {
+  key?: string;
+  id?: string;
+  application: {
+    id: string;
+    name: string;
+  };
+}
+
 export interface SubscriptionMetadata {
-  [key: string]: { [key: string]: object | string };
+  [key: string]: SubscriptionMetadataEntrypoints;
+}
+
+export interface SubscriptionMetadataEntrypoints {
+  entrypoints?: SubscriptionMetadataEntrypointsTarget[];
+  name?: string;
+}
+
+export interface SubscriptionMetadataEntrypointsTarget {
+  target?: string;
 }
 
 export const SubscriptionStatusEnum = {
