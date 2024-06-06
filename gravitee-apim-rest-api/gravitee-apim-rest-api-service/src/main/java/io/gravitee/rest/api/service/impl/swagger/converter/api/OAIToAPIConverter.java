@@ -146,12 +146,14 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
             if (evaluatedServerUrl.size() == 1) {
                 defaultEndpoint = evaluatedServerUrl.get(0);
-                defaultGroup.setEndpoints(singleton(Endpoint.builder().name("default").target(defaultEndpoint).build()));
+                defaultGroup.setEndpoints(singleton(Endpoint.builder().name("default").target(defaultEndpoint).inherit(true).build()));
             } else {
                 defaultEndpoint = evaluatedServerUrl.get(0);
                 defaultGroup.setEndpoints(new HashSet<>());
                 for (int i = 0; i < evaluatedServerUrl.size(); i++) {
-                    defaultGroup.getEndpoints().add(Endpoint.builder().name("server" + (i + 1)).target(evaluatedServerUrl.get(i)).build());
+                    defaultGroup
+                        .getEndpoints()
+                        .add(Endpoint.builder().name("server" + (i + 1)).target(evaluatedServerUrl.get(i)).inherit(true).build());
                 }
             }
             proxy.setGroups(singleton(defaultGroup));

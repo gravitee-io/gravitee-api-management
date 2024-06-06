@@ -113,6 +113,7 @@ class OAIToAPIConverterTest {
         Endpoint endpoint = endpointGroup.getEndpoints().stream().findAny().orElseThrow();
         assertThat(endpoint.getName()).isEqualTo("default");
         assertThat(endpoint.getTarget()).isEqualTo("https://api.company.com");
+        assertThat(endpoint.getInherit()).isTrue();
     }
 
     @Test
@@ -154,18 +155,22 @@ class OAIToAPIConverterTest {
         Endpoint endpoint1 = endpoints.get(0);
         assertThat(endpoint1.getName()).isEqualTo("server1");
         assertThat(endpoint1.getTarget()).isEqualTo("https://api.company.com/v1");
+        assertThat(endpoint1.getInherit()).isTrue();
 
         Endpoint endpoint2 = endpoints.get(1);
         assertThat(endpoint2.getName()).isEqualTo("server2");
         assertThat(endpoint2.getTarget()).isEqualTo("https://api2.company.com");
+        assertThat(endpoint2.getInherit()).isTrue();
 
         Endpoint endpoint3 = endpoints.get(2);
         assertThat(endpoint3.getName()).isEqualTo("server3");
         assertThat(endpoint3.getTarget()).isEqualTo("https://api3.company.com/v2");
+        assertThat(endpoint3.getInherit()).isTrue();
 
         Endpoint endpoint4 = endpoints.get(3);
         assertThat(endpoint4.getName()).isEqualTo("server4");
         assertThat(endpoint4.getTarget()).isEqualTo("https://api3.company.com/v3");
+        assertThat(endpoint4.getInherit()).isTrue();
     }
 
     @Test
