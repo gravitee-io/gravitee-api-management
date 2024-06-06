@@ -144,6 +144,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
+    private final PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final IndexerInMemory indexer = new IndexerInMemory();
@@ -176,7 +177,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     userCrudService
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                pageCrudService
+                pageCrudService,
+                pageSourceDomainService
             );
 
         updateApiDocumentationDomainService =

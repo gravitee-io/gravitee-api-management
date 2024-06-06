@@ -44,6 +44,7 @@ public class DocumentationValidationDomainService {
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final PageCrudService pageCrudService;
+    private final PageSourceDomainService pageSourceDomainService;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
@@ -97,6 +98,8 @@ public class DocumentationValidationDomainService {
 
     public Page validateAndSanitizeForCreation(Page page, String organizationId, boolean shouldValidateParentId) {
         var sanitizedPage = page.toBuilder().name(this.sanitizeDocumentationName(page.getName())).build();
+
+        pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         if (sanitizedPage.isMarkdown()) {
             this.validateContent(sanitizedPage.getContent(), sanitizedPage.getReferenceId(), organizationId);
