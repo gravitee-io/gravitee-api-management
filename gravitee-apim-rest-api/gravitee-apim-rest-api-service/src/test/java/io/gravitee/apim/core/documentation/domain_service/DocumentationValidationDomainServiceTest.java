@@ -26,6 +26,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageContentException
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -62,6 +63,7 @@ public class DocumentationValidationDomainServiceTest {
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     private DocumentationValidationDomainService cut;
 
     @BeforeEach
@@ -82,7 +84,8 @@ public class DocumentationValidationDomainServiceTest {
                     userCrudService
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                pageCrudService
+                pageCrudService,
+                pageSourceDomainService
             );
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
@@ -175,6 +178,23 @@ public class DocumentationValidationDomainServiceTest {
         void should_throw_an_error_when_name_is_not_valid(String name) {
             assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(Page.builder().name(name).build(), ORGANIZATION_ID))
                 .isInstanceOf(InvalidPageNameException.class);
+        }
+
+        @Test
+        void should_set_content_from_source() {
+            var page = Page
+                .builder()
+                .name("new-page")
+                .type(Page.Type.MARKDOWN)
+                .source(PageSource.builder().type("http").build())
+                .content("")
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .build();
+
+            var sanitized = cut.validateAndSanitizeForCreation(page, ORGANIZATION_ID);
+
+            assertThat(sanitized.getContent()).isEqualTo(PageSourceDomainServiceInMemory.MARKDOWN);
         }
 
         @Test

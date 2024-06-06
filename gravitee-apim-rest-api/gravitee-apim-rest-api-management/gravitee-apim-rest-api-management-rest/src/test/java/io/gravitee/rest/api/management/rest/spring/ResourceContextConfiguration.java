@@ -20,6 +20,7 @@ import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
+import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
@@ -633,5 +634,10 @@ public class ResourceContextConfiguration {
     @Bean
     public EndpointConnectorPluginDomainService endpointConnectorPluginDomainService() {
         return mock(EndpointConnectorPluginDomainService.class);
+    }
+
+    @Bean
+    public PageSourceDomainServiceInMemory pageSourceDomainService() {
+        return new PageSourceDomainServiceInMemory();
     }
 }

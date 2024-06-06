@@ -28,6 +28,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
+import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
@@ -63,6 +64,8 @@ class ApiCreateDocumentationPageUseCaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
+    private final PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
+
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -98,7 +101,8 @@ class ApiCreateDocumentationPageUseCaseTest {
                     userCrudService
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                pageCrudService
+                pageCrudService,
+                pageSourceDomainService
             );
 
         createApiDocumentationDomainService =

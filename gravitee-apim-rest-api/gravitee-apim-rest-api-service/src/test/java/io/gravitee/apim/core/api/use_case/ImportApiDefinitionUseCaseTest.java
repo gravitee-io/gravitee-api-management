@@ -51,6 +51,7 @@ import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -165,6 +166,7 @@ class ImportApiDefinitionUseCaseTest {
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
+    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryServiceInMemory = new PlanQueryServiceInMemory();
@@ -267,7 +269,8 @@ class ImportApiDefinitionUseCaseTest {
                 userCrudService
             ),
             new ApiDocumentationDomainService(pageQueryService, planQueryService),
-            pageCrudService
+            pageCrudService,
+            pageSourceDomainService
         );
         roleQueryService.initWith(
             List.of(
