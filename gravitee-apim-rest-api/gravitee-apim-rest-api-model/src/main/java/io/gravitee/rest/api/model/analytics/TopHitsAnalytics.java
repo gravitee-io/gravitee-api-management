@@ -42,10 +42,4 @@ public class TopHitsAnalytics implements Analytics {
     public void setMetadata(Map<String, Map<String, String>> metadata) {
         this.metadata = metadata;
     }
-
-    public static TopHitsAnalytics ofValues(Map<String, Long> values) {
-        TopHitsAnalytics analytics = new TopHitsAnalytics();
-        analytics.setValues(values);
-        return analytics;
-    }
 }

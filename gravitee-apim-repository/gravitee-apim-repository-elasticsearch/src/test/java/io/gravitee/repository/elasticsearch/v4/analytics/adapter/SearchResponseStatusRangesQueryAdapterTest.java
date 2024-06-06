@@ -41,7 +41,7 @@ class SearchResponseStatusRangesQueryAdapterTest {
                               "aggs": {
                                 "entrypoint_id_agg": {
                                   "terms": {
-                                    "field": "entrypoint-id.keyword"
+                                    "field": "entrypoint-id"
                                   },
                                   "aggs": {
                                     "status_ranges": {

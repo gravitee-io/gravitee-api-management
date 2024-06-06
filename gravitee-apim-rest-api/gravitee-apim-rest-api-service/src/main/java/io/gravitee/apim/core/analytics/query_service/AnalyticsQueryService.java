@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Map;
 import java.util.Optional;
 
 public interface AnalyticsQueryService {

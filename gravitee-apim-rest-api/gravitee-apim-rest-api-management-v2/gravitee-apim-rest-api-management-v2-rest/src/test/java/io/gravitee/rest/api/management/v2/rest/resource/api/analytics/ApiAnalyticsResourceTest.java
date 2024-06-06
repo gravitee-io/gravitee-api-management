@@ -57,6 +57,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     WebTarget requestsCountTarget;
     WebTarget statusCodesByEntrypointTarget;
+    WebTarget averageMessagesPerRequestTarget;
     WebTarget averageConnectionDurationTarget;
 
     @Inject
@@ -139,7 +140,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
         @BeforeEach
         public void prepareTarget() {
-            statusCodesByEntrypointTarget = rootTarget().path("average-messages-per-request");
+            averageMessagesPerRequestTarget = rootTarget().path("average-messages-per-request");
         }
 
         @Test
@@ -154,7 +155,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = statusCodesByEntrypointTarget.request().get();
+            final Response response = averageMessagesPerRequestTarget.request().get();
 
             MAPIAssertions
                 .assertThat(response)
@@ -174,7 +175,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
                     .build();
 
-            final Response response = statusCodesByEntrypointTarget.request().get();
+            final Response response = averageMessagesPerRequestTarget.request().get();
 
             MAPIAssertions
                 .assertThat(response)
@@ -245,7 +246,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
         @BeforeEach
         public void prepareTarget() {
-            statusCodesByEntrypointTarget = rootTarget().path("response-statuses");
+            statusCodesByEntrypointTarget = rootTarget().path("response-status-ranges");
         }
 
         @Test
@@ -285,9 +286,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsResponseStatusRangesResponse.class)
-                .satisfies(r -> {
-                    assertThat(r.getRangesByEntrypoint().keySet()).containsExactlyInAnyOrder("http-get", "http-post");
-                    assertThat(r.getRangesByEntrypoint().get("http-get")).isNotNull();
+                .extracting(ApiAnalyticsResponseStatusRangesResponse::getRangesByEntrypoint)
+                .isNotNull()
+                .satisfies(rangesByEntrypoint -> {
+                    assertThat(rangesByEntrypoint).hasSize(2);
+                    assertThat(rangesByEntrypoint.keySet()).containsExactlyInAnyOrder("http-get", "http-post");
                 });
         }
     }

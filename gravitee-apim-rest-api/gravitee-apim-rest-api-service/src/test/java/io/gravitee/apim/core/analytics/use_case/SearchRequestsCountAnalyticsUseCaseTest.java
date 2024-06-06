@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -91,7 +92,13 @@ class SearchRequestsCountAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.requestsCount = null;
         final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
-        assertThat(result.requestsCount()).isEmpty();
+        assertThat(result.requestsCount())
+            .isNotEmpty()
+            .hasValueSatisfying(requestsCount -> {
+                assertThat(requestsCount)
+                    .extracting(RequestsCount::getCountsByEntrypoint, RequestsCount::getTotal)
+                    .containsExactly(null, null);
+            });
     }
 
     @Test

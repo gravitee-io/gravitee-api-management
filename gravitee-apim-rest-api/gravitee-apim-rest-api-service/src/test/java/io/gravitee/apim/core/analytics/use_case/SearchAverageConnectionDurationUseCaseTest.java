@@ -25,6 +25,7 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
+import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -86,11 +87,16 @@ class SearchAverageConnectionDurationUseCaseTest {
     @Test
     void should_not_find_average_messages_per_request() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        analyticsQueryService.averageMessagesPerRequest = null;
+        analyticsQueryService.averageMessagesPerRequest = new AverageMessagesPerRequest();
         final SearchAverageConnectionDurationUseCase.Output result = cut.execute(
             new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)
         );
-        assertThat(result.averageConnectionDuration()).isEmpty();
+        assertThat(result.averageConnectionDuration())
+            .isNotEmpty()
+            .hasValueSatisfying(averageConnectionDuration -> {
+                assertThat(averageConnectionDuration.getAveragesByEntrypoint()).isNull();
+                assertThat(averageConnectionDuration.getGlobalAverage()).isNull();
+            });
     }
 
     @Test
