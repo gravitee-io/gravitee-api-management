@@ -31,20 +31,20 @@ public class SearchAverageConnectionDurationQueryAdapter {
     public static final String FIELD = "field";
     public static final String AVG_ENDED_REQUEST_DURATION_MS = "avg_ended_request_duration_ms";
 
-    public static String adapt(AverageConnectionDurationQuery query) {
+    public static String adapt(AverageConnectionDurationQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(AverageConnectionDurationQuery.builder().build()));
         jsonContent.put("query", esQuery);
-        jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate());
+        jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate(isEntrypointIdKeyword));
         return new JsonObject(jsonContent).encode();
     }
 
-    private static JsonObject buildAverageMessagesPerRequestPerEntrypointAggregate() {
+    private static JsonObject buildAverageMessagesPerRequestPerEntrypointAggregate(boolean isEntrypointIdKeyword) {
         return JsonObject.of(
             ENTRYPOINTS_AGG,
             JsonObject.of(
                 "terms",
-                JsonObject.of(FIELD, "entrypoint-id.keyword"),
+                JsonObject.of(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"),
                 "aggs",
                 JsonObject.of(AVG_ENDED_REQUEST_DURATION_MS, JsonObject.of("avg", JsonObject.of(FIELD, "gateway-response-time-ms")))
             )
