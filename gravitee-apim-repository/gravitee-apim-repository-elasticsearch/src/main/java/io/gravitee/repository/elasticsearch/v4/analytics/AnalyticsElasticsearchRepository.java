@@ -37,6 +37,7 @@ import java.util.Optional;
 public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepository implements AnalyticsRepository {
 
     private final String[] clusters;
+    private static final String KEYWORD = "keyword";
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -62,7 +63,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query))
+        return this.client.getFieldTypes(index, "entrypoint-id")
+            .map(types -> types.stream().allMatch(KEYWORD::equals))
+            .flatMap(isEntrypointIdKeyword ->
+                this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query, isEntrypointIdKeyword))
+            )
             .map(SearchAverageConnectionDurationResponseAdapter::adapt)
             .blockingGet();
     }

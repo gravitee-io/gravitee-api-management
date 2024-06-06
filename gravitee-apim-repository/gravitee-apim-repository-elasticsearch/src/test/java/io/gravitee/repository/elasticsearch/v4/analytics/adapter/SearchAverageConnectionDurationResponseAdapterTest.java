@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -81,6 +82,16 @@ class SearchAverageConnectionDurationResponseAdapterTest {
                 assertThat(countAggregate.getAverage()).isEqualTo(expectedCount);
                 assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
             });
+    }
+
+    @Test
+    void should_return_empty_result_if_bucket_is_empty() {
+        final SearchResponse searchResponse = new SearchResponse();
+        final Aggregation aggregation = new Aggregation();
+        searchResponse.setAggregations(Map.of(ENTRYPOINTS_AGG, aggregation));
+        aggregation.setBuckets(Collections.emptyList());
+
+        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse)).isEmpty();
     }
 
     private static Stream<Arguments> provideSearchData() {
