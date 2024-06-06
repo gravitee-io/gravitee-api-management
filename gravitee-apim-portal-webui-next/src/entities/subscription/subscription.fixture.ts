@@ -23,13 +23,23 @@ export function fakeSubscription(
   const base: SubscriptionData = {
     id: '5ac5ca94-160f-4acd-85ca-94160fcacd7d',
     application: '99c6cbe6-eead-414d-86cb-e6eeadc14db3',
-    plan: 'b6f88a31-777f-45aa-b88a-31777fa5aace',
+    plan: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
     request: '',
     reason: 'Subscription has been closed.',
     created_at: '2024-04-17T10:33:29Z',
     closed_at: '2024-04-17T10:34:05.598Z',
     subscribed_by: '4015f9f2-c0a4-4c0c-95f9-f2c0a4fc0c4c',
     status: 'REJECTED',
+    keys: [
+      {
+        id: '12f73b0a-59e6-4d23-b73b-0a59e62d2369',
+        key: '240760d9-7a50-4e7c-8406-657cdee57fde',
+        application: {
+          id: 'b62f6e82-c39b-4edb-af6e-82c39b9edb46',
+          name: 'AMO - OAuth2 with DCR',
+        },
+      },
+    ],
   };
 
   if (isFunction(modifier)) {
