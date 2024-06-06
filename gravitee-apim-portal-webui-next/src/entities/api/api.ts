@@ -63,9 +63,12 @@ export interface Api {
    * Last update date and time.
    */
   updated_at?: Date;
+  security?: ApiSecurityTypeEnum;
   /**
    * List of categories this API belongs to.
    */
   categories?: Array<string>;
   _links?: ApiLinks;
 }
+
+export type ApiSecurityTypeEnum = 'JWT' | 'OAUTH2' | 'API_KEY';

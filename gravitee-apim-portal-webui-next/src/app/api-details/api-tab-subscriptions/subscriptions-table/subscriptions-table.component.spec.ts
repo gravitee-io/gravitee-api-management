@@ -20,22 +20,22 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { ApiTabSubscriptionsComponent } from './api-tab-subscriptions.component';
-import { Subscription } from '../../../entities/subscription/subscription';
-import { fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
+import { SubscriptionsTableComponent } from './subscriptions-table.component';
+import { Subscription } from '../../../../entities/subscription/subscription';
+import { fakeSubscriptionResponse } from '../../../../entities/subscription/subscription.fixture';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
-describe('ApiTabSubscriptionsComponent', () => {
-  let fixture: ComponentFixture<ApiTabSubscriptionsComponent>;
+describe('SubscriptionsTableComponent', () => {
+  let fixture: ComponentFixture<SubscriptionsTableComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiTabSubscriptionsComponent, AppTestingModule],
+      imports: [SubscriptionsTableComponent, AppTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiTabSubscriptionsComponent);
+    fixture = TestBed.createComponent(SubscriptionsTableComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     fixture.componentInstance.apiId = 'testId';
@@ -64,7 +64,7 @@ describe('ApiTabSubscriptionsComponent', () => {
       expect(await subscriptionTable.getRows().then(value => value[0].getCellTextByColumnName())).toEqual({
         application: 'Testapplication',
         expand: 'arrow_right',
-        plan: 'Testplan',
+        plan: '-',
         status: 'Rejected',
       });
     });

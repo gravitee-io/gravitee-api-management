@@ -19,6 +19,8 @@ import { ApiDetailsComponent } from './api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
 import { ApiTabSubscriptionsComponent } from './api-details/api-tab-subscriptions/api-tab-subscriptions.component';
+import { SubscriptionsDetailsComponent } from './api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
+import { SubscriptionsTableComponent } from './api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
@@ -60,6 +62,16 @@ export const routes: Routes = [
             component: ApiTabSubscriptionsComponent,
             data: { breadcrumb: { skip: true } },
             canActivate: [authGuard],
+            children: [
+              {
+                path: '',
+                component: SubscriptionsTableComponent,
+              },
+              {
+                path: ':subscriptionApplicationId',
+                component: SubscriptionsDetailsComponent,
+              },
+            ],
           },
         ],
       },
