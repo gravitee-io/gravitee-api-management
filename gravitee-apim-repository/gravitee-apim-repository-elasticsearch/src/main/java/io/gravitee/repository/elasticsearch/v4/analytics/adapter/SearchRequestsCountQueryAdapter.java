@@ -26,18 +26,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchRequestsCountQueryAdapter {
 
-    public static String adapt(RequestsCountQuery query) {
+    public static String adapt(RequestsCountQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(query);
         if (esQuery != null) {
             jsonContent.put("query", esQuery);
         }
-        jsonContent.put("aggs", buildEntrypointIdAggregate());
+        jsonContent.put("aggs", buildEntrypointIdAggregate(isEntrypointIdKeyword));
         return new JsonObject(jsonContent).encode();
     }
 
-    private static JsonObject buildEntrypointIdAggregate() {
-        return JsonObject.of("entrypoints", JsonObject.of("terms", JsonObject.of("field", "entrypoint-id.keyword")));
+    private static JsonObject buildEntrypointIdAggregate(boolean isEntrypointIdKeyword) {
+        return JsonObject.of(
+            "entrypoints",
+            JsonObject.of("terms", JsonObject.of("field", isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"))
+        );
     }
 
     private static JsonObject buildElasticQuery(RequestsCountQuery query) {
