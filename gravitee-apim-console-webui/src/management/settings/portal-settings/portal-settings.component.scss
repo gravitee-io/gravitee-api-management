@@ -54,3 +54,15 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
+.open-new-portal-button {
+  width: fit-content;
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    & mat-icon {
+      width: 12px;
+    }
+  }
+}
