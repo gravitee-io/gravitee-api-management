@@ -47,7 +47,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
-        return this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query))
+        return this.client.getFieldTypes(index, "entrypoint-id")
+            .map(types -> types.stream().allMatch(KEYWORD::equals))
+            .flatMap(isEntrypointIdKeyword ->
+                this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
+            )
             .map(SearchRequestsCountResponseAdapter::adapt)
             .blockingGet();
     }
