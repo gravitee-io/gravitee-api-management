@@ -8,6 +8,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { PlanUsageConfiguration } from './planUsageConfiguration';
 import { PlanMode } from './planMode';
 
 
@@ -29,7 +30,7 @@ export interface Plan {
      */
     description: string;
     /**
-     * List of additionnal terms to describe the plan.
+     * List of additional terms to describe the plan.
      */
     characteristics?: Array<string>;
     /**
@@ -53,6 +54,7 @@ export interface Plan {
      */
     general_conditions?: string;
     mode: PlanMode;
+    usage_configuration?: PlanUsageConfiguration;
 }
 export namespace Plan {
     export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2';

@@ -15,12 +15,14 @@ import { ConfigurationAuthentication } from './configurationAuthentication';
 import { ConfigurationReCaptcha } from './configurationReCaptcha';
 import { ConfigurationApplication } from './configurationApplication';
 import { Enabled } from './enabled';
+import { ConfigurationPortalNext } from './configurationPortalNext';
 import { ConfigurationScheduler } from './configurationScheduler';
 import { ConfigurationDocumentation } from './configurationDocumentation';
 
 
 export interface ConfigurationResponse { 
     portal?: ConfigurationPortal;
+    portalNext?: ConfigurationPortalNext;
     authentication?: ConfigurationAuthentication;
     scheduler?: ConfigurationScheduler;
     documentation?: ConfigurationDocumentation;
