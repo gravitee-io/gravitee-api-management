@@ -32,6 +32,7 @@ export interface PortalSettings {
   openAPIDocViewer?: PortalSettingsOpenAPIDocViewer;
   cors?: PortalSettingsCors;
   email?: PortalSettingsEmail;
+  portalNext?: PortalSettingsPortalNext;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -215,5 +216,10 @@ export interface PortalSettingsOpenAPIDocViewer {
     redoc: {
       enabled: boolean;
     };
+  };
+}
+export interface PortalSettingsPortalNext {
+  access: {
+    enabled: boolean;
   };
 }

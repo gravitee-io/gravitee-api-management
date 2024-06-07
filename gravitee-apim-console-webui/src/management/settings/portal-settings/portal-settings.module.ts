@@ -18,7 +18,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { GioBannerModule, GioFormSlideToggleModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioFormSlideToggleModule,
+  GioFormTagsInputModule,
+  GioSaveBarModule,
+  GioTopBarLinkModule,
+} from '@gravitee/ui-particles-angular';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -65,6 +71,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioBannerModule,
     MatOptionModule,
     MatSelectModule,
+    GioTopBarLinkModule,
   ],
 })
 export class PortalSettingsModule {}
