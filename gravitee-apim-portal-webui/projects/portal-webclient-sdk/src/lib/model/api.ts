@@ -51,7 +51,7 @@ export interface Api {
      */
     running?: boolean;
     /**
-     * List of all the avaible endpoints to call the API.
+     * List of all the available endpoints to call the API.
      */
     entrypoints?: Array<string>;
     listener_type?: ListenerType;
@@ -61,7 +61,7 @@ export interface Api {
     labels?: Array<string>;
     owner: User;
     /**
-     * create date and time.
+     * Create date and time.
      */
     created_at?: Date;
     /**
@@ -69,7 +69,7 @@ export interface Api {
      */
     updated_at?: Date;
     /**
-     * List of categories this API belongs to.
+     * List of category keys this API belongs to. Example: [\"media\", \"health\"] 
      */
     categories?: Array<string>;
     rating_summary?: RatingSummary;
