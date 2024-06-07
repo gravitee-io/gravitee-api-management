@@ -376,6 +376,37 @@
       </mat-card-content>
     </mat-card>
 
+    @if (hasEnterpriseLicense$ | async; as hasEnterpriseLicense) {
+      @if (hasEnterpriseLicense) {
+        <h2>New Portal</h2>
+        <mat-card class="portal__form__card">
+          <mat-card-content formGroupName="portalNext">
+            <gio-banner-info>
+              This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not
+              recommended for production use.
+            </gio-banner-info>
+            <gio-form-slide-toggle formGroupName="access" class="portal__form__card__form-field">
+              <gio-form-label>Enable the New Developer Portal</gio-form-label>
+              <mat-slide-toggle
+                id="enable-portal-next"
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="New Portal Enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+            @if (portalUrl && !!settings.portalNext?.access?.enabled) {
+              <div class="open-new-portal-button">
+                <a mat-raised-button [href]="portalUrl" target="_blank" color="primary" class="open-new-portal-button__content">
+                  <div>Open the New Developer Portal</div>
+                  <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
+                </a>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    }
+
     <mat-card class="portal__form__card">
       <mat-card-content formGroupName="cors">
         <h3>CORS</h3>
