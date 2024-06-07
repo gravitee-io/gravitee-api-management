@@ -22,9 +22,10 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormTagsInputHarness, GioLicenseService, GioLicenseTestingModule, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { of } from 'rxjs';
 
 import { PortalSettingsComponent } from './portal-settings.component';
 import { PortalSettingsModule } from './portal-settings.module';
@@ -41,11 +42,20 @@ describe('PortalSettingsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, PortalSettingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, PortalSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
           useValue: ['environment-settings-u'],
+        },
+        {
+          provide: GioLicenseService,
+          useValue: {
+            getLicense$: () =>
+              of({
+                tier: 'galaxy',
+              }),
+          },
         },
       ],
     }).overrideProvider(InteractivityChecker, {
@@ -147,6 +157,27 @@ describe('PortalSettingsComponent', () => {
       });
     });
 
+    it('display settings form and edit Portal Next fields', async () => {
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
+      await toggle.toggle();
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({
+        ...portalSettingsMock,
+        portalNext: {
+          access: {
+            enabled: false,
+          },
+        },
+      });
+    });
+
     it('display settings form and edit CORS fields', async () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -186,6 +217,13 @@ describe('PortalSettingsComponent', () => {
         },
       });
     });
+  });
+  describe('Portal next setting form', () => {
+    it('should not show portal next settings if settings does not include: "access.enabled"', () => {});
+    // settings should not be shown if value not provided in settings
+    // form should be enabled if provided in settings
+    // settings should not be shown if license is oss
+    //
   });
 
   function expectPortalSettingsGetRequest(portalSettings: PortalSettings) {

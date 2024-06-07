@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, Inject } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { combineLatest, Subject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { combineLatest, Observable, of, Subject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { isEmpty } from 'lodash';
 
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
+import { Constants } from '../../../entities/Constants';
 
 interface PortalForm {
   company: FormGroup<{
@@ -95,6 +98,9 @@ interface PortalForm {
       maxSizeInOctet: FormControl<number>;
     }>;
   }>;
+  portalNext: FormGroup<{
+    access: FormGroup<{ enabled: FormControl<boolean> }>;
+  }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
     notifications: FormControl<string>;
@@ -165,21 +171,29 @@ export class PortalSettingsComponent implements OnInit {
       label: 'GROUP: an API primary owner can only be a group',
     },
   ];
+  hasEnterpriseLicense$: Observable<boolean> = of(false);
+  portalUrl: string = undefined;
 
   constructor(
     private readonly portalSettingsService: PortalSettingsService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly licenseService: GioLicenseService,
+    @Inject(Constants) public readonly constants: Constants,
   ) {}
 
   public ngOnInit() {
     this.isLoadingData = true;
+    this.hasEnterpriseLicense$ = this.licenseService.getLicense$().pipe(map((license) => license.tier !== 'oss'));
 
     combineLatest([this.portalSettingsService.get()])
       .pipe(
         tap(([portalSettings]) => {
           this.settings = portalSettings;
           this.initialPortalForm();
+          this.portalUrl = isEmpty(portalSettings.portal.url)
+            ? undefined
+            : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -333,6 +347,14 @@ export class PortalSettingsComponent implements OnInit {
           maxSizeInOctet: new FormControl({
             value: this.settings.portal.uploadMedia.maxSizeInOctet,
             disabled: this.isReadonly('portal.uploadMedia.maxSizeInOctet'),
+          }),
+        }),
+      }),
+      portalNext: new FormGroup({
+        access: new FormGroup({
+          enabled: new FormControl({
+            value: !!this.settings.portalNext?.access?.enabled,
+            disabled: this.isReadonly('portalNext.access.enabled'),
           }),
         }),
       }),
@@ -571,6 +593,14 @@ export class PortalSettingsComponent implements OnInit {
         properties: {
           ...this.settings.email.properties,
           ...this.portalForm.get('email.properties').value,
+        },
+      },
+      portalNext: {
+        ...this.settings.portalNext,
+        ...this.portalForm.get('portalNext').value,
+        access: {
+          ...this.settings.portalNext.access,
+          ...this.portalForm.get('portalNext.access').value,
         },
       },
     };

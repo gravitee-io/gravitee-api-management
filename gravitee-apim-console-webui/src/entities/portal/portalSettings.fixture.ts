@@ -188,6 +188,11 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
         enabled: true,
       },
     },
+    portalNext: {
+      access: {
+        enabled: true,
+      },
+    },
   };
 
   return {
