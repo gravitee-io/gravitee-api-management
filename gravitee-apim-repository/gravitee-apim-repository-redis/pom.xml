@@ -55,6 +55,12 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-redis-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.vertx</groupId>
+                    <artifactId>vertx-core</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 
 		<dependency>
