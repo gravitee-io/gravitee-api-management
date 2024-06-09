@@ -116,6 +116,7 @@
         <dependency>
             <groupId>io.gravitee.kubernetes</groupId>
             <artifactId>gravitee-kubernetes-client</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Vert.x -->
