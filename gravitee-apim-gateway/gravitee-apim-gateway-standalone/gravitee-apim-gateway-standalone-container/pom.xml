@@ -312,6 +312,10 @@
             <artifactId>spring-beans</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.connector</groupId>
             <artifactId>gravitee-connector-http</artifactId>
             <version>${gravitee-connector-http.version}</version>
@@ -377,7 +381,7 @@
         </dependency>
 
         <!-- 'javax' libraries may still be used by third party libraries. Spring 6 has migrated to jakarta but keeps detecting javax annotation. For that, the library must be present in the classpath.
-(see https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x)-->
+        (see https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x)-->
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
@@ -400,6 +404,12 @@
             <artifactId>mapstruct</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
