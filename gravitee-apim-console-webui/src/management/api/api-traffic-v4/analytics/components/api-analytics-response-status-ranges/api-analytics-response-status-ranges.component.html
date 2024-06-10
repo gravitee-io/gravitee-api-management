@@ -15,17 +15,21 @@
     limitations under the License.
 
 -->
-<div class="gio-chart-pie">
-  <highcharts-chart
-    *ngIf="input && input.length > 0; else noData"
-    [Highcharts]="Highcharts"
-    [options]="chartOptions"
-    [callbackFunction]="callbackFunction"
-    class="gio-chart-pie__chart"
-  ></highcharts-chart>
-  <ng-template #noData>
-    <div class="gio-chart-pie__no-data">
-      <div class="mat-body">No data to display</div>
+<mat-card class="card">
+  <div class="title">{{ title }}</div>
+
+  @if (!responseStatusRanges || responseStatusRanges.isLoading) {
+    <div class="card__loader">
+      <gio-loader></gio-loader>
     </div>
-  </ng-template>
-</div>
+  } @else {
+    <div class="card__chart">
+      <gio-chart-pie
+        [input]="input"
+        [inputDescription]="inputDescription"
+        [totalInputDescription]="totalInputDescription"
+        [title]="title"
+      ></gio-chart-pie>
+    </div>
+  }
+</mat-card>

@@ -18,6 +18,7 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiAnalyticsRequestStatsHarness } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
 import { ApiAnalyticsFiltersBarHarness } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component.harness';
+import { ApiAnalyticsResponseStatusRangesHarness } from '../components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component.harness';
 
 export class ApiAnalyticsMessageHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-message';
@@ -27,6 +28,8 @@ export class ApiAnalyticsMessageHarness extends ComponentHarness {
 
   protected requestStats = (testId: string) =>
     this.locatorForOptional(ApiAnalyticsRequestStatsHarness.with({ selector: `[data-testId="${testId}"]` }));
+  protected responseStatusRanges = (testId: string) =>
+    this.locatorForOptional(ApiAnalyticsResponseStatusRangesHarness.with({ selector: `[data-testId="${testId}"]` }));
 
   protected entrypointsRows = this.locatorForAll(DivHarness.with({ selector: `.entrypoints__rows__row` }));
 
@@ -57,5 +60,9 @@ export class ApiAnalyticsMessageHarness extends ComponentHarness {
         isNotConfigured: (await row.getText()).includes('Not configured'),
       })),
     );
+  }
+
+  async getResponseStatusRangesHarness(testId: string): Promise<ApiAnalyticsResponseStatusRangesHarness> {
+    return this.responseStatusRanges(testId)();
   }
 }

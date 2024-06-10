@@ -31,6 +31,8 @@ import { AnalyticsAverageConnectionDuration } from '../../../../../entities/mana
 import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { AnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
+import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { fakeAnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
 
 const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
@@ -176,6 +178,9 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: false,
         },
       ]);
+
+      // Expect others analytics
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
 
     it('should display HTTP GET - Request Stats', async () => {
@@ -228,6 +233,39 @@ describe('ApiAnalyticsMessageComponent', () => {
           isLoading: false,
         },
       ]);
+
+      // Expect others analytics
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    });
+
+    it('should display Response Status', async () => {
+      const overviewResponseStatusRanges = await componentHarness.getResponseStatusRangesHarness('overview-response-status-ranges');
+      const httpGetResponseStatusRanges = await componentHarness.getResponseStatusRangesHarness('http-get-response-status-ranges');
+
+      // Expect loading
+      expect(await overviewResponseStatusRanges.hasResponseStatusWithValues()).toBeFalsy();
+      expect(await httpGetResponseStatusRanges.hasResponseStatusWithValues()).toBeFalsy();
+
+      // Expect data
+      expectApiAnalyticsResponseStatusRangesGetRequest(
+        fakeAnalyticsResponseStatusRanges({
+          ranges: {
+            '200': 0,
+          },
+          rangesByEntrypoint: {
+            'http-get': {
+              '200': 0,
+            },
+          },
+        }),
+      );
+      expect(await overviewResponseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
+      expect(await httpGetResponseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
+
+      // Expect others analytics
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
     });
 
     it('should display HTTP POST (not configured) - Request Stats', async () => {
@@ -240,6 +278,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       );
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
       const requestStats = await componentHarness.getRequestStatsHarness('http-post-request-stats');
       expect(await requestStats.getValues()).toEqual([
         {
@@ -280,6 +319,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
       expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
@@ -320,6 +360,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
       expectApiAnalyticsAverageMessagesPerRequestGetRequest(fakeAnalyticsAverageMessagesPerRequest());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
   });
 
@@ -358,6 +399,15 @@ describe('ApiAnalyticsMessageComponent', () => {
         method: 'GET',
       })
       .flush(analyticsAverageMessagesPerRequest);
+  }
+
+  function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`,
+        method: 'GET',
+      })
+      .flush(analyticsResponseStatusRanges);
   }
 
   function expectGetEntrypoints(): void {

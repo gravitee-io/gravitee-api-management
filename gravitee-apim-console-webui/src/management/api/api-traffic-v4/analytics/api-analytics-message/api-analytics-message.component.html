@@ -41,6 +41,11 @@
               [requestsStats]="apiAnalyticsVM.globalRequestStats"
             >
             </app-api-analytics-request-stats>
+            <api-analytics-response-status-ranges
+              title="Response Status"
+              data-testId="overview-response-status-ranges"
+              [responseStatusRanges]="apiAnalyticsVM.globalResponseStatusRanges"
+            ></api-analytics-response-status-ranges>
           </div>
         </div>
 
@@ -61,6 +66,11 @@
                 [attr.data-testId]="entrypoint.id + '-request-stats'"
               >
               </app-api-analytics-request-stats>
+              <api-analytics-response-status-ranges
+                title="Response Status"
+                [attr.data-testId]="entrypoint.id + '-response-status-ranges'"
+                [responseStatusRanges]="entrypoint.responseStatusRanges"
+              ></api-analytics-response-status-ranges>
             </div>
           </div>
         }
