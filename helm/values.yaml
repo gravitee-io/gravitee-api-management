@@ -1079,32 +1079,56 @@ gateway:
         #         port: 26379
     management:
         http:
-            # url:
-            # keepAlive: true
-            # idleTimeout: 30000
-            # connectTimeout: 10000
-            # username:
-            # password:
-            # proxy:
-            #   host: proxy.com
-            #   port: 3128
-            # ssl:
-            #   trustall: true
-            #   verifyHostname: true
-            #   keystore:
-            #     type: jks # Supports jks, pem, pkcs12
-            #     path: ${gravitee.home}/security/keystore.jks
-            #     password: secret
-            #   truststore:
-            #     type: jks # Supports jks, pem, pkcs12
-            #     path: ${gravitee.home}/security/truststore.jks
-            #     password: secret
-            # proxy:
-            #   host:
-            #   port:
-            #   type: http
-            #   username:
-            #   password:
+    #            url: https://bridge-server.example.com
+    #            keepAlive: true
+    #            idleTimeout: 60000
+    #            connectTimeout: 5000
+    #            keepAliveTimeout: 30000
+    #            readTimeout: 10000
+    #            useCompression: true
+    #            followRedirects: false
+    #            clearTextUpgrade: true
+    #            version: HTTP_1_1 # or HTTP_2
+    #            connectionRetry:
+    #                delaySec: 2
+    #                maxDelaySec: 60
+    #                backoffFactor: 1.5
+    #            authentication:
+    #                type: basic # none, jwt
+    #                basic:
+    #                    username:
+    #                    password:
+    #                jwt:
+    #                    token:
+    #            ssl:
+    #                trustAll: false
+    #                verifyHostname: true
+    #                keystore:
+    #                    type: jks # Supports jks, pem, pkcs12
+    #                    path: ${gravitee.home}/security/keystore.jks
+    #                    # alias:
+    #                    # or base64 content
+    #                    # content: secrets://kubernetes/http-repo-secret:keystore
+    #                    password: secret
+    #                    # if type = pem
+    #                    # certPath: ${gravitee.home}/security/client-cert.pem
+    #                    # keyPath: ${gravitee.home}/security/client-key.pem
+    #                    # or
+    #                    # certContent: secrets://kubernetes/http-repo-secret:tls.cert
+    #                    # keyContent: secrets://kubernetes/http-repo-secret:tls.key
+    #                truststore:
+    #                    type: jks # Supports jks, pem, pkcs12
+    #                    path: ${gravitee.home}/security/truststore.jks
+    #                    # alias:
+    #                    # base64 content for p12, jks or raw pem
+    #                    # content: secrets://kubernetes/http-repo-secret:truststore
+    #                    password: secret
+    #            proxy:
+    #                enabled: false
+    #                host: proxy.com
+    #                port: 3128
+    #                type: HTTP # or SOCK4 or SOCK5
+    #                useSystemProxy: false
     # system: {}
     services:
         core:

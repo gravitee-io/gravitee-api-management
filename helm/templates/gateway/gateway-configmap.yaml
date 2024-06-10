@@ -199,40 +199,7 @@ data:
         {{- end }}
       {{- else if (eq .Values.management.type "http") }}
       http:
-        url: {{ .Values.gateway.management.http.url }}
-        keepAlive: {{ .Values.gateway.management.http.keepAlive | default true }}
-        idleTimeout: {{ .Values.gateway.management.http.idleTimeout | default 30000 }}
-        connectTimeout: {{ .Values.gateway.management.http.connectTimeout | default 10000 }}
-        {{- if .Values.gateway.management.http.proxy }}
-        proxy:
-          host: {{ .Values.gateway.management.http.proxy.host }}
-          port: {{ .Values.gateway.management.http.proxy.port }}
-        {{- end }}
-        authentication:
-          basic:
-            username: {{ .Values.gateway.management.http.username }}
-            password: {{ .Values.gateway.management.http.password }}
-        {{- if .Values.gateway.management.http.ssl }}
-        ssl:
-          trustall: {{ .Values.gateway.management.http.ssl.trustall | default true }}
-          verifyHostname: {{ .Values.gateway.management.http.ssl.verifyHostname | default true }}
-          {{- if .Values.gateway.management.http.ssl.keystore }}
-          keystore:
-            {{- if .Values.gateway.management.http.ssl.keystore.type }}
-            type: {{ .Values.gateway.management.http.ssl.keystore.type }}
-            {{- end }}
-            path: {{ .Values.gateway.management.http.ssl.keystore.path }}
-            password: {{ .Values.gateway.management.http.ssl.keystore.password | quote }}
-          {{- end }}
-          {{- if .Values.gateway.management.http.ssl.truststore }}
-          truststore:
-            {{- if .Values.gateway.management.http.ssl.truststore.type }}
-            type: {{ .Values.gateway.management.http.ssl.truststore.type }}
-            {{- end }}
-            path: {{ .Values.gateway.management.http.ssl.truststore.path }}
-            password: {{ .Values.gateway.management.http.ssl.truststore.password | quote }}
-          {{- end }}
-        {{- end }}
+        {{ toYaml .Values.gateway.management.http | nindent 8 | trim -}}
       {{- end }}
     {{- end }}
 
