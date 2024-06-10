@@ -21,6 +21,7 @@ import { Constants } from '../entities/Constants';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
+import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 
 @Injectable({
   providedIn: 'root',
@@ -45,5 +46,9 @@ export class ApiAnalyticsV2Service {
     return this.http.get<AnalyticsAverageMessagesPerRequest>(
       `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request`,
     );
+  }
+
+  getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
+    return this.http.get<AnalyticsResponseStatusRanges>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`);
   }
 }

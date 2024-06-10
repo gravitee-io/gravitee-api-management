@@ -21,7 +21,7 @@ import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs'
 import { ActivatedRoute } from '@angular/router';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
-import { flatten, get } from 'lodash';
+import { flatten, get, toNumber } from 'lodash';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 
@@ -38,17 +38,24 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 import { AnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
+import {
+  ApiAnalyticsResponseStatusRanges,
+  ApiAnalyticsResponseStatusRangesComponent,
+} from '../components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
+import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
   globalRequestStats?: AnalyticsRequestStats;
+  globalResponseStatusRanges?: ApiAnalyticsResponseStatusRanges;
   entrypoints?: {
     id: string;
     name: string;
     icon: string;
     requestStats?: AnalyticsRequestStats;
     isNotConfigured?: boolean;
+    responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
   }[];
 };
 
@@ -65,6 +72,7 @@ type ApiAnalyticsVM = {
     MatIcon,
     ApiAnalyticsFiltersBarComponent,
     MatTooltip,
+    ApiAnalyticsResponseStatusRangesComponent,
   ],
   templateUrl: './api-analytics-message.component.html',
   styleUrl: './api-analytics-message.component.scss',
@@ -92,6 +100,13 @@ export class ApiAnalyticsMessageComponent {
   private getAverageMessagesPerRequest$: Observable<Partial<AnalyticsAverageMessagesPerRequest> & { isLoading: boolean }> =
     this.apiAnalyticsService.getAverageMessagesPerRequest(this.activatedRoute.snapshot.params.apiId).pipe(
       map((requestsCount) => ({ isLoading: false, ...requestsCount })),
+      startWith({ isLoading: true }),
+    );
+
+  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsService
+    .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
+    .pipe(
+      map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
 
@@ -125,8 +140,13 @@ export class ApiAnalyticsMessageComponent {
     allEntrypoints: ApiAnalyticsVM['entrypoints'],
     apiEntrypointsId: string[],
   ): Observable<Pick<ApiAnalyticsVM, 'globalRequestStats' | 'entrypoints'>> {
-    return combineLatest([this.getRequestsCount$, this.getAverageConnectionDuration$, this.getAverageMessagesPerRequest$]).pipe(
-      map(([requestsCount, averageConnectionDuration, averageMessagesPerRequest]) => {
+    return combineLatest([
+      this.getRequestsCount$,
+      this.getAverageConnectionDuration$,
+      this.getAverageMessagesPerRequest$,
+      this.getResponseStatusRanges$,
+    ]).pipe(
+      map(([requestsCount, averageConnectionDuration, averageMessagesPerRequest, responseStatusRanges]) => {
         // Entrypoints that are configured in the API
         const apiEntrypoints = allEntrypoints.filter((entrypoint) => apiEntrypointsId.includes(entrypoint.id));
 
@@ -164,6 +184,13 @@ export class ApiAnalyticsMessageComponent {
                   isLoading: averageConnectionDuration.isLoading,
                 },
               ],
+              responseStatusRanges: {
+                isLoading: responseStatusRanges.isLoading,
+                data: Object.entries(get(responseStatusRanges, `rangesByEntrypoint.${entrypoint.id}`, {})).map(([label, value]) => ({
+                  label,
+                  value: toNumber(value),
+                })),
+              },
             };
           }),
           globalRequestStats: [
@@ -184,6 +211,10 @@ export class ApiAnalyticsMessageComponent {
               isLoading: averageConnectionDuration.isLoading,
             },
           ],
+          globalResponseStatusRanges: {
+            isLoading: responseStatusRanges.isLoading,
+            data: Object.entries(responseStatusRanges.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
+          },
         };
       }),
     );

@@ -29,6 +29,8 @@ import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-a
 import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
+import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
+import { fakeAnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -134,12 +136,38 @@ describe('ApiAnalyticsProxyComponent', () => {
           isLoading: false,
         },
       ]);
+
+      // Expect others analytics
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    });
+
+    it('should display Response Status', async () => {
+      const responseStatusRanges = await componentHarness.getResponseStatusRangesHarness('Response Status');
+
+      // Expect loading
+      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeFalsy();
+
+      // Expect data
+      expectApiAnalyticsResponseStatusRangesGetRequest(
+        fakeAnalyticsResponseStatusRanges({
+          ranges: {
+            '200': 0,
+          },
+        }),
+      );
+
+      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
+
+      // Expect others analytics
+      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
     });
 
     it('should refresh', async () => {
       const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
       expect(await requestStats.getValues()).toEqual([
         {
           label: 'Total Requests',
@@ -169,6 +197,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       ]);
       expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
       expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
   });
 
@@ -198,5 +227,14 @@ describe('ApiAnalyticsProxyComponent', () => {
         method: 'GET',
       })
       .flush(analyticsAverageConnectionDuration);
+  }
+
+  function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`,
+        method: 'GET',
+      })
+      .flush(analyticsResponseStatusRanges);
   }
 });
