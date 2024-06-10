@@ -96,7 +96,9 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
       type === 'MARKDOWN' || type === 'ASCIIDOC' || type === 'ASYNCAPI'
         ? this.ajsDocumentationService.getMedia(pageId, apiId).then((response) => response.data)
         : Promise.resolve(null),
-      this.ajsApiService.get(apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes'),
+      apiId !== undefined
+        ? this.ajsApiService.get(apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes')
+        : Promise.resolve(null),
     ]).then(
       ([
         resolvedFetchers,
