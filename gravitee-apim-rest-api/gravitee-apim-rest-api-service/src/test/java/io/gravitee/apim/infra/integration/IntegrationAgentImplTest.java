@@ -122,7 +122,15 @@ class IntegrationAgentImplTest {
                         "asset-description-1",
                         "asset-version-1",
                         Map.of("url", "https://example.com/1"),
-                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY)),
+                        List.of(
+                            new IntegrationApi.Plan(
+                                "plan-id-1",
+                                "Gold 1",
+                                "Gold description 1",
+                                IntegrationApi.PlanType.API_KEY,
+                                IntegrationApi.Validation.MANUAL
+                            )
+                        ),
                         List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
                     ),
                     new IntegrationApi(
@@ -133,7 +141,15 @@ class IntegrationAgentImplTest {
                         "asset-description-2",
                         "asset-version-2",
                         Map.of("url", "https://example.com/2"),
-                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY)),
+                        List.of(
+                            new IntegrationApi.Plan(
+                                "plan-id-2",
+                                "Gold 2",
+                                "Gold description 2",
+                                IntegrationApi.PlanType.API_KEY,
+                                IntegrationApi.Validation.MANUAL
+                            )
+                        ),
                         List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
                     )
                 );
@@ -374,6 +390,7 @@ class IntegrationAgentImplTest {
                         .name("Gold " + index)
                         .description("Gold description " + index)
                         .planSecurityType(PlanSecurityType.API_KEY)
+                        .validation(Plan.Validation.MANUAL)
                         .build()
                 )
             )
@@ -416,7 +433,15 @@ class IntegrationAgentImplTest {
                         "asset-description-1",
                         "asset-version-1",
                         Map.of("url", "https://example.com/1"),
-                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY)),
+                        List.of(
+                            new IntegrationApi.Plan(
+                                "plan-id-1",
+                                "Gold 1",
+                                "Gold description 1",
+                                IntegrationApi.PlanType.API_KEY,
+                                IntegrationApi.Validation.MANUAL
+                            )
+                        ),
                         List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
                     ),
                     new IntegrationApi(
@@ -427,7 +452,15 @@ class IntegrationAgentImplTest {
                         "asset-description-2",
                         "asset-version-2",
                         Map.of("url", "https://example.com/2"),
-                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY)),
+                        List.of(
+                            new IntegrationApi.Plan(
+                                "plan-id-2",
+                                "Gold 2",
+                                "Gold description 2",
+                                IntegrationApi.PlanType.API_KEY,
+                                IntegrationApi.Validation.MANUAL
+                            )
+                        ),
                         List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
                     )
                 );

@@ -204,7 +204,7 @@ class ConfigServiceTestNew {
             .isEqualTo(Boolean.TRUE);
         assertThat(portalSettings.getCors().getExposedHeaders().size()).as("cors exposed headers").isEqualTo(1);
         List<String> readonlyMetadata = portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
-        assertThat(readonlyMetadata.size()).as("Config metadata size").isEqualTo(5);
+        assertThat(readonlyMetadata).hasSize(5);
         assertThat(readonlyMetadata)
             .as("Config metadata contains AUTHENTICATION_FORCELOGIN_ENABLED")
             .contains(PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key());
