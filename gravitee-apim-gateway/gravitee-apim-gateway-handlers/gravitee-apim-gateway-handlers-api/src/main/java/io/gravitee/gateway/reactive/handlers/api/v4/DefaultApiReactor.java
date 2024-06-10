@@ -379,6 +379,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected List<DefaultHttpAcceptor> prepareHttpAcceptors(Listener listener) {
+        //TODO: acceptor created - adapt to consider saved access points
         return ((HttpListener) listener).getPaths()
             .stream()
             .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath(), this, listener.getServers()))

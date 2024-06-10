@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccessPointManagerImpl implements AccessPointManager {
 
+    //TODO: now these are synced, use them to build and remove acceptors
     private final Map<String, List<AccessPoint>> accessPoints = new ConcurrentHashMap<>();
 
     @Override

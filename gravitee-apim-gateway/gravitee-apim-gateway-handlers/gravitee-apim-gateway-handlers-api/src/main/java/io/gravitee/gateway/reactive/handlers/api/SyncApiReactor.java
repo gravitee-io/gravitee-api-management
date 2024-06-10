@@ -367,6 +367,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     @Override
     public List<Acceptor<?>> acceptors() {
         try {
+            //TODO: acceptor created - adapt to consider saved access points
             return api
                 .getDefinition()
                 .getProxy()

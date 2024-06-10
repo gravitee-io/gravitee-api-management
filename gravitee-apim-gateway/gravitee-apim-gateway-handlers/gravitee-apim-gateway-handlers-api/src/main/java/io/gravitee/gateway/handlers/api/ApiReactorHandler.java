@@ -431,6 +431,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     public List<Acceptor<?>> acceptors() {
+        //TODO: acceptor created - adapt to consider saved access points
         return reactable
             .getDefinition()
             .getProxy()

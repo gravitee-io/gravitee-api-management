@@ -43,6 +43,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final Map<Reactable, List<ReactableAcceptors>> handlers = new ConcurrentHashMap<>();
 
+    //TODO: acceptors currently stored, adapt or move this out
     private final Map<Class<? extends Acceptor<?>>, List<? extends Acceptor<?>>> acceptors = new ConcurrentHashMap<>();
     private final Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsMapping = new ConcurrentHashMap<>();
 

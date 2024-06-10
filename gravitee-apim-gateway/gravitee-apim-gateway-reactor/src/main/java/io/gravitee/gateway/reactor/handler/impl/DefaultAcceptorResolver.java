@@ -38,6 +38,7 @@ public class DefaultAcceptorResolver implements AcceptorResolver {
 
     @Override
     public HttpAcceptor resolve(ExecutionContext context, String serverId) {
+        //TODO; acceptors used
         for (HttpAcceptor acceptor : handlerRegistry.getAcceptors(HttpAcceptor.class)) {
             final Request request = context.request();
 
