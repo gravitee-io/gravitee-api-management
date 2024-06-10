@@ -83,7 +83,7 @@ data:
         password: {{ .Values.jdbc.password }}
         {{- end }}
         schema: {{ .Values.jdbc.schema | default "public" }}
-        liquibase: {{ .Values.jdbc.liquibase | default true }}
+        liquibase: {{ .Values.jdbc.liquibase }}
         {{- if .Values.jdbc.pool }}
         pool:
           {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
@@ -134,7 +134,7 @@ data:
     services:
       core:
         http:
-          enabled: {{ .Values.api.http.services.core.http.enabled | default true }}
+          enabled: {{ .Values.api.http.services.core.http.enabled }}
           port: {{ .Values.api.http.services.core.http.port | default "18083" }}
           host: {{ .Values.api.http.services.core.http.host | default "localhost" }}
           authentication:
@@ -148,33 +148,24 @@ data:
           enabled: true
           port: {{ .Values.api.services.bridge.service.internalPort | default 18092}}
           host: {{ .Values.api.services.bridge.host | default "localhost" }}
+          tcpKeepAlive: {{ .Values.api.services.bridge.tcpKeepAlive }}
+          maxHeaderSize: {{ .Values.api.services.bridge.maxHeaderSize | default 8192 }}
+          maxChunkSize: {{ .Values.api.services.bridge.maxChunkSize | default 8192 }}
+          alpn: {{ .Values.api.services.bridge.alpn | default false }}
           authentication:
+            {{- if .Values.api.services.bridge.authentication }}
+{{ toYaml .Values.api.services.bridge.authentication | indent 12 }}
+            {{- else if .Values.api.services.bridge.username}}
             type: basic
-            {{- if .Values.api.services.bridge.username }}
             users:
               {{ .Values.api.services.bridge.username }}: {{ .Values.api.services.bridge.password }}
+            {{- else}}
+            type: none
             {{- end }}
           {{- if .Values.api.services.bridge.ssl }}
-          secured: {{ .Values.api.services.bridge.ssl.enabled | default false }}
-          alpn: true
+          secured: {{ .Values.api.services.bridge.ssl.enabled }}
           ssl:
-            {{- if .Values.api.services.bridge.ssl.keystore}}
-            keystore:
-              {{- if .Values.api.services.bridge.ssl.keystore.type }}
-              type: {{ .Values.api.services.bridge.ssl.keystore.type }}
-              {{- end }}
-              path: {{ .Values.api.services.bridge.ssl.keystore.path }}
-              password: {{ .Values.api.services.bridge.ssl.keystore.password | quote }}
-            {{- end }}
-            clientAuth: {{ .Values.api.services.bridge.ssl.clientAuth | default false }}
-            {{- if .Values.api.services.bridge.ssl.truststore }}
-            truststore:
-              {{- if .Values.api.services.bridge.ssl.truststore.type }}
-              type: {{ .Values.api.services.bridge.ssl.truststore.type }}
-              {{- end }}
-              path: {{ .Values.api.services.bridge.ssl.truststore.path }}
-              password: {{ .Values.api.services.bridge.ssl.truststore.password | quote }}
-            {{- end }}
+{{ toYaml .Values.api.services.bridge.ssl | indent 12 }}
           {{- end }}
       {{- end }}
 
