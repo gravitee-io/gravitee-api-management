@@ -68,7 +68,7 @@ export class AuthService {
         redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '')}`,
         scope: idp.scopes?.join(idp.scopeDelimiter ?? ' '),
         response_type: 'code',
-        post_logout_redirect_uri: `${window.location.origin + this.locationStrategy.prepareExternalUrl('/_login')}`,
+        post_logout_redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '') + this.locationStrategy.prepareExternalUrl('/_login')}`,
         userStore: new WebStorageStateStore({ store: window.localStorage }),
         loadUserInfo: false,
         extraHeaders: {
@@ -82,7 +82,9 @@ export class AuthService {
         metadata: {
           introspection_endpoint: idp.tokenIntrospectionEndpoint,
           authorization_endpoint: idp.authorizationEndpoint,
-          end_session_endpoint: idp.userLogoutEndpoint ?? `${window.location.origin + this.locationStrategy.prepareExternalUrl('/_login')}`,
+          end_session_endpoint:
+            idp.userLogoutEndpoint ??
+            `${(window.location.origin + window.location.pathname).replace(/\/$/, '') + this.locationStrategy.prepareExternalUrl('/_login')}`,
           token_endpoint: `${constants.org.baseURL}/auth/oauth2/${idp.id}`,
         },
       });
