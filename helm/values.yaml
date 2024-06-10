@@ -409,17 +409,17 @@ cockpit:
   keystore:
     value: "base64 encoded value of the keystore provided by Cockpit (required)"
     password:
-      #value: "keystores password provided by Cockpit"
-      #valueFrom:
-        #secretKeyRef:
-        #configMapKeyRef:
+  #  value: "keystores password provided by Cockpit"
+  #  valueFrom:
+  #    secretKeyRef:
+  #    configMapKeyRef:
   #truststore:
-    #value: base64 encoded value of the truststore provided by Cockpit (optional)
-    #password:
-      #value: "truststore password provided by Cockpit"
-      #valueFrom:
-        #secretKeyRef:
-        #configMapKeyRef:
+  #  value: base64 encoded value of the truststore provided by Cockpit (optional)
+  #  password:
+  #    value: "truststore password provided by Cockpit"
+  #    valueFrom:
+  #      secretKeyRef:
+  #      configMapKeyRef:
   url: https://cockpit.gravitee.io
   controller: https://cockpit-controller.gravitee.io
   ssl:
@@ -438,18 +438,18 @@ cloud:
           type: pkcs12
           path: /opt/graviteeio-management-api/cloud/keystore.p12
           password:
-            #value: "keystores password provided by Cockpit"
-            #valueFrom:
-              #secretKeyRef:
-              #configMapKeyRef:
+          #  value: "keystores password provided by Cockpit"
+          #  valueFrom:
+          #    secretKeyRef:
+          #    configMapKeyRef:
         truststore:
           type: pkcs12
           path: /opt/graviteeio-management-api/cloud/truststore.p12
           password:
-            #value: "truststore password provided by Cockpit"
-            #valueFrom:
-              #secretKeyRef:
-              #configMapKeyRef:
+          #  value: "truststore password provided by Cockpit"
+          #  valueFrom:
+          #    secretKeyRef:
+          #    configMapKeyRef:
 
 api:
   enabled: true
@@ -607,19 +607,45 @@ api:
     bridge:
       enabled: false
       # host: localhost
+      # # next two are deprecated, use authentication.users instead
       # username:
       # password:
+      tcpKeepAlive: true
+      # maxHeaderSize: 8192
+      # maxChunkSize: 8192
+      # alpn: true
+      # authentication:
+      #    type: basic # Supports: none, jwt
+      #    users:
+      #      admin: secret
+      #      foo: bar
+      #    jwt:
+      #      signature:
+      #        algorithm: RS256
+      #        path: ${gravitee.home}/security/bridge/public_key.pem
+      #        # path and value mutually exclusive
+      #        value: <public key pem with headers>
+      #      verifyClaims: true
       ssl:
         enabled: false
       #  keystore:
       #    type: jks # Supports jks, pem, pkcs12
       #    path: ${gravitee.home}/security/keystore.jks
       #    password: secret
-      #  clientAuth: false
+      #    defaultAlias:
+      #    secret: secret://kubernetes/bridge-tls
+      #    watch: true
+      #    # when type is 'pem'
+      #    certificates:
+      #      - cert: ${gravitee.home}/security/cert.pem
+      #        key: ${gravitee.home}/security/key.pem
+      #  clientAuth: none
       #  truststore:
       #    type: jks # Supports jks, pem, pkcs12
       #    path: ${gravitee.home}/security/truststore.jks
       #    password: secret
+      #    secret: secret://kubernetes/bridge-mtls:ca.crt
+      #    watch: true
       service:
         externalPort: 92
         internalPort: 18092
@@ -1141,19 +1167,45 @@ gateway:
     bridge:
       enabled: false
       # host: localhost
+      # # next two are deprecated, use authentication.users instead
       # username:
       # password:
+      tcpKeepAlive: true
+      # maxHeaderSize: 8192
+      # maxChunkSize: 8192
+      # alpn: true
+      # authentication:
+      #    type: basic # Supports: none, jwt
+      #    users:
+      #      admin: secret
+      #      foo: bar
+      #    jwt:
+      #      signature:
+      #        algorithm: RS256
+      #        path: ${gravitee.home}/security/bridge/public_key.pem
+      #        # path and value mutually exclusive
+      #        value: <public key pem with headers>
+      #      verifyClaims: true
       ssl:
         enabled: false
       #  keystore:
       #    type: jks # Supports jks, pem, pkcs12
       #    path: ${gravitee.home}/security/keystore.jks
       #    password: secret
-      #  clientAuth: false
+      #    defaultAlias:
+      #    secret: secret://kubernetes/bridge-tls
+      #    watch: true
+      #    # when type is 'pem'
+      #    certificates:
+      #      - cert: ${gravitee.home}/security/cert.pem
+      #        key: ${gravitee.home}/security/key.pem
+      #  clientAuth: none
       #  truststore:
       #    type: jks # Supports jks, pem, pkcs12
       #    path: ${gravitee.home}/security/truststore.jks
       #    password: secret
+      #    secret: secret://kubernetes/bridge-mtls:ca.crt
+      #    watch: true
       service:
         externalPort: 92
         internalPort: 18092

@@ -15,9 +15,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * redis:\n
-                     *  host: redis\n
-                     *  port: 6379\n"
+          pattern: |
+            \s redis:
+            \s   host: redis
+            \s   port: 6379
   - it: Set host and port with password and ssl enabled
     template: gateway/gateway-configmap.yaml
     set:
@@ -33,12 +34,18 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * redis:\n
-                     *  host: redis\n
-                     *  port: 6379\n
-                     *  password: mypassword\n
-                     *  ssl: true\n
-                     *  hostnameVerificationAlgorithm: NONE"
+          pattern: |
+            \s redis:
+            \s   host: redis
+            \s   port: 6379
+            \s   password: mypassword
+            \s   ssl: true
+            \s   hostnameVerificationAlgorithm: NONE
+            \s   trustAll: true
+            \s   tlsProtocols: TLSv1.2
+            \s   alpn: false
+            \s   openssl: false
+
   - it: Set host and port with password, ssl enabled and hostname verification algorithm to HTTPS
     template: gateway/gateway-configmap.yaml
     set:
@@ -55,12 +62,17 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * redis:\n
-                     *  host: redis\n
-                     *  port: 6379\n
-                     *  password: mypassword\n
-                     *  ssl: true\n
-                     *  hostnameVerificationAlgorithm: HTTPS"
+          pattern: |
+            \s redis:
+            \s   host: redis
+            \s   port: 6379
+            \s   password: mypassword
+            \s   ssl: true
+            \s   hostnameVerificationAlgorithm: HTTPS
+            \s   trustAll: true
+            \s   tlsProtocols: TLSv1.2
+            \s   alpn: false
+            \s   openssl: false
   - it: Set configuration with sentinels
     template: gateway/gateway-configmap.yaml
     set:
@@ -81,16 +93,17 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * redis:\n
-                     *  host: redis\n
-                     *  port: 6379\n
-                     *  sentinel:\n
-                     *  master: redismaster\n
-                     *  nodes:\n
-                     *    - host: sent1\n
-                     *      port: 26379\n
-                     *    - host: sent2\n
-                     *      port: 26379\n"
+          pattern: |
+            \s redis:
+            \s   host: redis
+            \s   port: 6379
+            \s   sentinel:
+            \s     master: redismaster
+            \s     nodes:
+            \s       - host: sent1
+            \s         port: 26379
+            \s       - host: sent2
+            \s         port: 26379
   - it: Set full SSL configuration
     template: gateway/gateway-configmap.yaml
     set:
@@ -104,7 +117,7 @@ tests:
             password: mypassword
             ssl: true
             hostnameVerificationAlgorithm: NONE
-            trustAll: "false"
+            trustAll: false
             tlsProtocols: TLSv1.2, TLSv1.3
             tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
             alpn: true
@@ -129,32 +142,33 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * redis:\n
-                     *   host: redis\n
-                     *   port: 6379\n
-                     *   password: mypassword\n
-                     *   ssl: true\n
-                     *   hostnameVerificationAlgorithm: NONE\n
-                     *   trustAll: false\n
-                     *   tlsProtocols: TLSv1.2, TLSv1.3\n
-                     *   tlsCiphers: \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384\"\n
-                     *   alpn: true\n
-                     *   openssl: true\n
-                     *   \n
-                     *   keystore:\n
-                     *     type: jks\n
-                     *     path: \\${gravitee.home}/security/redis-keystore.jks\n
-                     *     password: secret\n
-                     *     keyPassword: \"secretKey\"\n
-                     *     alias: myAlias\n
-                     *   \n
-                     *     certificates:\n
-                     *       - cert: \\${gravitee.home}/security/redis-mycompany.org.pem\n
-                     *         key: \\${gravitee.home}/security/redis-mycompany.org.key\n
-                     *     - cert: \\${gravitee.home}/security/redis-mycompany.com.pem\n
-                     *       key: \\${gravitee.home}/security/redis-mycompany.com.key\n
-                     *   truststore:\n
-                     *     type: jks\n
-                     *     path: \\${gravitee.home}/security/redis-truststore.jks\n
-                     *     password: secret\n
-                     *     alias: anotheralias\n"
+          pattern: |
+            \s redis:
+            \s   host: redis
+            \s   port: 6379
+            \s   password: mypassword
+            \s   ssl: true
+            \s   hostnameVerificationAlgorithm: NONE
+            \s   trustAll: false
+            \s   tlsProtocols: TLSv1.2, TLSv1.3
+            \s   tlsCiphers: "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
+            \s   alpn: true
+            \s   openssl: true
+            \s   
+            \s   keystore:
+            \s     type: jks
+            \s     path: \${gravitee.home}/security/redis-keystore.jks
+            \s     password: secret
+            \s     keyPassword: "secretKey"
+            \s     alias: myAlias
+            \s     
+            \s     certificates:
+            \s       - cert: \${gravitee.home}/security/redis-mycompany.org.pem
+            \s         key: \${gravitee.home}/security/redis-mycompany.org.key
+            \s       - cert: \${gravitee.home}/security/redis-mycompany.com.pem
+            \s         key: \${gravitee.home}/security/redis-mycompany.com.key
+            \s   truststore:
+            \s     type: jks
+            \s     path: \${gravitee.home}/security/redis-truststore.jks
+            \s     password: secret
+            \s     alias: anotheralias

@@ -7,7 +7,18 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Add support for multi-server installation
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+- Add support for JWT authentication in HTTP repository and Bridge Server (hybrid gateways)
 - BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+- BREAKING CHANGE: `gateway.management.http.trustall` is now `false` by default (and renamed `trustAll`). Using a public CA or a well-configured truststore will therefor continue to work.
+- Deprecations:
+    - `gateway.management.http.username` (and `password`) have been deprecated to allow JWT auth to be configured. For basic auth the following should be set:
+        - `gateway.management.http.authentication.type` with value `basic`
+        - `gateway.management.http.authentication.basic.username`
+        - `gateway.management.http.authentication.basic.password`
+    - `gateway|api.services.bridge.ssl.clientAuth` no longer use a boolean value. Possible values are now `none` (default previously `false`), `required`, `request`. Backward compatibility is maintained, `true` means `required`.
+    - `gateway|api.services.bridge.username` (and `password`) have been deprecated to allow JWT auth to be configured. For basic auth the following should be set:
+        - `gateway|api.services.bridge.authentication.type` with value `basic`
+        - `gateway|api.services.bridge.authentication.users` containing key/value pairs of users \(e.g. `[...].users.admin = s3cr3t`)
 
 ### 4.3.5
 

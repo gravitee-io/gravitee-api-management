@@ -196,6 +196,49 @@ services:
         type: basic
         users:
           admin: adminadmin
+  bridge:
+    http:
+      enabled: false
+  #      port: 18092
+  #      host: localhost
+  #      tcpKeepAlive: true
+  #      maxHeaderSize: 8192
+  #      maxChunkSize: 8192
+  #      alpn: false
+  #      authentication:
+  #        type: none # Supports: Basic, JWT
+  #        # type = JWT
+  #        jwt:
+  #          signature:
+  #            algorithm: RS256
+  #            path: ${gravitee.home}/security/bridge/public_key.pem
+  #            value: # raw pem file as a strign block
+  #          verifyClaims: true
+  #        # type = Basic
+  #        users:
+  #          admin: secret
+  #          superadmin: password
+  #      secured: true
+  #      ssl:
+  #        clientAuth: None # Supports: Request, Required
+  #        keystore:
+  #          type: jks # Supports: PKCS12, PEM
+  #          path: ${gravitee.home}/security/keystore.jks
+  #          password: secret
+  #          defaultAlias:
+  #          secret: secret://kubernetes/my-tls
+  #          watch: true
+  #          # for type= PEM
+  #          certificates:
+  #            - cert: ${gravitee.home}/security/cert1.pem
+  #              key: ${gravitee.home}/security/key1.pem
+  #            - cert: ${gravitee.home}/security/cert2.pem
+  #              key: ${gravitee.home}/security/key2.pem
+  #        truststore:
+  #          type: jks # Supports: PKCS12, PEM
+  #          path: ${gravitee.home}/security/truststore.jks
+  #          password: secret
+  #           secret: secret://kubernetes/my-tls
 
   # metrics service
   metrics:

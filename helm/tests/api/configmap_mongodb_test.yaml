@@ -17,10 +17,11 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * mongodb:\n
-                     *  sslEnabled: true\n
-                     *  socketKeepAlive: true\n
-                     *  uri: mongodb://mongo-mongodb-replicaset:27017/gravitee"
+          pattern: |
+            \s mongodb:
+            \s   sslEnabled: true
+            \s   socketKeepAlive: true
+            \s   uri: mongodb://mongo-mongodb-replicaset:27017/gravitee
   - it: Set common value and servers
     template: api/api-configmap.yaml
     set:
@@ -41,19 +42,20 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * mongodb:\n
-                     *   sslEnabled: true\n
-                     *   socketKeepAlive: true\n
-                     *   servers:\n
-                     *     - host: mongo1\n
-                     *       port: 27017\n
-                     *     - host: mongo2\n
-                     *       port: 27017\n
-                     *\n
-                     *   dbname: dbname\n
-                     *   username: username\n
-                     *   password: password\n
-                     *   authSource: authSource"
+          pattern: |
+            \s mongodb:
+            \s   sslEnabled: true
+            \s   socketKeepAlive: true
+            \s   servers:
+            \s     - host: mongo1
+            \s       port: 27017
+            \s     - host: mongo2
+            \s       port: 27017
+            \s+
+            \s   dbname: dbname
+            \s   username: username
+            \s   password: password
+            \s   authSource: authSource
   - it: Set common value and properties one by one
     template: api/api-configmap.yaml
     set:
@@ -73,10 +75,11 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * mongodb:\n
-                     *   sslEnabled: true\n
-                     *   socketKeepAlive: true\n
-                     *   uri: mongodb://username:password@graviteeio-apim-mongodb-replicaset:27117/dbname\\?&replicaSet=rs0&authSource=authSource&connectTimeoutMS=2000"
+          pattern: |
+            \s mongodb:
+            \s   sslEnabled: true
+            \s   socketKeepAlive: true
+            \s   uri: mongodb://username:password@graviteeio-apim-mongodb-replicaset:27117/dbname\?&replicaSet=rs0&authSource=authSource&connectTimeoutMS=2000
   - it: Set mongo keystore attributes with provided values
     template: api/api-configmap.yaml
     set:
@@ -89,13 +92,14 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * mongodb:\n
-                    (.|\n)*\n
-                     *   keystore:\n
-                     *     keyPassword: keyPassword\n
-                     *     password: keystorePassword\n
-                     *     path: /path/to/keystore.p12\n
-                     *     type: pkcs12"
+          pattern:  |
+            \s mongodb:
+            (.|\n)*
+            \s   keystore:
+            \s     keyPassword: keyPassword
+            \s     password: keystorePassword
+            \s     path: /path/to/keystore.p12
+            \s     type: pkcs12
   - it: Set mongo truststore attributes with provided values
     template: api/api-configmap.yaml
     set:
@@ -107,9 +111,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * mongodb:\n
-                    (.|\n)*\n
-                     *   truststore:\n
-                     *     password: truststorePassword\n
-                     *     path: /path/to/truststore.jks\n
-                     *     type: jks"
+          pattern: |
+            \s mongodb:
+            (.|\n)*
+            \s   truststore:
+            \s     password: truststorePassword
+            \s     path: /path/to/truststore.jks
+            \s     type: jks

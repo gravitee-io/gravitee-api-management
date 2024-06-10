@@ -13,6 +13,7 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * subscription:\n
-                     *   enabled: true\n
-                     *   pre-expiration-notification-schedule: 15,10,5"
+          pattern: |
+            \s subscription:
+            \s   enabled: true
+            \s   pre-expiration-notification-schedule: 15,10,5
