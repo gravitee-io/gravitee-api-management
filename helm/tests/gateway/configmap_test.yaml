@@ -16,11 +16,12 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " * ssl:\n
-                     *  keystore:\n
-                     *   type: PKCS12\n
-                     *   path: /p12/keystore\n
-                     *   password: password\n"
+          pattern: |
+            \s     ssl:
+            \s       keystore:
+            \s         type: PKCS12
+            \s         path: /p12/keystore
+            \s         password: password
 
   - it: Check multi server support
     template: gateway/gateway-configmap.yaml
@@ -36,13 +37,14 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *servers:\n
-                     * - type: http\n
-                     *   port: 8082\n
-                     *   host: 0.0.0.0\n
-                     * - type: http\n
-                     *   port: 8083\n
-                     *   host: 0.0.0.0\n
-                     * - type: tcp\n
-                     *   port: 9092\n
-                     *   host: 0.0.0.0\n"
+          pattern: |
+            servers:
+              - type: http
+                port: 8082
+                host: 0.0.0.0
+              - type: http
+                port: 8083
+                host: 0.0.0.0
+              - type: tcp
+                port: 9092
+                host: 0.0.0.0

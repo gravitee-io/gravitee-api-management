@@ -20,14 +20,15 @@ tests:
           of: ConfigMap
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *  secured: true\n
-                     *  ssl:\n
-                     *    keystore:\n
-                     *      type: jks\n
-                     *      password: \"changeme\"\n
-                     *      kubernetes: /default/secrets/api-custom-cert-opaque/keystore\n
-                     *    clientAuth: false\n
-                     *    sni: true\n"
+          pattern: |
+            \s secured: true
+            \s ssl:
+            \s   keystore:
+            \s     type: jks
+            \s     password: "changeme"
+            \s     kubernetes: /default/secrets/api-custom-cert-opaque/keystore
+            \s   clientAuth: false
+            \s   sni: true
 
   - it: Keystore not watched
     template: gateway/gateway-configmap.yaml
@@ -45,12 +46,13 @@ tests:
           of: ConfigMap
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *  secured: true\n
-                     *  ssl:\n
-                     *    keystore:\n
-                     *      watch: false\n
-                     *    clientAuth: false\n
-                     *    sni: true\n"
+          pattern: |
+            \s secured: true
+            \s ssl:
+            \s   keystore:
+            \s     watch: false
+            \s   clientAuth: false
+            \s   sni: true
 
   - it: Keystore watched
     template: gateway/gateway-configmap.yaml
@@ -68,9 +70,10 @@ tests:
           of: ConfigMap
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *  secured: true\n
-                     *  ssl:\n
-                     *    keystore:\n
-                     *      watch: true\n
-                     *    clientAuth: false\n
-                     *    sni: true\n"
+          pattern: |
+            \s secured: true
+            \s ssl:
+            \s   keystore:
+            \s     watch: true
+            \s   clientAuth: false
+            \s   sni: true
