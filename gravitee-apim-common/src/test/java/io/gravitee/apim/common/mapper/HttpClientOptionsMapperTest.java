@@ -44,8 +44,6 @@ class HttpClientOptionsMapperTest {
         assertThat(result.isPipelining()).isEqualTo(VertxHttpClientOptions.DEFAULT_PIPELINING);
         assertThat(result.getMaxConcurrentConnections()).isEqualTo(VertxHttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
         assertThat(result.isUseCompression()).isEqualTo(VertxHttpClientOptions.DEFAULT_USE_COMPRESSION);
-        assertThat(result.isPropagateClientAcceptEncoding()).isEqualTo(VertxHttpClientOptions.DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING);
-        assertThat(result.isFollowRedirects()).isEqualTo(VertxHttpClientOptions.DEFAULT_FOLLOW_REDIRECTS);
         assertThat(result.isClearTextUpgrade()).isEqualTo(VertxHttpClientOptions.DEFAULT_CLEAR_TEXT_UPGRADE);
         assertThat(result.getVersion()).isEqualTo(VertxHttpClientOptions.DEFAULT_PROTOCOL_VERSION);
     }
@@ -61,8 +59,6 @@ class HttpClientOptionsMapperTest {
             .pipelining(false)
             .maxConcurrentConnections(1)
             .useCompression(false)
-            .propagateClientAcceptEncoding(true)
-            .followRedirects(true)
             .clearTextUpgrade(false)
             .version(ProtocolVersion.HTTP_2)
             .build();
@@ -75,8 +71,6 @@ class HttpClientOptionsMapperTest {
         assertThat(result.isPipelining()).isFalse();
         assertThat(result.getMaxConcurrentConnections()).isOne();
         assertThat(result.isUseCompression()).isFalse();
-        assertThat(result.isPropagateClientAcceptEncoding()).isTrue();
-        assertThat(result.isFollowRedirects()).isTrue();
         assertThat(result.isClearTextUpgrade()).isFalse();
         assertThat(result.getVersion()).isEqualTo(VertxHttpProtocolVersion.HTTP_2);
     }
