@@ -81,7 +81,12 @@ class ApplicationAnalyticsController {
 
   viewLogs() {
     // update the query parameter
-    this.ngRouter.navigate(['../', 'logs'], { relativeTo: this.activatedRoute });
+    this.ngRouter.navigate(['../', 'logs'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+      },
+    });
   }
 }
 ApplicationAnalyticsController.$inject = ['ApplicationService', 'DashboardService', 'ngRouter'];
