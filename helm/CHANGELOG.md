@@ -7,12 +7,6 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Add support for multi-server installation
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
-- Add support for JWT authentication in HTTP repository (hybrid gateways 'bridge' client)
-- BREAKING CHANGE: 
-  - `gateway.management.http.trustall` is now `false` by default. Using a public CA or a well configured truststore should still work
-  - `gateway.management.http.username` (and `password`) have been removed to allow JWT auth to be configured. The following must be set from now on:
-    - `gateway.management.http.authentication.type` = `basic`
-    - & `gateway.management.http.authentication.basic.username` (and `password`) 
 
 ### 4.3.4
 
