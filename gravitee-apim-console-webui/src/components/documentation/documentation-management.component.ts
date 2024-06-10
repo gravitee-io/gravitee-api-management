@@ -57,9 +57,11 @@ export class DocumentationManagementComponent extends UpgradeComponent {
       .pipe(
         distinctUntilChanged(isEqual),
         tap((params) => {
-          this.ajsApiService.get(params.apiId).then((res) => {
-            this.readOnly = res.data?.definition_context?.origin === 'kubernetes';
-          });
+          if (params.apiId) {
+            this.ajsApiService.get(params.apiId).then((res) => {
+              this.readOnly = res.data?.definition_context?.origin === 'kubernetes';
+            });
+          }
         }),
         switchMap((params) => {
           this.firstChange = true;
