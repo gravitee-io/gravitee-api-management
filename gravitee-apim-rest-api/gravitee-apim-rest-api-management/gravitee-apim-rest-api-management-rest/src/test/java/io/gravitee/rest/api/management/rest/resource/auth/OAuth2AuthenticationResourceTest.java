@@ -18,6 +18,8 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.ws.rs.client.Entity.form;
+import static jakarta.ws.rs.client.Entity.json;
+import static jakarta.ws.rs.client.Entity.text;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +37,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
+import io.gravitee.rest.api.management.rest.model.ExchangePayloadEntity;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
@@ -47,6 +50,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.vertx.core.json.JsonObject;
 import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -162,6 +166,16 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 public boolean isEmailRequired() {
                     return true;
                 }
+
+                @Override
+                public String getTokenIntrospectionEndpoint() {
+                    return "http://localhost:" + wireMockRule.port() + "/introspect";
+                }
+
+                @Override
+                public String getClientId() {
+                    return "the_client_id";
+                }
             };
 
         when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any())).thenReturn(identityProvider);
@@ -212,6 +226,77 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // verify jwt token
         verifyJwtToken(response);
+    }
+
+    @Test
+    public void should_exchange_token_by_query_param()
+        throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+        final String tokenToExchange = "MyToken";
+        // Given
+        //mock environment
+        mockDefaultEnvironment();
+        // mock introspect token
+        mockIntrospectToken();
+        //mock oauth2 user info call
+        mockUserInfo(
+            okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
+            tokenToExchange
+        );
+        //mock DB find user by name
+        UserEntity userEntity = mockUserEntity();
+        //mock DB user connect
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any())).thenReturn(userEntity);
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(userEntity);
+
+        // When
+        Response response = orgTarget().path("exchange").queryParam("token", tokenToExchange).request().post(json(null));
+
+        // Then
+        verify(userService, times(1)).connect(any(), eq(userEntity.getSourceId()));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verifyJwtToken(response);
+    }
+
+    @Test
+    public void should_exchange_token_by_body() throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+        final String tokenToExchange = "MyToken";
+        // Given
+        //mock environment
+        mockDefaultEnvironment();
+        // mock introspect token
+        mockIntrospectToken();
+        //mock oauth2 user info call
+        mockUserInfo(
+            okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
+            tokenToExchange
+        );
+        //mock DB find user by name
+        UserEntity userEntity = mockUserEntity();
+        //mock DB user connect
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any())).thenReturn(userEntity);
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(userEntity);
+
+        // When
+        ExchangePayloadEntity exchangePayloadEntity = new ExchangePayloadEntity();
+        exchangePayloadEntity.setToken(tokenToExchange);
+        Response response = orgTarget().path("exchange").request().post(json(exchangePayloadEntity));
+
+        // Then
+        verify(userService, times(1)).connect(any(), eq(userEntity.getSourceId()));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verifyJwtToken(response);
+    }
+
+    private static void mockIntrospectToken() {
+        String tokenRequestBody = "token=MyToken";
+        JsonObject tokenResponseBody = new JsonObject().put("active", "true");
+        stubFor(
+            post("/introspect")
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
+                .withHeader(HttpHeaders.AUTHORIZATION, containing("Basic"))
+                .withRequestBody(equalTo(tokenRequestBody))
+                .willReturn(okJson(tokenResponseBody.toString()))
+        );
     }
 
     private void verifyJwtToken(Response response)
@@ -379,10 +464,14 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder) throws IOException {
+        mockUserInfo(responseDefinitionBuilder, "2YotnFZFEjr1zCsicMWpAA");
+    }
+
+    private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder, String expectedBearer) throws IOException {
         stubFor(
             get("/userinfo")
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer 2YotnFZFEjr1zCsicMWpAA"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + expectedBearer))
                 .willReturn(responseDefinitionBuilder)
         );
     }

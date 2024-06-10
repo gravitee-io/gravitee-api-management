@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.management.rest.model.ExchangePayloadEntity;
 import io.gravitee.rest.api.management.rest.model.PayloadInput;
 import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.model.UserEntity;
@@ -119,11 +120,15 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @POST
     @Path("exchange")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response tokenExchange(
         @PathParam(value = "identity") final String identity,
-        @QueryParam(value = "token") final String token,
+        @QueryParam(value = "token") final String tokenQueryParam,
+        @Valid final ExchangePayloadEntity exchangePayload,
         @Context final HttpServletResponse servletResponse
     ) throws IOException {
+        String token = tokenQueryParam == null ? exchangePayload.getToken() : tokenQueryParam;
+
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(
             identity,
             new IdentityProviderActivationService.ActivationTarget(
