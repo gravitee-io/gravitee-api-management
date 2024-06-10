@@ -7,10 +7,11 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *metrics:\n
-                     *  enabled: false\n
-                     *  prometheus:\n
-                     *    enabled: true"
+          pattern: |
+           \s metrics:
+           \s   enabled: false
+           \s   prometheus:
+           \s     enabled: true
   - it: Enable metrics service and set `labels`
     template: api/api-configmap.yaml
     set:
@@ -26,13 +27,15 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *metrics:\n
-                     *  enabled: true\n
-                     *  labels:\n
-                     *    - local\n
-                     *    - remote\n
-                     *  prometheus:\n
-                     *    enabled: true"
+          pattern: |
+            \s metrics:
+            \s   enabled: true
+            \s   labels:
+            \s   - local
+            \s   - remote
+            \s   prometheus:
+            \s     enabled: true
+
   - it: Enable metrics service and don't set any `labels`
     template: api/api-configmap.yaml
     set:
@@ -45,7 +48,8 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: " *metrics:\n
-                     *  enabled: true\n
-                     *  prometheus:\n
-                     *    enabled: true"
+          pattern: |
+            \s metrics:
+            \s   enabled: true
+            \s   prometheus:
+            \s     enabled: true

@@ -97,16 +97,19 @@ tests:
     asserts:
       - notMatchRegex:
           path: data["gravitee.yml"]
-          pattern: " * users:\n
-				    *  - user:\n
-                    *  - user:"
+          pattern: |
+            \s users:
+            \s   - user:
+            \s   - user:"
 
   - it: check default api.gateway.unknownExpireAfter
     template: api/api-configmap.yaml
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: "gateway:\n  unknown-expire-after: 604800"
+          pattern: |
+            gateway:
+              unknown-expire-after: 604800
 
   - it: Set api.gateway.unknownExpireAfter to 60
     template: api/api-configmap.yaml
@@ -117,7 +120,9 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: "gateway:\n  unknown-expire-after: 60"
+          pattern: |
+            gateway:
+              unknown-expire-after: 60
   - it: Set configuration logging message sampling
     template: api/api-configmap.yaml
     set:
@@ -131,7 +136,12 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: "logging:\n  messageSampling:\n    count:\n      default: 500\n      limit: 100"
+          pattern: |
+            logging:
+              messageSampling:
+                count:
+                  default: 500
+                  limit: 100
 
   - it: Enable External Authentication
     template: api/api-configmap.yaml
@@ -162,9 +172,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: "integration:\n
-                    * enabled: true\n
-                    * \n
-                    * controller:\n
-                    *   ws:\n
-                    *     port: 8072"
+          pattern: |
+            integration:
+              enabled: true
+              
+              controller:
+                ws:
+                  port: 8072

@@ -1,0 +1,134 @@
+suite: Test Gateway default configmap with Bridge Server
+templates:
+    - "gateway/gateway-configmap.yaml"
+tests:
+    - it: Enabled with defaults
+      template: gateway/gateway-configmap.yaml
+      set:
+          gateway:
+              services:
+                  bridge:
+                      enabled: true
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |  
+                  \s bridge:
+                  \s   http:
+                  \s     enabled: true
+                  \s     port: 18092
+                  \s     host: localhost
+                  \s     tcpKeepAlive: true
+                  \s     maxHeaderSize: 8192
+                  \s     maxChunkSize: 8192
+                  \s     alpn: false
+                  \s     authentication:
+                  \s       type: none
+    - it: Enabled with non-defaults
+      template: gateway/gateway-configmap.yaml
+      set:
+          gateway:
+              services:
+                  bridge:
+                      enabled: true
+                      service:
+                          internalPort: 8080
+                      host: foo.bar.com
+                      tcpKeepAlive: false
+                      maxHeaderSize: 1024
+                      maxChunkSize: 1024
+                      authentication:
+                          type: basic
+                          users:
+                              admin: secret
+                              superadmin: password
+                          jwt:
+                              signature:
+                                  algorithm: RS256
+                                  path: ${gravitee.home}/security/bridge/public_key.pem
+                                  value: here should be a pem file
+                              verifyClaims: true
+                      alpn: true
+                      ssl:
+                          enabled: true
+                          keystore:
+                              type: jks
+                              path: ${gravitee.home}/security/keystore.jks
+                              password: secret
+                              certificates:
+                                - cert: ${gravitee.home}/security/cert1.pem
+                                  key: ${gravitee.home}/security/key1.pem
+                                - cert: ${gravitee.home}/security/cert2.pem
+                                  key: ${gravitee.home}/security/key2.pem
+                          clientAuth: Request
+                          truststore:
+                              type: jks
+                              path: ${gravitee.home}/security/truststore.jks
+                              password: secret
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                  \s bridge:
+                  \s   http:
+                  \s     enabled: true
+                  \s     port: 8080
+                  \s     host: foo.bar.com
+                  \s     tcpKeepAlive: false
+                  \s     maxHeaderSize: 1024
+                  \s     maxChunkSize: 1024
+                  \s     alpn: true
+                  \s     authentication:
+                  \s       jwt:
+                  \s         signature:
+                  \s           algorithm: RS256
+                  \s           path: \${gravitee.home}/security/bridge/public_key.pem
+                  \s           value: here should be a pem file
+                  \s         verifyClaims: true
+                  \s       type: basic
+                  \s       users:
+                  \s         admin: secret
+                  \s         superadmin: password
+                  \s     secured: true
+                  \s     ssl:
+                  \s       clientAuth: Request
+                  \s       enabled: true
+                  \s       keystore:
+                  \s         certificates:
+                  \s         - cert: \${gravitee.home}/security/cert1.pem
+                  \s           key: \${gravitee.home}/security/key1.pem
+                  \s         - cert: \${gravitee.home}/security/cert2.pem
+                  \s           key: \${gravitee.home}/security/key2.pem
+                  \s         password: secret
+                  \s         path: \${gravitee.home}/security/keystore.jks
+                  \s         type: jks
+                  \s       truststore:
+                  \s         password: secret
+                  \s         path: \${gravitee.home}/security/truststore.jks
+                  \s         type: jks
+    - it: Enabled with legacy data
+      template: gateway/gateway-configmap.yaml
+      set:
+          gateway:
+              services:
+                  bridge:
+                      enabled: true
+                      username: foo
+                      password: bar
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                  \s bridge:
+                  \s   http:
+                  \s     enabled: true
+                  \s     port: 18092
+                  \s     host: localhost
+                  \s     tcpKeepAlive: true
+                  \s     maxHeaderSize: 8192
+                  \s     maxChunkSize: 8192
+                  \s     alpn: false
+                  \s     authentication:
+                  \s       type: basic
+                  \s       users:
+                  \s         foo: bar
