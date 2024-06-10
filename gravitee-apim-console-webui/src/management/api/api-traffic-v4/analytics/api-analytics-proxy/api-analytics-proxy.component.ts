@@ -19,8 +19,9 @@ import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { map, startWith } from 'rxjs/operators';
+import { catchError, map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
+import { toNumber } from 'lodash';
 
 import {
   AnalyticsRequestStats,
@@ -32,11 +33,17 @@ import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v
 import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
+import {
+  ApiAnalyticsResponseStatusRanges,
+  ApiAnalyticsResponseStatusRangesComponent,
+} from '../components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component';
+import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
   requestStats?: AnalyticsRequestStats;
+  responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
 };
 
 @Component({
@@ -50,6 +57,7 @@ type ApiAnalyticsVM = {
     GioCardEmptyStateModule,
     ApiAnalyticsRequestStatsComponent,
     ApiAnalyticsFiltersBarComponent,
+    ApiAnalyticsResponseStatusRangesComponent,
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
@@ -72,11 +80,19 @@ export class ApiAnalyticsProxyComponent {
       startWith({ isLoading: true }),
     );
 
-  private analyticsData$: Observable<Pick<ApiAnalyticsVM, 'requestStats'>> = combineLatest([
-    this.getRequestsCount$,
-    this.getAverageConnectionDuration$,
+  private getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> = this.apiAnalyticsService
+    .getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId)
+    .pipe(
+      map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
+      startWith({ isLoading: true }),
+    );
+
+  private analyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = combineLatest([
+    this.getRequestsCount$.pipe(catchError(() => of({ isLoading: false, total: undefined }))),
+    this.getAverageConnectionDuration$.pipe(catchError(() => of({ isLoading: false, average: undefined }))),
+    this.getResponseStatusRanges$.pipe(catchError(() => of({ isLoading: false, ranges: undefined }))),
   ]).pipe(
-    map(([requestsCount, averageConnectionDuration]) => ({
+    map(([requestsCount, averageConnectionDuration, responseStatuesRanges]) => ({
       requestStats: [
         {
           label: 'Total Requests',
@@ -90,6 +106,10 @@ export class ApiAnalyticsProxyComponent {
           isLoading: averageConnectionDuration.isLoading,
         },
       ],
+      responseStatusRanges: {
+        isLoading: responseStatuesRanges.isLoading,
+        data: Object.entries(responseStatuesRanges.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
+      },
     })),
   );
 

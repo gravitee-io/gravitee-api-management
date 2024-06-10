@@ -22,6 +22,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
+import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
 
 describe('ApiAnalyticsV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -91,6 +92,24 @@ describe('ApiAnalyticsV2Service', () => {
           method: 'GET',
         })
         .flush(fakeAnalyticsAverageMessagesPerRequest());
+    });
+  });
+
+  describe('getResponseStatusRanges', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api-id';
+
+      service.getResponseStatusRanges(apiId).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsResponseStatusRanges());
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges`,
+          method: 'GET',
+        })
+        .flush(fakeAnalyticsResponseStatusRanges());
     });
   });
 });

@@ -41,6 +41,13 @@ export class GioChartPieComponent implements OnInit {
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
 
+  callbackFunction: Highcharts.ChartCallbackFunction = function (chart) {
+    // Redraw the chart after the component is loaded. to fix the issue of the chart display with bad size
+    setTimeout(() => {
+      chart?.reflow();
+    }, 0);
+  };
+
   ngOnInit() {
     const totalInputDescription = this.totalInputDescription;
 
