@@ -14,17 +14,17 @@
     align-items: flex-start;
   }
 
-  &__userOrGroup_radio {
+  &__method_radio {
     padding-left: 8px;
   }
 
-  &__userOrGroup {
+  &__method {
     &__field {
       width: 100%;
     }
   }
 
-  &__userOrGroup__toggle-group {
+  &__method__toggle-group {
     @include gio.gio-button-toggle-group;
   }
 }
