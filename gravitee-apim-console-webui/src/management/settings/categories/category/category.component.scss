@@ -33,6 +33,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__right {
     &__image-upload {
       display: flex;
+      gap: 6px;
 
       &__picture {
         flex: 0 0 0;
