@@ -21,7 +21,7 @@
     "@danielmoncada/angular-datetime-picker": "17.0.0",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "4.0.0",
     "@fontsource/libre-franklin": "4.4.5",
-    "@gravitee/ui-analytics": "12.11.2",
+    "@gravitee/ui-analytics": "12.11.3",
     "@gravitee/ui-components": "4.2.3",
     "@gravitee/ui-particles-angular": "12.11.2",
     "@gravitee/ui-policy-studio-angular": "12.11.2",
