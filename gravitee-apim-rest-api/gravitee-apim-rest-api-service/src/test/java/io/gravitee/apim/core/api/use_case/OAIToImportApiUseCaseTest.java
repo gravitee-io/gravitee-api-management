@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase.DEFAULT_IMPORT_PAGE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -26,19 +27,18 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.plugin.EndpointConnectorPluginLegacyWrapper;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
-import java.io.IOException;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -143,5 +143,68 @@ class OAIToImportApiUseCaseTest {
             .hasSize(1)
             .extracting(EndpointGroup::getSharedConfiguration)
             .containsExactly(SHARED_CONFIGURATION);
+    }
+
+    @Nested
+    class Documentation {
+
+        @Test
+        @SneakyThrows
+        void should_add_openapi_documentation_page() {
+            // Given
+            var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+            var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            importSwaggerDescriptor.setPayload(openApiAsString);
+            importSwaggerDescriptor.setWithDocumentation(true);
+
+            // When
+            var output = useCase.execute(
+                new OAIToImportApiUseCase.Input(
+                    importSwaggerDescriptor,
+                    AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
+                )
+            );
+
+            // Then
+            assertThat(output).isNotNull();
+
+            var importDefinition = output.importDefinition();
+            assertThat(importDefinition).isNotNull();
+            assertThat(importDefinition.getPages())
+                .hasSize(1)
+                .first()
+                .satisfies(page -> {
+                    assertThat(page.getReferenceId()).isEqualTo(output.importDefinition().getApiExport().getId());
+                    assertThat(page.getName()).isEqualTo(DEFAULT_IMPORT_PAGE_NAME);
+                    assertThat(page.getContent()).isEqualTo(openApiAsString);
+                });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_not_add_openapi_documentation_page() {
+            // Given
+            var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+            var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            importSwaggerDescriptor.setPayload(openApiAsString);
+            importSwaggerDescriptor.setWithDocumentation(false);
+
+            // When
+            var output = useCase.execute(
+                new OAIToImportApiUseCase.Input(
+                    importSwaggerDescriptor,
+                    AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
+                )
+            );
+
+            // Then
+            assertThat(output).isNotNull();
+
+            var importDefinition = output.importDefinition();
+            assertThat(importDefinition).isNotNull();
+            assertThat(importDefinition.getPages()).isNull();
+        }
     }
 }
