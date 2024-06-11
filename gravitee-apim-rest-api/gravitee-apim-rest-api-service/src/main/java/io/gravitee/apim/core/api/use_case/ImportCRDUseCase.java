@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.*;
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -61,20 +61,17 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
-import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 /**

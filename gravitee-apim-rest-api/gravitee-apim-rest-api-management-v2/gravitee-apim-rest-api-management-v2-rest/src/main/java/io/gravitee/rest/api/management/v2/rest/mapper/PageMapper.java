@@ -50,7 +50,9 @@ import org.mapstruct.factory.Mappers;
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
 
+    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
     Page mapPage(io.gravitee.apim.core.documentation.model.Page page);
+
     List<Page> mapPageList(List<io.gravitee.apim.core.documentation.model.Page> page);
 
     @Mapping(target = "name", source = "mediaName")
