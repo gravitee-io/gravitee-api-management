@@ -242,7 +242,11 @@ public class ApisResource extends AbstractResource {
                         .build()
                 )
                 .build();
-            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder().payload(descriptor.getPayload()).build();
+            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity
+                .builder()
+                .payload(descriptor.getPayload())
+                .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
+                .build();
 
             OAIToImportApiUseCase.Output output = oaiToImportApiUseCase.execute(
                 new OAIToImportApiUseCase.Input(importSwaggerDescriptor, audit)
@@ -250,6 +254,7 @@ public class ApisResource extends AbstractResource {
             ImportApiDefinitionUseCase.Output importOutput = importApiDefinitionUseCase.execute(
                 new ImportApiDefinitionUseCase.Input(output.importDefinition(), audit)
             );
+
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
 
             return Response
@@ -342,9 +347,7 @@ public class ApisResource extends AbstractResource {
             );
         }
 
-        if (Objects.nonNull(apiSortByParam)) {
-            apiQueryBuilder.setSort(apiSortByParam.toSortable());
-        }
+        apiQueryBuilder.setSort(apiSortByParam.toSortable());
 
         boolean expandDeploymentState = Objects.nonNull(expands) && expands.contains(EXPAND_DEPLOYMENT_STATE);
 
