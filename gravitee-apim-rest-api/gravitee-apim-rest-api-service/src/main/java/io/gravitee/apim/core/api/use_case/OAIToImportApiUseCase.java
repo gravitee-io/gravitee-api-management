@@ -19,17 +19,21 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.tag.query_service.TagQueryService;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @UseCase
 public class OAIToImportApiUseCase {
+
+    protected static final String DEFAULT_IMPORT_PAGE_NAME = "Swagger";
 
     public record Input(ImportSwaggerDescriptorEntity importSwaggerDescriptor, AuditInfo auditInfo) {}
 
@@ -56,12 +60,18 @@ public class OAIToImportApiUseCase {
         var organizationId = input.auditInfo.organizationId();
         var environmentId = input.auditInfo.environmentId();
         var importDefinition = oaiDomainService.convert(organizationId, environmentId, input.importSwaggerDescriptor);
+        var withDocumentation = input.importSwaggerDescriptor.isWithDocumentation();
 
         if (importDefinition != null) {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
-            return new Output(importWithTags);
+            var importWithDocumentation = addOAIDocumentation(
+                withDocumentation,
+                input.importSwaggerDescriptor.getPayload(),
+                importWithTags
+            );
+            return new Output(importWithDocumentation);
         }
 
         return null;
@@ -142,5 +152,23 @@ public class OAIToImportApiUseCase {
                     .build()
             )
             .build();
+    }
+
+    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String payload, ImportDefinition importWithTags) {
+        if (!withDocumentation) {
+            return importWithTags;
+        }
+        var page = io.gravitee.apim.core.documentation.model.Page
+            .builder()
+            .name(DEFAULT_IMPORT_PAGE_NAME)
+            .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
+            .homepage(false)
+            .content(payload)
+            .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+            .published(true)
+            .visibility(Page.Visibility.PUBLIC)
+            .build();
+
+        return importWithTags.toBuilder().pages(List.of(page)).build();
     }
 }
