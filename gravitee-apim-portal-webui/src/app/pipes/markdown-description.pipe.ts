@@ -27,7 +27,7 @@ export class MarkdownDescriptionPipe implements PipeTransform {
   constructor(private configService: ConfigurationService, private markdown: MarkdownService, private sanitizer: DomSanitizer) {}
 
   transform(api: Api): Api {
-    return api
+    return api?.description
       ? {
           ...api,
           description: this.renderDescription(api.description),
