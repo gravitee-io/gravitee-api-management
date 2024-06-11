@@ -143,6 +143,11 @@
       "maxSizeInOctet" : 1000000
     }
   },
+  "portalNext": {
+    "access": {
+      "enabled": true
+    }
+  },
   "reCaptcha": {
     "enabled": true,
     "siteKey": "testSiteKey"

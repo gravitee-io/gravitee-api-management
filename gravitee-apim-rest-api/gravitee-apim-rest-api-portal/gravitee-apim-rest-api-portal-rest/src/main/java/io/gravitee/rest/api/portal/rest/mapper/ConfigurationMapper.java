@@ -51,6 +51,7 @@ public class ConfigurationMapper {
         configuration.setSiteTitle(portalNext.getSiteTitle());
         configuration.setBannerTitle(portalNext.getBannerTitle());
         configuration.setBannerSubtitle(portalNext.getBannerSubtitle());
+        configuration.setAccess(convert(portalNext.getAccess()));
         return configuration;
     }
 

@@ -4742,6 +4742,8 @@ components:
         bannerSubtitle:
           description: Subtitle to display on the homepage banner.
           type: string
+        access:
+          $ref: '#/components/schemas/Enabled'
     ConfigurationPortalApis:
       properties:
         tilesMode:
