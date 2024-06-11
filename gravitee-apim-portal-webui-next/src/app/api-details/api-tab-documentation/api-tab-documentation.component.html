@@ -26,7 +26,7 @@
         <app-page [page]="selectedPageData.result" [apiPages]="pages" [apiId]="apiId"></app-page>
       }
       @if (selectedPageData.error) {
-        <div>TODO: Implement error message</div>
+        <div i18n="@@apiDocumentationError">An error has occurred.</div>
       }
     } @else {
       <app-loader />
