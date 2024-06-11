@@ -25,6 +25,7 @@
       "mimeType": "image/png"
     }
   ],
+  "groups" : [ "developers" ],
   "members": [
     {
       "source": "memory",
