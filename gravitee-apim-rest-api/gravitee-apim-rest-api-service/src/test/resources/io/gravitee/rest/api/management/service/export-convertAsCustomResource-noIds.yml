@@ -12,6 +12,12 @@ spec:
   flow_mode: "DEFAULT"
   resources: []
   properties: []
+  groups:
+  - "developers"
+  members:
+  - source: "johndoe-source"
+    sourceId: "johndoe-sourceId"
+    role: "API_PRIMARY_OWNER"
   pages:
     My Folder:
       name: "My Folder"

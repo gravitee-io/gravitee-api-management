@@ -34,8 +34,6 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         "definition_context",
         "execution_mode",
         "primaryOwner",
-        "groups",
-        "members",
         "createdAt",
         "updatedAt",
         "picture",
@@ -57,6 +55,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     private static final String PLANS_FIELD = "plans";
 
     private static final String PAGES_FIELD = "pages";
+    private static final String MEMBERS_FIELD = "members";
 
     private static final String NAME_FIELD = "name";
 
@@ -129,6 +128,10 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         if (spec.hasNonNull(METADATA_FIELD)) {
             spec.get(METADATA_FIELD).forEach(meta -> ((ObjectNode) meta).remove(UNSUPPORTED_METADATA_FIELDS));
         }
+
+        if (spec.hasNonNull(MEMBERS_FIELD)) {
+            spec.replace(MEMBERS_FIELD, mapMembers((ArrayNode) spec.get(MEMBERS_FIELD)));
+        }
     }
 
     private JsonNode mapPages(ArrayNode pages) {
@@ -137,5 +140,20 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
             pagesMap.set(page.get(NAME_FIELD).asText(), ((ObjectNode) page).remove(UNSUPPORTED_PAGE_FIELDS));
         }
         return pagesMap;
+    }
+
+    private JsonNode mapMembers(ArrayNode members) {
+        var membersList = JsonNodeFactory.instance.arrayNode();
+        for (var member : members) {
+            JsonNode roles = member.get("roles");
+
+            // Can't be null. A member should always have a role
+            JsonNode role = roles.iterator().next();
+            ((ObjectNode) member).remove("roles");
+            ((ObjectNode) member).set("role", role);
+
+            membersList.add(member);
+        }
+        return membersList;
     }
 }

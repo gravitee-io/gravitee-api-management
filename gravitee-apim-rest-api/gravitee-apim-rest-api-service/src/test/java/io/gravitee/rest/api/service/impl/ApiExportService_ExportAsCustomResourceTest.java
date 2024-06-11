@@ -111,6 +111,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         when(applicationContext.getBean(UserService.class)).thenReturn(userService);
         when(applicationContext.getBean(ApiMetadataService.class)).thenReturn(apiMetadataService);
         when(applicationContext.getBean(MediaService.class)).thenReturn(mediaService);
+        when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
 
         ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
@@ -160,6 +161,12 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
         apiEntity.setPaths(null);
         apiEntity.setProxy(proxy);
+
+        String groupName = "developers";
+        apiEntity.setGroups(Set.of(groupName));
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setName(groupName);
+        when(groupService.findByIds(apiEntity.getGroups())).thenReturn(Set.of(groupEntity));
 
         ResponseTemplate responseTemplate = new ResponseTemplate();
         responseTemplate.setStatusCode(400);

@@ -38,7 +38,6 @@ class ApiDefinitionResourceTest {
         assertFalse(resource.getSpec().has("definition_context"));
         assertFalse(resource.getSpec().has("execution_context"));
         assertFalse(resource.getSpec().has("primaryOwner"));
-        assertFalse(resource.getSpec().has("members"));
         assertFalse(resource.getSpec().has("picture"));
         assertFalse(resource.getSpec().has("apiMedia"));
 
@@ -89,6 +88,34 @@ class ApiDefinitionResourceTest {
         assertFalse(page.has("accessControls"));
         assertFalse(page.has("attached_media"));
         assertFalse(page.has("contentType"));
+    }
+
+    @Test
+    public void shouldMapMembers() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        assertTrue(resource.getSpec().has("members"));
+
+        JsonNode member = resource.getSpec().get("members").iterator().next();
+        assertTrue(member.has("source"));
+        assertEquals("memory", member.get("source").asText());
+
+        assertTrue(member.has("sourceId"));
+        assertEquals("admin", member.get("sourceId").asText());
+
+        assertFalse(member.has("roles"));
+        assertTrue(member.has("role"));
+        assertEquals("dd0e6498-7a8c-492d-8e64-987a8c492d1f", member.get("role").asText());
+    }
+
+    @Test
+    public void shouldIncludeGroups() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        assertTrue(resource.getSpec().has("groups"));
+
+        JsonNode group = resource.getSpec().get("groups").iterator().next();
+        assertEquals("developers", group.asText());
     }
 
     @Test
