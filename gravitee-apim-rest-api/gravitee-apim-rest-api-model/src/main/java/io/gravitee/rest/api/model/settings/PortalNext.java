@@ -37,4 +37,7 @@ public class PortalNext {
 
     @ParameterKey(Key.PORTAL_NEXT_HOMEPAGE_BANNER_SUBTITLE)
     private String bannerSubtitle;
+
+    @ParameterKey(Key.PORTAL_NEXT_ACCESS_ENABLED)
+    private Enabled access;
 }
