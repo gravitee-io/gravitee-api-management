@@ -73,6 +73,7 @@ public class PageCRD {
     public static class PageSource {
 
         private String type;
+
         private String configuration;
     }
 }
