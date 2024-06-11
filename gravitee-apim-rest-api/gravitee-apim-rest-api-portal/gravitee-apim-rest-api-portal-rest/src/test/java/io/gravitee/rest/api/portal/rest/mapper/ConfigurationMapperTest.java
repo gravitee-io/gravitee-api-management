@@ -21,15 +21,20 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.PortalNext;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationPortalNext;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationResponse;
 import java.io.IOException;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -44,19 +49,35 @@ public class ConfigurationMapperTest {
         configurationMapper = new ConfigurationMapper();
     }
 
-    @Test
-    public void convertPortalNextShouldReturnConfigurationPortalNextWithCorrectValues() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideParameters")
+    public void convertPortalNextShouldReturnConfigurationPortalNextWithCorrectValues(
+        String siteTitle,
+        String bannerTitle,
+        String bannerSubtitle,
+        Boolean inputEnabled,
+        Boolean expectedEnabled
+    ) {
         PortalNext portalNext = new PortalNext();
-        portalNext.setSiteTitle("Test Site Title");
-        portalNext.setBannerTitle("Test Banner Title");
-        portalNext.setBannerSubtitle("Test Banner Subtitle");
+        portalNext.setSiteTitle(siteTitle);
+        portalNext.setBannerTitle(bannerTitle);
+        portalNext.setBannerSubtitle(bannerSubtitle);
+        portalNext.setAccess(new Enabled(inputEnabled));
 
         ConfigurationPortalNext configurationPortalNext = configurationMapper.convert(portalNext);
 
-        // Assertions to verify that the returned ConfigurationPortalNext has the correct values
-        Assertions.assertEquals("Test Site Title", configurationPortalNext.getSiteTitle());
-        Assertions.assertEquals("Test Banner Title", configurationPortalNext.getBannerTitle());
-        Assertions.assertEquals("Test Banner Subtitle", configurationPortalNext.getBannerSubtitle());
+        Assertions.assertEquals(siteTitle, configurationPortalNext.getSiteTitle());
+        Assertions.assertEquals(bannerTitle, configurationPortalNext.getBannerTitle());
+        Assertions.assertEquals(bannerSubtitle, configurationPortalNext.getBannerSubtitle());
+        Assertions.assertNotNull(configurationPortalNext.getAccess());
+        Assertions.assertEquals(expectedEnabled, configurationPortalNext.getAccess().getEnabled());
+    }
+
+    private static Stream<Arguments> provideParameters() {
+        return Stream.of(
+            Arguments.of("Test Site Title", "Test Banner Title", "Test Banner Subtitle", true, true),
+            Arguments.of("Test Site Title", "Test Banner Title", "Test Banner Subtitle", false, false)
+        );
     }
 
     @Test
