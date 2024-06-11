@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -91,6 +92,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ApisResource extends AbstractResource {
 
     private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";
+    private static final String DEFAULT_IMPORT_PAGE_NAME = "Swagger";
 
     @Context
     private ResourceContext resourceContext;
@@ -126,6 +128,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
+
+    @Inject
+    private ApiCreateDocumentationPageUseCase apiCreateDocumentationPageUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -250,6 +255,22 @@ public class ApisResource extends AbstractResource {
             ImportApiDefinitionUseCase.Output importOutput = importApiDefinitionUseCase.execute(
                 new ImportApiDefinitionUseCase.Input(output.importDefinition(), audit)
             );
+
+            if (Boolean.TRUE.equals(descriptor.getWithDocumentation())) {
+                var page = io.gravitee.apim.core.documentation.model.Page
+                    .builder()
+                    .name(DEFAULT_IMPORT_PAGE_NAME)
+                    .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
+                    .homepage(false)
+                    .content(descriptor.getPayload())
+                    .referenceId(importOutput.apiWithFlows().getId())
+                    .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                    .parentId("ROOT")
+                    .published(true)
+                    .build();
+                apiCreateDocumentationPageUseCase.execute(new ApiCreateDocumentationPageUseCase.Input(page, audit));
+            }
+
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
 
             return Response
@@ -342,9 +363,7 @@ public class ApisResource extends AbstractResource {
             );
         }
 
-        if (Objects.nonNull(apiSortByParam)) {
-            apiQueryBuilder.setSort(apiSortByParam.toSortable());
-        }
+        apiQueryBuilder.setSort(apiSortByParam.toSortable());
 
         boolean expandDeploymentState = Objects.nonNull(expands) && expands.contains(EXPAND_DEPLOYMENT_STATE);
 

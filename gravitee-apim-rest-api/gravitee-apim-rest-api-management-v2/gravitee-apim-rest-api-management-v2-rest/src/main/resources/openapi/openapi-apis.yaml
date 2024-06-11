@@ -2741,6 +2741,10 @@ components:
             payload:
               type: string
               description: The Swagger/OpenAPI content.
+            withDocumentation:
+              type: boolean
+              description: Create documentation based on Swagger/OpenAPI specification.
+              default: true
 
         UpdateApi:
             oneOf:
