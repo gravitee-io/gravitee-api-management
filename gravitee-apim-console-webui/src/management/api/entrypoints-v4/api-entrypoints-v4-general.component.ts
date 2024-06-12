@@ -81,7 +81,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
-  public isReadOnly = true;
+  public isReadOnly = false;
   public canUpdate = false;
   constructor(
     private readonly activatedRoute: ActivatedRoute,
