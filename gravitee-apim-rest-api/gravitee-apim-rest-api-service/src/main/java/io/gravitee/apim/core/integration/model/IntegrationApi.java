@@ -32,10 +32,15 @@ public record IntegrationApi(
     List<Plan> plans,
     List<Page> pages
 ) {
-    public record Plan(String id, String name, String description, PlanType type) {}
+    public record Plan(String id, String name, String description, PlanType type, Validation validation) {}
     public enum PlanType {
         API_KEY,
         OAUTH2,
+    }
+
+    public enum Validation {
+        AUTO,
+        MANUAL,
     }
 
     public record Page(PageType pageType, String content) {}

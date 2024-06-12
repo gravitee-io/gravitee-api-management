@@ -34,6 +34,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.Plan.PlanValidationType;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -41,9 +42,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -194,12 +193,21 @@ public class IngestIntegrationApisUseCase {
                     )
                     .createdAt(now)
                     .updatedAt(now)
-                    .validation(Plan.PlanValidationType.MANUAL)
+                    .validation(validation(p.validation()))
                     .build();
             })
             .forEach(p -> {
-                createPlanDomainService.create(p, Collections.emptyList(), federatedApi, auditInfo);
+                createPlanDomainService.create(p, List.of(), federatedApi, auditInfo);
             });
+    }
+
+    private PlanValidationType validation(IntegrationApi.Validation validation) {
+        return validation == null
+            ? PlanValidationType.MANUAL
+            : switch (validation) {
+                case MANUAL -> PlanValidationType.MANUAL;
+                case AUTO -> PlanValidationType.AUTO;
+            };
     }
 
     public record Input(String integrationId, AuditInfo auditInfo) {}
