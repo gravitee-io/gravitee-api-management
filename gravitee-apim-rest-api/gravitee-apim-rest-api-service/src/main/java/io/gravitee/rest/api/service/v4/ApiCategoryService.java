@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Map;
@@ -33,4 +31,9 @@ public interface ApiCategoryService {
     void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
 
     Map<String, Long> countApisPublishedGroupedByCategoriesForUser(String userId);
+
+    void addApiToCategories(String apiId, Set<String> categoryId);
+    void changeApiOrderInCategory(String apiId, String categoryId, int nextOrder);
+    void updateApiCategories(String apiId, Set<String> categoryIds);
+    void deleteApiFromCategories(String apiId);
 }
