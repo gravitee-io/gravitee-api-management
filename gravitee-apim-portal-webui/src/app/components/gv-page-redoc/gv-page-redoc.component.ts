@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
 
 import { NotificationService } from '../../services/notification.service';
@@ -36,7 +36,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   @Input() fragment: string;
 
-  constructor(private notificationService: NotificationService, private pageService: PageService) {}
+  constructor(private cd: ChangeDetectorRef, private notificationService: NotificationService, private pageService: PageService) {}
 
   /**
    * Redoc script is automatically loaded. See `angular.json` scripts section.
@@ -116,6 +116,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       this.notificationService.error('gv-page.swagger.badFormat');
     }
     this.isLoaded = true;
+    this.cd.detectChanges();
     setTimeout(() => {
       const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM;
 

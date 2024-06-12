@@ -200,7 +200,9 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
 
   selectPage(pageId: string) {
     const pageToDisplay = this._pages.find(page => page.id === pageId);
-    GvDocumentationComponent.reset(this.treeMenu?.nativeElement);
+    setTimeout(() => {
+      GvDocumentationComponent.reset(this.treeMenu?.nativeElement);
+    }, 0);
     this.currentPage = pageToDisplay;
     this.currentMenuItem = this.findMenuItem(this.menu, pageToDisplay);
   }
