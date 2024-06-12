@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,19 +43,29 @@ public class AccessPointDeployerTest {
 
     @Test
     void should_deploy_access_point() {
-        AccessPoint accessPoint = AccessPoint.builder().referenceId("ref-id").secured(true).overriding(true).build();
-        AccessPointDeployable accessPointDeployable = AccessPointDeployable.builder().accessPoint(accessPoint).build();
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
+            .builder()
+            .id("id")
+            .host("host")
+            .environmentId("environmentId")
+            .build();
+        AccessPointDeployable accessPointDeployable = AccessPointDeployable.builder().reactableAccessPoint(reactableAccessPoint).build();
 
         cut.deploy(accessPointDeployable).test().assertComplete();
-        verify(accessPointManager).register(accessPoint);
+        verify(accessPointManager).register(reactableAccessPoint);
     }
 
     @Test
     void should_undeploy_access_point() {
-        AccessPoint accessPoint = AccessPoint.builder().referenceId("ref-id").secured(true).overriding(true).build();
-        AccessPointDeployable accessPointDeployable = AccessPointDeployable.builder().accessPoint(accessPoint).build();
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
+            .builder()
+            .id("id")
+            .host("host")
+            .environmentId("environmentId")
+            .build();
+        AccessPointDeployable accessPointDeployable = AccessPointDeployable.builder().reactableAccessPoint(reactableAccessPoint).build();
 
         cut.undeploy(accessPointDeployable).test().assertComplete();
-        verify(accessPointManager).unregister(accessPoint);
+        verify(accessPointManager).unregister(reactableAccessPoint);
     }
 }

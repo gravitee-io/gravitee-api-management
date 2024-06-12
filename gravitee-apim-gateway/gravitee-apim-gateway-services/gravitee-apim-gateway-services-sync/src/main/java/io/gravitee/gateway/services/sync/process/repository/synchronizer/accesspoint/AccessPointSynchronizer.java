@@ -27,7 +27,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -101,13 +100,13 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
 
     private Flowable<AccessPointDeployable> prepareForDeployment(final Flowable<AccessPoint> accessPoints) {
         return accessPoints.map(accessPoint ->
-            AccessPointDeployable.builder().accessPoint(accessPointMapper.to(accessPoint)).syncAction(SyncAction.DEPLOY).build()
+            AccessPointDeployable.builder().reactableAccessPoint(accessPointMapper.to(accessPoint)).syncAction(SyncAction.DEPLOY).build()
         );
     }
 
     private Flowable<AccessPointDeployable> prepareForUndeployment(final Flowable<AccessPoint> accessPoints) {
         return accessPoints.map(accessPoint ->
-            AccessPointDeployable.builder().accessPoint(accessPointMapper.to(accessPoint)).syncAction(SyncAction.UNDEPLOY).build()
+            AccessPointDeployable.builder().reactableAccessPoint(accessPointMapper.to(accessPoint)).syncAction(SyncAction.UNDEPLOY).build()
         );
     }
 

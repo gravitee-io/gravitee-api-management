@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.reactive.debug.handlers.api;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
@@ -54,7 +56,9 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
     ) {
         super(
             api,
@@ -68,7 +72,9 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             groupLifecycleManager,
             configuration,
             node,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager
         );
         invokerHooks.add(new DebugInvokerHook());
     }
