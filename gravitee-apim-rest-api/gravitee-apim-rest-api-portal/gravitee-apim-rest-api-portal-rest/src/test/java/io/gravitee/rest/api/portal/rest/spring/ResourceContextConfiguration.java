@@ -29,7 +29,6 @@ import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
@@ -555,11 +554,6 @@ public class ResourceContextConfiguration {
     @Bean
     public CreatePlanDomainService createPlanDomainService() {
         return mock(CreatePlanDomainService.class);
-    }
-
-    @Bean
-    public DeployApiDomainService deployApiDomainService() {
-        return mock(DeployApiDomainService.class);
     }
 
     @Bean

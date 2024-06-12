@@ -23,8 +23,8 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -87,7 +87,7 @@ public class ImportCRDUseCase {
     private final ValidateApiDomainService validateApiDomainService;
     private final CreateApiDomainService createApiDomainService;
     private final CreatePlanDomainService createPlanDomainService;
-    private final DeployApiDomainService deployApiDomainService;
+    private final ApiStateDomainService apiStateDomainService;
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiCrudService apiCrudService;
     private final PlanQueryService planQueryService;
@@ -116,7 +116,7 @@ public class ImportCRDUseCase {
         ValidateApiDomainService validateApiDomainService,
         CreateApiDomainService createApiDomainService,
         CreatePlanDomainService createPlanDomainService,
-        DeployApiDomainService deployApiDomainService,
+        ApiStateDomainService apiStateDomainService,
         UpdateApiDomainService updateApiDomainService,
         PlanQueryService planQueryService,
         UpdatePlanDomainService updatePlanDomainService,
@@ -143,7 +143,7 @@ public class ImportCRDUseCase {
         this.validateApiDomainService = validateApiDomainService;
         this.createApiDomainService = createApiDomainService;
         this.createPlanDomainService = createPlanDomainService;
-        this.deployApiDomainService = deployApiDomainService;
+        this.apiStateDomainService = apiStateDomainService;
         this.updateApiDomainService = updateApiDomainService;
         this.planQueryService = planQueryService;
         this.updatePlanDomainService = updatePlanDomainService;
@@ -214,7 +214,7 @@ public class ImportCRDUseCase {
             apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
 
             if (input.crd.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
-                deployApiDomainService.deploy(createdApi, "Import via Kubernetes operator", input.auditInfo);
+                apiStateDomainService.deploy(createdApi, "kubernetes API resource", input.auditInfo);
             }
 
             return ApiCRDStatus
@@ -286,7 +286,10 @@ public class ImportCRDUseCase {
             deletePlans(api, existingPlans, planKeyIdMapping, input);
 
             if (input.crd.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
-                deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);
+                apiStateDomainService.deploy(api, "kubernetes API resource", input.auditInfo);
+                if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
+                    apiStateDomainService.stop(api, input.auditInfo);
+                }
             }
 
             createMembers(input.crd.getMembers(), updatedApi.getId());
