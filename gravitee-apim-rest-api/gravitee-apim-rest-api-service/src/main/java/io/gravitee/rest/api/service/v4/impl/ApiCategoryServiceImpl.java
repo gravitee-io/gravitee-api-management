@@ -23,11 +23,13 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiCategoryOrder;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -43,14 +45,18 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.exception.ApiNotInCategoryException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.context.annotation.Lazy;
@@ -65,6 +71,7 @@ import org.springframework.stereotype.Component;
 public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     private final ApiRepository apiRepository;
+    private final ApiCategoryOrderRepository apiCategoryOrderRepository;
     private final CategoryService categoryService;
     private final ApiNotificationService apiNotificationService;
     private final AuditService auditService;
@@ -73,6 +80,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     public ApiCategoryServiceImpl(
         @Lazy final ApiRepository apiRepository,
+        @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository,
         final CategoryService categoryService,
         final ApiNotificationService apiNotificationService,
         final AuditService auditService,
@@ -80,6 +88,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         @Lazy final RoleService roleService
     ) {
         this.apiRepository = apiRepository;
+        this.apiCategoryOrderRepository = apiCategoryOrderRepository;
         this.categoryService = categoryService;
         this.apiNotificationService = apiNotificationService;
         this.auditService = auditService;
@@ -103,10 +112,10 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
         apiRepository
             .search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())
-            .forEach(api -> removeCategory(executionContext, api, categoryId));
+            .forEach(api -> removeCategoryFromApi(executionContext, api, categoryId));
     }
 
-    private void removeCategory(ExecutionContext executionContext, Api api, String categoryId) {
+    private void removeCategoryFromApi(ExecutionContext executionContext, Api api, String categoryId) {
         try {
             Api apiSnapshot = new Api(api);
             api.getCategories().remove(categoryId);
@@ -122,6 +131,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
                 apiSnapshot,
                 api
             );
+            apiCategoryOrderRepository.delete(api.getId(), categoryId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error has occurred while removing category " + categoryId + " from API " + api.getId(),
@@ -168,6 +178,99 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
     }
 
+    @Override
+    public void addApiToCategories(String apiId, Set<String> categoryIds) {
+        if (Objects.isNull(categoryIds) || categoryIds.isEmpty()) {
+            return;
+        }
+
+        categoryIds.forEach(categoryId -> {
+            Set<ApiCategoryOrder> currentCategoryApis = this.apiCategoryOrderRepository.findAllByCategoryId(categoryId);
+
+            // Skip if Api is already associated to Category
+            if (currentCategoryApis.stream().anyMatch(c -> Objects.equals(c.getApiId(), apiId))) {
+                return;
+            }
+
+            var apiCategoryOrderToSave = ApiCategoryOrder.builder().apiId(apiId).categoryId(categoryId);
+            if (currentCategoryApis.isEmpty()) {
+                // Set to 0 if no other Apis are associated to Category
+                apiCategoryOrderToSave.order(0);
+            } else {
+                var maxOrder = currentCategoryApis.stream().max(Comparator.comparing(ApiCategoryOrder::getOrder)).get();
+                // Set order to max + 1 to be at the bottom of the list
+                apiCategoryOrderToSave.order(maxOrder.getOrder() + 1);
+            }
+            try {
+                this.apiCategoryOrderRepository.create(apiCategoryOrderToSave.build());
+            } catch (TechnicalException e) {
+                log.error("Could not create ApiCategoryOrder, {}", apiCategoryOrderToSave.build(), e);
+            }
+        });
+    }
+
+    @Override
+    public void changeApiOrderInCategory(String apiId, String categoryId, int newOrder) {
+        var allByCategoryId = this.apiCategoryOrderRepository.findAllByCategoryId(categoryId);
+
+        var apiCategoryToUpdate = allByCategoryId
+            .stream()
+            .filter(apiCategoryOrder -> Objects.equals(apiCategoryOrder.getApiId(), apiId))
+            .findFirst()
+            .orElseThrow(() -> new ApiNotInCategoryException(Map.of("api", apiId, "category", categoryId)));
+
+        var oldOrder = apiCategoryToUpdate.getOrder();
+
+        // Do nothing if order is the same
+        if (oldOrder == newOrder) {
+            return;
+        }
+
+        // Determine if apiCategoryToUpdate is moving up or moving down
+        var isMovingUp = oldOrder > newOrder;
+
+        // Update other orders between new order and old order
+        allByCategoryId
+            .stream()
+            .filter(apiCategoryOrder -> {
+                if (isMovingUp) {
+                    return apiCategoryOrder.getOrder() >= newOrder && apiCategoryOrder.getOrder() < oldOrder;
+                } else {
+                    return apiCategoryOrder.getOrder() <= newOrder && apiCategoryOrder.getOrder() > oldOrder;
+                }
+            })
+            .forEach(apiCategoryOrder ->
+                this.updateOrder(apiCategoryOrder, isMovingUp ? apiCategoryOrder.getOrder() + 1 : apiCategoryOrder.getOrder() - 1)
+            );
+
+        // Update order
+        this.updateOrder(apiCategoryToUpdate, newOrder);
+    }
+
+    @Override
+    public void updateApiCategories(String apiId, Set<String> categoryIds) {
+        if (Objects.isNull(categoryIds)) {
+            return;
+        }
+        var currentApiCategoryIds = apiCategoryOrderRepository
+            .findAllByApiId(apiId)
+            .stream()
+            .map(ApiCategoryOrder::getCategoryId)
+            .collect(Collectors.toSet());
+
+        var categoriesToAdd = categoryIds.stream().filter(cat -> !currentApiCategoryIds.contains(cat)).collect(Collectors.toSet());
+        this.addApiToCategories(apiId, categoriesToAdd);
+
+        // Categories to remove
+        currentApiCategoryIds.stream().filter(cat -> !categoryIds.contains(cat)).forEach(cat -> removeApiFromCategory(apiId, cat));
+    }
+
+    @Override
+    public void deleteApiFromCategories(String apiId) {
+        this.apiCategoryOrderRepository.findAllByApiId(apiId)
+            .forEach(apiCategoryOrder -> removeApiFromCategory(apiId, apiCategoryOrder.getCategoryId()));
+    }
+
     private List<String> getUserMembershipApiIds(String userId) {
         return membershipService
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
@@ -186,5 +289,36 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             })
             .map(MembershipEntity::getReferenceId)
             .collect(toList());
+    }
+
+    private void updateOrder(ApiCategoryOrder apiCategoryOrder, int newOrder) {
+        apiCategoryOrder.setOrder(newOrder);
+        try {
+            this.apiCategoryOrderRepository.update(apiCategoryOrder);
+        } catch (TechnicalException e) {
+            log.error("Could not update ApiCategoryOrder position [{}]", apiCategoryOrder, e);
+        }
+    }
+
+    private void removeApiFromCategory(String apiId, String categoryId) {
+        var allByCategoryId = this.apiCategoryOrderRepository.findAllByCategoryId(categoryId);
+        var apiCategoryToDelete = allByCategoryId
+            .stream()
+            .filter(apiCategoryOrder -> Objects.equals(apiCategoryOrder.getApiId(), apiId))
+            .findFirst()
+            .orElseThrow(() -> new ApiNotInCategoryException(Map.of("api", apiId, "category", categoryId)));
+
+        try {
+            this.apiCategoryOrderRepository.delete(apiCategoryToDelete.getApiId(), apiCategoryToDelete.getCategoryId());
+        } catch (TechnicalException e) {
+            log.error("Could not delete API [{}] from ApiCategoryOrders", apiId, e);
+            return;
+        }
+
+        // Move up other ApiCategoryOrder entries
+        allByCategoryId
+            .stream()
+            .filter(apiCategoryOrder1 -> apiCategoryOrder1.getOrder() > apiCategoryToDelete.getOrder())
+            .forEach(apiCategoryOrder -> this.updateOrder(apiCategoryOrder, apiCategoryOrder.getOrder() - 1));
     }
 }
