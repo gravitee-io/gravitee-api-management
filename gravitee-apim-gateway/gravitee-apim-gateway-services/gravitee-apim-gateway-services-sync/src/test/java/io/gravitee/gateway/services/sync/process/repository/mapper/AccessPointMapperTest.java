@@ -17,7 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointStatus;
@@ -51,36 +51,21 @@ public class AccessPointMapperTest {
     }
 
     @Test
-    void should_map_accesspoint() throws JsonProcessingException {
-        io.gravitee.gateway.handlers.accesspoint.model.AccessPoint accessPointMapped = cut.to(accessPoint);
-
-        assertThat(accessPointMapped.getId()).isEqualTo(accessPoint.getId());
-        assertThat(accessPointMapped.getStatus()).isEqualTo(io.gravitee.gateway.handlers.accesspoint.model.AccessPointStatus.CREATED);
-        assertThat(accessPointMapped.getTarget()).isEqualTo(io.gravitee.gateway.handlers.accesspoint.model.AccessPointTarget.GATEWAY);
-        assertThat(accessPointMapped.getUpdatedAt()).isEqualTo(accessPoint.getUpdatedAt());
-        assertThat(accessPointMapped.getReferenceId()).isEqualTo(accessPoint.getReferenceId());
-        assertThat(accessPointMapped.getReferenceType())
-            .isEqualTo(io.gravitee.gateway.handlers.accesspoint.model.AccessPointReferenceType.ENVIRONMENT);
-        assertThat(accessPointMapped.getHost()).isEqualTo(accessPoint.getHost());
-        assertThat(accessPointMapped.isSecured()).isEqualTo(accessPoint.isSecured());
-        assertThat(accessPointMapped.isOverriding()).isEqualTo(accessPoint.isOverriding());
+    void should_map_accesspoint() {
+        ReactableAccessPoint reactableAccessPointMapped = cut.to(accessPoint);
+        assertThat(reactableAccessPointMapped.getId()).isEqualTo(accessPoint.getId());
+        assertThat(reactableAccessPointMapped.getEnvironmentId()).isEqualTo(accessPoint.getReferenceId());
+        assertThat(reactableAccessPointMapped.getHost()).isEqualTo(accessPoint.getHost());
     }
 
     @Test
-    void should_map_accesspoint_without_all_attributes() throws JsonProcessingException {
+    void should_map_accesspoint_without_all_attributes() {
         accessPoint.setStatus(null);
         accessPoint.setTarget(null);
         accessPoint.setReferenceType(null);
-        io.gravitee.gateway.handlers.accesspoint.model.AccessPoint accessPointMapped = cut.to(accessPoint);
-
-        assertThat(accessPointMapped.getId()).isEqualTo(accessPoint.getId());
-        assertThat(accessPointMapped.getStatus()).isNull();
-        assertThat(accessPointMapped.getTarget()).isNull();
-        assertThat(accessPointMapped.getUpdatedAt()).isEqualTo(accessPoint.getUpdatedAt());
-        assertThat(accessPointMapped.getReferenceId()).isEqualTo(accessPoint.getReferenceId());
-        assertThat(accessPointMapped.getReferenceType()).isNull();
-        assertThat(accessPointMapped.getHost()).isEqualTo(accessPoint.getHost());
-        assertThat(accessPointMapped.isSecured()).isEqualTo(accessPoint.isSecured());
-        assertThat(accessPointMapped.isOverriding()).isEqualTo(accessPoint.isOverriding());
+        ReactableAccessPoint reactableAccessPointMapped = cut.to(accessPoint);
+        assertThat(reactableAccessPointMapped.getId()).isEqualTo(accessPoint.getId());
+        assertThat(reactableAccessPointMapped.getEnvironmentId()).isEqualTo(accessPoint.getReferenceId());
+        assertThat(reactableAccessPointMapped.getHost()).isEqualTo(accessPoint.getHost());
     }
 }

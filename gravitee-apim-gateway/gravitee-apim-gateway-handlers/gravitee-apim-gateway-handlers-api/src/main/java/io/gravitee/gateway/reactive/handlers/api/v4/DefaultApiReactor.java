@@ -19,11 +19,13 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -31,6 +33,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
@@ -60,7 +63,9 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainF
 import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.AccessPointHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -103,6 +108,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private final ApiServicePluginManager apiServicePluginManager;
     private final EndpointManager endpointManager;
     protected final ReporterService reporterService;
+    private final AccessPointManager accessPointManager;
+    private final EventManager eventManager;
     private final ResourceLifecycleManager resourceLifecycleManager;
     protected final ProcessorChain beforeHandleProcessors;
     protected final ProcessorChain afterHandleProcessors;
@@ -140,7 +147,9 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final Configuration configuration,
         final Node node,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final ReporterService reporterService
+        final ReporterService reporterService,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
     ) {
         super(
             configuration,
@@ -155,6 +164,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.apiServicePluginManager = apiServicePluginManager;
         this.endpointManager = endpointManager;
         this.reporterService = reporterService;
+        this.accessPointManager = accessPointManager;
+        this.eventManager = eventManager;
         this.defaultInvoker = endpointInvoker(endpointManager);
 
         this.resourceLifecycleManager = resourceLifecycleManager;
@@ -378,11 +389,24 @@ public class DefaultApiReactor extends AbstractApiReactor {
         return acceptors;
     }
 
-    protected List<DefaultHttpAcceptor> prepareHttpAcceptors(Listener listener) {
+    protected List<HttpAcceptor> prepareHttpAcceptors(Listener listener) {
         return ((HttpListener) listener).getPaths()
             .stream()
-            .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath(), this, listener.getServers()))
-            .collect(Collectors.toList());
+            .map(path -> {
+                if (path.getHost() != null) {
+                    return new DefaultHttpAcceptor(path.getHost(), path.getPath(), this, listener.getServers());
+                } else {
+                    return new AccessPointHttpAcceptor(
+                        eventManager,
+                        api.getEnvironmentId(),
+                        accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
+                        path.getPath(),
+                        this,
+                        listener.getServers()
+                    );
+                }
+            })
+            .toList();
     }
 
     @Override

@@ -21,4 +21,6 @@ package io.gravitee.gateway.reactor.handler;
  */
 public interface Acceptor<T extends Acceptor<T>> extends Comparable<T> {
     ReactorHandler reactor();
+
+    default void clear() {}
 }

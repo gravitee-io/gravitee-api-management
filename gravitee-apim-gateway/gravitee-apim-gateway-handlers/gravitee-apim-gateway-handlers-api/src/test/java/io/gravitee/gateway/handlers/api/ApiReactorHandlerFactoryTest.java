@@ -15,13 +15,19 @@
  */
 package io.gravitee.gateway.handlers.api;
 
-import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.CLASSLOADER_LEGACY_ENABLED_PROPERTY;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
@@ -78,6 +84,12 @@ public class ApiReactorHandlerFactoryTest {
     @Mock
     OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
 
+    @Mock
+    private AccessPointManager accessPointManager;
+
+    @Mock
+    private EventManager eventManager;
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -102,7 +114,9 @@ public class ApiReactorHandlerFactoryTest {
                 policyChainProviderLoader,
                 apiProcessorChainFactory,
                 flowResolverFactory,
-                new RequestTimeoutConfiguration(2000L, 10L)
+                new RequestTimeoutConfiguration(2000L, 10L),
+                accessPointManager,
+                eventManager
             );
     }
 

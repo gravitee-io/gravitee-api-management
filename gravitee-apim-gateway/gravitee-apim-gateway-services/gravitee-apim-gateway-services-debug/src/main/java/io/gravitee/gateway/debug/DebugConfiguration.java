@@ -32,6 +32,7 @@ import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.organization.flow.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -371,7 +372,9 @@ public class DebugConfiguration {
         @Qualifier("debugV3PolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
     ) {
         return new DebugApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -384,7 +387,9 @@ public class DebugConfiguration {
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager
         );
     }
 

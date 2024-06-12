@@ -18,7 +18,9 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import static io.gravitee.common.component.Lifecycle.State.STOPPED;
 import static io.gravitee.common.http.HttpStatusCode.GATEWAY_TIMEOUT_504;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.REQUEST_TIMEOUT_KEY;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.SERVICES_TRACING_ENABLED_PROPERTY;
@@ -38,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -47,6 +50,7 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -71,7 +75,9 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.AccessPointHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -92,6 +98,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -268,6 +275,12 @@ class DefaultApiReactorTest {
     @Mock
     private ReporterService reporterService;
 
+    @Mock
+    private AccessPointManager accessPointManager;
+
+    @Mock
+    private EventManager eventManager;
+
     private TestScheduler testScheduler;
 
     private DefaultApiReactor cut;
@@ -384,7 +397,9 @@ class DefaultApiReactorTest {
                     configuration,
                     node,
                     requestTimeoutConfiguration,
-                    reporterService
+                    reporterService,
+                    accessPointManager,
+                    eventManager
                 );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
@@ -869,6 +884,33 @@ class DefaultApiReactorTest {
         HttpAcceptor httpAcceptor = (HttpAcceptor) acceptor1;
         assertThat(httpAcceptor.path()).isEqualTo("path/");
         assertThat(httpAcceptor.host()).isEqualTo(path.getHost());
+    }
+
+    @Test
+    void shouldReturnAccessPointHttpAcceptors() {
+        HttpListener httpListener = new HttpListener();
+        Path path = new Path(null, "path");
+        httpListener.setPaths(List.of(path));
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
+        when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID))
+            .thenReturn(
+                List.of(
+                    ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host1").build(),
+                    ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host2").build()
+                )
+            );
+
+        List<Acceptor<?>> acceptors = cut.acceptors();
+        assertThat(acceptors).hasSize(1);
+        Acceptor<?> acceptor1 = acceptors.get(0);
+        assertThat(acceptor1).isInstanceOf(AccessPointHttpAcceptor.class);
+        AccessPointHttpAcceptor accessPointHttpAcceptor = (AccessPointHttpAcceptor) acceptor1;
+        assertThat(accessPointHttpAcceptor.path()).isEqualTo("path/");
+        assertThat(accessPointHttpAcceptor.host()).isEqualTo("host1");
+        assertThat(accessPointHttpAcceptor.innerHttpsAcceptors())
+            .extracting(HttpAcceptor::host, HttpAcceptor::path)
+            .containsOnly(Tuple.tuple("host1", "path/"), Tuple.tuple("host2", "path/"));
     }
 
     @Test

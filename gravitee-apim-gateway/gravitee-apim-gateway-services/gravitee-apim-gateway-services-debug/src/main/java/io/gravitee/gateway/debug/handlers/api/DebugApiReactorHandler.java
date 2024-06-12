@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.debug.handlers.api;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.debug.core.invoker.InvokerDebugDecorator;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.http.ContextualizedDebugHttpServerRequest;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
@@ -32,8 +34,8 @@ import io.gravitee.node.api.configuration.Configuration;
  */
 public class DebugApiReactorHandler extends ApiReactorHandler {
 
-    public DebugApiReactorHandler(Configuration configuration, Api api) {
-        super(configuration, api);
+    public DebugApiReactorHandler(Configuration configuration, Api api, AccessPointManager accessPointManager, EventManager eventManager) {
+        super(configuration, api, accessPointManager, eventManager);
     }
 
     @Override
