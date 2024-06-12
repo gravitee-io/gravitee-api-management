@@ -239,7 +239,10 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
     it.each(['JWT', 'OAUTH2'])(
       'should not be able to create subscription when application client_id is null',
       fakeAsync(async (planType: PlanSecurityType) => {
-        await init({ ...APP, settings: { ...APP.settings, app: { client_id: null } } });
+        const app = fakeApplication({ id: APPLICATION_ID, api_key_mode: ApiKeyMode.UNSPECIFIED });
+        app.settings.app = { client_id: null };
+        app.settings.oauth = { client_id: null };
+        await init(app);
 
         await dialogHarness.searchApi(API_NAME);
         tick(200);
@@ -257,9 +260,46 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
     );
 
     it.each(['JWT', 'OAUTH2'])(
-      'should create the subscription for %s plan',
+      'should create the subscription for %s plan with app client id',
       fakeAsync(async (planType: PlanSecurityType) => {
-        await init({ ...APP, settings: { ...APP.settings, app: { client_id: 'client-id' } } });
+        const app = fakeApplication({ id: APPLICATION_ID, api_key_mode: ApiKeyMode.UNSPECIFIED });
+        app.settings.app = { client_id: 'client-id' };
+        app.settings.oauth = { client_id: null };
+        await init(app);
+
+        await dialogHarness.searchApi(API_NAME);
+        tick(100);
+        expectApiSearchPost(API);
+        await dialogHarness.selectApi(API_NAME);
+
+        const plan = fakePlanV4({
+          name: `${planType} plan`,
+          apiId: API_ID,
+          security: { type: planType },
+          commentRequired: false,
+          generalConditions: null,
+        });
+        expectSubscribableApiPlansGet([fakePlanV4({ apiId: API_ID, security: { type: 'API_KEY' } }), plan]);
+
+        tick(100);
+        await dialogHarness.selectPlan(plan.name);
+
+        expect(await dialogHarness.isCreateSubscriptionDisabled()).toBeFalsy();
+        await dialogHarness.createSubscription();
+
+        const subscription = fakeNewSubscriptionEntity();
+        expectApiSubscriptionsPostRequest(subscription, plan.id);
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
+      }),
+    );
+
+    it.each(['JWT', 'OAUTH2'])(
+      'should create the subscription for %s plan with oauth client id (DCR case)',
+      fakeAsync(async (planType: PlanSecurityType) => {
+        const app = fakeApplication({ id: APPLICATION_ID, api_key_mode: ApiKeyMode.UNSPECIFIED });
+        app.settings.app = { client_id: null };
+        app.settings.oauth = { client_id: 'client-id' };
+        await init(app);
 
         await dialogHarness.searchApi(API_NAME);
         tick(100);

@@ -488,8 +488,20 @@ class IngestIntegrationApisUseCaseTest {
                     .toBuilder()
                     .plans(
                         List.of(
-                            new IntegrationApi.Plan("plan1", "My Plan 1", "Description 1", IntegrationApi.PlanType.API_KEY),
-                            new IntegrationApi.Plan("plan2", "My Plan 2", "Description 2", IntegrationApi.PlanType.API_KEY)
+                            new IntegrationApi.Plan(
+                                "plan1",
+                                "My Plan 1",
+                                "Description 1",
+                                IntegrationApi.PlanType.API_KEY,
+                                IntegrationApi.Validation.MANUAL
+                            ),
+                            new IntegrationApi.Plan(
+                                "plan2",
+                                "My Plan 2",
+                                "Description 2",
+                                IntegrationApi.PlanType.API_KEY,
+                                IntegrationApi.Validation.MANUAL
+                            )
                         )
                     )
                     .build()

@@ -91,7 +91,8 @@ export class ApplicationSubscriptionCreationDialogComponent {
       .pipe(
         tap((application) => {
           this.application = application;
-          this.form.controls.selectedPlan.addValidators(clientIdRequiredValidator(application.settings?.app?.client_id));
+          const clientId = application.settings?.app?.client_id ?? application.settings?.oauth?.client_id;
+          this.form.controls.selectedPlan.addValidators(clientIdRequiredValidator(clientId));
         }),
         takeUntilDestroyed(this.destroyRef),
       )
