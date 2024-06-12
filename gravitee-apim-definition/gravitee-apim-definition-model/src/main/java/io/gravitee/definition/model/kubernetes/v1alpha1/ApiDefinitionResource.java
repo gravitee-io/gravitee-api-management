@@ -102,6 +102,21 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         getSpec().putObject(CONTEXT_REF_FIELD).put(CONTEXT_NAME_FIELD, name).put(CONTEXT_NAMESPACE_FIELD, namespace);
     }
 
+    public boolean hasMembers() {
+        return getSpec().hasNonNull(MEMBERS_FIELD);
+    }
+
+    // There is a weird behavior with jackson that forces us to pass back the spec instead of using the class getter
+    // If we don't do this, the member object gets duplicated at different levels on serialization.
+    // To be investigated ...
+    public ArrayNode getMembers(ObjectNode spec) {
+        return (ArrayNode) spec.get(MEMBERS_FIELD);
+    }
+
+    public void replaceMembers(ArrayNode members) {
+        getSpec().replace(MEMBERS_FIELD, members);
+    }
+
     public void removeIds() {
         ObjectNode spec = getSpec();
 
@@ -128,10 +143,6 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         if (spec.hasNonNull(METADATA_FIELD)) {
             spec.get(METADATA_FIELD).forEach(meta -> ((ObjectNode) meta).remove(UNSUPPORTED_METADATA_FIELDS));
         }
-
-        if (spec.hasNonNull(MEMBERS_FIELD)) {
-            spec.replace(MEMBERS_FIELD, mapMembers((ArrayNode) spec.get(MEMBERS_FIELD)));
-        }
     }
 
     private JsonNode mapPages(ArrayNode pages) {
@@ -140,20 +151,5 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
             pagesMap.set(page.get(NAME_FIELD).asText(), ((ObjectNode) page).remove(UNSUPPORTED_PAGE_FIELDS));
         }
         return pagesMap;
-    }
-
-    private JsonNode mapMembers(ArrayNode members) {
-        var membersList = JsonNodeFactory.instance.arrayNode();
-        for (var member : members) {
-            JsonNode roles = member.get("roles");
-
-            // Can't be null. A member should always have a role
-            JsonNode role = roles.iterator().next();
-            ((ObjectNode) member).remove("roles");
-            ((ObjectNode) member).set("role", role);
-
-            membersList.add(member);
-        }
-        return membersList;
     }
 }
