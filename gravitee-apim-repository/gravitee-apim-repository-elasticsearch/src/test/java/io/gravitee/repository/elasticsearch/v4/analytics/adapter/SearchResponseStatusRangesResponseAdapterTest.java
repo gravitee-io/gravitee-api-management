@@ -62,7 +62,9 @@ class SearchResponseStatusRangesResponseAdapterTest {
         aggregation.setBuckets(Arrays.stream(entrypoints).map(this::provideBucket).toList());
 
         assertThat(SearchResponseStatusRangesResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(topHits -> assertThat(topHits.getRangesBy().keySet()).containsExactlyInAnyOrder(entrypoints));
+            .hasValueSatisfying(topHits ->
+                assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
+            );
     }
 
     private JsonNode provideBucket(String entrypoint) {

@@ -30,24 +30,22 @@ public class SearchResponseStatusRangesQueryAdapter {
     public static final String FIELD = "field";
     public static final String STATUS_RANGES = "status_ranges";
 
-    public static String adapt(ResponseStatusRangesQuery query) {
+    public static String adapt(ResponseStatusRangesQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(ResponseStatusRangesQuery.builder().build()));
         jsonContent.put("query", esQuery);
-        jsonContent.put("aggs", buildTopHistAnalyticsByEntrypointAggregation());
+        jsonContent.put("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword));
         return new JsonObject(jsonContent).encode();
     }
 
-    private static JsonObject buildTopHistAnalyticsByEntrypointAggregation() {
+    private static JsonObject buildResponseCountPerStatusCodeRangePerEntrypointAggregation(boolean isEntrypointIdKeyword) {
         return JsonObject.of(
             ENTRYPOINT_ID_AGG,
             JsonObject.of(
-                // Group by entrypoint id (already filtered by <connector-type: entrypoint>
                 "terms",
-                JsonObject.of(FIELD, "entrypoint-id"),
+                JsonObject.of(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"),
                 "aggs",
                 JsonObject.of(
-                    // Compute count of messages for an entrypoint
                     STATUS_RANGES,
                     JsonObject.of(
                         "range",
@@ -62,9 +60,7 @@ public class SearchResponseStatusRangesQueryAdapter {
                                 JsonObject.of("from", 400.0, "to", 500.0),
                                 JsonObject.of("from", 500.0, "to", 600.0)
                             )
-                        ),
-                        "aggs",
-                        JsonObject.of("count", JsonObject.of("value_count", JsonObject.of(FIELD, "_id")))
+                        )
                     )
                 )
             )

@@ -59,27 +59,27 @@ class SearchAverageConnectionDurationUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(new SearchAverageConnectionDurationUseCase.Input(MY_API, "another-environment")))
+        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, "another-environment")))
             .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
             .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
             .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        assertThatThrownBy(() -> cut.execute(new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
+        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
@@ -89,6 +89,7 @@ class SearchAverageConnectionDurationUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.averageMessagesPerRequest = new AverageMessagesPerRequest();
         final SearchAverageConnectionDurationUseCase.Output result = cut.execute(
+            null,
             new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)
         );
         assertThat(result.averageConnectionDuration())
@@ -109,6 +110,7 @@ class SearchAverageConnectionDurationUseCaseTest {
                 .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
                 .build();
         final SearchAverageConnectionDurationUseCase.Output result = cut.execute(
+            null,
             new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)
         );
         assertThat(result.averageConnectionDuration())

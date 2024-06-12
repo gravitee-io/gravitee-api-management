@@ -41,6 +41,7 @@ import java.util.Optional;
 
 public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepository implements AnalyticsRepository {
 
+    public static final String ENTRYPOINT_ID_FIELD = "entrypoint-id";
     private final String[] clusters;
     private static final String KEYWORD = "keyword";
 
@@ -52,7 +53,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
-        return this.client.getFieldTypes(index, "entrypoint-id")
+        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
@@ -72,7 +73,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.getFieldTypes(index, "entrypoint-id")
+        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query, isEntrypointIdKeyword))
@@ -87,7 +88,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         ResponseStatusRangesQuery query
     ) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.search(index, null, SearchResponseStatusRangesQueryAdapter.adapt(query))
+        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+            .map(types -> types.stream().allMatch(KEYWORD::equals))
+            .flatMap(isEntrypointIdKeyword ->
+                this.client.search(index, null, SearchResponseStatusRangesQueryAdapter.adapt(query, isEntrypointIdKeyword))
+            )
             .map(SearchResponseStatusRangesResponseAdapter::adapt)
             .blockingGet();
     }

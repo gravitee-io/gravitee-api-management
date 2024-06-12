@@ -47,7 +47,7 @@ public interface ApiAnalyticsMapper {
     ApiAnalyticsAverageConnectionDurationResponse map(AverageConnectionDuration averageConnectionDuration);
 
     @Mapping(target = "ranges", source = "ranges")
-    @Mapping(target = "rangesByEntrypoint", source = "rangesByEntrypoint")
+    @Mapping(target = "rangesByEntrypoint", source = "statusRangesCountByEntrypoint")
     ApiAnalyticsResponseStatusRangesResponse map(ResponseStatusRanges responseStatusRanges);
 
     Map<String, Number> map(Map<String, Long> value);

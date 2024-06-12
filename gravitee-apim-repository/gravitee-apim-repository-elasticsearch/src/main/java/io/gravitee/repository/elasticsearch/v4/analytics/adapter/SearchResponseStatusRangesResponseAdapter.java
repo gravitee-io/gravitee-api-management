@@ -57,7 +57,7 @@ public class SearchResponseStatusRangesResponseAdapter {
                     }
                 )
             );
-        return Optional.of(ResponseStatusRangesAggregate.builder().rangesBy(result).ranges(totalRange).build());
+        return Optional.of(ResponseStatusRangesAggregate.builder().statusRangesCountByEntrypoint(result).ranges(totalRange).build());
     }
 
     private static Map<String, Long> processStatusRanges(JsonNode jsonNode) {

@@ -77,7 +77,11 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             ResponseStatusRangesQuery.builder().apiId(apiId).build()
         );
         return queryResult.map(analytics ->
-            ResponseStatusRanges.builder().ranges(analytics.getRanges()).rangesByEntrypoint(analytics.getRangesBy()).build()
+            ResponseStatusRanges
+                .builder()
+                .ranges(analytics.getRanges())
+                .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
+                .build()
         );
     }
 

@@ -91,7 +91,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         var request = new SearchAverageConnectionDurationUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
 
         return searchAverageConnectionDurationUseCase
-            .execute(request)
+            .execute(GraviteeContext.getExecutionContext(), request)
             .averageConnectionDuration()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No connection duration found for api: " + apiId));
@@ -105,7 +105,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         var request = new SearchResponseStatusRangesUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
 
         return searchResponseStatusRangesUseCase
-            .execute(request)
+            .execute(GraviteeContext.getExecutionContext(), request)
             .responseStatusRanges()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No response status ranges found for api: " + apiId));

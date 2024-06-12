@@ -277,7 +277,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             fakeAnalyticsQueryService.responseStatusRanges =
                 ResponseStatusRanges
                     .builder()
-                    .rangesByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
+                    .statusRangesCountByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
                     .build();
 
             final Response response = statusCodesByEntrypointTarget.request().get();

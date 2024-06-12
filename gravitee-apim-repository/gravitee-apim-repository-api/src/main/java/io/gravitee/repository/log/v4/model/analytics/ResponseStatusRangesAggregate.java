@@ -29,5 +29,5 @@ public class ResponseStatusRangesAggregate {
 
     Map<String, Long> ranges;
 
-    Map<String, Map<String, Long>> rangesBy;
+    Map<String, Map<String, Long>> statusRangesCountByEntrypoint;
 }

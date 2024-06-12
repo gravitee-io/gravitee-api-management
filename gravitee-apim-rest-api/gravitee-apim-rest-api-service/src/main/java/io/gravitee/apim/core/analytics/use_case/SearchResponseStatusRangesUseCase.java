@@ -20,10 +20,11 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,20 +37,23 @@ public class SearchResponseStatusRangesUseCase {
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
-    public Output execute(Input input) {
+    public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
 
-        // Verify v4 api
-        return analyticsQueryService
-            .searchResponseStatusRanges(GraviteeContext.getExecutionContext(), input.apiId())
-            .map(Output::new)
-            .orElse(new Output());
+        return analyticsQueryService.searchResponseStatusRanges(executionContext, input.apiId()).map(Output::new).orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
         validateApiMultiTenancyAccess(api, input.environmentId);
+        validateApiIsNotTcp(api);
+    }
+
+    private void validateApiIsNotTcp(Api api) {
+        if (api.getApiDefinitionV4().isTcpProxy()) {
+            throw new TcpProxyNotSupportedException(api.getId());
+        }
     }
 
     private static void validateApiMultiTenancyAccess(Api api, String environmentId) {

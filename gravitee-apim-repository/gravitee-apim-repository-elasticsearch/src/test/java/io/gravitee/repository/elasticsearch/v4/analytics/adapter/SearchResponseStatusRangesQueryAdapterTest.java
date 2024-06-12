@@ -27,7 +27,7 @@ class SearchResponseStatusRangesQueryAdapterTest {
 
     @Test
     void should_build_query() {
-        var result = SearchResponseStatusRangesQueryAdapter.adapt(ResponseStatusRangesQuery.builder().apiId("api-id").build());
+        var result = SearchResponseStatusRangesQueryAdapter.adapt(ResponseStatusRangesQuery.builder().apiId("api-id").build(), true);
 
         assertThatJson(result)
             .isEqualTo(
@@ -69,13 +69,6 @@ class SearchResponseStatusRangesQueryAdapterTest {
                                             "to": 600.0
                                           }
                                         ]
-                                      },
-                                      "aggs": {
-                                        "count": {
-                                          "value_count": {
-                                            "field": "_id"
-                                          }
-                                        }
                                       }
                                     }
                                   }
