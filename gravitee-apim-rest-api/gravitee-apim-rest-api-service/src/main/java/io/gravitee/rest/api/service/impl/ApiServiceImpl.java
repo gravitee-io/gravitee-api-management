@@ -103,6 +103,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -240,6 +241,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private ApiCategoryService apiCategoryService;
 
     @Autowired
     private PolicyService policyService;
@@ -595,6 +599,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // create the API flows
             flowService.save(FlowReferenceType.API, createdApi.getId(), api.getFlows());
+
+            // Create api category order entries
+            apiCategoryService.addApiToCategories(createdApi.getId(), createdApi.getCategories());
 
             //TODO add membership log
             ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner);
@@ -1198,6 +1205,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     });
             }
 
+            // Update api category order entries
+            apiCategoryService.updateApiCategories(api.getId(), api.getCategories());
+
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -1520,6 +1530,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
             // delete all reference on api quality rule
             apiQualityRuleRepository.deleteByApi(apiId);
+            // Delete all api category order entries
+            apiCategoryService.deleteApiFromCategories(apiId);
             // Audit
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
             // remove from search engine

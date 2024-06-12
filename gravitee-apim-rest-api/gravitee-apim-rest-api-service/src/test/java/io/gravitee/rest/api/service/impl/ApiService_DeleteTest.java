@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Before;
@@ -126,6 +127,9 @@ public class ApiService_DeleteTest {
 
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+
+    @Mock
+    private ApiCategoryService apiCategoryService;
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());

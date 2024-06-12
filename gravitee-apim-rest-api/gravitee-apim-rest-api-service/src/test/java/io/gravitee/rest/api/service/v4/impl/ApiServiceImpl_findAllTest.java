@@ -172,6 +172,9 @@ public class ApiServiceImpl_findAllTest {
     private ApiAuthorizationService apiAuthorizationService;
 
     @Mock
+    private ApiCategoryService apiCategoryService;
+
+    @Mock
     private CategoryMapper categoryMapper;
 
     private ApiService apiService;
@@ -233,7 +236,7 @@ public class ApiServiceImpl_findAllTest {
                 tagsValidationService,
                 apiAuthorizationService,
                 groupService,
-                categoryMapper
+                apiCategoryService
             );
     }
 

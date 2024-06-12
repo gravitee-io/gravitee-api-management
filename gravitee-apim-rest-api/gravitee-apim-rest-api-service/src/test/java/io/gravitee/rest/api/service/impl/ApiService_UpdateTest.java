@@ -106,6 +106,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -256,6 +257,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Mock
+    private ApiCategoryService apiCategoryService;
 
     @Mock
     private NotifierService notifierService;

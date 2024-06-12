@@ -161,7 +161,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final TagsValidationService tagsValidationService;
     private final ApiAuthorizationService apiAuthorizationService;
     private final GroupService groupService;
-    private CategoryMapper categoryMapper;
+    private final ApiCategoryService apiCategoryService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
 
@@ -194,7 +194,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final TagsValidationService tagsValidationService,
         final ApiAuthorizationService apiAuthorizationService,
         final GroupService groupService,
-        CategoryMapper categoryMapper
+        ApiCategoryService apiCategoryService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -224,7 +224,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.tagsValidationService = tagsValidationService;
         this.apiAuthorizationService = apiAuthorizationService;
         this.groupService = groupService;
-        this.categoryMapper = categoryMapper;
+        this.apiCategoryService = apiCategoryService;
     }
 
     @Override
@@ -321,6 +321,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // create the API flows
         flowCrudService.saveApiFlows(createdApi.getId(), apiEntity.getFlows());
+
+        // create Api Category Order entries
+        apiCategoryService.addApiToCategories(createdApi.getId(), createdApi.getCategories());
 
         ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, true);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
@@ -493,6 +496,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     planService.createOrUpdatePlan(executionContext, plan);
                 });
 
+            // update Api Category Order entities
+            apiCategoryService.updateApiCategories(updatedApi.getId(), updatedApi.getCategories());
+
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -610,6 +616,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Delete notifications
             genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
             portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+
+            // Delete Api Category Order entries
+            apiCategoryService.deleteApiFromCategories(apiId);
+
             // Delete alerts
             final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
             alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));

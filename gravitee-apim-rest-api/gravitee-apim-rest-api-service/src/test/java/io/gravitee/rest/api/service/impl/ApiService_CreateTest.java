@@ -71,6 +71,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
@@ -169,6 +170,9 @@ public class ApiService_CreateTest {
 
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+
+    @Mock
+    private ApiCategoryService apiCategoryService;
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
