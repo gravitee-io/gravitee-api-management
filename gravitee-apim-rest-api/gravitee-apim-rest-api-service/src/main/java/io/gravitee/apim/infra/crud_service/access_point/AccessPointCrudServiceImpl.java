@@ -52,55 +52,79 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         final List<AccessPoint> accessPoints
     ) {
         try {
-            Date updateStartTime = new Date();
-            for (AccessPoint accessPoint : accessPoints) {
-                var ap = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
-                if (ap.getId() == null) {
-                    ap.setId(UuidString.generateRandom());
-                }
-                ap.setUpdatedAt(new Date());
-                ap.setStatus(AccessPointStatus.CREATED);
-                io.gravitee.repository.management.model.AccessPoint createdAccessPoint = accessPointRepository.create(ap);
-                eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
-            }
-
-            this.deleteAccessPointsBeforeUpdateTime(referenceType, referenceId, updateStartTime);
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while creating access points", e);
-        }
-    }
-
-    @Override
-    public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
-        this.deleteAccessPointsBeforeUpdateTime(referenceType, referenceId, null);
-    }
-
-    private void deleteAccessPointsBeforeUpdateTime(
-        final AccessPoint.ReferenceType referenceType,
-        final String referenceId,
-        Date updateStartTime
-    ) {
-        try {
             AccessPointCriteria accessPointCriteria = AccessPointCriteria
                 .builder()
                 .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
                 .referenceIds(Set.of(referenceId))
                 .status(AccessPointStatus.CREATED)
-                .to(updateStartTime == null ? -1 : updateStartTime.getTime())
                 .build();
-            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.updateStatusByCriteria(
-                accessPointCriteria,
-                AccessPointStatus.DELETED
-            );
+            var existingAccessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
 
-            if (deleteAccessPoints != null) {
-                deleteAccessPoints
+            for (AccessPoint accessPoint : accessPoints) {
+                var newAccessPoint = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
+
+                var existingAP = existingAccessPoints
                     .stream()
-                    .map(AccessPointAdapter.INSTANCE::toEntity)
-                    .forEach(accessPoint -> eventManager.publishEvent(AccessPointEvent.DELETED, accessPoint));
+                    .filter(existingAccessPoint -> existingAccessPoint.getTarget().equals(newAccessPoint.getTarget()))
+                    .findFirst();
+
+                // create the received access point if it doesn't exist
+                if (existingAP.isEmpty()) {
+                    createAccessPoint(newAccessPoint);
+                    continue;
+                }
+
+                // verify if there is an access point for this target and if it was modified
+                var modifiedExistingAP = existingAP.filter(existingAccessPoint ->
+                    !existingAccessPoint.getHost().equals(newAccessPoint.getHost()) ||
+                    !existingAccessPoint.isSecured() == newAccessPoint.isSecured() ||
+                    !existingAccessPoint.isOverriding() == newAccessPoint.isOverriding()
+                );
+
+                // and if that's the case, then a new AP needs to be created and the existing one needs to be mark as deleted
+                if (modifiedExistingAP.isPresent()) {
+                    var apToDelete = modifiedExistingAP.get();
+                    this.createAccessPoint(newAccessPoint);
+                    this.deleteAccessPoint(apToDelete);
+                }
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while updating access points", e);
+        }
+    }
+
+    @Override
+    public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
+        try {
+            var accessPointCriteria = AccessPointCriteria
+                .builder()
+                .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
+                .referenceIds(Set.of(referenceId))
+                .status(AccessPointStatus.CREATED)
+                .build();
+            var existingAccessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
+            for (var accessPoint : existingAccessPoints) {
+                deleteAccessPoint(accessPoint);
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while deleting access points", e);
         }
+    }
+
+    private void createAccessPoint(io.gravitee.repository.management.model.AccessPoint newAccessPoint) throws TechnicalException {
+        if (newAccessPoint.getId() == null) {
+            newAccessPoint.setId(UuidString.generateRandom());
+        }
+        newAccessPoint.setUpdatedAt(new Date());
+        newAccessPoint.setStatus(AccessPointStatus.CREATED);
+        var createdAccessPoint = accessPointRepository.create(newAccessPoint);
+        eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
+    }
+
+    private void deleteAccessPoint(io.gravitee.repository.management.model.AccessPoint accessPointToDelete) throws TechnicalException {
+        accessPointToDelete.setStatus(AccessPointStatus.DELETED);
+        accessPointToDelete.setUpdatedAt(new Date());
+        var updatedAccessPoint = accessPointRepository.update(accessPointToDelete);
+        eventManager.publishEvent(AccessPointEvent.DELETED, updatedAccessPoint);
     }
 }

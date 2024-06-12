@@ -111,18 +111,6 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     }
 
     @Override
-    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, AccessPointStatus status) throws TechnicalException {
-        List<AccessPointMongo> accessPointMongos = internalRepository.search(criteria, null, null);
-
-        for (AccessPointMongo accessPointMongo : accessPointMongos) {
-            accessPointMongo.setStatus(status);
-            internalRepository.save(accessPointMongo);
-        }
-
-        return accessPointMongos.stream().map(this::map).toList();
-    }
-
-    @Override
     public AccessPoint create(final AccessPoint accessPoint) throws TechnicalException {
         log.debug("Create access point [{}]", accessPoint);
         AccessPoint accessPointCreated = map(internalRepository.insert(map(accessPoint)));

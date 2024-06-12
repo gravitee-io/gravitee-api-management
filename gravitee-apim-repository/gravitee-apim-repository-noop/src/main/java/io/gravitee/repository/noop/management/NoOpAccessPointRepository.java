@@ -55,9 +55,4 @@ public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<
     public List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) {
         return List.of();
     }
-
-    @Override
-    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, AccessPointStatus status) {
-        return List.of();
-    }
 }

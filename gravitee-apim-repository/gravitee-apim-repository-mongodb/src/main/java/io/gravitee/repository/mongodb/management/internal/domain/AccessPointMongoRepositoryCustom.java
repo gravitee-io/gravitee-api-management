@@ -15,9 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.domain;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
 import java.util.List;
 

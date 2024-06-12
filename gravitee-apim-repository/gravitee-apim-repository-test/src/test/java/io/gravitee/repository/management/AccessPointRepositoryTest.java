@@ -30,11 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.jupiter.api.Nested;
-import org.junit.runner.RunWith;
 
-@RunWith(Enclosed.class)
 public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
@@ -88,8 +84,8 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("dev.en.company.apim-portal.gravitee.io:4100", accessPoint.getHost());
         assertEquals("69a7a51a-98b7-4943-a7a5-1a98b79943e6", accessPoint.getReferenceId());
         assertEquals(AccessPointTarget.PORTAL, accessPoint.getTarget());
-        assertEquals(false, accessPoint.isSecured());
-        assertEquals(false, accessPoint.isOverriding());
+        assertFalse(accessPoint.isSecured());
+        assertFalse(accessPoint.isOverriding());
         assertEquals(AccessPointStatus.CREATED, accessPoint.getStatus());
         assertTrue(compareDate(new Date(1486771200000L), accessPoint.getUpdatedAt()));
     }
@@ -104,8 +100,8 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("dev.en.company.apim-portal.gravitee.io:4100", accessPoint.getHost());
         assertEquals("69a7a51a-98b7-4943-a7a5-1a98b79943e6", accessPoint.getReferenceId());
         assertEquals(AccessPointTarget.PORTAL, accessPoint.getTarget());
-        assertEquals(false, accessPoint.isSecured());
-        assertEquals(false, accessPoint.isOverriding());
+        assertFalse(accessPoint.isSecured());
+        assertFalse(accessPoint.isOverriding());
         assertEquals(AccessPointStatus.CREATED, accessPoint.getStatus());
         assertTrue(compareDate(new Date(1486771200000L), accessPoint.getUpdatedAt()));
     }
@@ -119,8 +115,8 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("dev.en.company.apim-portal.gravitee.io:4100", accessPoint.getHost());
         assertEquals("69a7a51a-98b7-4943-a7a5-1a98b79943e6", accessPoint.getReferenceId());
         assertEquals(AccessPointTarget.PORTAL, accessPoint.getTarget());
-        assertEquals(false, accessPoint.isSecured());
-        assertEquals(false, accessPoint.isOverriding());
+        assertFalse(accessPoint.isSecured());
+        assertFalse(accessPoint.isOverriding());
         assertEquals(AccessPointStatus.CREATED, accessPoint.getStatus());
         assertTrue(compareDate(new Date(1486771200000L), accessPoint.getUpdatedAt()));
     }
@@ -134,7 +130,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
             .target(AccessPointTarget.GATEWAY)
             .status(AccessPointStatus.CREATED)
             .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .referenceIds(Set.of("b5655a66-cc38-46c5-8260-05a1c13850ec"))
+            .referenceIds(Set.of("b78f2219-890d-4344-8f22-19890d834442"))
             .build();
 
         List<AccessPoint> accessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
@@ -142,37 +138,12 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(1, accessPoints.size());
         AccessPoint accessPoint = accessPoints.get(0);
         assertEquals("prod.en.company.apim-gateway.gravitee.io:8082", accessPoint.getHost());
-        assertEquals("b5655a66-cc38-46c5-8260-05a1c13850ec", accessPoint.getReferenceId());
+        assertEquals("b78f2219-890d-4344-8f22-19890d834442", accessPoint.getReferenceId());
         assertEquals(AccessPointTarget.GATEWAY, accessPoint.getTarget());
-        assertEquals(false, accessPoint.isSecured());
-        assertEquals(false, accessPoint.isOverriding());
+        assertFalse(accessPoint.isSecured());
+        assertFalse(accessPoint.isOverriding());
         assertEquals(AccessPointStatus.CREATED, accessPoint.getStatus());
         assertTrue(compareDate(new Date(1486771200000L), accessPoint.getUpdatedAt()));
-    }
-
-    @Test
-    public void should_update_status_by_criteria() throws Exception {
-        AccessPointCriteria accessPointCriteria = AccessPointCriteria
-            .builder()
-            .from(1486771200000L - 1)
-            .to(1486771200000L + 1)
-            .target(AccessPointTarget.GATEWAY)
-            .status(AccessPointStatus.CREATED)
-            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .referenceIds(Set.of("0a660212-e982-498c-ad5c-32ec0f2737a4"))
-            .build();
-
-        List<AccessPoint> accessPoints = accessPointRepository.updateStatusByCriteria(accessPointCriteria, AccessPointStatus.DELETED);
-
-        assertEquals(1, accessPoints.size());
-        AccessPoint accessPoint = accessPoints.get(0);
-        assertEquals("dev.en.company.apim-gateway.gravitee.io:8082", accessPoint.getHost());
-        assertEquals("0a660212-e982-498c-ad5c-32ec0f2737a4", accessPoint.getReferenceId());
-        assertEquals(AccessPointTarget.GATEWAY, accessPoint.getTarget());
-        assertEquals(false, accessPoint.isSecured());
-        assertEquals(false, accessPoint.isOverriding());
-        assertTrue(accessPoint.getUpdatedAt().getTime() > 1486771200000L);
-        assertEquals(AccessPointStatus.DELETED, accessPoints.get(0).getStatus());
     }
 
     @Test

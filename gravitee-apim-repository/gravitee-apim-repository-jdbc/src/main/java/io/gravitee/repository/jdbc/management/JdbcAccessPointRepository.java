@@ -118,8 +118,7 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException {
         try {
             List<Object> args = new ArrayList<>();
-            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
-            buildCriteriaClauses(criteria, query, args);
+            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql()).append(buildCriteriaClauses(criteria, args));
 
             query.append("order by updated_at asc ");
             if (page != null && size != null && size > 0) {
@@ -154,63 +153,47 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
         }
     }
 
-    @Override
-    public List<AccessPoint> updateStatusByCriteria(AccessPointCriteria criteria, final AccessPointStatus status)
-        throws TechnicalException {
-        try {
-            List<AccessPoint> accessPoints = findByCriteria(criteria, null, null);
-
-            List<Object> args = new ArrayList<>();
-            StringBuilder query = new StringBuilder("update " + tableName + "set status =  " + status.name());
-            buildCriteriaClauses(criteria, query, args);
-            jdbcTemplate.update(query.toString(), args.toArray());
-
-            return accessPoints;
-        } catch (final Exception ex) {
-            throw new TechnicalException("Failed to delete access points by reference", ex);
-        }
-    }
-
-    private void buildCriteriaClauses(AccessPointCriteria criteria, StringBuilder query, List<Object> args) {
+    private String buildCriteriaClauses(AccessPointCriteria criteria, List<Object> args) {
         boolean first = true;
-
+        var criteriaBuilder = new StringBuilder();
         if (criteria.getFrom() > 0) {
-            first = addClause(first, query);
-            query.append("updated_at >= ?");
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("updated_at > ?");
             args.add(new Date(criteria.getFrom()));
         }
 
         if (criteria.getTo() > 0) {
-            first = addClause(first, query);
-            query.append("updated_at <= ?");
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("updated_at < ?");
             args.add(new Date(criteria.getTo()));
         }
 
         if (criteria.getReferenceType() != null) {
-            first = addClause(first, query);
-            query.append("reference_type = ?");
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("reference_type = ?");
             args.add(criteria.getReferenceType().name());
         }
 
         if (criteria.getTarget() != null) {
-            first = addClause(first, query);
-            query.append("target = ?");
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("target = ?");
             args.add(criteria.getTarget().name());
         }
 
         if (criteria.getStatus() != null) {
-            first = addClause(first, query);
-            query.append("status = ?");
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("status = ?");
             args.add(criteria.getStatus().name());
         }
 
         if (criteria.getReferenceIds() != null && !criteria.getReferenceIds().isEmpty()) {
-            first = addClause(first, query);
-            query.append("reference_id IN (");
-            query.append(criteria.getReferenceIds().stream().map(id -> "?").collect(Collectors.joining(",")));
-            query.append(")");
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("reference_id IN (");
+            criteriaBuilder.append(criteria.getReferenceIds().stream().map(id -> "?").collect(Collectors.joining(",")));
+            criteriaBuilder.append(")");
             args.addAll(criteria.getReferenceIds());
         }
+        return criteriaBuilder.toString();
     }
 
     private boolean addClause(boolean first, StringBuilder query) {
