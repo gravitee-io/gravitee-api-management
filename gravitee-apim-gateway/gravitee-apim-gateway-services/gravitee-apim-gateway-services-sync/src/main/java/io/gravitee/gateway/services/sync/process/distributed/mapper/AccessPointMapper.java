@@ -16,7 +16,7 @@
 package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -34,10 +34,10 @@ public class AccessPointMapper {
     public Maybe<AccessPointDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
             try {
-                final AccessPoint accessPoint = objectMapper.readValue(event.getPayload(), AccessPoint.class);
+                final ReactableAccessPoint accessPoint = objectMapper.readValue(event.getPayload(), ReactableAccessPoint.class);
                 return AccessPointDeployable
                     .builder()
-                    .accessPoint(accessPoint)
+                    .reactableAccessPoint(accessPoint)
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
@@ -52,7 +52,7 @@ public class AccessPointMapper {
             try {
                 return DistributedEvent
                     .builder()
-                    .payload(objectMapper.writeValueAsString(deployable.accessPoint()))
+                    .payload(objectMapper.writeValueAsString(deployable.reactableAccessPoint()))
                     .id(deployable.id())
                     .type(DistributedEventType.ACCESS_POINT)
                     .syncAction(SyncActionMapper.to(deployable.syncAction()))

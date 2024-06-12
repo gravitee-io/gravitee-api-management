@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -24,6 +25,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
@@ -91,6 +93,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final ApiServicePluginManager apiServicePluginManager;
     protected final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
     protected final OrganizationManager organizationManager;
+    protected final AccessPointManager accessPointManager;
+    protected final EventManager eventManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
     protected final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
@@ -110,7 +114,9 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final OrganizationManager organizationManager,
         final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final ReporterService reporterService
+        final ReporterService reporterService,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -121,6 +127,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.apiServicePluginManager = apiServicePluginManager;
         this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.organizationManager = organizationManager;
+        this.accessPointManager = accessPointManager;
+        this.eventManager = eventManager;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
@@ -267,7 +275,9 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
             configuration,
             node,
             requestTimeoutConfiguration,
-            reporterService
+            reporterService,
+            accessPointManager,
+            eventManager
         );
     }
 

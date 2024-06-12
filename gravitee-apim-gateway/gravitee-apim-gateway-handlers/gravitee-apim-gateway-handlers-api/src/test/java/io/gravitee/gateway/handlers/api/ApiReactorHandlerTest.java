@@ -19,10 +19,12 @@ import static io.gravitee.common.component.Lifecycle.State.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
@@ -73,6 +75,12 @@ public class ApiReactorHandlerTest {
 
     @Mock
     private Configuration configuration;
+
+    @Mock
+    private AccessPointManager accessPointManager;
+
+    @Mock
+    private EventManager eventManager;
 
     @Mock
     Node node;
@@ -150,7 +158,7 @@ public class ApiReactorHandlerTest {
     }
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
-        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(configuration, api);
+        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(configuration, api, accessPointManager, eventManager);
         apiReactorHandler.setNode(node);
         apiReactorHandler.setPendingRequestsTimeout(pendingRequestsTimeout);
         apiReactorHandler.setGroupLifecycleManager(groupLifecycleManager);

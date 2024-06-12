@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
@@ -28,6 +29,7 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
@@ -35,6 +37,7 @@ import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.AccessPointHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -78,10 +81,19 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     private long pendingRequestsTimeout;
     private final Configuration configuration;
+    private final AccessPointManager accessPointManager;
+    private final EventManager eventManager;
 
-    public ApiReactorHandler(Configuration configuration, final Api api) {
+    public ApiReactorHandler(
+        Configuration configuration,
+        final Api api,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
+    ) {
         super(api);
         this.configuration = configuration;
+        this.accessPointManager = accessPointManager;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -436,14 +448,25 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             .getProxy()
             .getVirtualHosts()
             .stream()
-            .map(virtualHost ->
-                new DefaultHttpAcceptor(
-                    virtualHost.getHost(),
-                    virtualHost.getPath(),
-                    this,
-                    reactable.getDefinition().getProxy().getServers()
-                )
-            )
+            .map(virtualHost -> {
+                if (virtualHost.getHost() != null) {
+                    return new DefaultHttpAcceptor(
+                        virtualHost.getHost(),
+                        virtualHost.getPath(),
+                        this,
+                        reactable.getDefinition().getProxy().getServers()
+                    );
+                } else {
+                    return new AccessPointHttpAcceptor(
+                        eventManager,
+                        reactable.getEnvironmentId(),
+                        accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
+                        virtualHost.getPath(),
+                        this,
+                        reactable.getDefinition().getProxy().getServers()
+                    );
+                }
+            })
             .collect(Collectors.toList());
     }
 }

@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvalu
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -164,7 +165,9 @@ public class ApiHandlerConfiguration {
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -177,7 +180,9 @@ public class ApiHandlerConfiguration {
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager
         );
     }
 
@@ -208,7 +213,9 @@ public class ApiHandlerConfiguration {
         OrganizationManager organizationManager,
         io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
-        ReporterService reporterService
+        ReporterService reporterService,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -222,7 +229,9 @@ public class ApiHandlerConfiguration {
             organizationManager,
             flowResolverFactory,
             requestTimeoutConfiguration,
-            reporterService
+            reporterService,
+            accessPointManager,
+            eventManager
         );
     }
 

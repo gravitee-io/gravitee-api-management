@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Proxy;
@@ -41,6 +42,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -229,6 +231,12 @@ class SyncApiReactorTest {
     @Mock
     RequestTimeoutConfiguration requestTimeoutConfiguration;
 
+    @Mock
+    private AccessPointManager accessPointManager;
+
+    @Mock
+    private EventManager eventManager;
+
     @BeforeEach
     void init() {
         lenient().when(apiDefinition.getProxy()).thenReturn(mock(Proxy.class));
@@ -278,7 +286,9 @@ class SyncApiReactorTest {
                 groupLifecycleManager,
                 configuration,
                 node,
-                requestTimeoutConfiguration
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager
             );
 
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(invokerAdapter);
