@@ -26,11 +26,13 @@ import static io.reactivex.rxjava3.core.Observable.interval;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -57,6 +59,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHoo
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.AccessPointHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -104,6 +107,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ProcessorChain onErrorProcessors;
     protected final Node node;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    private final AccessPointManager accessPointManager;
+    private final EventManager eventManager;
     private final boolean tracingEnabled;
     private final String loggingExcludedResponseType;
     private final String loggingMaxSize;
@@ -124,7 +129,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -134,6 +141,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.policyManager = policyManager;
         this.groupLifecycleManager = groupLifecycleManager;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
+        this.accessPointManager = accessPointManager;
+        this.eventManager = eventManager;
 
         this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
         this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
@@ -372,9 +381,25 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                 .getProxy()
                 .getVirtualHosts()
                 .stream()
-                .map(virtualHost ->
-                    new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath(), this, api.getDefinition().getProxy().getServers())
-                )
+                .map(virtualHost -> {
+                    if (virtualHost.getHost() != null) {
+                        return new DefaultHttpAcceptor(
+                            virtualHost.getHost(),
+                            virtualHost.getPath(),
+                            this,
+                            api.getDefinition().getProxy().getServers()
+                        );
+                    } else {
+                        return new AccessPointHttpAcceptor(
+                            eventManager,
+                            api.getEnvironmentId(),
+                            accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
+                            virtualHost.getPath(),
+                            this,
+                            api.getDefinition().getProxy().getServers()
+                        );
+                    }
+                })
                 .collect(Collectors.toList());
         } catch (Exception ex) {
             return Collections.emptyList();

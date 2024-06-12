@@ -28,6 +28,7 @@ import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
@@ -206,6 +207,23 @@ class DefaultDistributedSyncServiceTest {
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
+<<<<<<< HEAD
+=======
+
+        @Test
+        void should_distribute_access_point() {
+            cut
+                .distributeIfNeeded(
+                    AccessPointDeployable
+                        .builder()
+                        .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
+                        .build()
+                )
+                .test()
+                .assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+>>>>>>> 00f3830544 (feat: update internal acceptors based on access point and api deployed)
     }
 
     @Nested
@@ -278,5 +296,22 @@ class DefaultDistributedSyncServiceTest {
             cut.distributeIfNeeded(LicenseDeployable.builder().id("id").license("license").build()).test().assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
+<<<<<<< HEAD
+=======
+
+        @Test
+        void should_not_call_repository_when_distributing_access_point() {
+            cut
+                .distributeIfNeeded(
+                    AccessPointDeployable
+                        .builder()
+                        .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
+                        .build()
+                )
+                .test()
+                .assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+>>>>>>> 00f3830544 (feat: update internal acceptors based on access point and api deployed)
     }
 }

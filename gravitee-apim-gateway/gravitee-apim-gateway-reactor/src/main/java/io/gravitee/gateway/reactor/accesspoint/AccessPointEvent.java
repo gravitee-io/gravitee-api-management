@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.reactor.accesspoint;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Acceptor<T extends Acceptor<T>> extends Comparable<T> {
-    ReactorHandler reactor();
-
-    default void clear() {}
+public enum AccessPointEvent {
+    DEPLOY,
+    UNDEPLOY,
 }

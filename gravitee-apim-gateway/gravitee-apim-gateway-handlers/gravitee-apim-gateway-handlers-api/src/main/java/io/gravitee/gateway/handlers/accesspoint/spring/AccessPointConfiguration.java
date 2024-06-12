@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.handlers.accesspoint.spring;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface Acceptor<T extends Acceptor<T>> extends Comparable<T> {
-    ReactorHandler reactor();
+import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.accesspoint.manager.DefaultAccessPointManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-    default void clear() {}
+@Configuration
+public class AccessPointConfiguration {
+
+    @Bean
+    public AccessPointManager accessPointManager(EventManager eventManager) {
+        return new DefaultAccessPointManager(eventManager);
+    }
 }

@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.handlers.accesspoint.manager;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface Acceptor<T extends Acceptor<T>> extends Comparable<T> {
-    ReactorHandler reactor();
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
+import java.util.List;
+import java.util.Set;
 
-    default void clear() {}
+public interface AccessPointManager {
+    void register(ReactableAccessPoint reactableAccessPoint);
+
+    void unregister(ReactableAccessPoint reactableAccessPoint);
+
+    List<ReactableAccessPoint> getByEnvironmentId(final String environmentId);
 }

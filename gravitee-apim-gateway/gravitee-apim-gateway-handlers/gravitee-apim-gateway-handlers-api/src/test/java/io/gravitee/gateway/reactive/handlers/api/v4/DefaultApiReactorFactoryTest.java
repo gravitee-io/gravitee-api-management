@@ -23,6 +23,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -32,6 +33,7 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
@@ -117,6 +119,12 @@ public class DefaultApiReactorFactoryTest {
     @Mock
     ReporterService reporterService;
 
+    @Mock
+    private AccessPointManager accessPointManager;
+
+    @Mock
+    private EventManager eventManager;
+
     private DefaultApiReactorFactory cut;
 
     @Mock
@@ -141,7 +149,9 @@ public class DefaultApiReactorFactoryTest {
                 organizationManager,
                 flowResolverFactory,
                 requestTimeoutConfiguration,
-                reporterService
+                reporterService,
+                accessPointManager,
+                eventManager
             );
     }
 

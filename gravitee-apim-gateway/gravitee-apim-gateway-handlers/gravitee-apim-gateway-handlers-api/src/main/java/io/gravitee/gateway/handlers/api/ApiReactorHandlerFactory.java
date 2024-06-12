@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
@@ -41,6 +42,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
@@ -123,6 +125,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final OrganizationManager organizationManager;
     private final FlowResolverFactory flowResolverFactory;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    private final AccessPointManager accessPointManager;
+    private final EventManager eventManager;
     private ApplicationContext applicationContext;
 
     public ApiReactorHandlerFactory(
@@ -136,7 +140,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -149,6 +155,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.apiProcessorChainFactory = apiProcessorChainFactory;
         this.flowResolverFactory = flowResolverFactory;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
+        this.accessPointManager = accessPointManager;
+        this.eventManager = eventManager;
         this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
     }
 
@@ -220,7 +228,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                         apiComponentProvider
                     );
 
-                    final ApiReactorHandler v3ApiReactor = getApiReactorHandler(configuration, api);
+                    final ApiReactorHandler v3ApiReactor = getApiReactorHandler(configuration, api, accessPointManager, eventManager);
                     final FlowPolicyResolverFactory v3FlowPolicyResolverFactory = new FlowPolicyResolverFactory();
                     final PolicyChainFactory policyChainFactory = policyChainFactory(v3PolicyManager);
                     v3ApiReactor.setNode(node);
@@ -297,7 +305,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                         groupLifecycleManager,
                         configuration,
                         node,
-                        requestTimeoutConfiguration
+                        requestTimeoutConfiguration,
+                        accessPointManager,
+                        eventManager
                     );
                 }
             } else {
@@ -322,7 +332,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
     ) {
         return new SyncApiReactor(
             api,
@@ -336,7 +348,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             groupLifecycleManager,
             configuration,
             node,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager
         );
     }
 
@@ -395,8 +409,13 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         return templateVariableProviders;
     }
 
-    protected ApiReactorHandler getApiReactorHandler(Configuration configuration, Api api) {
-        return new ApiReactorHandler(configuration, api);
+    protected ApiReactorHandler getApiReactorHandler(
+        Configuration configuration,
+        Api api,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
+    ) {
+        return new ApiReactorHandler(configuration, api, accessPointManager, eventManager);
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {
