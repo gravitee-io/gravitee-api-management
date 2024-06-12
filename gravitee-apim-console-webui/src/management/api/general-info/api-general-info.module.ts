@@ -41,6 +41,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { A11yModule } from '@angular/cdk/a11y';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterLink } from '@angular/router';
 
 import { ApiGeneralInfoComponent } from './api-general-info.component';
 import { ApiGeneralInfoQualityComponent } from './api-general-info-quality/api-general-info-quality.component';
@@ -69,6 +70,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
 
     A11yModule,
     MatCardModule,

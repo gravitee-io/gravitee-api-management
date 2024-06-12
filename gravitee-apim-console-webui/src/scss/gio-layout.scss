@@ -1,3 +1,4 @@
+@use 'sass:map';
 @import '../constants';
 
 // Value extracted from https://material.io/design/layout/responsive-layout-grid.html#breakpoints
@@ -10,7 +11,7 @@ $container-padding-top: 24px;
 $container-padding-top: 24px;
 $container-padding-bottom: 48px;
 
-@mixin small-desktop {
+@mixin small-desktop() {
   @media (min-width: #{$small-desktop-width}) and (max-width: #{$desktop-width - 1px}) {
     @content;
   }
@@ -24,6 +25,19 @@ $container-padding-bottom: 48px;
 
 @mixin large-desktop {
   @media (min-width: #{$large-desktop-width}) {
+    @content;
+  }
+}
+
+// Apply the content to the given breakpoint and all larger breakpoints
+@mixin apply-to-equal-and-larger-breakpoints($desktop-breakpoint) {
+  $breakpoints: (
+    'small-desktop': $small-desktop-width,
+    'desktop': $desktop-width,
+    'large-desktop': $large-desktop-width,
+  );
+
+  @media (min-width: map.get($breakpoints, $desktop-breakpoint)) {
     @content;
   }
 }

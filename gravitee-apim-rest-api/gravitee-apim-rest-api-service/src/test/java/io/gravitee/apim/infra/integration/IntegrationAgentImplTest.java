@@ -29,6 +29,8 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.definition.model.federation.SubscriptionParameter;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
@@ -181,6 +183,9 @@ class IntegrationAgentImplTest {
     @Nested
     class Subscribe {
 
+        static final String SUBSCRIPTION_ID = "subscription-id";
+        static final String APPLICATION_NAME = "application-name";
+
         @BeforeEach
         void setUp() {
             when(controller.sendCommand(any(), any()))
@@ -197,14 +202,17 @@ class IntegrationAgentImplTest {
         }
 
         @Test
-        void should_send_command_to_subscribe() {
+        void should_send_command_to_subscribe_for_apikey() {
+            var subscriptionParameter = new SubscriptionParameter.ApiKey(
+                PlanFixtures.aFederatedPlan().toBuilder().providerId("plan-provider-id").build()
+            );
             agent
                 .subscribe(
                     INTEGRATION_ID,
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
-                    PlanFixtures.aFederatedPlan().toBuilder().providerId("plan-provider-id").build(),
-                    "subscription-id",
-                    "application-name"
+                    subscriptionParameter,
+                    SUBSCRIPTION_ID,
+                    APPLICATION_NAME
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -218,10 +226,52 @@ class IntegrationAgentImplTest {
                     new SubscribeCommandPayload(
                         "api-provider-id",
                         new Subscription(
-                            "subscription-id",
-                            "application-name",
+                            SUBSCRIPTION_ID,
+                            APPLICATION_NAME,
                             SubscriptionType.API_KEY,
                             Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id")
+                        )
+                    )
+                );
+        }
+
+        @Test
+        void should_send_command_to_subscribe_for_oauth() {
+            String oAuthClientId = "client-id";
+            String planProviderId = "plan-provider-id";
+            var subscriptionParameter = new SubscriptionParameter.OAuth(
+                oAuthClientId,
+                PlanFixtures
+                    .aFederatedPlan()
+                    .toBuilder()
+                    .security(PlanSecurity.builder().type("oauth2").build())
+                    .providerId(planProviderId)
+                    .build()
+            );
+            agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    subscriptionParameter,
+                    SUBSCRIPTION_ID,
+                    APPLICATION_NAME
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            assertThat(captor.getValue())
+                .isInstanceOf(SubscribeCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(
+                    new SubscribeCommandPayload(
+                        "api-provider-id",
+                        new Subscription(
+                            SUBSCRIPTION_ID,
+                            APPLICATION_NAME,
+                            SubscriptionType.OAUTH,
+                            Map.of(Subscription.METADATA_PLAN_ID, planProviderId, Subscription.METADATA_CONSUMER_KEY, oAuthClientId)
                         )
                     )
                 );
@@ -233,9 +283,9 @@ class IntegrationAgentImplTest {
                 .subscribe(
                     INTEGRATION_ID,
                     ApiDefinitionFixtures.aFederatedApi(),
-                    PlanFixtures.aFederatedPlan(),
-                    "subscription-id",
-                    "application-name"
+                    PlanFixtures.subscriptionParameter(),
+                    SUBSCRIPTION_ID,
+                    APPLICATION_NAME
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -256,9 +306,9 @@ class IntegrationAgentImplTest {
                 .subscribe(
                     INTEGRATION_ID,
                     ApiDefinitionFixtures.aFederatedApi(),
-                    PlanFixtures.aFederatedPlan(),
-                    "subscription-id",
-                    "application-name"
+                    PlanFixtures.subscriptionParameter(),
+                    SUBSCRIPTION_ID,
+                    APPLICATION_NAME
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)

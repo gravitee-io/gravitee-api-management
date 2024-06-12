@@ -15,13 +15,14 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.FederatedApi;
-import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -46,7 +47,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     public Single<IntegrationSubscription> subscribe(
         String integrationId,
         FederatedApi api,
-        FederatedPlan plan,
+        SubscriptionParameter subscriptionParameter,
         String subscriptionId,
         String applicationName
     ) {
@@ -60,11 +61,19 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
                 return subscriptionIds;
             }
         );
+        IntegrationSubscription.Type type;
+        if (subscriptionParameter instanceof SubscriptionParameter.ApiKey) {
+            type = IntegrationSubscription.Type.API_KEY;
+        } else if (subscriptionParameter instanceof SubscriptionParameter.OAuth) {
+            type = IntegrationSubscription.Type.OAUTH2;
+        } else {
+            throw new IntegrationIngestionException("Unsupported subscription parameter: " + subscriptionParameter);
+        }
         return Single.just(
             new IntegrationSubscription(
                 integrationId,
-                IntegrationSubscription.Type.API_KEY,
-                "api-key-" + subscriptionId + "-" + applicationName,
+                type,
+                String.join("-", type.name(), subscriptionId, applicationName),
                 Map.of("key", "value")
             )
         );

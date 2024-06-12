@@ -13,10 +13,10 @@ $typography: map.get(gio.$mat-theme, typography);
 .details-card {
   &__header {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
-    justify-content: space-between;
+    justify-content: center;
     align-items: stretch;
     gap: 16px;
 
@@ -51,14 +51,20 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__right-coll {
-      flex: 0 0 292px;
+      flex: 0 1 auto;
 
-      @include gio-layout.small-desktop {
-        flex: 0 1 auto;
+      @include gio-layout.apply-to-equal-and-larger-breakpoints('desktop') {
+        flex: 0 0 292px;
       }
 
       &__media {
         display: flex;
+        gap: 6px;
+        align-items: flex-end;
+
+        @include gio-layout.apply-to-equal-and-larger-breakpoints('desktop') {
+          justify-content: center;
+        }
 
         &__picture {
           flex: 0 0 0%;
@@ -112,8 +118,9 @@ $typography: map.get(gio.$mat-theme, typography);
       }
     }
 
-    @include gio-layout.small-desktop {
-      flex-direction: column;
+    @include gio-layout.apply-to-equal-and-larger-breakpoints('desktop') {
+      flex-direction: row;
+      justify-content: space-between;
     }
   }
 
