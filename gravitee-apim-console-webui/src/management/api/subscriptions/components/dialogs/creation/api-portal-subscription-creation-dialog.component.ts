@@ -312,12 +312,19 @@ const applicationSelectionRequiredValidator: ValidatorFn = (control): Validation
   if (!value || typeof value === 'string' || !('id' in value) || !('name' in value)) {
     return { selectionRequired: true };
   }
-  if (
-    control.parent?.get('selectedPlan').value?.security?.type === 'JWT' ||
-    control.parent?.get('selectedPlan').value?.security?.type === 'OAUTH2'
-  ) {
-    return has(value, 'settings.app.client_id') ? null : { clientIdRequired: true };
+
+  if (needClientId(control.parent?.get('selectedPlan').value?.security?.type) && !haveClientId(value)) {
+    return { clientIdRequired: true };
   }
 
   return null;
+};
+
+const needClientId: (type: string) => boolean = (type: string): boolean => {
+  return ['JWT', 'OAUTH2'].includes(type);
+};
+
+const haveClientId: (value: any) => boolean = (value: any) => {
+  const clientIdPaths = ['settings.app.client_id', 'settings.oauth.client_id'];
+  return clientIdPaths.some((path) => has(value, path));
 };
