@@ -28,6 +28,7 @@ import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -89,6 +90,9 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
     private ApiMetadataService apiMetadataService;
 
     @Mock
+    private RoleService roleService;
+
+    @Mock
     private MediaService mediaService;
 
     private ApiEntity apiEntity;
@@ -123,6 +127,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
                 pageService,
                 planService,
                 apiService,
+                roleService,
                 apiConverter,
                 planConverter,
                 new CustomResourceDefinitionMapper()
@@ -182,14 +187,19 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
         when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(List.of(folder));
 
+        String poRoleId = "9ca07fdb-e143-45be-9c7d-44946a94968e";
+        String poRoleName = "API_PRIMARY_OWNER";
+
         RoleEntity poRole = new RoleEntity();
-        poRole.setName("PRIMARY_OWNER");
-        poRole.setId("API_PRIMARY_OWNER");
+        poRole.setName(poRoleName);
+        poRole.setId(poRoleId);
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getDefaultOrganization())).thenReturn(List.of(poRole));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberId("johndoe");
         membership.setMemberType(MembershipMemberType.USER);
-        membership.setRoleId("API_PRIMARY_OWNER");
+        membership.setRoleId(poRoleId);
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(membership.getMemberId());

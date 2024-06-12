@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URL;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ApiDefinitionResourceTest {
@@ -88,24 +87,6 @@ class ApiDefinitionResourceTest {
         assertFalse(page.has("accessControls"));
         assertFalse(page.has("attached_media"));
         assertFalse(page.has("contentType"));
-    }
-
-    @Test
-    public void shouldMapMembers() throws Exception {
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
-
-        assertTrue(resource.getSpec().has("members"));
-
-        JsonNode member = resource.getSpec().get("members").iterator().next();
-        assertTrue(member.has("source"));
-        assertEquals("memory", member.get("source").asText());
-
-        assertTrue(member.has("sourceId"));
-        assertEquals("admin", member.get("sourceId").asText());
-
-        assertFalse(member.has("roles"));
-        assertTrue(member.has("role"));
-        assertEquals("dd0e6498-7a8c-492d-8e64-987a8c492d1f", member.get("role").asText());
     }
 
     @Test

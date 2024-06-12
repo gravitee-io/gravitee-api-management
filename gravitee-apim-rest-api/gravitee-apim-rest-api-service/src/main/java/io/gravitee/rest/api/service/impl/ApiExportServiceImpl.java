@@ -17,19 +17,24 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -39,6 +44,7 @@ import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +62,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private final PageService pageService;
     private final PlanService planService;
     private final ApiService apiService;
+    private final RoleService roleService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
     private final CustomResourceDefinitionMapper customResourceDefinitionMapper;
@@ -65,6 +72,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         PageService pageService,
         PlanService planService,
         ApiService apiService,
+        RoleService roleService,
         ApiConverter apiConverter,
         PlanConverter planConverter,
         CustomResourceDefinitionMapper customResourceDefinitionMapper
@@ -73,6 +81,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         this.pageService = pageService;
         this.planService = planService;
         this.apiService = apiService;
+        this.roleService = roleService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
         this.customResourceDefinitionMapper = customResourceDefinitionMapper;
@@ -110,6 +119,11 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
 
             ApiDefinitionResource apiDefinitionResource = new ApiDefinitionResource(name, (ObjectNode) jsonNode);
 
+            if (apiDefinitionResource.hasMembers()) {
+                var spec = apiDefinitionResource.getSpec();
+                apiDefinitionResource.replaceMembers(mapCRDMembers(executionContext, apiDefinitionResource.getMembers(spec)));
+            }
+
             if (exportQuery.isRemoveIds()) {
                 apiDefinitionResource.removeIds();
             }
@@ -132,6 +146,29 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             LOGGER.error(String.format("An error occurs while trying to convert API %s to CRD", apiId), e);
             throw new TechnicalManagementException(e);
         }
+    }
+
+    private ArrayNode mapCRDMembers(ExecutionContext executionContext, ArrayNode members) {
+        var membersList = JsonNodeFactory.instance.arrayNode();
+
+        var roleIdToName = roleService
+            .findByScope(RoleScope.API, executionContext.getOrganizationId())
+            .stream()
+            .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getName));
+
+        for (var member : members) {
+            JsonNode roles = member.get("roles");
+
+            // Can't be null. A member should always have a role
+            JsonNode roleId = roles.iterator().next();
+            var roleName = roleIdToName.get(roleId.asText());
+
+            ((ObjectNode) member).remove("roles");
+            ((ObjectNode) member).put("role", roleName);
+
+            membersList.add(member);
+        }
+        return membersList;
     }
 
     private void generateAndSaveCrossId(ExecutionContext executionContext, ApiEntity api) {
