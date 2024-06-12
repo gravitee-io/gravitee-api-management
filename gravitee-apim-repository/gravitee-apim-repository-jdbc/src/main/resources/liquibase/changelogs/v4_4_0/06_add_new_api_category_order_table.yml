@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.0_add_api_category_order_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}api_category_orders
+            columns:
+              - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: category_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: order, type: integer, constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}api_category_orders
+            columnNames: api_id, category_id
+            tableName: ${gravitee_prefix}api_category_orders
