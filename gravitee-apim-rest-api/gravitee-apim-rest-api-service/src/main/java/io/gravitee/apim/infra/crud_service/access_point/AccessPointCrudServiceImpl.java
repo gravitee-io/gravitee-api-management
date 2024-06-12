@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -60,33 +61,51 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 .build();
             var existingAccessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
 
+            var apsToCreate = new ArrayList<io.gravitee.repository.management.model.AccessPoint>();
+            var apsToDelete = new ArrayList<>(existingAccessPoints);
+
             for (AccessPoint accessPoint : accessPoints) {
                 var newAccessPoint = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
 
-                var existingAP = existingAccessPoints
+                var existingAPsForTarget = existingAccessPoints
                     .stream()
                     .filter(existingAccessPoint -> existingAccessPoint.getTarget().equals(newAccessPoint.getTarget()))
-                    .findFirst();
+                    .toList();
 
-                // create the received access point if it doesn't exist
-                if (existingAP.isEmpty()) {
-                    createAccessPoint(newAccessPoint);
+                // if there aren't access points for this target, it needs to be added for creation
+                if (existingAPsForTarget.isEmpty()) {
+                    apsToCreate.add(newAccessPoint);
                     continue;
                 }
 
-                // verify if there is an access point for this target and if it was modified
-                var modifiedExistingAP = existingAP.filter(existingAccessPoint ->
-                    !existingAccessPoint.getHost().equals(newAccessPoint.getHost()) ||
-                    !existingAccessPoint.isSecured() == newAccessPoint.isSecured() ||
-                    !existingAccessPoint.isOverriding() == newAccessPoint.isOverriding()
-                );
-
-                // and if that's the case, then a new AP needs to be created and the existing one needs to be mark as deleted
-                if (modifiedExistingAP.isPresent()) {
-                    var apToDelete = modifiedExistingAP.get();
-                    this.createAccessPoint(newAccessPoint);
-                    this.deleteAccessPoint(apToDelete);
+                // Search in the existing access points if the new one is already present (comparing equality)
+                // if yes => it needs to be removed from the list of APs to delete
+                //          and the new AP doesn't need to be created
+                // if no => then it will remain in the deletion list to be cleaned up
+                //          the new AP doesn't exist and needs to be added for creation
+                var shouldCreateNewAP = true;
+                for (var existingAccessPoint : existingAPsForTarget) {
+                    if (
+                        existingAccessPoint.getHost().equals(newAccessPoint.getHost()) &&
+                        existingAccessPoint.isSecured() == newAccessPoint.isSecured() &&
+                        existingAccessPoint.isOverriding() == newAccessPoint.isOverriding()
+                    ) {
+                        apsToDelete.remove(existingAccessPoint);
+                        shouldCreateNewAP = false;
+                        break;
+                    }
                 }
+                if (shouldCreateNewAP) {
+                    apsToCreate.add(newAccessPoint);
+                }
+            }
+
+            // traverse the lists of access-points and do all required updates
+            for (var apToCreate : apsToCreate) {
+                this.createAccessPoint(apToCreate);
+            }
+            for (var apToDelete : apsToDelete) {
+                this.deleteAccessPoint(apToDelete);
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while updating access points", e);

@@ -33,10 +33,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -186,6 +183,67 @@ class AccessPointCrudServiceImplTest {
                     io.gravitee.repository.management.model.AccessPoint::getTarget
                 )
                 .containsExactly(AccessPointStatus.DELETED, "host-1", AccessPointTarget.GATEWAY);
+
+            verify(eventManager).publishEvent(eq(AccessPointEvent.CREATED), any());
+            verify(eventManager).publishEvent(eq(AccessPointEvent.DELETED), any());
+        }
+
+        @Test
+        void should_update_multiple_gateway_access_points() throws Exception {
+            // Given
+            var gwOne = io.gravitee.repository.management.model.AccessPoint
+                .builder()
+                .id("gateway-one")
+                .referenceType(AccessPointReferenceType.valueOf(AccessPoint.ReferenceType.ENVIRONMENT.name()))
+                .referenceId("ref-id")
+                .target(AccessPointTarget.GATEWAY)
+                .host("host-gateway-one")
+                .status(AccessPointStatus.CREATED)
+                .build();
+            var gwTwo = io.gravitee.repository.management.model.AccessPoint
+                .builder()
+                .id("gateway-two")
+                .referenceType(AccessPointReferenceType.valueOf(AccessPoint.ReferenceType.ENVIRONMENT.name()))
+                .referenceId("ref-id")
+                .target(AccessPointTarget.GATEWAY)
+                .host("host-gateway-two")
+                .status(AccessPointStatus.CREATED)
+                .build();
+            var accessPoints = List.of(
+                AccessPointAdapter.INSTANCE.toEntity(gwOne),
+                AccessPointAdapter.INSTANCE.toEntity(gwTwo).toBuilder().host("modified-gateway-two").build()
+            );
+            when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any())).thenReturn(List.of(gwOne, gwTwo));
+
+            // When
+            var dateBeforeDeletion = Instant.now().minusSeconds(1);
+            service.updateAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, "ref-id", accessPoints);
+            var dateAfterDeletion = Instant.now().plusSeconds(1);
+
+            // Then
+            var createdAPsCaptor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.AccessPoint.class);
+            verify(accessPointRepository).create(createdAPsCaptor.capture());
+            var createdAP = createdAPsCaptor.getValue();
+            assertThat(createdAP.getUpdatedAt()).isBefore(dateAfterDeletion).isAfter(dateBeforeDeletion);
+            assertThat(createdAP)
+                .extracting(
+                    io.gravitee.repository.management.model.AccessPoint::getStatus,
+                    io.gravitee.repository.management.model.AccessPoint::getHost,
+                    io.gravitee.repository.management.model.AccessPoint::getTarget
+                )
+                .containsExactly(AccessPointStatus.CREATED, "modified-gateway-two", AccessPointTarget.GATEWAY);
+
+            var updatedAPsCaptor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.AccessPoint.class);
+            verify(accessPointRepository).update(updatedAPsCaptor.capture());
+            var updatedAP = updatedAPsCaptor.getValue();
+            assertThat(updatedAP.getUpdatedAt()).isBefore(dateAfterDeletion).isAfter(dateBeforeDeletion);
+            assertThat(updatedAP)
+                .extracting(
+                    io.gravitee.repository.management.model.AccessPoint::getStatus,
+                    io.gravitee.repository.management.model.AccessPoint::getHost,
+                    io.gravitee.repository.management.model.AccessPoint::getTarget
+                )
+                .containsExactly(AccessPointStatus.DELETED, "host-gateway-two", AccessPointTarget.GATEWAY);
 
             verify(eventManager).publishEvent(eq(AccessPointEvent.CREATED), any());
             verify(eventManager).publishEvent(eq(AccessPointEvent.DELETED), any());
