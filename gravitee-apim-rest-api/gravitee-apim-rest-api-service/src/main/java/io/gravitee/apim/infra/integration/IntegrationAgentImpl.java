@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.integration;
 
+import static io.gravitee.apim.core.integration.model.IntegrationSubscription.apiKey;
+import static io.gravitee.apim.core.integration.model.IntegrationSubscription.oAuth;
+
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
@@ -25,7 +28,7 @@ import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.definition.model.federation.FederatedApi;
-import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
@@ -83,18 +86,37 @@ public class IntegrationAgentImpl implements IntegrationAgent {
     public Single<IntegrationSubscription> subscribe(
         String integrationId,
         FederatedApi api,
-        FederatedPlan plan,
+        SubscriptionParameter subscriptionParameter,
         String subscriptionId,
         String applicationName
     ) {
+        Map<String, String> metadata;
+        SubscriptionType type;
+        if (subscriptionParameter instanceof SubscriptionParameter.ApiKey apiKeyParams) {
+            type = SubscriptionType.API_KEY;
+            metadata = Map.of(Subscription.METADATA_PLAN_ID, apiKeyParams.plan().getProviderId());
+        } else if (subscriptionParameter instanceof SubscriptionParameter.OAuth oauthParams) {
+            type = SubscriptionType.OAUTH;
+            metadata =
+                Map.of(
+                    Subscription.METADATA_PLAN_ID,
+                    oauthParams.plan().getProviderId(),
+                    Subscription.METADATA_CONSUMER_KEY,
+                    oauthParams.clientId()
+                );
+        } else {
+            return Single.error(
+                new IntegrationIngestionException("Unsupported subscription type: " + subscriptionParameter.plan().getSecurity().getType())
+            );
+        }
         var payload = new SubscribeCommandPayload(
             api.getProviderId(),
             Subscription
                 .builder()
                 .graviteeSubscriptionId(subscriptionId)
                 .graviteeApplicationName(applicationName)
-                .type(SubscriptionType.API_KEY) // Handle from SubscriptionEntity
-                .metadata(Map.of(Subscription.METADATA_PLAN_ID, plan.getProviderId()))
+                .type(type)
+                .metadata(metadata)
                 .build()
         );
 
@@ -103,14 +125,14 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                 if (reply.getCommandStatus() == CommandStatus.ERROR) {
                     return Single.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
                 }
-                return Single.just(
-                    new IntegrationSubscription(
-                        integrationId,
-                        IntegrationSubscription.Type.API_KEY,
-                        reply.getPayload().subscription().apiKey(),
-                        reply.getPayload().subscription().metadata()
-                    )
-                );
+                var subscriptionResult = reply.getPayload().subscription();
+                return switch (payload.subscription().type()) {
+                    case API_KEY -> Single.just(apiKey(integrationId, subscriptionResult.apiKey(), subscriptionResult.metadata()));
+                    case OAUTH -> Single.just(oAuth(integrationId));
+                    default -> Single.error(
+                        new IntegrationSubscriptionException("Unsupported subscription type: " + payload.subscription().type())
+                    );
+                };
             });
     }
 
