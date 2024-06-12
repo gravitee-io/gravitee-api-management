@@ -82,6 +82,16 @@ public interface GraviteeMapper {
 
     List<Audit> mapAudits(Collection<AuditMongo> toMap);
 
+    // ApiCategoryOrder mapping
+    @Mapping(target = "apiId", source = "id.apiId")
+    @Mapping(target = "categoryId", source = "id.categoryId")
+    ApiCategoryOrder map(ApiCategoryOrderMongo toMap);
+
+    @InheritInverseConfiguration
+    ApiCategoryOrderMongo map(ApiCategoryOrder toMap);
+
+    Set<ApiCategoryOrder> map(Collection<ApiCategoryOrderMongo> toMap);
+
     // Category mapping
     Category map(CategoryMongo toMap);
 

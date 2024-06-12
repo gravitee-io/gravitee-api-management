@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Data
-@Builder
-@NoArgsConstructor
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Getter
+@Setter
 @AllArgsConstructor
-public class ApiCategoryOrder {
+@NoArgsConstructor
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}api_category_orders")
+public class ApiCategoryOrderMongo extends Auditable {
 
-    private String apiId;
-    private String categoryId;
+    @Id
+    private ApiCategoryOrderPkMongo id;
+
     private int order;
 }

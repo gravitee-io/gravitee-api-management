@@ -1,0 +1,14 @@
+[{
+  "apiId": "api-1",
+  "categoryId": "category-1",
+  "order": 0
+},{
+  "apiId": "api-2",
+  "categoryId": "category-1",
+  "order": 1
+},{
+  "apiId": "api-2",
+  "categoryId": "category-2",
+  "order": 0
+}
+]

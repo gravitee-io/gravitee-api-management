@@ -196,6 +196,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected IntegrationRepository integrationRepository;
 
+    @Inject
+    protected ApiCategoryOrderRepository apiCategoryOrderRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         if (object instanceof Application) {
             applicationRepository.create((Application) object);
@@ -306,6 +309,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             accessPointRepository.create((AccessPoint) object);
         } else if (object instanceof Integration) {
             integrationRepository.create((Integration) object);
+        } else if (object instanceof ApiCategoryOrder) {
+            apiCategoryOrderRepository.create((ApiCategoryOrder) object);
         }
     }
 
