@@ -56,7 +56,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
@@ -93,7 +92,6 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -287,7 +285,7 @@ public class ApiServiceImplTest {
     private TagsValidationService tagsValidationService;
 
     @Mock
-    private CategoryMapper categoryMapper;
+    private ApiCategoryService apiCategoryService;
 
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
@@ -355,7 +353,7 @@ public class ApiServiceImplTest {
                 tagsValidationService,
                 apiAuthorizationService,
                 groupService,
-                categoryMapper
+                apiCategoryService
             );
         var apiSearchService = new ApiSearchServiceImpl(
             apiRepository,

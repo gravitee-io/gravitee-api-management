@@ -50,6 +50,7 @@ import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
@@ -147,6 +148,9 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Mock
     private CategoryMapper categoryMapper;
+
+    @Mock
+    private ApiCategoryService apiCategoryService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
