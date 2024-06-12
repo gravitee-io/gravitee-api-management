@@ -44,6 +44,7 @@ import io.gravitee.integration.api.model.SubscriptionType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -116,9 +117,13 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
     @Override
     public Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription) {
+        var metadata = new HashMap<>(subscription.getMetadata());
+        if (subscription.getClientId() != null) {
+            metadata.put(Subscription.METADATA_CONSUMER_KEY, subscription.getClientId());
+        }
         var payload = new UnsubscribeCommandPayload(
             api.getProviderId(),
-            Subscription.builder().graviteeSubscriptionId(subscription.getId()).metadata(subscription.getMetadata()).build()
+            Subscription.builder().graviteeSubscriptionId(subscription.getId()).metadata(metadata).build()
         );
 
         return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId)
