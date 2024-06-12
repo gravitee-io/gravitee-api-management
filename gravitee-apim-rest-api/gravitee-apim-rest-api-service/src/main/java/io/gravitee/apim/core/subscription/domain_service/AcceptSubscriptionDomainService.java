@@ -38,15 +38,17 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.rest.api.model.context.IntegrationContext;
-import io.reactivex.rxjava3.core.Single;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @DomainService
 @Slf4j
+@RequiredArgsConstructor
 public class AcceptSubscriptionDomainService {
 
     public static final String REJECT_BY_TECHNICAL_ERROR_MESSAGE =
@@ -61,28 +63,6 @@ public class AcceptSubscriptionDomainService {
     private final IntegrationAgent integrationAgent;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final UserCrudService userCrudService;
-
-    public AcceptSubscriptionDomainService(
-        SubscriptionCrudService subscriptionCrudService,
-        AuditDomainService auditDomainService,
-        ApiCrudService apiCrudService,
-        ApplicationCrudService applicationCrudService,
-        PlanCrudService planCrudService,
-        GenerateApiKeyDomainService generateApiKeyDomainService,
-        IntegrationAgent integrationAgent,
-        TriggerNotificationDomainService triggerNotificationDomainService,
-        UserCrudService userCrudService
-    ) {
-        this.subscriptionCrudService = subscriptionCrudService;
-        this.auditDomainService = auditDomainService;
-        this.apiCrudService = apiCrudService;
-        this.applicationCrudService = applicationCrudService;
-        this.planCrudService = planCrudService;
-        this.generateApiKeyDomainService = generateApiKeyDomainService;
-        this.integrationAgent = integrationAgent;
-        this.triggerNotificationDomainService = triggerNotificationDomainService;
-        this.userCrudService = userCrudService;
-    }
 
     /**
      * Auto accept a subscription when Plan is configured with AUTO validation.
@@ -138,14 +118,17 @@ public class AcceptSubscriptionDomainService {
             var application = applicationCrudService.findById(subscription.getApplicationId(), api.getEnvironmentId());
             var integrationId = ((IntegrationContext) api.getOriginContext()).getIntegrationId();
 
+            SubscriptionParameter subscriptionParams;
+            if (plan.isApiKey()) {
+                subscriptionParams = SubscriptionParameter.apiKey(plan.getFederatedPlanDefinition());
+            } else if (plan.getFederatedPlanDefinition().isOAuth()) {
+                subscriptionParams = SubscriptionParameter.oAuth(subscription.getClientId(), plan.getFederatedPlanDefinition());
+            } else {
+                throw new IllegalArgumentException("Only OAuth and API KEY plans are supported");
+            }
+
             return integrationAgent
-                .subscribe(
-                    integrationId,
-                    api.getFederatedApiDefinition(),
-                    plan.getFederatedPlanDefinition(),
-                    subscription.getId(),
-                    application.getName()
-                )
+                .subscribe(integrationId, api.getFederatedApiDefinition(), subscriptionParams, subscription.getId(), application.getName())
                 .map(integrationSubscription -> acceptByIntegration(subscription.getId(), integrationSubscription, auditInfo))
                 .onErrorReturn(throwable -> rejectByIntegration(integrationId, subscription.getId(), auditInfo, throwable.getMessage()))
                 .blockingGet();
@@ -189,7 +172,9 @@ public class AcceptSubscriptionDomainService {
         );
 
         subscriptionCrudService.update(acceptedSubscription);
-        generateApiKeyDomainService.generateForFederated(acceptedSubscription, auditInfo, integrationSubscription.apiKey());
+        if (integrationSubscription.apiKey() != null && !integrationSubscription.apiKey().isBlank()) {
+            generateApiKeyDomainService.generateForFederated(acceptedSubscription, auditInfo, integrationSubscription.apiKey());
+        }
 
         createAudit(subscription, acceptedSubscription, auditInfo);
 

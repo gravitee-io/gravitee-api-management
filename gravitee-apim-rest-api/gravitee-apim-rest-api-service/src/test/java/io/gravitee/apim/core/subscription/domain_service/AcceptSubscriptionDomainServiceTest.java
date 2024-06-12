@@ -33,6 +33,7 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -47,7 +48,11 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -61,7 +66,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class AcceptSubscriptionDomainServiceTest {
 
@@ -324,6 +332,58 @@ class AcceptSubscriptionDomainServiceTest {
                     new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id")
                 )
             );
+    }
+
+    @Nested
+    class FederatedSubscription {
+
+        @ParameterizedTest
+        @ValueSource(strings = { "api-key", "oauth2" })
+        void should_trigger_notifications_for_federated_subscriber_when_it_has_email(String securityType) {
+            // Given
+            Plan plan = PlanFixtures
+                .anApiKeyV4()
+                .toBuilder()
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .id("plan-published")
+                .federatedPlanDefinition(FederatedPlan.builder().security(PlanSecurity.builder().type(securityType).build()).build())
+                .build()
+                .setPlanStatus(PlanStatus.PUBLISHED);
+            SubscriptionEntity subscription = givenExistingSubscription(
+                SubscriptionFixtures
+                    .aSubscription()
+                    .toBuilder()
+                    .subscribedBy("subscriber")
+                    .planId(plan.getId())
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build()
+            );
+            userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
+            apiCrudService.create(
+                Api
+                    .builder()
+                    .id(subscription.getApiId())
+                    .originContext(IntegrationContext.builder().integrationId("integration-id").build())
+                    .build()
+            );
+
+            // When
+            accept(subscription, plan);
+
+            // Then
+            assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                .contains(
+                    new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                        new Recipient("EMAIL", "subscriber@mail.fake"),
+                        new SubscriptionAcceptedApplicationHookContext(
+                            "application-id",
+                            subscription.getApiId(),
+                            "plan-published",
+                            "subscription-id"
+                        )
+                    )
+                );
+        }
     }
 
     private SubscriptionEntity givenExistingSubscription(SubscriptionEntity subscription) {

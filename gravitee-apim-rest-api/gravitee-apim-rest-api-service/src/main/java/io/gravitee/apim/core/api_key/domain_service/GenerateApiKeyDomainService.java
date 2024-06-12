@@ -37,28 +37,18 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @DomainService
 @Slf4j
+@RequiredArgsConstructor
 public class GenerateApiKeyDomainService {
 
     private final ApiKeyCrudService apiKeyCrudService;
     private final ApiKeyQueryService apiKeyQueryService;
     private final ApplicationCrudService applicationCrudService;
     private final AuditDomainService auditService;
-
-    public GenerateApiKeyDomainService(
-        ApiKeyCrudService apiKeyCrudService,
-        ApiKeyQueryService apiKeyQueryService,
-        ApplicationCrudService applicationCrudService,
-        AuditDomainService auditService
-    ) {
-        this.apiKeyCrudService = apiKeyCrudService;
-        this.apiKeyQueryService = apiKeyQueryService;
-        this.applicationCrudService = applicationCrudService;
-        this.auditService = auditService;
-    }
 
     public ApiKeyEntity generate(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
         var app = applicationCrudService.findById(subscription.getApplicationId(), auditInfo.environmentId());
