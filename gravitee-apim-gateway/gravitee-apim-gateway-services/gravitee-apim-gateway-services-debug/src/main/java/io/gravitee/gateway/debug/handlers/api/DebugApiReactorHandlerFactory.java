@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.debug.handlers.api;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -27,6 +28,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -71,7 +73,9 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
     ) {
         super(
             applicationContext,
@@ -84,13 +88,20 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager
         );
     }
 
     @Override
-    protected ApiReactorHandler getApiReactorHandler(Configuration configuration, Api api) {
-        return new DebugApiReactorHandler(configuration, api);
+    protected ApiReactorHandler getApiReactorHandler(
+        Configuration configuration,
+        Api api,
+        AccessPointManager accessPointManager,
+        EventManager eventManager
+    ) {
+        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager);
     }
 
     @Override
@@ -149,7 +160,9 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
     ) {
         return new DebugSyncApiReactor(
             api,
@@ -163,7 +176,9 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             groupLifecycleManager,
             configuration,
             node,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager
         );
     }
 }

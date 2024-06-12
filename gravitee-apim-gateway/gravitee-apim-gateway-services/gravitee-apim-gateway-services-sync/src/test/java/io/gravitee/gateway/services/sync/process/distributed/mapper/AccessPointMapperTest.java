@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -44,20 +45,25 @@ public class AccessPointMapperTest {
     public void beforeEach() throws JsonProcessingException {
         cut = new AccessPointMapper(objectMapper);
 
-        AccessPoint accessPoint = new AccessPoint();
-        accessPoint.setId("id");
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
+            .builder()
+            .id("id")
+            .environmentId("environmentId")
+            .host("host")
+            .build();
 
         distributedEvent =
             DistributedEvent
                 .builder()
-                .id(accessPoint.getId())
-                .payload(objectMapper.writeValueAsString(accessPoint))
+                .id(reactableAccessPoint.getId())
+                .payload(objectMapper.writeValueAsString(reactableAccessPoint))
                 .updatedAt(new Date())
                 .type(DistributedEventType.ACCESS_POINT)
                 .syncAction(DistributedSyncAction.DEPLOY)
                 .build();
 
-        accessPointDeployable = AccessPointDeployable.builder().accessPoint(accessPoint).syncAction(SyncAction.DEPLOY).build();
+        accessPointDeployable =
+            AccessPointDeployable.builder().reactableAccessPoint(reactableAccessPoint).syncAction(SyncAction.DEPLOY).build();
     }
 
     @Test

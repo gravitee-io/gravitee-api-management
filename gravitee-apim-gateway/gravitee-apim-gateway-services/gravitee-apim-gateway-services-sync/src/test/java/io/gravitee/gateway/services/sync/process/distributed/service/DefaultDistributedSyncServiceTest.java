@@ -29,6 +29,7 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
@@ -218,7 +219,7 @@ class DefaultDistributedSyncServiceTest {
                 .distributeIfNeeded(
                     AccessPointDeployable
                         .builder()
-                        .accessPoint(AccessPoint.builder().id("id").secured(true).overriding(true).build())
+                        .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
                         .build()
                 )
                 .test()
@@ -304,7 +305,7 @@ class DefaultDistributedSyncServiceTest {
                 .distributeIfNeeded(
                     AccessPointDeployable
                         .builder()
-                        .accessPoint(AccessPoint.builder().id("id").secured(true).overriding(true).build())
+                        .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
                         .build()
                 )
                 .test()

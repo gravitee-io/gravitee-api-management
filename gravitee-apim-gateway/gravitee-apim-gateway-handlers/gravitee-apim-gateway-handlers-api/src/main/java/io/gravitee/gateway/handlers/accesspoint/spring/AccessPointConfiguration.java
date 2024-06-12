@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.handlers.accesspoint.spring;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
-import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManagerImpl;
+import io.gravitee.gateway.handlers.accesspoint.manager.DefaultAccessPointManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
 public class AccessPointConfiguration {
 
     @Bean
-    public AccessPointManager accessPointManager() {
-        return new AccessPointManagerImpl();
+    public AccessPointManager accessPointManager(EventManager eventManager) {
+        return new DefaultAccessPointManager(eventManager);
     }
 }

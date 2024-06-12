@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.accesspoint.manager;
+package io.gravitee.gateway.reactor.accesspoint;
 
-import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
-import java.util.List;
-import java.util.Set;
-
-public interface AccessPointManager {
-    void register(ReactableAccessPoint reactableAccessPoint);
-
-    void unregister(ReactableAccessPoint reactableAccessPoint);
-
-    List<ReactableAccessPoint> getByEnvironmentId(final String environmentId);
+/**
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public enum AccessPointEvent {
+    DEPLOY,
+    UNDEPLOY,
 }

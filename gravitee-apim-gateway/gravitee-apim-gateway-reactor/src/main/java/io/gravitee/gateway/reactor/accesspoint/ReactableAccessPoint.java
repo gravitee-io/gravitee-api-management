@@ -13,31 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint;
+package io.gravitee.gateway.reactor.accesspoint;
 
-import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
-import io.gravitee.gateway.services.sync.process.common.model.Deployable;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.reactor.Reactable;
+import java.io.Serializable;
+import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 
+/**
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
-public class AccessPointDeployable implements Deployable {
+public class ReactableAccessPoint implements Reactable, Serializable {
 
-    private ReactableAccessPoint reactableAccessPoint;
+    @EqualsAndHashCode.Exclude
+    private String id;
 
-    public String id() {
-        return reactableAccessPoint.getId();
+    private String environmentId;
+    private String host;
+
+    @Override
+    public boolean enabled() {
+        return true;
     }
 
-    private SyncAction syncAction;
+    @Override
+    public <D> Set<D> dependencies(final Class<D> type) {
+        return Set.of();
+    }
 }

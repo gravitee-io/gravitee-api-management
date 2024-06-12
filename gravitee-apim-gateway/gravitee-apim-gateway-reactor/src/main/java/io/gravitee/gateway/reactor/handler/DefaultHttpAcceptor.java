@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import lombok.EqualsAndHashCode;
 
 /**
  * Comparator used to sort {@link HttpAcceptor} in a centralized acceptor collection.
@@ -31,6 +32,7 @@ import java.util.regex.Pattern;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DefaultHttpAcceptor implements HttpAcceptor {
 
     private static final int HOST_MASK = 1000;
@@ -43,14 +45,18 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
 
     private final int weight;
 
+    @EqualsAndHashCode.Include
     private final String host;
 
+    @EqualsAndHashCode.Include
     private final Set<String> serverIds;
 
     private final String pathWithoutTrailingSlash;
 
+    @EqualsAndHashCode.Include
     private final String path;
 
+    @EqualsAndHashCode.Include
     private ReactorHandler reactor;
 
     public DefaultHttpAcceptor(String host, String path, ReactorHandler reactor) {
@@ -125,7 +131,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     }
 
     private boolean matchServer(String serverId) {
-        return serverIds == null || (serverId != null && serverIds.contains(serverId));
+        return serverIds == null || serverIds.isEmpty() || (serverId != null && serverIds.contains(serverId));
     }
 
     private boolean matchHost(String host) {

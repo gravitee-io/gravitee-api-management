@@ -15,32 +15,19 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPointReferenceType;
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPointStatus;
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPointTarget;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AccessPointMapper {
 
-    public AccessPoint to(io.gravitee.repository.management.model.AccessPoint accessPointModel) {
-        AccessPoint accessPoint = new AccessPoint();
-        accessPoint.setId(accessPointModel.getId());
-        accessPoint.setReferenceId(accessPointModel.getReferenceId());
-        accessPoint.setHost(accessPointModel.getHost());
-        accessPoint.setSecured(accessPointModel.isSecured());
-        accessPoint.setOverriding(accessPointModel.isOverriding());
-        accessPoint.setUpdatedAt(accessPointModel.getUpdatedAt());
-        if (accessPointModel.getTarget() != null) {
-            accessPoint.setTarget(AccessPointTarget.valueOf(accessPointModel.getTarget().name()));
-        }
-        if (accessPointModel.getReferenceType() != null) {
-            accessPoint.setReferenceType(AccessPointReferenceType.valueOf(accessPointModel.getReferenceType().name()));
-        }
-        if (accessPointModel.getStatus() != null) {
-            accessPoint.setStatus(AccessPointStatus.valueOf(accessPointModel.getStatus().name()));
-        }
-        return accessPoint;
+    public ReactableAccessPoint to(io.gravitee.repository.management.model.AccessPoint accessPointModel) {
+        // At this point we know that the access point is only referencing a Environment
+        return ReactableAccessPoint
+            .builder()
+            .id(accessPointModel.getId())
+            .environmentId(accessPointModel.getReferenceId())
+            .host(accessPointModel.getHost())
+            .build();
     }
 }
