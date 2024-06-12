@@ -137,7 +137,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flow_selector_channel_entrypoints",
         "flow_tags",
         "upgraders",
-        "integrations"
+        "integrations",
+        "api_category_orders"
     );
     private static final List<String> tablesToDrop = concatenate(
         tablesToTruncate,
