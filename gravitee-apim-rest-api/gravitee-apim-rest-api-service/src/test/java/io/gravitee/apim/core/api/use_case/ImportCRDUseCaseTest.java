@@ -22,6 +22,7 @@ import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -70,8 +71,8 @@ import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -208,6 +209,7 @@ class ImportCRDUseCaseTest {
     UpdateApiDomainService updateApiDomainService;
     ApiMetadataDomainService apiMetadataDomainService = mock(ApiMetadataDomainService.class);
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
+    ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
 
     ImportCRDUseCase useCase;
 
@@ -308,7 +310,6 @@ class ImportCRDUseCaseTest {
             parametersQueryService,
             workflowCrudService
         );
-        var deployApiDomainService = mock(DeployApiDomainService.class);
         updateApiDomainService = mock(UpdateApiDomainService.class);
         var documentationValidationDomainService = new DocumentationValidationDomainService(
             new HtmlSanitizerImpl(),
@@ -350,7 +351,7 @@ class ImportCRDUseCaseTest {
                 validateApiDomainService,
                 createApiDomainService,
                 createPlanDomainService,
-                deployApiDomainService,
+                apiStateDomainService,
                 updateApiDomainService,
                 planQueryService,
                 updatePlanDomainService,
@@ -512,6 +513,36 @@ class ImportCRDUseCaseTest {
                     tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
                     tuple(folder.getId(), folder.getCrossId(), folder.getName())
                 );
+        }
+
+        @Test
+        void should_deploy_the_api() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build()).build()
+                )
+            );
+
+            verify(apiStateDomainService, times(1))
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), any());
+        }
+
+        @Test
+        void should_not_deploy_the_api() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build()).build()
+                )
+            );
+
+            verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes resource"), eq(AUDIT_INFO));
         }
     }
 
@@ -852,6 +883,81 @@ class ImportCRDUseCaseTest {
 
         assertThat(api.getCategories()).isNotEmpty();
         assertThat(api.getCategories()).doesNotContain("unknown");
+    }
+
+    @Test
+    void should_deploy_the_api() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+        useCase.execute(
+            new ImportCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build()).build()
+            )
+        );
+
+        verify(apiStateDomainService, times(1))
+            .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_not_deploy_the_api() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+        useCase.execute(
+            new ImportCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build()).build()
+            )
+        );
+
+        verify(apiStateDomainService, never())
+            .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_stop_the_api() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+        useCase.execute(
+            new ImportCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STOPPED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService, times(1))
+            .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), eq(AUDIT_INFO));
+
+        verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_not_stop_the_api() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+        useCase.execute(
+            new ImportCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STOPPED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     void givenExistingApi() {
