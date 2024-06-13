@@ -26,6 +26,7 @@ spec:
       published: false
       visibility: "PUBLIC"
       homepage: false
+      excludedAccessControls: false
   plans:
   - description: "free plan"
     validation: "AUTO"
