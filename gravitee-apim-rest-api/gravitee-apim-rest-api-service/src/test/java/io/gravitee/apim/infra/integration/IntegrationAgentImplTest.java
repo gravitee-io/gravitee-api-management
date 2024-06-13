@@ -370,6 +370,26 @@ class IntegrationAgentImplTest {
                     return true;
                 });
         }
+
+        @Test
+        void should_throw_when_metadata_is_null() {
+            agent
+                .unsubscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    SubscriptionEntity.builder().id("subscription-id").build()
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            assertThat(captor.getValue())
+                .isInstanceOf(UnsubscribeCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(new UnsubscribeCommandPayload("api-provider-id", new Subscription("subscription-id", null, null, Map.of())));
+        }
     }
 
     @NotNull
