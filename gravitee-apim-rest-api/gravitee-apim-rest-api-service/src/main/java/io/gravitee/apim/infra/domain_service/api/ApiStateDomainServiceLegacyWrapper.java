@@ -60,6 +60,14 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
     }
 
     @Override
+    public Api start(Api api, AuditInfo auditInfo) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var userId = auditInfo.actor().userId();
+        var started = apiStateService.start(executionContext, api.getId(), userId);
+        return ApiAdapter.INSTANCE.fromApiEntity(started);
+    }
+
+    @Override
     public Api stop(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var userId = auditInfo.actor().userId();

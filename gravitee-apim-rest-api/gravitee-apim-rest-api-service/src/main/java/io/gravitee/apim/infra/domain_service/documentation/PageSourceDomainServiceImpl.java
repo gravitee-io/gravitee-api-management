@@ -46,7 +46,7 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
 
     @Override
     public void setContentFromSource(Page page) {
-        loadFetcher(page).ifPresent(fetcher -> fetchContent(fetcher, page));
+        loadFetcher(page).ifPresentOrElse(fetcher -> fetchContent(fetcher, page), () -> page.setUseAutoFetch(false));
     }
 
     private void fetchContent(Fetcher fetcher, Page page) {
