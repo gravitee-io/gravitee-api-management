@@ -41,6 +41,11 @@ $typography: map.get(gio.$mat-theme, typography);
         margin-right: auto;
       }
     }
+
+    .gio-connector-list__option-centered {
+      display: flex;
+      align-items: center;
+    }
   }
 
   &__list-option {
@@ -55,8 +60,9 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__icon {
-    height: 14px;
-    width: 14px;
+    height: 18px;
+    width: 18px;
+    margin-right: 4px;
   }
 
   &__form-container {
