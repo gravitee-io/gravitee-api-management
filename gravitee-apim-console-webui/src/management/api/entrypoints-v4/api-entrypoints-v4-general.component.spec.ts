@@ -334,21 +334,21 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API, undefined, undefined, false);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-u'], false);
     });
 
     afterEach(() => {
       expectApiPathVerify();
     });
 
-    it('should show virtual host and no disable button', async () => {
+    it('should show virtual host and disable button', async () => {
       const listeners = await loader.getHarness(GioFormListenersVirtualHostHarness).then((h) => h.getListenerRows());
       expect(listeners.length).toEqual(1);
       expect(await listeners[0].pathInput.getValue()).toEqual('/context-path');
 
       expect(await listeners[0].hostDomainSuffix.getText()).toEqual('host');
       const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
-      expect(await harness.canToggleListenerMode()).toEqual(false);
+      expect(await harness.canToggleListenerMode()).toEqual(true);
     });
 
     it('should save changes to virtual host', async () => {

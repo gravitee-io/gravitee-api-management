@@ -16,7 +16,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { get, isEmpty, isNil } from 'lodash';
+import { get, isNil } from 'lodash';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -172,7 +172,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
     this.pathsFormControl = this.formBuilder.control({ value: paths, disabled: this.isReadOnly }, Validators.required);
     this.formGroup.addControl('paths', this.pathsFormControl);
 
-    // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
-    this.virtualHostModeEnabled = !isEmpty(this.domainRestrictions) || !isNil(get(api, 'proxy.virtualHosts[0].host', null));
+    // virtual host mode is enabled if there is more than one virtual host or if the first virtual host has a host
+    this.virtualHostModeEnabled = !isNil(get(api, 'proxy.virtualHosts[0].host', null));
   }
 }

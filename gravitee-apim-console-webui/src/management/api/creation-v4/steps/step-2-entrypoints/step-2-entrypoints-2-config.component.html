@@ -30,13 +30,7 @@
         <div class="step-2-entrypoints-2-config__listeners-context__title">
           <span class="mat-body-strong">Entrypoints context</span>
 
-          <button
-            id="switchListenerType"
-            mat-button
-            type="button"
-            (click)="this.enableVirtualHost = !this.enableVirtualHost"
-            [disabled]="this.enableVirtualHost && this.domainRestrictions.length > 0"
-          >
+          <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">
             <mat-icon [svgIcon]="enableVirtualHost ? 'gio:cancel' : 'gio:check'"></mat-icon>
             {{ enableVirtualHost ? 'Disable virtual hosts' : 'Enable virtual hosts' }}
           </button>

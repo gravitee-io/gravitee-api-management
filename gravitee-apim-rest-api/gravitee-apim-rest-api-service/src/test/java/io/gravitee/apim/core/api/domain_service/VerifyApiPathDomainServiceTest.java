@@ -77,7 +77,7 @@ class VerifyApiPathDomainServiceTest {
 
     public static Stream<Arguments> sanitizeHostParams() {
         return Stream.of(
-            Arguments.of(null, "domain.com"),
+            Arguments.of(null, null),
             Arguments.of("domain.com:123", "domain.com:123"),
             Arguments.of("domain.net", "domain.net"),
             Arguments.of("sub.domain.com", "sub.domain.com"),
@@ -125,7 +125,7 @@ class VerifyApiPathDomainServiceTest {
 
     @ParameterizedTest
     @MethodSource("sanitizeHostParams")
-    public void should_set_domain_with_domain_restrictions(String host, String expectedHost) {
+    public void should_check_domain_restrictions_if_host_is_present(String host, String expectedHost) {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net", "domain.com:123"));
 
         var res = service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()));
@@ -184,18 +184,6 @@ class VerifyApiPathDomainServiceTest {
             service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(throwable).isInstanceOf(InvalidPathsException.class);
-    }
-
-    @Test
-    public void should_throw_exception_if_path_already_used_by_api_v2_with_default_host() {
-        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
-
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
-
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
     }
 
     @Test
@@ -283,18 +271,6 @@ class VerifyApiPathDomainServiceTest {
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isNullOrEmpty();
-    }
-
-    @Test
-    public void should_throw_exception_if_path_already_used_by_api_v4_with_default_host() {
-        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
-
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
-
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
     }
 
     @Test
