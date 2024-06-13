@@ -27,6 +27,7 @@ class EditPageAclsComponentController implements IController {
   groups: any[];
   roles: any[];
   isApiPage: boolean;
+  readOnly: boolean;
 
   constructor(
     private readonly RoleService: RoleService,
@@ -71,6 +72,7 @@ export const EditPageAclsComponent: ng.IComponentOptions = {
     groups: '<',
     roles: '<',
     isApiPage: '<',
+    readOnly: '<',
   },
   template: require('html-loader!./edit-page-acls.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditPageAclsComponentController,

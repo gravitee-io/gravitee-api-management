@@ -83,8 +83,6 @@ class ApiDefinitionResourceTest {
         assertFalse(page.has("lastContributor"));
         assertFalse(page.has("lastModificationDate"));
         assertFalse(page.has("parentPath"));
-        assertFalse(page.has("excludedAccessControls"));
-        assertFalse(page.has("accessControls"));
         assertFalse(page.has("attached_media"));
         assertFalse(page.has("contentType"));
     }

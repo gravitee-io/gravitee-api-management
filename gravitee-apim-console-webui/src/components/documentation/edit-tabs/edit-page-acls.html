@@ -23,13 +23,14 @@
       description="Deny access to an anonymous user and more fine grained access management with roles and groups"
       gv-model
       ng-model="acls.isPrivate"
+      ng-disabled="$ctrl.readOnly"
     ></gv-switch>
   </div>
 
   <div layout="row">
     <md-input-container class="md-block" flex="100">
       <label>Roles</label>
-      <md-select ng-model="acls.roles" multiple ng-disabled="!acls.isPrivate">
+      <md-select ng-model="acls.roles" multiple ng-disabled="$ctrl.readOnly || !acls.isPrivate">
         <md-option ng-repeat="role in $ctrl.roles | orderBy:'name'" ng-value="role.id"> {{role.name}} </md-option>
       </md-select>
     </md-input-container>
@@ -38,7 +39,7 @@
   <div layout="row">
     <md-input-container class="md-block" flex="100">
       <label>Groups</label>
-      <md-select ng-model="acls.groups" multiple ng-disabled="!acls.isPrivate">
+      <md-select ng-model="acls.groups" multiple ng-disabled="$ctrl.readOnly || !acls.isPrivate">
         <md-option ng-repeat="group in $ctrl.groups | orderBy:'name'" ng-value="group.id"> {{group.name}} </md-option>
       </md-select>
     </md-input-container>
@@ -49,7 +50,7 @@
       label="Excluded"
       flex="100"
       description="Exclude access to selected roles/groups"
-      ng-disabled="!acls.isPrivate"
+      ng-disabled="$ctrl.readOnly || !acls.isPrivate"
       ng-model="acls.excludedAccessControls"
       gv-model
     ></gv-switch>
