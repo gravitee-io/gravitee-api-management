@@ -17,6 +17,7 @@ package io.gravitee.definition.model.kubernetes.v1alpha1;
 
 import static io.gravitee.kubernetes.mapper.GroupVersionKind.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -106,15 +107,9 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         return getSpec().hasNonNull(MEMBERS_FIELD);
     }
 
-    // There is a weird behavior with jackson that forces us to pass back the spec instead of using the class getter
-    // If we don't do this, the member object gets duplicated at different levels on serialization.
-    // To be investigated ...
-    public ArrayNode getMembers(ObjectNode spec) {
-        return (ArrayNode) spec.get(MEMBERS_FIELD);
-    }
-
-    public void replaceMembers(ArrayNode members) {
-        getSpec().replace(MEMBERS_FIELD, members);
+    @JsonIgnore
+    public ArrayNode getMembers() {
+        return (ArrayNode) getSpec().get(MEMBERS_FIELD);
     }
 
     public void removeIds() {
