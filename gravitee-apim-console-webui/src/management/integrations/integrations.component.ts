@@ -47,9 +47,9 @@ export class IntegrationsComponent implements OnInit {
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
-    private integrationsService: IntegrationsService,
-    private snackBarService: SnackBarService,
-    private licenseService: GioLicenseService,
+    public readonly integrationsService: IntegrationsService,
+    private readonly snackBarService: SnackBarService,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {

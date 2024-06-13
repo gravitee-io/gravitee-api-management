@@ -38,10 +38,10 @@ export class IntegrationAgentComponent implements OnInit {
   public codeForEditor: string = '';
 
   constructor(
-    private integrationsService: IntegrationsService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private snackBarService: SnackBarService,
+    public readonly integrationsService: IntegrationsService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {

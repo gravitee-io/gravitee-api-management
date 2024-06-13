@@ -37,6 +37,12 @@ export class IntegrationsService {
   private url: string = `${this.constants.env.v2BaseURL}/integrations`;
   private currentIntegration$: BehaviorSubject<Integration> = new BehaviorSubject<Integration>(null);
 
+  public readonly bannerMessages = {
+    techPreview:
+      'This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for production use.',
+    agentDisconnected: 'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
+  };
+
   constructor(
     private readonly httpClient: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
