@@ -172,7 +172,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
     this.pathsFormControl = this.formBuilder.control({ value: paths, disabled: this.isReadOnly }, Validators.required);
     this.formGroup.addControl('paths', this.pathsFormControl);
 
-    // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
-    this.virtualHostModeEnabled = !isEmpty(this.domainRestrictions) || !isNil(get(api, 'proxy.virtualHosts[0].host', null));
+    // virtual host mode is enabled if there is more than one virtual host or if the first virtual host has a host
+    this.virtualHostModeEnabled = !isNil(get(api, 'proxy.virtualHosts[0].host', null));
   }
 }

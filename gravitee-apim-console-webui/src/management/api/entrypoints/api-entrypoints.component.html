@@ -21,7 +21,7 @@
       <div class="title">
         <button
           *ngIf="
-            !this.isReadOnly && (!this.virtualHostModeEnabled || (this.virtualHostModeEnabled && this.domainRestrictions.length === 0))
+            !this.isReadOnly
           "
           (click)="switchEntrypointMode()"
           mat-button

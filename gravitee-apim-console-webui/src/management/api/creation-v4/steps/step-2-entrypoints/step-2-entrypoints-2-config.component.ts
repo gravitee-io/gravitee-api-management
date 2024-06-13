@@ -75,7 +75,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         tap((restrictedDomain) => {
           this.domainRestrictions = restrictedDomain.map((value) => value.domain) || [];
           this.enableVirtualHost =
-            !isEmpty(this.domainRestrictions) || paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
+            paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
         }),
         takeUntil(this.unsubscribe$),
       )

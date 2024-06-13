@@ -156,7 +156,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
       }),
     );
 
-    it('should not allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
+    it('should allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
       await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
@@ -168,8 +168,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
       httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
       httpExpects.expectApiGetPortalSettings();
       httpExpects.expectVerifyContextPath();
-      expect(await entrypointsConfig.canSwitchListenerMode()).toEqual(false);
-      httpExpects.expectApiGetPortalSettings();
+      expect(await entrypointsConfig.canSwitchListenerMode()).toEqual(true);
     }));
   });
   describe('API Creation', () => {
