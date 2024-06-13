@@ -188,8 +188,6 @@ public class VerifyApiPathDomainService {
             for (Path path : sanitizedPaths) {
                 if (path.hasHost()) {
                     checkDomainIsValid(path, restrictedDomains);
-                } else {
-                    path.setHost(restrictedDomains.get(0).getDomain());
                 }
             }
             if (!sanitizedPaths.isEmpty() && sanitizedPaths.stream().noneMatch(Path::isOverrideAccess)) {

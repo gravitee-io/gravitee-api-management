@@ -44,8 +44,8 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
 
   async canToggleListenerMode(): Promise<boolean> {
     return this.switchListenerModeLocator()
-      .then((btn) => !btn.isDisabled())
-      .catch((_) => false);
+      .then(async (btn) => btn != null && !(await btn.isDisabled()))
+      .catch(() => false);
   }
 
   async getToggleBtn(): Promise<MatButtonHarness> {
