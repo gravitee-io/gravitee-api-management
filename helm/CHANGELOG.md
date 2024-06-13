@@ -9,6 +9,9 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
 - BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
 
+### 4.3.5
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
 
 ### 4.3.4
 
@@ -27,9 +30,59 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - fix helm backward compatibility during helm upgrade without `common` field
 - BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
 
+### 4.2.10
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
+### 4.2.9
+
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+
+### 4.2.2
+
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
+
+### 4.2.1
+
+- Added "gateway.services.core.http.ssl.keystore.password"
+- fix helm backward compatibility during helm upgrade without `common` field
+- Added default preStop command on ui and portal
+
+### 4.2.0
+
+- Add networkPolicy
+- Update regex for portal and console base_href
+- 'fix: license deleted after helm upgrade [issues/9411](https://github.com/gravitee-io/issues/issues/9411)'
+- 'fix AE system mail notification without keystore'
+- Add support for Secret Manager's configuration
+
+### 4.1.18
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
 ### 4.1.15
 
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+
+### 4.1.8
+
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
+
+### 4.1.7
+
+- Added "gateway.services.core.http.ssl.keystore.password"
+- fix helm backward compatibility during helm upgrade without `common` field
+- Added default preStop command on ui and portal
+
+### 4.1.6
+
+- Add networkPolicy
+
+### 4.1.5
+
+- Update regex for portal and console base_href
+- 'fix: license deleted after helm upgrade [issues/9411](https://github.com/gravitee-io/issues/issues/9411)'
+- 'fix AE system mail notification without keystore'
 
 ### 4.1.4
 
@@ -47,9 +100,33 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Allow wildcard in ingress host
 - Add unknownExpireAfter in management-api configuration
 
+### 4.0.25
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
 ### 4.0.24
 
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+
+### 4.0.17
+
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
+
+### 4.0.16
+
+- Added "gateway.services.core.http.ssl.keystore.password"
+- fix helm backward compatibility during helm upgrade without `common` field
+- Added default preStop command on ui and portal
+
+### 4.0.15
+
+- Add networkPolicy
+
+### 4.0.14
+
+- Update regex for portal and console base_href
+- 'fix: license deleted after helm upgrade [issues/9411](https://github.com/gravitee-io/issues/issues/9411)'
+- 'fix AE system mail notification without keystore'
 
 ### 4.0.13
 
