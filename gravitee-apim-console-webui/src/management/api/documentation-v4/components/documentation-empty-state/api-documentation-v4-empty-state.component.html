@@ -26,6 +26,7 @@
       color="primary"
       *gioPermission="{ anyOf: ['api-documentation-c'] }"
       [matMenuTriggerFor]="menu"
+      [disabled]="isReadOnly"
     >
       Add new page
     </button>

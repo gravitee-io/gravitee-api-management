@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { Subject } from 'rxjs';
 
 import { getLogoForPageType, PageType, getTitleForPageType } from '../../../../../entities/management-api-v2';
@@ -29,6 +29,9 @@ export class ApiDocumentationV4EmptyStateComponent implements OnDestroy {
 
   @Output()
   onAddPage = new EventEmitter<PageType>();
+
+  @Input()
+  public isReadOnly = false;
 
   ngOnDestroy() {
     this.unsubscribe$.next();
