@@ -47,10 +47,9 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         "lastContributor",
         "lastModificationDate",
         "parentPath",
-        "excludedAccessControls",
-        "accessControls",
         "attached_media",
-        "contentType"
+        "contentType",
+        "excluded_groups"
     );
 
     private static final String PLANS_FIELD = "plans";
