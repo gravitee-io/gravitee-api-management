@@ -15,4 +15,5 @@
  */
 export interface ImportSwaggerDescriptor {
   payload: string;
+  withDocumentation: boolean;
 }
