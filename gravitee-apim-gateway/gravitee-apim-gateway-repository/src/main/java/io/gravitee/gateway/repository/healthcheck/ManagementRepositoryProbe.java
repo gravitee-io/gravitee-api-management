@@ -41,6 +41,11 @@ public class ManagementRepositoryProbe implements Probe {
     }
 
     @Override
+    public boolean isCacheable() {
+        return true;
+    }
+
+    @Override
     public CompletableFuture<Result> check() {
         try {
             // Search for an event to check repository connection

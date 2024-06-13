@@ -423,8 +423,11 @@ services:
         users:
           admin: adminadmin
 
-  # The thresholds to determine if a probe is healthy or not
 #  health:
+#    enabled: true
+#    delay: 5000
+#    unit: MILLISECONDS
+  # The thresholds to determine if a probe is healthy or not
 #    threshold:
 #      cpu: # Default is 80%
 #      memory: # Default is 80%

@@ -20,6 +20,7 @@ import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import java.util.concurrent.CompletableFuture;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -28,12 +29,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ManagementRepositoryProbe implements Probe {
 
+    @Setter
     @Autowired
     private EventRepository eventRepository;
 
     @Override
     public String id() {
         return "management-repository";
+    }
+
+    @Override
+    public boolean isCacheable() {
+        return true;
     }
 
     @Override
