@@ -18,6 +18,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { GioFormFilePickerInputHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiImportV4Harness extends ComponentHarness {
   static hostSelector = 'api-api-import-v4';
@@ -28,6 +29,7 @@ export class ApiImportV4Harness extends ComponentHarness {
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
   private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
   private getFormatErrorBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
+  private getImportDocumentationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="withDocumentation"]' }));
 
   public async save() {
     return this.getSaveButton().then((btn) => btn.click());
@@ -55,5 +57,17 @@ export class ApiImportV4Harness extends ComponentHarness {
 
   public async isFormatErrorBannerDisplayed() {
     return this.getFormatErrorBanner().then((banner) => banner !== null);
+  }
+
+  public async isDocumentationImportSelected() {
+    return this.getImportDocumentationToggle().then((toggle) => toggle.isChecked());
+  }
+
+  public async isDocumentationImportDisabled() {
+    return this.getImportDocumentationToggle().then((toggle) => toggle.isDisabled());
+  }
+
+  public async toggleDocumentationImport() {
+    return this.getImportDocumentationToggle().then((toggle) => toggle.toggle());
   }
 }
