@@ -516,7 +516,7 @@ class ImportCRDUseCaseTest {
         }
 
         @Test
-        void should_deploy_the_api() {
+        void should_start_the_api() {
             when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
 
             useCase.execute(
@@ -526,8 +526,24 @@ class ImportCRDUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService, times(1))
-                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), any());
+            verify(apiStateDomainService, times(1)).start(argThat(api -> API_ID.equals(api.getId())), any());
+        }
+
+        @Test
+        void should_stop_the_api() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .state("STOPPED")
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
@@ -541,8 +557,9 @@ class ImportCRDUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService, never())
-                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes resource"), eq(AUDIT_INFO));
+            verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+
+            verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         }
     }
 
@@ -886,23 +903,6 @@ class ImportCRDUseCaseTest {
     }
 
     @Test
-    void should_deploy_the_api() {
-        givenExistingApi();
-
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
-
-        useCase.execute(
-            new ImportCRDUseCase.Input(
-                AUDIT_INFO,
-                aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build()).build()
-            )
-        );
-
-        verify(apiStateDomainService, times(1))
-            .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), eq(AUDIT_INFO));
-    }
-
-    @Test
     void should_not_deploy_the_api() {
         givenExistingApi();
 
@@ -915,8 +915,9 @@ class ImportCRDUseCaseTest {
             )
         );
 
-        verify(apiStateDomainService, never())
-            .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+
+        verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
@@ -935,14 +936,11 @@ class ImportCRDUseCaseTest {
             )
         );
 
-        verify(apiStateDomainService, times(1))
-            .deploy(argThat(api -> API_ID.equals(api.getId())), eq("kubernetes API resource"), eq(AUDIT_INFO));
-
         verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
-    void should_not_stop_the_api() {
+    void should_start_the_api() {
         givenExistingApi();
 
         when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
@@ -951,13 +949,13 @@ class ImportCRDUseCaseTest {
             new ImportCRDUseCase.Input(
                 AUDIT_INFO,
                 aCRD()
-                    .state("STOPPED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+                    .state("STARTED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
                     .build()
             )
         );
 
-        verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiStateDomainService, times(1)).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     void givenExistingApi() {
