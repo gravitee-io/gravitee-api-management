@@ -86,7 +86,7 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 var shouldCreateNewAP = true;
                 for (var existingAccessPoint : existingAPsForTarget) {
                     if (
-                        existingAccessPoint.getHost().equals(newAccessPoint.getHost()) &&
+                        existingAccessPoint.getHost().equalsIgnoreCase(newAccessPoint.getHost()) &&
                         existingAccessPoint.isSecured() == newAccessPoint.isSecured() &&
                         existingAccessPoint.isOverriding() == newAccessPoint.isOverriding()
                     ) {

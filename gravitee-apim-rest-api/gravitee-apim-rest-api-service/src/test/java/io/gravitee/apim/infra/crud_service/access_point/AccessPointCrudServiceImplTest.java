@@ -147,7 +147,8 @@ class AccessPointCrudServiceImplTest {
                 .status(AccessPointStatus.CREATED)
                 .build();
             var accessPoints = List.of(
-                AccessPointAdapter.INSTANCE.toEntity(unmodifiedAccessPoint),
+                // update the host to make sure the upper case is considered as equals too
+                AccessPointAdapter.INSTANCE.toEntity(unmodifiedAccessPoint).toBuilder().host("host-1".toUpperCase()).build(),
                 AccessPointAdapter.INSTANCE.toEntity(modifiedAccessPoint).toBuilder().host("modified-host").build()
             );
             when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any()))
