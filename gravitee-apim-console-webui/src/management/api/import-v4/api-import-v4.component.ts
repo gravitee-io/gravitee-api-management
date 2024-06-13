@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
-import { GioBannerModule, GioFormSelectionInlineModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { EMPTY, Observable } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { ApiImportFilePickerComponent } from '../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -43,11 +45,14 @@ import { ApiV4 } from '../../../entities/management-api-v2';
     ReactiveFormsModule,
     RouterModule,
     ApiImportFilePickerComponent,
+    MatCheckbox,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
   ],
   templateUrl: './api-import-v4.component.html',
   styleUrl: './api-import-v4.component.scss',
 })
-export class ApiImportV4Component implements AfterViewInit {
+export class ApiImportV4Component implements AfterViewInit, OnInit {
   private apiV2Service = inject(ApiV2Service);
   private snackBarService = inject(SnackBarService);
   private destroyRef = inject(DestroyRef);
@@ -55,6 +60,7 @@ export class ApiImportV4Component implements AfterViewInit {
   private activatedRoute = inject(ActivatedRoute);
   private changeDetectorRef = inject(ChangeDetectorRef);
   private importFileContent: string;
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
   protected importType: string;
   protected formats = [
@@ -69,9 +75,22 @@ export class ApiImportV4Component implements AfterViewInit {
     {
       format: new FormControl('gravitee', [Validators.required]),
       source: new FormControl('local', [Validators.required]),
+      withDocumentation: new FormControl(false, [Validators.required]),
     },
     [this.fileFormatValidator()],
   );
+
+  ngOnInit(): void {
+    this.form.controls['format'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+      if (value !== 'openapi') {
+        this.form.patchValue({ withDocumentation: false });
+        this.form.controls['withDocumentation'].disable();
+      } else {
+        this.form.patchValue({ withDocumentation: true });
+        this.form.controls['withDocumentation'].enable();
+      }
+    });
+  }
 
   ngAfterViewInit() {
     // FIXME: Check on gravitee-ui-particles why we have an ExpressionHasChangedAfterCheckedError.
@@ -93,7 +112,10 @@ export class ApiImportV4Component implements AfterViewInit {
       this.form.controls.format.value === 'openapi' &&
       this.importType === 'SWAGGER'
     ) {
-      result = this.apiV2Service.importSwaggerApi({ payload: this.importFileContent });
+      result = this.apiV2Service.importSwaggerApi({
+        payload: this.importFileContent,
+        withDocumentation: this.form.value.withDocumentation,
+      });
     } else {
       this.snackBarService.error('Unsupported type for V4 API import');
     }

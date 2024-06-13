@@ -528,7 +528,7 @@ describe('ApiV2Service', () => {
     it('should call the API', (done) => {
       const descriptor = 'dumb descriptor';
 
-      apiV2Service.importSwaggerApi({ payload: descriptor }).subscribe(() => {
+      apiV2Service.importSwaggerApi({ payload: descriptor, withDocumentation: false }).subscribe(() => {
         done();
       });
 
@@ -536,7 +536,7 @@ describe('ApiV2Service', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/swagger`,
         method: 'POST',
       });
-      expect(req.request.body).toEqual({ payload: descriptor });
+      expect(req.request.body).toEqual({ payload: descriptor, withDocumentation: false });
       req.flush(null);
     });
   });

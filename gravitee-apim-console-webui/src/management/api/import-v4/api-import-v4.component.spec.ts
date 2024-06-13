@@ -83,6 +83,24 @@ describe('ImportV4Component', () => {
     });
   });
 
+  it('should allow documentation import only when OpenAPI specification type is selected', async () => {
+    await componentHarness.selectFormat('openapi');
+    await componentHarness.selectSource('local');
+    expect(await componentHarness.isDocumentationImportSelected()).toBeTruthy();
+    expect(await componentHarness.isDocumentationImportDisabled()).toBeFalsy();
+
+    await componentHarness.selectFormat('gravitee');
+    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    expect(await componentHarness.isDocumentationImportDisabled()).toBeTruthy();
+    expect(await componentHarness.isDocumentationImportSelected()).toBeFalsy();
+
+    await componentHarness.selectFormat('openapi');
+    expect(await componentHarness.isDocumentationImportDisabled()).toBeFalsy();
+    expect(await componentHarness.isDocumentationImportSelected()).toBeTruthy();
+    await componentHarness.toggleDocumentationImport();
+    expect(await componentHarness.isDocumentationImportSelected()).toBeFalsy();
+  });
+
   it.each`
     fileName           | importDefinition    | type                    | selectedFormat
     ${'openapi.json'}  | ${openApiJson}      | ${'application/json'}   | ${'gravitee'}

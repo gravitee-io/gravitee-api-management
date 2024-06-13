@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { forManagementAsAdminUser, forManagementV2AsAdminUser } from '@gravitee/utils/configuration';
-import { APIsApi as APIsApiV2, ApiV4 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { APIDocumentationApi, APIsApi as APIsApiV2, ApiV4 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { CategoryEntity, GroupEntity, TagEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models';
 import * as openapiv3 from '@api-test-resources/openapi-withExtensions.json';
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, test } from '@jest/globals';
 import { ShardingTagsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/ShardingTagsApi';
 import { created, succeed } from '@lib/jest-utils';
 import { GroupsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
@@ -30,6 +30,7 @@ const v2ApisResourceAsAdmin = new APIsApiV2(forManagementV2AsAdminUser());
 const shardingTagsAsAdmin = new ShardingTagsApi(forManagementAsAdminUser());
 const groupsAsAdmin = new GroupsApi(forManagementAsAdminUser());
 const categoryAsAdmin = new CategoriesApi(forManagementAsAdminUser());
+const documentationAsAdmin = new APIDocumentationApi(forManagementV2AsAdminUser());
 
 describe('API - Imports OpenAPI specification', () => {
   let specification = JSON.stringify(openapiv3);
@@ -37,6 +38,7 @@ describe('API - Imports OpenAPI specification', () => {
   let createdGroup: GroupEntity;
   let createdCategory: CategoryEntity;
   let importedApi: ApiV4;
+  let apiId: string;
 
   beforeAll(async () => {
     createdTag = await succeed(shardingTagsAsAdmin.createTagRaw({ orgId, newTagEntity: { name: 'tag1' } }));
@@ -48,7 +50,10 @@ describe('API - Imports OpenAPI specification', () => {
     await shardingTagsAsAdmin.deleteTagRaw({ orgId, tag: createdTag.id });
     await groupsAsAdmin.deleteGroupRaw({ orgId, envId, group: createdGroup.id });
     await categoryAsAdmin.deleteCategoryRaw({ orgId, envId, categoryId: createdCategory.id });
-    await v2ApisResourceAsAdmin.deleteApi({ envId, apiId: importedApi.id });
+  });
+
+  afterEach(async () => {
+    await v2ApisResourceAsAdmin.deleteApi({ envId, apiId: apiId });
   });
 
   test('should import OpenAPI specification', async () => {
@@ -57,6 +62,8 @@ describe('API - Imports OpenAPI specification', () => {
     );
 
     importedApi = await v2ApisResourceAsAdmin.getApi({ envId, apiId: createdApi.id });
+
+    apiId = createdApi.id;
 
     expect(importedApi).toBeTruthy();
     expect(importedApi.id).toBeTruthy();
@@ -192,5 +199,37 @@ describe('API - Imports OpenAPI specification', () => {
         dynamic: false,
       },
     ]);
+  });
+
+  describe('import documentation', () => {
+    test('should create documentation page based on OpenAPI specification', async () => {
+      const createdApi = await created(
+        v2ApisResourceAsAdmin.createApiFromSwaggerRaw({
+          envId,
+          importSwaggerDescriptor: { payload: specification, withDocumentation: true },
+        }),
+      );
+
+      apiId = createdApi.id;
+
+      const pages = await succeed(documentationAsAdmin.getApiPagesRaw({ envId, apiId: createdApi.id }));
+
+      expect(pages.pages.length).toBe(1);
+    });
+
+    test('should not create documentation page based on OpenAPI specification', async () => {
+      const createdApi = await created(
+        v2ApisResourceAsAdmin.createApiFromSwaggerRaw({
+          envId,
+          importSwaggerDescriptor: { payload: specification, withDocumentation: false },
+        }),
+      );
+
+      apiId = createdApi.id;
+
+      const pages = await succeed(documentationAsAdmin.getApiPagesRaw({ envId, apiId: createdApi.id }));
+
+      expect(pages.pages.length).toBe(0);
+    });
   });
 });

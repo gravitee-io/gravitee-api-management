@@ -66,6 +66,18 @@
       </div>
 
       <div class="import__row">
+        <h3>Options</h3>
+        <gio-form-slide-toggle
+          ><gio-form-label>Add documentation pages</gio-form-label>Documentation pages use OpenAPI specifications.<mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="withDocumentation"
+            aria-label="Toggle to create documentation page"
+            name="withDocumentation"
+          ></mat-slide-toggle
+        ></gio-form-slide-toggle>
+      </div>
+
+      <div class="import__row">
         <button
           mat-raised-button
           color="primary"
