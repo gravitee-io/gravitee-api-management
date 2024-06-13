@@ -139,7 +139,10 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
     @Override
     public Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription) {
-        var metadata = new HashMap<>(subscription.getMetadata());
+        var metadata = new HashMap<String, String>();
+        if (subscription.getMetadata() != null) {
+            metadata.putAll(subscription.getMetadata());
+        }
         if (subscription.getClientId() != null) {
             metadata.put(Subscription.METADATA_CONSUMER_KEY, subscription.getClientId());
         }
@@ -149,12 +152,11 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         );
 
         return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId)
-            .flatMapCompletable(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.ERROR) {
-                    return Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
-                }
-                return Completable.complete();
-            });
+            .flatMapCompletable(reply ->
+                reply.getCommandStatus() == CommandStatus.ERROR
+                    ? Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()))
+                    : Completable.complete()
+            );
     }
 
     @Override
