@@ -33,6 +33,18 @@ touch .env && echo "CIRCLECI_TOKEN=[YOUR_TOKEN]" > .env
 yarn install
 ----
 
+
+== 🛠 Pre-Release
+
+=== Helm changelog steps
+
+Before apply the release, and mainly during each fix/feat/... on helm chart, you have to ensure some prerequisites:
+
+. Add changelog entry on `helm/Chart.yaml` file in section `artifacthub.io/changes`. Notice that it is cleanup during release process.
+.. This is used in https://artifacthub.io/packages/helm/graviteeio/apim3/?modal=changelog[artifacthub.io changelog]
+. At least on master branch: update the changelog in right version. This make the master branch the reference for each change on all version.
+
+
 == 🏁 Usage[[Usage]]
 
 === ⚡️ Full release for the win!
