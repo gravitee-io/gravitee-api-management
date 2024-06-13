@@ -19,7 +19,7 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { debounceTime, takeUntil, tap } from 'rxjs/operators';
-import { isEmpty, omitBy } from 'lodash';
+import { omitBy } from 'lodash';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
@@ -74,8 +74,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .pipe(
         tap((restrictedDomain) => {
           this.domainRestrictions = restrictedDomain.map((value) => value.domain) || [];
-          this.enableVirtualHost =
-            !isEmpty(this.domainRestrictions) || paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
+          this.enableVirtualHost = paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
         }),
         takeUntil(this.unsubscribe$),
       )

@@ -29,7 +29,7 @@
               mat-button
               type="button"
               (click)="switchEntrypointsMode()"
-              [disabled]="this.isReadOnly || (this.enableVirtualHost && this.domainRestrictions.length > 1)"
+              [disabled]="this.isReadOnly"
             >
               <mat-icon [svgIcon]="enableVirtualHost ? 'gio:cancel' : 'gio:check'"></mat-icon>
               {{ enableVirtualHost ? 'Disable virtual hosts' : 'Enable virtual hosts' }}

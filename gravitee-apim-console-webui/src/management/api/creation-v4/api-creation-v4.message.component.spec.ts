@@ -332,7 +332,7 @@ describe('ApiCreationV4Component - Message', () => {
       httpExpects.expectEndpointsGetRequest([]);
     }));
 
-    it('should not allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
+    it('should allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -351,8 +351,7 @@ describe('ApiCreationV4Component - Message', () => {
       httpExpects.expectVerifyContextPath();
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      expect(await step21Harness.canSwitchListenerMode()).toEqual(false);
-      httpExpects.expectApiGetPortalSettings();
+      expect(await step21Harness.canSwitchListenerMode()).toEqual(true);
     }));
   });
 

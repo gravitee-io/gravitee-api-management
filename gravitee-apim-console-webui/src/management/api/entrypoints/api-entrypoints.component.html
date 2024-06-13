@@ -19,14 +19,7 @@
   <mat-card-content>
     <form [formGroup]="formGroup" *ngIf="formGroup" (ngSubmit)="onSubmit()">
       <div class="title">
-        <button
-          *ngIf="
-            !this.isReadOnly && (!this.virtualHostModeEnabled || (this.virtualHostModeEnabled && this.domainRestrictions.length === 0))
-          "
-          (click)="switchEntrypointMode()"
-          mat-button
-          type="button"
-        >
+        <button *ngIf="!this.isReadOnly" (click)="switchEntrypointMode()" mat-button type="button">
           <ng-container *ngIf="!this.virtualHostModeEnabled"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
           <ng-container *ngIf="this.virtualHostModeEnabled">
             <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts
