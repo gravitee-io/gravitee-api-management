@@ -44,7 +44,7 @@ export class IntegrationConfigurationComponent implements OnInit {
   });
 
   constructor(
-    private readonly integrationsService: IntegrationsService,
+    public readonly integrationsService: IntegrationsService,
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,

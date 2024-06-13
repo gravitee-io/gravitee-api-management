@@ -52,9 +52,9 @@ export class IntegrationOverviewComponent implements OnInit {
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
+    public readonly integrationsService: IntegrationsService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly integrationsService: IntegrationsService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
   ) {}
