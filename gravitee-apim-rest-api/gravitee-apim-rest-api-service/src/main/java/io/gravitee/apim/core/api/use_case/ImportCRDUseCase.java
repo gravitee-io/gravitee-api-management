@@ -214,7 +214,11 @@ public class ImportCRDUseCase {
             apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
 
             if (input.crd.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
-                apiStateDomainService.deploy(createdApi, "kubernetes API resource", input.auditInfo);
+                if (createdApi.getLifecycleState() == Api.LifecycleState.STOPPED) {
+                    apiStateDomainService.stop(createdApi, input.auditInfo);
+                } else {
+                    apiStateDomainService.start(createdApi, input.auditInfo);
+                }
             }
 
             return ApiCRDStatus
@@ -286,9 +290,10 @@ public class ImportCRDUseCase {
             deletePlans(api, existingPlans, planKeyIdMapping, input);
 
             if (input.crd.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
-                apiStateDomainService.deploy(api, "kubernetes API resource", input.auditInfo);
                 if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(api, input.auditInfo);
+                } else {
+                    apiStateDomainService.start(api, input.auditInfo);
                 }
             }
 

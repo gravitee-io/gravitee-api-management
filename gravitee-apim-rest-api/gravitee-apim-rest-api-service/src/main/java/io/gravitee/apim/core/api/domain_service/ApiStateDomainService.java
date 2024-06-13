@@ -25,5 +25,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 public interface ApiStateDomainService {
     boolean isSynchronized(Api api, AuditInfo auditInfo);
     Api deploy(Api apiToDeploy, String deploymentLabel, AuditInfo auditInfo);
+    Api start(Api api, AuditInfo auditInfo);
     Api stop(Api api, AuditInfo auditInfo);
 }
