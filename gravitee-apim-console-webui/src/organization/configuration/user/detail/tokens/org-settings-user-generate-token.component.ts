@@ -16,14 +16,16 @@
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, of, Subject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
+import { get } from 'lodash';
 
 import { NewToken, Token } from '../../../../../entities/user/userTokens';
 import { UsersTokenService } from '../../../../../services-ngx/users-token.service';
 import { Constants } from '../../../../../entities/Constants';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { EnvironmentService } from '../../../../../services-ngx/environment.service';
 
 export type OrgSettingsUserGenerateTokenDialogData = {
   token?: Token;
@@ -39,6 +41,7 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
   token?: Token;
   tokenForm: UntypedFormGroup;
   hasBeenGenerated = false;
+  envIdForExampleOfUse: string = 'DEFAULT';
 
   private unsubscribe$ = new Subject<boolean>();
   private userId: string;
@@ -47,6 +50,7 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     private usersTokenService: UsersTokenService,
     private locationStrategy: LocationStrategy,
     private readonly snackBarService: SnackBarService,
+    private readonly environmentService: EnvironmentService,
     @Inject(MAT_DIALOG_DATA) confirmDialogData: OrgSettingsUserGenerateTokenDialogData,
     @Inject(Constants) private readonly constants: Constants,
   ) {
@@ -71,23 +75,31 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     this.usersTokenService
       .createToken(this.userId, newToken)
       .pipe(
-        tap(() => {
+        tap((response) => {
           this.snackBarService.success('Token successfully created!');
+          this.token = response;
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        switchMap(() => {
+          const envIdFormConstants = get(this.constants, 'org.currentEnv.id');
+          if (!envIdFormConstants) {
+            return this.environmentService.list().pipe(map((envs) => get(envs, '[0]id', this.envIdForExampleOfUse)));
+          }
+          return of(envIdFormConstants);
+        }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((response) => {
+      .subscribe((envIdForExampleOfUse) => {
+        this.envIdForExampleOfUse = envIdForExampleOfUse;
         this.hasBeenGenerated = true;
-        this.token = response;
       });
   }
 
   getExampleOfUse(token: string): string {
-    let envBaseURL = `${this.constants.org.baseURL}/environments/${this.constants.org.currentEnv.id}`;
+    let envBaseURL = `${this.constants.org.baseURL}/environments/${this.envIdForExampleOfUse}`;
     if (envBaseURL.startsWith('/')) {
       envBaseURL = this.locationStrategy.getBaseHref() + envBaseURL;
     }
