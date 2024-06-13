@@ -47,9 +47,33 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Allow wildcard in ingress host
 - Add unknownExpireAfter in management-api configuration
 
+### 4.0.25
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
 ### 4.0.24
 
-- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc) 
+
+### 4.0.17
+
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
+
+### 4.0.16
+
+- Added "gateway.services.core.http.ssl.keystore.password"
+- fix helm backward compatibility during helm upgrade without `common` field
+- Added default preStop command on ui and portal
+
+### 4.0.15
+
+- Add networkPolicy
+
+### 4.0.14
+
+- Update regex for portal and console base_href
+- 'fix: license deleted after helm upgrade [issues/9411](https://github.com/gravitee-io/issues/issues/9411)'
+- 'fix AE system mail notification without keystore'
 
 ### 4.0.13
 
