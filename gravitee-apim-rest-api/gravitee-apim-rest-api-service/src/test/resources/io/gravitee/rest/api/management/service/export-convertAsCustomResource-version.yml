@@ -27,6 +27,7 @@ spec:
       published: false
       visibility: "PUBLIC"
       homepage: false
+      excludedAccessControls: false
   plans:
   - id: "plan-id"
     crossId: "test-plan-cross-id"

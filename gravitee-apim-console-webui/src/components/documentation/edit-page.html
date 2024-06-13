@@ -150,10 +150,16 @@
         </md-tab>
 
         <!-- access control -->
-        <md-tab ng-if="!$ctrl.readOnly" md-on-select="$ctrl.selectTab(4)" ng-if="$ctrl.canUpdate">
+        <md-tab md-on-select="$ctrl.selectTab(4)" ng-if="$ctrl.canUpdate">
           <md-tab-label>Access Control</md-tab-label>
           <md-tab-body>
-            <gv-edit-page-acls page="$ctrl.page" groups="$ctrl.groups" roles="$ctrl.roles" is-api-page="!!$ctrl.apiId"></gv-edit-page-acls>
+            <gv-edit-page-acls
+              read-only="!!$ctrl.readOnly"
+              page="$ctrl.page"
+              groups="$ctrl.groups"
+              roles="$ctrl.roles"
+              is-api-page="!!$ctrl.apiId"
+            ></gv-edit-page-acls>
           </md-tab-body>
         </md-tab>
 
