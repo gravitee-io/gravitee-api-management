@@ -61,11 +61,11 @@ export class CreateIntegrationComponent {
   });
 
   constructor(
-    private integrationsService: IntegrationsService,
-    private formBuilder: FormBuilder,
+    public readonly integrationsService: IntegrationsService,
+    private readonly formBuilder: FormBuilder,
     private readonly router: Router,
-    private activatedRoute: ActivatedRoute,
-    private snackBarService: SnackBarService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   public onSubmit(): void {

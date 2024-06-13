@@ -41,8 +41,7 @@
 
   <div class="banners">
     <gio-banner-info class="tech-preview-banner">
-      This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for
-      production use.
+      {{ integrationsService.bannerMessages.techPreview }}
     </gio-banner-info>
 
     @if (isFreeTier) {

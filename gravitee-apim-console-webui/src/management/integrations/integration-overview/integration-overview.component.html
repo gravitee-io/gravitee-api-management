@@ -23,8 +23,7 @@
   </div>
 
   <gio-banner-info class="tech-preview-banner">
-    This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for
-    production use.
+    {{ integrationsService.bannerMessages.techPreview }}
   </gio-banner-info>
 
   <mat-card *ngIf="!isLoadingIntegration && integration; else loadingTemplate">
@@ -68,7 +67,7 @@
         </div>
       </mat-card>
       <gio-banner-error *ngIf="integration.agentStatus === AgentStatus.DISCONNECTED">
-        Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.
+        {{ integrationsService.bannerMessages.agentDisconnected }}
       </gio-banner-error>
     </div>
   </mat-card>
