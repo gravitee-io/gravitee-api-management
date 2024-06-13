@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;
@@ -120,8 +119,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             ApiDefinitionResource apiDefinitionResource = new ApiDefinitionResource(name, (ObjectNode) jsonNode);
 
             if (apiDefinitionResource.hasMembers()) {
-                var spec = apiDefinitionResource.getSpec();
-                apiDefinitionResource.replaceMembers(mapCRDMembers(executionContext, apiDefinitionResource.getMembers(spec)));
+                mapCRDMembers(executionContext, apiDefinitionResource.getMembers());
             }
 
             if (exportQuery.isRemoveIds()) {
@@ -148,9 +146,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         }
     }
 
-    private ArrayNode mapCRDMembers(ExecutionContext executionContext, ArrayNode members) {
-        var membersList = JsonNodeFactory.instance.arrayNode();
-
+    private void mapCRDMembers(ExecutionContext executionContext, ArrayNode members) {
         var roleIdToName = roleService
             .findByScope(RoleScope.API, executionContext.getOrganizationId())
             .stream()
@@ -165,10 +161,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
 
             ((ObjectNode) member).remove("roles");
             ((ObjectNode) member).put("role", roleName);
-
-            membersList.add(member);
         }
-        return membersList;
     }
 
     private void generateAndSaveCrossId(ExecutionContext executionContext, ApiEntity api) {
