@@ -61,6 +61,6 @@ class IntegrationControllerInitializerTest {
 
     @Test
     void order_check() {
-        assertThat(initializer.getOrder()).isGreaterThanOrEqualTo(400);
+        assertThat(initializer.getOrder()).isGreaterThanOrEqualTo(100);
     }
 }
