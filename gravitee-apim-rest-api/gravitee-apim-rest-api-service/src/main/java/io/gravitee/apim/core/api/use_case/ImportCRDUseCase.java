@@ -403,19 +403,16 @@ public class ImportCRDUseCase {
             Set<ApiMember> memberSet = members
                 .stream()
                 .map(crd -> {
-                    if (crd.getId() == null) {
-                        BaseUserEntity user = userDomainService.findBySource(
-                            input.auditInfo.organizationId(),
-                            crd.getSource(),
-                            crd.getSourceId()
-                        );
-                        if (user != null) {
-                            crd.setId(user.getId());
-                        } else {
-                            throw new UserNotFoundException(crd.getSourceId());
-                        }
+                    BaseUserEntity user = userDomainService.findBySource(
+                        input.auditInfo.organizationId(),
+                        crd.getSource(),
+                        crd.getSourceId()
+                    );
+                    if (user != null) {
+                        crd.setId(user.getId());
+                    } else {
+                        throw new UserNotFoundException(crd.getSourceId());
                     }
-
                     return initApiMemberFromCRD(crd);
                 })
                 .collect(toSet());
