@@ -30,10 +30,12 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -61,11 +63,15 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.core.user.domain_service.UserDomainService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -93,6 +99,7 @@ public class ImportCRDUseCase {
     private final PlanQueryService planQueryService;
     private final PageQueryService pageQueryService;
     private final PageCrudService pageCrudService;
+    private final UserDomainService userDomainService;
     private final UpdatePlanDomainService updatePlanDomainService;
     private final DeletePlanDomainService deletePlanDomainService;
     private final SubscriptionQueryService subscriptionQueryService;
@@ -119,6 +126,7 @@ public class ImportCRDUseCase {
         ApiStateDomainService apiStateDomainService,
         UpdateApiDomainService updateApiDomainService,
         PlanQueryService planQueryService,
+        UserDomainService userDomainService,
         UpdatePlanDomainService updatePlanDomainService,
         DeletePlanDomainService deletePlanDomainService,
         SubscriptionQueryService subscriptionQueryService,
@@ -146,6 +154,7 @@ public class ImportCRDUseCase {
         this.apiStateDomainService = apiStateDomainService;
         this.updateApiDomainService = updateApiDomainService;
         this.planQueryService = planQueryService;
+        this.userDomainService = userDomainService;
         this.updatePlanDomainService = updatePlanDomainService;
         this.deletePlanDomainService = deletePlanDomainService;
         this.subscriptionQueryService = subscriptionQueryService;
@@ -208,7 +217,7 @@ public class ImportCRDUseCase {
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            createMembers(input.crd.getMembers(), createdApi.getId());
+            createMembers(input, createdApi.getId());
             createOrUpdatePages(input.crd.getPages(), createdApi.getId(), input.auditInfo);
 
             apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
@@ -297,7 +306,7 @@ public class ImportCRDUseCase {
                 }
             }
 
-            createMembers(input.crd.getMembers(), updatedApi.getId());
+            createMembers(input, updatedApi.getId());
             deleteOrphanMemberships(updatedApi.getId(), input);
 
             createOrUpdatePages(input.crd.getPages(), updatedApi.getId(), input.auditInfo);
@@ -388,9 +397,29 @@ public class ImportCRDUseCase {
         }
     }
 
-    private void createMembers(Set<ApiMember> members, String apiId) {
+    private void createMembers(Input input, String apiId) {
+        Set<MemberCRD> members = input.crd.getMembers();
         if (members != null && !members.isEmpty()) {
-            apiImportDomainService.createMembers(members, apiId);
+            Set<ApiMember> memberSet = members
+                .stream()
+                .map(crd -> {
+                    if (crd.getId() == null) {
+                        BaseUserEntity user = userDomainService.findBySource(
+                            input.auditInfo.organizationId(),
+                            crd.getSource(),
+                            crd.getSourceId()
+                        );
+                        if (user != null) {
+                            crd.setId(user.getId());
+                        } else {
+                            throw new UserNotFoundException(crd.getSourceId());
+                        }
+                    }
+
+                    return initApiMemberFromCRD(crd);
+                })
+                .collect(toSet());
+            apiImportDomainService.createMembers(memberSet, apiId);
         }
     }
 
@@ -503,5 +532,14 @@ public class ImportCRDUseCase {
         }
 
         return page;
+    }
+
+    private ApiMember initApiMemberFromCRD(MemberCRD crd) {
+        return ApiMember
+            .builder()
+            .id(crd.getId())
+            .displayName(crd.getDisplayName())
+            .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
+            .build();
     }
 }

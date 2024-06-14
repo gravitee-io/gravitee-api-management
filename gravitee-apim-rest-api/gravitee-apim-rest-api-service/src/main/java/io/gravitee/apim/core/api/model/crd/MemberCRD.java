@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.api.model.crd;
 
-import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.repository.management.model.User;
-import io.gravitee.rest.api.model.UserEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Mapper
-public interface UserAdapter {
-    UserAdapter INSTANCE = Mappers.getMapper(UserAdapter.class);
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder(toBuilder = true)
+public class MemberCRD {
 
-    BaseUserEntity fromUser(User user);
-    BaseUserEntity fromUser(UserEntity user);
+    private String id;
+    private String source;
+    private String sourceId;
+    private String displayName;
+    private String role;
 }

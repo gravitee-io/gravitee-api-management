@@ -19,14 +19,16 @@ import static com.google.common.base.Functions.identity;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
-import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -44,6 +46,7 @@ public interface ApiCRDAdapter {
     @Mapping(target = "definitionContext", ignore = true)
     @Mapping(target = "plans", expression = "java(mapPlans(exportEntity))")
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
+    @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity);
 
     PlanCRD toCRDPlan(PlanEntity planEntity);
@@ -57,6 +60,16 @@ public interface ApiCRDAdapter {
     default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
             ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(PageCRD::getName, identity()))
+            : null;
+    }
+
+    default Set<MemberCRD> mapMembers(ExportApiEntity definition) {
+        return definition.getMembers() != null
+            ? definition
+                .getMembers()
+                .stream()
+                .map(me -> new MemberCRD(me.getId(), null, null, me.getDisplayName(), me.getRoles().get(0).getName()))
+                .collect(Collectors.toSet())
             : null;
     }
 }
