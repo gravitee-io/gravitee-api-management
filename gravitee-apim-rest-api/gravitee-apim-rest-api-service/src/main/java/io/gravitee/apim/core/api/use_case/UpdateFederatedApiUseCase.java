@@ -18,7 +18,6 @@ package io.gravitee.apim.core.api.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
-import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -31,8 +30,10 @@ import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Collections;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
 @UseCase
+@RequiredArgsConstructor
 public class UpdateFederatedApiUseCase {
 
     private final ApiCrudService apiCrudService;
@@ -40,20 +41,6 @@ public class UpdateFederatedApiUseCase {
     private final ValidateFederatedApiDomainService validateFederatedApiDomainService;
     private final AuditDomainService auditService;
     private final ApiIndexerDomainService apiIndexerDomainService;
-
-    public UpdateFederatedApiUseCase(
-        ApiCrudService apiCrudService,
-        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        ValidateFederatedApiDomainService validateFederatedApiDomainService,
-        AuditDomainService auditService,
-        ApiIndexerDomainService apiIndexerDomainService
-    ) {
-        this.apiCrudService = apiCrudService;
-        this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
-        this.validateFederatedApiDomainService = validateFederatedApiDomainService;
-        this.auditService = auditService;
-        this.apiIndexerDomainService = apiIndexerDomainService;
-    }
 
     public Output execute(Input input) {
         var updateApi = input.apiToUpdate;

@@ -36,4 +36,9 @@ public class CategoryDomainServiceImpl implements CategoryDomainService {
     public Set<String> toCategoryId(Api api, String environmentId) {
         return categoryMapper.toCategoryId(environmentId, api.getCategories());
     }
+
+    @Override
+    public Set<String> toCategoryKey(Api api, String environmentId) {
+        return categoryMapper.toCategoryKey(environmentId, api.getCategories());
+    }
 }
