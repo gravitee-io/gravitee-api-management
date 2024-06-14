@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -48,13 +49,15 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
      */
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        if (apiCriteria != null && apiCriteria.getIntegrationId() != null) {
+        if (apiCriteria != null && (apiCriteria.getIntegrationId() != null || apiCriteria.getIds() != null)) {
             return this.storage()
                 .stream()
                 .filter(api -> {
-                    var integrationContext = (IntegrationContext) api.getOriginContext();
-                    var federationId = integrationContext.getIntegrationId();
-                    return federationId.equals(apiCriteria.getIntegrationId());
+                    var matchesIntegrationId =
+                        Objects.isNull(apiCriteria.getIntegrationId()) ||
+                        Objects.equals(((IntegrationContext) api.getOriginContext()).getIntegrationId(), apiCriteria.getIntegrationId());
+                    var matchesApiId = Objects.isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
+                    return matchesIntegrationId && matchesApiId;
                 });
         }
         return this.storage().stream();
