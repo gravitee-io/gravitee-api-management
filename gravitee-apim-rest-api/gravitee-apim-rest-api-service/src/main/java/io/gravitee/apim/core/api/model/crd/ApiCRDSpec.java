@@ -98,7 +98,7 @@ public class ApiCRDSpec {
 
     private Set<String> groups;
 
-    private Set<ApiMember> members;
+    private Set<MemberCRD> members;
 
     private FlowExecution flowExecution;
 

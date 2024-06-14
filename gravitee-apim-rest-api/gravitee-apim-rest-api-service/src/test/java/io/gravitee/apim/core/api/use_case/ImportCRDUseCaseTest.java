@@ -66,6 +66,7 @@ import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import inmemory.UserDomainServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
@@ -79,6 +80,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
@@ -174,6 +176,8 @@ class ImportCRDUseCaseTest {
     private static final String USER_ID = "user-id";
     private static final String TAG = "tag1";
     private static final String GROUP_ID = UuidString.generateRandom();
+    private static final String USER_ENTITY_SOURCE = "gravitee";
+    private static final String USER_ENTITY_SOURCE_ID = "jane.doe@gravitee.io";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -197,6 +201,7 @@ class ImportCRDUseCaseTest {
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     ApiImportDomainService apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
     MembershipCrudService membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
@@ -354,6 +359,7 @@ class ImportCRDUseCaseTest {
                 apiStateDomainService,
                 updateApiDomainService,
                 planQueryService,
+                userDomainService,
                 updatePlanDomainService,
                 deletePlanDomainService,
                 subscriptionQueryService,
@@ -388,7 +394,18 @@ class ImportCRDUseCaseTest {
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+            List.of(
+                BaseUserEntity
+                    .builder()
+                    .organizationId(ORGANIZATION_ID)
+                    .id(USER_ID)
+                    .source(USER_ENTITY_SOURCE)
+                    .sourceId(USER_ENTITY_SOURCE_ID)
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .email("jane.doe@gravitee.io")
+                    .build()
+            )
         );
 
         groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
@@ -486,11 +503,25 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_members() {
-            var members = Set.of(
-                new ApiMember(UuidString.generateRandom(), "test_member", List.of(new ApiMemberRole("USER", RoleScope.API)))
-            );
+            MemberCRD member = new MemberCRD(UuidString.generateRandom(), null, null, "test_member", "USER");
+            var membersCRD = Set.of(member);
+            var members = Set.of(toApiMember(member));
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
+
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+        }
+
+        @Test
+        void should_create_members_with_source_id() {
+            MemberCRD member = new MemberCRD(null, USER_ENTITY_SOURCE, USER_ENTITY_SOURCE_ID, "test_member", "USER");
+            var membersCRD = Set.of(member);
+
+            ApiMember apiMember = toApiMember(member);
+            apiMember.setId(USER_ID);
+            var members = Set.of(apiMember);
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
@@ -798,36 +829,41 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_add_new_members() {
-            var members = new HashSet<>(
-                Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
-            );
+            MemberCRD member1 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_1", "USER");
+            var membersCRD = new HashSet<>(Set.of(member1));
+            var members = new HashSet<>(Set.of(toApiMember(member1)));
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
 
             reset(apiImportDomainService);
-            members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
+            MemberCRD member2 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_2", "USER");
+            membersCRD.add(member2);
+            members.add(toApiMember(member2));
+
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
 
         @Test
         void should_delete_unused_members() {
-            var members = new HashSet<>(
-                Set.of(new ApiMember(UuidString.generateRandom(), "test_member_1", List.of(new ApiMemberRole("USER", RoleScope.API))))
-            );
+            MemberCRD member1 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_1", "USER");
+            var membersCRD = new HashSet<>(Set.of(member1));
+            var members = new HashSet<>(Set.of(toApiMember(member1)));
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
 
             reset(apiImportDomainService);
 
-            members.add(new ApiMember(UuidString.generateRandom(), "test_member_2", List.of(new ApiMemberRole("USER", RoleScope.API))));
+            MemberCRD member2 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_2", "USER");
+            membersCRD.add(member2);
+            members.add(toApiMember(member2));
 
-            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(members).build()));
+            useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
 
             verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
 
@@ -1099,6 +1135,7 @@ class ImportCRDUseCaseTest {
 
     private void givenExistingUsers(List<BaseUserEntity> users) {
         userCrudService.initWith(users);
+        userDomainService.initWith(users);
     }
 
     private PageCRD getMarkdownPage(PageCRD folder) {
@@ -1123,6 +1160,15 @@ class ImportCRDUseCaseTest {
             .name("markdowns")
             .type(PageCRD.Type.FOLDER)
             .visibility(PageCRD.Visibility.PUBLIC)
+            .build();
+    }
+
+    private ApiMember toApiMember(MemberCRD crd) {
+        return ApiMember
+            .builder()
+            .id(crd.getId())
+            .displayName(crd.getDisplayName())
+            .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
             .build();
     }
 }
