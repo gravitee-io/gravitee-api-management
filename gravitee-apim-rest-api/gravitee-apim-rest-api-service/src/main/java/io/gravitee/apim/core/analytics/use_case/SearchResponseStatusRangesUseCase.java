@@ -20,9 +20,10 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @UseCase
-public class SearchAverageConnectionDurationUseCase {
+public class SearchResponseStatusRangesUseCase {
 
     private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
@@ -39,19 +40,19 @@ public class SearchAverageConnectionDurationUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
 
-        return analyticsQueryService.searchAverageConnectionDuration(executionContext, input.apiId()).map(Output::new).orElse(new Output());
+        return analyticsQueryService.searchResponseStatusRanges(executionContext, input.apiId()).map(Output::new).orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
-        validateApiIsNotTcp(api.getApiDefinitionV4());
         validateApiMultiTenancyAccess(api, input.environmentId);
+        validateApiIsNotTcp(api);
     }
 
-    private void validateApiIsNotTcp(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-        if (apiDefinitionV4.isTcpProxy()) {
-            throw new IllegalArgumentException("Analytics are not supported for TCP Proxy APIs");
+    private void validateApiIsNotTcp(Api api) {
+        if (api.getApiDefinitionV4().isTcpProxy()) {
+            throw new TcpProxyNotSupportedException(api.getId());
         }
     }
 
@@ -69,13 +70,13 @@ public class SearchAverageConnectionDurationUseCase {
 
     public record Input(String apiId, String environmentId) {}
 
-    public record Output(Optional<AverageConnectionDuration> averageConnectionDuration) {
-        Output(AverageConnectionDuration averageConnectionDuration) {
-            this(Optional.of(averageConnectionDuration));
+    public record Output(Optional<ResponseStatusRanges> responseStatusRanges) {
+        Output(ResponseStatusRanges responseStatusRanges) {
+            this(Optional.of(responseStatusRanges));
         }
 
         Output() {
-            this(new AverageConnectionDuration());
+            this(new ResponseStatusRanges());
         }
     }
 }

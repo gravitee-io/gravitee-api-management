@@ -29,8 +29,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class AverageConnectionDuration {
+public class ResponseStatusRanges {
 
-    Double globalAverage;
-    Map<String, Double> averagesByEntrypoint;
+    Map<String, Long> ranges;
+    Map<String, Map<String, Long>> statusRangesCountByEntrypoint;
 }

@@ -85,7 +85,7 @@ public class SearchAverageMessagesPerRequestAnalyticsUseCase {
         }
 
         Output() {
-            this(Optional.empty());
+            this(Optional.of(new AverageMessagesPerRequest()));
         }
     }
 }

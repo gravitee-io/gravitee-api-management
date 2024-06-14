@@ -18,6 +18,7 @@ package io.gravitee.apim.core.analytics.query_service;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
@@ -27,4 +28,6 @@ public interface AnalyticsQueryService {
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(ExecutionContext executionContext, String apiId);
 
     Optional<AverageConnectionDuration> searchAverageConnectionDuration(ExecutionContext executionContext, String apiId);
+
+    Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, String apiId);
 }
