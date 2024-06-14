@@ -23,6 +23,7 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -41,7 +42,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = "reporters.elasticsearch.template_mapping.path=src/test/resources/freemarker-v4-analytics")
 class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchRepositoryTest {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
+    private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
 
     @Autowired
     private AnalyticsElasticsearchRepository cut;
@@ -51,10 +52,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
-            var result = cut.searchRequestsCount(
-                new QueryContext("org#1", "env#1"),
-                RequestsCountQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
-            );
+            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), RequestsCountQuery.builder().apiId(API_ID).build());
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
@@ -72,7 +70,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_average_messages_per_request_by_entrypoint_for_a_given_api() {
             var result = cut.searchAverageMessagesPerRequest(
                 new QueryContext("org#1", "env#1"),
-                AverageMessagesPerRequestQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
+                AverageMessagesPerRequestQuery.builder().apiId(API_ID).build()
             );
 
             assertThat(result)
@@ -91,7 +89,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_average_connection_duration_by_entrypoint_for_a_given_api() {
             var result = cut.searchAverageConnectionDuration(
                 new QueryContext("org#1", "env#1"),
-                AverageConnectionDurationQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
+                AverageConnectionDurationQuery.builder().apiId(API_ID).build()
             );
 
             assertThat(result)
@@ -100,6 +98,37 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(averageAggregate.getAverageBy())
                         .containsAllEntriesOf(Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 400.0));
                 });
+        }
+    }
+
+    @Nested
+    class ResponseStatusCount {
+
+        @Test
+        void should_return_response_status_by_entrypoint_for_a_given_api() {
+            var result = cut.searchResponseStatusRanges(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusRangesQuery.builder().apiId(API_ID).build()
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(responseStatusAggregate -> {
+                    assertRanges(responseStatusAggregate.getRanges(), 3L, 7L);
+                    var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
+                    assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
+                    assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
+                    assertRanges(statusRangesCountByEntrypoint.get("http-post"), 2L, 1L);
+                    assertRanges(statusRangesCountByEntrypoint.get("webhook"), 0L, 1L);
+                    assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
+                    assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
+                });
+        }
+
+        private static void assertRanges(Map<String, Long> ranges, long status2xx, long status4xx) {
+            assertThat(ranges)
+                .containsAllEntriesOf(
+                    Map.of("100.0-200.0", 0L, "200.0-300.0", status2xx, "300.0-400.0", 0L, "400.0-500.0", status4xx, "500.0-600.0", 0L)
+                );
         }
     }
 }

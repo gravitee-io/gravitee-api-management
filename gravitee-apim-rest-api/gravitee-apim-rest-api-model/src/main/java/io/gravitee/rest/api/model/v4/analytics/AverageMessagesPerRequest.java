@@ -31,6 +31,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class AverageMessagesPerRequest {
 
-    double globalAverage;
+    Double globalAverage;
     Map<String, Double> averagesByEntrypoint;
 }

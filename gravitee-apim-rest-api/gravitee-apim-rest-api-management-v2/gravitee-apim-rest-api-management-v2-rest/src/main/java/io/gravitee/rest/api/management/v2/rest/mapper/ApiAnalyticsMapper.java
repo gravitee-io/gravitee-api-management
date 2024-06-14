@@ -18,9 +18,12 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -42,4 +45,10 @@ public interface ApiAnalyticsMapper {
     @Mapping(target = "average", source = "globalAverage")
     @Mapping(target = "averagesByEntrypoint", source = "averagesByEntrypoint")
     ApiAnalyticsAverageConnectionDurationResponse map(AverageConnectionDuration averageConnectionDuration);
+
+    @Mapping(target = "ranges", source = "ranges")
+    @Mapping(target = "rangesByEntrypoint", source = "statusRangesCountByEntrypoint")
+    ApiAnalyticsResponseStatusRangesResponse map(ResponseStatusRanges responseStatusRanges);
+
+    Map<String, Number> map(Map<String, Long> value);
 }

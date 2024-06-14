@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.analytics;
+package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
+@Builder
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-public class AverageConnectionDuration {
+public class ResponseStatusRangesQuery {
 
-    Double globalAverage;
-    Map<String, Double> averagesByEntrypoint;
+    String apiId;
 }
