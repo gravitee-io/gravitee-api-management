@@ -41,6 +41,7 @@ import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
 import { ApiService } from '../../../services-ngx/api.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
 type TopBanner = {
   title: string;
@@ -275,6 +276,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     private readonly apiFederatedMenuService: ApiFederatedMenuService,
     private readonly snackBarService: SnackBarService,
     private readonly gioMenuSearchService: GioMenuSearchService,
+    public readonly integrationsService: IntegrationsService,
   ) {}
 
   ngOnInit() {
