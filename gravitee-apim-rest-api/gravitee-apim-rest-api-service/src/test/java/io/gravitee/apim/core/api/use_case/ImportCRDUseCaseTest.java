@@ -348,6 +348,18 @@ class ImportCRDUseCaseTest {
             indexer
         );
 
+        userDomainService.initWith(
+            List.of(
+                BaseUserEntity
+                    .builder()
+                    .source(USER_ENTITY_SOURCE)
+                    .sourceId(USER_ENTITY_SOURCE_ID)
+                    .id(USER_ID)
+                    .organizationId(ORGANIZATION_ID)
+                    .build()
+            )
+        );
+
         useCase =
             new ImportCRDUseCase(
                 apiCrudService,
@@ -503,7 +515,7 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_create_members() {
-            MemberCRD member = new MemberCRD(UuidString.generateRandom(), null, null, "test_member", "USER");
+            MemberCRD member = new MemberCRD(UuidString.generateRandom(), USER_ENTITY_SOURCE, USER_ENTITY_SOURCE_ID, "test_member", "USER");
             var membersCRD = Set.of(member);
             var members = Set.of(toApiMember(member));
 
@@ -829,7 +841,13 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_add_new_members() {
-            MemberCRD member1 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_1", "USER");
+            MemberCRD member1 = new MemberCRD(
+                UuidString.generateRandom(),
+                USER_ENTITY_SOURCE,
+                USER_ENTITY_SOURCE_ID,
+                "test_member_1",
+                "USER"
+            );
             var membersCRD = new HashSet<>(Set.of(member1));
             var members = new HashSet<>(Set.of(toApiMember(member1)));
 
@@ -839,7 +857,13 @@ class ImportCRDUseCaseTest {
 
             reset(apiImportDomainService);
 
-            MemberCRD member2 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_2", "USER");
+            MemberCRD member2 = new MemberCRD(
+                UuidString.generateRandom(),
+                USER_ENTITY_SOURCE,
+                USER_ENTITY_SOURCE_ID,
+                "test_member_2",
+                "USER"
+            );
             membersCRD.add(member2);
             members.add(toApiMember(member2));
 
@@ -849,7 +873,13 @@ class ImportCRDUseCaseTest {
 
         @Test
         void should_delete_unused_members() {
-            MemberCRD member1 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_1", "USER");
+            MemberCRD member1 = new MemberCRD(
+                UuidString.generateRandom(),
+                USER_ENTITY_SOURCE,
+                USER_ENTITY_SOURCE_ID,
+                "test_member_1",
+                "USER"
+            );
             var membersCRD = new HashSet<>(Set.of(member1));
             var members = new HashSet<>(Set.of(toApiMember(member1)));
 
@@ -859,7 +889,13 @@ class ImportCRDUseCaseTest {
 
             reset(apiImportDomainService);
 
-            MemberCRD member2 = new MemberCRD(UuidString.generateRandom(), null, null, "test_member_2", "USER");
+            MemberCRD member2 = new MemberCRD(
+                UuidString.generateRandom(),
+                USER_ENTITY_SOURCE,
+                USER_ENTITY_SOURCE_ID,
+                "test_member_2",
+                "USER"
+            );
             membersCRD.add(member2);
             members.add(toApiMember(member2));
 
@@ -1166,7 +1202,7 @@ class ImportCRDUseCaseTest {
     private ApiMember toApiMember(MemberCRD crd) {
         return ApiMember
             .builder()
-            .id(crd.getId())
+            .id(USER_ID)
             .displayName(crd.getDisplayName())
             .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
             .build();
