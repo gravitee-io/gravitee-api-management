@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ExportCRDUseCaseSpecTest {
+class ExportCRDUseCaseTest {
 
     private final ExportCRDUseCase useCase = new ExportCRDUseCase(new ApiCRDExportDomainServiceInMemory());
 

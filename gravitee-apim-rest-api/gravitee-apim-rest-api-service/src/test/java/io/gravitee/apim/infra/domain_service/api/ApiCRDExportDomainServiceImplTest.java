@@ -17,16 +17,22 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import static org.mockito.Mockito.*;
 
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -59,11 +65,14 @@ class ApiCRDExportDomainServiceImplTest {
     @Mock
     ApiCrudService apiCrudService;
 
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+
     ApiCRDExportDomainService apiCRDExportDomainService;
 
     @BeforeEach
     void setUp() {
-        apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(exportService, apiCrudService);
+        userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_ID).source("gravitee").sourceId("user").build()));
+        apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService);
     }
 
     @Test
@@ -116,9 +125,28 @@ class ApiCRDExportDomainServiceImplTest {
         });
     }
 
+    @Test
+    void should_set_member_source_and_source_id() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(spec.getMembers()).hasSize(1);
+            var member = spec.getMembers().iterator().next();
+            soft.assertThat(member.getSource()).isEqualTo("gravitee");
+            soft.assertThat(member.getSourceId()).isEqualTo("user");
+        });
+    }
+
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
         return ExportApiEntity
             .builder()
+            .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().build())).build()))
             .apiEntity(apiEntity)
             .plans(Set.of(PlanEntity.builder().name("plan-name").id("plan-id").security(new PlanSecurity("key-less", "{}")).build()))
             .build();

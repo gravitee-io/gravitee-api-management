@@ -18,12 +18,18 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -40,11 +46,16 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
     private final ApiCrudService apiCrudService;
 
+    private final UserCrudService userCrudService;
+
     @Override
     public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity());
+        if (spec.getMembers() != null) {
+            setMembersSourceId(spec.getMembers());
+        }
         return ensureCrossId(spec);
     }
 
@@ -57,5 +68,21 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
             spec.setCrossId(crossId);
         }
         return spec;
+    }
+
+    private void setMembersSourceId(Set<MemberCRD> members) {
+        var membersById = members.stream().collect(Collectors.toMap(MemberCRD::getId, Function.identity()));
+
+        var usersById = userCrudService
+            .findBaseUsersByIds(new ArrayList<>(membersById.keySet()))
+            .stream()
+            .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
+
+        membersById.forEach((id, member) -> {
+            var user = usersById.get(id);
+            member.setSourceId(user.getSourceId());
+            member.setSource(user.getSource());
+            member.setId(null);
+        });
     }
 }
