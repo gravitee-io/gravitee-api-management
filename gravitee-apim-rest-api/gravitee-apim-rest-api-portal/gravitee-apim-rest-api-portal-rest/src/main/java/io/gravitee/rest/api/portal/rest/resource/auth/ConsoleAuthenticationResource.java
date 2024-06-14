@@ -29,25 +29,24 @@ import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @Singleton
 @Slf4j
 public class ConsoleAuthenticationResource extends AbstractAuthenticationResource {
+
+    private static final String PORTAL_NEXT_VERSION = "next";
+    private static final String PORTAL_NEXT_PATH = "/next";
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
@@ -56,7 +55,11 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
     private AuthoritiesProvider authoritiesProvider;
 
     @GET
-    public Response redirectTo(@QueryParam("token") String token, @Context final HttpServletResponse httpResponse) {
+    public Response redirectTo(
+        @QueryParam("version") String version,
+        @QueryParam("token") String token,
+        @Context final HttpServletResponse httpResponse
+    ) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
             JWTVerifier jwtVerifier = JWT.require(algorithm).build();
@@ -86,7 +89,8 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
             // connect the user
             super.connectUser(jwt.getSubject(), httpResponse);
             String url = installationAccessQueryService.getPortalUrl(environmentId);
-
+            var versionQueryParam = version != null && version.equals(PORTAL_NEXT_VERSION) ? PORTAL_NEXT_PATH : "";
+            url += versionQueryParam;
             // Redirect the user.
             return Response.temporaryRedirect(new URI(url)).build();
         } catch (UserNotFoundException e) {
