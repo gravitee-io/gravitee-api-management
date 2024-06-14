@@ -17,6 +17,7 @@ import { ComponentHarness, HarnessLoader } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class ApiEndpointGroupsHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-groups';
@@ -27,6 +28,7 @@ export class ApiEndpointGroupsHarness extends ComponentHarness {
   private getEditEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit endpoint"]' }));
   private getEditEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit endpoint group"]' }));
   private getAddEndpointGroupButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add endpoint group"]' }));
+  public getWarningFailoverBanner = this.locatorForAll(DivHarness.with({ selector: '.banner__wrapper__title' }));
 
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#groupsTable-${index}` }));
