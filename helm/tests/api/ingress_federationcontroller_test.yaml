@@ -1,16 +1,16 @@
-suite: Test Management API - Integration Controller Ingress
+suite: Test Management API - Federation Controller Ingress
 templates:
-  - "api/api-ingress-integration-controller.yaml"
+  - "api/api-ingress-federation-controller.yaml"
 tests:
-  - it: Check integration ingress disabled by default
+  - it: Check federation ingress enabled by default
     asserts:
       - hasDocuments:
-          count: 0
+          count: 1
 
-  - it: Check integration disabled
+  - it: Check federation disabled
     set:
       api:
-        integration:
+        federation:
           enabled: false
           ingress:
             enabled: true
@@ -18,10 +18,10 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: Check integration ingress disabled
+  - it: Check federation ingress disabled
     set:
       api:
-        integration:
+        federation:
           enabled: true
           ingress:
             enabled: false
@@ -29,13 +29,7 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: Check default integration ingress
-    set:
-      api:
-        integration:
-          enabled: true
-          ingress:
-            enabled: true
+  - it: Check default federation ingress
     asserts:
       - hasDocuments:
           count: 1
@@ -50,12 +44,12 @@ tests:
           path: spec.rules[0].http.paths[0].path
           value: /integration-controller(/.*)?
 
-  - it: Check integration controller ingress with ingressClassName and kube < 1.18-0
+  - it: Check federation controller ingress with ingressClassName and kube < 1.18-0
     set:
       global:
         kubeVersion: 1.15.0
       api:
-        integration:
+        federation:
           enabled: true
           ingress:
             enabled: true
@@ -70,12 +64,12 @@ tests:
       - notExists:
           path: spec.ingressClassName
 
-  - it: Check integration controller ingress with ingressClassName and kube >= 1.18-0
+  - it: Check federation controller ingress with ingressClassName and kube >= 1.18-0
     set:
       global:
         kubeVersion: 1.18.0
       api:
-        integration:
+        federation:
           enabled: true
           ingress:
             enabled: true
@@ -91,12 +85,12 @@ tests:
           path: spec.ingressClassName
           value: ingress
 
-  - it: Check integration controller ingress with ingressClassName "none" and kube >= 1.18-0
+  - it: Check federation controller ingress with ingressClassName "none" and kube >= 1.18-0
     set:
       global:
         kubeVersion: 1.18.0
       api:
-          integration:
+          federation:
             enabled: true
             ingress:
               enabled: true
@@ -116,16 +110,16 @@ tests:
       global:
         kubeVersion: 1.18.0
       api:
-          integration:
+          federation:
             enabled: true
             ingress:
               enabled: true
               pathType: Exact
-              path: /test-integration-controller
+              path: /test-federation-controller
     asserts:
       - equal:
           path: spec.rules[0].http.paths[0].pathType
           value: Exact
       - equal:
           path: spec.rules[0].http.paths[0].path
-          value: /test-integration-controller
+          value: /test-federation-controller

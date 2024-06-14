@@ -78,9 +78,9 @@ spec:
       {{- end }}
       name: {{ printf "%s-%s" (.Values.api.name | trunc 56 | trimSuffix "-") "bridge" }}
     {{- end }}
-    {{- if .Values.api.integration.enabled }}
-    - port: {{ .Values.api.integration.service.externalPort }}
-      targetPort: {{ .Values.api.integration.port }}
+    {{- if .Values.api.federation.enabled }}
+    - port: {{ .Values.api.federation.service.externalPort }}
+      targetPort: {{ .Values.api.federation.port }}
       protocol: TCP
       name: {{ printf "%s-%s" (.Values.api.name | trunc 56 | trimSuffix "-") "integration-controller" }}
     {{- end }}
