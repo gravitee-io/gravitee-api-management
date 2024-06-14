@@ -158,7 +158,7 @@
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="!canPromote || isKubernetesOrigin || api.definitionVersion === 'V4' || api.definitionVersion === 'V1'"
+        [disabled]="cannotPromote"
         data-testid="api_info_promote"
         (click)="promoteApi()"
       >

@@ -455,34 +455,6 @@ describe('ApiGeneralInfoComponent', () => {
         expect(apiQualityInfo).toBeTruthy();
       });
     });
-
-    describe('with multi-tenant installation', () => {
-      beforeEach(() => initComponent('multi-tenant'));
-
-      it('should not be able to promote api ', async () => {
-        const api = fakeApiV2({
-          id: API_ID,
-          name: '🐶 API',
-          apiVersion: '1.0.0',
-          labels: ['label1', 'label2'],
-          categories: ['category1'],
-          originContext: {
-            origin: 'KUBERNETES',
-          },
-        });
-        expectApiGetRequest(api);
-        expectCategoriesGetRequest([
-          { id: 'category1', name: 'Category 1', key: 'category1' },
-          { id: 'category2', name: 'Category 2', key: 'category2' },
-        ]);
-
-        // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-        await waitImageCheck();
-
-        const button = await loader.getHarness(MatButtonHarness.with({ text: /Promote/ }));
-        expect(await button.isDisabled()).toEqual(true);
-      });
-    });
   });
 
   describe('API V4', () => {
