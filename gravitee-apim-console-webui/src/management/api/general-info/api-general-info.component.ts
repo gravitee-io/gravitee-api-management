@@ -83,7 +83,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     canDeprecate: false,
     canDelete: false,
   };
-  public canPromote = false;
+  public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
 
   public isQualityEnabled = false;
@@ -171,10 +171,11 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             canDelete: !(api.state === 'STARTED' || api.lifecycleState === 'PUBLISHED'),
           };
           this.canDisplayV4EmulationEngineToggle = (api.definitionVersion != null && api.definitionVersion === 'V2') ?? false;
-          this.canPromote =
-            this.dangerActions.canChangeApiLifecycle &&
-            api.lifecycleState !== 'DEPRECATED' &&
-            this.constants.org.settings.management.installationType !== 'multi-tenant';
+          this.cannotPromote =
+            !(this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED') ||
+            this.isKubernetesOrigin ||
+            api.definitionVersion === 'V4' ||
+            api.definitionVersion === 'V1';
 
           this.apiDetailsForm = new UntypedFormGroup({
             name: new UntypedFormControl(
