@@ -20,17 +20,14 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class ValidateFederatedApiDomainService {
 
-    GroupValidationService groupValidationService;
+    private final GroupValidationService groupValidationService;
     private final CategoryDomainService categoryDomainService;
-
-    public ValidateFederatedApiDomainService(GroupValidationService groupValidationService, CategoryDomainService categoryDomainService) {
-        this.groupValidationService = groupValidationService;
-        this.categoryDomainService = categoryDomainService;
-    }
 
     public Api validateAndSanitizeForCreation(final Api api) {
         if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
@@ -51,7 +48,7 @@ public class ValidateFederatedApiDomainService {
         );
         updateApi.setGroups(groupIds);
 
-        updateApi.setCategories(categoryDomainService.toCategoryId(existingApi, existingApi.getEnvironmentId()));
+        updateApi.setCategories(categoryDomainService.toCategoryKey(updateApi, existingApi.getEnvironmentId()));
 
         var lifecycleState = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
             existingApi.getApiLifecycleState(),
