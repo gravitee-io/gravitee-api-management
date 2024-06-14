@@ -51,6 +51,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
 
   public failoverForm: FormGroup<FailoverForm>;
   public initialFailoverFormValue: Failover;
+  public hasKafkaEndpointsGroup = false;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -68,6 +69,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         onlyApiV4Filter(this.snackBarService),
         tap((api: ApiV4) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          this.hasKafkaEndpointsGroup = api?.endpointGroups?.some((endpointGroup) => endpointGroup.type === 'kafka');
           this.createForm(isReadOnly, api?.failover);
           this.setupDisablingFields();
         }),

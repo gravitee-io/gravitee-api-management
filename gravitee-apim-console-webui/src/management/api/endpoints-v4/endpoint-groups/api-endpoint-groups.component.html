@@ -84,6 +84,12 @@
             </ng-container>
           </div>
         </div>
+        @if (group.type === 'kafka' && api?.failover?.enabled) {
+          <gio-banner-warning class="failover-card__info">
+            Failover is enabled but it is not supported for Kafka endpoints. Use the native Kafka Failover by providing multiple bootstrap
+            servers.
+          </gio-banner-warning>
+        }
         <table
           mat-table
           [dataSource]="group.endpoints"
