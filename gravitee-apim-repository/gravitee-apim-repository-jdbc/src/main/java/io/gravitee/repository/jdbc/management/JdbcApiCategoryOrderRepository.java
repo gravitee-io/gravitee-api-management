@@ -179,7 +179,6 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
                     .append(" from ")
                     .append(this.tableName)
                     .append(" where api_id = ? and category_id = ?")
-                    .append(" limit 1")
                     .toString(),
                 getOrm().getRowMapper(),
                 apiId,
