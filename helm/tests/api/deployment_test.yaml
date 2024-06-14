@@ -81,6 +81,8 @@ tests:
           value:
             - name: http
               containerPort: 8083
+            - name: api-integration
+              containerPort: 8072
             - name: api-techapi
               containerPort: 20202
       - matchRegex:
@@ -213,6 +215,8 @@ tests:
           value: 
             - containerPort: 8083
               name: http
+            - containerPort: 8072
+              name: I-am-a-v-integration
             - containerPort: 18083
               name: I-am-a-techapi
             - containerPort: 18092

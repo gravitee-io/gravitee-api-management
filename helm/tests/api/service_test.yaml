@@ -89,6 +89,11 @@ tests:
               port: 42
               protocol: TCP
               targetPort: 18092
+            - name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolor-integration-controller
+              port: 72
+              protocol: TCP
+              targetPort: 8072
+
 
   - it: Deploy with NodePort and externalTrafficPolicy
     template: api/api-service.yaml
