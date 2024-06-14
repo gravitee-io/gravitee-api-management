@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
@@ -46,12 +47,14 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
 
     public static final String PROPERTY_HTTP_API_PORTAL_PROXY_PATH = "installation.api.proxyPath.portal";
     public static final String PROPERTY_HTTP_API_PORTAL_ENTRYPOINT = "http.api.portal.entrypoint";
+    private static final String PORTAL_NEXT_VERSION = "next";
+    private static final String PORTAL_NEXT_QUERY_PARAM = "version=next&";
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
 
     @GET
-    public Response redirectToPortal(@Context final HttpServletRequest httpServletRequest) {
+    public Response redirectToPortal(@Context final HttpServletRequest httpServletRequest, @QueryParam("version") final String version) {
         try {
             final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -71,12 +74,12 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
                     .build();
                 url = uriComponents.toUriString();
             }
+            var versionQueryParam = version != null && version.equals(PORTAL_NEXT_VERSION) ? PORTAL_NEXT_QUERY_PARAM : "";
             // Redirect the user.
-            return Response
-                .temporaryRedirect(
-                    new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
-                )
-                .build();
+            URI location = new URI(
+                "%s/environments/%s/auth/console?%stoken=%s".formatted(url, environmentId, versionQueryParam, tokenEntity.getToken())
+            );
+            return Response.temporaryRedirect(location).build();
         } catch (InvalidTokenException | UserNotFoundException e) {
             log.error("Authentication failed", e);
             return Response.status(Response.Status.FORBIDDEN).build();
