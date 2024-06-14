@@ -492,11 +492,11 @@ data:
 
     # Integration controller
     integration:
-      enabled: {{ .Values.api.integration.enabled }}
-      {{ if .Values.api.integration.enabled }}
+      enabled: {{ .Values.api.federation.enabled }}
+      {{ if .Values.api.federation.enabled }}
       controller:
         ws:
-          port: {{ .Values.api.integration.port }}
+          port: {{ .Values.api.federation.port }}
       {{- end}}
     # Alert Engine communication
     {{ if .Values.alerts.enabled }}

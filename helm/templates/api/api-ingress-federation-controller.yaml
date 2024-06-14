@@ -1,9 +1,9 @@
-{{- if and (.Values.api.enabled) (.Values.api.integration.enabled) -}}
-{{- if .Values.api.integration.ingress.enabled -}}
+{{- if and (.Values.api.enabled) (.Values.api.federation.enabled) -}}
+{{- if .Values.api.federation.ingress.enabled -}}
 {{- $serviceAPIName := include "gravitee.api.fullname" . -}}
-{{- $serviceAPIPort := .Values.api.integration.service.externalPort -}}
-{{- $ingressPath   := .Values.api.integration.ingress.path -}}
-{{- $ingressPathType   := .Values.api.integration.ingress.pathType -}}
+{{- $serviceAPIPort := .Values.api.federation.service.externalPort -}}
+{{- $ingressPath   := .Values.api.federation.ingress.path -}}
+{{- $ingressPathType   := .Values.api.federation.ingress.pathType -}}
 {{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
 apiVersion: {{ $apiVersion }}
 kind: Ingress
@@ -22,8 +22,8 @@ metadata:
     {{- end }}
     {{- end }}
   annotations:
-    {{- if .Values.api.integration.ingress.annotations }}
-    {{- include "common.ingress.annotations.render" (dict "annotations" .Values.api.integration.ingress.annotations "ingressClassName" .Values.api.integration.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
+    {{- if .Values.api.federation.ingress.annotations }}
+    {{- include "common.ingress.annotations.render" (dict "annotations" .Values.api.federation.ingress.annotations "ingressClassName" .Values.api.federation.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
     {{- end }}
     {{- if and .Values.common .Values.common.annotations }}
     {{- range $key, $value := .Values.common.annotations }}
@@ -31,11 +31,11 @@ metadata:
     {{- end }}
     {{- end }}
 spec:
-  {{- if and (eq (include "common.ingress.supportsIngressClassname" .) "true") (.Values.api.integration.ingress.ingressClassName) (ne .Values.api.integration.ingress.ingressClassName "none") }}
-  ingressClassName: {{ .Values.api.integration.ingress.ingressClassName | quote }}
+  {{- if and (eq (include "common.ingress.supportsIngressClassname" .) "true") (.Values.api.federation.ingress.ingressClassName) (ne .Values.api.federation.ingress.ingressClassName "none") }}
+  ingressClassName: {{ .Values.api.federation.ingress.ingressClassName | quote }}
   {{- end }}
   rules:
-  {{- range $host := .Values.api.integration.ingress.hosts }}
+  {{- range $host := .Values.api.federation.ingress.hosts }}
   - host: {{ $host | quote }}
     http:
       paths:
@@ -52,9 +52,9 @@ spec:
             servicePort: {{ $serviceAPIPort }}
           {{- end -}}
   {{- end -}}
-  {{- if .Values.api.integration.ingress.tls }}
+  {{- if .Values.api.federation.ingress.tls }}
   tls:
-{{ toYaml .Values.api.integration.ingress.tls | indent 4 }}
+{{ toYaml .Values.api.federation.ingress.tls | indent 4 }}
   {{- end -}}
 {{- end -}}
 {{- end -}}

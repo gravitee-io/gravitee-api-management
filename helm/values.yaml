@@ -798,11 +798,11 @@ api:
   #      verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm # verificationKey or the JWKS URL
   #      issuer: MY_ISSUER
 
-  integration:
-    enabled: false
+  federation:
+    enabled: true
     port: 8072
     ingress:
-      enabled: false
+      enabled: true
       ingressClassName: ""
       path: /integration-controller(/.*)?
       pathType: Prefix

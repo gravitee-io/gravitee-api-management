@@ -133,9 +133,9 @@ spec:
           ports:
             - name: {{ .Values.api.service.internalPortName }}
               containerPort: {{ .Values.api.service.internalPort }}
-            {{- if .Values.api.integration.enabled }}
+            {{- if .Values.api.federation.enabled }}
             - name: {{ printf "%s-%s" (.Values.api.name | trunc 8 | trimSuffix "-") "integration" }}
-              containerPort: {{ .Values.api.integration.port }}
+              containerPort: {{ .Values.api.federation.port }}
             {{- end }}
             {{- if .Values.api.http.services.core.http.enabled }}
             - name: {{ printf "%s-%s" (.Values.api.name | trunc 7 | trimSuffix "-") "techapi" }}
