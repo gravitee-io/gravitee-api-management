@@ -148,6 +148,9 @@ public class PlanMapper {
         ) {
             return null;
         }
+        if (configuration.getLimit().intValue() == 0) {
+            return Duration.ZERO;
+        }
         return ChronoUnit
             .valueOf(configuration.getPeriodTimeUnit().getValue())
             .getDuration()
@@ -156,10 +159,14 @@ public class PlanMapper {
     }
 
     private long getLimitToUse(JsonNode configuration) {
-        if (!configuration.has(POLICY_CONFIGURATION_LIMIT) || configuration.get(POLICY_CONFIGURATION_LIMIT).intValue() == 0) {
-            return configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT).intValue();
+        // Dynamic limit exists and limit is either missing or equal to 0
+        if (
+            configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT) &&
+            (!configuration.has(POLICY_CONFIGURATION_LIMIT) || configuration.get(POLICY_CONFIGURATION_LIMIT).intValue() == 0)
+        ) {
+            return Long.parseLong(configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT).asText());
         }
-        return configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT).longValue();
+        return configuration.get(POLICY_CONFIGURATION_LIMIT).longValue();
     }
 
     /**

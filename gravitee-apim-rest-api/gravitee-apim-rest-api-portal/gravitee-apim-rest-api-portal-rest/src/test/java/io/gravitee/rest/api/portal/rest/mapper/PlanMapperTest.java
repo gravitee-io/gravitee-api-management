@@ -284,13 +284,57 @@ public class PlanMapperTest {
 
         var stepDynamicLimit = new io.gravitee.definition.model.v4.flow.step.Step();
         stepDynamicLimit.setPolicy(QUOTA);
-        stepDynamicLimit.setConfiguration("{ \"quota\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }");
+        stepDynamicLimit.setConfiguration("{ \"quota\": { \"dynamicLimit\": \"25\", \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }");
         stepDynamicLimit.setEnabled(true);
 
         var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
         stepLowLimit.setPolicy(QUOTA);
         stepLowLimit.setConfiguration(
             "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
+        );
+        stepLowLimit.setEnabled(true);
+
+        var stepDisabledLowestLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepDisabledLowestLimit.setPolicy(QUOTA);
+        stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
+        stepDisabledLowestLimit.setEnabled(false);
+
+        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        flow1.setRequest(List.of(stepNoLimit, stepDynamicLimit));
+        flow1.setEnabled(true);
+
+        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
+        disabledFlow.setEnabled(false);
+
+        planEntityV4.setFlows(List.of(flow1, disabledFlow));
+
+        Plan responsePlan = planMapper.convert(planEntityV4);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var quotaConfig = responsePlan.getUsageConfiguration().getQuota();
+        assertNotNull(quotaConfig);
+        assertEquals(25L, quotaConfig.getLimit());
+        assertEquals(4, quotaConfig.getPeriodTime());
+        assertEquals(PeriodTimeUnit.HOURS, quotaConfig.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldHandleStringDynamicLimit() {
+        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepNoLimit.setPolicy(QUOTA);
+        stepNoLimit.setConfiguration("{ \"quota\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
+        stepNoLimit.setEnabled(true);
+
+        var stepDynamicLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepDynamicLimit.setPolicy(QUOTA);
+        stepDynamicLimit.setConfiguration("{ \"quota\": { \"dynamicLimit\": \"25\", \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }");
+        stepDynamicLimit.setEnabled(true);
+
+        var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepLowLimit.setPolicy(QUOTA);
+        stepLowLimit.setConfiguration(
+            "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": \"25\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepLowLimit.setEnabled(true);
 
