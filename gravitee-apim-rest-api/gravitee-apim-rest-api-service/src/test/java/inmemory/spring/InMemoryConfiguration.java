@@ -106,6 +106,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public UserDomainServiceInMemory userDomainService() {
+        return new UserDomainServiceInMemory();
+    }
+
+    @Bean
     public PageQueryServiceInMemory pageQueryService() {
         return new PageQueryServiceInMemory();
     }

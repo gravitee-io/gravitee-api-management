@@ -99,7 +99,7 @@ public class ApiCRDSpec {
 
     private Set<String> categories;
 
-    private Set<ApiMember> members;
+    private Set<MemberCRD> members;
 
     private Map<String, PageCRD> pages;
 
