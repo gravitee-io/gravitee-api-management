@@ -4,10 +4,6 @@ templates:
 tests:
   - it: Check default integration service
     template: api/api-service.yaml
-    set:
-      api:
-        integration:
-          enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -30,8 +26,7 @@ tests:
     template: api/api-service.yaml
     set:
       api:
-        integration:
-          enabled: true
+        federation:
           service:
             externalPort: 8888
     asserts:
