@@ -39,7 +39,7 @@ export class IntegrationsService {
 
   public readonly bannerMessages = {
     techPreview:
-      'This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not recommended for production use.',
+      'This feature is a tech preview. Gravitee provides limited support for tech preview features and they are subject to change.',
     agentDisconnected: 'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
   };
 

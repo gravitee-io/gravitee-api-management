@@ -28,6 +28,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
+import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
 describe('ApiNavigationComponent', () => {
   const API_ID = 'apiId';
@@ -46,6 +47,7 @@ describe('ApiNavigationComponent', () => {
       await TestBed.configureTestingModule({
         imports: [ApiNavigationModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
         providers: [
+          { provide: IntegrationsService },
           {
             provide: ActivatedRoute,
             useValue: {
