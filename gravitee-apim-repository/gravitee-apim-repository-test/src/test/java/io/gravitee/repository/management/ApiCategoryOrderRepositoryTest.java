@@ -51,6 +51,13 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void shouldFindById() throws Exception {
+        final Optional<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findById("api-2", "category-2");
+        assertTrue(optionalCategory.isPresent());
+        assertEquals(ApiCategoryOrder.builder().apiId("api-2").categoryId("category-2").order(0).build(), optionalCategory.get());
+    }
+
+    @Test
     public void shouldFindAll() throws Exception {
         final Set<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findAll();
         assertTrue(optionalCategory.size() >= 3);
