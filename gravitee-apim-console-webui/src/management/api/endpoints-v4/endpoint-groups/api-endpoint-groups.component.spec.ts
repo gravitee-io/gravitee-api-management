@@ -146,6 +146,27 @@ describe('ApiEndpointGroupsComponent', () => {
         ['another endpoint', '', '5', ''],
       ]);
     });
+    it('should a warning in kafka endpoint group if failover is enabled', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+        failover: {
+          enabled: true,
+        },
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.getTableRows(0)).toEqual([
+        ['an endpoint', '', '1', ''],
+        ['another endpoint', '', '5', ''],
+      ]);
+
+      const warningFailoverBanner = await componentHarness.getWarningFailoverBanner();
+      expect(warningFailoverBanner).toHaveLength(1);
+      expect(await warningFailoverBanner[0].getText()).toContain(
+        'Failover is enabled but it is not supported for Kafka endpoints. Use the native Kafka Failover by providing multiple bootstrap servers.',
+      );
+    });
   });
 
   describe('deleteEndpoint', () => {
