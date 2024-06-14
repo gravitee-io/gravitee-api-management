@@ -99,7 +99,10 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
                             .toString()
                     )
                 );
-        } catch (TechnicalException e) {
+        } catch (IllegalStateException e) {
+            LOGGER.error("Failed to update api category order", e);
+            throw new IllegalStateException("Failed to update api category order", e);
+        } catch (Exception e) {
             LOGGER.error("Failed to update api category order", e);
             throw new TechnicalException("Failed to update api category order", e);
         }
@@ -166,7 +169,8 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
         }
     }
 
-    private Optional<ApiCategoryOrder> findById(String apiId, String categoryId) throws TechnicalException {
+    @Override
+    public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
         LOGGER.debug("JdbcApiCategoryOrderRepository.findById({}, {})", apiId, categoryId);
 
         try {
@@ -186,9 +190,8 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
             );
             return apiCategories.stream().findFirst();
         } catch (final Exception ex) {
-            final String error = "Failed to find ApiCategoryOrder by id";
-            LOGGER.error(error, ex);
-            throw new TechnicalException(error, ex);
+            LOGGER.error("Failed to find ApiCategoryOrder by id", ex);
+            return Optional.empty();
         }
     }
 }

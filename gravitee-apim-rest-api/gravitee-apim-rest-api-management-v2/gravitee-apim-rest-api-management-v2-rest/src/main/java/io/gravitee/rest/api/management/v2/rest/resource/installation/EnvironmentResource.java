@@ -21,6 +21,8 @@ import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
+import io.gravitee.rest.api.management.v2.rest.resource.category.CategoryResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -60,6 +62,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/ui/themes")
     public ThemesResource getThemesResource() {
         return resourceContext.getResource(ThemesResource.class);
+    }
+
+    @Path("/categories")
+    public CategoriesResource getCategoriesResource() {
+        return resourceContext.getResource(CategoriesResource.class);
     }
 
     @GET

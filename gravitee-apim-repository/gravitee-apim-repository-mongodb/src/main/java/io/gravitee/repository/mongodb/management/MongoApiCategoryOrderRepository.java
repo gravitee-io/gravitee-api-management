@@ -68,10 +68,7 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
             throw new IllegalStateException("ApiCategoryOrder must not be null for update");
         }
 
-        internalApiCategoryOrderRepo
-            .findById(
-                ApiCategoryOrderPkMongo.builder().categoryId(apiCategoryOrder.getCategoryId()).apiId(apiCategoryOrder.getApiId()).build()
-            )
+        this.findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
             .orElseThrow(() ->
                 new IllegalStateException(
                     String.format(
@@ -97,6 +94,15 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
             LOGGER.error("An error occurred when deleting ApiCategoryOrder [{}, {}]", apiId, categoryId, e);
             throw new TechnicalException("An error occurred when deleting ApiCategoryOrder", e);
         }
+    }
+
+    @Override
+    public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
+        LOGGER.error("Finding ApiCategoryOrder by ID [{}, {}]", apiId, categoryId);
+
+        return internalApiCategoryOrderRepo
+            .findById(ApiCategoryOrderPkMongo.builder().categoryId(categoryId).apiId(apiId).build())
+            .map(apiCategoryOrderMongo -> mapper.map(apiCategoryOrderMongo));
     }
 
     @Override
