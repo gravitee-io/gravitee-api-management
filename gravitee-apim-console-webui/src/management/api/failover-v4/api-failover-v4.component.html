@@ -29,6 +29,13 @@
         ></mat-slide-toggle>
       </gio-form-slide-toggle>
 
+      @if (hasKafkaEndpointsGroup) {
+        <gio-banner-warning class="failover-card__info">
+          Failover is not supported for Kafka endpoints. Enabling it will have no effect. Use the native Kafka Failover by providing
+          multiple bootstrap servers.
+        </gio-banner-warning>
+      }
+
       <gio-banner-info class="failover-card__info">
         Failover mechanism operates using a circuit breaker system. When a certain threshold of slow calls or connection failures (ssl
         error, unknown host, ...) is reached, the circuit breaker reaches "open" state, stopping all requests to the backend. During this

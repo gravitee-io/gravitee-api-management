@@ -123,9 +123,27 @@ describe('ApiV4FailoverComponent', () => {
     });
   });
 
-  it('should update failover config', async () => {
+  it.each(['kafka', 'mock'])('should update failover config for %p endpoint', async (endpointType) => {
     const api = fakeApiV4({
       id: API_ID,
+      endpointGroups: [
+        {
+          name: 'default-group',
+          type: endpointType,
+          loadBalancer: {
+            type: 'ROUND_ROBIN',
+          },
+          endpoints: [
+            {
+              name: 'default',
+              type: endpointType,
+              weight: 1,
+              inheritConfiguration: false,
+              configuration: {},
+            },
+          ],
+        },
+      ],
       failover: {
         enabled: true,
         maxRetries: 2,
@@ -167,8 +185,15 @@ describe('ApiV4FailoverComponent', () => {
     expect(await perSubscriptionToggle.isChecked()).toEqual(false);
 
     // Verify warning is displayed
-    const perSubscriptionWarningBanner = await loader.getAllHarnesses(DivHarness.with({ selector: '.banner__wrapper__title' }));
-    expect(await perSubscriptionWarningBanner[3].getText()).toContain('The circuit breaker will be configured for the whole API');
+    const warningBanner = await loader.getAllHarnesses(DivHarness.with({ selector: '.banner__wrapper__title' }));
+    if (endpointType === 'kafka') {
+      expect(await warningBanner[0].getText()).toContain(
+        'Failover is not supported for Kafka endpoints. Enabling it will have no effect. Use the native Kafka Failover by providing multiple bootstrap servers.',
+      );
+      expect(await warningBanner[4].getText()).toContain('The circuit breaker will be configured for the whole API');
+    } else {
+      expect(await warningBanner[3].getText()).toContain('The circuit breaker will be configured for the whole API');
+    }
 
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
