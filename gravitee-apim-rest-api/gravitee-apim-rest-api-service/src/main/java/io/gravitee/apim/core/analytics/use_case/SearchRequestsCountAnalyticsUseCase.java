@@ -76,7 +76,7 @@ public class SearchRequestsCountAnalyticsUseCase {
         }
 
         Output() {
-            this(Optional.empty());
+            this(new RequestsCount());
         }
     }
 }

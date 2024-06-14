@@ -20,9 +20,11 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesQuery;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
+import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +68,21 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
             );
+    }
+
+    @Override
+    public Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, String apiId) {
+        final var queryResult = analyticsRepository.searchResponseStatusRanges(
+            executionContext.getQueryContext(),
+            ResponseStatusRangesQuery.builder().apiId(apiId).build()
+        );
+        return queryResult.map(analytics ->
+            ResponseStatusRanges
+                .builder()
+                .ranges(analytics.getRanges())
+                .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
+                .build()
+        );
     }
 
     @Override

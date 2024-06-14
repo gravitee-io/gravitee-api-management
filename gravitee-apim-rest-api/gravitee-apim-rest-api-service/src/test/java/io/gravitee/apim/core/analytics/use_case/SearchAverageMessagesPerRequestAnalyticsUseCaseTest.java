@@ -98,7 +98,12 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         analyticsQueryService.averageMessagesPerRequest = null;
         final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
-        assertThat(result.averageMessagesPerRequest()).isEmpty();
+        assertThat(result.averageMessagesPerRequest())
+            .isNotEmpty()
+            .hasValueSatisfying(averageMessagesPerRequest -> {
+                assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isNull();
+                assertThat(averageMessagesPerRequest.getGlobalAverage()).isNull();
+            });
     }
 
     @Test

@@ -31,6 +31,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class RequestsCount {
 
-    long total;
+    Long total;
     Map<String, Long> countsByEntrypoint;
 }

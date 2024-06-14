@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.analytics;
+package io.gravitee.apim.core.api.exception;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-public class AverageConnectionDuration {
+public class TcpProxyNotSupportedException extends ValidationDomainException {
 
-    Double globalAverage;
-    Map<String, Double> averagesByEntrypoint;
+    public TcpProxyNotSupportedException(String apiId) {
+        super("TCP Proxy not supported", Map.of("apiId", apiId));
+    }
 }
