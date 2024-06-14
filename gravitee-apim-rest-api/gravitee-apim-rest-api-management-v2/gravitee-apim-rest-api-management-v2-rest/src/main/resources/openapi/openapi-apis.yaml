@@ -283,7 +283,7 @@ paths:
                 - APIs
             summary: Update an API
             description: |-
-                Update a V2 or a V4 API.
+                Update a V2, a V4 or a Federated API.
 
                 User must have API_DEFINITION[UPDATE] or API_GATEWAY_DEFINITION[UPDATE] permissions.
             operationId: updateApi
