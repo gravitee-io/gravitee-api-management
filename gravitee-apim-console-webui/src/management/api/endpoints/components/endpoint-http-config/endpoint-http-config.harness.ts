@@ -29,6 +29,7 @@ const httpClientOptionsControlNames = [
   'version',
   'connectTimeout',
   'readTimeout',
+  'keepAliveTimeout',
   'idleTimeout',
   'maxConcurrentConnections',
   'keepAlive',
@@ -135,7 +136,7 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
         ) {
           value = await this.getMatSlideToggle(formControlName).then((matSlideToggle) => matSlideToggle?.isChecked());
         }
-        if (['connectTimeout', 'readTimeout', 'idleTimeout', 'maxConcurrentConnections'].includes(formControlName)) {
+        if (['connectTimeout', 'readTimeout', 'keepAliveTimeout', 'idleTimeout', 'maxConcurrentConnections'].includes(formControlName)) {
           value = await this.getMatInput(formControlName)
             .then((matInput) => matInput?.getValue())
             .then((v) => (Number(v) ? Number(v) : v));
