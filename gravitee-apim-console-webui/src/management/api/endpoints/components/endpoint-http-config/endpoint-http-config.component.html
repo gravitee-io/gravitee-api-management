@@ -40,9 +40,21 @@
     </mat-form-field>
 
     <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Keep-alive timeout</mat-label>
+      <input matInput formControlName="keepAliveTimeout" type="number" />
+      <mat-hint
+        >Maximum time a connection will remain unused in the pool. Once the timeout has elapsed, the unused connection will be evicted. (in
+        milliseconds)</mat-hint
+      >
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
       <mat-label>Idle timeout</mat-label>
       <input matInput formControlName="idleTimeout" type="number" />
-      <mat-hint>Maximum time a connection will timeout and be closed if no data is received within the timeout. (in milliseconds)</mat-hint>
+      <mat-hint
+        >Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will
+        be closed, allowing to free the associated resources. (in milliseconds)</mat-hint
+      >
     </mat-form-field>
 
     <mat-form-field class="endpointHttpConfig__formField">
