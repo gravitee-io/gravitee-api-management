@@ -30,6 +30,10 @@ export interface HttpClientOptions {
    */
   keepAlive?: boolean;
   /**
+   * The keep alive timeout of the http client in ms
+   */
+  keepAliveTimeout?: number;
+  /**
    * The read timeout of the http client in ms
    */
   readTimeout?: number;

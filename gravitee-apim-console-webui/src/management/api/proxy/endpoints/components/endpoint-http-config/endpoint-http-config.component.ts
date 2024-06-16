@@ -57,6 +57,10 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         value: endpointGroup.httpClientOptions?.readTimeout ?? 10000,
         disabled: isReadonly,
       }),
+      keepAliveTimeout: new FormControl({
+        value: endpointGroup.httpClientOptions?.keepAliveTimeout ?? 30000,
+        disabled: isReadonly,
+      }),
       idleTimeout: new FormControl({
         value: endpointGroup.httpClientOptions?.idleTimeout ?? 60000,
         disabled: isReadonly,
