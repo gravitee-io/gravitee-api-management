@@ -509,6 +509,12 @@
             <version>${gravitee-tracer-jaeger.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.tracer</groupId>
+            <artifactId>gravitee-tracer-opentelemetry</artifactId>
+            <version>${gravitee-tracer-opentelemetry.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- secret providers -->
         <dependency>
             <groupId>io.gravitee.secretprovider</groupId>

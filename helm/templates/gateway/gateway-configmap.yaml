@@ -506,9 +506,13 @@ data:
       tracing:
         enabled: {{ .Values.gateway.services.tracing.enabled }}
         type: {{ .Values.gateway.services.tracing.type | quote }}
-        {{- if .Values.gateway.services.tracing.jaeger }}
+        {{- if (and (eq .Values.gateway.services.tracing.type "jaeger") .Values.gateway.services.tracing.jaeger) }}
         jaeger:
 {{ toYaml .Values.gateway.services.tracing.jaeger | indent 10 }}
+        {{- end }}
+        {{- if (and (eq .Values.gateway.services.tracing.type "otel") .Values.gateway.services.tracing.otel) }}
+        otel:
+{{ toYaml .Values.gateway.services.tracing.otel | indent 10 }}
         {{- end }}
       {{- end }}
 
