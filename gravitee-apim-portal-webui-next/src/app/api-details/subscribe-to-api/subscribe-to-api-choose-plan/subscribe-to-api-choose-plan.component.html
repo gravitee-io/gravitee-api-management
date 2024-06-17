@@ -1,0 +1,38 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card-header class="api-details__header">
+  <div class="m3-title-large">Choose a plan</div>
+  <div class="api-details__header-content">Select the plan that best suit for your needs.</div>
+</mat-card-header>
+<mat-card-content>
+  <div class="plan-list__container">
+    @for (card of subscriptionPlans$ | async; track card.id) {
+      <app-plan-card [card]="card" [selectedPlanControl]="selectedPlan"></app-plan-card>
+    }
+  </div>
+  <mat-card-actions class="api-details__action">
+    <button
+      (click)="onChangeStepper()"
+      class="api-details__action--button"
+      mat-flat-button
+      color="primary"
+      [disabled]="!selectedPlan.value">
+      Next
+    </button>
+  </mat-card-actions>
+</mat-card-content>

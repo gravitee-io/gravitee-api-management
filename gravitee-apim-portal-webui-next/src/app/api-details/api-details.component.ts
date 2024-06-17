@@ -16,7 +16,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, Input, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
@@ -36,9 +36,7 @@ import { CurrentUserService } from '../../services/current-user.service';
     ApiCardComponent,
     ApiPictureComponent,
     MatButton,
-    MatCard,
-    MatCardActions,
-    MatCardContent,
+    MatCardModule,
     BannerComponent,
     MatTabsModule,
     MatIconModule,

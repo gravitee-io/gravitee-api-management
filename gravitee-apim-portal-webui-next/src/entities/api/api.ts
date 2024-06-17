@@ -48,7 +48,7 @@ export interface Api {
   /**
    * List of all the available endpoints to call the API.
    */
-  entrypoints?: Array<string>;
+  entrypoints: Array<string>;
   listener_type?: ListenerType;
   /**
    * List of labels linked to this API.
@@ -64,6 +64,8 @@ export interface Api {
    */
   updated_at?: Date;
   security?: ApiSecurityTypeEnum;
+  validation?: string;
+  usage_configuration: ApiUsageConfiguration;
   /**
    * List of categories this API belongs to.
    */
@@ -72,3 +74,14 @@ export interface Api {
 }
 
 export type ApiSecurityTypeEnum = 'JWT' | 'OAUTH2' | 'API_KEY';
+
+export interface ApiUsageConfiguration {
+  rate_limit?: ApiUsageConfigurationRateOrQuota;
+  quota?: ApiUsageConfigurationRateOrQuota;
+}
+
+export interface ApiUsageConfigurationRateOrQuota {
+  period_time: string;
+  period_time_unit: string;
+  limit: number;
+}
