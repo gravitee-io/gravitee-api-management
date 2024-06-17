@@ -175,7 +175,9 @@ class ImportCRDUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final String TAG = "tag1";
-    private static final String GROUP_ID = UuidString.generateRandom();
+    private static final String GROUP_ID_1 = UuidString.generateRandom();
+    private static final String GROUP_ID_2 = UuidString.generateRandom();
+    private static final String GROUP_NAME = "developers";
     private static final String USER_ENTITY_SOURCE = "gravitee";
     private static final String USER_ENTITY_SOURCE_ID = "jane.doe@gravitee.io";
 
@@ -420,7 +422,12 @@ class ImportCRDUseCaseTest {
             )
         );
 
-        groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
+        groupQueryService.initWith(
+            List.of(
+                Group.builder().id(GROUP_ID_1).build(),
+                Group.builder().id(GROUP_ID_2).environmentId(ENVIRONMENT_ID).name(GROUP_NAME).build()
+            )
+        );
     }
 
     @AfterEach
@@ -1113,7 +1120,7 @@ class ImportCRDUseCaseTest {
             .type("PROXY")
             .version("1.0.0")
             .visibility("PRIVATE")
-            .groups(Set.of(GROUP_ID, "non-existing-group"));
+            .groups(Set.of(GROUP_ID_1, "non-existing-group", GROUP_NAME));
     }
 
     private Api expectedApi() {
@@ -1152,7 +1159,7 @@ class ImportCRDUseCaseTest {
                     .tags(Set.of(TAG))
                     .build()
             )
-            .groups(Set.of(GROUP_ID))
+            .groups(Set.of(GROUP_ID_1, GROUP_ID_2))
             .build();
     }
 
