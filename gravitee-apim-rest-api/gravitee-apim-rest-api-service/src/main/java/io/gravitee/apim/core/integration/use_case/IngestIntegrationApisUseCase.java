@@ -193,21 +193,12 @@ public class IngestIntegrationApisUseCase {
                     )
                     .createdAt(now)
                     .updatedAt(now)
-                    .validation(validation(p.validation()))
+                    .validation(PlanValidationType.MANUAL)
                     .build();
             })
             .forEach(p -> {
                 createPlanDomainService.create(p, List.of(), federatedApi, auditInfo);
             });
-    }
-
-    private PlanValidationType validation(IntegrationApi.Validation validation) {
-        return validation == null
-            ? PlanValidationType.MANUAL
-            : switch (validation) {
-                case MANUAL -> PlanValidationType.MANUAL;
-                case AUTO -> PlanValidationType.AUTO;
-            };
     }
 
     public record Input(String integrationId, AuditInfo auditInfo) {}
