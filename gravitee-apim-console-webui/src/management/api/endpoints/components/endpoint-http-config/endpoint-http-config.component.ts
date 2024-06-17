@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy } from '@angular/core';
 import { asyncScheduler, merge, Subject } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { filter, startWith, takeUntil, map, observeOn } from 'rxjs/operators';
@@ -42,7 +42,7 @@ export interface EndpointHttpConfigValue {
   templateUrl: './endpoint-http-config.component.html',
   styleUrls: ['./endpoint-http-config.component.scss'],
 })
-export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
+export class EndpointHttpConfigComponent implements OnDestroy, OnChanges {
   public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): UntypedFormGroup {
     const httpClientOptions = new UntypedFormGroup({
       version: new UntypedFormControl({
@@ -196,7 +196,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
 
   constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
     if (!this.httpConfigFormGroup) {
       throw new Error('httpConfigFormGroup input is required');
     }
