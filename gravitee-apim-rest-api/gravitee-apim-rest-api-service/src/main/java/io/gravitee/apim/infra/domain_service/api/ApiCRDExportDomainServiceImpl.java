@@ -20,6 +20,8 @@ import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
@@ -48,6 +50,8 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
 
     private final UserCrudService userCrudService;
 
+    private final GroupQueryService groupQueryService;
+
     @Override
     public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
@@ -55,6 +59,9 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity());
         if (spec.getMembers() != null) {
             setMembersSourceId(spec.getMembers());
+        }
+        if (spec.getGroups() != null) {
+            spec.setGroups(getGroupNames(spec.getGroups()));
         }
         return ensureCrossId(spec);
     }
@@ -84,5 +91,9 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
             member.setSource(user.getSource());
             member.setId(null);
         });
+    }
+
+    private Set<String> getGroupNames(Set<String> groups) {
+        return groupQueryService.findByIds(groups).stream().map(Group::getName).collect(Collectors.toSet());
     }
 }

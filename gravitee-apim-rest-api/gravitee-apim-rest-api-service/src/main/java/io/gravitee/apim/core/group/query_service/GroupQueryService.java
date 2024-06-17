@@ -24,5 +24,5 @@ public interface GroupQueryService {
     Optional<Group> findById(String id);
     Set<Group> findByIds(Set<String> ids);
     Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
-    List<Group> findByName(String environmentId, String name);
+    List<Group> findByNames(String environmentId, Set<String> name);
 }
