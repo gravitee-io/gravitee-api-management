@@ -17,13 +17,21 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ApiCategoryOrder;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public interface ApiCategoryOrderRepository extends FindAllRepository<ApiCategoryOrder> {
     ApiCategoryOrder create(ApiCategoryOrder apiCategoryOrder) throws TechnicalException;
     ApiCategoryOrder update(ApiCategoryOrder apiCategoryOrder) throws TechnicalException;
-    void delete(String apiId, String categoryId) throws TechnicalException;
+
+    default void delete(String apiId, String categoryId) throws TechnicalException {
+        delete(apiId, List.of(categoryId));
+    }
+
+    void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException;
+
     Optional<ApiCategoryOrder> findById(String apiId, String categoryId);
     Set<ApiCategoryOrder> findAllByCategoryId(String categoryId);
     Set<ApiCategoryOrder> findAllByApiId(String apiId);

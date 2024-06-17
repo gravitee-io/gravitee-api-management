@@ -153,7 +153,7 @@ class IngestIntegrationApisUseCaseTest {
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
 
-    ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null, null));
+    ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null));
     IngestIntegrationApisUseCase useCase;
 
     @BeforeAll

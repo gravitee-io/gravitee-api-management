@@ -15,12 +15,9 @@
  */
 package io.gravitee.repository.management;
 
-import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.ApiCategoryOrder;
-import io.gravitee.repository.management.model.Category;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -39,13 +36,13 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
-    public void shouldFindAllByCategoryId() throws Exception {
+    public void shouldFindAllByCategoryId() {
         final Set<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findAllByCategoryId("category-1");
         assertEquals(2, optionalCategory.size());
     }
 
     @Test
-    public void shouldFindAllByApiId() throws Exception {
+    public void shouldFindAllByApiId() {
         final Set<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findAllByApiId("api-1");
         assertEquals(1, optionalCategory.size());
     }

@@ -23,6 +23,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.model.ApiCategoryOrder;
+import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 import org.slf4j.Logger;
@@ -109,10 +110,16 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
     }
 
     @Override
-    public void delete(String apiId, String categoryId) throws TechnicalException {
-        LOGGER.debug("JdbcApiCategoryRepository.delete({}, {})", apiId, categoryId);
+    public void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException {
+        LOGGER.debug("JdbcApiCategoryRepository.delete({}, {})", apiId, categoriesIds);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where api_id = ? and category_id = ? ", apiId, categoryId);
+            jdbcTemplate.update(
+                "delete from " + this.tableName + " where api_id = ? and category_id in ( " + getOrm().buildInClause(categoriesIds) + " ) ",
+                (PreparedStatement ps) -> {
+                    ps.setString(1, apiId);
+                    getOrm().setArguments(ps, categoriesIds, 2);
+                }
+            );
         } catch (Exception e) {
             LOGGER.error("Failed to delete api category order", e);
             throw new TechnicalException("Failed to delete api category order", e);

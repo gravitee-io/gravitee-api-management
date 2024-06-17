@@ -15,16 +15,13 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
-import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,33 +29,29 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
 public class GenericApiMapper {
 
     private final ApiMapper apiMapper;
     private final ApiConverter apiConverter;
 
-    public GenericApiMapper(final ApiMapper apiMapper, final ApiConverter apiConverter) {
-        this.apiMapper = apiMapper;
-        this.apiConverter = apiConverter;
-    }
-
     public GenericApiEntity toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            return apiMapper.toEntity(api, primaryOwner);
-        } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-            return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
-        } else {
-            return apiConverter.toApiEntity(api, primaryOwner);
-        }
+        return switch (getVersionOfDefault(api)) {
+            case V4 -> apiMapper.toEntity(api, primaryOwner);
+            case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
+            default -> apiConverter.toApiEntity(api, primaryOwner);
+        };
     }
 
     public GenericApiEntity toGenericApi(final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            return apiMapper.toEntity(executionContext, api, primaryOwner, true);
-        } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-            return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
-        } else {
-            return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
-        }
+        return switch (getVersionOfDefault(api)) {
+            case V4 -> apiMapper.toEntity(executionContext, api, primaryOwner, true);
+            case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
+            default -> apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
+        };
+    }
+
+    private DefinitionVersion getVersionOfDefault(final Api api) {
+        return api.getDefinitionVersion() == null ? DefinitionVersion.V2 : api.getDefinitionVersion();
     }
 }

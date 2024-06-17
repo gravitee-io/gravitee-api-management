@@ -18,17 +18,13 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.model.ApiCategoryOrder;
-import io.gravitee.repository.management.model.Category;
 import io.gravitee.repository.mongodb.management.internal.api.ApiCategoryOrderMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderPkMongo;
-import io.gravitee.repository.mongodb.management.internal.model.CategoryMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,11 +83,15 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
     }
 
     @Override
-    public void delete(String apiId, String categoryId) throws TechnicalException {
+    public void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException {
         try {
-            internalApiCategoryOrderRepo.deleteById(ApiCategoryOrderPkMongo.builder().categoryId(categoryId).apiId(apiId).build());
+            var toDelete = categoriesIds
+                .stream()
+                .map(categoryId -> ApiCategoryOrderPkMongo.builder().categoryId(categoryId).apiId(apiId).build())
+                .toList();
+            internalApiCategoryOrderRepo.deleteAllById(toDelete);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when deleting ApiCategoryOrder [{}, {}]", apiId, categoryId, e);
+            LOGGER.error("An error occurred when deleting ApiCategoryOrder [{}, {}]", apiId, categoriesIds, e);
             throw new TechnicalException("An error occurred when deleting ApiCategoryOrder", e);
         }
     }
