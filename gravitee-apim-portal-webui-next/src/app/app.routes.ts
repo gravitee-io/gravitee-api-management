@@ -21,6 +21,7 @@ import { ApiTabDocumentationComponent } from './api-details/api-tab-documentatio
 import { ApiTabSubscriptionsComponent } from './api-details/api-tab-subscriptions/api-tab-subscriptions.component';
 import { SubscriptionsDetailsComponent } from './api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
 import { SubscriptionsTableComponent } from './api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
+import { SubscribeToApiComponent } from './api-details/subscribe-to-api/subscribe-to-api.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
@@ -74,6 +75,11 @@ export const routes: Routes = [
             ],
           },
         ],
+      },
+      {
+        path: 'api/:apiId/subscribe',
+        component: SubscribeToApiComponent,
+        data: { breadcrumb: 'Subscribe' },
       },
     ],
   },
