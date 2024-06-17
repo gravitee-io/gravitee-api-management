@@ -17,14 +17,14 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import static org.mockito.Mockito.*;
 
-import fixtures.core.model.ApiFixtures;
-import inmemory.ApiCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -57,6 +57,8 @@ class ApiCRDExportDomainServiceImplTest {
     private static final String ORG_ID = "org-id";
     private static final String ENV_ID = "env-id";
     private static final String USER_ID = "user-id";
+    private static final String GROUP_ID = "group-id";
+    private static final String GROUP_NAME = "developers";
     private static final String API_ID = "api-id";
 
     @Mock
@@ -67,12 +69,16 @@ class ApiCRDExportDomainServiceImplTest {
 
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
+    GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
+
     ApiCRDExportDomainService apiCRDExportDomainService;
 
     @BeforeEach
     void setUp() {
         userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_ID).source("gravitee").sourceId("user").build()));
-        apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService);
+        groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
+        apiCRDExportDomainService =
+            new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory);
     }
 
     @Test
@@ -140,6 +146,23 @@ class ApiCRDExportDomainServiceImplTest {
             var member = spec.getMembers().iterator().next();
             soft.assertThat(member.getSource()).isEqualTo("gravitee");
             soft.assertThat(member.getSourceId()).isEqualTo("user");
+        });
+    }
+
+    @Test
+    void should_map_group_id_to_name() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").groups(Set.of(GROUP_ID)).build()));
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(spec.getGroups()).hasSize(1);
+            var group = spec.getGroups().iterator().next();
+            soft.assertThat(group).isEqualTo(GROUP_NAME);
         });
     }
 

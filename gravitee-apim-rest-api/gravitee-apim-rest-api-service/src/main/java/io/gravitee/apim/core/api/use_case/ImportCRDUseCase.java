@@ -196,7 +196,6 @@ public class ImportCRDUseCase {
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
             resolveGroups(input);
-            cleanGroups(input.crd);
             cleanCategories(environmentId, input.crd);
 
             var createdApi = createApiDomainService.create(
@@ -252,7 +251,6 @@ public class ImportCRDUseCase {
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
             resolveGroups(input);
-            cleanGroups(input.crd);
             cleanCategories(input.auditInfo.environmentId(), input.crd);
 
             var updatedApi = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
@@ -382,33 +380,25 @@ public class ImportCRDUseCase {
     }
 
     private void resolveGroups(Input input) {
-        Set<String> groupIds = new HashSet<>();
-        if (!isEmpty(input.crd.getGroups())) {
-            for (String group : input.crd.getGroups()) {
-                try {
-                    UUID.fromString(group);
-                    groupIds.add(group);
-                } catch (IllegalArgumentException e) {
-                    List<Group> groups = groupQueryService.findByName(input.auditInfo.environmentId(), group);
-                    if (!groups.isEmpty()) {
-                        groupIds.add(groups.get(0).getId());
-                    } else {
-                        log.warn("Group with name {} does not exist and can't be added to api [{}]", group, input.crd.getName());
-                    }
-                }
-            }
+        var crdGroups = new HashSet<>(input.crd.getGroups());
+        var envId = input.auditInfo.environmentId();
 
-            input.crd.setGroups(groupIds);
-        }
-    }
+        var groupsFromIds = groupQueryService.findByIds(crdGroups).stream().toList();
+        var groupsFromNames = groupQueryService.findByNames(envId, crdGroups).stream().toList();
 
-    private void cleanGroups(ApiCRDSpec spec) {
-        if (!isEmpty(spec.getGroups())) {
-            var groups = new HashSet<>(spec.getGroups());
-            var existingGroups = groupQueryService.findByIds(spec.getGroups());
-            groups.removeIf(groupId -> existingGroups.stream().noneMatch(group -> groupId.equals(group.getId())));
-            spec.setGroups(groups);
+        var groupIds = new HashSet<>(groupsFromIds.stream().map(Group::getId).toList());
+        var groupNames = groupsFromNames.stream().map(Group::getName).collect(toSet());
+
+        groupIds.addAll(groupsFromNames.stream().map(Group::getId).toList());
+
+        crdGroups.removeAll(groupIds);
+        crdGroups.removeAll(groupNames);
+
+        for (var unknownGroup : crdGroups) {
+            log.warn("group '{}' found in spec will not be imported because it cannot found", unknownGroup);
         }
+
+        input.crd.setGroups(groupIds);
     }
 
     private void cleanCategories(String environmentId, ApiCRDSpec spec) {

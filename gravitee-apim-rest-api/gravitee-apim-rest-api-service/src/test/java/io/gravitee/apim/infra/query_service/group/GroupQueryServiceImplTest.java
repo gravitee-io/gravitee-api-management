@@ -230,7 +230,7 @@ class GroupQueryServiceImplTest {
     }
 
     @Nested
-    class FindByName {
+    class FindByNames {
 
         @Test
         @SneakyThrows
@@ -243,7 +243,7 @@ class GroupQueryServiceImplTest {
                     )
                 );
 
-            var groups = service.findByName("environment-id", "group-2");
+            var groups = service.findByNames("environment-id", Set.of("group-2"));
 
             Assertions.assertThat(groups).hasSize(1).extracting(Group::getId).containsExactly("2");
         }
@@ -254,7 +254,7 @@ class GroupQueryServiceImplTest {
             when(groupRepository.findAllByEnvironment(any(String.class)))
                 .thenAnswer(invocation -> Set.of(aGroup("1").environmentId(invocation.getArgument(0)).name("group-1").build()));
 
-            var groups = service.findByName("environment-id", "group-1");
+            var groups = service.findByNames("environment-id", Set.of("group-1"));
 
             Assertions
                 .assertThat(groups)
