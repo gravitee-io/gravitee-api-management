@@ -18,11 +18,11 @@ package io.gravitee.apim.infra.query_service.group;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.GroupAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.GroupEventRule;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -91,21 +91,21 @@ public class GroupQueryServiceImpl implements GroupQueryService {
     }
 
     @Override
-    public List<Group> findByName(String environmentId, String name) {
+    public List<Group> findByNames(String environmentId, Set<String> names) {
         try {
-            log.debug("findByName {}", name);
-            if (name == null) {
-                return Collections.emptyList();
+            log.debug("findByNames {}", names);
+            if (CollectionUtils.isEmpty(names)) {
+                return List.of();
             }
-            Set<io.gravitee.repository.management.model.Group> groups = groupRepository.findAllByEnvironment(environmentId);
-            return groups
+            return groupRepository
+                .findAllByEnvironment(environmentId)
                 .stream()
-                .filter(group -> group.getName().equals(name))
+                .filter(group -> names.contains(group.getName()))
                 .map(GroupAdapter.INSTANCE::toModel)
                 .sorted(Comparator.comparing(Group::getName))
                 .toList();
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException("An error occurs while trying to find groups by name", ex);
+            throw new TechnicalDomainException("An error occurs while trying to find groups by names", ex);
         }
     }
 }
