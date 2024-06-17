@@ -25,6 +25,7 @@ import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomain
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.tag.query_service.TagQueryService;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @UseCase
@@ -105,7 +106,7 @@ public class OAIToImportApiUseCase {
                     .groups(
                         groups
                             .stream()
-                            .flatMap(group -> groupQueryService.findByName(environmentId, group).stream())
+                            .flatMap(group -> groupQueryService.findByNames(environmentId, Set.of(group)).stream())
                             .map(Group::getId)
                             .collect(Collectors.toSet())
                     )
