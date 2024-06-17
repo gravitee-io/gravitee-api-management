@@ -77,6 +77,7 @@ describe('ApiPropertiesComponent', () => {
       },
     };
     component.httpConfigFormGroup = EndpointHttpConfigComponent.getHttpConfigFormGroup(initialEndpointGroupV2, false);
+    component.ngOnChanges();
     fixture.detectChanges();
     endpointHttpConfigHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EndpointHttpConfigHarness);
   });

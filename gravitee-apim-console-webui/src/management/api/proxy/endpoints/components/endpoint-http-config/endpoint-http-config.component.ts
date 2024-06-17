@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy } from '@angular/core';
 import { asyncScheduler, merge, Subject } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { filter, startWith, takeUntil, map, observeOn } from 'rxjs/operators';
@@ -42,10 +42,17 @@ export interface EndpointHttpConfigValue {
   template: require('./endpoint-http-config.component.html'),
   styles: [require('./endpoint-http-config.component.scss')],
 })
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/proxy/endpoints/components/endpoint-http-config/endpoint-http-config.component.ts
 export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
   public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): FormGroup {
     const httpClientOptions = new FormGroup({
       version: new FormControl({
+=======
+export class EndpointHttpConfigComponent implements OnDestroy, OnChanges {
+  public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): UntypedFormGroup {
+    const httpClientOptions = new UntypedFormGroup({
+      version: new UntypedFormControl({
+>>>>>>> a878b7079c (fix(console): recreate configuration tab whenever httpConfig form group has changed):gravitee-apim-console-webui/src/management/api/endpoints/components/endpoint-http-config/endpoint-http-config.component.ts
         value: endpointGroup.httpClientOptions?.version ?? 'HTTP_1_1',
         disabled: isReadonly,
       }),
@@ -196,7 +203,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
 
   constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
     if (!this.httpConfigFormGroup) {
       throw new Error('httpConfigFormGroup input is required');
     }
