@@ -24,8 +24,13 @@
         <div class="m3-headline-small">{{ api.name }}</div>
         <div class="m3-body-medium">{{ api.version }}</div>
       </div>
-      <button i18n="@@logInOrSignUpToSubscribe" mat-flat-button disabled class="api-details__header-button secondary-button">
-        Log in / Sign up to subscribe
+      <button
+        [routerLink]="['..', api.id, 'subscribe']"
+        [disabled]="!isAuthenticated()"
+        i18n="@@logInOrSignUpToSubscribe"
+        mat-flat-button
+        class="api-details__header-button secondary-button">
+        Log in to subscribe
       </button>
     </div>
     @if (api.description) {
