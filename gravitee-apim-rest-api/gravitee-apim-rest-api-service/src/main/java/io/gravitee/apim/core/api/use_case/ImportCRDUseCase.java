@@ -48,6 +48,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -77,6 +78,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -193,6 +195,7 @@ public class ImportCRDUseCase {
 
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
+            resolveGroups(input);
             cleanGroups(input.crd);
             cleanCategories(environmentId, input.crd);
 
@@ -248,6 +251,7 @@ public class ImportCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            resolveGroups(input);
             cleanGroups(input.crd);
             cleanCategories(input.auditInfo.environmentId(), input.crd);
 
@@ -375,6 +379,27 @@ public class ImportCRDUseCase {
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
             .build();
+    }
+
+    private void resolveGroups(Input input) {
+        Set<String> groupIds = new HashSet<>();
+        if (!isEmpty(input.crd.getGroups())) {
+            for (String group : input.crd.getGroups()) {
+                try {
+                    UUID.fromString(group);
+                    groupIds.add(group);
+                } catch (IllegalArgumentException e) {
+                    List<Group> groups = groupQueryService.findByName(input.auditInfo.environmentId(), group);
+                    if (!groups.isEmpty()) {
+                        groupIds.add(groups.get(0).getId());
+                    } else {
+                        log.warn("Group with name {} does not exist and can't be added to api [{}]", group, input.crd.getName());
+                    }
+                }
+            }
+
+            input.crd.setGroups(groupIds);
+        }
     }
 
     private void cleanGroups(ApiCRDSpec spec) {
