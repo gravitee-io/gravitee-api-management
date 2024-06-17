@@ -67,8 +67,6 @@ export interface SubscriptionDetailsDataOauth2 {
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
-    CdkCopyToClipboard,
-    MatIconButton,
     ReactiveFormsModule,
     MatFormField,
     MatInput,
