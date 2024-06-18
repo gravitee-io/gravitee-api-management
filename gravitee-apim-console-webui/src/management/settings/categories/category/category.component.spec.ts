@@ -37,11 +37,11 @@ import { UpdateCategory } from '../../../../entities/category/UpdateCategory';
 import { CategoriesModule } from '../categories.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Category } from '../../../../entities/category/Category';
-import { Api as MAPIApi } from '../../../../entities/api';
-import { fakeApi as fakeMAPIApi } from '../../../../entities/api/Api.fixture';
 import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeMAPIv2Api } from '../../../../entities/management-api-v2';
 import { AddApiToCategoryDialogHarness } from '../add-api-to-category-dialog/add-api-to-category-dialog.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CategoryApi } from '../../../../entities/management-api-v2/category/categoryApi';
+import { fakeCategoryApi } from '../../../../entities/management-api-v2/category/categoryApi.fixture';
 
 describe('CategoryComponent', () => {
   let component: CategoryComponent;
@@ -150,7 +150,7 @@ describe('CategoryComponent', () => {
 
       expectPortalPagesList();
       expect(component.mode).toEqual('edit');
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
 
     it('should initialize with category input', () => {
@@ -182,7 +182,7 @@ describe('CategoryComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
     it('should be able to change picture', async () => {
       const picturePicker = await getPicturePicker();
@@ -193,7 +193,7 @@ describe('CategoryComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
     it('should be able to change background', async () => {
       const backgroundPicker = await getBackgroundPicker();
@@ -204,7 +204,7 @@ describe('CategoryComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
   });
 
@@ -215,7 +215,7 @@ describe('CategoryComponent', () => {
       fixture.detectChanges();
 
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
     it('should require name', async () => {
       const nameInput = await getNameInput();
@@ -241,7 +241,10 @@ describe('CategoryComponent', () => {
   });
 
   describe('API List', () => {
-    const APIS: MAPIApi[] = [fakeMAPIApi({ id: 'lowlight', name: 'Lowlight' }), fakeMAPIApi({ id: 'highlight', name: 'Highlight' })];
+    const APIS: CategoryApi[] = [
+      fakeCategoryApi({ id: 'lowlight', name: 'Lowlight' }),
+      fakeCategoryApi({ id: 'highlight', name: 'Highlight' }),
+    ];
     const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
 
     beforeEach(async () => {
@@ -252,22 +255,22 @@ describe('CategoryComponent', () => {
       expectPortalPagesList();
     });
     it('should show empty APIs', async () => {
-      expectGetApisByCategory(CAT_API_LIST);
+      expectGetCategoryApis(CAT_API_LIST.id);
       const rows = await getTableRows();
       expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
     });
     it('should show API list', async () => {
-      expectGetApisByCategory(CAT_API_LIST, APIS);
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
       expect(await getNameByRowIndex(0)).toEqual('Lowlight');
       expect(await getNameByRowIndex(1)).toEqual('Highlight');
     });
     it('should show highlight badge', async () => {
-      expectGetApisByCategory(CAT_API_LIST, APIS);
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const rows = await getTableRows();
       expect(await rows[1].getCells().then((cells) => cells[0].getHarnessOrNull(MatIconHarness))).toBeTruthy();
     });
     it('should update Category when choosing another API to highlight', async () => {
-      expectGetApisByCategory(CAT_API_LIST, APIS);
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const highlightBtn = await getActionButtonByRowIndexAndTooltip(0, 'Highlight API');
       expect(highlightBtn).toBeTruthy();
       expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(false);
@@ -281,11 +284,11 @@ describe('CategoryComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
 
     it('should update Category when removing highlighted API', async () => {
-      expectGetApisByCategory(CAT_API_LIST, APIS);
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const removeHighlightBtn = await getActionButtonByRowIndexAndTooltip(1, 'Remove Highlighted API');
       expect(removeHighlightBtn).toBeTruthy();
       expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(false);
@@ -299,11 +302,11 @@ describe('CategoryComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
 
     it('should remove API from category', async () => {
-      expectGetApisByCategory(CAT_API_LIST, APIS);
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const removeApiBtn = await getActionButtonByRowIndexAndTooltip(0, 'Remove API');
       expect(removeApiBtn).toBeTruthy();
       await removeApiBtn.click();
@@ -317,7 +320,7 @@ describe('CategoryComponent', () => {
 
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
-      expectGetApisByCategory(CATEGORY);
+      expectGetCategoryApis(CATEGORY.id);
     });
   });
 
@@ -330,7 +333,7 @@ describe('CategoryComponent', () => {
       fixture.detectChanges();
 
       expectPortalPagesList();
-      expectGetApisByCategory(CAT_API_LIST);
+      expectGetCategoryApis(CAT_API_LIST.id);
       fixture.detectChanges();
       await addApiToCategory();
     });
@@ -376,7 +379,7 @@ describe('CategoryComponent', () => {
 
       flush();
 
-      expectGetApisByCategory(CAT_API_LIST);
+      expectGetCategoryApis(CAT_API_LIST.id);
     }));
   });
 
@@ -400,8 +403,10 @@ describe('CategoryComponent', () => {
     req.flush(category);
   }
 
-  function expectGetApisByCategory(category: Category, apis: MAPIApi[] = []) {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis?category=${category.key}`).flush(apis);
+  function expectGetCategoryApis(categoryId: string, apis: CategoryApi[] = []) {
+    httpTestingController
+      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/categories/${categoryId}/apis?perPage=9999`)
+      .flush({ data: apis, pagination: { totalCount: apis.length } });
   }
 
   function expectGetApi(api: MAPIv2Api) {
