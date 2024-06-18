@@ -83,7 +83,7 @@ public class IntegrationsResource extends AbstractResource {
         @PathParam("envId") String environmentId,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
-        Page<Integration> integrations = getIntegrationsUsecase
+        var integrations = getIntegrationsUsecase
             .execute(
                 new GetIntegrationsUseCase.Input(
                     GraviteeContext.getCurrentOrganization(),

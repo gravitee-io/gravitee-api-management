@@ -45,7 +45,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 public class UpdateIntegrationUseCaseTest {
 
@@ -55,7 +54,6 @@ public class UpdateIntegrationUseCaseTest {
     private static final String PROVIDER = "test-provider";
     private static final String ENV_ID = "my-env";
     private static final ZonedDateTime CREATED_DATE = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final Integration.AgentStatus AGENT_STATUS = Integration.AgentStatus.DISCONNECTED;
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
@@ -117,7 +115,6 @@ public class UpdateIntegrationUseCaseTest {
                     .environmentId(ENV_ID)
                     .provider(PROVIDER)
                     .createdAt(CREATED_DATE)
-                    .agentStatus(AGENT_STATUS)
                     .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
                     .build()
             );

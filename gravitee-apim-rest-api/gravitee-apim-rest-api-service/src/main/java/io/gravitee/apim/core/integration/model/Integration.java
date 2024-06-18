@@ -22,13 +22,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Integration {
@@ -42,18 +43,4 @@ public class Integration {
     String environmentId;
     ZonedDateTime createdAt;
     ZonedDateTime updatedAt;
-    AgentStatus agentStatus;
-
-    public enum AgentStatus {
-        CONNECTED,
-        DISCONNECTED,
-    }
-
-    public Integration agentConnected() {
-        return this.toBuilder().agentStatus(AgentStatus.CONNECTED).updatedAt(TimeProvider.now()).build();
-    }
-
-    public Integration agentDisconnected() {
-        return this.toBuilder().agentStatus(AgentStatus.DISCONNECTED).updatedAt(TimeProvider.now()).build();
-    }
 }

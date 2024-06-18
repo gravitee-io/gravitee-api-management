@@ -25,7 +25,7 @@ import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
+import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
@@ -40,7 +40,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -81,7 +80,7 @@ class HelloCommandHandlerTest {
     @BeforeEach
     void setUp() {
         var factory = new IntegrationControllerCommandHandlerFactory(
-            new UpdateAgentStatusUseCase(integrationCrudServiceInMemory, environmentCrudService)
+            new CheckIntegrationUseCase(integrationCrudServiceInMemory, environmentCrudService)
         );
 
         commandHandler =
@@ -98,31 +97,6 @@ class HelloCommandHandlerTest {
     @AfterEach
     void tearDown() {
         Stream.of(environmentCrudService, integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
-    }
-
-    @Test
-    void should_update_integration() {
-        var integration = givenIntegration(
-            IntegrationFixture
-                .anIntegration()
-                .toBuilder()
-                .id(INTEGRATION_ID)
-                .environmentId(ENVIRONMENT.getId())
-                .provider(INTEGRATION_PROVIDER)
-                .build()
-        );
-
-        commandHandler.handle(COMMAND).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
-
-        Assertions
-            .assertThat(integrationCrudServiceInMemory.storage())
-            .contains(
-                integration
-                    .toBuilder()
-                    .agentStatus(Integration.AgentStatus.CONNECTED)
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
     }
 
     @Test
@@ -205,7 +179,7 @@ class HelloCommandHandlerTest {
     void should_reply_error_when_exception_occurs() {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
-        commandHandler = new HelloCommandHandler(new UpdateAgentStatusUseCase(spied, environmentCrudService), CONTEXT);
+        commandHandler = new HelloCommandHandler(new CheckIntegrationUseCase(spied, environmentCrudService), CONTEXT);
 
         commandHandler
             .handle(COMMAND)

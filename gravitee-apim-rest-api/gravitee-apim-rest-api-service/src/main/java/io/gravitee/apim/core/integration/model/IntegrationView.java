@@ -13,54 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.apim.core.integration.model;
 
-import java.util.Date;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.With;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
-@Data
-public class Integration {
+public class IntegrationView extends Integration {
 
-    private String id;
+    AgentStatus agentStatus;
 
-    private String name;
-
-    private String description;
-
-    private String provider;
-
-    private String environmentId;
-
-    private Date createdAt;
-
-    private Date updatedAt;
-
-    /**
-     * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
-     */
-    // To remove in after 4.5 release
-    @Deprecated(since = "4.5.0", forRemoval = true)
-    @Builder.Default
-    private AgentStatus agentStatus = AgentStatus.DISCONNECTED;
-
-    /**
-     * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
-     */
-    @Deprecated(since = "4.5.0", forRemoval = true)
     public enum AgentStatus {
         CONNECTED,
         DISCONNECTED,
+    }
+
+    public IntegrationView(Integration integration, AgentStatus agentStatus) {
+        super(
+            integration.getId(),
+            integration.getName(),
+            integration.getDescription(),
+            integration.getProvider(),
+            integration.getEnvironmentId(),
+            integration.getCreatedAt(),
+            integration.getUpdatedAt()
+        );
+        this.agentStatus = agentStatus;
+    }
+
+    public Integration toIntegration() {
+        return super.toBuilder().build();
     }
 }

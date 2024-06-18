@@ -1170,7 +1170,8 @@ paths:
             summary: Create an Integration
             description: |-
                 Create a new Integration.
-
+                
+                The response body will not contain Agent Status. To get it you should use getIntegration operation.
                 User must have the ENVIRONMENT_INTEGRATION[CREATE] permission.
             operationId: createIntegration
             requestBody:
@@ -1216,7 +1217,8 @@ paths:
             summary: Update Integration
             description: |-
                 Update specific Integration.
-
+              
+                The response body will not contain Agent Status. To get it you should use getIntegration operation.
                 User must have ENVIRONMENT_INTEGRATION[UPDATE] permission to access it.
             operationId: updateIntegration
             requestBody:

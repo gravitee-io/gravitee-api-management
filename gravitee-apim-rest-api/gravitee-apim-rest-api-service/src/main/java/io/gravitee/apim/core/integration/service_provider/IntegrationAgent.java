@@ -26,6 +26,13 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 
 public interface IntegrationAgent {
+    /**
+     * Returns the status of the Agent for an integration
+     * @param integrationId The integration id
+     * @return {@link Status} the Agent's status of the integration
+     */
+    Single<Status> getAgentStatusFor(String integrationId);
+
     Flowable<IntegrationApi> fetchAllApis(Integration integration);
 
     /**
@@ -56,4 +63,9 @@ public interface IntegrationAgent {
     Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription);
 
     Flowable<IntegrationApi> discoverApis(String integrationId);
+
+    enum Status {
+        CONNECTED,
+        DISCONNECTED,
+    }
 }

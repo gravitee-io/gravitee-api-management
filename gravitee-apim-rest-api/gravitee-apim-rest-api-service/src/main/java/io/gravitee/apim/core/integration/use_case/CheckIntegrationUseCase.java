@@ -18,15 +18,21 @@ package io.gravitee.apim.core.integration.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.apim.core.integration.model.Integration;
 
+/**
+ * Ensure that the integration exists.
+ *
+ * <p>
+ *     This allows us to ensure that the auth token provided by the Agent is allowed to manage the integration.
+ * </p>
+ */
 @UseCase
-public class UpdateAgentStatusUseCase {
+public class CheckIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
     private final EnvironmentCrudService environmentCrudService;
 
-    public UpdateAgentStatusUseCase(IntegrationCrudService integrationCrudService, EnvironmentCrudService environmentCrudService) {
+    public CheckIntegrationUseCase(IntegrationCrudService integrationCrudService, EnvironmentCrudService environmentCrudService) {
         this.integrationCrudService = integrationCrudService;
         this.environmentCrudService = environmentCrudService;
     }
@@ -35,15 +41,11 @@ public class UpdateAgentStatusUseCase {
         return integrationCrudService
             .findById(input.integrationId)
             .filter(integration -> {
-                if (input.agentStatus == Integration.AgentStatus.DISCONNECTED) {
-                    // No need to check the environment as the integration was connected
-                    return true;
-                }
                 var environment = environmentCrudService.get(integration.getEnvironmentId());
                 return environment.getOrganizationId().equals(input.organizationId);
             })
             .map(integration -> {
-                if (input.agentStatus == Integration.AgentStatus.CONNECTED && !integration.getProvider().equals(input.provider)) {
+                if (!integration.getProvider().equals(input.provider)) {
                     return new Output(
                         false,
                         String.format(
@@ -53,20 +55,14 @@ public class UpdateAgentStatusUseCase {
                         )
                     );
                 }
-                integrationCrudService.update(
-                    switch (input.agentStatus) {
-                        case CONNECTED -> integration.agentConnected();
-                        case DISCONNECTED -> integration.agentDisconnected();
-                    }
-                );
                 return new Output(true);
             })
             .orElse(new Output(false, String.format("Integration [id=%s] not found", input.integrationId)));
     }
 
-    public record Input(String organizationId, String integrationId, String provider, Integration.AgentStatus agentStatus) {
-        public Input(String integrationId, Integration.AgentStatus agentStatus) {
-            this(null, integrationId, null, agentStatus);
+    public record Input(String organizationId, String integrationId, String provider) {
+        public Input(String integrationId) {
+            this(null, integrationId, null);
         }
     }
 

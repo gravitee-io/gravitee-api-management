@@ -35,8 +35,14 @@ import java.util.Map;
 public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlternative<IntegrationApi> {
 
     List<IntegrationApi> storage = new ArrayList<>();
+    Map<String, Status> statuses = new HashMap<>();
     Map<String, List<String>> subscriptions = new HashMap<>();
     Map<String, List<SubscriptionEntity>> closedSubscriptions = new HashMap<>();
+
+    @Override
+    public Single<Status> getAgentStatusFor(String integrationId) {
+        return Single.just(statuses.getOrDefault(integrationId, Status.CONNECTED));
+    }
 
     @Override
     public Flowable<IntegrationApi> fetchAllApis(Integration integration) {
@@ -100,6 +106,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     @Override
     public void reset() {
         this.storage.clear();
+        this.statuses.clear();
     }
 
     @Override
@@ -109,5 +116,9 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
 
     public List<SubscriptionEntity> closedSubscriptions(String integrationId) {
         return closedSubscriptions.get(integrationId);
+    }
+
+    public void configureAgentFor(String integrationId, Status status) {
+        statuses.put(integrationId, status);
     }
 }

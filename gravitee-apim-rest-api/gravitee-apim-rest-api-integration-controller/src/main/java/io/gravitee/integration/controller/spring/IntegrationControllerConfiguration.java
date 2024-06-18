@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
+import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
@@ -32,7 +32,6 @@ import io.gravitee.exchange.controller.websocket.WebSocketExchangeController;
 import io.gravitee.exchange.controller.websocket.auth.WebSocketControllerAuthentication;
 import io.gravitee.integration.api.websocket.command.IntegrationExchangeSerDe;
 import io.gravitee.integration.controller.command.IntegrationControllerCommandHandlerFactory;
-import io.gravitee.integration.controller.listener.ControllerEventListener;
 import io.gravitee.integration.controller.websocket.auth.IntegrationWebsocketControllerAuthentication;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.certificate.KeyStoreLoaderFactoryRegistry;
@@ -73,14 +72,9 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationControllerCommandHandlerFactory")
     public IntegrationControllerCommandHandlerFactory integrationControllerCommandHandlerFactory(
-        final UpdateAgentStatusUseCase updateAgentStatusUseCase
+        final CheckIntegrationUseCase checkIntegrationUseCase
     ) {
-        return new IntegrationControllerCommandHandlerFactory(updateAgentStatusUseCase);
-    }
-
-    @Bean("integrationControllerEventListener")
-    ControllerEventListener controllerEventListener(UpdateAgentStatusUseCase updateAgentStatusUseCase) {
-        return new ControllerEventListener(updateAgentStatusUseCase);
+        return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase);
     }
 
     @Bean("integrationExchangeController")
@@ -97,8 +91,7 @@ public class IntegrationControllerConfiguration {
         final @Qualifier(
             "integrationControllerCommandHandlerFactory"
         ) ControllerCommandHandlersFactory integrationControllerCommandHandlerFactory,
-        final @Qualifier("integrationExchangeSerDe") ExchangeSerDe integrationExchangeSerDe,
-        final @Qualifier("integrationControllerEventListener") ControllerEventListener eventListener
+        final @Qualifier("integrationExchangeSerDe") ExchangeSerDe integrationExchangeSerDe
     ) {
         return new WebSocketExchangeController(
             identifyConfiguration,
@@ -110,8 +103,7 @@ public class IntegrationControllerConfiguration {
             integrationWebsocketControllerAuthentication,
             integrationControllerCommandHandlerFactory,
             integrationExchangeSerDe
-        )
-            .addListener(eventListener);
+        );
     }
 
     public ObjectMapper objectMapper() {

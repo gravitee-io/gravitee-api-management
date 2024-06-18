@@ -20,7 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Integration;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;

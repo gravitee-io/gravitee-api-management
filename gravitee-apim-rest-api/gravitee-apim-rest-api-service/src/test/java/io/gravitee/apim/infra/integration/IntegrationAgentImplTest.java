@@ -30,11 +30,13 @@ import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionExcept
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
+import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.exchange.api.controller.metrics.ChannelMetric;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
 import io.gravitee.integration.api.command.discover.DiscoverCommandPayload;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
@@ -58,6 +60,7 @@ import io.gravitee.integration.api.model.PlanSecurityType;
 import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionResult;
 import io.gravitee.integration.api.model.SubscriptionType;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +90,28 @@ class IntegrationAgentImplTest {
     @BeforeEach
     void setUp() {
         agent = new IntegrationAgentImpl(Optional.of(controller));
+    }
+
+    @Nested
+    class GetAgentStatus {
+
+        @Test
+        void should_return_connected_when_channel_metrics_exist() {
+            when(controller.channelsMetric(INTEGRATION_ID)).thenReturn(Flowable.just(new ChannelMetric("c1", true, false, true)));
+
+            agent.getAgentStatusFor(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertValue(IntegrationAgent.Status.CONNECTED);
+        }
+
+        @Test
+        void should_return_disconnected_when_no_channel_metrics_exist() {
+            when(controller.channelsMetric(INTEGRATION_ID)).thenReturn(Flowable.empty());
+
+            agent
+                .getAgentStatusFor(INTEGRATION_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(IntegrationAgent.Status.DISCONNECTED);
+        }
     }
 
     @Nested

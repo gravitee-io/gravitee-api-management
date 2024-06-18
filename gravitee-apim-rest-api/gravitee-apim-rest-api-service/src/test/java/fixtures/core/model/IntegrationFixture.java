@@ -32,7 +32,6 @@ public class IntegrationFixture {
             .description("integration-description")
             .provider("test-provider")
             .environmentId("my-env")
-            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 

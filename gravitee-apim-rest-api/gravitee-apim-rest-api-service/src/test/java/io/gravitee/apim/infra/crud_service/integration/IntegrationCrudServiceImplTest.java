@@ -15,9 +15,14 @@
  */
 package io.gravitee.apim.infra.crud_service.integration;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import io.gravitee.apim.core.integration.model.Integration;
@@ -103,7 +108,6 @@ public class IntegrationCrudServiceImplTest {
                         .description("A description")
                         .provider("amazon")
                         .environmentId("environment-id")
-                        .agentStatus(Integration.AgentStatus.DISCONNECTED)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .build()
@@ -147,7 +151,6 @@ public class IntegrationCrudServiceImplTest {
             Integration integration = IntegrationFixture
                 .anIntegration()
                 .toBuilder()
-                .agentStatus(Integration.AgentStatus.CONNECTED)
                 .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .build();
             when(integrationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -167,7 +170,6 @@ public class IntegrationCrudServiceImplTest {
                         .description("integration-description")
                         .provider("test-provider")
                         .environmentId("my-env")
-                        .agentStatus(io.gravitee.repository.management.model.Integration.AgentStatus.CONNECTED)
                         .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
                         .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
                         .build()
