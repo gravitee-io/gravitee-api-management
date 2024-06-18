@@ -25,7 +25,7 @@ COPY ./dist /usr/share/nginx/html/
 ADD docker/config/constants.json /usr/share/nginx/html/constants.json
 ADD docker/config/default.conf /etc/nginx/conf.d/default.conf
 
-RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/conf.d/
+RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
 CMD ["sh", "/run.sh"]
 
