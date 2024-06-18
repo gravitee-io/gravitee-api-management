@@ -26,12 +26,12 @@ import { TopApisComponent } from './top-apis.component';
 import { TopApisModule } from './top-apis.module';
 import { TopApisHarness } from './top-apis.harness';
 import { TopApi } from './top-apis.model';
-import { AddTopApisDialogHarness } from './add-top-apis-dialog/add-top-apis-dialog.harness';
 
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeTopApi } from '../../../entities/top-apis/top-apis.fixture';
+import { GioApiSelectDialogHarness } from '../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.harness';
 
 describe('TopApisComponent', () => {
   let fixture: ComponentFixture<TopApisComponent>;
@@ -120,7 +120,7 @@ describe('TopApisComponent', () => {
       const addNewApisButton: MatButtonHarness = await componentHarness.getAddButton();
       await addNewApisButton.click();
 
-      const addTopApisDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(AddTopApisDialogHarness);
+      const addTopApisDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioApiSelectDialogHarness);
       expect(addTopApisDialog).toBeTruthy();
 
       await addTopApisDialog.fillFormAndSubmit('search term', () => {

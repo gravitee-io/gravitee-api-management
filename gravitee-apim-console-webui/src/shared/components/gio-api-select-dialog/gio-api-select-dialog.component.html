@@ -22,13 +22,13 @@
     <mat-form-field appearance="outline" class="form-field">
       <mat-icon matPrefix>search</mat-icon>
       <mat-label>Search APIs...</mat-label>
-      <input matInput type="search" [matAutocomplete]="auto" [formControl]="searchApiControl" data-testid="new-top-api-input" />
+      <input matInput type="search" [matAutocomplete]="auto" [formControl]="searchApiControl" data-testid="api-select-input" />
       <button *ngIf="searchApiControl.value" matSuffix mat-icon-button aria-label="Clear input" (click)="resetSearchTerm()">
         <mat-icon>close</mat-icon>
       </button>
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectTopAPI()" [displayWith]="displayFn">
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectAPI()" [displayWith]="displayFn">
         @if (filteredOptions$ | async; as filteredOptions) {
-          <mat-option hide *ngFor="let option of filteredOptions" [value]="option" data-testid="new-top-api-option">
+          <mat-option hide *ngFor="let option of filteredOptions" [value]="option" data-testid="api-select-option">
             <span class="autocompleteRow">
               <gio-avatar
                 class="autocompleteRow__avatar"
@@ -41,7 +41,7 @@
             </span>
           </mat-option>
           <mat-option *ngIf="filteredOptions.length === 0 && searchApiControl.getRawValue()" disabled>
-            No Top APIs matching search criteria
+            No APIs matching search criteria
           </mat-option>
         }
       </mat-autocomplete>

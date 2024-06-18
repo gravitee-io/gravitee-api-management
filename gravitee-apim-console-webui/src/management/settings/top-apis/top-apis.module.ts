@@ -32,13 +32,13 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 
 import { TopApisComponent } from './top-apis.component';
-import { AddTopApisDialogComponent } from './add-top-apis-dialog/add-top-apis-dialog.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioApiSelectDialogComponent } from '../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
 
 @NgModule({
-  declarations: [TopApisComponent, AddTopApisDialogComponent],
+  declarations: [TopApisComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -60,6 +60,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatAutocompleteModule,
     MatInputModule,
     GioAvatarModule,
+    GioApiSelectDialogComponent,
   ],
   exports: [TopApisComponent],
 })
