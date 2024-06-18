@@ -53,7 +53,7 @@
           <th mat-header-cell *matHeaderCellDef id="name">Name</th>
           <td mat-cell *matCellDef="let element" title="{{ element.name }}">
             <div>
-              <a [routerLink]="['.', element.id]">{{ element.name }}</a>
+              {{ element.name }}
               @if (element.hidden) {
                 <span class="gio-badge-neutral" matTooltip="Hidden"><mat-icon svgIcon="gio:eye-off" /></span>
               }
@@ -77,12 +77,12 @@
 
         <!-- Display Actions Column -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
+          <th mat-header-cell *matHeaderCellDef id="actions"></th>
           <td mat-cell *matCellDef="let element; let i = index">
             <div class="categories__list__actions">
               @if (element.hidden) {
                 <button
-                  mat-icon-button
+                  mat-button
                   (click)="showCategory(element)"
                   matTooltip="Show Category"
                   *gioPermission="{ anyOf: ['environment-category-u'] }"
@@ -91,7 +91,7 @@
                 </button>
               } @else {
                 <button
-                  mat-icon-button
+                  mat-button
                   (click)="hideCategory(element)"
                   matTooltip="Hide Category"
                   *gioPermission="{ anyOf: ['environment-category-u'] }"
@@ -100,7 +100,7 @@
                 </button>
               }
               <button
-                mat-icon-button
+                mat-button
                 [disabled]="i === 0"
                 (click)="moveUp(i, categoriesDS)"
                 matTooltip="Move Up"
@@ -109,7 +109,7 @@
                 <mat-icon svgIcon="gio:arrow-up"></mat-icon>
               </button>
               <button
-                mat-icon-button
+                mat-button
                 [disabled]="i === categoriesDS.length - 1"
                 (click)="moveDown(i, categoriesDS)"
                 matTooltip="Move Down"
@@ -118,7 +118,16 @@
                 <mat-icon svgIcon="gio:arrow-down"></mat-icon>
               </button>
               <button
-                mat-icon-button
+                mat-button
+                aria-label="Button to edit category"
+                [routerLink]="['.', element.id]"
+                matTooltip="Edit"
+                *gioPermission="{ anyOf: ['environment-category-u'] }"
+              >
+                <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
+              </button>
+              <button
+                mat-button
                 *gioPermission="{ anyOf: ['environment-category-d'] }"
                 (click)="deleteCategory(element)"
                 matTooltip="Delete"
