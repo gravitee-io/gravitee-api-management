@@ -43,13 +43,20 @@
     </div>
   </div>
 }
+
 @if (apiPaginator$ | async; as apis) {
   @if (apis.data.length === 0) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
         <div>
-          <p i18n="@@noApisAvailable">Sorry, there are no APIs listed yet.</p>
-          <p i18n="@@moreApisComingSoon">Our API catalog is currently being updated. More APIs will be available soon.</p>
+          @if (query || filter) {
+            <p i18n="@@noFilteredApisAvailable">
+              Your search didn't return any APIs. Please try again with different keywords or categories.
+            </p>
+          } @else {
+            <p i18n="@@noApisAvailable">Sorry, there are no APIs listed yet.</p>
+            <p i18n="@@moreApisComingSoon">Our API catalog is currently being updated. More APIs will be available soon.</p>
+          }
         </div>
       </mat-card-content>
     </mat-card>
