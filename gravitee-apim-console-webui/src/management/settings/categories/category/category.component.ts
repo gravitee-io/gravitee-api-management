@@ -38,6 +38,7 @@ import {
   AddApiToCategoryDialogData,
   AddApiToCategoryDialogResult,
 } from '../add-api-to-category-dialog/add-api-to-category-dialog.component';
+import { CategoryV2Service } from '../../../../services-ngx/category-v2.service';
 
 interface ApiVM {
   id: string;
@@ -80,6 +81,7 @@ export class CategoryComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private categoryService: CategoryService,
+    private categoryV2Service: CategoryV2Service,
     private documentationService: DocumentationService,
     private apiService: ApiService,
     private apiV2Service: ApiV2Service,
@@ -118,8 +120,15 @@ export class CategoryComponent implements OnInit {
 
     this.apis$ = this.category.pipe(
       filter((category) => !isEmpty(category)),
-      switchMap((category) => this.apiService.getAll({ category: category.key })),
-      map((apis) => apis.map((api) => ({ id: api.id, name: api.name, version: api.version, contextPath: api.context_path }))),
+      switchMap((category) => this.categoryV2Service.getApis(category.id)),
+      map((pagedResult) => {
+        return pagedResult.data.map((api) => ({
+          id: api.id,
+          name: api.name,
+          version: api.apiVersion,
+          contextPath: api.accessPaths?.join(','),
+        }));
+      }),
     );
 
     this.pages$ = this.refreshData.pipe(switchMap((_) => this.documentationService.listPortalPages(PageType.MARKDOWN, true)));
