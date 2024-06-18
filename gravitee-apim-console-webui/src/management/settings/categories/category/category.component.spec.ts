@@ -42,6 +42,7 @@ import { AddApiToCategoryDialogHarness } from '../add-api-to-category-dialog/add
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CategoryApi } from '../../../../entities/management-api-v2/category/categoryApi';
 import { fakeCategoryApi } from '../../../../entities/management-api-v2/category/categoryApi.fixture';
+import { UpdateCategoryApi } from '../../../../entities/management-api-v2/category/updateCategoryApi';
 
 describe('CategoryComponent', () => {
   let component: CategoryComponent;
@@ -242,8 +243,8 @@ describe('CategoryComponent', () => {
 
   describe('API List', () => {
     const APIS: CategoryApi[] = [
-      fakeCategoryApi({ id: 'lowlight', name: 'Lowlight' }),
-      fakeCategoryApi({ id: 'highlight', name: 'Highlight' }),
+      fakeCategoryApi({ id: 'lowlight', name: 'Lowlight', order: 0 }),
+      fakeCategoryApi({ id: 'highlight', name: 'Highlight', order: 1 }),
     ];
     const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
 
@@ -321,6 +322,34 @@ describe('CategoryComponent', () => {
       expectGetCategory(CATEGORY);
       expectPortalPagesList();
       expectGetCategoryApis(CATEGORY.id);
+    });
+
+    it('should move API up', async () => {
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
+      const moveUpApiBtn = await getActionButtonByRowIndexAndTooltip(0, 'Move Up');
+      expect(await moveUpApiBtn.isDisabled()).toBeTruthy();
+
+      const moveDownApiBtn = await getActionButtonByRowIndexAndTooltip(0, 'Move Down');
+      expect(await moveDownApiBtn.isDisabled()).toBeFalsy();
+      await moveDownApiBtn.click();
+
+      expectPostCategoryApi(CAT_API_LIST.id, APIS[0].id, { order: 1 });
+
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
+    });
+
+    it('should move API down', async () => {
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
+      const moveUpApiBtn = await getActionButtonByRowIndexAndTooltip(1, 'Move Up');
+      expect(await moveUpApiBtn.isDisabled()).toBeFalsy();
+      await moveUpApiBtn.click();
+
+      const moveDownApiBtn = await getActionButtonByRowIndexAndTooltip(1, 'Move Down');
+      expect(await moveDownApiBtn.isDisabled()).toBeTruthy();
+
+      expectPostCategoryApi(CAT_API_LIST.id, APIS[1].id, { order: 0 });
+
+      expectGetCategoryApis(CAT_API_LIST.id, APIS);
     });
   });
 
@@ -426,6 +455,22 @@ describe('CategoryComponent', () => {
     const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${response.id}`, method: 'PUT' });
     expect(req.request.body).toEqual(request);
     req.flush(response);
+  }
+
+  function expectPostCategoryApi(
+    categoryId: string,
+    apiId: string,
+    updateCategoryApi: UpdateCategoryApi,
+    responseCategoryApi = fakeCategoryApi(),
+  ) {
+    responseCategoryApi.id = apiId;
+    responseCategoryApi.order = updateCategoryApi.order;
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/categories/${categoryId}/apis/${apiId}`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual(updateCategoryApi);
+    req.flush(responseCategoryApi);
   }
 
   // Access components
