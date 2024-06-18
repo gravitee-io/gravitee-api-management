@@ -79,7 +79,7 @@
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <gravitee-kubernetes.version>3.3.1</gravitee-kubernetes.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
-        <gravitee-cloud-initializer.version>1.0.0-alpha.6</gravitee-cloud-initializer.version>
+        <gravitee-cloud-initializer.version>1.0.0</gravitee-cloud-initializer.version>
         <!-- Other dependencies version -->
         <angus-mail.version>2.0.1</angus-mail.version>
         <angus-activation.version>2.0.0</angus-activation.version>
@@ -249,7 +249,7 @@
         <gravitee-reporter-elasticsearch.version>5.3.2</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>3.2.2</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>2.3.2</gravitee-reporter-tcp.version>
-        <gravitee-reporter-cloud.version>1.0.0-alpha.3</gravitee-reporter-cloud.version>
+        <gravitee-reporter-cloud.version>1.0.0</gravitee-reporter-cloud.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
@@ -282,9 +282,9 @@
         <gravitee-endpoint-solace.version>1.2.0</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>0.1.0</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
-        <gravitee-resource-schema-registry-confluent.version>3.0.0-alpha.1</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>3.0.0-alpha.1</gravitee-reactor-message.version>
-        <gravitee-repository-bridge.version>5.0.0-alpha.9</gravitee-repository-bridge.version>
+        <gravitee-resource-schema-registry-confluent.version>3.0.0</gravitee-resource-schema-registry-confluent.version>
+        <gravitee-reactor-message.version>3.0.0</gravitee-reactor-message.version>
+        <gravitee-repository-bridge.version>5.0.0</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-policy-interops.version>1.0.0</gravitee-policy-interops.version>
 
