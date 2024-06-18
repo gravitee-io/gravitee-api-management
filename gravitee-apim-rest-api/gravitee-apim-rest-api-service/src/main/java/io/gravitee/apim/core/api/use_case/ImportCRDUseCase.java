@@ -196,6 +196,7 @@ public class ImportCRDUseCase {
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
             resolveGroups(input);
+
             cleanCategories(environmentId, input.crd);
 
             var createdApi = createApiDomainService.create(
@@ -380,6 +381,12 @@ public class ImportCRDUseCase {
     }
 
     private void resolveGroups(Input input) {
+        if (isEmpty(input.crd().getGroups())) {
+            log.debug("no group found to resolve in api crd spec");
+            return;
+        }
+        log.debug("resolving api crd spec groups");
+
         var crdGroups = new HashSet<>(input.crd.getGroups());
         var envId = input.auditInfo.environmentId();
 
