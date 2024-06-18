@@ -18,13 +18,13 @@ import { MatOptionHarness } from '@angular/material/core/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class AddTopApisDialogHarness extends ComponentHarness {
-  public static readonly hostSelector = 'add-top-apis-dialog';
+export class GioApiSelectDialogHarness extends ComponentHarness {
+  public static readonly hostSelector = 'gio-api-select-dialog';
   private inputLocator: AsyncFactoryFn<MatAutocompleteHarness> = this.locatorFor(
-    MatAutocompleteHarness.with({ selector: '[data-testid=new-top-api-input]' }),
+    MatAutocompleteHarness.with({ selector: '[data-testid=api-select-input]' }),
   );
   private optionLocator: AsyncFactoryFn<MatOptionHarness> = this.locatorFor(
-    MatOptionHarness.with({ selector: '[data-testid=new-top-api-option' }),
+    MatOptionHarness.with({ selector: '[data-testid=api-select-option' }),
   );
   private addButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorFor(
     MatButtonHarness.with({ selector: '[data-testid=submit-button' }),
