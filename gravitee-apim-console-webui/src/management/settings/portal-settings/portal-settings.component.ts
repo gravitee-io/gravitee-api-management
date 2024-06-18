@@ -191,9 +191,12 @@ export class PortalSettingsComponent implements OnInit {
         tap(([portalSettings]) => {
           this.settings = portalSettings;
           this.initialPortalForm();
+          const isPortalNextEnabled = portalSettings?.portalNext?.access?.enabled;
           this.portalUrl = isEmpty(portalSettings.portal.url)
             ? undefined
-            : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
+            : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) +
+              '/portal/redirect' +
+              (isPortalNextEnabled ? '?version=next' : '');
         }),
         takeUntilDestroyed(this.destroyRef),
       )
