@@ -45,6 +45,9 @@ interface ApiVM {
   name: string;
   version: string;
   contextPath: string;
+  order: number;
+  disableMoveUp: boolean;
+  disableMoveDown: boolean;
 }
 
 @Component({
@@ -127,6 +130,9 @@ export class CategoryComponent implements OnInit {
           name: api.name,
           version: api.apiVersion,
           contextPath: api.accessPaths?.join(','),
+          order: api.order,
+          disableMoveDown: api.order >= pagedResult.pagination.totalCount - 1,
+          disableMoveUp: api.order <= 0,
         }));
       }),
     );
@@ -277,5 +283,19 @@ export class CategoryComponent implements OnInit {
         this.displayedColumns.pop();
       }
     }
+  }
+
+  moveCategoryApi(element: ApiVM, newOrder: number) {
+    const category = this.category.getValue();
+    this.categoryV2Service
+      .updateCategoryApi(category.id, element.id, { order: newOrder })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('API order updated successfully.');
+          this.category.next(category);
+        },
+        error: ({ error }) => this.snackBarService.error(error?.message ? error.message : 'Error during API order update!'),
+      });
   }
 }
