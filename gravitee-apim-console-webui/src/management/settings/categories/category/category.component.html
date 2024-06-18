@@ -152,6 +152,26 @@
                         <mat-icon svgIcon="gio:star-outline"></mat-icon>
                       </button>
                     }
+
+                    <button
+                      mat-button
+                      [disabled]="element.disableMoveUp"
+                      (click)="moveCategoryApi(element, element.order - 1)"
+                      matTooltip="Move Up"
+                      *gioPermission="{ anyOf: ['environment-category-u'] }"
+                    >
+                      <mat-icon svgIcon="gio:arrow-up"></mat-icon>
+                    </button>
+                    <button
+                      mat-button
+                      [disabled]="element.disableMoveDown"
+                      (click)="moveCategoryApi(element, element.order + 1)"
+                      matTooltip="Move Down"
+                      *gioPermission="{ anyOf: ['environment-category-u'] }"
+                    >
+                      <mat-icon svgIcon="gio:arrow-down"></mat-icon>
+                    </button>
+
                     <button
                       mat-button
                       (click)="removeApiFromCategory(element, category)"
