@@ -31,7 +31,6 @@
   &__list {
     &__actions {
       display: flex;
-      gap: 24px;
     }
   }
 }
@@ -40,4 +39,5 @@
 .mat-column-actions {
   width: 1%;
   padding: 0 8px;
+  text-align: end;
 }
