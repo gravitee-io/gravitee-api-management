@@ -15,36 +15,54 @@
  */
 
 import { Component, Inject, OnInit, DestroyRef, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter as lodashFilter, includes as lodashIncludes, map as lodashMap } from 'lodash';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Api } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { Api } from '../../../entities/management-api-v2';
 
-export interface AddTopApisDialogData {
+export interface GioApiSelectDialogData {
   title: string;
 }
-export type AddTopApisDialogResult = Api;
+export type GioApiSelectDialogResult = Api;
 
 @Component({
-  selector: 'add-top-apis-dialog',
-  templateUrl: './add-top-apis-dialog.component.html',
-  styleUrls: ['./add-top-apis-dialog.component.scss'],
+  selector: 'gio-api-select-dialog',
+  templateUrl: './gio-api-select-dialog.component.html',
+  styleUrls: ['./gio-api-select-dialog.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    GioIconsModule,
+    GioAvatarModule,
+  ],
 })
-export class AddTopApisDialogComponent implements OnInit {
+export class GioApiSelectDialogComponent implements OnInit {
   public searchApiControl: FormControl<string | Api> = new FormControl('');
   public filteredOptions$: Observable<Api[]>;
   public isApiSelected = false;
   private destroyRef = inject(DestroyRef);
 
   constructor(
-    public dialogRef: MatDialogRef<AddTopApisDialogComponent>,
+    public dialogRef: MatDialogRef<GioApiSelectDialogComponent>,
     private apiService: ApiV2Service,
-    @Inject(MAT_DIALOG_DATA) public data: AddTopApisDialogData,
+    @Inject(MAT_DIALOG_DATA) public data: GioApiSelectDialogData,
   ) {}
 
   ngOnInit(): void {
@@ -63,10 +81,6 @@ export class AddTopApisDialogComponent implements OnInit {
     );
   }
 
-  removeTopApis(apis, topApis): Api[] {
-    return lodashFilter(apis, (api: Api) => !lodashIncludes(lodashMap(topApis, 'api'), api.id));
-  }
-
   public displayFn(option: Api): string {
     if (option && option.name && option.apiVersion) {
       return option.name + ' - ' + option.apiVersion;
@@ -82,7 +96,7 @@ export class AddTopApisDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  selectTopAPI(): void {
+  selectAPI(): void {
     this.isApiSelected = true;
   }
 
