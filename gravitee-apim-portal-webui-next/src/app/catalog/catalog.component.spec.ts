@@ -183,7 +183,9 @@ describe('CatalogComponent', () => {
       expectApiList(fakeApisResponse({ data: [] }), 1, 9, '');
       const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
       expect(noApiCard).toBeTruthy();
-      expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
+      expect(await noApiCard.getText()).toContain(
+        `Your search didn't return any APIs. Please try again with different keywords or categories.`,
+      );
       expectCategoriesList(fakeCategoriesResponse());
     });
   });
