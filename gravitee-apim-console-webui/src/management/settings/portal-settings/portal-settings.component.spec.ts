@@ -22,7 +22,13 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { GioFormTagsInputHarness, GioLicenseService, GioLicenseTestingModule, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import {
+  GioFormTagsInputHarness,
+  GioLicenseService,
+  GioLicenseTestingModule,
+  GioSaveBarHarness,
+  License,
+} from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { of } from 'rxjs';
@@ -31,48 +37,52 @@ import { PortalSettingsComponent } from './portal-settings.component';
 import { PortalSettingsModule } from './portal-settings.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 
 describe('PortalSettingsComponent', () => {
   let fixture: ComponentFixture<PortalSettingsComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-  const portalSettingsMock = fakePortalSettings();
+  let portalSettingsMock;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  const init = async (
+    permissions: GioTestingPermission = ['environment-settings-u'],
+    licence: License = {
+      tier: 'galaxy',
+      packs: ['', ''],
+      features: [''],
+      isExpired: false,
+    },
+  ) => {
+    await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, PortalSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-settings-u'],
+          useValue: [...permissions],
         },
         {
           provide: GioLicenseService,
           useValue: {
-            getLicense$: () =>
-              of({
-                tier: 'galaxy',
-              }),
+            openDialog: jest.fn(),
+            getLicense$: () => of(licence),
           },
         },
       ],
-    }).overrideProvider(InteractivityChecker, {
-      useValue: {
-        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
-      },
-    });
-  });
-
-  beforeEach(() => {
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
     fixture = TestBed.createComponent(PortalSettingsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    expectPortalSettingsGetRequest(portalSettingsMock);
-  });
+  };
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -80,7 +90,13 @@ describe('PortalSettingsComponent', () => {
   });
 
   describe('Portal settings form', () => {
+    beforeEach(() => {
+      init();
+    });
+
     it('display settings form and edit Company field', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
@@ -101,6 +117,8 @@ describe('PortalSettingsComponent', () => {
     });
 
     it('display settings form and edit Console fields', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
@@ -138,6 +156,8 @@ describe('PortalSettingsComponent', () => {
     });
 
     it('display settings form and edit Portal fields', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
@@ -158,6 +178,8 @@ describe('PortalSettingsComponent', () => {
     });
 
     it('display settings form and edit Portal Next fields', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
@@ -179,6 +201,8 @@ describe('PortalSettingsComponent', () => {
     });
 
     it('display settings form and edit CORS fields', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
@@ -199,6 +223,8 @@ describe('PortalSettingsComponent', () => {
     });
 
     it('display settings form and edit SMTP fields', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
 
@@ -219,11 +245,48 @@ describe('PortalSettingsComponent', () => {
     });
   });
   describe('Portal next setting form', () => {
-    it('should not show portal next settings if settings does not include: "access.enabled"', () => {});
-    // settings should not be shown if value not provided in settings
-    // form should be enabled if provided in settings
-    // settings should not be shown if license is oss
-    //
+    beforeEach(() => {
+      init();
+    });
+    it('should show portal next settings if settings have "access.enabled = true"', async () => {
+      portalSettingsMock = fakePortalSettings({ portalNext: { access: { enabled: true } } });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
+      expect(await toggle.isChecked()).toBe(true);
+    });
+
+    it('should not show portal next settings if settings does not include: "access.enabled"', async () => {
+      portalSettingsMock = fakePortalSettings({ portalNext: { access: { enabled: false } } });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
+      expect(await toggle.isChecked()).toBe(false);
+    });
+  });
+
+  describe('Portal next setting form', () => {
+    beforeEach(() => {
+      init(['environment-integration-u'], {
+        tier: 'oss',
+        packs: [],
+        features: [],
+      });
+    });
+
+    it('should not show portal next settings if license is oss', async () => {
+      portalSettingsMock = fakePortalSettings({ portalNext: { access: { enabled: true } } });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      expect(fixture.nativeElement.querySelector('.portal__form_card')).toBeNull();
+    });
   });
 
   function expectPortalSettingsGetRequest(portalSettings: PortalSettings) {
