@@ -48,8 +48,12 @@
       <h5>Confirmation</h5>
       <p style="padding-top: 0px">
         You can now
-        <strong><md-button class="md-raised" ng-click="$ctrl.parent.clickOnCreate()">create the APPLICATION</md-button></strong> and start
-        to consume APIs.
+        <strong
+          ><md-button class="md-raised" ng-click="$ctrl.parent.clickOnCreate()" ng-disabled="$ctrl.parent.isApplicationCreationInProgress"
+            >create the APPLICATION</md-button
+          ></strong
+        >
+        and start to consume APIs.
       </p>
 
       <div layout="row">
