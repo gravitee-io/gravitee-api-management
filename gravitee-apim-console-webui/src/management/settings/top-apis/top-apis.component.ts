@@ -23,14 +23,14 @@ import { sortBy } from 'lodash';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { TopApi } from './top-apis.model';
-import {
-  AddTopApisDialogComponent,
-  AddTopApisDialogData,
-  AddTopApisDialogResult,
-} from './add-top-apis-dialog/add-top-apis-dialog.component';
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TopApiService } from '../../../services-ngx/top-api.service';
+import {
+  GioApiSelectDialogComponent,
+  GioApiSelectDialogData,
+  GioApiSelectDialogResult,
+} from '../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
 
 @Component({
   selector: 'app-top-apis',
@@ -143,7 +143,7 @@ export class TopApisComponent implements OnInit {
 
   public addTopApi(): void {
     this.matDialog
-      .open<AddTopApisDialogComponent, AddTopApisDialogData, AddTopApisDialogResult>(AddTopApisDialogComponent, {
+      .open<GioApiSelectDialogComponent, GioApiSelectDialogData, GioApiSelectDialogResult>(GioApiSelectDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
         data: { title: 'Add API' },
         role: 'alertdialog',
