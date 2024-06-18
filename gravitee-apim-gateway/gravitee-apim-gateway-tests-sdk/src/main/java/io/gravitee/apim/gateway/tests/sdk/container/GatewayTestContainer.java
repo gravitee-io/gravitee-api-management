@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * This class allows to extend the {@link GatewayContainer} in order to override the {@link NodeFactory}
@@ -72,10 +73,28 @@ public class GatewayTestContainer extends GatewayContainer {
     }
 
     @Override
+    protected List<Class<?>> bootstrapClasses() {
+        List<Class<?>> classes = super.bootstrapClasses();
+        classes.add(GatewayTestNodeContainerConfiguration.class);
+        return classes;
+    }
+
+    @Override
     protected void startBootstrapComponents(AnnotationConfigApplicationContext ctx) {
         // Execute operations before starting bootstrap components (e.g.: the boot application context has been created).
         onBootApplicationContextCreated.accept(ctx);
         super.startBootstrapComponents(ctx);
+    }
+
+    @Configuration
+    public static class GatewayTestNodeContainerConfiguration {
+
+        // Force use of the PermissiveLicenseManager
+        @Primary
+        @Bean
+        public LicenseManager licenseManager() {
+            return new PermissiveLicenseManager();
+        }
     }
 
     @Configuration
@@ -154,11 +173,6 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public MessageStorage messageStorage() {
             return new MessageStorage();
-        }
-
-        @Bean
-        public LicenseManager licenseManager() {
-            return new PermissiveLicenseManager();
         }
     }
 }
