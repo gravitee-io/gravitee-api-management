@@ -26,6 +26,7 @@ import { PlanSecurityType } from '../../../../entities/plan';
 class ApplicationCreationController {
   application: any;
   enabledApplicationTypes: ApplicationType[];
+  isApplicationCreationInProgress: boolean = false;
   private activatedRoute: ActivatedRoute;
 
   private steps: any[];
@@ -81,9 +82,16 @@ class ApplicationCreationController {
   }
 
   async createApplication() {
-    const { data: application } = await this.ApplicationService.create(this.application);
+    this.isApplicationCreationInProgress = true;
+    const { data: application } = await this.ApplicationService.create(this.application).catch((err) => {
+      this.isApplicationCreationInProgress = false;
+      throw err;
+    });
     for (const plan of this.selectedPlans) {
-      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]);
+      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]).catch((err) => {
+        this.isApplicationCreationInProgress = false;
+        throw err;
+      });
     }
     this.NotificationService.show('Application ' + this.application.name + ' has been created');
     this.ngRouter.navigate(['../', application.id], { relativeTo: this.activatedRoute });
