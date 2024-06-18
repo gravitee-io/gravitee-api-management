@@ -27,6 +27,7 @@ import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
+import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 
@@ -35,7 +36,7 @@ export const routes: Routes = [
   {
     path: 'catalog',
     children: [
-      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' } },
+      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' }, canActivate: [redirectGuard] },
       {
         path: 'api/:apiId',
         component: ApiDetailsComponent,
