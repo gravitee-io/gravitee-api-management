@@ -63,7 +63,6 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .description("test-description")
             .provider("sample-provider")
             .environmentId("my-env")
-            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(date)
             .updatedAt(date)
             .build();
@@ -126,7 +125,6 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .description("updated-description")
             .provider("sample-provider")
             .environmentId("my-env")
-            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(date)
             .updatedAt(updateDate)
             .build();

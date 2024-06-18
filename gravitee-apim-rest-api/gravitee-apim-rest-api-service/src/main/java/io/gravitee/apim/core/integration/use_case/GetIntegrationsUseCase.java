@@ -20,11 +20,14 @@ import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicens
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
+import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.Optional;
 import lombok.Builder;
 
@@ -37,10 +40,16 @@ public class GetIntegrationsUseCase {
 
     private final IntegrationQueryService integrationQueryService;
     private final LicenseDomainService licenseDomainService;
+    private final IntegrationAgent integrationAgent;
 
-    public GetIntegrationsUseCase(IntegrationQueryService integrationQueryService, LicenseDomainService licenseDomainService) {
+    public GetIntegrationsUseCase(
+        IntegrationQueryService integrationQueryService,
+        LicenseDomainService licenseDomainService,
+        IntegrationAgent integrationAgent
+    ) {
         this.integrationQueryService = integrationQueryService;
         this.licenseDomainService = licenseDomainService;
+        this.integrationAgent = integrationAgent;
     }
 
     public GetIntegrationsUseCase.Output execute(GetIntegrationsUseCase.Input input) {
@@ -51,9 +60,22 @@ public class GetIntegrationsUseCase {
             throw noLicenseForFederation();
         }
 
-        Page<Integration> integrations = integrationQueryService.findByEnvironment(environmentId, pageable);
+        Page<Integration> page = integrationQueryService.findByEnvironment(environmentId, pageable);
 
-        return new GetIntegrationsUseCase.Output(integrations);
+        var pageContent = Flowable
+            .fromIterable(page.getContent())
+            .flatMap(integration ->
+                integrationAgent
+                    .getAgentStatusFor(integration.getId())
+                    .map(status -> new IntegrationView(integration, IntegrationView.AgentStatus.valueOf(status.name())))
+                    .toFlowable()
+            )
+            .toList()
+            .blockingGet();
+
+        return new GetIntegrationsUseCase.Output(
+            new Page<>(pageContent, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements())
+        );
     }
 
     @Builder
@@ -67,5 +89,5 @@ public class GetIntegrationsUseCase {
         }
     }
 
-    public record Output(Page<Integration> integrations) {}
+    public record Output(Page<IntegrationView> integrations) {}
 }

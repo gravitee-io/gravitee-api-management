@@ -15,8 +15,7 @@
  */
 package io.gravitee.integration.controller.command.hello;
 
-import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
+import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.hello.HelloReply;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
@@ -32,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloReply> {
 
-    private final UpdateAgentStatusUseCase updateAgentStatusUseCase;
+    private final CheckIntegrationUseCase checkIntegrationUseCase;
     private final IntegrationCommandContext integrationCommandContext;
 
     @Override
@@ -45,13 +44,11 @@ public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloRe
         return Single
             .fromCallable(() -> {
                 HelloCommandPayload payload = command.getPayload();
-
-                var result = updateAgentStatusUseCase.execute(
-                    new UpdateAgentStatusUseCase.Input(
+                var result = checkIntegrationUseCase.execute(
+                    new CheckIntegrationUseCase.Input(
                         integrationCommandContext.organizationId(),
                         payload.getTargetId(),
-                        payload.getProvider(),
-                        Integration.AgentStatus.CONNECTED
+                        payload.getProvider()
                     )
                 );
 

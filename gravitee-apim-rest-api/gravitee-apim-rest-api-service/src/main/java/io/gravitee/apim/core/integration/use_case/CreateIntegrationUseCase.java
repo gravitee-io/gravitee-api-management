@@ -55,7 +55,6 @@ public class CreateIntegrationUseCase {
             .description(input.integration.getDescription())
             .provider(input.integration.getProvider())
             .environmentId(input.integration.getEnvironmentId())
-            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(now)
             .updatedAt(now)
             .build();

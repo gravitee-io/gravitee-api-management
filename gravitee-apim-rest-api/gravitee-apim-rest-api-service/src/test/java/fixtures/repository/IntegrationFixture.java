@@ -32,7 +32,6 @@ public class IntegrationFixture {
             .description("A description")
             .provider("amazon")
             .environmentId("environment-id")
-            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
             .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")));
 

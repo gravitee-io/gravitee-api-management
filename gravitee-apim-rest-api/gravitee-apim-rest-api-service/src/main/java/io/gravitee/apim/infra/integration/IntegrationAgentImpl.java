@@ -47,6 +47,7 @@ import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,20 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
     public IntegrationAgentImpl(@Qualifier("integrationExchangeController") Optional<ExchangeController> exchangeController) {
         this.exchangeController = exchangeController;
+    }
+
+    @Override
+    public Single<Status> getAgentStatusFor(String integrationId) {
+        return Maybe
+            .fromOptional(exchangeController)
+            .flatMap(controller -> controller.channelsMetric(integrationId).toList().toMaybe())
+            .map(metrics -> {
+                if (metrics.isEmpty()) {
+                    return Status.DISCONNECTED;
+                }
+                return Status.CONNECTED;
+            })
+            .switchIfEmpty(Single.just(Status.DISCONNECTED));
     }
 
     @Override

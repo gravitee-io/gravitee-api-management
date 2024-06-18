@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import java.util.List;
 import java.util.Set;
@@ -33,11 +34,13 @@ public interface IntegrationMapper {
     Logger logger = LoggerFactory.getLogger(IntegrationMapper.class);
     IntegrationMapper INSTANCE = Mappers.getMapper(IntegrationMapper.class);
 
-    Integration map(CreateIntegration createIntegration);
+    Integration map(CreateIntegration source);
 
-    io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration createdIntegration);
+    io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration source);
 
-    List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> createdIntegration);
+    io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source);
 
-    Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration updatedIntegration);
+    List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);
+
+    Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
 }

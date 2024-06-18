@@ -23,10 +23,13 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
+import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
@@ -46,6 +49,7 @@ public class GetIntegrationsUseCaseTest {
     private static final int PAGE_NUMBER = 1;
     private static final int PAGE_SIZE = 5;
     private static final Pageable pageable = new PageableImpl(PAGE_NUMBER, PAGE_SIZE);
+    IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
 
     IntegrationQueryServiceInMemory integrationQueryServiceInMemory = new IntegrationQueryServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
@@ -56,7 +60,11 @@ public class GetIntegrationsUseCaseTest {
     void setUp() {
         IntegrationQueryService integrationQueryService = integrationQueryServiceInMemory;
         usecase =
-            new GetIntegrationsUseCase(integrationQueryService, new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager));
+            new GetIntegrationsUseCase(
+                integrationQueryService,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                integrationAgent
+            );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -70,6 +78,7 @@ public class GetIntegrationsUseCaseTest {
     void should_return_integrations_with_specific_env_id() {
         //Given
         var expected = IntegrationFixture.anIntegration();
+        integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(
             List.of(expected, IntegrationFixture.anIntegration("falseEnvID"), IntegrationFixture.anIntegration("anotherFalseEnvID"))
         );
@@ -88,7 +97,7 @@ public class GetIntegrationsUseCaseTest {
         assertThat(output.integrations())
             .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
             .containsExactly(
-                List.of(expected),
+                List.of(new IntegrationView(expected, IntegrationView.AgentStatus.CONNECTED)),
                 PAGE_NUMBER,
                 output.integrations().getPageElements(),
                 (long) output.integrations().getContent().size()
@@ -99,6 +108,7 @@ public class GetIntegrationsUseCaseTest {
     void should_return_integrations_with_default_pageable() {
         //Given
         var expected = IntegrationFixture.anIntegration();
+        integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(List.of(expected));
         var input = new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID);
 
@@ -110,7 +120,7 @@ public class GetIntegrationsUseCaseTest {
         assertThat(output.integrations())
             .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
             .containsExactly(
-                List.of(expected),
+                List.of(new IntegrationView(expected, IntegrationView.AgentStatus.CONNECTED)),
                 PAGE_NUMBER,
                 output.integrations().getPageElements(),
                 (long) output.integrations().getContent().size()

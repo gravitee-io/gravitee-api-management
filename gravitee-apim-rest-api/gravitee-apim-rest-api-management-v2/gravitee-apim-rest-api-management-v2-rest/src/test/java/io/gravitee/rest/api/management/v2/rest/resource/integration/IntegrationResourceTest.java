@@ -144,7 +144,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .name(integration.getName())
                         .description(integration.getDescription())
                         .provider(integration.getProvider())
-                        .agentStatus(Integration.AgentStatusEnum.DISCONNECTED)
+                        .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .build()
                 );
         }
@@ -279,7 +279,6 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .name(updatedName)
                         .description(updatedDescription)
                         .provider(INTEGRATION_PROVIDER)
-                        .agentStatus(Integration.AgentStatusEnum.DISCONNECTED)
                         .build()
                 );
         }

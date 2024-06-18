@@ -15,8 +15,7 @@
  */
 package io.gravitee.integration.controller.command;
 
-import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
+import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.Reply;
@@ -29,12 +28,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class IntegrationControllerCommandHandlerFactory implements ControllerCommandHandlersFactory {
 
-    private final UpdateAgentStatusUseCase updateAgentStatusUseCase;
+    private final CheckIntegrationUseCase checkIntegrationUseCase;
 
     @Override
     public List<CommandHandler<? extends Command<?>, ? extends Reply<?>>> buildCommandHandlers(
         final ControllerCommandContext controllerCommandContext
     ) {
-        return List.of(new HelloCommandHandler(updateAgentStatusUseCase, (IntegrationCommandContext) controllerCommandContext));
+        return List.of(new HelloCommandHandler(checkIntegrationUseCase, (IntegrationCommandContext) controllerCommandContext));
     }
 }

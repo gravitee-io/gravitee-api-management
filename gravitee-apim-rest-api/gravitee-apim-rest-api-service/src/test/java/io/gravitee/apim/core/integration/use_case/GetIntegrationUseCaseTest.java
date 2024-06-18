@@ -23,11 +23,14 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationView;
+import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase.Input;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.node.api.license.LicenseManager;
@@ -51,17 +54,22 @@ class GetIntegrationUseCaseTest {
     private static final ZonedDateTime UPDATED_AT = CREATED_AT;
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENV_ID = "my-env";
-    private static final Integration.AgentStatus AGENT_STATUS = Integration.AgentStatus.DISCONNECTED;
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
     LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
+    IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
 
     GetIntegrationUseCase usecase;
 
     @BeforeEach
     void setUp() {
-        usecase = new GetIntegrationUseCase(integrationCrudServiceInMemory, new LicenseDomainService(licenseCrudService, licenseManager));
+        usecase =
+            new GetIntegrationUseCase(
+                integrationCrudServiceInMemory,
+                new LicenseDomainService(licenseCrudService, licenseManager),
+                integrationAgent
+            );
         var integration = List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
 
@@ -76,6 +84,7 @@ class GetIntegrationUseCaseTest {
     @Test
     void should_get_integration() {
         //Given
+        integrationAgent.configureAgentFor(INTEGRATION_ID, IntegrationAgent.Status.DISCONNECTED);
         var input = new Input(INTEGRATION_ID, ORGANIZATION_ID);
 
         //When
@@ -86,15 +95,15 @@ class GetIntegrationUseCaseTest {
         assertThat(output.integration().getId()).isEqualTo(INTEGRATION_ID);
         assertThat(output.integration())
             .extracting(
-                Integration::getName,
-                Integration::getDescription,
-                Integration::getProvider,
-                Integration::getEnvironmentId,
-                Integration::getCreatedAt,
-                Integration::getUpdatedAt,
-                Integration::getAgentStatus
+                IntegrationView::getName,
+                IntegrationView::getDescription,
+                IntegrationView::getProvider,
+                IntegrationView::getEnvironmentId,
+                IntegrationView::getCreatedAt,
+                IntegrationView::getUpdatedAt,
+                IntegrationView::getAgentStatus
             )
-            .containsExactly(NAME, DESCRIPTION, PROVIDER, ENV_ID, CREATED_AT, UPDATED_AT, AGENT_STATUS);
+            .containsExactly(NAME, DESCRIPTION, PROVIDER, ENV_ID, CREATED_AT, UPDATED_AT, IntegrationView.AgentStatus.DISCONNECTED);
     }
 
     @Test

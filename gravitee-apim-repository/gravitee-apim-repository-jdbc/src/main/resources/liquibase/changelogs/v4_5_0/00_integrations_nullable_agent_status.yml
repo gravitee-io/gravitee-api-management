@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.0_integrations_nullable_agent_status
+      author: GraviteeSource Team
+      changes:
+        - dropNotNullConstraint:
+            columnName: agent_status
+            columnDataType: nvarchar(32)
+            tableName: ${gravitee_prefix}integrations
