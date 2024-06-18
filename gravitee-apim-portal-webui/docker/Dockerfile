@@ -30,7 +30,7 @@ COPY docker/config/config.json /usr/share/nginx/html/assets/config.json
 COPY docker/config/config-next.json /usr/share/nginx/html/next/browser/assets/config.json
 COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
 
-RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/conf.d/
+RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 
 COPY docker/config/portal-next-run.sh /portal-next-run.sh
 
