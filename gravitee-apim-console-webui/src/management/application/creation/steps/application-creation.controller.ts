@@ -25,6 +25,7 @@ import { PlanSecurityType } from '../../../../entities/plan';
 class ApplicationCreationController {
   application: any;
   enabledApplicationTypes: ApplicationType[];
+  isApplicationCreationInProgress: boolean;
   private steps: any[];
   private selectedStep = 0;
   private selectedAPIs: any[] = [];
@@ -42,7 +43,9 @@ class ApplicationCreationController {
     private NotificationService: NotificationService,
     private $q,
     private ApiService: ApiService,
-  ) {}
+  ) {
+    this.isApplicationCreationInProgress = false;
+  }
 
   $onInit() {
     this.ApiService.list().then((response) => (this.apis = response.data));
@@ -78,9 +81,16 @@ class ApplicationCreationController {
   }
 
   async createApplication() {
-    const { data: application } = await this.ApplicationService.create(this.application);
+    this.isApplicationCreationInProgress = true;
+    const { data: application } = await this.ApplicationService.create(this.application).catch((err) => {
+      this.isApplicationCreationInProgress = false;
+      throw err;
+    });
     for (const plan of this.selectedPlans) {
-      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]);
+      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]).catch((err) => {
+        this.isApplicationCreationInProgress = false;
+        throw err;
+      });
     }
     this.NotificationService.show('Application ' + this.application.name + ' has been created');
     this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
