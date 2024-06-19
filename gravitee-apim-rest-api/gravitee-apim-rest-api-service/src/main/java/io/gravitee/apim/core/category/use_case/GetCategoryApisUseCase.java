@@ -25,6 +25,8 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryDomainService;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.query_service.ApiCategoryOrderQueryService;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -63,6 +65,7 @@ public class GetCategoryApisUseCase {
             this.getUserApisByCategoryAndApis(
                     input.executionContext(),
                     input.isAdmin(),
+                    input.onlyPublishedApiLifecycleState(),
                     input.currentUserId(),
                     categoryId,
                     apiCategoryOrderApiIds
@@ -89,7 +92,17 @@ public class GetCategoryApisUseCase {
             .filter(Objects::nonNull);
     }
 
-    public record Input(ExecutionContext executionContext, String categoryIdOrKey, String currentUserId, boolean isAdmin) {}
+    public record Input(
+        ExecutionContext executionContext,
+        String categoryIdOrKey,
+        String currentUserId,
+        boolean isAdmin,
+        boolean onlyPublishedApiLifecycleState
+    ) {
+        public Input(ExecutionContext executionContext, String categoryIdOrKey, String currentUserId, boolean isAdmin) {
+            this(executionContext, categoryIdOrKey, currentUserId, isAdmin, false);
+        }
+    }
 
     public record Output(List<Result> results) {}
 
@@ -98,23 +111,25 @@ public class GetCategoryApisUseCase {
     private Stream<Api> getUserApisByCategoryAndApis(
         ExecutionContext executionContext,
         boolean isAdmin,
+        boolean onlyPublishedApiLifecycleState,
         String userId,
         String categoryId,
         List<String> apiIds
     ) {
         var apiSearchCriteria = ApiSearchCriteria.builder().category(categoryId);
+        if (onlyPublishedApiLifecycleState) {
+            apiSearchCriteria.lifecycleStates(List.of(Api.ApiLifecycleState.PUBLISHED));
+        }
 
         if (isAdmin) {
             apiSearchCriteria.ids(apiIds);
         } else {
+            var apiQueryCriteria = ApiQueryCriteria.builder().ids(apiIds).category(categoryId);
+            if (onlyPublishedApiLifecycleState) {
+                apiQueryCriteria.lifecycleStates(List.of(ApiLifecycleState.PUBLISHED));
+            }
             var apiIdsInUserScope =
-                this.apiAuthorizationDomainService.findIdsByUser(
-                        executionContext,
-                        userId,
-                        ApiQueryCriteria.builder().ids(apiIds).category(categoryId).build(),
-                        null,
-                        false
-                    );
+                this.apiAuthorizationDomainService.findIdsByUser(executionContext, userId, apiQueryCriteria.build(), null, false);
             apiSearchCriteria.ids(new ArrayList<>(apiIdsInUserScope));
         }
 
