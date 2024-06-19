@@ -32,7 +32,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class IndexableApi implements Indexable {
 
-    private Api api;
+    @Builder.Default
+    private Api api = new Api(); // needs to be initialized because some setter requires it
 
     private PrimaryOwnerEntity primaryOwner;
 
