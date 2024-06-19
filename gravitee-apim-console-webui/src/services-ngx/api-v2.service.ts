@@ -85,9 +85,11 @@ export class ApiV2Service {
   }
 
   deploy(apiId: string, deploymentLabel?: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments`, {
-      deploymentLabel,
-    });
+    return this.http
+      .post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments`, {
+        deploymentLabel,
+      })
+      .pipe(switchMap(() => this.refreshLastApiFetch()));
   }
 
   verifyDeploy(apiId: string): Observable<VerifyApiDeployResponse> {
@@ -182,6 +184,13 @@ export class ApiV2Service {
       filter((api) => !!api),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
+  }
+
+  refreshLastApiFetch(): Observable<void> {
+    if (this.lastApiFetch$.value && this.lastApiFetch$.value.id) {
+      return this.get(this.lastApiFetch$.value.id).pipe(map(() => {}));
+    }
+    return of(void 0);
   }
 
   transferOwnership(api: string, ownership: ApiTransferOwnership): Observable<any> {

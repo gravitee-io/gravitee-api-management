@@ -16,6 +16,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
+import { ApiV2Service } from './api-v2.service';
 
 import { Constants } from '../entities/Constants';
 
@@ -26,17 +29,24 @@ export class ApiReviewV2Service {
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
+    private readonly apiV2Service: ApiV2Service,
   ) {}
 
   ask(apiId: string, message?: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_ask`, { message });
+    return this.http
+      .post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_ask`, { message })
+      .pipe(switchMap(() => this.apiV2Service.refreshLastApiFetch()));
   }
 
   accept(apiId: string, message?: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_accept`, { message });
+    return this.http
+      .post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_accept`, { message })
+      .pipe(switchMap(() => this.apiV2Service.refreshLastApiFetch()));
   }
 
   reject(apiId: string, message?: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_reject`, { message });
+    return this.http
+      .post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_reject`, { message })
+      .pipe(switchMap(() => this.apiV2Service.refreshLastApiFetch()));
   }
 }
