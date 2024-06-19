@@ -19,10 +19,10 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].name
+          path: spec.template.spec.containers[0].volumeMounts[2].name
           value: gravitee-cockpit-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
           value: /opt/graviteeio-management-api/cockpit
       - equal:
           path: spec.template.spec.containers[0].env[0].name
@@ -56,10 +56,10 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].name
+          path: spec.template.spec.containers[0].volumeMounts[2].name
           value: gravitee-cockpit-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
           value: /opt/graviteeio-management-api/cockpit
       - equal:
           path: spec.template.spec.containers[0].env[0].name
@@ -96,10 +96,10 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].name
+          path: spec.template.spec.containers[0].volumeMounts[2].name
           value: gravitee-cockpit-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
           value: /opt/graviteeio-management-api/cockpit
       - equal:
           path: spec.template.spec.containers[0].env[0].name

@@ -55,10 +55,10 @@ tests:
       - isKind:
           of: Deployment
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].name
+          path: spec.template.spec.containers[0].volumeMounts[2].name
           value: graviteeio-apim-repository-jdbc-ext
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
           value: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
 
   - it: Set containerPort with custom port if core service is enabled
