@@ -16,10 +16,10 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GioConfirmDialogComponent, GioConfirmDialogData, NewFile } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, NewFile } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 
@@ -33,12 +33,12 @@ import { UpdateCategory } from '../../../../entities/category/UpdateCategory';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import {
-  AddApiToCategoryDialogComponent,
-  AddApiToCategoryDialogData,
-  AddApiToCategoryDialogResult,
-} from '../add-api-to-category-dialog/add-api-to-category-dialog.component';
 import { CategoryV2Service } from '../../../../services-ngx/category-v2.service';
+import {
+  GioApiSelectDialogComponent,
+  GioApiSelectDialogData,
+  GioApiSelectDialogResult,
+} from '../../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
 
 interface ApiVM {
   id: string;
@@ -212,14 +212,21 @@ export class CategoryComponent implements OnInit {
 
   addApiToCategory(category: Category) {
     this.matDialog
-      .open<AddApiToCategoryDialogComponent, AddApiToCategoryDialogData, AddApiToCategoryDialogResult>(AddApiToCategoryDialogComponent, {
-        data: { categoryId: category.id, categoryKey: category.key },
+      .open<GioApiSelectDialogComponent, GioApiSelectDialogData, GioApiSelectDialogResult>(GioApiSelectDialogComponent, {
+        data: {
+          title: 'Add API',
+        },
+        width: GIO_DIALOG_WIDTH.SMALL,
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result?.apiId),
-        switchMap(({ apiId }) => this.apiV2Service.get(apiId)),
+        filter((result) => !!result?.id),
+        switchMap(({ id }) => this.apiV2Service.get(id)),
         switchMap((api) => {
+          if (api.categories?.includes(category.key)) {
+            this.snackBarService.error(`API "${api.name}" is already defined in the category.`);
+            return EMPTY;
+          }
           const updatedCategories = api.categories ? [...api.categories, category.key] : [category.key];
           return this.apiV2Service.update(api.id, { ...api, categories: updatedCategories });
         }),

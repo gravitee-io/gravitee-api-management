@@ -38,15 +38,14 @@ import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 
 import { CategoryComponent } from './category/category.component';
 import { CategoriesComponent } from './categories.component';
-import { AddApiToCategoryDialogComponent } from './add-api-to-category-dialog/add-api-to-category-dialog.component';
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  declarations: [CategoriesComponent, CategoryComponent, AddApiToCategoryDialogComponent],
-  exports: [CategoriesComponent, CategoryComponent, AddApiToCategoryDialogComponent],
+  declarations: [CategoriesComponent, CategoryComponent],
+  exports: [CategoriesComponent, CategoryComponent],
   imports: [
     CommonModule,
     GioConfirmDialogModule,
