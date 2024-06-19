@@ -21,6 +21,7 @@ import { provideRouter, withComponentInputBinding, withRouterConfig } from '@ang
 import { combineLatest, Observable, switchMap } from 'rxjs';
 
 import { routes } from './app.routes';
+import { csrfInterceptor } from '../interceptors/csrf.interceptor';
 import { httpRequestInterceptor } from '../interceptors/http-request.interceptor';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
@@ -40,7 +41,7 @@ function initApp(
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
-    provideHttpClient(withInterceptors([httpRequestInterceptor])),
+    provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
     {
       provide: APP_INITIALIZER,
