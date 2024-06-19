@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class ValidateFederatedApiDomainService {
 
     private final GroupValidationService groupValidationService;
-    private final CategoryDomainService categoryDomainService;
 
     public Api validateAndSanitizeForCreation(final Api api) {
         if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
@@ -47,8 +46,6 @@ public class ValidateFederatedApiDomainService {
             primaryOwnerEntity
         );
         updateApi.setGroups(groupIds);
-
-        updateApi.setCategories(categoryDomainService.toCategoryKey(updateApi, existingApi.getEnvironmentId()));
 
         var lifecycleState = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
             existingApi.getApiLifecycleState(),

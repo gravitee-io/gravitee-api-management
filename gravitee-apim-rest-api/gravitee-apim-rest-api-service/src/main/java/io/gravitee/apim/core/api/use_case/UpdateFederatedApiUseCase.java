@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -41,37 +42,44 @@ public class UpdateFederatedApiUseCase {
     private final ValidateFederatedApiDomainService validateFederatedApiDomainService;
     private final AuditDomainService auditService;
     private final ApiIndexerDomainService apiIndexerDomainService;
+    private final CategoryDomainService categoryDomainService;
 
     public Output execute(Input input) {
         var updateApi = input.apiToUpdate;
         var auditInfo = input.auditInfo;
 
-        var now = TimeProvider.now();
         var currentApi = apiCrudService.get(updateApi.getId());
         PrimaryOwnerEntity primaryOwnerEntity = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
             auditInfo.organizationId(),
             updateApi.getId()
         );
 
-        var validatedUpdatedApi = validateFederatedApiDomainService.validateAndSanitizeForUpdate(updateApi, currentApi, primaryOwnerEntity);
+        var preparedApi = validateFederatedApiDomainService.validateAndSanitizeForUpdate(updateApi, currentApi, primaryOwnerEntity);
 
-        var updatedApi = currentApi
-            .toBuilder()
-            .name(validatedUpdatedApi.getName())
-            .description(validatedUpdatedApi.getDescription())
-            .version(validatedUpdatedApi.getVersion())
-            .apiLifecycleState(validatedUpdatedApi.getApiLifecycleState())
-            .visibility(validatedUpdatedApi.getVisibility())
-            .groups(validatedUpdatedApi.getGroups())
-            .labels(validatedUpdatedApi.getLabels())
-            .categories(validatedUpdatedApi.getCategories())
-            .updatedAt(now)
-            .build();
+        preparedApi =
+            currentApi
+                .toBuilder()
+                .name(preparedApi.getName())
+                .description(preparedApi.getDescription())
+                .version(preparedApi.getVersion())
+                .apiLifecycleState(preparedApi.getApiLifecycleState())
+                .visibility(preparedApi.getVisibility())
+                .groups(preparedApi.getGroups())
+                .labels(preparedApi.getLabels())
+                .categories(categoryDomainService.toCategoryId(preparedApi, currentApi.getEnvironmentId()))
+                .updatedAt(TimeProvider.now())
+                .build();
 
-        createAuditLog(auditInfo, updatedApi, currentApi);
-        createIndex(auditInfo, updatedApi, primaryOwnerEntity);
+        createAuditLog(auditInfo, preparedApi, currentApi);
+        createIndex(auditInfo, preparedApi, primaryOwnerEntity);
 
-        return new Output(apiCrudService.update(updatedApi), primaryOwnerEntity);
+        Api updated = apiCrudService.update(preparedApi);
+
+        categoryDomainService.updateOrderCategoriesOfApi(updated.getId(), updated.getCategories());
+
+        updated.setCategories(categoryDomainService.toCategoryKey(updated, updated.getEnvironmentId()));
+
+        return new Output(updated, primaryOwnerEntity);
     }
 
     @Builder

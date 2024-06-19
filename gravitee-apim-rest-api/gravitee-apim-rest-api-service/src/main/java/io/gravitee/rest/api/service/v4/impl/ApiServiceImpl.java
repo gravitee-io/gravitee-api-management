@@ -82,7 +82,6 @@ import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -422,7 +421,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 .getTags()
                                 .stream()
                                 .filter(tag -> !updateApiEntity.getTags().contains(tag))
-                                .collect(Collectors.toList());
+                                .toList();
                             throw new InvalidDataException(
                                 "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
                             );

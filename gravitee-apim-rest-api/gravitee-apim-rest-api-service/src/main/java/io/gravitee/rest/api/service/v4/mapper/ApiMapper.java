@@ -20,7 +20,9 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
+import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -31,12 +33,12 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -159,6 +161,11 @@ public class ApiMapper {
         return apiEntity;
     }
 
+    public FederatedApiEntity federatedToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
+        api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+        return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
+    }
+
     public ApiEntity toEntity(
         final ExecutionContext executionContext,
         final Api api,
@@ -192,6 +199,15 @@ public class ApiMapper {
         }
 
         return apiEntity;
+    }
+
+    public FederatedApiEntity federatedToEntity(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner
+    ) {
+        api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+        return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
     }
 
     public Api toRepository(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {

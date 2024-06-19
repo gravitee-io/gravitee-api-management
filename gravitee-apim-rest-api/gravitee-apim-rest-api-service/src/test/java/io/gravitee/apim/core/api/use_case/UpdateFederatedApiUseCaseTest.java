@@ -52,6 +52,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -78,6 +79,7 @@ class UpdateFederatedApiUseCaseTest {
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateFederatedApiUseCase usecase;
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
+    ApiCategoryService apiCategoryService = mock(ApiCategoryService.class);
 
     @BeforeEach
     void setUp() {
@@ -121,14 +123,15 @@ class UpdateFederatedApiUseCaseTest {
             new UpdateFederatedApiUseCase(
                 apiCrudService,
                 apiPrimaryOwnerService,
-                new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
+                new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService)),
                 auditDomainService,
                 new ApiIndexerDomainService(
                     new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
                     apiPrimaryOwnerService,
                     new ApiCategoryQueryServiceInMemory(),
                     indexer
-                )
+                ),
+                categoryDomainService
             );
     }
 

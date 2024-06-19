@@ -37,8 +37,10 @@ import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class ApiPrimaryOwnerDomainService {
 
     private final AuditDomainService auditService;
@@ -47,22 +49,6 @@ public class ApiPrimaryOwnerDomainService {
     private final MembershipQueryService membershipQueryService;
     private final RoleQueryService roleQueryService;
     private final UserCrudService userCrudService;
-
-    public ApiPrimaryOwnerDomainService(
-        AuditDomainService auditDomainService,
-        GroupQueryService groupQueryService,
-        MembershipCrudService membershipCrudService,
-        MembershipQueryService membershipQueryService,
-        RoleQueryService roleQueryService,
-        UserCrudService userCrudService
-    ) {
-        this.auditService = auditDomainService;
-        this.groupQueryService = groupQueryService;
-        this.membershipCrudService = membershipCrudService;
-        this.membershipQueryService = membershipQueryService;
-        this.roleQueryService = roleQueryService;
-        this.userCrudService = userCrudService;
-    }
 
     public PrimaryOwnerEntity getApiPrimaryOwner(final String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
