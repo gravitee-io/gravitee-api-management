@@ -18,7 +18,7 @@
 <md-step label="Security" md-complete="$ctrl.parent.steps[1].completed">
   <md-step-body>
     <md-content layout-padding class="gv-creation-content">
-      <form name="applicationForm" ng-submit="$ctrl.next()">
+      <form name="applicationForm" ng-submit="$ctrl.parent.next()">
         <div class="gv-form" ng-if="$ctrl.parent.clientRegistrationEnabled()">
           <div class="gv-form-content" layout="column">
             <div layout="row" layout-margin layout-align="center center">
@@ -114,7 +114,7 @@
             <md-button ng-click="$ctrl.parent.previous()">PREVIOUS</md-button>
           </div>
           <div flex layout="row" layout-align="end top">
-            <md-button ng-click="$ctrl.next()" ng-disabled="applicationForm.$dirty" ng-if="!$ctrl.parent.clientRegistrationEnabled()"
+            <md-button ng-click="$ctrl.parent.next()" ng-disabled="applicationForm.$dirty" ng-if="!$ctrl.parent.clientRegistrationEnabled()"
               >SKIP</md-button
             >
             <md-button type="submit" ng-disabled="applicationForm.$invalid">NEXT</md-button>
