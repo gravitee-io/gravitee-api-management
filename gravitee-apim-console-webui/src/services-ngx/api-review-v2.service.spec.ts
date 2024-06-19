@@ -42,8 +42,13 @@ describe('ApiReviewV2Service', () => {
       const apiId = 'api-id';
       const reviewMessage = 'review-message';
 
-      apiReviewV2Service.ask(apiId, reviewMessage).subscribe(() => {
-        done();
+      apiReviewV2Service.ask(apiId, reviewMessage).subscribe({
+        error: (err) => {
+          done.fail(err);
+        },
+        complete: () => {
+          done();
+        },
       });
 
       const req = httpTestingController.expectOne({
@@ -61,8 +66,13 @@ describe('ApiReviewV2Service', () => {
       const apiId = 'api-id';
       const reviewMessage = 'review-message';
 
-      apiReviewV2Service.accept(apiId, reviewMessage).subscribe(() => {
-        done();
+      apiReviewV2Service.accept(apiId, reviewMessage).subscribe({
+        error: (err) => {
+          done.fail(err);
+        },
+        complete: () => {
+          done();
+        },
       });
 
       const req = httpTestingController.expectOne({
@@ -80,8 +90,13 @@ describe('ApiReviewV2Service', () => {
       const apiId = 'api-id';
       const reviewMessage = 'review-message';
 
-      apiReviewV2Service.reject(apiId, reviewMessage).subscribe(() => {
-        done();
+      apiReviewV2Service.reject(apiId, reviewMessage).subscribe({
+        error: (err) => {
+          done.fail(err);
+        },
+        complete: () => {
+          done();
+        },
       });
 
       const req = httpTestingController.expectOne({
