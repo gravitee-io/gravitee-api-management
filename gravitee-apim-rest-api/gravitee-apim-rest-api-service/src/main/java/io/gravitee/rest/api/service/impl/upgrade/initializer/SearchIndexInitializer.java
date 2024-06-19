@@ -199,7 +199,7 @@ public class SearchIndexInitializer implements Initializer {
         }
         try {
             if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
+                indexable = apiMapper.toEntity(executionContext, api, primaryOwner, false);
             } else {
                 indexable = apiConverter.toApiEntity(api, primaryOwner);
             }

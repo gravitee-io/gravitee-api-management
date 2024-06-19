@@ -88,6 +88,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
@@ -308,6 +309,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private EmailRecipientsService emailRecipientsService;
+
+    @Autowired
+    private CategoryMapper categoryMapper;
 
     @Override
     public ApiEntity createFromSwagger(
@@ -589,7 +593,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flowService.save(FlowReferenceType.API, createdApi.getId(), api.getFlows());
 
             //TODO add membership log
-            ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner, null);
+            ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             // Create default alerts
@@ -707,7 +711,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity findById(ExecutionContext executionContext, String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
-        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api), null);
+        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api));
 
         // Compute entrypoints
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, apiEntity);
@@ -738,7 +742,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         ExecutionContext executionContext = new ExecutionContext(environmentService.findById(api.getEnvironmentId()));
 
-        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api), null);
+        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api));
 
         Map<String, Object> dataAsMap = objectMapper.convertValue(apiEntity, Map.class);
         dataAsMap.put("id", id);
@@ -856,7 +860,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setName(swaggerApiEntity.getName());
         updateApiEntity.setDescription(swaggerApiEntity.getDescription());
 
-        updateApiEntity.setCategories(merge(updateApiEntity.getCategories(), swaggerApiEntity.getCategories()));
+        var mergedCategories = merge(updateApiEntity.getCategories(), swaggerApiEntity.getCategories());
+        updateApiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), mergedCategories));
 
         if (swaggerApiEntity.getProxy() != null) {
             Proxy proxy = updateApiEntity.getProxy();
@@ -1205,8 +1210,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, apiToUpdate, updatedApi);
             }
 
-            final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-            ApiEntity apiEntity = convert(executionContext, updatedApi, primaryOwner, categories);
+            ApiEntity apiEntity = convert(executionContext, updatedApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
@@ -2308,7 +2312,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(executionContext, apiRepository.update(api), getPrimaryOwner(executionContext, api), null);
+            ApiEntity apiEntity = convert(executionContext, apiRepository.update(api), getPrimaryOwner(executionContext, api));
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
@@ -2420,10 +2424,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
-        final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-
         return streamApis
-            .map(publicApi -> this.convert(executionContext, publicApi, primaryOwners.get(publicApi.getId()), categories))
+            .map(publicApi -> this.convert(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
             .collect(toList());
     }
 
@@ -2432,16 +2434,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity convert(ExecutionContext executionContext, Api api, boolean readDatabaseFlows) {
-        return apiConverter.toApiEntity(executionContext, api, null, null, readDatabaseFlows);
+        return apiConverter.toApiEntity(executionContext, api, null, readDatabaseFlows);
     }
 
-    private ApiEntity convert(
-        ExecutionContext executionContext,
-        Api api,
-        PrimaryOwnerEntity primaryOwner,
-        List<CategoryEntity> categories
-    ) {
-        return apiConverter.toApiEntity(executionContext, api, primaryOwner, categories, true);
+    private ApiEntity convert(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner) {
+        return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
     }
 
     private Api convert(ExecutionContext executionContext, String apiId, UpdateApiEntity updateApiEntity, String apiDefinition) {
@@ -2460,19 +2457,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
 
-        final Set<String> apiCategories = updateApiEntity.getCategories();
-        if (apiCategories != null) {
-            final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-            final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
-            for (final String apiCategory : apiCategories) {
-                final Optional<CategoryEntity> optionalCategory = categories
-                    .stream()
-                    .filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId()))
-                    .findAny();
-                optionalCategory.ifPresent(category -> newApiCategories.add(category.getId()));
-            }
-            api.setCategories(newApiCategories);
-        }
+        api.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories())); // V2 before DB save
 
         if (updateApiEntity.getLabels() != null) {
             api.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));

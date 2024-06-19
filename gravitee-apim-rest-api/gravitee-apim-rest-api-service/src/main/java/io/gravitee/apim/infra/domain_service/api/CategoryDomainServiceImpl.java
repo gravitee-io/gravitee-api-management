@@ -13,35 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model;
+package io.gravitee.apim.infra.domain_service.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.util.Map;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
+import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import org.springframework.stereotype.Service;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Service
 @AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-public class ResponseTemplate implements Serializable {
+public class CategoryDomainServiceImpl implements CategoryDomainService {
 
-    @JsonProperty("status")
-    private int statusCode;
+    private final CategoryMapper categoryMapper;
 
-    private Map<String, String> headers;
-    private String body;
+    @Override
+    public Set<String> toCategoryId(Api api, String environmentId) {
+        return categoryMapper.toCategoryId(environmentId, api.getCategories());
+    }
 }

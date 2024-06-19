@@ -33,6 +33,7 @@ import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -41,11 +42,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -82,6 +85,8 @@ class UpdateDynamicPropertiesUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
     private final ApiEventQueryServiceInMemory apiEventQueryServiceInMemory = new ApiEventQueryServiceInMemory();
+    CategoryMapper categoryMapper = mock(CategoryMapper.class);
+    CategoryDomainService categoryDomainService = new CategoryDomainServiceImpl(categoryMapper);
 
     private ApiStateDomainService apiStateDomainService;
 
@@ -109,7 +114,8 @@ class UpdateDynamicPropertiesUseCaseTest {
                 apiStateDomainService,
                 environmentCrudServiceInMemory,
                 new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()),
-                apiEventQueryServiceInMemory
+                apiEventQueryServiceInMemory,
+                categoryDomainService
             );
     }
 

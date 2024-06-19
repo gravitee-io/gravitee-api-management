@@ -40,4 +40,5 @@ public class UpgraderOrder {
     public static final int EVENTS_LATEST_UPGRADER = 600;
     public static final int EXECUTION_MODE_UPGRADER = 610;
     public static final int QUALITY_RULES_SCOPING_UPGRADER = 700;
+    public static final int API_V4_CATEGORIES_UPGRADER = 701;
 }

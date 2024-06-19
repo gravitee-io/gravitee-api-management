@@ -226,4 +226,9 @@ public class InMemoryConfiguration {
     public MembershipCrudServiceInMemory membershipCrudServiceInMemory() {
         return new MembershipCrudServiceInMemory();
     }
+
+    @Bean
+    public PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService() {
+        return new PrimaryOwnerDomainServiceInMemory();
+    }
 }

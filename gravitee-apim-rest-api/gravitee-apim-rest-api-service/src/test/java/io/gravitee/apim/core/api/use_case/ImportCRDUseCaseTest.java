@@ -20,6 +20,7 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -28,27 +29,8 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.definition.FlowFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.EntrypointPluginQueryServiceInMemory;
-import inmemory.FlowCrudServiceInMemory;
-import inmemory.InMemoryAlternative;
-import inmemory.PageCrudServiceInMemory;
-import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.PlanQueryServiceInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.SubscriptionQueryServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
-import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
-import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import inmemory.*;
+import io.gravitee.apim.core.api.domain_service.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
@@ -57,7 +39,9 @@ import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -66,6 +50,7 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -74,10 +59,13 @@ import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -86,12 +74,10 @@ import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -123,8 +109,10 @@ class ImportCRDUseCaseTest {
     SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
 
+    ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
+    IndexerInMemory indexer = new IndexerInMemory();
     UpdateApiDomainService updateApiDomainService;
 
     ImportCRDUseCase useCase;
@@ -263,8 +251,6 @@ class ImportCRDUseCaseTest {
 
     @Nested
     class Create {
-
-        // TODO test API creation when migrated currently we rely on legacy services
 
         @Test
         void should_create_plans() {
@@ -609,7 +595,14 @@ class ImportCRDUseCaseTest {
                         .build()
                 )
             )
-            .flows(List.of())
+            .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
+            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
+            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+            .state("STARTED")
+            .tags(Set.of(TAG))
+            .type("PROXY")
+            .version("1.0.0")
+            .visibility("PRIVATE")
             .build();
     }
 }

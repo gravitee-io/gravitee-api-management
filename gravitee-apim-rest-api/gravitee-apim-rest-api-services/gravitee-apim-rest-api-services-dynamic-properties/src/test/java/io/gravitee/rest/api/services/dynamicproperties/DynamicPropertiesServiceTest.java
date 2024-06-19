@@ -43,12 +43,14 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.vertx.core.Vertx;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
@@ -98,6 +100,9 @@ public class DynamicPropertiesServiceTest {
 
     @Mock
     private Executor executor;
+
+    @Mock
+    private CategoryMapper categoryMapper;
 
     @Mock
     private ObjectMapper objectMapper = Mockito.spy(new GraviteeMapper());
@@ -154,6 +159,8 @@ public class DynamicPropertiesServiceTest {
     public void shouldStopTimerWhenUndeployApi() {
         final Api api = createApi();
         api.setLifecycleState(LifecycleState.STOPPED);
+
+        when(categoryMapper.toCategoryKey(anyString(), any())).thenReturn(Set.of());
 
         cut.onEvent(new SimpleEvent<>(ApiEvent.UNDEPLOY, api));
 

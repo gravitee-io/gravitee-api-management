@@ -16,14 +16,7 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
-import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
-import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
-import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.domain_service.*;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -403,14 +396,16 @@ public class UsecaseSpringConfiguration {
         ApiStateDomainService apiStateDomainService,
         EnvironmentCrudService environmentCrudService,
         AuditDomainService auditDomainService,
-        ApiEventQueryService apiEventQueryService
+        ApiEventQueryService apiEventQueryService,
+        CategoryDomainService categoryDomainService
     ) {
         return new UpdateDynamicPropertiesUseCase(
             apiCrudService,
             apiStateDomainService,
             environmentCrudService,
             auditDomainService,
-            apiEventQueryService
+            apiEventQueryService,
+            categoryDomainService
         );
     }
 
