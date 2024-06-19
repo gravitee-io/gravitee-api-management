@@ -40,8 +40,4 @@ export class GioApiSelectDialogHarness extends ComponentHarness {
 
     await this.addButtonLocator().then((button: MatButtonHarness) => button.click());
   }
-
-  public async selectOption(): Promise<MatOptionHarness> {
-    return this.optionLocator();
-  }
 }
