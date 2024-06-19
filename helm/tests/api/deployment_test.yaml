@@ -21,11 +21,29 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env
           value:
+            - name: GRAVITEE_PLUGINS_PATH_0
+              value: ${gravitee.home}/plugins
+            - name: GRAVITEE_PLUGINS_PATH_1
+              value: ${gravitee.home}/plugins-ext
             - name: portal.entrypoint
               value: https://apim.example.com/
-      - isEmpty:
-          # It should not contain init containers by default
+      - equal:
           path: spec.template.spec.initContainers
+          value:
+            - command:
+                - sh
+                - -c
+                - mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-node-cache-plugin-hazelcast-5.18.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-5.18.1.zip && ( rm  gravitee-node-cluster-plugin-hazelcast-5.18.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-5.18.1.zip
+              env: [ ]
+              image: alpine:latest
+              imagePullPolicy: Always
+              name: get-plugins
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1001
+              volumeMounts:
+                - mountPath: /tmp/plugins
+                  name: graviteeio-apim-plugins
 
   - it: Check deployment with revisionHistoryLimit
     template: api/api-deployment.yaml
@@ -55,10 +73,10 @@ tests:
       - isKind:
           of: Deployment
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].name
+          path: spec.template.spec.containers[0].volumeMounts[2].name
           value: graviteeio-apim-repository-jdbc-ext
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
           value: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
 
   - it: Set containerPort with custom port if core service is enabled

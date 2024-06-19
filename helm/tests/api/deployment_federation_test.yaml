@@ -1,0 +1,60 @@
+suite: Test Management API with Federation
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check Federation port is defined
+    template: api/api-deployment.yaml
+    set:
+      federation:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].name
+          value: api-integration
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].containerPort
+          value: 8072
+  - it: Check cluster plugins are downloaded
+    template: api/api-deployment.yaml
+    set:
+      federation:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers
+          value:
+            - command:
+                - sh
+                - -c
+                - mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-node-cache-plugin-hazelcast-5.18.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-5.18.1.zip && ( rm  gravitee-node-cluster-plugin-hazelcast-5.18.1.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-5.18.1.zip
+              env: [ ]
+              image: alpine:latest
+              imagePullPolicy: Always
+              name: get-plugins
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1001
+              volumeMounts:
+                - mountPath: /tmp/plugins
+                  name: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: GRAVITEE_PLUGINS_PATH_0
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: ${gravitee.home}/plugins
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: GRAVITEE_PLUGINS_PATH_1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: ${gravitee.home}/plugins-ext
