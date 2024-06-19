@@ -57,7 +57,10 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                         Objects.isNull(apiCriteria.getIntegrationId()) ||
                         Objects.equals(((IntegrationContext) api.getOriginContext()).getIntegrationId(), apiCriteria.getIntegrationId());
                     var matchesApiId = Objects.isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
-                    return matchesIntegrationId && matchesApiId;
+                    var matchesLifecycleState =
+                        Objects.isNull(apiCriteria.getLifecycleStates()) ||
+                        apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
+                    return matchesIntegrationId && matchesApiId && matchesLifecycleState;
                 });
         }
         return this.storage().stream();
