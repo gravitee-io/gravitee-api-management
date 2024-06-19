@@ -222,6 +222,11 @@ spec:
             - name: config
               mountPath: /opt/graviteeio-management-api/config/gravitee.yml
               subPath: gravitee.yml
+          {{- if .Values.api.federation.enabled }}
+            - name: config
+              mountPath: /opt/graviteeio-management-api/config/hazelcast.xml
+              subPath: hazelcast.xml
+          {{- end }}
           {{- if .Values.api.logging.debug }}
             - name: {{ $logbackVolumeName }}
               mountPath: /opt/graviteeio-management-api/config/logback.xml
