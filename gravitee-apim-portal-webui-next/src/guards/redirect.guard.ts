@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { ConfigService } from '../services/config.service';
 
@@ -22,8 +21,7 @@ export const redirectGuard = (): boolean => {
   const enabled = inject(ConfigService).portalNext.access?.enabled;
 
   if (!enabled) {
-    const href = window.location.href.substring(0, window.location.href.indexOf('/next')) + '/404';
-    inject(Router).navigateByUrl(href);
+    window.location.href = window.location.href.substring(0, window.location.href.indexOf('/next')) + '/404';
   }
   return true;
 };
