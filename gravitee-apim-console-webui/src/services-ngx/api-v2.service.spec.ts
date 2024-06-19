@@ -171,8 +171,13 @@ describe('ApiV2Service', () => {
     it('should call the API', (done) => {
       const fakeApi = fakeApiV4();
 
-      apiV2Service.deploy(fakeApi.id, 'Deployment label').subscribe(() => {
-        done();
+      apiV2Service.deploy(fakeApi.id, 'Deployment label').subscribe({
+        error: (err) => {
+          done.fail(err);
+        },
+        complete: () => {
+          done();
+        },
       });
 
       const req = httpTestingController.expectOne({
@@ -538,6 +543,55 @@ describe('ApiV2Service', () => {
       });
       expect(req.request.body).toEqual({ payload: descriptor, withDocumentation: false });
       req.flush(null);
+    });
+  });
+
+  describe('refreshLastApiFetch', () => {
+    it('should refresh the API', () => {
+      const fakeApi = fakeApiV4({ id: 'my-api-id' });
+
+      const done: string[] = [];
+      // First call
+      apiV2Service.getLastApiFetch(fakeApi.id).subscribe((api) => {
+        expect(api.name).toEqual(fakeApi.name);
+        done.push('last api fetch');
+      });
+
+      // Only one call as the second one should be cached
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
+          method: 'GET',
+        })
+        .flush(fakeApi);
+
+      apiV2Service.refreshLastApiFetch().subscribe({
+        complete: () => {
+          done.push('api refreshed');
+        },
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
+          method: 'GET',
+        })
+        .flush(fakeApi);
+
+      expect(done).toEqual(['last api fetch', 'last api fetch', 'api refreshed']);
+    });
+
+    it('should not call the api', (done) => {
+      apiV2Service.refreshLastApiFetch().subscribe({
+        error: (err) => {
+          done.fail(err);
+        },
+        complete: () => {
+          done();
+        },
+      });
+
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/apis`);
     });
   });
 });
