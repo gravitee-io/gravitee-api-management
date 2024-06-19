@@ -23,6 +23,12 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import inmemory.ApiAuthorizationDomainServiceInMemory;
+import inmemory.ApiCategoryOrderQueryServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.category.model.ApiCategoryOrder;
+import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -40,6 +46,7 @@ import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
+import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,6 +54,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -77,6 +85,9 @@ public class FilteringServiceTest {
 
     @Mock
     ApplicationService applicationService;
+
+    @Mock
+    GetCategoryApisUseCase getCategoryApisUseCase;
 
     @InjectMocks
     private FilteringServiceImpl filteringService = new FilteringServiceImpl();
@@ -377,7 +388,7 @@ public class FilteringServiceTest {
             .searchIds(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(aQuery),
-                eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))),
+                argThat(map -> ((List<String>) map.get("api")).containsAll(Set.of("api-#1", "api-#2", "api-#3"))),
                 isNull()
             );
 
@@ -394,20 +405,33 @@ public class FilteringServiceTest {
         var apiQuery = new ApiQuery();
         apiQuery.setCategory(category);
 
-        doReturn(Set.of("api-#1", "api-#2", "api-#3"))
-            .when(apiAuthorizationService)
-            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), eq(apiQuery));
-        doReturn(Set.of("api-#3"))
+        doReturn(
+            new GetCategoryApisUseCase.Output(
+                List.of(resultForApi("api-#1", 1, category), resultForApi("api-#3", 2, category), resultForApi("api-#2", 3, category))
+            )
+        )
+            .when(getCategoryApisUseCase)
+            .execute(
+                argThat(input -> input.categoryIdOrKey().equals(category) && input.onlyPublishedApiLifecycleState() && !input.isAdmin())
+            );
+        doReturn(Set.of("api-#3", "api-#1", "api-#2"))
             .when(apiSearchService)
             .searchIds(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(aQuery),
-                eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))),
+                eq(Map.of("api", List.of("api-#1", "api-#3", "api-#2"))),
                 isNull()
             );
 
         Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery, category);
 
-        assertThat(searchItems).singleElement().isEqualTo("api-#3");
+        assertThat(searchItems).containsExactly("api-#1", "api-#3", "api-#2");
+    }
+
+    private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order, String category) {
+        return new GetCategoryApisUseCase.Result(
+            ApiCategoryOrder.builder().apiId(apiId).categoryId(category).order(order).build(),
+            Api.builder().id(apiId).categories(Set.of(category)).build()
+        );
     }
 }
