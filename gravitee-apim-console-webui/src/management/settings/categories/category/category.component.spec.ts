@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -28,6 +28,7 @@ import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing'
 import { MatIconHarness } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { CategoryComponent } from './category.component';
 
@@ -38,11 +39,11 @@ import { CategoriesModule } from '../categories.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Category } from '../../../../entities/category/Category';
 import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeMAPIv2Api } from '../../../../entities/management-api-v2';
-import { AddApiToCategoryDialogHarness } from '../add-api-to-category-dialog/add-api-to-category-dialog.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CategoryApi } from '../../../../entities/management-api-v2/category/categoryApi';
 import { fakeCategoryApi } from '../../../../entities/management-api-v2/category/categoryApi.fixture';
 import { UpdateCategoryApi } from '../../../../entities/management-api-v2/category/updateCategoryApi';
+import { GioApiSelectDialogHarness } from '../../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.harness';
 
 describe('CategoryComponent', () => {
   let component: CategoryComponent;
@@ -367,49 +368,32 @@ describe('CategoryComponent', () => {
       await addApiToCategory();
     });
 
-    it('should show empty row message', fakeAsync(async () => {
-      const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+    it('should not allow user to choose API already in category', async () => {
+      const apiToAdd = fakeMAPIv2Api({ id: CAT_API_LIST.id, name: CAT_API_LIST.name, categories: ['other-category', CATEGORY.key] });
+      const dialog = await rootLoader.getHarness(GioApiSelectDialogHarness);
 
-      expectSearchApi('', []);
+      await dialog.fillFormAndSubmit(CAT_API_LIST.name, () => {
+        expectSearchApi(CAT_API_LIST.name, [apiToAdd]);
+      });
+      expectGetApi(apiToAdd);
 
-      const rows = await dialog.getRows();
-      expect(rows).toHaveLength(1);
-      expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
-    }));
+      const snackbar = await rootLoader.getHarness(MatSnackBarHarness);
+      expect(await snackbar.getMessage()).toEqual('API "cat name" is already defined in the category.');
+    });
 
-    it('should not allow user to choose API already in category', fakeAsync(async () => {
-      const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
-
-      expectSearchApi('', [
-        fakeMAPIv2Api({ id: 'api-1', name: 'API 1', categories: [] }),
-        fakeMAPIv2Api({ id: 'api-2', name: 'API 2', categories: ['other-category', CATEGORY.key] }),
-      ]);
-
-      expect(await dialog.getSelectApiByIndex(0)).toBeTruthy();
-      expect(await dialog.getSelectApiByIndex(1)).toBeFalsy();
-    }));
-    it('should add API to category', fakeAsync(async () => {
+    it('should add API to category', async () => {
       const apiToAdd = fakeMAPIv2Api({ id: 'api-1', name: 'API 1', categories: [] });
-      const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+      const dialog = await rootLoader.getHarness(GioApiSelectDialogHarness);
 
-      expectSearchApi('', [apiToAdd, fakeMAPIv2Api({ id: 'api-2', name: 'API 2', categories: ['other-category', CAT_API_LIST.key] })]);
-
-      const submitBtn = await dialog.getSubmitButton();
-      expect(await submitBtn.isDisabled()).toEqual(true);
-
-      const selectApi1 = await dialog.getSelectApiByIndex(0);
-      await selectApi1.check();
-
-      expect(await submitBtn.isDisabled()).toEqual(false);
-      await submitBtn.click();
+      await dialog.fillFormAndSubmit(CAT_API_LIST.name, () => {
+        expectSearchApi(CAT_API_LIST.name, [apiToAdd]);
+      });
 
       expectGetApi(apiToAdd);
       expectUpdateApi({ ...apiToAdd, categories: [CAT_API_LIST.key] }, { ...apiToAdd, categories: [CAT_API_LIST.key] });
 
-      flush();
-
       expectGetCategoryApis(CAT_API_LIST.id);
-    }));
+    });
   });
 
   function expectPortalPagesList(pages: Page[] = [{ id: 'page-1', name: 'Page 1' }]) {
@@ -443,12 +427,11 @@ describe('CategoryComponent', () => {
   }
 
   function expectSearchApi(query: string, apis: MAPIv2Api[]) {
-    fixture.detectChanges();
-    tick(400);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`);
 
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?${query ? `q=${query}&` : ''}page=1&perPage=10`)
-      .flush({ data: apis, pagination: { totalCount: apis.length } });
+    expect(req.request.body).toEqual({ query });
+
+    req.flush({ data: apis, pagination: { totalCount: apis.length } });
   }
 
   function expectUpdateApi(request: UpdateApi, response: MAPIv2Api) {
