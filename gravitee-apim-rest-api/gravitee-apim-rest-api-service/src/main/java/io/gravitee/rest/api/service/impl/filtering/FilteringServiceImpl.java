@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.filtering;
 
+import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -77,6 +78,9 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Autowired
     ApiAuthorizationService apiAuthorizationService;
+
+    @Autowired
+    GetCategoryApisUseCase getCategoryApisUseCase;
 
     @Override
     public Collection<String> getApisOrderByNumberOfSubscriptions(Collection<String> apis, boolean excluded) {
@@ -167,15 +171,25 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     @Override
     public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query, String category)
         throws TechnicalException {
-        var apiQuery = new ApiQuery();
-        apiQuery.setCategory(category);
+        List<String> apiIds;
+        if (category != null && !category.isEmpty()) {
+            var categoryApisOutput = getCategoryApisUseCase.execute(
+                new GetCategoryApisUseCase.Input(executionContext, category, userId, false, true)
+            );
 
-        Set<String> apis = apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, apiQuery);
+            apiIds = categoryApisOutput.results().stream().map(result -> result.api().getId()).collect(Collectors.toList());
+        } else {
+            apiIds = apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery()).stream().toList();
+        }
 
         Map<String, Object> filters = new HashMap<>();
-        filters.put("api", apis);
+        filters.put("api", apiIds);
 
-        return apiSearchService.searchIds(executionContext, query, filters, null);
+        return apiSearchService
+            .searchIds(executionContext, query, filters, null)
+            .stream()
+            .sorted(Comparator.comparingInt(apiIds::indexOf))
+            .collect(Collectors.toList());
     }
 
     @Override
