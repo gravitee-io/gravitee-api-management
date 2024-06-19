@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
 
 import { redirectGuard } from './redirect.guard';
 import { ConfigService } from '../services/config.service';
 
 describe('redirectGuard', () => {
   let configService: ConfigService;
-  let router: Router;
+
+  Object.defineProperty(window, 'location', {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value: {
+      href: '',
+    },
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        { provide: ConfigService, useValue: { portalNext: { access: { enabled: false } } } },
-        { provide: Router, useValue: { navigateByUrl: jest.fn() } },
-      ],
+      providers: [{ provide: ConfigService, useValue: { portalNext: { access: { enabled: false } } } }],
     });
     configService = TestBed.inject(ConfigService);
-    router = TestBed.inject(Router);
+    window.location.href = 'http://localhost/next';
   });
 
   it('should redirect when access is not enabled', () => {
-    const href = 'http://localhost/next';
-    Object.defineProperty(window, 'location', {
-      value: { href },
-    });
     expect(TestBed.runInInjectionContext(() => redirectGuard())).toBeTruthy();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('http://localhost/404');
+    expect(window.location.href).toEqual('http://localhost/404');
   });
 
   it('should not redirect when access is enabled', () => {
@@ -48,6 +48,6 @@ describe('redirectGuard', () => {
       configService.portalNext.access.enabled = true;
     }
     expect(TestBed.runInInjectionContext(() => redirectGuard())).toBeTruthy();
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(window.location.href).toEqual('http://localhost/next');
   });
 });
