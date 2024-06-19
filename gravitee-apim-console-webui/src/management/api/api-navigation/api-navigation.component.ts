@@ -67,6 +67,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public selectedItemHeader: MenuItemHeader;
   public bannerState: string;
   public hasBreadcrumb = false;
+  public isActionDisabled = false;
   public breadcrumbItems: string[] = [];
   public banners$: Observable<TopBanner[]> = combineLatest([
     this.apiV2Service.getLastApiFetch(this.activatedRoute.snapshot.params.apiId),
@@ -85,9 +86,13 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           action: {
             btnText: 'Update API version',
             onClick: () => {
+              this.isActionDisabled = true;
               this.legacyApiService
                 .migrateApiToPolicyStudio(this.currentApi.id)
-                .pipe(takeUntil(this.unsubscribe$))
+                .pipe(
+                  tap(() => (this.isActionDisabled = false)),
+                  takeUntil(this.unsubscribe$),
+                )
                 .subscribe({
                   error: ({ error }) => {
                     this.snackBarService.error(error.message);
@@ -108,6 +113,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           action: {
             btnText: 'Review changes',
             onClick: () => {
+              this.isActionDisabled = true;
               this.matDialog
                 .open<ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult>(ApiReviewDialogComponent, {
                   data: {
@@ -118,7 +124,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                   width: GIO_DIALOG_WIDTH.MEDIUM,
                 })
                 .afterClosed()
-                .pipe(takeUntil(this.unsubscribe$))
+                .pipe(
+                  tap(() => (this.isActionDisabled = false)),
+                  takeUntil(this.unsubscribe$),
+                )
                 .subscribe();
             },
           },
@@ -131,6 +140,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           action: {
             btnText: 'Review changes',
             onClick: () => {
+              this.isActionDisabled = true;
               this.matDialog
                 .open<ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult>(ApiReviewDialogComponent, {
                   data: {
@@ -141,7 +151,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                   width: GIO_DIALOG_WIDTH.MEDIUM,
                 })
                 .afterClosed()
-                .pipe(takeUntil(this.unsubscribe$))
+                .pipe(
+                  tap(() => (this.isActionDisabled = false)),
+                  takeUntil(this.unsubscribe$),
+                )
                 .subscribe();
             },
           },
@@ -154,6 +167,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           action: {
             btnText: 'Review changes',
             onClick: () => {
+              this.isActionDisabled = true;
               this.matDialog
                 .open<ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult>(ApiReviewDialogComponent, {
                   data: {
@@ -164,7 +178,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                   width: GIO_DIALOG_WIDTH.MEDIUM,
                 })
                 .afterClosed()
-                .pipe(takeUntil(this.unsubscribe$))
+                .pipe(
+                  tap(() => (this.isActionDisabled = false)),
+                  takeUntil(this.unsubscribe$),
+                )
                 .subscribe();
             },
           },
@@ -215,6 +232,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                 action: {
                   btnText: 'Deploy API',
                   onClick: () => {
+                    this.isActionDisabled = true;
                     this.matDialog
                       .open<ApiConfirmDeploymentDialogComponent, ApiConfirmDeploymentDialogData, ApiConfirmDeploymentDialogResult>(
                         ApiConfirmDeploymentDialogComponent,
@@ -228,7 +246,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                         },
                       )
                       .afterClosed()
-                      .pipe(takeUntil(this.unsubscribe$))
+                      .pipe(
+                        tap(() => (this.isActionDisabled = false)),
+                        takeUntil(this.unsubscribe$),
+                      )
                       .subscribe();
                   },
                 },
