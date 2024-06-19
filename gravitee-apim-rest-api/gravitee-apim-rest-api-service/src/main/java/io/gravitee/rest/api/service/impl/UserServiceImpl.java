@@ -1108,6 +1108,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
             if (updateUserEntity.getEmail() != null && !updateUserEntity.getEmail().equals(user.getEmail())) {
                 if (isInternalUser(user)) {
+                    if (StringUtils.isNotEmpty(updateUserEntity.getEmail()) && !EmailValidator.isValid(updateUserEntity.getEmail())) {
+                        throw new EmailFormatInvalidException(updateUserEntity.getEmail());
+                    }
+
                     // sourceId can be updated only for user registered into the Gravitee Repository
                     // in that case, check if the email is available before update sourceId
                     final Optional<User> optionalUser = userRepository.findBySource(
