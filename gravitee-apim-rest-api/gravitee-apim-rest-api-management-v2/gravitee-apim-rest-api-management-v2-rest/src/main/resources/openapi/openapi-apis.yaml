@@ -1872,9 +1872,9 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V1: ApiV1
-                    V2: ApiV2
-                    V4: ApiV4
+                    V1: "#/components/schemas/ApiV1"
+                    V2: "#/components/schemas/ApiV2"
+                    V4: "#/components/schemas/ApiV4"
 
         BaseApi:
             type: object
@@ -2008,9 +2008,9 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V1: ApiV1
-                    V2: ApiV2
-                    V4: ApiV4
+                    V1: "#/components/schemas/ApiV1"
+                    V2: "#/components/schemas/ApiV2"
+                    V4: "#/components/schemas/ApiV4"
         ApiV1:
             type: object
             title: "ApiV1"
@@ -2146,8 +2146,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: CreateApiV2
-                    V4: CreateApiV4
+                    V2: "#/components/schemas/CreateApiV2"
+                    V4: "#/components/schemas/CreateApiV4"
 
         CreateGenericApi:
             type: object
@@ -2180,8 +2180,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: CreateApiV2
-                    V4: CreateApiV4
+                    V2: "#/components/schemas/CreateApiV2"
+                    V4: "#/components/schemas/CreateApiV4"
         CreateApiV2:
             type: object
             title: "CreateApiV2"
@@ -2317,8 +2317,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: UpdateApiV2
-                    V4: UpdateApiV4
+                    V2: "#/components/schemas/UpdateApiV2"
+                    V4: "#/components/schemas/UpdateApiV4"
         UpdateGenericApi:
             type: object
             properties:
@@ -2397,8 +2397,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: UpdateApiV2
-                    V4: UpdateApiV4
+                    V2: "#/components/schemas/UpdateApiV2"
+                    V4: "#/components/schemas/UpdateApiV4"
         UpdateApiV2:
             type: object
             title: "UpdateApiV2"
@@ -2943,9 +2943,9 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    HTTP: HttpListener
-                    TCP: TcpListener
-                    SUBSCRIPTION: SubscriptionListener
+                    HTTP: "#/components/schemas/HttpListener"
+                    TCP: "#/components/schemas/TcpListener"
+                    SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
         BaseListener:
             type: object
             required:
@@ -2965,9 +2965,9 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    HTTP: HttpListener
-                    TCP: TcpListener
-                    SUBSCRIPTION: SubscriptionListener
+                    HTTP: "#/components/schemas/HttpListener"
+                    TCP: "#/components/schemas/TcpListener"
+                    SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
         ListenerType:
             type: string
             description: Listener type.
@@ -3225,8 +3225,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: PlanV2
-                    V4: PlanV4
+                    V2: "#/components/schemas/PlanV2"
+                    V4: "#/components/schemas/PlanV4"
         PlanV4:
             type: object
             title: "PlanV4"
@@ -3246,8 +3246,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: PlanV2
-                    V4: PlanV4
+                    V2: "#/components/schemas/PlanV2"
+                    V4: "#/components/schemas/PlanV4"
         PlanSecurity:
             type: object
             properties:
@@ -3297,8 +3297,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: CreatePlanV2
-                    V4: CreatePlanV4
+                    V2: "#/components/schemas/CreatePlanV2"
+                    V4: "#/components/schemas/CreatePlanV4"
         CreateGenericPlan:
             type: object
             properties:
@@ -3361,8 +3361,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: CreatePlanV2
-                    V4: CreatePlanV4
+                    V2: "#/components/schemas/CreatePlanV2"
+                    V4: "#/components/schemas/CreatePlanV4"
             required:
                 - definitionVersion
         CreatePlanV2:
@@ -3403,8 +3403,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: UpdatePlanV2
-                    V4: UpdatePlanV4
+                    V2: "#/components/schemas/UpdatePlanV2"
+                    V4: "#/components/schemas/UpdatePlanV4"
         UpdateGenericPlan:
             type: object
             properties:
@@ -3470,8 +3470,8 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
-                    V2: UpdatePlanV2
-                    V4: UpdatePlanV4
+                    V2: "#/components/schemas/UpdatePlanV2"
+                    V4: "#/components/schemas/UpdatePlanV4"
             required:
                 - definitionVersion
         UpdatePlanV2:
@@ -4088,9 +4088,9 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    HTTP: HttpSelector
-                    CHANNEL: ChannelSelector
-                    CONDITION: ConditionSelector
+                    HTTP: "#/components/schemas/HttpSelector"
+                    CHANNEL: "#/components/schemas/ChannelSelector"
+                    CONDITION: "#/components/schemas/ConditionSelector"
         BaseSelector:
             properties:
                 type:
@@ -4104,9 +4104,9 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    HTTP: HttpSelector
-                    CHANNEL: ChannelSelector
-                    CONDITION: ConditionSelector
+                    HTTP: "#/components/schemas/HttpSelector"
+                    CHANNEL: "#/components/schemas/ChannelSelector"
+                    CONDITION: "#/components/schemas/ConditionSelector"
             required:
                 - type
         ServiceV4:
@@ -4245,7 +4245,7 @@ components:
                     discriminator:
                         propertyName: provider
                         mapping:
-                            HTTP: HttpDynamicPropertyProviderConfiguration
+                            HTTP: "#/components/schemas/HttpDynamicPropertyProviderConfiguration"
                 enabled:
                     type: boolean
                     description: Is the service enabled or not.
@@ -4256,8 +4256,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    http: HttpEndpointV2
-                    grpc: HttpEndpointV2
+                    http: "#/components/schemas/HttpEndpointV2"
+                    grpc: "#/components/schemas/HttpEndpointV2"
         BaseEndpointV2:
             type: object
             properties:
@@ -5374,8 +5374,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    FOLDER: CreateDocumentationFolder
-                    MARKDOWN: CreateDocumentationMarkdown
+                    FOLDER: "#/components/schemas/CreateDocumentationFolder"
+                    MARKDOWN: "#/components/schemas/CreateDocumentationMarkdown"
 
         CreateDocumentationFolder:
             title: "CreateDocumentationFolder"
@@ -5434,8 +5434,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    FOLDER: UpdateDocumentationFolder
-                    MARKDOWN: UpdateDocumentationMarkdown
+                    FOLDER: "#/components/schemas/UpdateDocumentationFolder"
+                    MARKDOWN: "#/components/schemas/UpdateDocumentationMarkdown"
 
         UpdateDocumentationFolder:
             title: "UpdateDocumentationFolder"
