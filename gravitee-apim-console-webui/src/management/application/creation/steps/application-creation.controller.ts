@@ -48,6 +48,8 @@ class ApplicationCreationController {
   }
 
   $onInit() {
+    // Initialize the application so that underlying onInit can init some part of the application object as well
+    this.application = {};
     this.ApiService.list().then((response) => (this.apis = response.data));
   }
 

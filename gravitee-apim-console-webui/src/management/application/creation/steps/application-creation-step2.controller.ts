@@ -22,7 +22,8 @@ class ApplicationCreationStep2Controller {
   private parent: ApplicationCreationController;
 
   $onInit() {
-    this.selectedType = this.parent.enabledApplicationTypes[0];
+    // Init the selected type with the first one from the available types
+    this.selectType(this.parent.enabledApplicationTypes[0]);
   }
 
   selectType(applicationType: ApplicationType) {
@@ -40,13 +41,6 @@ class ApplicationCreationStep2Controller {
         app: {},
       };
     }
-  }
-
-  next() {
-    if (this.selectedType) {
-      this.selectType(this.selectedType);
-    }
-    this.parent.next();
   }
 
   displaySimpleAppConfig() {
