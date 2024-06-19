@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchException;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -134,8 +133,8 @@ public class ApiCategoryServiceImplTest {
         @Test
         public void shouldThrownManagementExceptionWhenTechnicalExceptionOccurred() throws TechnicalException {
             when(apiRepository.listCategories(any())).thenThrow(new TechnicalException());
-            assertThatExceptionOfType(TechnicalManagementException.class)
-                .isThrownBy(() -> apiCategoryService.listCategories(List.of("api1"), "DEFAULT"));
+            var ex = catchException(() -> apiCategoryService.listCategories(List.of("api1"), "DEFAULT"));
+            assertThat(ex).isInstanceOf(TechnicalManagementException.class);
         }
     }
 
@@ -161,8 +160,8 @@ public class ApiCategoryServiceImplTest {
             verify(apiRepository, times(1)).update(firstOrphan);
             verify(apiRepository, times(1)).update(secondOrphan);
 
-            Assertions.assertEquals(0, firstOrphan.getCategories().size());
-            Assertions.assertEquals(1, secondOrphan.getCategories().size());
+            assertThat(firstOrphan.getCategories()).isEmpty();
+            assertThat(secondOrphan.getCategories()).hasSize(1);
 
             verify(apiCategoryOrderRepository, times(1)).delete(eq(firstOrphan.getId()), eq(categoryId));
             verify(apiCategoryOrderRepository, times(1)).delete(eq(secondOrphan.getId()), eq(categoryId));
@@ -210,8 +209,8 @@ public class ApiCategoryServiceImplTest {
                     any()
                 );
 
-            assertEquals(0, firstOrphan.getCategories().size());
-            assertEquals(1, secondOrphan.getCategories().size());
+            assertThat(firstOrphan.getCategories()).isEmpty();
+            assertThat(secondOrphan.getCategories()).hasSize(1);
         }
     }
 
@@ -252,7 +251,7 @@ public class ApiCategoryServiceImplTest {
             Map<String, Long> expectedCounts = Map.of(category1.getId(), 3L, category2.getId(), 2L, category3.getId(), 1L);
             Map<String, Long> counts = apiCategoryService.countApisPublishedGroupedByCategoriesForUser("user-1");
 
-            assertEquals(expectedCounts, counts);
+            assertThat(counts).isEqualTo(expectedCounts);
         }
     }
 
@@ -450,7 +449,7 @@ public class ApiCategoryServiceImplTest {
             apiCategoryService.updateApiCategories(API_ID, Set.of(CATEGORY_ID));
             verify(apiCategoryOrderRepository, never()).findAllByCategoryId(eq(CATEGORY_ID));
 
-            verify(apiCategoryOrderRepository, times(1)).delete(any(), any());
+            verify(apiCategoryOrderRepository, times(1)).delete(anyString(), anyString());
             verify(apiCategoryOrderRepository, times(1)).delete(eq(API_ID), eq(OTHER_CATEGORY));
 
             verify(apiCategoryOrderRepository, times(1)).update(any());
@@ -484,7 +483,7 @@ public class ApiCategoryServiceImplTest {
             apiCategoryService.updateApiCategories(API_ID, Set.of(CATEGORY_ID, YET_ANOTHER_CATEGORY));
             verify(apiCategoryOrderRepository, never()).findAllByCategoryId(eq(CATEGORY_ID));
 
-            verify(apiCategoryOrderRepository, times(1)).delete(any(), any());
+            verify(apiCategoryOrderRepository, times(1)).delete(anyString(), anyString());
             verify(apiCategoryOrderRepository, times(1)).delete(eq(API_ID), eq(OTHER_CATEGORY));
 
             verify(apiCategoryOrderRepository, times(1)).update(any());
@@ -501,7 +500,7 @@ public class ApiCategoryServiceImplTest {
             apiCategoryService.updateApiCategories(API_ID, null);
             verify(apiCategoryOrderRepository, never()).update(any());
             verify(apiCategoryOrderRepository, never()).create(any());
-            verify(apiCategoryOrderRepository, never()).delete(any(), any());
+            verify(apiCategoryOrderRepository, never()).delete(anyString(), anyString());
         }
     }
 
@@ -524,7 +523,7 @@ public class ApiCategoryServiceImplTest {
 
             apiCategoryService.deleteApiFromCategories(API_ID);
 
-            verify(apiCategoryOrderRepository, times(1)).delete(any(), any());
+            verify(apiCategoryOrderRepository, times(1)).delete(anyString(), anyString());
             verify(apiCategoryOrderRepository, times(1)).delete(eq(API_ID), eq(CATEGORY_ID));
 
             verify(apiCategoryOrderRepository, times(1)).update(any());
@@ -536,7 +535,7 @@ public class ApiCategoryServiceImplTest {
         void shouldDoNothingIfApiHadNoCategories() throws Exception {
             when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID))).thenReturn(Set.of());
             apiCategoryService.deleteApiFromCategories(API_ID);
-            verify(apiCategoryOrderRepository, never()).delete(any(), any());
+            verify(apiCategoryOrderRepository, never()).delete(anyString(), anyString());
             verify(apiCategoryOrderRepository, never()).update(any());
         }
     }

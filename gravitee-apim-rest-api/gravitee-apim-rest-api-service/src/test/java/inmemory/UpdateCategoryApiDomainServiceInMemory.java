@@ -15,21 +15,12 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.api.domain_service.ApiAuthorizationDomainService;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiQueryCriteria;
-import io.gravitee.apim.core.category.crud_service.CategoryApiCrudService;
 import io.gravitee.apim.core.category.domain_service.UpdateCategoryApiDomainService;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
-import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.NoArgsConstructor;
 
 public class UpdateCategoryApiDomainServiceInMemory implements UpdateCategoryApiDomainService, InMemoryAlternative<ApiCategoryOrder> {
 

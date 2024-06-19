@@ -20,7 +20,6 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import javax.sql.DataSource;
@@ -42,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTestRepositoryInitializer.class);
-    private static final List<String> tablesToTruncate = Arrays.asList(
+    private static final List<String> tablesToTruncate = List.of(
         "apis",
         "keys",
         "key_subscriptions",
@@ -140,10 +139,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "integrations",
         "api_category_orders"
     );
-    private static final List<String> tablesToDrop = concatenate(
-        tablesToTruncate,
-        Arrays.asList("databasechangelog", "databasechangeloglock")
-    );
+    private static final List<String> tablesToDrop = concatenate(tablesToTruncate, List.of("databasechangelog", "databasechangeloglock"));
     private final DataSource dataSource;
     private final String prefix;
     private final String rateLimitPrefix;
@@ -163,7 +159,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     }
 
     private static <T> List<T> concatenate(List<T> first, List<T> second) {
-        final List result = new ArrayList<>(first.size() + second.size());
+        final List<T> result = new ArrayList<>(first.size() + second.size());
         result.addAll(first);
         result.addAll(second);
         return result;

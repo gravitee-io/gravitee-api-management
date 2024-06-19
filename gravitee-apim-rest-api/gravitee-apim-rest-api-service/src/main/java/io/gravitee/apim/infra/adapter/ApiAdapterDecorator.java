@@ -64,6 +64,7 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     public FederatedApiEntity toFederatedApiEntity(Api source, PrimaryOwnerEntity primaryOwnerEntity) {
         var api = delegate.toFederatedApiEntity(source, primaryOwnerEntity);
         api.setOriginContext(toOriginContext(source));
+        api.setCategories(source.getCategories());
         return api;
     }
 

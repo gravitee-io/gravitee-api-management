@@ -24,8 +24,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 @DomainService
 public class ValidateFederatedApiDomainService {
 
-    GroupValidationService groupValidationService;
     private final CategoryDomainService categoryDomainService;
+    private final GroupValidationService groupValidationService;
 
     public ValidateFederatedApiDomainService(GroupValidationService groupValidationService, CategoryDomainService categoryDomainService) {
         this.groupValidationService = groupValidationService;

@@ -15,12 +15,11 @@
  */
 package io.gravitee.repository.management;
 
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchException;
 
 import io.gravitee.repository.management.model.ApiCategoryOrder;
-import io.gravitee.repository.management.model.Category;
-import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -39,28 +38,27 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
-    public void shouldFindAllByCategoryId() throws Exception {
+    public void shouldFindAllByCategoryId() {
         final Set<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findAllByCategoryId("category-1");
-        assertEquals(2, optionalCategory.size());
+        assertThat(optionalCategory).hasSize(2);
     }
 
     @Test
-    public void shouldFindAllByApiId() throws Exception {
+    public void shouldFindAllByApiId() {
         final Set<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findAllByApiId("api-1");
-        assertEquals(1, optionalCategory.size());
+        assertThat(optionalCategory).hasSize(1);
     }
 
     @Test
     public void shouldFindById() throws Exception {
         final Optional<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findById("api-2", "category-2");
-        assertTrue(optionalCategory.isPresent());
-        assertEquals(ApiCategoryOrder.builder().apiId("api-2").categoryId("category-2").order(0).build(), optionalCategory.get());
+        assertThat(optionalCategory).contains(ApiCategoryOrder.builder().apiId("api-2").categoryId("category-2").order(0).build());
     }
 
     @Test
     public void shouldFindAll() throws Exception {
         final Set<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findAll();
-        assertTrue(optionalCategory.size() >= 3);
+        assertThat(optionalCategory).hasSizeGreaterThanOrEqualTo(3);
     }
 
     @Test
@@ -80,12 +78,7 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
                 Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId())
             )
             .findFirst();
-        assertTrue("ApiCategoryOrder saved not found", optional.isPresent());
-
-        var savedApiCategoryOrder = optional.get();
-        Assert.assertEquals("Invalid saved category id.", apiCategoryOrder.getCategoryId(), savedApiCategoryOrder.getCategoryId());
-        Assert.assertEquals("Invalid saved api id.", apiCategoryOrder.getApiId(), savedApiCategoryOrder.getApiId());
-        Assert.assertEquals("Invalid saved order.", apiCategoryOrder.getOrder(), savedApiCategoryOrder.getOrder());
+        assertThat(optional).contains(apiCategoryOrder);
     }
 
     @Test
@@ -98,7 +91,7 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
                 Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
             )
             .findFirst();
-        assertTrue("ApiCategoryOrder saved not found", optional.isPresent());
+        assertThat(optional).isPresent();
 
         var apiCategoryOrder = optional.get();
         apiCategoryOrder.setOrder(99);
@@ -115,12 +108,7 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
                 Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
             )
             .findFirst();
-        assertTrue("ApiCategoryOrder saved not found", savedOptional.isPresent());
-
-        var updatedApiCategoryOrder = savedOptional.get();
-        Assert.assertEquals("Invalid saved category id.", apiCategoryOrder.getCategoryId(), updatedApiCategoryOrder.getCategoryId());
-        Assert.assertEquals("Invalid saved api id.", apiCategoryOrder.getApiId(), updatedApiCategoryOrder.getApiId());
-        Assert.assertEquals("Invalid saved order.", apiCategoryOrder.getOrder(), updatedApiCategoryOrder.getOrder());
+        assertThat(savedOptional).contains(apiCategoryOrder);
     }
 
     @Test
@@ -128,22 +116,21 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
         var apiCategoryOrder = ApiCategoryOrder.builder().apiId("api-4").categoryId("category-4").order(0).build();
         apiCategoryOrderRepository.create(apiCategoryOrder);
         int nbBeforeDeletion = apiCategoryOrderRepository.findAll().size();
-        apiCategoryOrderRepository.delete("api-4", "category-4");
-        int nbAfterDeletion = apiCategoryOrderRepository.findAll().size();
+        apiCategoryOrderRepository.delete("api-4", List.of("category-4"));
 
-        Assert.assertEquals(nbBeforeDeletion - 1, nbAfterDeletion);
+        assertThat(apiCategoryOrderRepository.findAll()).hasSize(nbBeforeDeletion - 1);
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldNotUpdateUnknownApiCategoryOrder() throws Exception {
+    @Test
+    public void shouldNotUpdateUnknownApiCategoryOrder() {
         var unknownCategory = ApiCategoryOrder.builder().categoryId("unknown").apiId("unknown").order(0).build();
-        apiCategoryOrderRepository.update(unknownCategory);
-        fail("An unknown ApiCategoryOrder should not be updated");
+        Exception exception = catchException(() -> apiCategoryOrderRepository.update(unknownCategory));
+        assertThat(exception).isInstanceOf(IllegalStateException.class);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        apiCategoryOrderRepository.update(null);
-        fail("A null ApiCategoryOrder should not be updated");
+        Exception exception = catchException(() -> apiCategoryOrderRepository.update(null));
+        assertThat(exception).isInstanceOf(IllegalStateException.class);
     }
 }

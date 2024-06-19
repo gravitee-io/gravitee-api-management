@@ -47,6 +47,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import java.time.Clock;
@@ -86,7 +87,8 @@ class UpdateDynamicPropertiesUseCaseTest {
     private final UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
     private final ApiEventQueryServiceInMemory apiEventQueryServiceInMemory = new ApiEventQueryServiceInMemory();
     CategoryMapper categoryMapper = mock(CategoryMapper.class);
-    CategoryDomainService categoryDomainService = new CategoryDomainServiceImpl(categoryMapper);
+    ApiCategoryOrderRepository apiCategoryOrderRepository = mock(ApiCategoryOrderRepository.class);
+    CategoryDomainService categoryDomainService = new CategoryDomainServiceImpl(categoryMapper, apiCategoryOrderRepository);
 
     private ApiStateDomainService apiStateDomainService;
 
@@ -219,8 +221,8 @@ class UpdateDynamicPropertiesUseCaseTest {
     @Nested
     class WhenApiIsNotSynchronized {
 
-        private ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-        private ArgumentCaptor<AuditInfo> auditInfoCaptor = ArgumentCaptor.forClass(AuditInfo.class);
+        private final ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+        private final ArgumentCaptor<AuditInfo> auditInfoCaptor = ArgumentCaptor.forClass(AuditInfo.class);
 
         @BeforeEach
         void setUp() {

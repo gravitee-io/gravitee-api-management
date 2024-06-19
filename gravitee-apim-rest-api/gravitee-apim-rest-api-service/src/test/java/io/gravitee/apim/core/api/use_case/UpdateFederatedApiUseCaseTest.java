@@ -47,13 +47,11 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
-import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -130,7 +128,8 @@ class UpdateFederatedApiUseCaseTest {
                     apiPrimaryOwnerService,
                     new ApiCategoryQueryServiceInMemory(),
                     indexer
-                )
+                ),
+                categoryDomainService
             );
     }
 
@@ -172,6 +171,7 @@ class UpdateFederatedApiUseCaseTest {
         String categoryId = "categoryId-1";
         categoryEntity.setId(categoryId);
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
+        when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of("key-1"));
 
         //when
         var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
@@ -182,7 +182,7 @@ class UpdateFederatedApiUseCaseTest {
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
-            assertThat(updatedApi.getCategories()).containsExactly(categoryId);
+            assertThat(updatedApi.getCategories()).containsExactly("key-1");
             assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
         });
     }
@@ -240,6 +240,7 @@ class UpdateFederatedApiUseCaseTest {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(categoryId);
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
+        when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of("key-1"));
 
         //when
         var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
@@ -250,7 +251,7 @@ class UpdateFederatedApiUseCaseTest {
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
-            assertThat(updatedApi.getCategories()).containsExactly(categoryId);
+            assertThat(updatedApi.getCategories()).containsExactly("key-1");
             assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
         });
     }
