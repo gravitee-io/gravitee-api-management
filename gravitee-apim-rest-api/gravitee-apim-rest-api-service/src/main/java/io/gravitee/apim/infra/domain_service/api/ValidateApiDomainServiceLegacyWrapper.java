@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -28,9 +29,11 @@ import org.springframework.stereotype.Service;
 public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainService {
 
     private final ApiValidationService apiValidationService;
+    private final CategoryDomainService categoryDomainService;
 
-    public ValidateApiDomainServiceLegacyWrapper(ApiValidationService apiValidationService) {
+    public ValidateApiDomainServiceLegacyWrapper(ApiValidationService apiValidationService, CategoryDomainService categoryDomainService) {
         this.apiValidationService = apiValidationService;
+        this.categoryDomainService = categoryDomainService;
     }
 
     @Override
@@ -40,6 +43,9 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             ApiAdapter.INSTANCE.toNewApiEntity(api),
             PrimaryOwnerAdapter.INSTANCE.toRestEntity(primaryOwner)
         );
+
+        api.setCategories(categoryDomainService.toCategoryId(api, environmentId));
+
         return api;
     }
 }

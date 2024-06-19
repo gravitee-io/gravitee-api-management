@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -49,19 +50,22 @@ public class UpdateDynamicPropertiesUseCase {
     private final EnvironmentCrudService environmentCrudService;
     private final AuditDomainService auditDomainService;
     private final ApiEventQueryService apiEventQueryService;
+    private final CategoryDomainService categoryDomainService;
 
     public UpdateDynamicPropertiesUseCase(
         ApiCrudService apiCrudService,
         ApiStateDomainService apiStateDomainService,
         EnvironmentCrudService environmentCrudService,
         AuditDomainService auditDomainService,
-        ApiEventQueryService apiEventQueryService
+        ApiEventQueryService apiEventQueryService,
+        CategoryDomainService categoryDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiStateDomainService = apiStateDomainService;
         this.environmentCrudService = environmentCrudService;
         this.auditDomainService = auditDomainService;
         this.apiEventQueryService = apiEventQueryService;
+        this.categoryDomainService = categoryDomainService;
     }
 
     public record Input(String apiId, String pluginId, List<Property> dynamicProperties) {}
@@ -75,6 +79,8 @@ public class UpdateDynamicPropertiesUseCase {
         if (!needToBeUpdated) {
             return;
         }
+
+        apiForUpdate.setCategories(categoryDomainService.toCategoryId(apiForUpdate, apiForUpdate.getEnvironmentId()));
 
         final Api updated = apiCrudService.update(apiForUpdate);
 
