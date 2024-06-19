@@ -39,37 +39,39 @@ public class LicenseFetcher {
     private final int bulkItems;
 
     public Flowable<List<License>> fetchLatest(Long from, Long to) {
-        return Flowable.generate(emitter -> {
-            LicensePageable licensePageable = LicensePageable
-                .builder()
-                .index(0)
-                .size(bulkItems)
-                .criteria(
-                    LicenseCriteria
-                        .builder()
-                        .referenceType(License.ReferenceType.ORGANIZATION)
-                        .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-                        .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-                        .build()
-                )
-                .build();
-
-            try {
-                Page<License> licenses = licenseRepository.findByCriteria(
-                    licensePageable.criteria,
-                    new PageableBuilder().pageNumber(licensePageable.index).pageSize(licensePageable.size).build()
-                );
-                if (licenses != null && !licenses.getContent().isEmpty()) {
-                    emitter.onNext(licenses.getContent());
-                    licensePageable.index++;
+        return Flowable.generate(
+            () ->
+                LicensePageable
+                    .builder()
+                    .index(0)
+                    .size(bulkItems)
+                    .criteria(
+                        LicenseCriteria
+                            .builder()
+                            .referenceType(License.ReferenceType.ORGANIZATION)
+                            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                            .build()
+                    )
+                    .build(),
+            (page, emitter) -> {
+                try {
+                    Page<License> licenses = licenseRepository.findByCriteria(
+                        page.criteria,
+                        new PageableBuilder().pageNumber(page.index).pageSize(page.size).build()
+                    );
+                    if (licenses != null && !licenses.getContent().isEmpty()) {
+                        emitter.onNext(licenses.getContent());
+                        page.index++;
+                    }
+                    if (licenses == null || licenses.getContent().size() < page.size) {
+                        emitter.onComplete();
+                    }
+                } catch (Exception e) {
+                    emitter.onError(e);
                 }
-                if (licenses == null || licenses.getContent().size() < licensePageable.size) {
-                    emitter.onComplete();
-                }
-            } catch (Exception e) {
-                emitter.onError(e);
             }
-        });
+        );
     }
 
     @Builder
