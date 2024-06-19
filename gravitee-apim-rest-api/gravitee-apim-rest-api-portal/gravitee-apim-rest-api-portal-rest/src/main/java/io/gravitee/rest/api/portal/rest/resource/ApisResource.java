@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -65,6 +66,9 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Inject
     private ParameterService parameterService;
 
+    @Inject
+    private GetCategoryApisUseCase getCategoryApisUseCase;
+
     @GET
     @Path("categories")
     @Produces(MediaType.APPLICATION_JSON)
@@ -84,7 +88,9 @@ public class ApisResource extends AbstractResource<Api, String> {
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<String> filteredApis = findApisForCurrentUser(executionContext, apisParam, createQueryFromParam(apisParam));
+        Collection<String> filteredApis = new ArrayList<>(
+            findApisForCurrentUser(executionContext, apisParam, createQueryFromParam(apisParam))
+        );
 
         if (!filteredApis.isEmpty() && apisParam.getPromoted() != null) {
             //By default, the promoted API is the first of the list;
@@ -203,12 +209,20 @@ public class ApisResource extends AbstractResource<Api, String> {
     }
 
     private Collection<String> findApisForCurrentUser(final ExecutionContext executionContext, ApisParam apisParam, ApiQuery apiQuery) {
-        return filteringService.filterApis(
-            executionContext,
-            getAuthenticatedUserOrNull(),
-            convert(apisParam.getFilter()),
-            convert(apisParam.getExcludedFilter()),
-            apiQuery
-        );
+        if (!apisParam.isCategoryMode()) {
+            return filteringService.filterApis(
+                executionContext,
+                getAuthenticatedUserOrNull(),
+                convert(apisParam.getFilter()),
+                convert(apisParam.getExcludedFilter()),
+                apiQuery
+            );
+        }
+        return getCategoryApisUseCase
+            .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUser(), false, true))
+            .results()
+            .stream()
+            .map(result -> result.api().getId())
+            .toList();
     }
 }

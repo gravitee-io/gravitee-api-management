@@ -98,7 +98,7 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
 
     @Override
     public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
-        LOGGER.error("Finding ApiCategoryOrder by ID [{}, {}]", apiId, categoryId);
+        LOGGER.debug("Finding ApiCategoryOrder by ID [{}, {}]", apiId, categoryId);
 
         return internalApiCategoryOrderRepo
             .findById(ApiCategoryOrderPkMongo.builder().categoryId(categoryId).apiId(apiId).build())
