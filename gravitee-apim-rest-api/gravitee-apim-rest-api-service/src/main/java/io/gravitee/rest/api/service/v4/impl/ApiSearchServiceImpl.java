@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -28,7 +27,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -132,7 +130,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     @Override
     public Set<GenericApiEntity> findGenericByEnvironmentAndIdIn(final ExecutionContext executionContext, final Set<String> apiIds) {
         if (apiIds.isEmpty()) {
-            return Collections.emptySet();
+            return Set.of();
         }
         ApiCriteria criteria = new ApiCriteria.Builder().ids(apiIds).environmentId(executionContext.getEnvironmentId()).build();
         List<Api> apisFound = apiRepository.search(criteria, ApiFieldFilter.allFields());
@@ -298,16 +296,16 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     private List<String> getApiIdPageSubset(Collection<String> ids, Pageable pageable) {
-        Integer numberOfItems = ids.size();
-        Integer numberOfItemPerPage = pageable.getPageSize();
+        int numberOfItems = ids.size();
+        int numberOfItemPerPage = pageable.getPageSize();
 
         if (numberOfItemPerPage == 0 || numberOfItems <= 0) {
             return new ArrayList<>();
         }
 
-        Integer currentPage = pageable.getPageNumber();
+        int currentPage = pageable.getPageNumber();
 
-        Integer startIndex = (currentPage - 1) * numberOfItemPerPage;
+        int startIndex = (currentPage - 1) * numberOfItemPerPage;
 
         if (startIndex >= numberOfItems || currentPage < 1) {
             throw new PaginationInvalidException();
@@ -330,7 +328,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         }
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = convert(apiQuery);
         if (excludeV4) {
-            searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V4.getLabel())));
+            searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, List.of(DefinitionVersion.V4.getLabel())));
         }
         Query<GenericApiEntity> searchEngineQuery = searchEngineQueryBuilder.build();
         if (isBlank(searchEngineQuery.getQuery())) {
@@ -430,7 +428,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     private Set<GenericApiEntity> toGenericApis(final ExecutionContext executionContext, final List<Api> apis) {
         if (apis == null || apis.isEmpty()) {
-            return Collections.emptySet();
+            return Set.of();
         }
         //find primary owners usernames of each apis
         final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());

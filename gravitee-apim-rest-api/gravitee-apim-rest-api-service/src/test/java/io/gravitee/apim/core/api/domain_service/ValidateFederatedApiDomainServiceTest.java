@@ -36,9 +36,9 @@ import org.junit.jupiter.params.provider.EnumSource;
 class ValidateFederatedApiDomainServiceTest {
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
 
     ValidateFederatedApiDomainService service;
-    CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
 
     @BeforeEach
     void setUp() {
