@@ -1,0 +1,39 @@
+suite: Test Gateway default configmap - Sync Service
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Enable sync service by default
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: " *sync: \n
+                     *  enabled: true"
+  - it: Disable sync service
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          sync:
+            enabled: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: " *sync: \n
+                     *  enabled: false"
+  - it: Enable sync service and set `delay` and `unit`
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          sync:
+            enabled: true
+            delay: 10000
+            unit: MILLISECONDS
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: " *sync: \n
+                     *  delay: 10000\n
+                     *  enabled: true\n
+                     *  unit: MILLISECONDS"

@@ -480,20 +480,20 @@ services:
   # and management UI
   sync:
     # Synchronization is done each 5 seconds
-    delay: 5000
-    unit: MILLISECONDS
-    repository:
-      enabled : true
-    distributed:
-      enabled : false # By enabling this mode, data synchronization process is distributed over clustered API gateways. You must configure distributed-sync repository.
-    bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, API Keys, ...).
+#    delay: 5000
+#    unit: MILLISECONDS
+#    repository:
+#      enabled : true
+#    distributed:
+#      enabled: false # By enabling this mode, data synchronization process is distributed over clustered API gateways. You must configure distributed-sync repository.
+#    bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, API Keys, ...).
 
      # [Alpha] Enable Kubernetes Synchronization
      # This sync service requires to install Gravitee Kubernetes Operator
 #    kubernetes:
 #      enabled: false
       # by default only the current namespace that the Gateway is running will be watched but you can watch "ALL" or a list
-      # of comma seprated namespaces "ns1,ns2,ns3" or an array of namespaces
+      # of comma separated namespaces "ns1,ns2,ns3" or an array of namespaces
 #      namespaces:
 #        - ALL
 #        - ns1

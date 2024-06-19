@@ -504,7 +504,13 @@ By setting the value to `null` for `runAsUser` and `runAsGroup` it forces OpenSh
 Install `unittest` helm plugin
 
 ```shell
-helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
+helm plugin install https://github.com/helm-unittest/helm-unittest --version 0.5.11
+```
+
+Alternatively you can update the already installed plugin by running
+
+```shell
+helm plugin update unittest
 ```
 
 Update dependencies
@@ -515,5 +521,5 @@ helm dependency update
 Inside `helm/` directory, run:
 
 ```shell
-helm unittest -3 -f 'tests/**/*_test.yaml' .
+helm unittest -f 'tests/**/*_test.yaml' .
 ```
