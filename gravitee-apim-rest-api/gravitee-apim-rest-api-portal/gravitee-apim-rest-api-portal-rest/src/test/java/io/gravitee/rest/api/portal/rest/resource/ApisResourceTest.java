@@ -24,6 +24,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import inmemory.ApiAuthorizationDomainServiceInMemory;
+import inmemory.ApiCategoryOrderQueryServiceInMemory;
+import inmemory.ApiCategoryQueryServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.category.model.ApiCategoryOrder;
+import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.apim.core.category.query_service.CategoryQueryService;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -52,12 +62,25 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApisResourceTest extends AbstractResourceTest {
+
+    @Autowired
+    private CategoryQueryServiceInMemory categoryQueryServiceInMemory;
+
+    @Autowired
+    private ApiCategoryOrderQueryServiceInMemory apiCategoryOrderQueryServiceInMemory;
+
+    @Autowired
+    private ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainServiceInMemory;
+
+    @Autowired
+    private ApiQueryServiceInMemory apiQueryServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -67,6 +90,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
+        prepareInMemoryServices();
 
         ApiEntity publishedApi1 = new ApiEntity();
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);
@@ -159,6 +183,79 @@ public class ApisResourceTest extends AbstractResourceTest {
             )
         )
             .thenReturn(true);
+    }
+
+    private void prepareInMemoryServices() {
+        categoryQueryServiceInMemory.reset();
+        apiCategoryOrderQueryServiceInMemory.reset();
+        apiAuthorizationDomainServiceInMemory.reset();
+        apiQueryServiceInMemory.reset();
+
+        final Category myCat = Category.builder().id("myCat").build();
+        categoryQueryServiceInMemory.initWith(List.of(myCat));
+        apiCategoryOrderQueryServiceInMemory.initWith(
+            List.of(
+                ApiCategoryOrder.builder().apiId("1").categoryId("myCat").build(),
+                ApiCategoryOrder.builder().apiId("3").categoryId("myCat").build(),
+                ApiCategoryOrder.builder().apiId("4").categoryId("myCat").build(),
+                ApiCategoryOrder.builder().apiId("5").categoryId("myCat").build(),
+                ApiCategoryOrder.builder().apiId("6").categoryId("myCat").build()
+            )
+        );
+        apiAuthorizationDomainServiceInMemory.initWith(
+            List.of(
+                Api
+                    .builder()
+                    .id("1")
+                    .name("1")
+                    .labels(List.of("label1", "label2"))
+                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                Api
+                    .builder()
+                    .id("3")
+                    .name("3")
+                    .labels(List.of("label1", "label2"))
+                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                Api
+                    .builder()
+                    .id("4")
+                    .name("4")
+                    .labels(List.of("label1", "label2", "label3"))
+                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                Api.builder().id("5").name("5").labels(List.of("label1")).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
+                Api.builder().id("6").name("6").apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build()
+            )
+        );
+        apiQueryServiceInMemory.initWith(
+            List.of(
+                Api
+                    .builder()
+                    .id("1")
+                    .name("1")
+                    .labels(List.of("label1", "label2"))
+                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                Api
+                    .builder()
+                    .id("3")
+                    .name("3")
+                    .labels(List.of("label1", "label2"))
+                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                Api
+                    .builder()
+                    .id("4")
+                    .name("4")
+                    .labels(List.of("label1", "label2", "label3"))
+                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                Api.builder().id("5").name("5").labels(List.of("label1")).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
+                Api.builder().id("6").name("6").apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build()
+            )
+        );
     }
 
     @Test
