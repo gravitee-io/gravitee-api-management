@@ -1258,7 +1258,9 @@ gateway:
         #     password: ""
 
     sync:
-      cron: "*/5 * * * * *"
+      enabled: true
+      #delay: 5000
+      #unit: MILLISECONDS
 
   # handlers:
   #   request:
