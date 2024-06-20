@@ -13,11 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface CustomUserField {
-  key: string;
-  label: string;
-  required?: boolean;
-  values?: string[];
+
+@use 'sass:map';
+@use '../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+@use '../../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+:host {
+  @include gio-layout.gio-responsive-margin-container;
 }
 
-export type CustomUserFields = CustomUserField[];
+.custom-fields {
+  .card-header-with-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .actions {
+    display: flex;
+  }
+}
+
+.mat-column-actions {
+  width: 1%;
+  padding: 0 4px;
+}

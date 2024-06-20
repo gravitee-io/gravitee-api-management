@@ -41,6 +41,7 @@ import { SharedPolicyGroupsComponent } from './shared-policy-groups/shared-polic
 import { SharedPolicyGroupStudioComponent } from './shared-policy-groups/shared-policy-group/shared-policy-group-studio/shared-policy-group-studio.component';
 import { SharedPolicyGroupComponent } from './shared-policy-groups/shared-policy-group/shared-policy-group.component';
 import { SharedPolicyGroupHistoryComponent } from './shared-policy-groups/shared-policy-group/shared-policy-group-history/shared-policy-group-history.component';
+import { CustomUserFieldsMigratedComponent } from './custom-user-fields/migrated/custom-user-fields-migrated.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -400,6 +401,16 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-custom-user-fields',
           },
+          permissions: {
+            anyOf: ['organization-custom_user_fields-r'],
+            unauthorizedFallbackTo: '../groups',
+          },
+        },
+      },
+      {
+        path: 'custom-user-fields-migrated',
+        component: CustomUserFieldsMigratedComponent,
+        data: {
           permissions: {
             anyOf: ['organization-custom_user_fields-r'],
             unauthorizedFallbackTo: '../groups',
