@@ -86,7 +86,7 @@ public class ApiListItem {
     @JsonProperty(value = "virtual_hosts")
     private List<VirtualHost> virtualHosts;
 
-    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
+    @Schema(description = "the list of category keys associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
     @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")

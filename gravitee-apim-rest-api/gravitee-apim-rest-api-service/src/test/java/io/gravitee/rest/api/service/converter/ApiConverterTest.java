@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -40,6 +41,9 @@ public class ApiConverterTest {
 
     @Mock
     ObjectMapper objectMapper;
+
+    @Mock
+    CategoryMapper categoryMapper;
 
     @Test
     public void toUpdateApiEntity_should_keep_crossId() {
@@ -70,6 +74,7 @@ public class ApiConverterTest {
         apiDefinition.setProxy(new Proxy());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
+        when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 
         ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
 
@@ -86,6 +91,7 @@ public class ApiConverterTest {
         apiDefinition.setProxy(new Proxy());
         apiDefinition.setFlows(null);
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
+        when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 
         ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
 
