@@ -22,19 +22,20 @@ import { catchError, map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { PlanCardComponent } from '../../../../components/subscribe/plan-card/plan-card.component';
-import { ApiUsageConfigurationRateOrQuota } from '../../../../entities/api/api';
+import { ApiUsageConfigurationRateOrQuota, getApiSecurityTypeLabel } from '../../../../entities/api/api';
 import { ApiService } from '../../../../services/api.service';
 
 export interface SubscriptionPlan {
-  validation?: string;
-  name?: string;
-  security?: string;
+  validation: string;
+  name: string;
+  security: string;
+  authentication: string;
   usageConfiguration: {
     rate_limit?: ApiUsageConfigurationRateOrQuota;
     quota?: ApiUsageConfigurationRateOrQuota;
   };
-  id?: string;
-  isDisabled?: boolean;
+  id: string;
+  isDisabled: boolean;
 }
 
 @Component({
@@ -69,7 +70,7 @@ export class SubscribeToApiChoosePlanComponent implements OnInit {
             if (plan.id === this.selectedPlan.value) {
               this.subscribeForm.controls['plan'].setValue(plan);
               this.subscribeForm.controls['step'].setValue(
-                this.subscribeForm.value.step + (this.skipNextStep(this.subscribeForm.value.plan.validation) ? 2 : 1),
+                this.subscribeForm.value.step + (this.skipNextStep(this.subscribeForm.value.plan.security) ? 2 : 1),
               );
             }
           });
@@ -79,7 +80,7 @@ export class SubscribeToApiChoosePlanComponent implements OnInit {
   }
 
   skipNextStep(authenticationType: string): boolean {
-    return authenticationType === 'AUTO';
+    return authenticationType === 'KEY_LESS';
   }
 
   loadPlans$(): Observable<SubscriptionPlan[]> {
@@ -89,10 +90,11 @@ export class SubscribeToApiChoosePlanComponent implements OnInit {
           return response.data.map(plan => ({
             validation: plan.validation,
             name: plan.name,
+            authentication: getApiSecurityTypeLabel(plan.security ?? ''),
             security: plan.security,
             usageConfiguration: plan.usage_configuration,
             id: plan.id,
-            isDisabled: plan.validation !== 'AUTO',
+            isDisabled: plan.security !== 'KEY_LESS',
           }));
         } else return [];
       }),

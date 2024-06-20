@@ -33,18 +33,16 @@
     <mat-card-content>
       <div class="m3-body-medium">Plan includes:</div>
       <ul class="plan-card__content">
-        <li class="m3-body-medium">Authentication: {{ card.validation }}</li>
+        <li class="m3-body-medium">Authentication: {{ card.authentication }}</li>
         @if (card.usageConfiguration.quota) {
           <li class="m3-body-medium">
-            Quota: up to {{ card.usageConfiguration.quota.limit }} hits /{{
-              card.usageConfiguration.quota.period_time_unit | toPeriodTimeUnitLabelPipe
-            }}
+            Quota: up to {{ card.usageConfiguration.quota.limit }} hits / {{ card.usageConfiguration.quota | toPeriodTimeUnitLabelPipe }}
           </li>
         }
         @if (card.usageConfiguration.rate_limit) {
           <li class="m3-body-medium">
-            Rate limit: up to {{ card.usageConfiguration.rate_limit.limit }} hits /
-            {{ card.usageConfiguration.rate_limit.period_time_unit | toPeriodTimeUnitLabelPipe }}
+            Rate-limit: up to {{ card.usageConfiguration.rate_limit.limit }} hits /
+            {{ card.usageConfiguration.rate_limit | toPeriodTimeUnitLabelPipe }}
           </li>
         }
       </ul>

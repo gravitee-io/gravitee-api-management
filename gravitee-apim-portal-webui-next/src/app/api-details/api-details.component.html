@@ -30,7 +30,7 @@
         i18n="@@logInOrSignUpToSubscribe"
         mat-flat-button
         class="api-details__header-button secondary-button">
-        Log in to subscribe
+        {{ isAuthenticated() ? 'Subscribe' : 'Log in to subscribe' }}
       </button>
     </div>
     @if (api.description) {
