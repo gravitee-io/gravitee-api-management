@@ -17,21 +17,43 @@ package io.gravitee.apim.core.api.use_case;
 
 import static io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase.DEFAULT_IMPORT_PAGE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import fixtures.core.model.AuditInfoFixtures;
+import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
+import inmemory.ApiCategoryQueryServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.tag.model.Tag;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.plugin.EndpointConnectorPluginLegacyWrapper;
+import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -49,13 +71,19 @@ class OAIToImportApiUseCaseTest {
     private static final String SHARED_CONFIGURATION = """
         { "description": "this is a dumb shared configuration" }
     """;
+    private static final String USER_ID = "user-id";
+    private static final String USER_EMAIL = "jane.doe@gravitee.io";
+    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
     private final OAIDomainServiceImpl oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager);
     private final EndpointConnectorPluginLegacyWrapper endpointConnectorPluginService = mock(EndpointConnectorPluginLegacyWrapper.class);
     private OAIToImportApiUseCase useCase;
+    ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
+        importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
         var groupQueryService = new GroupQueryServiceInMemory();
         groupQueryService.initWith(List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build()));
         var tagQueryService = new TagQueryServiceInMemory();
@@ -67,7 +95,38 @@ class OAIToImportApiUseCaseTest {
 
         when(endpointConnectorPluginService.getSharedConfigurationSchema(anyString())).thenReturn(SHARED_CONFIGURATION);
 
-        useCase = new OAIToImportApiUseCase(oaiDomainService, groupQueryService, tagQueryService, endpointConnectorPluginService);
+        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.API_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name()
+                ),
+                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
+        );
+        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build())
+        );
+        when(
+            importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        )
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        useCase =
+            new OAIToImportApiUseCase(
+                oaiDomainService,
+                groupQueryService,
+                tagQueryService,
+                endpointConnectorPluginService,
+                importDefinitionCreateDomainServiceTestInitializer.initialize()
+            );
     }
 
     @Test
@@ -79,19 +138,14 @@ class OAIToImportApiUseCaseTest {
         importSwaggerDescriptor.setPayload(Resources.toString(resource, Charsets.UTF_8));
 
         // When
-        var output = useCase.execute(
-            new OAIToImportApiUseCase.Input(
-                importSwaggerDescriptor,
-                AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
-            )
-        );
+        var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
 
         // Then
         assertThat(output).isNotNull();
 
-        var importDefinition = output.importDefinition();
+        var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getApiExport().getGroups()).containsExactly("1");
+        assertThat(importDefinition.getGroups()).containsExactly("1");
     }
 
     @Test
@@ -103,19 +157,14 @@ class OAIToImportApiUseCaseTest {
         importSwaggerDescriptor.setPayload(Resources.toString(resource, Charsets.UTF_8));
 
         // When
-        var output = useCase.execute(
-            new OAIToImportApiUseCase.Input(
-                importSwaggerDescriptor,
-                AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
-            )
-        );
+        var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
 
         // Then
         assertThat(output).isNotNull();
 
-        var importDefinition = output.importDefinition();
+        var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getApiExport().getTags()).containsExactly("1");
+        assertThat(importDefinition.getTags()).containsExactly("1");
     }
 
     @Test
@@ -127,19 +176,14 @@ class OAIToImportApiUseCaseTest {
         importSwaggerDescriptor.setPayload(Resources.toString(resource, Charsets.UTF_8));
 
         // When
-        var output = useCase.execute(
-            new OAIToImportApiUseCase.Input(
-                importSwaggerDescriptor,
-                AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
-            )
-        );
+        var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
 
         // Then
         assertThat(output).isNotNull();
 
-        var importDefinition = output.importDefinition();
+        var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getApiExport().getEndpointGroups())
+        assertThat(importDefinition.getApiDefinitionV4().getEndpointGroups())
             .hasSize(1)
             .extracting(EndpointGroup::getSharedConfiguration)
             .containsExactly(SHARED_CONFIGURATION);
@@ -159,23 +203,18 @@ class OAIToImportApiUseCaseTest {
             importSwaggerDescriptor.setWithDocumentation(true);
 
             // When
-            var output = useCase.execute(
-                new OAIToImportApiUseCase.Input(
-                    importSwaggerDescriptor,
-                    AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
-                )
-            );
+            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
 
             // Then
             assertThat(output).isNotNull();
 
-            var importDefinition = output.importDefinition();
+            var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
-            assertThat(importDefinition.getPages())
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
                 .hasSize(1)
                 .first()
                 .satisfies(page -> {
-                    assertThat(page.getReferenceId()).isEqualTo(output.importDefinition().getApiExport().getId());
+                    assertThat(page.getReferenceId()).isEqualTo(output.apiWithFlows().getId());
                     assertThat(page.getName()).isEqualTo(DEFAULT_IMPORT_PAGE_NAME);
                     assertThat(page.getContent()).isEqualTo(openApiAsString);
                 });
@@ -192,19 +231,14 @@ class OAIToImportApiUseCaseTest {
             importSwaggerDescriptor.setWithDocumentation(false);
 
             // When
-            var output = useCase.execute(
-                new OAIToImportApiUseCase.Input(
-                    importSwaggerDescriptor,
-                    AuditInfo.builder().organizationId(ORGANIZATION_ID).environmentId(ENVIRONMENT_ID).build()
-                )
-            );
+            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
 
             // Then
             assertThat(output).isNotNull();
 
-            var importDefinition = output.importDefinition();
+            var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
-            assertThat(importDefinition.getPages()).isNull();
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage()).isEmpty();
         }
     }
 }
