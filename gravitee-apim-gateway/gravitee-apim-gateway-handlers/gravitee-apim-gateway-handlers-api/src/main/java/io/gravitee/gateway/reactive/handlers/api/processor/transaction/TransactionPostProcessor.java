@@ -65,12 +65,14 @@ public class TransactionPostProcessor implements Processor {
         String backendHeaderValue = responseHeaders.get(headerName);
 
         if (headerOverrideMode == TransactionHeaderOverrideMode.OVERRIDE) {
-            responseHeaders.set(headerName, requestHeaderValue);
+            if (requestHeaderValue != null) {
+                responseHeaders.set(headerName, requestHeaderValue);
+            }
         } else if (headerOverrideMode == TransactionHeaderOverrideMode.MERGE) {
             if (requestHeaderValue != null && !requestHeaderValue.equals(backendHeaderValue)) {
                 responseHeaders.add(headerName, requestHeaderValue);
             }
-        } else if (headerOverrideMode == TransactionHeaderOverrideMode.KEEP) {
+        } else if (headerOverrideMode == TransactionHeaderOverrideMode.KEEP && backendHeaderValue != null) {
             responseHeaders.set(headerName, backendHeaderValue);
         }
     }
