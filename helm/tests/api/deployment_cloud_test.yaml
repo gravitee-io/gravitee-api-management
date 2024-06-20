@@ -22,8 +22,8 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].name
+          path: spec.template.spec.containers[0].volumeMounts[1].name
           value: gravitee-cloud-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/cloud
