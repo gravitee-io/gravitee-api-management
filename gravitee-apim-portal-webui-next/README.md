@@ -4,7 +4,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Development server
 
-Run `yarn start` for a dev server. Navigate to `http://localhost:4101/`. The application will automatically reload if you change any of the source files.
+Run `yarn serve` for a dev server. Navigate to `http://localhost:4101/`. The application will automatically reload if you change any of the source files.
 
 ## Code scaffolding
 
