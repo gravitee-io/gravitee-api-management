@@ -682,7 +682,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return apis
             .getContent()
             .stream()
-            .map(api -> genericApiMapper.toGenericApi(api, null))
+            .map(api -> {
+                PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+                return genericApiMapper.toGenericApi(api, PrimaryOwnerEntity.builder().id(primaryOwner.getId()).build());
+            })
             .collect(
                 Collectors.collectingAndThen(
                     Collectors.toList(),
