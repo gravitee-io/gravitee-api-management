@@ -382,8 +382,7 @@
         <mat-card class="portal__form__card">
           <mat-card-content formGroupName="portalNext">
             <gio-banner-info>
-              This feature is a tech preview. Gravitee provides limited support for tech preview features and they are generally not
-              recommended for production use.
+              {{ integrationsService.bannerMessages.techPreview }}
             </gio-banner-info>
             <gio-form-slide-toggle formGroupName="access" class="portal__form__card__form-field">
               <gio-form-label>Enable the New Developer Portal</gio-form-label>
