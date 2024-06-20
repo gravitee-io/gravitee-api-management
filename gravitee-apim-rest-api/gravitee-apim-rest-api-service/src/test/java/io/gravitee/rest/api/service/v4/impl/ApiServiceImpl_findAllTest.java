@@ -279,6 +279,8 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
+        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString())).thenReturn(mock(PrimaryOwnerEntity.class));
+
         when(
             apiRepository.search(
                 eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
@@ -314,7 +316,13 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
+<<<<<<< HEAD
         when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
+=======
+        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString())).thenReturn(mock(PrimaryOwnerEntity.class));
+
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+>>>>>>> 797b9705f0 (fix(apis): Add expand flag to get the primaryOwner while retrieving list of APIs)
             .thenReturn(Set.of("API_1"));
 
         when(
