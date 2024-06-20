@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApiWorkflowStateService apiWorkflowStateService;
+
+    @Autowired
+    protected PrimaryOwnerService primaryOwnerService;
 
     @Before
     public void setUp() {

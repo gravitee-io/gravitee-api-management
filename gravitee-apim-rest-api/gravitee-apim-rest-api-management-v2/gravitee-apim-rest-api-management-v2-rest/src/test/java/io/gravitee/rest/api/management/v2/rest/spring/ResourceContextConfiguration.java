@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -194,5 +195,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiWorkflowStateService apiWorkflowStateService() {
         return mock(ApiWorkflowStateService.class);
+    }
+
+    @Bean
+    public PrimaryOwnerService primaryOwnerService() {
+        return mock(PrimaryOwnerService.class);
     }
 }
