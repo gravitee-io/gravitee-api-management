@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface CustomUserField {
-  key: string;
-  label: string;
-  required?: boolean;
-  values?: string[];
-}
 
-export type CustomUserFields = CustomUserField[];
+import { CustomUserField } from '../customUserFields';
+
+export function fakeCustomUserField(attributes?: Partial<CustomUserField>): CustomUserField {
+  const base: CustomUserField = {
+    key: 'test-key',
+    label: 'test-label',
+    required: true,
+    values: ['test value'],
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+}

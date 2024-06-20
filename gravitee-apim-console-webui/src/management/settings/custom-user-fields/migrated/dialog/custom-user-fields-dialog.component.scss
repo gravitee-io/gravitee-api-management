@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface CustomUserField {
-  key: string;
-  label: string;
-  required?: boolean;
-  values?: string[];
-}
 
-export type CustomUserFields = CustomUserField[];
+.form-fields {
+  display: flex;
+  flex-direction: column;
+}
