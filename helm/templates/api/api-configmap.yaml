@@ -523,6 +523,7 @@ data:
     {{- if .Values.api.api }}
     api: {{- toYaml .Values.api.api | nindent 6 -}}
     {{- end}}
+    {{- end }}
     # External Authentication
     {{- if .Values.api.auth }}
     auth:
@@ -532,60 +533,6 @@ data:
     {{- if .Values.cloud.enabled }}
     cloud:
     {{- toYaml .Values.cloud | nindent 6 -}}
-    {{- end }}
-    {{- if .Values.api.federation.enabled }}
-    cluster:
-      type: hazelcast
-      hazelcast:
-        config-path: "${gravitee.home}/config/hazelcast.xml"
-    cache:
-      type: hazelcast
-      hazelcast:
-        config-path: "${gravitee.home}/config/hazelcast.xml"
-    {{- end }}
-    {{- end }}
-
-    {{- if .Values.api.federation.enabled }}
-  hazelcast.xml: |-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://www.hazelcast.com/schema/config
-               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
-        <cluster-name>graviteeio-api-cluster</cluster-name>
-        <properties>
-            <property name="hazelcast.discovery.enabled">true</property>
-            <property name="hazelcast.max.wait.seconds.before.join">3</property>
-            <property name="hazelcast.member.list.publish.interval.seconds">5</property>
-            <property name="hazelcast.socket.client.bind.any">false</property>
-            <property name="hazelcast.logging.type">slf4j</property>
-        </properties>
-
-        <queue name="integration-cluster-command-*">
-            <backup-count>0</backup-count>
-            <async-backup-count>1</async-backup-count>
-        </queue>
-
-        <map name="integration-controller-primary-channel-candidate">
-            <backup-count>0</backup-count>
-            <async-backup-count>1</async-backup-count>
-        </map>
-
-        <cp-subsystem>
-            <cp-member-count>0</cp-member-count>
-        </cp-subsystem>
-
-        <network>
-            <join>
-                <multicast enabled="false"/>
-                <tcp-ip enabled="false"/>
-                <kubernetes enabled="true">
-                    <namespace>{{ .Release.Namespace }}</namespace>
-                    <service-name>{{ template "gravitee.api.fullname" . }}</service-name>
-                </kubernetes>
-            </join>
-        </network>
-    </hazelcast>
     {{- end }}
 
     {{- if .Values.api.logging.debug }}
