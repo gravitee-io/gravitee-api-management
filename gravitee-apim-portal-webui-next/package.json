@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "start:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev yarn start",
+    "serve": "ng serve",
+    "serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev yarn serve",
     "build": "ng build",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=8192 ng build --configuration production",
     "build:i18n": "yarn build:prod --localize",
