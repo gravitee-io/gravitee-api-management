@@ -15,23 +15,18 @@
  */
 import { Pipe, PipeTransform } from '@angular/core';
 
+import { ApiUsageConfigurationRateOrQuota } from '../entities/api/api';
+
 @Pipe({
   name: 'toPeriodTimeUnitLabelPipe',
   standalone: true,
 })
 export class ToPeriodTimeUnitLabelPipePipe implements PipeTransform {
-  transform(value: string): string {
-    switch (value) {
-      case 'MONTHS':
-        return 'month';
-      case 'SECONDS':
-        return 'second';
-      case 'MINUTES':
-        return 'minutes';
-      case 'DAYS':
-        return 'day';
-      default:
-        return '';
+  transform(value: ApiUsageConfigurationRateOrQuota): string {
+    if (value.period_time === 1) {
+      return `${value.period_time_unit.slice(0, -1).toLowerCase()}`;
+    } else {
+      return `${value.period_time} ${value.period_time_unit.toLowerCase()}`;
     }
   }
 }

@@ -63,8 +63,8 @@ export interface Api {
    * Last update date and time.
    */
   updated_at?: Date;
-  security?: ApiSecurityTypeEnum;
-  validation?: string;
+  security: ApiSecurityTypeEnum;
+  validation: string;
   usage_configuration: ApiUsageConfiguration;
   /**
    * List of categories this API belongs to.
@@ -73,7 +73,22 @@ export interface Api {
   _links?: ApiLinks;
 }
 
-export type ApiSecurityTypeEnum = 'JWT' | 'OAUTH2' | 'API_KEY';
+export type ApiSecurityTypeEnum = 'JWT' | 'OAUTH2' | 'API_KEY' | 'KEY_LESS';
+
+export const getApiSecurityTypeLabel = (securityType: string) => {
+  switch (securityType) {
+    case 'OAUTH2':
+      return 'OAuth2';
+    case 'JWT':
+      return 'JWT';
+    case 'API_KEY':
+      return 'Api Key';
+    case 'KEY_LESS':
+      return 'Keyless';
+    default:
+      return '';
+  }
+};
 
 export interface ApiUsageConfiguration {
   rate_limit?: ApiUsageConfigurationRateOrQuota;
@@ -81,7 +96,7 @@ export interface ApiUsageConfiguration {
 }
 
 export interface ApiUsageConfigurationRateOrQuota {
-  period_time: string;
+  period_time: number;
   period_time_unit: string;
   limit: number;
 }

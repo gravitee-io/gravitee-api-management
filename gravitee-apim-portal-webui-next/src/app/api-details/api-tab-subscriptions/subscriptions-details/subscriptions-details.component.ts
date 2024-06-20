@@ -28,6 +28,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { getApiSecurityTypeLabel } from '../../../../entities/api/api';
 import { SubscriptionMetadata } from '../../../../entities/subscription/subscription';
 import { CapitalizeFirstPipe } from '../../../../pipe/capitalize-first.pipe';
 import { ApiService } from '../../../../services/api.service';
@@ -129,7 +130,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           application: this.retrieveMetadataName(<string>selectedSubscription?.application, list.metadata),
           plan: this.retrieveMetadataName(<string>selectedSubscription?.plan, list.metadata),
           security: selectedApi?.security,
-          authentication: this.getAuthenticationType(<string>selectedApi?.security),
+          authentication: getApiSecurityTypeLabel(<string>selectedApi?.security),
           status: <string>details.status,
         };
 
@@ -171,18 +172,5 @@ export class SubscriptionsDetailsComponent implements OnInit {
   private formatCurlCommandLine(url: string, header: string): string {
     const headersFormatted = `--header "${this.configService.baseURL}: ${header}" \\`;
     return `curl ${headersFormatted} ${url}`;
-  }
-
-  private getAuthenticationType(authentication: string) {
-    switch (authentication) {
-      case 'OAUTH2':
-        return 'OAuth2';
-      case 'JWT':
-        return 'JWT';
-      case 'API_KEY':
-        return 'Api Key';
-      default:
-        return '';
-    }
   }
 }
