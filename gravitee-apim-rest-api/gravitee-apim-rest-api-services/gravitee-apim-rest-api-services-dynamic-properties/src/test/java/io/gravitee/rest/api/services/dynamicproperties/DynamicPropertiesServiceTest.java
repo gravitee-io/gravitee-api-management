@@ -41,6 +41,7 @@ import io.vertx.core.Vertx;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;

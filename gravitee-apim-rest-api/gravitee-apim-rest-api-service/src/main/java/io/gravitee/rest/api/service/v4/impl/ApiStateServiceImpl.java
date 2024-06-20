@@ -397,7 +397,6 @@ public class ApiStateServiceImpl implements ApiStateService {
                             executionContext,
                             payloadEntity,
                             null,
-                            null,
                             false
                         );
 
@@ -419,7 +418,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                             );
                     } else {
                         ApiEntity apiEntity = (ApiEntity) genericApiEntity;
-                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, null, null, false);
+                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, null, false);
 
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, apiEntity);
                     }
