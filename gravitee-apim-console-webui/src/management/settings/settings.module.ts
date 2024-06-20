@@ -15,8 +15,22 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioBreadcrumbModule, GioFormSlideToggleModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
+import { MatSortModule } from '@angular/material/sort';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell, MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef, MatNoDataRow, MatRow, MatRowDef, MatTable
+} from '@angular/material/table';
+import { MatIcon } from '@angular/material/icon';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
@@ -31,6 +45,7 @@ import { ApiLoggingModule } from './api-logging/api-logging.module';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
+import { CustomUserFieldsMigratedComponent } from './custom-user-fields/migrated/custom-user-fields-migrated.component';
 import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesModule } from './api-quality-rules/api-quality-rules.module';
 import { ApiPortalHeaderModule } from './api-portal-header/api-portal-header.module';
@@ -40,6 +55,8 @@ import { TopApisModule } from './top-apis/top-apis.module';
 import { CategoriesModule } from './categories/categories.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   imports: [
@@ -59,6 +76,31 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     PortalSettingsModule,
     ApiPortalHeaderModule,
     CategoriesModule,
+    GioFormSlideToggleModule,
+    GioPermissionModule,
+    MatButton,
+    MatCard,
+    MatCardContent,
+    MatCardHeader,
+    MatCardSubtitle,
+    MatCardTitle,
+    MatCell,
+    MatCellDef,
+    MatColumnDef,
+    MatHeaderCell,
+    MatHeaderRow,
+    MatHeaderRowDef,
+    MatIcon,
+    MatIconButton,
+    MatRow,
+    MatRowDef,
+    MatSlideToggle,
+    MatTable,
+    MatTooltip,
+    MatHeaderCellDef,
+    MatNoDataRow,
+    MatSortModule,
+    GioTableWrapperModule
   ],
   declarations: [
     SettingsNavigationComponent,
@@ -70,6 +112,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     DictionariesComponent,
     DictionaryComponent,
     CustomUserFieldsComponent,
+    CustomUserFieldsMigratedComponent,
   ],
 })
 export class SettingsModule {}

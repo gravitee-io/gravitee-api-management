@@ -1,0 +1,14 @@
+.form-fields {
+  display: flex;
+  flex-direction: column;
+
+  mat-form-field {
+    flex: 1 1 100%;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: end;
+  padding: 0 24px 20px;
+}

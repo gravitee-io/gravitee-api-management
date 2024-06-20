@@ -1,0 +1,80 @@
+<div class="dialog-title">
+  <span mat-dialog-title>{{customUserFieldsDialogData.action}} user field</span>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="save()">
+  <mat-dialog-content class="form-fields">
+    <mat-form-field appearance="outline" class="form-field">
+      <input
+        id="key"
+        type="text"
+        matInput
+        formControlName="key"
+        required="true"
+        data-testid="key-input"
+      />
+      <mat-label>Key</mat-label>
+      <mat-error *ngIf="form.get('key').hasError('required')">Key is required.</mat-error>
+      <mat-error *ngIf="form.get('key').hasError('maxlength')"
+      >Key can not exceed 50 characters.</mat-error
+      >
+      <mat-error *ngIf="form.get('key').hasError('minlength')"
+      >Key has to be at least 1 characters long.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-field">
+      <input
+        id="label"
+        type="text"
+        matInput
+        formControlName="label"
+        required="true"
+        data-testid="label-input"
+      />
+      <mat-label>Label</mat-label>
+      <mat-error *ngIf="form.get('label').hasError('required')">Label is required.</mat-error>
+      <mat-error *ngIf="form.get('label').hasError('maxlength')"
+      >Label length can not exceed 50 characters.</mat-error
+      >
+      <mat-error *ngIf="form.get('label').hasError('minlength')"
+      >Label has to be at least 1 characters long.
+      </mat-error>
+    </mat-form-field>
+
+    <gio-form-slide-toggle>
+      <gio-form-label>Required</gio-form-label>
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="required"
+        aria-label="Required"
+        name="required"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Values</mat-label>
+      <gio-form-tags-input
+        placeholder="Type value and confirm with enter."
+        formControlName="values"
+      ></gio-form-tags-input>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="onClose()" data-testid="metadata_dialog_cancel">
+      Cancel
+    </button>
+
+    <button
+      [disabled]="this.form.invalid || this.form.pristine"
+      mat-raised-button
+      type="submit"
+      color="primary"
+      data-testid="metadata_dialog_save"
+    >
+      Save
+    </button>
+
+  </mat-dialog-actions>
+</form>
