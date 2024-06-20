@@ -63,6 +63,7 @@ import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
@@ -288,16 +289,18 @@ class ImportApiDefinitionUseCaseTest {
         useCase =
             new ImportApiDefinitionUseCase(
                 apiCrudService,
-                apiImportDomainService,
-                apiPrimaryOwnerFactory,
-                createApiDomainService,
-                validateApiDomainService,
-                apiMetadataDomainService,
-                createPlanDomainService,
-                createApiDocumentationDomainService,
-                apiIdsCalculatorDomainService,
-                metadataCrudService,
-                documentationValidationDomainService
+                new ImportDefinitionCreateDomainService(
+                    apiImportDomainService,
+                    apiPrimaryOwnerFactory,
+                    createApiDomainService,
+                    validateApiDomainService,
+                    apiMetadataDomainService,
+                    createPlanDomainService,
+                    createApiDocumentationDomainService,
+                    apiIdsCalculatorDomainService,
+                    metadataCrudService,
+                    documentationValidationDomainService
+                )
             );
 
         parametersQueryService.initWith(
@@ -667,7 +670,7 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(apiImportDomainService, times(1)).createPageAndMedia(eq(mediaList), eq(API_ID));
+            verify(apiImportDomainService, times(1)).createPageAndMedia(mediaList, API_ID);
         }
 
         @Test
@@ -689,7 +692,7 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(apiImportDomainService, times(1)).createMembers(eq(members), eq(API_ID));
+            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
     }
 
