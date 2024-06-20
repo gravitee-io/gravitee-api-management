@@ -27,6 +27,7 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
 import { Constants } from '../../../entities/Constants';
+import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
 interface PortalForm {
   company: FormGroup<{
@@ -179,6 +180,7 @@ export class PortalSettingsComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly licenseService: GioLicenseService,
+    public readonly integrationsService: IntegrationsService,
     @Inject(Constants) public readonly constants: Constants,
   ) {}
 
