@@ -24,14 +24,15 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.License;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -52,11 +53,15 @@ class LicenseFetcherTest {
     @Mock
     private LicenseRepository licenseRepository;
 
+    @Mock
+    private Node node;
+
     private LicenseFetcher cut;
 
     @BeforeEach
     public void beforeEach() {
-        cut = new LicenseFetcher(licenseRepository, 1);
+        when(node.metadata()).thenReturn(Map.of());
+        cut = new LicenseFetcher(licenseRepository, 1, node);
     }
 
     @Test
@@ -68,7 +73,7 @@ class LicenseFetcherTest {
 
     @Test
     void should_fetch_license_and_complete_if_page_size_is_higher_than_results() throws TechnicalException {
-        cut = new LicenseFetcher(licenseRepository, 10);
+        cut = new LicenseFetcher(licenseRepository, 10, node);
         License license = new License();
         when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
         cut.fetchLatest(null, null).test().assertValueCount(1).assertValue(events -> events.contains(license)).assertComplete();
@@ -76,6 +81,8 @@ class LicenseFetcherTest {
 
     @Test
     void should_fetch_license_with_criteria() throws TechnicalException {
+        when(node.metadata()).thenReturn(Map.of(Node.META_ORGANIZATIONS, Set.of("orga-id")));
+        cut = new LicenseFetcher(licenseRepository, 1, node);
         Instant to = Instant.now();
         Instant from = to.minus(1000, ChronoUnit.MILLIS);
         License license = new License();
@@ -83,6 +90,7 @@ class LicenseFetcherTest {
             licenseRepository.findByCriteria(
                 argThat(argument ->
                     argument.getReferenceType() == License.ReferenceType.ORGANIZATION &&
+                    argument.getReferenceIds().contains("orga-id") &&
                     argument.getFrom() < from.toEpochMilli() &&
                     argument.getTo() > to.toEpochMilli()
                 ),

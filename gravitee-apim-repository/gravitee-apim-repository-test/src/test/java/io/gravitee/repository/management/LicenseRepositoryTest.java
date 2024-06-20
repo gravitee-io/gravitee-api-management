@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.License;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 
 public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
@@ -123,7 +124,11 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByReferenceTypeAndId() throws Exception {
         final Collection<License> licenses = licenseRepository
             .findByCriteria(
-                LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).referenceId("cockpitId-org-find-by-id").build(),
+                LicenseCriteria
+                    .builder()
+                    .referenceType(License.ReferenceType.ORGANIZATION)
+                    .referenceIds(Set.of("cockpitId-org-find-by-id"))
+                    .build(),
                 new PageableBuilder().pageSize(50).pageNumber(0).build()
             )
             .getContent();

@@ -145,10 +145,10 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
                 args.add(filter.getReferenceType().name());
             }
 
-            if (filter.getReferenceId() != null && !filter.getReferenceId().isEmpty()) {
+            if (filter.getReferenceIds() != null && !filter.getReferenceIds().isEmpty()) {
                 first = addClause(first, query);
-                query.append("reference_id = ?");
-                args.add(filter.getReferenceId());
+                query.append(" ( reference_id in ( ").append(getOrm().buildInClause(filter.getReferenceIds())).append(" ) )");
+                args.addAll(filter.getReferenceIds());
             }
 
             if (filter.getFrom() > 0) {
