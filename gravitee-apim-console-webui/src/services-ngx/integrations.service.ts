@@ -38,8 +38,7 @@ export class IntegrationsService {
   private currentIntegration$: BehaviorSubject<Integration> = new BehaviorSubject<Integration>(null);
 
   public readonly bannerMessages = {
-    techPreview:
-      'This feature is a tech preview. Gravitee provides limited support for tech preview features and they are subject to change.',
+    techPreview: `This tech preview feature is new! We're gathering feedback on it to make it even better, so it may change as we make improvements.`,
     agentDisconnected: 'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
   };
 
