@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.license;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
@@ -25,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom {
@@ -40,8 +42,8 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
             query.addCriteria(where("_id.referenceType").is(filter.getReferenceType().name()));
         }
 
-        if (filter.getReferenceId() != null && !filter.getReferenceId().isEmpty()) {
-            query.addCriteria(where("_id.referenceId").is(filter.getReferenceId()));
+        if (!isEmpty(filter.getReferenceIds())) {
+            query.addCriteria(where("_id.referenceId").in(filter.getReferenceIds()));
         }
 
         if (filter.getFrom() > 0 && filter.getTo() > 0) {

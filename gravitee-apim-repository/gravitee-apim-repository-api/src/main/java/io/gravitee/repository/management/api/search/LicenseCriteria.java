@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.License;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,5 +36,5 @@ public class LicenseCriteria {
 
     private final License.ReferenceType referenceType;
 
-    private final String referenceId;
+    private final Set<String> referenceIds;
 }
