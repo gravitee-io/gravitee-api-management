@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.4.0
-appVersion: 4.4.0
+version: 4.4.1
+appVersion: 4.4.1
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -18,13 +18,4 @@ kubeVersion: ">=1.14.0-0"
 annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
-  artifacthub.io/changes: |
-    - 'Update regex for portal and console base_href'
-    - 'fix: license deleted after helm upgrade https://github.com/gravitee-io/issues/issues/9411'
-    - 'fix AE system mail notification without keystore'
-    - 'Add networkPolicy'
-    - 'Added gateway.services.core.http.ssl.keystore.password'
-    - 'fix helm backward compatibility during helm upgrade without `common` field'
-    - 'Added default preStop command on ui and portal'
-    - 'BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed'
-    - 'BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info here: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect'
+  artifacthub.io/changes: 
