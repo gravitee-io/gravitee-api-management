@@ -57,7 +57,11 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+<<<<<<< HEAD
 import jakarta.inject.Inject;
+=======
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+>>>>>>> 797b9705f0 (fix(apis): Add expand flag to get the primaryOwner while retrieving list of APIs)
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -231,6 +235,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+<<<<<<< HEAD
     public ApiDuplicatorService apiDuplicatorService() {
         return mock(ApiDuplicatorService.class);
     }
@@ -286,5 +291,9 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateApiDomainService updateApiDomainService() {
         return mock(UpdateApiDomainService.class);
+=======
+    public PrimaryOwnerService primaryOwnerService() {
+        return mock(PrimaryOwnerService.class);
+>>>>>>> 797b9705f0 (fix(apis): Add expand flag to get the primaryOwner while retrieving list of APIs)
     }
 }
