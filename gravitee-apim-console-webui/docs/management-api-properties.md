@@ -2,7 +2,9 @@
 
 As an API publisher, you can define properties for your API. These properties are automatically injected into the expression language context to be used later.
 
-For example, to get the value of the property `my-property` defined in API properties: `{#properties['my-property']}`
+For example, here is how to get the value of the property `my-property` defined in API properties:
+* V2 APIs: `{#properties['my-property']}`
+* V4 APIs: `{#api.properties['my-property']}`
 
 The (+) button let you create a new property.
 
