@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
+import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -37,23 +39,26 @@ public class OAIToImportApiUseCase {
 
     public record Input(ImportSwaggerDescriptorEntity importSwaggerDescriptor, AuditInfo auditInfo) {}
 
-    public record Output(ImportDefinition importDefinition) {}
+    public record Output(ApiWithFlows apiWithFlows) {}
 
     private final OAIDomainService oaiDomainService;
     private final GroupQueryService groupQueryService;
     private final TagQueryService tagsQueryService;
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService;
+    private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
 
     public OAIToImportApiUseCase(
         OAIDomainService oaiDomainService,
         GroupQueryService groupQueryService,
         TagQueryService tagsQueryService,
-        EndpointConnectorPluginDomainService endpointConnectorPluginService
+        EndpointConnectorPluginDomainService endpointConnectorPluginService,
+        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
     ) {
         this.oaiDomainService = oaiDomainService;
         this.groupQueryService = groupQueryService;
         this.tagsQueryService = tagsQueryService;
         this.endpointConnectorPluginService = endpointConnectorPluginService;
+        this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
     }
 
     public Output execute(Input input) {
@@ -71,7 +76,8 @@ public class OAIToImportApiUseCase {
                 input.importSwaggerDescriptor.getPayload(),
                 importWithTags
             );
-            return new Output(importWithDocumentation);
+            final ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo, importWithDocumentation);
+            return new Output(apiWithFlows);
         }
 
         return null;

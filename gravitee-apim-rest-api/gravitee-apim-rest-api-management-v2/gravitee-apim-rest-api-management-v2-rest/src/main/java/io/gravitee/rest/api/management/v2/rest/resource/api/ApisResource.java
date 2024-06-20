@@ -248,11 +248,8 @@ public class ApisResource extends AbstractResource {
                 .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
                 .build();
 
-            OAIToImportApiUseCase.Output output = oaiToImportApiUseCase.execute(
+            OAIToImportApiUseCase.Output importOutput = oaiToImportApiUseCase.execute(
                 new OAIToImportApiUseCase.Input(importSwaggerDescriptor, audit)
-            );
-            ImportApiDefinitionUseCase.Output importOutput = importApiDefinitionUseCase.execute(
-                new ImportApiDefinitionUseCase.Input(output.importDefinition(), audit)
             );
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
