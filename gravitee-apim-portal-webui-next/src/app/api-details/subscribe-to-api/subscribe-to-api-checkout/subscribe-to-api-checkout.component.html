@@ -35,25 +35,23 @@
           <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderAuthentication">
             Authentication:
           </p>
-          <p class="m3-body-medium">{{ subscribeForm.value.plan.validation }}</p>
+          <p class="m3-body-medium">{{ subscribeForm.value.plan.authentication }}</p>
         </div>
-        @if (subscribeForm.value.plan.quota) {
+        @if (subscribeForm.value.plan.usageConfiguration.quota) {
           <div class="subscriptions-details__content-row subscriptions-details__content-info">
-            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderQuota">Quota: up to:</p>
+            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderQuota">Quota: up to</p>
             <p class="m3-body-medium">
-              {{ subscribeForm.value.plan.quota.limit }} hits/{{
-                subscribeForm.value.plan.quota.period_time_unit | toPeriodTimeUnitLabelPipe
-              }}
+              {{ subscribeForm.value.plan.usageConfiguration.quota.limit }} hits /
+              {{ subscribeForm.value.plan.usageConfiguration.quota | toPeriodTimeUnitLabelPipe }}
             </p>
           </div>
         }
-        @if (subscribeForm.value.plan.rate_limit) {
+        @if (subscribeForm.value.plan.usageConfiguration.rate_limit) {
           <div class="subscriptions-details__content-row subscriptions-details__content-info">
-            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderQuota">Quota: up to:</p>
+            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderQuota">Rate-limit: up to</p>
             <p class="m3-body-medium">
-              {{ subscribeForm.value.plan.rate_limit.limit }} hits/{{
-                subscribeForm.value.plan.rate_limit.period_time_unit | toPeriodTimeUnitLabelPipe
-              }}
+              {{ subscribeForm.value.plan.usageConfiguration.rate_limit.limit }} hits /
+              {{ subscribeForm.value.plan.usageConfiguration.rate_limit | toPeriodTimeUnitLabelPipe }}
             </p>
           </div>
         }

@@ -68,12 +68,12 @@ export class SubscribeToApiCheckoutComponent implements OnInit {
 
   goBackStepper() {
     this.subscribeForm.controls['step'].setValue(
-      this.subscribeForm.value.step - (this.skipNextStep(this.subscribeForm.value.plan.validation) ? 2 : 1),
+      this.subscribeForm.value.step - (this.skipNextStep(this.subscribeForm.value.plan.security) ? 2 : 1),
     );
   }
 
   skipNextStep(authenticationType: string): boolean {
-    return authenticationType === 'AUTO';
+    return authenticationType === 'KEY_LESS';
   }
 
   private loadDetails(): Observable<Api> {
