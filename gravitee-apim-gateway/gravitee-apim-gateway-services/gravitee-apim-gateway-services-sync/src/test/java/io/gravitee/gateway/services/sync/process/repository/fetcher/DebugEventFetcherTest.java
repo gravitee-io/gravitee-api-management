@@ -91,7 +91,7 @@ class DebugEventFetcherTest {
     }
 
     @Test
-    void should_emit_on_error_when_repository_thrown_exception() throws TechnicalException {
+    void should_emit_on_error_when_repository_thrown_exception() {
         when(eventRepository.search(any())).thenThrow(new RuntimeException());
         cut.fetchLatest(null, null, Set.of()).test().assertError(RuntimeException.class);
     }
