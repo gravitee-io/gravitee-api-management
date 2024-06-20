@@ -27,6 +27,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inmemory.CategoryServiceInMemory;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -37,7 +38,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -69,8 +69,7 @@ public class ApiCategoryServiceImplTest {
     @Mock
     private ApiRepository apiRepository;
 
-    @Mock
-    private CategoryService categoryService;
+    private CategoryServiceInMemory categoryService;
 
     @Mock
     private ApiNotificationService apiNotificationService;
@@ -86,6 +85,7 @@ public class ApiCategoryServiceImplTest {
 
     @Before
     public void before() {
+        categoryService = new CategoryServiceInMemory();
         apiCategoryService =
             new ApiCategoryServiceImpl(
                 apiRepository,
@@ -99,11 +99,13 @@ public class ApiCategoryServiceImplTest {
 
     @Test
     public void shouldReturnCategories() throws TechnicalException {
-        Set<String> categories = Set.of("category1");
+        String category1 = "category1";
+        Set<String> categories = Set.of(category1);
         when(apiRepository.listCategories(any())).thenReturn(categories);
         CategoryEntity categoryEntity = new CategoryEntity();
-        categoryEntity.setId("category1");
-        when(categoryService.findByIdIn("DEFAULT", categories)).thenReturn(Set.of(categoryEntity));
+        categoryEntity.setId(category1);
+        categoryService.initWith(List.of(categoryEntity));
+
         Set<CategoryEntity> categoryEntities = apiCategoryService.listCategories(List.of("api1"), "DEFAULT");
         assertThat(categoryEntities).isNotNull();
         assertThat(categoryEntities.size()).isEqualTo(1);

@@ -201,7 +201,7 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
     private List<Resource> resources = new ArrayList<>();
 
-    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
+    @Schema(description = "the list of category keys associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
     @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")

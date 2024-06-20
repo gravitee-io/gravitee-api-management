@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
@@ -140,6 +141,9 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private CorsValidationService corsValidationService;
 
+    @Mock
+    private CategoryMapper categoryMapper;
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -188,7 +192,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -230,7 +234,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -263,7 +267,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -323,7 +327,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
