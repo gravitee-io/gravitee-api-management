@@ -41,10 +41,16 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+<<<<<<< HEAD
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.extension.ExtendWith;
+=======
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+>>>>>>> 797b9705f0 (fix(apis): Add expand flag to get the primaryOwner while retrieving list of APIs)
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -128,6 +134,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiWorkflowStateService apiWorkflowStateService;
 
     @Autowired
+<<<<<<< HEAD
     protected RoleService roleService;
 
     @Autowired
@@ -137,6 +144,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiDuplicateService apiDuplicateService;
 
     @BeforeEach
+=======
+    protected PrimaryOwnerService primaryOwnerService;
+
+    @Before
+>>>>>>> 797b9705f0 (fix(apis): Add expand flag to get the primaryOwner while retrieving list of APIs)
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }

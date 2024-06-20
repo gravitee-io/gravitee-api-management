@@ -315,6 +315,8 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
+        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString())).thenReturn(mock(PrimaryOwnerEntity.class));
+
         when(
             apiRepository.search(
                 eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
@@ -349,6 +351,8 @@ public class ApiServiceImpl_findAllTest {
         api1.setId("API_1");
         var api2 = new Api();
         api2.setId("API_2");
+
+        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString())).thenReturn(mock(PrimaryOwnerEntity.class));
 
         when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
             .thenReturn(Set.of("API_1"));
