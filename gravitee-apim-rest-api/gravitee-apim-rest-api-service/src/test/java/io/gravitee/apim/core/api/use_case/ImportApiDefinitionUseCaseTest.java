@@ -32,6 +32,7 @@ import fixtures.core.model.MediaFixtures;
 import fixtures.core.model.PageFixtures;
 import fixtures.core.model.PlanWithFlowsFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
+import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
@@ -154,31 +155,9 @@ class ImportApiDefinitionUseCaseTest {
     private static final Set<String> TAGS = Set.of("tag");
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    ApiImportDomainServiceLegacyWrapper apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
-    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
-    AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
-    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
-    IndexerInMemory indexer = new IndexerInMemory();
-    MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
-    ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory(metadataCrudService);
-    MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
-    NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
-    PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
-    PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
-    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
-    ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
-    PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
-    PlanQueryServiceInMemory planQueryServiceInMemory = new PlanQueryServiceInMemory();
-    PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
-    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
-    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
-    ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
-    WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
-    PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
 
     ImportApiDefinitionUseCase useCase;
+    ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
 
     @BeforeAll
     static void beforeAll() {
@@ -194,116 +173,11 @@ class ImportApiDefinitionUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
-        var apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
-            groupQueryService,
-            membershipQueryService,
-            parametersQueryService,
-            roleQueryService,
-            userCrudService
-        );
-        var metadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
-        var apiMetadataDomainService = new ApiMetadataDomainService(
-            metadataCrudService,
-            apiMetadataQueryServiceInMemory,
-            auditDomainService
-        );
-        var createApiDomainService = new CreateApiDomainService(
-            apiCrudService,
-            auditDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
-                apiPrimaryOwnerDomainService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            ),
-            apiMetadataDomainService,
-            apiPrimaryOwnerDomainService,
-            flowCrudService,
-            notificationConfigCrudService,
-            parametersQueryService,
-            workflowCrudService
-        );
+        importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
 
-        var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
-        var flowValidationDomainService = new FlowValidationDomainService(
-            policyValidationDomainService,
-            new EntrypointPluginQueryServiceInMemory()
-        );
-        var createPlanDomainService = new CreatePlanDomainService(
-            planValidatorService,
-            flowValidationDomainService,
-            planCrudService,
-            flowCrudService,
-            auditDomainService
-        );
+        useCase = new ImportApiDefinitionUseCase(apiCrudService, importDefinitionCreateDomainServiceTestInitializer.initialize());
 
-        var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
-            pageCrudService,
-            pageRevisionCrudService,
-            auditDomainService,
-            indexer
-        );
-        var apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(apiQueryService, pageQueryService, planQueryServiceInMemory);
-
-        var documentationValidationDomainService = new DocumentationValidationDomainService(
-            new HtmlSanitizerImpl(),
-            new NoopTemplateResolverDomainService(),
-            apiCrudService,
-            new NoopSwaggerOpenApiResolver(),
-            new ApiMetadataQueryServiceInMemory(),
-            new ApiPrimaryOwnerDomainService(
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
-            new ApiDocumentationDomainService(pageQueryService, planQueryService),
-            pageCrudService,
-            pageSourceDomainService
-        );
-        roleQueryService.initWith(
-            List.of(
-                Role
-                    .builder()
-                    .id("role-id")
-                    .scope(Role.Scope.API)
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .name("PRIMARY_OWNER")
-                    .build()
-            )
-        );
-
-        useCase =
-            new ImportApiDefinitionUseCase(
-                apiCrudService,
-                new ImportDefinitionCreateDomainService(
-                    apiImportDomainService,
-                    apiPrimaryOwnerFactory,
-                    createApiDomainService,
-                    validateApiDomainService,
-                    apiMetadataDomainService,
-                    createPlanDomainService,
-                    createApiDocumentationDomainService,
-                    apiIdsCalculatorDomainService,
-                    metadataCrudService,
-                    documentationValidationDomainService
-                )
-            );
-
-        parametersQueryService.initWith(
+        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
             List.of(
                 new Parameter(
                     Key.API_PRIMARY_OWNER_MODE.key(),
@@ -314,7 +188,9 @@ class ImportApiDefinitionUseCaseTest {
                 new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             )
         );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build()));
+        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build())
+        );
     }
 
     @AfterEach
@@ -322,19 +198,19 @@ class ImportApiDefinitionUseCaseTest {
         Stream
             .of(
                 apiCrudService,
-                auditCrudService,
-                flowCrudService,
-                groupQueryService,
-                membershipCrudService,
-                metadataCrudService,
-                notificationConfigCrudService,
-                pageCrudService,
-                pageRevisionCrudService,
-                parametersQueryService,
-                planCrudService,
-                roleQueryService,
-                userCrudService,
-                workflowCrudService
+                importDefinitionCreateDomainServiceTestInitializer.auditCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.flowCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.groupQueryService,
+                importDefinitionCreateDomainServiceTestInitializer.membershipCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.metadataCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.notificationConfigCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.pageCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.pageRevisionCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.parametersQueryService,
+                importDefinitionCreateDomainServiceTestInitializer.planCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.roleQueryService,
+                importDefinitionCreateDomainServiceTestInitializer.userCrudService,
+                importDefinitionCreateDomainServiceTestInitializer.workflowCrudService
             )
             .forEach(InMemoryAlternative::reset);
     }
@@ -376,7 +252,14 @@ class ImportApiDefinitionUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+            when(
+                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            )
                 .thenAnswer(invocation -> invocation.getArgument(0));
         }
 
@@ -401,7 +284,7 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
                 soft
-                    .assertThat(indexer.storage())
+                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
                     .containsExactly(
                         new IndexableApi(
                             expected,
@@ -430,7 +313,7 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
                 soft
-                    .assertThat(indexer.storage())
+                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
                     .containsExactly(
                         new IndexableApi(
                             expected,
@@ -445,7 +328,7 @@ class ImportApiDefinitionUseCaseTest {
         @Test
         void should_create_a_new_api_with_metadata() {
             // Given
-            metadataCrudService.initWith(
+            importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.initWith(
                 List.of(
                     Metadata
                         .builder()
@@ -481,7 +364,7 @@ class ImportApiDefinitionUseCaseTest {
             var expectedApi = expectedApi();
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-                var apiMetadataCreated = metadataCrudService
+                var apiMetadataCreated = importDefinitionCreateDomainServiceTestInitializer.metadataCrudService
                     .storage()
                     .stream()
                     .filter(metadata -> metadata.getReferenceId().equals(API_ID))
@@ -525,7 +408,11 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedApi = expectedApi();
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
 
-                var createdPlans = planCrudService.storage().stream().filter(p -> p.getApiId().equals(API_ID)).collect(Collectors.toSet());
+                var createdPlans = importDefinitionCreateDomainServiceTestInitializer.planCrudService
+                    .storage()
+                    .stream()
+                    .filter(p -> p.getApiId().equals(API_ID))
+                    .collect(Collectors.toSet());
                 var expectedPlan = plan
                     .toBuilder()
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -549,7 +436,7 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedApi = expectedApi();
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
 
-                var createPages = pageCrudService
+                var createPages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService
                     .storage()
                     .stream()
                     .filter(p -> p.getReferenceId().equals(API_ID))
@@ -632,7 +519,7 @@ class ImportApiDefinitionUseCaseTest {
 
         @Test
         void should_throw_error_when_name_is_not_unique() {
-            pageQueryService.initWith(
+            importDefinitionCreateDomainServiceTestInitializer.pageQueryService.initWith(
                 List.of(
                     Page
                         .builder()
@@ -670,7 +557,8 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(apiImportDomainService, times(1)).createPageAndMedia(mediaList, API_ID);
+            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1))
+                .createPageAndMedia(mediaList, API_ID);
         }
 
         @Test
@@ -692,7 +580,7 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1)).createMembers(members, API_ID);
         }
     }
 
