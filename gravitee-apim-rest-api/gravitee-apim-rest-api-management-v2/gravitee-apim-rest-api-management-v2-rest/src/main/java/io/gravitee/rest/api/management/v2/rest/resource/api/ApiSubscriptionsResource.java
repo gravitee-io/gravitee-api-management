@@ -25,18 +25,10 @@ import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.UserMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AcceptSubscription;
-import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
-import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
-import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
-import io.gravitee.rest.api.management.v2.rest.model.BaseUser;
-import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
+import io.gravitee.rest.api.management.v2.rest.mapper.*;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+<<<<<<< HEAD
 import io.gravitee.rest.api.management.v2.rest.model.RejectSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.RenewApiKey;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
@@ -49,6 +41,8 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
 import io.gravitee.rest.api.management.v2.rest.model.VerifySubscriptionResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
+=======
+>>>>>>> b3dbb47683 (fix(subscriptions): Improve GET /subscriptions by expanding on api)
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -109,8 +103,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private final SubscriptionMapper subscriptionMapper = SubscriptionMapper.INSTANCE;
     private final PageMapper pageMapper = PageMapper.INSTANCE;
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
+
+    private final ApiMapper apiMapper = ApiMapper.INSTANCE;
     private final ApplicationMapper applicationMapper = ApplicationMapper.INSTANCE;
     private final UserMapper userMapper = UserMapper.INSTANCE;
+    private static final String EXPAND_API = "api";
     private static final String EXPAND_PLAN = "plan";
     private static final String EXPAND_APPLICATION = "application";
     private static final String EXPAND_SUBSCRIBED_BY = "subscribedBy";
@@ -475,6 +472,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        if (expands.contains(EXPAND_API)) {
+            final BaseApi baseApi = apiMapper.map(apiSearchService.findGenericById(executionContext, apiId));
+            subscriptions.forEach(subscription -> subscription.setApi(baseApi));
+        }
 
         if (expands.contains(EXPAND_PLAN)) {
             final Set<String> planIds = subscriptions
