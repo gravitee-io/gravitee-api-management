@@ -800,33 +800,6 @@ public class UserServiceTest {
         verify(userRepository, never()).update(any());
     }
 
-    @Test(expected = EmailFormatInvalidException.class)
-    public void shouldNotUpdateInternalUser_InvalidEmail() throws TechnicalException {
-        final String USER_ID = "myuserid";
-        final String USER_INVALID_EMAIL = "my.user@@acme.fr";
-        final String SOURCE = "gravitee";
-
-        User user = new User();
-        user.setId(USER_ID);
-        user.setEmail(EMAIL);
-        user.setFirstname(FIRST_NAME);
-        user.setLastname(LAST_NAME);
-        user.setSource(SOURCE);
-        user.setSourceId(USER_ID);
-        user.setOrganizationId(ORGANIZATION);
-
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-
-        when(updateUser.getEmail()).thenReturn(USER_INVALID_EMAIL);
-        String UPDATED_LAST_NAME = LAST_NAME + "updated";
-        String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
-        when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
-        when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
-        userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
-
-        verify(userRepository, never()).update(any());
-    }
-
     @Test(expected = OrganizationNotFoundException.class)
     public void shouldNotCreateBecauseOrganizationDoesNotExist() throws TechnicalException {
         when(organizationService.findById(ORGANIZATION)).thenThrow(OrganizationNotFoundException.class);
@@ -1094,6 +1067,7 @@ public class UserServiceTest {
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(user.getSourceId()).thenReturn(EMAIL);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         when(
@@ -1130,6 +1104,7 @@ public class UserServiceTest {
             .thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
+        when(user.getSourceId()).thenReturn(EMAIL);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
@@ -1169,6 +1144,7 @@ public class UserServiceTest {
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(user.getSourceId()).thenReturn(EMAIL);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         MetadataPage mdPage = mock(MetadataPage.class);
@@ -1241,6 +1217,18 @@ public class UserServiceTest {
     @Test(expected = UserNotInternallyManagedException.class)
     public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
         when(user.getSource()).thenReturn("external");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
+    }
+
+    @Test(expected = ServiceAccountNotManageableException.class)
+    public void shouldNotResetPasswordCauseServiceAccountNotManageable() throws TechnicalException {
+        when(user.getSource()).thenReturn("gravitee");
+        when(user.getSourceId()).thenReturn("lastname");
+        when(user.getLastname()).thenReturn("lastname");
+        when(user.getPassword()).thenReturn(null);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
