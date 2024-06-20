@@ -15,12 +15,15 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.model.ApiCategoryOrder;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -54,15 +57,17 @@ public class CategoryDomainServiceImpl implements CategoryDomainService {
     }
 
     @Override
-    public void updateOrderCategoriesOfApi(String apiId, Collection<String> categoryIds) {
+    public void updateOrderCategoriesOfApi(String apiId, @Nullable Collection<String> categoryIds) {
         try {
             var previousCategories = apiCategoryOrderRepository.findAllByApiId(apiId);
             apiCategoryOrderRepository.delete(apiId, previousCategories.stream().map(ApiCategoryOrder::getCategoryId).toList());
 
-            int index = 0;
-            for (String categoryId : categoryIds) {
-                ApiCategoryOrder categoryOrder = ApiCategoryOrder.builder().categoryId(categoryId).apiId(apiId).order(index++).build();
-                apiCategoryOrderRepository.create(categoryOrder);
+            if (!isEmpty(categoryIds)) {
+                int index = 0;
+                for (String categoryId : categoryIds) {
+                    ApiCategoryOrder categoryOrder = ApiCategoryOrder.builder().categoryId(categoryId).apiId(apiId).order(index++).build();
+                    apiCategoryOrderRepository.create(categoryOrder);
+                }
             }
         } catch (TechnicalException ex) {
             log.error("Impossible to update order categories of API", ex);
