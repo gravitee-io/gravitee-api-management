@@ -848,6 +848,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
     }
 
+    private boolean isServiceAccount(User user) {
+        // A service account do not have a password and the sourceId is equals to the lastname or to the email address
+        return (
+            IDP_SOURCE_GRAVITEE.equals(user.getSource()) &&
+            (user.getPassword() == null || user.getPassword().isEmpty()) &&
+            (user.getSourceId().equalsIgnoreCase(user.getEmail()) || user.getSourceId().equalsIgnoreCase(user.getLastname()))
+        );
+    }
+
     /**
      * Allows to create an user and send an email notification to finalize its creation.
      */
@@ -1386,6 +1395,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             final User user = optionalUser.get();
             if (!isInternalUser(user)) {
                 throw new UserNotInternallyManagedException(id);
+            }
+
+            if (isServiceAccount(user)) {
+                throw new ServiceAccountNotManageableException(id);
             }
 
             // do not update password to null anymore to avoid DoS attack on a user account.
