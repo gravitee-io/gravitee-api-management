@@ -78,6 +78,7 @@ pre.api-history-definition {
   background-color: transparent !important;
   border: none !important;
   max-height: calc(100vh - 170px);
+  white-space: pre-wrap;
 }
 
 .api-history-icon {
