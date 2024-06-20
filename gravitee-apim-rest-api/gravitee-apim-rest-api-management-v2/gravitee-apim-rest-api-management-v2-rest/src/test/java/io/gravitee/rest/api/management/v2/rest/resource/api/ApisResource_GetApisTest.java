@@ -21,8 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+<<<<<<< HEAD
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+=======
+import static org.mockito.Mockito.*;
+>>>>>>> 797b9705f0 (fix(apis): Add expand flag to get the primaryOwner while retrieving list of APIs)
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
@@ -40,6 +44,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -418,5 +423,63 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         ApiV2 api2 = apis.get(1).getApiV2();
         Assertions.assertEquals("api-2", api2.getId());
         Assertions.assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, api2.getDeploymentState());
+    }
+
+    @Test
+    public void should_list_api_with_all_primaryOwner_expand_params() {
+        PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder().id("user-1").displayName("user-display-name").build();
+
+        ApiEntity returnedApi1 = new ApiEntity();
+        returnedApi1.setId("api-1");
+        returnedApi1.setState(Lifecycle.State.STOPPED);
+        returnedApi1.setDefinitionVersion(DefinitionVersion.V4);
+        returnedApi1.setPrimaryOwner(primaryOwner);
+
+        io.gravitee.rest.api.model.api.ApiEntity returnedApi2 = new io.gravitee.rest.api.model.api.ApiEntity();
+        returnedApi2.setId("api-2");
+        returnedApi2.setState(Lifecycle.State.STOPPED);
+        returnedApi2.setGraviteeDefinitionVersion("2.0.0");
+        returnedApi2.setPrimaryOwner(primaryOwner);
+
+        var apiList = new ArrayList<GenericApiEntity>();
+        apiList.add(returnedApi1);
+        apiList.add(returnedApi2);
+
+        when(primaryOwnerService.getPrimaryOwner(eq(GraviteeContext.getExecutionContext()), eq("user-1"))).thenReturn(primaryOwner);
+
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
+            .thenReturn(new Page<>(apiList, 1, 2, 42));
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
+
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(false);
+
+        final Response response = rootTarget()
+            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
+            .queryParam("expands", "primaryOwner")
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        // Check Response content
+        final ApisResponse apisResponse = response.readEntity(ApisResponse.class);
+        assertNotNull(apisResponse.getData());
+        assertNotNull(apisResponse.getPagination());
+        assertNotNull(apisResponse.getLinks());
+
+        // Check apis
+        List<Api> apis = apisResponse.getData();
+        Assertions.assertEquals(2, apis.size());
+        ApiV4 api1 = apis.get(0).getApiV4();
+        Assertions.assertEquals("api-1", api1.getId());
+        Assertions.assertNull(api1.getDeploymentState());
+        Assertions.assertEquals("user-1", api1.getPrimaryOwner().getId());
+        Assertions.assertEquals("user-display-name", api1.getPrimaryOwner().getDisplayName());
+
+        ApiV2 api2 = apis.get(1).getApiV2();
+        Assertions.assertEquals("api-2", api2.getId());
+        Assertions.assertNull(api2.getDeploymentState());
+        Assertions.assertEquals("user-1", api2.getPrimaryOwner().getId());
+        Assertions.assertEquals("user-display-name", api2.getPrimaryOwner().getDisplayName());
     }
 }
