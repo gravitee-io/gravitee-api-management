@@ -30,6 +30,8 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
@@ -40,6 +42,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,6 +75,9 @@ public class ApiKeyAuthenticationHandlerTest {
     private ApiKeyService apiKeyService;
 
     @Mock
+    private SubscriptionService subscriptionService;
+
+    @Mock
     private Api api;
 
     @Before
@@ -81,6 +87,7 @@ public class ApiKeyAuthenticationHandlerTest {
         ComponentProvider provider = mock(ComponentProvider.class);
 
         when(provider.getComponent(ApiKeyService.class)).thenReturn(apiKeyService);
+        when(provider.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
         when(provider.getComponent(Api.class)).thenReturn(api);
 
         Environment environment = mock(Environment.class);
@@ -88,7 +95,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(environment.getProperty(eq("policy.api-key.param"), anyString())).thenReturn("api-key");
 
         when(provider.getComponent(Environment.class)).thenReturn(environment);
-
+        when(subscriptionService.getByApiAndSecurityToken(anyString(), any(), any())).thenReturn(Optional.of(new Subscription()));
         authenticationHandler.resolve(provider);
     }
 
