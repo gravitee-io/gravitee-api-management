@@ -1404,6 +1404,7 @@ paths:
                       items:
                           type: string
                           enum:
+                              - api
                               - application
                               - plan
                               - subscribedBy
@@ -1551,6 +1552,7 @@ paths:
                       items:
                           type: string
                           enum:
+                              - api
                               - application
                               - plan
                               - subscribedBy
