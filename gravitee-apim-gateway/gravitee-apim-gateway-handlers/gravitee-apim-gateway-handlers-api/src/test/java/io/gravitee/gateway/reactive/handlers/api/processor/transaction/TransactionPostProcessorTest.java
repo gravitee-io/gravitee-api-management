@@ -112,6 +112,22 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(List.of("backend-request-id"));
     }
 
+    @Test
+    @DisplayName("Should override Transaction Id header's value but not Request Id header because empty, by the ones set by APIM")
+    void handleWithOverrideWithoutHeaderValue() {
+        instantiateTransactionPostProcessor(TransactionHeaderOverrideMode.OVERRIDE, TransactionHeaderOverrideMode.OVERRIDE);
+
+        spyCtx.request().headers().set(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER, "transaction-id");
+
+        spyCtx.response().headers().set(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER, "backend-transaction-id");
+        spyCtx.response().headers().set(TransactionHeader.DEFAULT_REQUEST_ID_HEADER, "backend-request-id");
+
+        transactionPostProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(List.of("transaction-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(List.of("backend-request-id"));
+    }
+
     private void instantiateTransactionPostProcessor(
         TransactionHeaderOverrideMode transactionOverrideMode,
         TransactionHeaderOverrideMode requestHeaderOverrideMode
