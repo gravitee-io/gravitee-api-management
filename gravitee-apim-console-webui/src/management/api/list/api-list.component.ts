@@ -18,6 +18,7 @@ import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUnt
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TitleCasePipe } from '@angular/common';
 
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -56,18 +57,19 @@ export type ApisTableDS = {
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
   origin: Origin;
+  provider?: string;
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
-  listenerTypes?: ListenerType[];
 }[];
 
 @Component({
   selector: 'api-list',
   templateUrl: './api-list.component.html',
   styleUrls: ['./api-list.component.scss'],
+  providers: [TitleCasePipe],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'access', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];
+  displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'owner', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -90,6 +92,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     @Inject(Constants) private readonly constants: Constants,
     private readonly apiService: ApiService,
     private readonly apiServiceV2: ApiV2Service,
+    private readonly titleCasePipe: TitleCasePipe,
   ) {}
 
   ngOnDestroy(): void {
@@ -180,7 +183,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
             return {
               ...tableDS,
               access: this.getApiAccess(api),
-              listenerTypes: api.listeners.map((listener: Listener) => listener.type),
               isNotSynced$: undefined,
               qualityScore$: null,
             };
@@ -190,6 +192,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               access: [],
               isNotSynced$: undefined,
               qualityScore$: null,
+              provider: api.originContext.provider,
             };
           } else {
             const apiv2 = api as ApiV2;
@@ -209,14 +212,21 @@ export class ApiListComponent implements OnInit, OnDestroy {
   private getDefinitionVersion(api: Api) {
     switch (api.definitionVersion) {
       case 'V2':
-        return { label: api.definitionVersion };
+        return { label: this.titleCasePipe.transform(api.definitionVersion) };
       case 'V4':
-        return { label: `${api.definitionVersion} - ${(api as ApiV4).type}` };
+        return { label: `${api.definitionVersion} - ${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
-        return { label: `${api.definitionVersion}` };
+        return { label: this.titleCasePipe.transform(api.definitionVersion) };
       default:
         return { icon: 'gio:alert-circle', label: 'V1' };
     }
+  }
+
+  private getLabelType(api: Api): string {
+    if (api.definitionVersion === 'V4') {
+      return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? 'TCP' : 'HTTP';
+    }
+    return '';
   }
 
   private getWorkflowBadge(api: Api) {

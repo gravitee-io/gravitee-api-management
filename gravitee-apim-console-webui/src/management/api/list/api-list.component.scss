@@ -124,3 +124,8 @@
   display: flex;
   justify-content: center;
 }
+
+.provider {
+  display: block;
+  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+}

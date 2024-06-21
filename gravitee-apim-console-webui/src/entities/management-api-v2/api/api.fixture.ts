@@ -521,6 +521,8 @@ export function fakeApiFederated(modifier?: Partial<ApiFederated> | ((baseApi: A
     originContext: {
       origin: 'INTEGRATION',
       integrationId: 'integration-id',
+      integrationName: 'name of integration',
+      provider: 'provider name',
     },
   };
 

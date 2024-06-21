@@ -25,7 +25,8 @@
     *gioPermission="{ anyOf: ['environment-api-c'] }"
     data-testid="api_list_addApi_button"
   >
-    <mat-icon>add</mat-icon> Add API
+    <mat-icon>add</mat-icon>
+    Add API
   </button>
 </div>
 
@@ -50,6 +51,22 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
       <td mat-cell *matCellDef="let element" title="{{ element.name }} ({{ element.version }})">
         <a [routerLink]="'./' + element.id">{{ element.name }} ({{ element.version }})</a>
+      </td>
+    </ng-container>
+
+    <!-- Display Definition Version Column -->
+    <ng-container matColumnDef="definitionVersion">
+      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
+      <td mat-cell *matCellDef="let element">
+        <span>
+          {{ element.definitionVersion.label }}
+        </span>
+
+        @if (element.provider) {
+          <span class="provider">
+            {{ element.provider | mapProviderName }}
+          </span>
+        }
       </td>
     </ng-container>
 
@@ -150,23 +167,11 @@
       </td>
     </ng-container>
 
-    <!-- Display Version Column -->
-    <ng-container matColumnDef="definitionVersion">
-      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
-      <td mat-cell *matCellDef="let element">
-        <span class="gio-badge-neutral">
-          <mat-icon *ngIf="element.definitionVersion.icon" class="gio-left" [svgIcon]="element.definitionVersion.icon"></mat-icon>
-          {{ element.definitionVersion.label | titlecase }}
-        </span>
-        <span class="gio-badge-neutral" *ngIf="element.listenerTypes?.length > 0 && element.listenerTypes.includes('TCP')"> TCP </span>
-      </td>
-    </ng-container>
-
     <!-- Display Visibility Column -->
     <ng-container matColumnDef="visibility">
       <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
       <td mat-cell *matCellDef="let element">
-        <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }}</mat-icon>
+        <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }} </mat-icon>
       </td>
     </ng-container>
 

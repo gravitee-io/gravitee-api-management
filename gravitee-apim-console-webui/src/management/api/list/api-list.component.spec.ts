@@ -82,7 +82,7 @@ describe('ApisListComponent', () => {
         await initComponent([api]);
 
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'V2', 'public', 'edit']]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V2', '', '/planets', '', 'admin', 'public', 'edit']]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
 
@@ -92,7 +92,7 @@ describe('ApisListComponent', () => {
 
         const { rowCells } = await computeApisTableCells();
         expect(rowCells).toEqual([
-          ['', '🪐 Planets (1.0)', '', 'No access with this configuration', '', 'admin', 'V4 - Message', 'public', 'edit'],
+          ['', '🪐 Planets (1.0)', 'V4 - HTTP Message', '', 'No access with this configuration', '', 'admin', 'public', 'edit'],
         ]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
@@ -102,7 +102,7 @@ describe('ApisListComponent', () => {
         await initComponent([api]);
 
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'V2', 'public', 'edit']]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V2', '', '/planets', '', 'admin', 'public', 'edit']]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
 
@@ -128,7 +128,7 @@ describe('ApisListComponent', () => {
         await initComponent([api]);
 
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'V4 - Message', 'public', 'edit']]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V4 - HTTP Message', '', '/test/ws 2 more', '', 'admin', 'public', 'edit']]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
 
@@ -151,7 +151,7 @@ describe('ApisListComponent', () => {
         await initComponent([api]);
 
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'V2', 'public', 'edit']]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V2', '', '/test/ws 2 more', '', 'admin', 'public', 'edit']]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
 
@@ -181,7 +181,7 @@ describe('ApisListComponent', () => {
 
         const { rowCells } = await computeApisTableCells();
         expect(rowCells).toEqual([
-          ['', '🪐 Planets (1.0)', '', 'test.domain.com/test/ws 2 more', '', 'admin', 'V4 - Message', 'public', 'edit'],
+          ['', '🪐 Planets (1.0)', 'V4 - HTTP Message', '', 'test.domain.com/test/ws 2 more', '', 'admin', 'public', 'edit'],
         ]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
@@ -208,7 +208,7 @@ describe('ApisListComponent', () => {
         await initComponent([api]);
 
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'test.domain.com/test/ws 2 more', '', 'admin', 'V2', 'public', 'edit']]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V2', '', 'test.domain.com/test/ws 2 more', '', 'admin', 'public', 'edit']]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
 
@@ -318,7 +318,7 @@ describe('ApisListComponent', () => {
       it('should display quality columns', fakeAsync(async () => {
         await initComponent(fakeApiV2());
         const { rowCells } = await computeApisTableCells();
-        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', '100%', 'admin', 'V2', 'public', 'edit']]);
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V2', '', '/planets', '100%', '', 'admin', 'public', 'edit']]);
         expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
       }));
@@ -400,7 +400,7 @@ describe('ApisListComponent', () => {
         },
       ]);
       expect(rowCells).toEqual([
-        ['', '🪐 Planets (1.0)', '', 'foo.example.com 1 more', '', '', 'admin', 'V4 - Proxy  TCP', 'public', 'edit'],
+        ['', '🪐 Planets (1.0)', 'V4 - TCP Proxy', '', 'foo.example.com 1 more', '', '', 'admin', 'public', 'edit'],
       ]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
