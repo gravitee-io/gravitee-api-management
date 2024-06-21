@@ -17,7 +17,7 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.accessPoints;
 
 import com.mongodb.client.model.Filters;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.themes.ThemeTypeUpgrader;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.environment.MissingEnvironmentUpgrader;
 import java.util.Date;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
@@ -25,19 +25,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccessPointsStatusAndUpdatedUpgrader extends MongoUpgrader {
 
-    public static final int ACCESSPOINTS_STATUS_AND_UPDATED_UPGRADER_ORDER = ThemeTypeUpgrader.THEME_TYPE_UPGRADER_ORDER + 1;
+    public static final int ACCESSPOINTS_STATUS_AND_UPDATED_UPGRADER_ORDER =
+        MissingEnvironmentUpgrader.MISSING_ENVIRONMENT_UPGRADER_ORDER + 1;
+
+    @Override
+    public String version() {
+        return "v1";
+    }
 
     @Override
     public boolean upgrade() {
         var accessPointsStatusNullQuery = new Document("status", null);
 
-        template
-            .getCollection("access_points")
+        this.getCollection("access_points")
             .find(accessPointsStatusNullQuery)
             .forEach(accessPoint -> {
                 accessPoint.append("status", "CREATED");
                 accessPoint.append("updatedAt", new Date());
-                template.getCollection("access_points").replaceOne(Filters.eq("_id", accessPoint.getString("_id")), accessPoint);
+                this.getCollection("access_points").replaceOne(Filters.eq("_id", accessPoint.getString("_id")), accessPoint);
             });
 
         return true;

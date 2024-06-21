@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.environment;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateManyModel;
+import com.mongodb.client.model.Updates;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.themes.ThemeTypeUpgrader;
 import java.util.ArrayList;
@@ -35,6 +36,11 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
     public static final int MISSING_ENVIRONMENT_UPGRADER_ORDER = ThemeTypeUpgrader.THEME_TYPE_UPGRADER_ORDER + 1;
 
     @Override
+    public String version() {
+        return "v1";
+    }
+
+    @Override
     public boolean upgrade() {
         Set<Boolean> upgradeStatus = new HashSet<>();
         updateEnvironmentFromApi(upgradeStatus);
@@ -45,45 +51,43 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
     private void updateEnvironmentFromApi(final Set<Boolean> upgradeStatus) {
         var projection = Projections.fields(Projections.include("_id", "environmentId"));
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
-        template
-            .getCollection("apis")
+        this.getCollection("apis")
             .find()
             .projection(projection)
             .forEach(api ->
                 bulkActions.add(
                     new UpdateManyModel<>(
-                        new Document("api", api.getString("_id")),
-                        new Document("$set", new Document("environmentId", api.getString("environmentId")))
+                        Filters.and(Filters.eq("api", api.getString("_id")), Filters.exists("environmentId", false)),
+                        Updates.set("environmentId", api.getString("environmentId"))
                     )
                 )
             );
 
         if (!bulkActions.isEmpty()) {
             // This upgrade is only done on data created before 3.17.0 as ApiKey#api as been deprecated
-            upgradeStatus.add(template.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
-            upgradeStatus.add(template.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged());
-            upgradeStatus.add(template.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(this.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(this.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(this.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged());
         }
     }
 
     private void updateEnvironmentFromSubscription(final Set<Boolean> upgradeStatus) {
         var projection = Projections.fields(Projections.include("_id", "environmentId"));
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
-        template
-            .getCollection("subscriptions")
+        this.getCollection("subscriptions")
             .find()
             .projection(projection)
             .forEach(subscription ->
                 bulkActions.add(
                     new UpdateManyModel<>(
-                        Filters.in("subscriptions", subscription.getString("_id")),
-                        new Document("$set", new Document("environmentId", subscription.getString("environmentId")))
+                        Filters.and(Filters.in("subscriptions", subscription.getString("_id")), Filters.exists("environmentId", false)),
+                        Updates.set("environmentId", subscription.getString("environmentId"))
                     )
                 )
             );
 
         if (!bulkActions.isEmpty()) {
-            upgradeStatus.add(template.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(this.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
         }
     }
 
