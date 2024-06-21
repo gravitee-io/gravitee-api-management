@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.common;
 
+import com.mongodb.client.MongoCollection;
 import io.gravitee.node.api.upgrader.Upgrader;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -37,6 +39,10 @@ public abstract class MongoUpgrader implements Upgrader {
     @Autowired
     public void setEnvironment(Environment environment) {
         this.prefix = environment.getProperty("management.mongodb.prefix", "");
+    }
+
+    protected MongoCollection<Document> getCollection(String collectionName) {
+        return template.getCollection(buildCollectionName(collectionName));
     }
 
     protected String buildCollectionName(String collectionName) {

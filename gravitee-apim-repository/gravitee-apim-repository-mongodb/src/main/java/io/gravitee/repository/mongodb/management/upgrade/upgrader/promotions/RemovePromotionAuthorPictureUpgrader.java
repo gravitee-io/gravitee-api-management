@@ -29,8 +29,13 @@ public class RemovePromotionAuthorPictureUpgrader extends MongoUpgrader {
     public static final int REMOVE_PROMOTION_AUTHOR_PICTURE_UPGRADER_ORDER = 0;
 
     @Override
+    public String version() {
+        return "v1";
+    }
+
+    @Override
     public boolean upgrade() {
-        var updateResult = template.getCollection("promotions").updateMany(new BsonDocument(), Updates.unset("author.picture"));
+        var updateResult = this.getCollection("promotions").updateMany(new BsonDocument(), Updates.unset("author.picture"));
         return updateResult.wasAcknowledged();
     }
 
