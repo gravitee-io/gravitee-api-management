@@ -36,6 +36,7 @@ public class SearchAverageMessagesPerRequestQueryAdapter {
     public static String adapt(AverageMessagesPerRequestQuery query) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(AverageMessagesPerRequestQuery.builder().build()));
+        jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate());
         return new JsonObject(jsonContent).encode();

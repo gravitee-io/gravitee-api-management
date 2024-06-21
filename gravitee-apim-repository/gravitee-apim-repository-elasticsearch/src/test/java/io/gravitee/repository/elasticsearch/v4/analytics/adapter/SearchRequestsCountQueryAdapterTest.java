@@ -33,6 +33,7 @@ class SearchRequestsCountQueryAdapterTest {
     public static final String QUERY_WITHOUT_FILTER =
         """
               {
+                  "size": 0,
                   "aggs": {
                       "entrypoints": {
                               "terms": {"field":"entrypoint-id"}
@@ -63,6 +64,7 @@ class SearchRequestsCountQueryAdapterTest {
             .isEqualTo(
                 """
                                 {
+                                    "size": 0,
                                     "query":{
                                         "bool": {
                                             "must": [
@@ -90,6 +92,7 @@ class SearchRequestsCountQueryAdapterTest {
             .isEqualTo(
                 """
                         {
+                            "size": 0,
                             "query":{
                                 "bool": {
                                     "must": [

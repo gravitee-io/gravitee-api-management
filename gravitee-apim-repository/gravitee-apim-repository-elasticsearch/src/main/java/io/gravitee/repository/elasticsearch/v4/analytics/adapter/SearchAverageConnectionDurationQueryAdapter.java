@@ -34,6 +34,7 @@ public class SearchAverageConnectionDurationQueryAdapter {
     public static String adapt(AverageConnectionDurationQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(AverageConnectionDurationQuery.builder().build()));
+        jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildAverageMessagesPerRequestPerEntrypointAggregate(isEntrypointIdKeyword));
         return new JsonObject(jsonContent).encode();

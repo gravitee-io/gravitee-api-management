@@ -32,6 +32,7 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
     public static final String QUERY_WITHOUT_FILTER =
         """
                  {
+                       "size": 0,
                        "aggs": {
                          "entrypoints_agg": {
                            "aggs": {
@@ -96,6 +97,7 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
             .isEqualTo(
                 """
                              {
+                               "size": 0,
                                "query": {
                                  "bool": {
                                    "must": [

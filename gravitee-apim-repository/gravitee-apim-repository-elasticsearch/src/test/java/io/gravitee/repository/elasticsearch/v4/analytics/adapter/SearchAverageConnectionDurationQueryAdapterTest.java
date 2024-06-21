@@ -32,6 +32,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
     public static final String QUERY_WITHOUT_FILTER =
         """
                  {
+                       "size": 0,
                        "query": {
                          "bool": {
                            "must": [
@@ -85,6 +86,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
             .isEqualTo(
                 """
                              {
+                               "size": 0,
                                "query": {
                                  "bool": {
                                    "must": [
@@ -128,6 +130,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
             .isEqualTo(
                 """
                              {
+                               "size": 0,
                                "query": {
                                  "bool": {
                                    "must": [
