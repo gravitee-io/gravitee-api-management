@@ -15,13 +15,14 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.environment;
 
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateManyModel;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.dashboards.DashboardTypeUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.themes.ThemeTypeUpgrader;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
 
@@ -35,8 +36,14 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
 
     @Override
     public boolean upgrade() {
-        var projection = Projections.fields(Projections.include("_id", "environmentId"));
+        Set<Boolean> upgradeStatus = new HashSet<>();
+        updateEnvironmentFromApi(upgradeStatus);
+        updateEnvironmentFromSubscription(upgradeStatus);
+        return upgradeStatus.stream().allMatch(Boolean.TRUE::equals);
+    }
 
+    private void updateEnvironmentFromApi(final Set<Boolean> upgradeStatus) {
+        var projection = Projections.fields(Projections.include("_id", "environmentId"));
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
         template
             .getCollection("apis")
@@ -52,13 +59,32 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
             );
 
         if (!bulkActions.isEmpty()) {
-            return (
-                template.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged() &&
-                template.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged() &&
-                template.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged()
-            );
+            // This upgrade is only done on data created before 3.17.0 as ApiKey#api as been deprecated
+            upgradeStatus.add(template.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(template.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(template.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged());
         }
-        return true;
+    }
+
+    private void updateEnvironmentFromSubscription(final Set<Boolean> upgradeStatus) {
+        var projection = Projections.fields(Projections.include("_id", "environmentId"));
+        var bulkActions = new ArrayList<UpdateManyModel<Document>>();
+        template
+            .getCollection("subscriptions")
+            .find()
+            .projection(projection)
+            .forEach(subscription ->
+                bulkActions.add(
+                    new UpdateManyModel<>(
+                        Filters.in("subscriptions", subscription.getString("_id")),
+                        new Document("$set", new Document("environmentId", subscription.getString("environmentId")))
+                    )
+                )
+            );
+
+        if (!bulkActions.isEmpty()) {
+            upgradeStatus.add(template.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
+        }
     }
 
     @Override
