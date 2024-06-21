@@ -11,7 +11,7 @@
       "name": "plan2-name",
       "security": "API_KEY",
       "api": "api1",
-      "environmentId" : "DEFAULT"
+      "environmentId" : "other-env"
    },
    {
       "id": "plan3",
@@ -32,6 +32,6 @@
       "name": "plan5-name",
       "security": "API_KEY",
       "api": "api1",
-      "environmentId" : "DEFAULT"
+      "environmentId" : "other-env-2"
    }
 ]

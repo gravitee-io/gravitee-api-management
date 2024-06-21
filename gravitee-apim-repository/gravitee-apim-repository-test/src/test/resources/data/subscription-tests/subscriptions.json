@@ -51,7 +51,7 @@
     "id":"sub4",
     "plan": "plan2",
     "application": "app1",
-    "environmentId" : "DEFAULT",
+    "environmentId" : "other-env",
     "status": "PENDING",
     "createdAt": 1539022010883
   },
@@ -59,7 +59,7 @@
     "id":"sub5",
     "plan": "plan5",
     "application": "app4",
-    "environmentId" : "DEFAULT",
+    "environmentId" : "other-env-2",
     "status": "ACCEPTED",
     "createdAt": 1539023010884
   }
