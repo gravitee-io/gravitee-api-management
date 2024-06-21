@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,6 +32,7 @@ import lombok.Getter;
 @Data
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Subscription implements Serializable {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -128,11 +130,10 @@ public class Subscription implements Serializable {
 
     private String failureCause;
 
-    public Subscription() {}
-
     public Subscription(Subscription cloned) {
         this.id = cloned.id;
         this.api = cloned.api;
+        this.environmentId = cloned.environmentId;
         this.plan = cloned.plan;
         this.application = cloned.application;
         this.clientId = cloned.clientId;
@@ -158,114 +159,6 @@ public class Subscription implements Serializable {
         this.metadata = cloned.metadata;
         this.type = cloned.type;
         this.failureCause = cloned.failureCause;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public void setStartingAt(Date startingAt) {
-        this.startingAt = startingAt;
-    }
-
-    public void setEndingAt(Date endingAt) {
-        this.endingAt = endingAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void setProcessedAt(Date processedAt) {
-        this.processedAt = processedAt;
-    }
-
-    public void setProcessedBy(String processedBy) {
-        this.processedBy = processedBy;
-    }
-
-    public void setSubscribedBy(String subscribedBy) {
-        this.subscribedBy = subscribedBy;
-    }
-
-    public void setRequest(String request) {
-        this.request = request;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public void setConsumerStatus(ConsumerStatus consumerStatus) {
-        this.consumerStatus = consumerStatus;
-    }
-
-    public void setClosedAt(Date closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public void setPausedAt(Date pausedAt) {
-        this.pausedAt = pausedAt;
-    }
-
-    public void setConsumerPausedAt(Date consumerPausedAt) {
-        this.consumerPausedAt = consumerPausedAt;
-    }
-
-    public void setGeneralConditionsContentRevision(Integer generalConditionsContentRevision) {
-        this.generalConditionsContentRevision = generalConditionsContentRevision;
-    }
-
-    public void setGeneralConditionsContentPageId(String generalConditionsContentPageId) {
-        this.generalConditionsContentPageId = generalConditionsContentPageId;
-    }
-
-    public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
-        this.generalConditionsAccepted = generalConditionsAccepted;
-    }
-
-    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
-        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-    }
-
-    public void setFailureCause(String failureCause) {
-        this.failureCause = failureCause;
     }
 
     /**
