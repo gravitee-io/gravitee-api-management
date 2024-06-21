@@ -33,6 +33,7 @@ class SearchResponseStatusRangesQueryAdapterTest {
             .isEqualTo(
                 """
                             {
+                              "size": 0,
                               "query": {
                                 "term": {
                                   "api-id": "api-id"

@@ -33,6 +33,7 @@ public class SearchResponseStatusRangesQueryAdapter {
     public static String adapt(ResponseStatusRangesQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
         var esQuery = buildElasticQuery(Optional.ofNullable(query).orElse(ResponseStatusRangesQuery.builder().build()));
+        jsonContent.put("size", 0);
         jsonContent.put("query", esQuery);
         jsonContent.put("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword));
         return new JsonObject(jsonContent).encode();
