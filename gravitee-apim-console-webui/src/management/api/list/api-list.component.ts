@@ -56,6 +56,9 @@ export type ApisTableDS = {
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
   origin: Origin;
+  provider: {
+    name: string,
+  };
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
   listenerTypes?: ListenerType[];
@@ -67,7 +70,7 @@ export type ApisTableDS = {
   styleUrls: ['./api-list.component.scss'],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'access', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];
+  displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'owner', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -170,6 +173,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
             origin: api.originContext?.origin,
+            provider: {
+              name: this.mapOriginToProvider(api.definitionContext?.origin),
+            },
             readonly: api.originContext?.origin === 'KUBERNETES',
             definitionVersion: this.getDefinitionVersion(api),
             owner: api.primaryOwner?.displayName,
@@ -259,5 +265,14 @@ export class ApiListComponent implements OnInit, OnDestroy {
     }
 
     return api.proxy.virtualHosts?.length > 0 ? api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`) : [api.contextPath];
+  }
+
+  private mapOriginToProvider(origin: Origin): string {
+    const options = {
+      'MANAGEMENT': 'Gravitee',
+      'AWS': 'AWS',
+      'SOLACE': 'Solace',
+    }
+    return options[origin] || '';
   }
 }

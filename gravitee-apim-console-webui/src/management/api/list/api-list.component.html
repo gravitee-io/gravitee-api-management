@@ -53,6 +53,18 @@
       </td>
     </ng-container>
 
+    <!-- Display Definition Version Column -->
+    <ng-container matColumnDef="definitionVersion">
+      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
+      <td mat-cell *matCellDef="let element">
+        <span class="gio-badge-neutral">
+          <mat-icon *ngIf="element.definitionVersion.icon" class="gio-left" [svgIcon]="element.definitionVersion.icon"></mat-icon>
+          {{ element.definitionVersion.label | titlecase }}
+        </span>
+        <span class="gio-badge-neutral" *ngIf="element.listenerTypes?.length > 0 && element.listenerTypes.includes('TCP')"> TCP </span>
+      </td>
+    </ng-container>
+
     <!-- Display States Column -->
     <ng-container matColumnDef="states">
       <th mat-header-cell *matHeaderCellDef id="states">Status</th>
@@ -147,18 +159,6 @@
       <th mat-header-cell *matHeaderCellDef id="owner">Owner</th>
       <td mat-cell *matCellDef="let element">
         <a [matTooltip]="element.ownerEmail ?? null">{{ element.owner }}</a>
-      </td>
-    </ng-container>
-
-    <!-- Display Version Column -->
-    <ng-container matColumnDef="definitionVersion">
-      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
-      <td mat-cell *matCellDef="let element">
-        <span class="gio-badge-neutral">
-          <mat-icon *ngIf="element.definitionVersion.icon" class="gio-left" [svgIcon]="element.definitionVersion.icon"></mat-icon>
-          {{ element.definitionVersion.label | titlecase }}
-        </span>
-        <span class="gio-badge-neutral" *ngIf="element.listenerTypes?.length > 0 && element.listenerTypes.includes('TCP')"> TCP </span>
       </td>
     </ng-container>
 
