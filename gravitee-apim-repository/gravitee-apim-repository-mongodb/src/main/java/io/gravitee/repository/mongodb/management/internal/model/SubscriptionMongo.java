@@ -19,6 +19,8 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Date;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -27,6 +29,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author GraviteeSource Team
  */
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}subscriptions")
+@Getter
+@Setter
 public class SubscriptionMongo extends Auditable {
 
     /**
@@ -127,215 +131,6 @@ public class SubscriptionMongo extends Auditable {
      * STANDARD, SUBSCRIPTION
      */
     private String type;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String environmentId() {
-        return environmentId;
-    }
-
-    public SubscriptionMongo setEnvironmentId(final String environmentId) {
-        this.environmentId = environmentId;
-        return this;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public Date getProcessedAt() {
-        return processedAt;
-    }
-
-    public void setProcessedAt(Date processedAt) {
-        this.processedAt = processedAt;
-    }
-
-    public String getRequest() {
-        return request;
-    }
-
-    public void setRequest(String request) {
-        this.request = request;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public String getProcessedBy() {
-        return processedBy;
-    }
-
-    public void setProcessedBy(String processedBy) {
-        this.processedBy = processedBy;
-    }
-
-    public Date getStartingAt() {
-        return startingAt;
-    }
-
-    public void setStartingAt(Date startingAt) {
-        this.startingAt = startingAt;
-    }
-
-    public Date getEndingAt() {
-        return endingAt;
-    }
-
-    public void setEndingAt(Date endingAt) {
-        this.endingAt = endingAt;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getConsumerStatus() {
-        return consumerStatus;
-    }
-
-    public void setConsumerStatus(String consumerStatus) {
-        this.consumerStatus = consumerStatus;
-    }
-
-    public String getSubscribedBy() {
-        return subscribedBy;
-    }
-
-    public void setSubscribedBy(String subscribedBy) {
-        this.subscribedBy = subscribedBy;
-    }
-
-    public Date getClosedAt() {
-        return closedAt;
-    }
-
-    public void setClosedAt(Date closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public Date getPausedAt() {
-        return pausedAt;
-    }
-
-    public void setPausedAt(Date pausedAt) {
-        this.pausedAt = pausedAt;
-    }
-
-    public Date getConsumerPausedAt() {
-        return consumerPausedAt;
-    }
-
-    public void setConsumerPausedAt(Date consumerPausedAt) {
-        this.consumerPausedAt = consumerPausedAt;
-    }
-
-    public PageRevisionPkMongo getGeneralConditionsContentRevision() {
-        return generalConditionsContentRevision;
-    }
-
-    public void setGeneralConditionsContentRevision(PageRevisionPkMongo generalConditionsContentRevision) {
-        this.generalConditionsContentRevision = generalConditionsContentRevision;
-    }
-
-    public Boolean getGeneralConditionsAccepted() {
-        return generalConditionsAccepted;
-    }
-
-    public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
-        this.generalConditionsAccepted = generalConditionsAccepted;
-    }
-
-    public Integer getDaysToExpirationOnLastNotification() {
-        return daysToExpirationOnLastNotification;
-    }
-
-    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
-        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getFailureCause() {
-        return failureCause;
-    }
-
-    public void setFailureCause(String failureCause) {
-        this.failureCause = failureCause;
-    }
 
     @Override
     public boolean equals(Object o) {
