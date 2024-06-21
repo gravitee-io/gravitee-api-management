@@ -19,6 +19,7 @@ import static io.gravitee.repository.mongodb.management.upgrade.upgrader.promoti
 
 import com.mongodb.client.model.Filters;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
+import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,15 +32,21 @@ import org.springframework.stereotype.Component;
 public class DashboardTypeUpgrader extends MongoUpgrader {
 
     @Override
+    public String version() {
+        return "v1";
+    }
+
+    @Override
     public boolean upgrade() {
+        var dashboardsTypeNotExistsQuery = new Document("type", new Document("$exists", false));
+
         // Because of DocumentDB which does not support latest aggregation APIs of MongoDB, we need to use this kind of update method.
-        template
-            .getCollection("dashboards")
-            .find()
+        this.getCollection("dashboards")
+            .find(dashboardsTypeNotExistsQuery)
             .forEach(dashboard -> {
                 dashboard.append("type", dashboard.getString("referenceType"));
                 dashboard.put("referenceType", "ENVIRONMENT");
-                template.getCollection("dashboards").replaceOne(Filters.eq("_id", dashboard.getString("_id")), dashboard);
+                this.getCollection("dashboards").replaceOne(Filters.eq("_id", dashboard.getString("_id")), dashboard);
             });
         return true;
     }
