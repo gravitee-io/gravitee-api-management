@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.plan;
 
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateManyModel;
+import com.mongodb.client.model.Updates;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.dashboards.DashboardTypeUpgrader;
@@ -33,26 +35,30 @@ public class PlanDefinitionVersionUpgrader extends MongoUpgrader {
     public static final int PLAN_DEFINITION_VERSION_UPGRADER_ORDER = DashboardTypeUpgrader.DASHBOARD_TYPE_UPGRADER_ORDER + 1;
 
     @Override
+    public String version() {
+        return "v1";
+    }
+
+    @Override
     public boolean upgrade() {
         var query = new Document("definitionVersion", DefinitionVersion.V4.name());
         var projection = Projections.fields(Projections.include("_id", "definitionVersion"));
 
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
-        template
-            .getCollection("apis")
+        this.getCollection("apis")
             .find(query)
             .projection(projection)
             .forEach(v4Api -> {
                 bulkActions.add(
                     new UpdateManyModel<>(
-                        new Document("api", v4Api.getString("_id")),
-                        new Document("$set", new Document("definitionVersion", DefinitionVersion.V4.name()))
+                        Filters.and(Filters.eq("api", v4Api.getString("_id")), Filters.exists("definitionVersion", false)),
+                        Updates.set("definitionVersion", DefinitionVersion.V4.name())
                     )
                 );
             });
 
         if (!bulkActions.isEmpty()) {
-            return template.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged();
+            return this.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged();
         }
         return true;
     }
