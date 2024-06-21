@@ -28,6 +28,7 @@ public class SearchRequestsCountQueryAdapter {
 
     public static String adapt(RequestsCountQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
+        jsonContent.put("size", 0);
         var esQuery = buildElasticQuery(query);
         if (esQuery != null) {
             jsonContent.put("query", esQuery);
