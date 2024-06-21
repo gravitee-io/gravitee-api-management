@@ -254,7 +254,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         if (!isEmpty(criteria.getEnvironments())) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append(" ( k.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            builder.append(" ( s.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
             argsList.addAll(criteria.getEnvironments());
             started = true;
         }

@@ -235,6 +235,15 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void findByCriteria_should_find_by_environments() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().includeRevoked(false).environments(Set.of("DEFAULT")).build()
+        );
+        assertThat(apiKeys).hasSize(1);
+        assertThat(apiKeys).extracting(ApiKey::getId).containsOnly("id-of-apikey-2");
+    }
+
+    @Test
     public void findByCriteria_should_find_by_criteria_with_time_range() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
             ApiKeyCriteria.builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).subscriptions(singleton("sub3")).build()

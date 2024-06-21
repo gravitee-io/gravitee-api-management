@@ -127,6 +127,29 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+    public void shouldFindByEnvironment() throws TechnicalException {
+        List<Subscription> subscriptions =
+            this.subscriptionRepository.search(SubscriptionCriteria.builder().environments(singleton("DEFAULT")).build());
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        assertEquals("Subscriptions size", 3, subscriptions.size());
+        final Iterator<Subscription> iterator = subscriptions.iterator();
+        assertEquals("Subscription id", "sub3", iterator.next().getId());
+        assertEquals("Subscription id", "sub2", iterator.next().getId());
+        assertEquals("Subscription id", "sub1", iterator.next().getId());
+    }
+
+    @Test
+    public void shoulNotFindByEnvironment() throws TechnicalException {
+        List<Subscription> subscriptions =
+            this.subscriptionRepository.search(SubscriptionCriteria.builder().applications(singleton("unknown-env")).build());
+
+        assertNotNull(subscriptions);
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
     public void shouldFindByIds() throws TechnicalException {
         List<Subscription> subscriptions =
             this.subscriptionRepository.search(SubscriptionCriteria.builder().ids(List.of("sub1", "sub3", "sub4")).build());
