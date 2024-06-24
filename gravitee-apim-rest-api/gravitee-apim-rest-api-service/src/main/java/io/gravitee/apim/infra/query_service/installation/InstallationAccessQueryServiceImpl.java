@@ -23,14 +23,22 @@ import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainS
 import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,9 +59,9 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private final ConfigurableEnvironment environment;
     private final InstallationTypeDomainService installationTypeDomainService;
     private final AccessPointQueryService accessPointQueryService;
-
-    @Value("${cockpit.enabled:${cloud.enabled:false}}")
-    private boolean cockpitEnabled;
+    private final ParameterService parameterService;
+    private final OrganizationService organizationService;
+    private final EnvironmentService environmentService;
 
     @Value("${installation.api.url:#{null}}")
     private String apiURL;
@@ -75,16 +83,6 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
             // Handle legacy urls
             handleEnvironmentUrls();
-
-            // Setup default value if required
-            if (cockpitEnabled) {
-                if (consoleUrls.isEmpty()) {
-                    consoleUrls.put(DEFAULT_ID, "http://localhost:4000");
-                }
-                if (portalUrls.isEmpty()) {
-                    portalUrls.put(DEFAULT_ID, "http://localhost:4100");
-                }
-            }
 
             // Validate api url
             if (apiURL != null) {
@@ -207,7 +205,13 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             List<AccessPoint> accessPoints = accessPointQueryService.getConsoleAccessPoints();
             return accessPoints.stream().map(this::buildHttpUrl).toList();
         } else {
-            return new ArrayList<>(consoleUrls.values());
+            Collection<OrganizationEntity> organizations = organizationService.findAll();
+            if (organizations == null || organizations.isEmpty()) {
+                OrganizationEntity organization = organizationService.getDefaultOrInitialize();
+                return List.of(getConsoleUrlFromEnv(organization.getId()));
+            } else {
+                return organizations.stream().map(OrganizationEntity::getId).map(this::getConsoleUrlFromEnv).toList();
+            }
         }
     }
 
@@ -217,8 +221,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             List<AccessPoint> accessPoints = accessPointQueryService.getConsoleAccessPoints(organizationId);
             return accessPoints.stream().map(this::buildHttpUrl).toList();
         } else {
-            String consoleUrl = consoleUrls.get(organizationId);
-            return consoleUrl == null ? List.of() : List.of(consoleUrl);
+            String consoleUrl = getConsoleUrlFromEnv(organizationId);
+            return List.of(consoleUrl);
         }
     }
 
@@ -228,8 +232,29 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             AccessPoint accessPoint = accessPointQueryService.getConsoleAccessPoint(organizationId);
             return buildHttpUrl(accessPoint);
         } else {
-            return consoleUrls.get(organizationId);
+            return getConsoleUrlFromEnv(organizationId);
         }
+    }
+
+    @NonNull
+    private String getConsoleUrlFromEnv(final String organizationId) {
+        String consoleUrl = consoleUrls.get(organizationId);
+        if (consoleUrl == null || consoleUrl.equals(DEFAULT_CONSOLE_URL)) {
+            consoleUrl =
+                parameterService.find(
+                    GraviteeContext.getExecutionContext(),
+                    Key.MANAGEMENT_URL,
+                    organizationId,
+                    ParameterReferenceType.ORGANIZATION
+                );
+            if (consoleUrl == null) {
+                consoleUrl = Key.MANAGEMENT_URL.defaultValue();
+            }
+        }
+        if (consoleUrl == null) {
+            consoleUrl = DEFAULT_CONSOLE_URL;
+        }
+        return consoleUrl;
     }
 
     @Override
@@ -254,7 +279,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             List<AccessPoint> accessPoints = accessPointQueryService.getPortalAccessPoints();
             return accessPoints.stream().map(this::buildHttpUrl).toList();
         } else {
-            return new ArrayList<>(portalUrls.values());
+            return environmentService.findAllOrInitialize().stream().map(EnvironmentEntity::getId).map(this::getPortalUrlFromEnv).toList();
         }
     }
 
@@ -264,8 +289,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             List<AccessPoint> accessPoints = accessPointQueryService.getPortalAccessPoints(environmentId);
             return accessPoints.stream().map(this::buildHttpUrl).toList();
         } else {
-            String portalUrl = portalUrls.get(environmentId);
-            return portalUrl == null ? List.of() : List.of(portalUrl);
+            String portalUrl = getPortalUrlFromEnv(environmentId);
+            return List.of(portalUrl);
         }
     }
 
@@ -275,8 +300,29 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             AccessPoint consoleAccessPoint = accessPointQueryService.getPortalAccessPoint(environmentId);
             return buildHttpUrl(consoleAccessPoint);
         } else {
-            return portalUrls.get(environmentId);
+            return getPortalUrlFromEnv(environmentId);
         }
+    }
+
+    @NonNull
+    private String getPortalUrlFromEnv(final String environmentId) {
+        String portalUrl = portalUrls.get(environmentId);
+        if (portalUrl == null || portalUrl.equals(DEFAULT_PORTAL_URL)) {
+            portalUrl =
+                parameterService.find(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PORTAL_URL,
+                    environmentId,
+                    ParameterReferenceType.ENVIRONMENT
+                );
+            if (portalUrl == null) {
+                portalUrl = Key.PORTAL_URL.defaultValue();
+            }
+        }
+        if (portalUrl == null) {
+            portalUrl = DEFAULT_PORTAL_URL;
+        }
+        return portalUrl;
     }
 
     @Override
