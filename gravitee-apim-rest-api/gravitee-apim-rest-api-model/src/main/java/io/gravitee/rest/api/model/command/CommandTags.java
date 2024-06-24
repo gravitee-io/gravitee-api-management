@@ -30,7 +30,8 @@ import lombok.RequiredArgsConstructor;
 @Schema(enumAsRef = true)
 public enum CommandTags {
     DATA_TO_INDEX(MULTICAST),
-    SUBSCRIPTION_FAILURE(UNICAST);
+    SUBSCRIPTION_FAILURE(UNICAST),
+    EMAIL_TEMPLATE_UPDATE(MULTICAST);
 
     private final CommandCastMode castMode;
 
