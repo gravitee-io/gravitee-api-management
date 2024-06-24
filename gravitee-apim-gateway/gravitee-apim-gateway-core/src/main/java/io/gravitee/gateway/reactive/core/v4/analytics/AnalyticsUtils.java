@@ -42,6 +42,8 @@ public class AnalyticsUtils {
         analytics.setEnabled(true);
         if (loggingV2 != null) {
             Logging logging = new Logging();
+            logging.setCondition(loggingV2.getCondition());
+
             if (loggingV2.getMode() != null) {
                 logging.getMode().setEntrypoint(loggingV2.getMode().isClientMode());
                 logging.getMode().setEndpoint(loggingV2.getMode().isProxyMode());
