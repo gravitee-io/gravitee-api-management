@@ -173,7 +173,12 @@
         <gravitee-policy-cache.version>2.0.6</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>2.0.2</gravitee-policy-callout-http.version>
         <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
+<<<<<<< HEAD
         <gravitee-policy-cloud-events.version>1.0.2</gravitee-policy-cloud-events.version>
+=======
+        <gravitee-policy-custom-query-parameters.version>2.0.0</gravitee-policy-custom-query-parameters.version>
+        <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
+>>>>>>> b72f29476e (chore(plugin): bump policy-cloud-events)
         <gravitee-policy-data-logging-masking.version>3.1.0</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-dynamic-routing.version>1.13.0</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.3.0</gravitee-policy-generate-http-signature.version>
