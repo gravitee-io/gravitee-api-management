@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CREATED;
@@ -37,6 +38,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -188,16 +190,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private GroupService groupService;
 
     @Autowired
-    private ParameterService parameterService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @Autowired
     private UserService userService;
 
     @Autowired
     private PageService pageService;
-
-    @Autowired
-    private ApplicationConverter applicationConverter;
 
     @Autowired
     private ApiEntrypointService apiEntrypointService;
@@ -529,7 +528,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final GenericApiModel api = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
 
-            String managementURL = parameterService.find(executionContext, Key.MANAGEMENT_URL, ParameterReferenceType.ORGANIZATION);
+            String managementURL = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
 
             String subscriptionsUrl = "";
 
