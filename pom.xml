@@ -94,7 +94,7 @@
         <commons-text.version>1.10.0</commons-text.version>
         <commons-email.version>1.5</commons-email.version>
         <dozer.version>6.5.2</dozer.version>
-        <everit-json-schema.version>1.14.0</everit-json-schema.version>
+        <everit-json-schema.version>1.14.4</everit-json-schema.version>
         <flexmark.version>0.62.2</flexmark.version>
         <freemarker.version>2.3.31</freemarker.version>
         <gatling-charts-highcharts.version>3.10.5</gatling-charts-highcharts.version>
