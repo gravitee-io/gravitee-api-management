@@ -74,6 +74,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   public apiProperties: (Property & { _id: string; dynamic: boolean })[] = [];
   public propertiesFormGroup: FormGroup = new FormGroup({});
   public isDirty = false;
+  public isV4: boolean;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
@@ -93,6 +94,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
+          this.isV4 = api.definitionVersion === 'V4';
           this.apiProperties =
             api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: api.services?.dynamicProperty?.enabled && p.dynamic })) ?? [];
 

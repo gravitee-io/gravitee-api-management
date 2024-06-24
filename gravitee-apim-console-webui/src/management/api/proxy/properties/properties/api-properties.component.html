@@ -21,7 +21,12 @@
       <h2>API properties</h2>
       These properties are automatically injected into the expression language context to be used later.<br />
       For example, to get the value of the property <code>my-property</code> defined in API properties:
-      <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
+      <ng-container *ngIf="isV4; else v2block">
+        <code [innerHTML]="'{#api.properties[\'my-property\']}'"> </code>
+      </ng-container>
+      <ng-template #v2block>
+        <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
+      </ng-template>
     </div>
     <div *ngIf="!isReadOnly" class="apiProperties__header__btn">
       <button
