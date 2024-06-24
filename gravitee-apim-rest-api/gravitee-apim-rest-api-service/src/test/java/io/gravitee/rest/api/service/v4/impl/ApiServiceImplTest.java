@@ -132,6 +132,7 @@ import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
@@ -146,7 +147,6 @@ import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -289,6 +289,9 @@ public class ApiServiceImplTest {
     @Mock
     private TagsValidationService tagsValidationService;
 
+    @Mock
+    private CategoryMapper categoryMapper;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -357,7 +360,8 @@ public class ApiServiceImplTest {
                 apiNotificationService,
                 tagsValidationService,
                 apiAuthorizationService,
-                groupService
+                groupService,
+                categoryMapper
             );
         apiSearchService =
             new ApiSearchServiceImpl(

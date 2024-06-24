@@ -43,12 +43,13 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@AllArgsConstructor
+@NoArgsConstructor
 public class ApiConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiConverter.class);
@@ -97,7 +100,7 @@ public class ApiConverter {
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
-        apiEntity.setCategories(api.getCategories());
+        apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode()));
 
         if (api.getDefinition() != null) {
@@ -163,13 +166,7 @@ public class ApiConverter {
         return apiEntity;
     }
 
-    public ApiEntity toApiEntity(
-        ExecutionContext executionContext,
-        Api api,
-        PrimaryOwnerEntity primaryOwner,
-        List<CategoryEntity> categories,
-        boolean readDatabaseFlows
-    ) {
+    public ApiEntity toApiEntity(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner, boolean readDatabaseFlows) {
         ApiEntity apiEntity = toApiEntity(api, primaryOwner);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
@@ -184,7 +181,7 @@ public class ApiConverter {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toIdentifier(executionContext, api.getCategories(), categories));
+        apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
 
         if (
             parameterService.findAsBoolean(
