@@ -911,12 +911,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         metadata.put(api.getId(), "name", api.getName());
                         metadata.put(api.getId(), "version", api.getVersion());
                         metadata.put(api.getId(), "visibility", api.getVisibility());
+                        metadata.put(api.getId(), "environmentId", api.getEnvironmentId());
                     });
             } else if (type.equals(MembershipReferenceType.APPLICATION)) {
                 applicationRepository
                     .findByIds(memberships.stream().map(UserMembership::getReference).collect(Collectors.toList()))
                     .forEach(application -> {
                         metadata.put(application.getId(), "name", application.getName());
+                        metadata.put(application.getId(), "environmentId", application.getEnvironmentId());
                     });
             }
             return metadata;
