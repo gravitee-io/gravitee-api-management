@@ -155,6 +155,22 @@ class InstallationAccessQueryServiceImplTest {
         assertThat(cut.getPortalUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://portal.url");
     }
 
+    @Test
+    void should_use_parameter_key_api_urls_when_installation_is_not_multi_tenant_and_no_installation_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("console.api.url", "http://api.url/path/management");
+        environment.withProperty("management.url", "http://console.url");
+        environment.withProperty("portal.url", "http://portal.url");
+
+        cut.afterPropertiesSet();
+        assertThat(cut.getConsoleApiPath()).isEqualTo("/path/management");
+        assertThat(cut.getPortalApiPath()).isEqualTo("/portal");
+        assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/path/management");
+        assertThat(cut.getPortalAPIUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://api.url/portal");
+        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://console.url");
+        assertThat(cut.getPortalUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://portal.url");
+    }
+
     private void setValue(final String field, final Object value) {
         try {
             Field heightField = cut.getClass().getDeclaredField(field);
