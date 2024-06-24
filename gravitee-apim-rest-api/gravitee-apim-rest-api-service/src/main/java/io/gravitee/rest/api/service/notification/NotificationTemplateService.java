@@ -99,4 +99,6 @@ public interface NotificationTemplateService {
         Object params,
         boolean ignoreTplException
     );
+
+    void updateFreemarkerCache(NotificationTemplateEntity notificationTemplate, String organization);
 }
