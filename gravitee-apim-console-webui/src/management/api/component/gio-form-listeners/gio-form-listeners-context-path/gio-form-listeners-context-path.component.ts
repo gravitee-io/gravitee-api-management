@@ -63,6 +63,9 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   @Input()
   public pathsToIgnore: PathV4[] = [];
 
+  @Input()
+  public apiId?: string;
+
   public listeners: PathV4[] = [DEFAULT_LISTENER];
   public mainForm: FormGroup;
   public listenerFormArray = new FormArray(
@@ -262,7 +265,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         if (contextPathsToIgnore.includes(contextPathValue)) {
           return of(null);
         }
-        return this.apiService.verify({ contextPath: contextPathValue });
+        return this.apiService.verify({ contextPath: contextPathValue }, this.apiId);
       });
 
       return zip(...pathValidations$).pipe(
