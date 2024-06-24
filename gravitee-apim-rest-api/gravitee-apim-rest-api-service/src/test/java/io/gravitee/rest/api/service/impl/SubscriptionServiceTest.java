@@ -48,6 +48,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -208,7 +209,7 @@ public class SubscriptionServiceTest {
     private GroupService groupService;
 
     @Mock
-    private ParameterService parameterService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @Mock
     private UserService userService;
