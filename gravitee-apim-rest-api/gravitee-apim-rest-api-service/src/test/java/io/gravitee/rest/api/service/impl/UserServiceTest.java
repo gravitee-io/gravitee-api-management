@@ -29,6 +29,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.util.Maps;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
@@ -187,6 +188,9 @@ public class UserServiceTest {
 
     @Mock
     private UserConverter userConverter;
+
+    @Mock
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @Before
     public void setup() {

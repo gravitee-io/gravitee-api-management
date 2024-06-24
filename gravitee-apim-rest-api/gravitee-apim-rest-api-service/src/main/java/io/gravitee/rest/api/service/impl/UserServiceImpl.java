@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
@@ -23,7 +24,6 @@ import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_CREATION
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.DEFAULT_MANAGEMENT_URL;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.util.Collections.emptyList;
@@ -38,6 +38,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.el.TemplateEngine;
@@ -274,6 +275,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Autowired
     private UserConverter userConverter;
+
+    @Autowired
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
@@ -1115,8 +1119,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             .withClaim(Claims.ACTION, action.name())
             .sign(algorithm);
 
-        String managementURL = parameterService.find(executionContext, Key.MANAGEMENT_URL, ParameterReferenceType.ORGANIZATION);
         String userURL = "";
+        String managementURL = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
         if (!StringUtils.isEmpty(managementURL)) {
             if (managementURL.endsWith("/")) {
                 managementURL = managementURL.substring(0, managementURL.length() - 1);
@@ -1131,11 +1135,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 registrationUrl += "/";
             }
             registrationUrl += token;
-        } else if (!StringUtils.isEmpty(managementURL)) {
+        } else if (!StringUtils.isEmpty(managementURL) && !DEFAULT_CONSOLE_URL.equals(managementURL)) {
             registrationUrl = managementURL + managementUri + token;
         } else {
             // This value is used as a fallback when no Management URL has been configured by the platform admin.
-            registrationUrl = DEFAULT_MANAGEMENT_URL + managementUri + token;
+            registrationUrl = DEFAULT_CONSOLE_URL + managementUri + token;
             LOGGER.warn(
                 "An email will be sent with a default '" +
                 managementUri.substring(4, managementUri.indexOf('/', 4)) +
