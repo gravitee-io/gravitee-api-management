@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management;
+package io.gravitee.rest.api.service;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum CommandTags {
-    DATA_TO_INDEX,
-    SUBSCRIPTION_FAILURE,
-    EMAIL_TEMPLATE_UPDATE,
-}
+import io.gravitee.common.event.EventListener;
+import io.gravitee.rest.api.model.command.CommandEntity;
+import io.gravitee.rest.api.service.event.CommandEvent;
+
+public interface NotificationTemplateCommandListener extends EventListener<CommandEvent, CommandEntity> {}
