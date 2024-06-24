@@ -18,11 +18,21 @@ package io.gravitee.apim.infra.query_service.installation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.ParameterService;
 import java.lang.reflect.Field;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,14 +57,30 @@ class InstallationAccessQueryServiceImplTest {
     @Mock
     private AccessPointQueryService accessPointQueryService;
 
+    @Mock
+    private ParameterService parameterService;
+
+    @Mock
+    private OrganizationService organizationService;
+
+    @Mock
+    private EnvironmentService environmentService;
+
     private MockEnvironment environment;
     private InstallationAccessQueryServiceImpl cut;
 
     @BeforeEach
     void setUp() {
         environment = new MockEnvironment();
-        cut = new InstallationAccessQueryServiceImpl(environment, installationTypeDomainService, accessPointQueryService);
-        setValue("cockpitEnabled", false);
+        cut =
+            new InstallationAccessQueryServiceImpl(
+                environment,
+                installationTypeDomainService,
+                accessPointQueryService,
+                parameterService,
+                organizationService,
+                environmentService
+            );
         setValue("apiURL", null);
         setValue("managementProxyPath", "/management");
         setValue("portalProxyPath", "/portal");
@@ -70,15 +96,97 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
-    void should_set_default_url_for_DEFAULT_organization_when_installation_is_not_multi_tenant_and_cockpit_enabled_but_without_configuration() {
+    void should_retrieve_default_urls_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        setValue("cockpitEnabled", true);
+        OrganizationEntity anyOrga = new OrganizationEntity();
+        anyOrga.setId("any");
+        when(organizationService.findAll()).thenReturn(Set.of(anyOrga));
+        EnvironmentEntity anyEnv = new EnvironmentEntity();
+        anyEnv.setId("any");
+        when(environmentService.findAllOrInitialize()).thenReturn(Set.of(anyEnv));
+        cut.afterPropertiesSet();
+        assertThat(cut.getConsoleUrls()).containsOnly("http://localhost:4000");
+
+        assertThat(cut.getPortalUrls()).containsOnly("http://localhost:4100");
+    }
+
+    @Test
+    void should_retrieve_parameter_urls_when_installation_is_not_multi_tenant_but_without_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        OrganizationEntity anyOrga = new OrganizationEntity();
+        anyOrga.setId("any");
+        when(organizationService.findAll()).thenReturn(Set.of(anyOrga));
+        EnvironmentEntity anyEnv = new EnvironmentEntity();
+        anyEnv.setId("any");
+        when(environmentService.findAllOrInitialize()).thenReturn(Set.of(anyEnv));
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION)))
+            .thenReturn("http://custom_console_url");
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("http://custom_portal_url");
+        cut.afterPropertiesSet();
+        assertThat(cut.getConsoleUrls()).containsOnly("http://custom_console_url");
+
+        assertThat(cut.getPortalUrls()).containsOnly("http://custom_portal_url");
+    }
+
+    @Test
+    void should_retrieve_default_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
 
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
-        assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
         assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://localhost:4000");
-        assertThat(cut.getPortalUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://localhost:4100");
+        assertThat(cut.getConsoleUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://localhost:4000");
+        assertThat(cut.getPortalAPIUrl(DEFAULT_ENVIRONMENT_ID)).isNull();
+        assertThat(cut.getPortalUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://localhost:4100");
+        assertThat(cut.getPortalUrls(DEFAULT_ENVIRONMENT_ID)).containsOnly("http://localhost:4100");
+    }
+
+    @Test
+    void should_retrieve_parameter_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq(DEFAULT_ORGANIZATION_ID), eq(ParameterReferenceType.ORGANIZATION)))
+            .thenReturn("http://custom_console_url");
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq(DEFAULT_ENVIRONMENT_ID), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("http://custom_portal_url");
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
+        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://custom_console_url");
+        assertThat(cut.getConsoleUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://custom_console_url");
+        assertThat(cut.getPortalAPIUrl(DEFAULT_ENVIRONMENT_ID)).isNull();
+        assertThat(cut.getPortalUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://custom_portal_url");
+        assertThat(cut.getPortalUrls(DEFAULT_ENVIRONMENT_ID)).containsOnly("http://custom_portal_url");
+    }
+
+    @Test
+    void should_retrieve_default_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+
+        cut.afterPropertiesSet();
+        assertThat(cut.getConsoleAPIUrl("any")).isNull();
+        assertThat(cut.getConsoleUrl("any")).isEqualTo("http://localhost:4000");
+        assertThat(cut.getConsoleUrls("any")).containsOnly("http://localhost:4000");
+        assertThat(cut.getPortalAPIUrl("any")).isNull();
+        assertThat(cut.getPortalUrl("any")).isEqualTo("http://localhost:4100");
+        assertThat(cut.getPortalUrls("any")).containsOnly("http://localhost:4100");
+    }
+
+    @Test
+    void should_retrieve_parameter_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION)))
+            .thenReturn("http://custom_console_url");
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("http://custom_portal_url");
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getConsoleAPIUrl("any")).isNull();
+        assertThat(cut.getConsoleUrl("any")).isEqualTo("http://custom_console_url");
+        assertThat(cut.getConsoleUrls("any")).containsOnly("http://custom_console_url");
+        assertThat(cut.getPortalAPIUrl("any")).isNull();
+        assertThat(cut.getPortalUrl("any")).isEqualTo("http://custom_portal_url");
+        assertThat(cut.getPortalUrls("any")).containsOnly("http://custom_portal_url");
     }
 
     @Test
