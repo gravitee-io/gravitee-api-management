@@ -26,8 +26,8 @@ tests:
           content:
             name: GRAVITEE_UPGRADE_MODE
             value: "true"
-      - isEmpty:
-          # It should not contain init containers by default
+      - exists:
+          # It need hazelcast plugin
           path: spec.template.spec.initContainers
 
 
