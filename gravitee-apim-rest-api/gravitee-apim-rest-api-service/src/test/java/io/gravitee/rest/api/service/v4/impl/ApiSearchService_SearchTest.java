@@ -40,13 +40,13 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -488,8 +488,6 @@ public class ApiSearchService_SearchTest {
                 }
             );
 
-        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(new ArrayList<>());
-
         final Page<GenericApiEntity> apis = apiSearchService.search(
             GraviteeContext.getExecutionContext(),
             USER_ID,
@@ -516,7 +514,6 @@ public class ApiSearchService_SearchTest {
         verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any());
         verify(apiRepository, times(1)).search(any(), any());
         verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
-        verify(categoryService, times(1)).findAll(GraviteeContext.getCurrentEnvironment());
         verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
     }
 }

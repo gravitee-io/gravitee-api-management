@@ -40,13 +40,13 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.time.Instant;
@@ -254,8 +254,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         // Mock apiConverter to return the defined apiEntity
-        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(null), eq(false)))
-            .thenReturn(apiEntity);
+        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false))).thenReturn(apiEntity);
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -305,8 +304,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         // Mock apiConverter to return the defined apiEntity
-        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(null), eq(false)))
-            .thenReturn(apiEntity);
+        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false))).thenReturn(apiEntity);
 
         // Add second flow to simulate a change
         io.gravitee.definition.model.flow.Flow secondFlow = new io.gravitee.definition.model.flow.Flow();
