@@ -111,7 +111,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             ParameterReferenceType.ENVIRONMENT
         );
         enhanceFromConfigFile(portalConfigEntity);
-        enhanceFromRepository(executionContext, portalConfigEntity);
+        enhanceUrlFromService(executionContext, portalConfigEntity);
 
         return portalConfigEntity;
     }
@@ -135,7 +135,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         );
         enhanceFromConfigFile(consoleConfigEntity);
 
-        enhanceFromRepository(executionContext, consoleConfigEntity);
+        enhanceUrlFromService(executionContext, consoleConfigEntity);
         hideForTrialInstance(consoleConfigEntity);
 
         return consoleConfigEntity;
@@ -282,11 +282,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         portalConfigEntity.setReCaptcha(reCaptcha);
     }
 
-    private void enhanceFromRepository(final ExecutionContext executionContext, final PortalSettingsEntity portalConfigEntity) {
+    private void enhanceUrlFromService(final ExecutionContext executionContext, final PortalSettingsEntity portalConfigEntity) {
         String portalCustomUrl = installationAccessQueryService.getPortalUrl(executionContext.getEnvironmentId());
-        if (portalCustomUrl != null) {
+        if (portalCustomUrl != null && !portalCustomUrl.equals(portalConfigEntity.getPortal().getUrl())) {
             portalConfigEntity.getPortal().setUrl(portalCustomUrl);
-            portalConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.PORTAL_URL.key());
+            if (!portalCustomUrl.equals(InstallationAccessQueryService.DEFAULT_PORTAL_URL)) {
+                portalConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.PORTAL_URL.key());
+            }
         }
     }
 
@@ -302,11 +304,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         consoleSettingsEntity.setNewsletter(newsletter);
     }
 
-    private void enhanceFromRepository(final ExecutionContext executionContext, final ConsoleSettingsEntity consoleConfigEntity) {
+    private void enhanceUrlFromService(final ExecutionContext executionContext, final ConsoleSettingsEntity consoleConfigEntity) {
         String consoleCustomUrl = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
-        if (consoleCustomUrl != null) {
+        if (consoleCustomUrl != null && !consoleCustomUrl.equals(consoleConfigEntity.getManagement().getUrl())) {
             consoleConfigEntity.getManagement().setUrl(consoleCustomUrl);
-            consoleConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.MANAGEMENT_URL.key());
+            if (!consoleCustomUrl.equals(InstallationAccessQueryService.DEFAULT_PORTAL_URL)) {
+                consoleConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.MANAGEMENT_URL.key());
+            }
         }
     }
 
