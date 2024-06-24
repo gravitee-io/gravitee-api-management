@@ -19,11 +19,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.CommandTags;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
+import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
@@ -35,11 +47,16 @@ import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundExcep
 import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import java.util.*;
+import io.gravitee.rest.api.service.v4.mapper.NotificationTemplateMapper;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
@@ -69,17 +86,29 @@ public class NotificationTemplateServiceTest {
     private static final Date NOTIFICATION_TEMPLATE_UPDATED_AT = new Date(110000000L);
     private static final boolean NOTIFICATION_TEMPLATE_ENABLED = true;
 
-    @InjectMocks
-    private NotificationTemplateService notificationTemplateService = new NotificationTemplateServiceImpl();
-
     @Mock
     private NotificationTemplateRepository notificationTemplateRepository;
+
+    @Mock
+    private CommandRepository commandRepository;
 
     @Mock
     private AuditService auditService;
 
     @Mock
     private EventManager eventManager;
+
+    @Mock
+    private Node node;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private NotificationTemplateMapper notificationTemplateMapper;
+
+    @InjectMocks
+    private NotificationTemplateService notificationTemplateService = new NotificationTemplateServiceImpl();
 
     NotificationTemplate notificationTemplate;
 
@@ -225,8 +254,11 @@ public class NotificationTemplateServiceTest {
         when(toUpdate.getReferenceId()).thenReturn(ORGANIZATION_ID);
         when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(toUpdate));
         when(notificationTemplateRepository.update(any())).thenReturn(notificationTemplate);
+        when(commandRepository.create(any())).thenReturn(null);
+        when(node.id()).thenReturn("nodeId");
 
         notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
+
         verify(notificationTemplateRepository, times(1)).update(any());
         verify(auditService, times(1))
             .createOrganizationAuditLog(
@@ -238,6 +270,15 @@ public class NotificationTemplateServiceTest {
                 eq(toUpdate),
                 eq(notificationTemplate)
             );
+
+        ArgumentCaptor<Command> captor = ArgumentCaptor.forClass(Command.class);
+        verify(commandRepository, times(1)).create(captor.capture());
+        var command = captor.getValue();
+        assertThat(command).isNotNull();
+        assertThat(command.getFrom()).isEqualTo("nodeId");
+        assertThat(command.getTo()).isEqualTo(MessageRecipient.MANAGEMENT_APIS.name());
+        assertThat(command.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+        assertThat(command.getTags()).containsExactly(CommandTags.EMAIL_TEMPLATE_UPDATE.name());
     }
 
     @Test(expected = NotificationTemplateNotFoundException.class)

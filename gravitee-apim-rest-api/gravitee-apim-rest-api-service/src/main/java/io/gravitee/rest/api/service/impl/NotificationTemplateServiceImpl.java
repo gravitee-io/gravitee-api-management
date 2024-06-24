@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.NOTIFICATION_TEMPLATE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.cache.TemplateLoader;
@@ -25,9 +27,15 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.CommandTags;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
@@ -50,19 +58,29 @@ import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.v4.mapper.NotificationTemplateMapper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,12 +94,11 @@ import org.yaml.snakeyaml.Yaml;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class NotificationTemplateServiceImpl extends AbstractService implements NotificationTemplateService, InitializingBean {
 
     private static final String HTML_TEMPLATE_EXTENSION = "html";
     public static final String TEMPLATES_TO_INCLUDE_SCOPE = "TEMPLATES_TO_INCLUDE";
-
-    private final Logger LOGGER = LoggerFactory.getLogger(NotificationTemplateServiceImpl.class);
 
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
@@ -96,8 +113,21 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     @Autowired
     private EventManager eventManager;
 
-    private Map<String, Configuration> freemarkerConfigurationByOrg = new HashMap<>();
-    private Map<String, StringTemplateLoader> stringTemplateLoaderMapByOrg = new HashMap<>();
+    @Lazy
+    @Autowired
+    private CommandRepository commandRepository;
+
+    @Autowired
+    private Node node;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private NotificationTemplateMapper notificationTemplateMapper;
+
+    private final Map<String, Configuration> freemarkerConfigurationByOrg = new HashMap<>();
+    private final Map<String, StringTemplateLoader> stringTemplateLoaderMapByOrg = new HashMap<>();
     private Map<String, NotificationTemplateEntity> fromFilesNotificationTemplateEntities = new HashMap<>();
 
     @Override
@@ -130,7 +160,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(NotificationTemplateEntity::getTemplateName, Function.identity()));
         } catch (IOException e) {
-            LOGGER.warn("Problem while getting freemarker templates from files", e);
+            log.warn("Problem while getting freemarker templates from files", e);
             return Collections.emptyMap();
         }
     }
@@ -149,20 +179,20 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
         } catch (freemarker.core.ParseException e) {
             if (ignoreTplException) {
-                LOGGER.warn("Error while parsing the inline reader:\n{}", e.getMessage());
+                log.warn("Error while parsing the inline reader:\n{}", e.getMessage());
                 return "";
             } else {
                 throw new InvalidTemplateException(e.getMessage());
             }
         } catch (TemplateException e) {
             if (ignoreTplException) {
-                LOGGER.warn("Error while processing the inline reader:\n{}", e.getMessage());
+                log.warn("Error while processing the inline reader:\n{}", e.getMessage());
                 return "";
             } else {
                 throw new TemplateProcessingException(e);
             }
         } catch (IOException e) {
-            LOGGER.warn("Error while creating template from reader:\n{}", e.getMessage());
+            log.warn("Error while creating template from reader:\n{}", e.getMessage());
             return "";
         }
     }
@@ -174,10 +204,10 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             Template template = orgFreemarkerConfiguration.getTemplate(templateName);
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
         } catch (IOException e) {
-            LOGGER.warn("Error while getting template {}:\n{}", templateName, e.getMessage());
+            log.warn("Error while getting template {}:\n{}", templateName, e.getMessage());
             return "";
         } catch (TemplateException e) {
-            LOGGER.warn("Error while processing the template {}:\n{}", templateName, e.getMessage());
+            log.warn("Error while processing the template {}:\n{}", templateName, e.getMessage());
             return "";
         }
     }
@@ -266,7 +296,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to retrieve notificationTemplates", ex);
+            log.error("An error occurs while trying to retrieve notificationTemplates", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve notificationTemplates", ex);
         }
     }
@@ -309,7 +339,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 io.gravitee.rest.api.model.notification.NotificationTemplateType.PORTAL
             );
         } catch (IOException e) {
-            LOGGER.warn("Problem while getting freemarker template {} from file : {}", hook.getTemplate(), e.getMessage());
+            log.warn("Problem while getting freemarker template {} from file : {}", hook.getTemplate(), e.getMessage());
             return null;
         }
     }
@@ -336,7 +366,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                     io.gravitee.rest.api.model.notification.NotificationTemplateType.EMAIL
                 );
             } catch (IOException e) {
-                LOGGER.warn("Problem while getting freemarker template {} from file : {}", hook.getTemplate(), e.getMessage());
+                log.warn("Problem while getting freemarker template {} from file : {}", hook.getTemplate(), e.getMessage());
             }
         }
         return null;
@@ -360,7 +390,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 io.gravitee.rest.api.model.notification.NotificationTemplateType.EMAIL
             );
         } catch (IOException e) {
-            LOGGER.warn("Problem while getting freemarker template {} from file : {}", templateName, e.getMessage());
+            log.warn("Problem while getting freemarker template {} from file : {}", templateName, e.getMessage());
         }
 
         return null;
@@ -382,7 +412,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to retrieve notificationTemplates by type", ex);
+            log.error("An error occurs while trying to retrieve notificationTemplates by type", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve notificationTemplates by type", ex);
         }
     }
@@ -400,7 +430,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     @Override
     public NotificationTemplateEntity create(ExecutionContext executionContext, NotificationTemplateEntity newNotificationTemplate) {
         try {
-            LOGGER.debug("Create notificationTemplate {}", newNotificationTemplate);
+            log.debug("Create notificationTemplate {}", newNotificationTemplate);
             newNotificationTemplate.setId(UuidString.generateRandom());
             if (newNotificationTemplate.getCreatedAt() == null) {
                 newNotificationTemplate.setCreatedAt(new Date());
@@ -425,7 +455,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
             return createdNotificationTemplateEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create or update notificationTemplate {}", newNotificationTemplate, ex);
+            log.error("An error occurs while trying to create or update notificationTemplate {}", newNotificationTemplate, ex);
             throw new TechnicalManagementException("An error occurs while trying to create or update " + newNotificationTemplate, ex);
         }
     }
@@ -433,7 +463,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     @Override
     public NotificationTemplateEntity update(ExecutionContext executionContext, NotificationTemplateEntity updatingNotificationTemplate) {
         try {
-            LOGGER.debug("Update notificationTemplate {}", updatingNotificationTemplate);
+            log.debug("Update notificationTemplate {}", updatingNotificationTemplate);
             if (updatingNotificationTemplate.getUpdatedAt() == null) {
                 updatingNotificationTemplate.setUpdatedAt(new Date());
             }
@@ -463,17 +493,16 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
             final NotificationTemplateEntity updatedNotificationTemplateEntity = convert(updatedNotificationTemplate);
 
-            // Update template in loader cache
-            updateFreemarkerCache(updatedNotificationTemplateEntity, executionContext.getOrganizationId());
+            sendUpdateTemplateCommand(updatedNotificationTemplateEntity, executionContext.getOrganizationId());
 
             return updatedNotificationTemplateEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create or update notificationTemplate {}", updatingNotificationTemplate, ex);
+            log.error("An error occurs while trying to create or update notificationTemplate {}", updatingNotificationTemplate, ex);
             throw new TechnicalManagementException("An error occurs while trying to create or update " + updatingNotificationTemplate, ex);
         }
     }
 
-    private void updateFreemarkerCache(NotificationTemplateEntity notificationTemplate, String organization) {
+    public void updateFreemarkerCache(NotificationTemplateEntity notificationTemplate, String organization) {
         StringTemplateLoader orgCustomizedTemplatesLoader = stringTemplateLoaderMapByOrg.get(organization);
         if (orgCustomizedTemplatesLoader == null) {
             Configuration orgFreemarkerConfiguration = this.initCurrentOrgFreemarkerConfiguration(organization);
@@ -498,7 +527,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             freemarkerConfigurationByOrg.get(organization).removeTemplateFromCache(notificationTemplate.getTitleTemplateName());
             freemarkerConfigurationByOrg.get(organization).removeTemplateFromCache(notificationTemplate.getName());
         } catch (IOException ex) {
-            LOGGER.error("An error occurs while trying to update freemarker cache with this template {}", notificationTemplate, ex);
+            log.error("An error occurs while trying to update freemarker cache with this template {}", notificationTemplate, ex);
         }
 
         // Send an event to notify listener to reload template
@@ -510,10 +539,43 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         }
     }
 
+    private void sendUpdateTemplateCommand(NotificationTemplateEntity notificationTemplate, String organization) {
+        Instant now = Instant.now();
+        var command = Command
+            .builder()
+            .id(UUID.random().toString())
+            .from(node.id())
+            .to(MessageRecipient.MANAGEMENT_APIS.name())
+            .organizationId(organization)
+            .tags(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE.name()))
+            .createdAt(Date.from(now))
+            .updatedAt(Date.from(now));
+
+        try {
+            command.content(
+                objectMapper.writeValueAsString(notificationTemplateMapper.toNotificationTemplateCommandEntity(notificationTemplate))
+            );
+        } catch (JsonProcessingException e) {
+            log.error(
+                "Failed to serialize notification template [{}] for organization [{}]",
+                notificationTemplate.getId(),
+                organization,
+                e
+            );
+            return;
+        }
+
+        try {
+            commandRepository.create(command.build());
+        } catch (TechnicalException e) {
+            log.error("Failed to create template update command [{}] for organization [{}]", notificationTemplate.getId(), organization, e);
+        }
+    }
+
     @Override
     public NotificationTemplateEntity findById(String organizationId, String id) {
         try {
-            LOGGER.debug("Find notificationTemplate by ID: {}", id);
+            log.debug("Find notificationTemplate by ID: {}", id);
 
             Optional<NotificationTemplate> notificationTemplate = notificationTemplateRepository
                 .findById(id)
@@ -527,7 +589,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             }
             throw new NotificationTemplateNotFoundException(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete a notificationTemplate using its ID {}", id, ex);
+            log.error("An error occurs while trying to delete a notificationTemplate using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a notificationTemplate using its ID " + id, ex);
         }
     }

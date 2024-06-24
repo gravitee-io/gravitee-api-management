@@ -13,36 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.rest.api.model.notification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Builder
-public class Command {
+public class NotificationTemplateCommandEntity {
 
     private String id;
-    private String environmentId;
-    private String organizationId;
-    private String from;
-    private String to;
-    private List<String> tags;
+    private String hook;
+    private String scope;
+    private String name;
+    private String description;
+    private String title;
     private String content;
-    private List<String> acknowledgments;
-    private Date expiredAt;
+    private NotificationTemplateType type;
+    private Boolean enabled;
+    private String templateName;
+
+    @JsonProperty("created_at")
     private Date createdAt;
+
+    @JsonProperty("updated_at")
     private Date updatedAt;
 }
