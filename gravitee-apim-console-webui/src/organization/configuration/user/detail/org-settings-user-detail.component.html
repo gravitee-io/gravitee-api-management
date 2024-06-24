@@ -215,7 +215,7 @@
         >
           <!-- Position Name -->
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>Name</th>
+            <th mat-header-cell *matHeaderCellDef id="group-name" mat-sort-header>Name</th>
             <td mat-cell *matCellDef="let group">
               {{ group.name }}
 
@@ -265,7 +265,7 @@
 
           <!-- Delete Column -->
           <ng-container matColumnDef="delete">
-            <th mat-header-cell *matHeaderCellDef id="roles" width="5%">Delete</th>
+            <th mat-header-cell *matHeaderCellDef id="delete-user-group" width="5%">Delete</th>
             <td mat-cell *matCellDef="let group">
               <button
                 *gioPermission="{ anyOf: ['organization-user-d'] }"
@@ -310,9 +310,15 @@
         <table mat-table [dataSource]="apisTableDS" matSort aria-label="APIs table">
           <!-- Name Column -->
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>Name</th>
+            <th mat-header-cell *matHeaderCellDef id="api-name" mat-sort-header>Name</th>
             <td mat-cell *matCellDef="let api">
-              {{ api.name }}
+              @if (api.environmentId && api.id) {
+                <a [routerLink]="['/', api.environmentId, 'apis', api.id]">
+                  {{ api.name }}
+                </a>
+              } @else {
+                {{ api.name }}
+              }
             </td>
           </ng-container>
 
@@ -366,9 +372,15 @@
         >
           <!-- Name Column -->
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-            <td mat-cell *matCellDef="let group">
-              {{ group.name }}
+            <th mat-header-cell *matHeaderCellDef id="app-name">Name</th>
+            <td mat-cell *matCellDef="let application">
+              @if (application.environmentId && application.id) {
+                <a [routerLink]="['/', application.environmentId, 'applications', application.id]">
+                  {{ application.name }}
+                </a>
+              } @else {
+                {{ application.name }}
+              }
             </td>
           </ng-container>
 
@@ -403,7 +415,7 @@
         <table class="org-settings-user-detail__tokens__card__table" mat-table [dataSource]="tokensTableDS" aria-label="Tokens table">
           <!-- Name Column -->
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+            <th mat-header-cell *matHeaderCellDef id="token-name">Name</th>
             <td mat-cell *matCellDef="let token">
               {{ token.name }}
             </td>

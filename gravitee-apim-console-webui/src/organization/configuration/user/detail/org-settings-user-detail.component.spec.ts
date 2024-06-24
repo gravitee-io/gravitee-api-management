@@ -29,6 +29,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
+import { By } from '@angular/platform-browser';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -432,8 +433,8 @@ describe('OrgSettingsUserDetailComponent', () => {
       'api',
       fakeUserMembership('api', {
         metadata: {
-          apiAlphaId: { name: 'API Alpha', version: '1.0.0', visibility: 'PUBLIC' },
-          apiBetaId: { name: 'API Beta', version: '42.0.0', visibility: 'PRIVATE' },
+          apiAlphaId: { name: 'API Alpha', version: '1.0.0', visibility: 'PUBLIC', environmentId: 'DEFAULT' },
+          apiBetaId: { name: 'API Beta', version: '42.0.0', visibility: 'PRIVATE', environmentId: 'DEFAULT' },
         },
       }),
     );
@@ -465,8 +466,8 @@ describe('OrgSettingsUserDetailComponent', () => {
       'application',
       fakeUserMembership('application', {
         metadata: {
-          appFoxId: { name: 'Application Fox' },
-          appDogId: { name: 'Application Dog' },
+          appFoxId: { name: 'Application Fox', environmentId: 'DEFAULT' },
+          appDogId: { name: 'Application Dog', environmentId: 'DEFAULT' },
         },
       }),
     );
@@ -494,8 +495,8 @@ describe('OrgSettingsUserDetailComponent', () => {
       'application',
       fakeUserMembership('application', {
         metadata: {
-          appFoxId: { name: 'Application Fox' },
-          appDogId: { name: 'Application Dog' },
+          appFoxId: { name: 'Application Fox', environmentId: 'DEFAULT' },
+          appDogId: { name: 'Application Dog', environmentId: 'DEFAULT' },
         },
       }),
     );
@@ -655,6 +656,60 @@ describe('OrgSettingsUserDetailComponent', () => {
     ]);
     expectUserMembershipGetRequest(user.id, 'api');
     expectUserMembershipGetRequest(user.id, 'application');
+  });
+
+  it('should have application name link', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserTokensGetRequest(user);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(
+      user.id,
+      'application',
+      fakeUserMembership('application', {
+        metadata: {
+          appFoxId: { name: 'Application Fox', environmentId: 'DEFAULT' },
+          appDogId: { name: 'Application Dog', environmentId: 'DEFAULT' },
+        },
+      }),
+    );
+    expectRolesListRequest('ORGANIZATION');
+
+    const clickableName = fixture.debugElement.query(By.css('a[href="/DEFAULT/applications/appFoxId"]'));
+    expect(clickableName).toBeTruthy();
+  });
+
+  it('should display api name link', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserTokensGetRequest(user);
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(
+      user.id,
+      'api',
+      fakeUserMembership('api', {
+        metadata: {
+          apiAlphaId: { name: 'API Alpha', version: '1.0.0', visibility: 'PUBLIC', environmentId: 'DEFAULT' },
+          apiBetaId: { name: 'API Beta', version: '42.0.0', visibility: 'PRIVATE', environmentId: 'DEFAULT' },
+        },
+      }),
+    );
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+
+    const clickableName = fixture.debugElement.query(By.css('a[href="/DEFAULT/apis/apiAlphaId"]'));
+    expect(clickableName).toBeTruthy();
   });
 
   function expectUserTokensGetRequest(user: User = fakeUser({ id: 'userId' }), tokens: Token[] = []) {

@@ -35,6 +35,7 @@ export type UserMembershipMetadataApplication = Record<
   string,
   {
     name: string;
+    environmentId: string;
   }
 >;
 
@@ -42,6 +43,7 @@ export type UserMembershipMetadataApi = Record<
   string,
   {
     name: string;
+    environmentId: string;
     version?: string;
     visibility?: 'PUBLIC' | 'PRIVATE';
   }

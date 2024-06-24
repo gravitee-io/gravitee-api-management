@@ -44,11 +44,13 @@ export function fakeUserMembership<T extends 'application' | 'api' | string = st
           visibility: 'PUBLIC',
           name: '\uD83D\uDC82‍♀️Planets API Validator',
           version: '1.0',
+          environmentId: 'DEFAULT',
         },
         'aee23b1e-34b1-4551-a23b-1e34b165516a': {
           visibility: 'PUBLIC',
           name: '\uD83E\uDE90 Planets',
           version: '1.0',
+          environmentId: 'DEFAULT',
         },
       },
     };
@@ -74,6 +76,7 @@ export function fakeUserMembership<T extends 'application' | 'api' | string = st
       metadata: {
         '00783aa6-d0db-45d1-b83a-a6d0db05d1e1': {
           name: 'Default application',
+          environmentId: 'DEFAULT',
         },
       },
     };
@@ -98,6 +101,7 @@ export function fakeUserMembership<T extends 'application' | 'api' | string = st
     metadata: {
       '00783aa6-d0db-45d1-b83a-a6d0db05d1e1': {
         name: 'Default application',
+        environmentId: 'DEFAULT',
       },
     },
   };
