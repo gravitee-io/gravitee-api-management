@@ -31,6 +31,7 @@
           *ngIf="!this.enableVirtualHost"
           [formControl]="pathsFormControl"
           [pathsToIgnore]="apiExistingPaths"
+          [apiId]="apiId"
         ></gio-form-listeners-context-path>
 
         <gio-form-listeners-virtual-host
@@ -38,6 +39,7 @@
           [formControl]="pathsFormControl"
           [pathsToIgnore]="apiExistingPaths"
           [domainRestrictions]="domainRestrictions"
+          [apiId]="apiId"
         ></gio-form-listeners-virtual-host>
       </div>
       <div class="entrypoints__footer" *ngIf="canUpdate">

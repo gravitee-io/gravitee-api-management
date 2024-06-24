@@ -57,6 +57,9 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   @Input()
   public domainRestrictions: string[] = [];
 
+  @Input()
+  public apiId?: string;
+
   public newListenerFormGroup(listener: PathV4): FormGroup {
     const { host, hostDomain } = extractDomainToHost(listener?.host, this.domainRestrictions);
 
@@ -140,7 +143,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
         if (contextPathsToIgnore.includes(contextPathValue)) {
           return of(null);
         }
-        return this.apiService.verify({ host, contextPath: contextPathValue });
+        return this.apiService.verify({ host, contextPath: contextPathValue }, this.apiId);
       });
 
       return zip(...pathValidations$).pipe(
