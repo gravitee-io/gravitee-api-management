@@ -70,11 +70,13 @@ interface ApiDS {
   id: string;
   version: string;
   visibility: string;
+  environmentId: string;
 }
 
 interface ApplicationDS {
   id: string;
   name: string;
+  environmentId: string;
 }
 
 interface TokenDS {
@@ -188,6 +190,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           name: apiMetadata.name,
           version: apiMetadata.version,
           visibility: apiMetadata.visibility,
+          environmentId: apiMetadata.environmentId,
         }));
         this.initialTableDS['apisTableDS'] = this.apisTableDS;
         this.tablesUnpaginatedLength['apisTableDS'] = this.apisTableDS.length;
@@ -200,6 +203,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         this.applicationsTableDS = Object.entries(metadata).map(([applicationId, applicationMetadata]: [string, any]) => ({
           id: applicationId,
           name: applicationMetadata.name,
+          environmentId: applicationMetadata.environmentId,
         }));
         this.initialTableDS['applicationsTableDS'] = this.applicationsTableDS;
         this.tablesUnpaginatedLength['applicationsTableDS'] = this.applicationsTableDS.length;
