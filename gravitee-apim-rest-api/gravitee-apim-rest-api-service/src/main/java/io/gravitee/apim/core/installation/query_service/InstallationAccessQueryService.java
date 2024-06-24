@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.installation.query_service;
 
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 
 /**
@@ -23,6 +24,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface InstallationAccessQueryService {
+    public static final String DEFAULT_CONSOLE_URL = "http://localhost:4000";
+    public static final String DEFAULT_PORTAL_URL = "http://localhost:4100";
     String getConsoleApiPath();
 
     String getPortalApiPath();
