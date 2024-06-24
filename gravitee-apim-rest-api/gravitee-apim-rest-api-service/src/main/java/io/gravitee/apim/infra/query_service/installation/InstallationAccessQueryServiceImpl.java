@@ -74,7 +74,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             portalUrls.putAll(loadUrls("portal", "envId"));
 
             // Handle legacy urls
-            handleLegacyUrls();
+            handleEnvironmentUrls();
 
             // Setup default value if required
             if (cockpitEnabled) {
@@ -100,18 +100,28 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         }
     }
 
-    private void handleLegacyUrls() {
+    private void handleEnvironmentUrls() {
         if (consoleUrls.isEmpty()) {
-            String legacyUIUrl = environment.getProperty("console.ui.url");
-            if (legacyUIUrl != null) {
-                consoleUrls.put(DEFAULT_ID, legacyUIUrl);
+            String legacyPortalUrl = environment.getProperty("management.url");
+            if (legacyPortalUrl != null) {
+                consoleUrls.put(DEFAULT_ID, legacyPortalUrl);
+            } else {
+                String legacyUIUrl = environment.getProperty("console.ui.url");
+                if (legacyUIUrl != null) {
+                    consoleUrls.put(DEFAULT_ID, legacyUIUrl);
+                }
             }
         }
 
         if (portalUrls.isEmpty()) {
-            String legacyPortalUrl = environment.getProperty("console.portal.url");
+            String legacyPortalUrl = environment.getProperty("portal.url");
             if (legacyPortalUrl != null) {
                 portalUrls.put(DEFAULT_ID, legacyPortalUrl);
+            } else {
+                legacyPortalUrl = environment.getProperty("console.portal.url");
+                if (legacyPortalUrl != null) {
+                    portalUrls.put(DEFAULT_ID, legacyPortalUrl);
+                }
             }
         }
 
