@@ -67,4 +67,6 @@ public interface RoleRepository extends FindAllRepository<Role> {
 
     Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
         throws TechnicalException;
+
+    Set<Role> findAllByIdIn(Set<String> ids) throws TechnicalException;
 }

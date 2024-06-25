@@ -179,6 +179,12 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
+    public Set<Role> findAllByIdIn(Set<String> ids) {
+        final Set<RoleMongo> roles = internalRoleRepo.findAllByIdIn(ids);
+        return roles.stream().map(this::map).collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType) {
         LOGGER.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
 

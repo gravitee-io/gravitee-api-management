@@ -62,6 +62,22 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindAllByIdIn() throws Exception {
+        final Set<Role> roles = roleRepository.findAllByIdIn(Set.of("an_api_organisation_role", "API_find_by_scope_2"));
+
+        assertNotNull(roles);
+        assertEquals(2, roles.size());
+    }
+
+    @Test
+    public void shouldReturnEmptyForFindAllByIdIn() throws Exception {
+        final Set<Role> roles = roleRepository.findAllByIdIn(Set.of("id_does_not_exist"));
+
+        assertNotNull(roles);
+        assertEquals(0, roles.size());
+    }
+
+    @Test
     public void shouldCreate() throws Exception {
         final Role role = new Role();
         role.setId("API_to_create");
