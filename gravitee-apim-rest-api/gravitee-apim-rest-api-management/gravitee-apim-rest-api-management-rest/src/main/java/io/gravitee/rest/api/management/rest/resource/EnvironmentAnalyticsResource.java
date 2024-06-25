@@ -26,8 +26,8 @@ import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.Range;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
+import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
-import io.gravitee.rest.api.model.analytics.query.AbstractQuery;
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
 import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
@@ -130,9 +130,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     }
 
     private Analytics executeStats(ExecutionContext executionContext, AnalyticsParam analyticsParam) {
-        String fieldFilter;
+        Map<String, Set<String>> terms;
         try {
-            fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+            terms = buildTerms(executionContext, analyticsParam);
         } catch (FieldFilterEmptyException e) {
             return new StatsAnalytics();
         }
@@ -143,7 +143,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         query.setInterval(analyticsParam.getInterval());
         query.setQuery(analyticsParam.getQuery());
         query.setField(analyticsParam.getField());
-        addExtraFilter(query, fieldFilter);
+        query.setTerms(terms);
         return analyticsService.execute(query);
     }
 
@@ -163,11 +163,11 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return buildCountStat(applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).size());
                 }
             default:
-                String fieldFilter;
+                Map<String, Set<String>> terms;
                 try {
-                    fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+                    terms = buildTerms(executionContext, analyticsParam);
                 } catch (FieldFilterEmptyException e) {
-                    return new StatsAnalytics();
+                    return new HitsAnalytics();
                 }
 
                 CountQuery query = new CountQuery();
@@ -175,7 +175,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 query.setTo(analyticsParam.getTo());
                 query.setInterval(analyticsParam.getInterval());
                 query.setQuery(analyticsParam.getQuery());
-                addExtraFilter(query, fieldFilter);
+                query.setTerms(terms);
                 return analyticsService.execute(query);
         }
     }
@@ -187,9 +187,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     }
 
     private Analytics executeDateHisto(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
-        String fieldFilter;
+        Map<String, Set<String>> terms;
         try {
-            fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+            terms = buildTerms(executionContext, analyticsParam);
         } catch (FieldFilterEmptyException e) {
             return new HistogramAnalytics();
         }
@@ -221,7 +221,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
             query.setAggregations(aggregationList);
         }
-        addExtraFilter(query, fieldFilter);
+        query.setTerms(terms);
         return analyticsService.execute(executionContext, query);
     }
 
@@ -231,7 +231,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
      * @return
      * @throws FieldFilterEmptyException: if user is not Admin and filter based on ids field is empty
      */
-    private String buildFieldFilterForNonAdmin(ExecutionContext executionContext, AnalyticsParam analyticsParam)
+    private Map<String, Set<String>> buildTerms(ExecutionContext executionContext, AnalyticsParam analyticsParam)
         throws FieldFilterEmptyException {
         String fieldName;
         Set<String> ids;
@@ -266,10 +266,11 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                         .collect(Collectors.toSet());
             }
         }
+
         if (ids.isEmpty()) {
             throw new FieldFilterEmptyException();
         } else {
-            return fieldName + ":(" + String.join(" OR ", ids) + ")";
+            return Map.of(fieldName, ids);
         }
     }
 
@@ -284,10 +285,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
                 }
             default:
-                String fieldFilter;
-
+                Map<String, Set<String>> terms;
                 try {
-                    fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+                    terms = buildTerms(executionContext, analyticsParam);
                 } catch (FieldFilterEmptyException e) {
                     return new TopHitsAnalytics();
                 }
@@ -313,8 +313,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
                     query.setGroups(rangeMap);
                 }
-
-                addExtraFilter(query, fieldFilter);
+                query.setTerms(terms);
                 return analyticsService.execute(executionContext, query);
         }
     }
@@ -328,14 +327,6 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
         topHitsAnalytics.setValues(collect);
         return topHitsAnalytics;
-    }
-
-    private void addExtraFilter(AbstractQuery query, String extraFilter) {
-        if (query.getQuery() == null || query.getQuery().isEmpty()) {
-            query.setQuery(extraFilter);
-        } else if (extraFilter != null && !extraFilter.isEmpty()) {
-            query.setQuery(query.getQuery() + " AND " + extraFilter);
-        }
     }
 
     private class FieldFilterEmptyException extends Throwable {}
