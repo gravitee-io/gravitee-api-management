@@ -68,6 +68,8 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final List<String> PLAN_ID_FIELDS = List.of("crossId", "id", "api");
 
+    private static final List<String> UNSUPPORTED_ENDPOINT_FIELDS = List.of("status");
+
     private static final String VERSION_FIELD = "version";
 
     private static final String CONTEXT_REF_FIELD = "contextRef";
@@ -81,6 +83,10 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     private static final String VIRTUAL_HOSTS_FIELD = "virtual_hosts";
 
     private static final String VIRTUAL_HOST_PATH_FIELD = "path";
+
+    private static final String ENDPOINT_GROUPS_FIELD = "groups";
+
+    private static final String ENDPOINTS_FIELD = "endpoints";
 
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
@@ -128,6 +134,23 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
         if (spec.hasNonNull(METADATA_FIELD)) {
             spec.get(METADATA_FIELD).forEach(meta -> ((ObjectNode) meta).remove(UNSUPPORTED_METADATA_FIELDS));
+        }
+
+        if (spec.hasNonNull(PROXY_FIELD)) {
+            var proxy = getSpec().get(PROXY_FIELD);
+            if (proxy.hasNonNull(ENDPOINT_GROUPS_FIELD)) {
+                proxy.get(ENDPOINT_GROUPS_FIELD).forEach(this::removeUnsupportedEndpointGroupFields);
+            }
+        }
+    }
+
+    private void removeUnsupportedEndpointGroupFields(JsonNode group) {
+        if (group.hasNonNull(ENDPOINTS_FIELD)) {
+            group
+                .get(ENDPOINTS_FIELD)
+                .forEach(endpoint -> {
+                    ((ObjectNode) endpoint).remove(UNSUPPORTED_ENDPOINT_FIELDS);
+                });
         }
     }
 
