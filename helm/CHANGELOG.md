@@ -3,6 +3,11 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.4.1
+
+- Add support for Federation:
+    - To enable the feature, change property `api.federation.enabled` to true 
+
 ### 4.4.0
 
 - Add support for multi-server installation
