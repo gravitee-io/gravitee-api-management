@@ -15,11 +15,12 @@
  */
 package io.gravitee.integration.controller.spring;
 
+import static io.gravitee.integration.controller.spring.IntegrationControllerCondition.INTEGRATION_IDENTIFIER;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
@@ -42,11 +43,13 @@ import io.gravitee.rest.api.service.TokenService;
 import io.vertx.rxjava3.core.Vertx;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 @Configuration
+@Conditional(IntegrationControllerCondition.class)
 public class IntegrationControllerConfiguration {
 
     @Bean("integrationWebsocketControllerAuthentication")
@@ -65,7 +68,7 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationIdentifyConfiguration")
     public IdentifyConfiguration integrationPrefixConfiguration(final Environment environment) {
-        return new IdentifyConfiguration(environment, "integration");
+        return new IdentifyConfiguration(environment, INTEGRATION_IDENTIFIER);
     }
 
     @Bean("integrationControllerCommandHandlerFactory")

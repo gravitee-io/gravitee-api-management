@@ -17,11 +17,13 @@ package io.gravitee.apim.infra.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.PlanFixtures;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
@@ -59,6 +61,7 @@ import io.gravitee.integration.api.model.SubscriptionType;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,7 +86,7 @@ class IntegrationAgentImplTest {
 
     @BeforeEach
     void setUp() {
-        agent = new IntegrationAgentImpl(controller);
+        agent = new IntegrationAgentImpl(Optional.of(controller));
     }
 
     @Nested
@@ -91,7 +94,8 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            when(controller.sendCommand(any(), any()))
+            lenient()
+                .when(controller.sendCommand(any(), any()))
                 .thenReturn(Single.just(new IngestReply("command-id", new IngestReplyPayload(List.of(buildApi(1), buildApi(2))))));
         }
 
@@ -162,6 +166,19 @@ class IntegrationAgentImplTest {
                     return true;
                 });
         }
+
+        @Test
+        void should_throw_when_no_controller() {
+            agent = new IntegrationAgentImpl(Optional.empty());
+            agent
+                .fetchAllApis(INTEGRATION)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
+                    return true;
+                });
+        }
     }
 
     @Nested
@@ -172,7 +189,8 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            when(controller.sendCommand(any(), any()))
+            lenient()
+                .when(controller.sendCommand(any(), any()))
                 .thenReturn(
                     Single.just(
                         new SubscribeReply(
@@ -301,6 +319,25 @@ class IntegrationAgentImplTest {
                     return true;
                 });
         }
+
+        @Test
+        void should_throw_when_no_controller() {
+            agent = new IntegrationAgentImpl(Optional.empty());
+            agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi(),
+                    PlanFixtures.subscriptionParameter(),
+                    SUBSCRIPTION_ID,
+                    APPLICATION_NAME
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
+                    return true;
+                });
+        }
     }
 
     @Nested
@@ -308,7 +345,8 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            when(controller.sendCommand(any(), any()))
+            lenient()
+                .when(controller.sendCommand(any(), any()))
                 .thenReturn(Single.just(new UnsubscribeReply("command-id", new UnsubscribeReplyPayload())));
         }
 
@@ -374,6 +412,23 @@ class IntegrationAgentImplTest {
                 .extracting(Command::getPayload)
                 .isEqualTo(new UnsubscribeCommandPayload("api-provider-id", new Subscription("subscription-id", null, null, Map.of())));
         }
+
+        @Test
+        void should_throw_when_no_controller() {
+            agent = new IntegrationAgentImpl(Optional.empty());
+            agent
+                .unsubscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    SubscriptionEntity.builder().id("subscription-id").build()
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
+                    return true;
+                });
+        }
     }
 
     @NotNull
@@ -406,7 +461,8 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            when(controller.sendCommand(any(), any()))
+            lenient()
+                .when(controller.sendCommand(any(), any()))
                 .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of(buildApi(1), buildApi(2))))));
         }
 
@@ -474,5 +530,18 @@ class IntegrationAgentImplTest {
                     return true;
                 });
         }
+    }
+
+    @Test
+    void should_throw_when_no_controller() {
+        agent = new IntegrationAgentImpl(Optional.empty());
+        agent
+            .discoverApis(INTEGRATION_ID)
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertError(error -> {
+                assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
+                return true;
+            });
     }
 }
