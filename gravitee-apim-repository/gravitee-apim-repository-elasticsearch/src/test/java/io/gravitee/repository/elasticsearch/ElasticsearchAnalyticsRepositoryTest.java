@@ -30,6 +30,8 @@ import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +83,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         DateHistogramResponse response = analyticsRepository.query(
             dateHistogram()
                 .timeRange(lastDays(30), hours(1))
-                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
                 .aggregation(AggregationType.AVG, "response-time")
                 .aggregation(AggregationType.AVG, "api-response-time")
                 .build()
@@ -97,7 +99,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         DateHistogramResponse response = analyticsRepository.query(
             dateHistogram()
                 .timeRange(lastDays(30), hours(1))
-                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
                 .aggregation(AggregationType.AVG, "response-time")
                 .aggregation(AggregationType.FIELD, "application")
                 .build()
@@ -111,7 +113,11 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         GroupByResponse response = analyticsRepository.query(
-            groupBy().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").field("application").build()
+            groupBy()
+                .timeRange(lastDays(60), hours(1))
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                .field("application")
+                .build()
         );
 
         Assert.assertNotNull(response);
@@ -124,7 +130,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         GroupByResponse response = analyticsRepository.query(
             groupBy()
                 .timeRange(lastDays(30), hours(1))
-                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
                 .field("application")
                 .sort(SortBuilder.on("response-time", Order.DESC, SortType.AVG))
                 .build()
@@ -140,7 +146,7 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         GroupByResponse response = analyticsRepository.query(
             groupBy()
                 .timeRange(lastDays(30), hours(1))
-                .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
                 .field("status")
                 .range(100, 199)
                 .range(200, 299)
@@ -171,11 +177,26 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         CountResponse response = analyticsRepository.query(
-            count().timeRange(lastDays(30), hours(1)).query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1").build()
+            count().timeRange(lastDays(30), hours(1)).terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1"))).build()
         );
 
         Assert.assertNotNull(response);
         Assert.assertEquals(3, response.getCount());
+    }
+
+    @Test
+    public void testCountWithTwoApis() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        CountResponse response = analyticsRepository.query(
+            count()
+                .timeRange(lastDays(30), hours(1))
+                .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1", "e2c0ecd5-893a-458d-80ec-d5893ab58d12")))
+                .build()
+        );
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(4, response.getCount());
     }
 
     @Test
@@ -217,7 +238,11 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
         Assert.assertNotNull(analyticsRepository);
 
         final StatsResponse response = analyticsRepository.query(
-            stats().timeRange(lastDays(30), hours(1)).query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1").field("response-time").build()
+            stats()
+                .timeRange(lastDays(30), hours(1))
+                .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")))
+                .field("response-time")
+                .build()
         );
 
         Assert.assertNotNull(response);

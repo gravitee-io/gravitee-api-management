@@ -3,6 +3,22 @@
   "query": {
     "bool": {
       "filter": [
+<#if query.terms()?has_content>
+        {
+          "bool": {
+            "should": [
+            <#list query.terms() as terms>
+              {
+                "terms": {
+                  "${terms.field()}": ["${terms.values()?join("\",\"")}"]
+                }
+              }
+              <#sep>,</#sep>
+            </#list>
+            ]
+          }
+        },
+</#if>
 <#if query.query()?has_content>
         {
           "query_string": {
