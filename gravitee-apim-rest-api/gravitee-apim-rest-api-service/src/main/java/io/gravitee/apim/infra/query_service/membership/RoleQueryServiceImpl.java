@@ -24,7 +24,10 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +69,18 @@ public class RoleQueryServiceImpl implements RoleQueryService {
                 .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find application role", e);
+        }
+    }
+
+    @Override
+    public Set<Role> findByIds(Set<String> ids) {
+        if (Objects.isNull(ids) || ids.isEmpty()) {
+            return Set.of();
+        }
+        try {
+            return roleRepository.findAllByIdIn(ids).stream().map(RoleAdapter.INSTANCE::toEntity).collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while trying to find role by list of ids", e);
         }
     }
 }

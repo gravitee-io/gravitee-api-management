@@ -18,7 +18,10 @@ package io.gravitee.apim.infra.query_service.membership;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +35,9 @@ import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -229,6 +234,49 @@ class RoleQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to find application role");
+        }
+    }
+
+    @Nested
+    class FindByIds {
+
+        @Test
+        @SneakyThrows
+        void should_query_all_roles_with_id_in_list() {
+            // Given
+            when(roleRepository.findAllByIdIn(eq(Set.of("role-id", "other-role"))))
+                .thenReturn(Set.of(Role.builder().id("role-id").build()));
+
+            // When
+            service.findByIds(Set.of("role-id", "other-role"));
+
+            // Then
+            verify(roleRepository, times(1)).findAllByIdIn(Set.of("role-id", "other-role"));
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_if_null_ids() {
+            // When
+            var result = service.findByIds(null);
+
+            // Then
+            verify(roleRepository, never()).findAllByIdIn(any());
+            assertThat(result).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(roleRepository.findAllByIdIn(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findByIds(Set.of("role-id", "other-role")));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to find role by list of ids");
         }
     }
 }
