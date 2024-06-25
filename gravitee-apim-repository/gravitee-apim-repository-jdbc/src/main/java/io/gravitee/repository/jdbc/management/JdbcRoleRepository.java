@@ -28,6 +28,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -309,6 +310,30 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
         } catch (final Exception ex) {
             LOGGER.error("Failed to find role by id and organization id:", ex);
             throw new TechnicalException("Failed to find role by id and organization id:", ex);
+        }
+    }
+
+    @Override
+    public Set<Role> findAllByIdIn(Set<String> ids) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findAllByIdIn({})", ids);
+        final StringBuilder query = new StringBuilder()
+            .append(getOrm().getSelectAllSql())
+            .append(" r")
+            .append(" left join ")
+            .append(ROLE_PERMISSIONS)
+            .append(" rp on rp.role_id = r.id");
+
+        getOrm().buildInCondition(true, query, "r.id", ids);
+
+        try {
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(query.toString(), (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1), rowMapper);
+            Set<Role> result = new HashSet<>(rowMapper.getRows());
+            LOGGER.debug("JdbcRoleRepository.findAllByIdIn({}) = {}", ids, result);
+            return result;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find role by ids:", ex);
+            throw new TechnicalException("Failed to find role by ids:", ex);
         }
     }
 

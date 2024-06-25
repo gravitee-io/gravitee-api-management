@@ -39,4 +39,7 @@ public interface RoleMongoRepository extends MongoRepository<RoleMongo, String> 
 
     @Query("{ '_id' : ?0, 'referenceId' : ?1, 'referenceType': ?2 }")
     RoleMongo findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, String referenceType);
+
+    @Query("{ '_id' : { $in : ?0 } }")
+    Set<RoleMongo> findAllByIdIn(Set<String> ids);
 }
