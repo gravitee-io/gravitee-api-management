@@ -20,18 +20,14 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.*;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.Range;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.*;
-import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
-import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.AnalyticsService;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -46,7 +42,6 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,21 +83,20 @@ public class PlatformAnalyticsResource extends AbstractResource {
         analyticsParam.validate();
 
         // add filter by Apis or Applications
-        String fieldName;
-        Set<String> ids;
+        String termsField;
+        Set<String> termsValues;
 
         if ("application".equals(analyticsParam.getField())) {
-            fieldName = "application";
-            ids = findApplicationIds();
+            termsField = "application";
+            termsValues = findApplicationIds();
         } else {
-            fieldName = "api";
-            ids = findApiIds();
+            termsField = "api";
+            termsValues = findApiIds();
         }
 
-        if (ids.isEmpty()) {
+        if (termsValues.isEmpty()) {
             return Response.noContent().build();
         }
-        String extraFilter = getExtraFilter(fieldName, ids);
 
         if (analyticsParam.getQuery() != null) {
             analyticsParam.setQuery(analyticsParam.getQuery().replaceAll("\\?", "1"));
@@ -111,16 +105,16 @@ public class PlatformAnalyticsResource extends AbstractResource {
         Analytics analytics = null;
         switch (analyticsParam.getType()) {
             case DATE_HISTO:
-                analytics = executeDateHisto(analyticsParam, extraFilter);
+                analytics = executeDateHisto(analyticsParam, Map.of(termsField, termsValues));
                 break;
             case GROUP_BY:
-                analytics = executeGroupBy(analyticsParam, extraFilter);
+                analytics = executeGroupBy(analyticsParam, Map.of(termsField, termsValues));
                 break;
             case COUNT:
-                analytics = executeCount(analyticsParam, extraFilter);
+                analytics = executeCount(analyticsParam, Map.of(termsField, termsValues));
                 break;
             case STATS:
-                analytics = executeStats(analyticsParam, extraFilter);
+                analytics = executeStats(analyticsParam, Map.of(termsField, termsValues));
                 break;
         }
 
@@ -149,28 +143,28 @@ public class PlatformAnalyticsResource extends AbstractResource {
         return applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
     }
 
-    private Analytics executeStats(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeStats(AnalyticsParam analyticsParam, Map<String, Set<String>> terms) {
         final StatsQuery query = new StatsQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
         query.setInterval(analyticsParam.getInterval());
         query.setQuery(analyticsParam.getQuery());
         query.setField(analyticsParam.getField());
-        addExtraFilter(query, extraFilter);
+        query.setTerms(terms);
         return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
-    private Analytics executeCount(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeCount(AnalyticsParam analyticsParam, Map<String, Set<String>> terms) {
         CountQuery query = new CountQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
         query.setInterval(analyticsParam.getInterval());
         query.setQuery(analyticsParam.getQuery());
-        addExtraFilter(query, extraFilter);
+        query.setTerms(terms);
         return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
-    private Analytics executeDateHisto(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeDateHisto(AnalyticsParam analyticsParam, Map<String, Set<String>> terms) {
         DateHistogramQuery query = new DateHistogramQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -198,11 +192,11 @@ public class PlatformAnalyticsResource extends AbstractResource {
 
             query.setAggregations(aggregationList);
         }
-        addExtraFilter(query, extraFilter);
+        query.setTerms(terms);
         return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
     }
 
-    private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeGroupBy(AnalyticsParam analyticsParam, Map<String, Set<String>> terms) {
         GroupByQuery query = new GroupByQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -224,24 +218,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
 
             query.setGroups(rangeMap);
         }
-        addExtraFilter(query, extraFilter);
+        query.setTerms(terms);
         return analyticsService.execute(GraviteeContext.getExecutionContext(), query);
-    }
-
-    private void addExtraFilter(AbstractQuery query, String extraFilter) {
-        if (query.getQuery() == null || query.getQuery().isEmpty()) {
-            query.setQuery(extraFilter);
-        } else if (extraFilter != null && !extraFilter.isEmpty()) {
-            query.setQuery(query.getQuery() + " AND " + extraFilter);
-        } else {
-            query.setQuery(query.getQuery());
-        }
-    }
-
-    private String getExtraFilter(String fieldName, Set<String> ids) {
-        if (ids != null && !ids.isEmpty()) {
-            return fieldName + ":(" + ids.stream().collect(Collectors.joining(" OR ")) + ")";
-        }
-        return null;
     }
 }
