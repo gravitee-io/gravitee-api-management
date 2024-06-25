@@ -15,11 +15,18 @@
  */
 package io.gravitee.rest.api.model.analytics.query;
 
+import java.util.Map;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public abstract class AbstractQuery {
 
     private long from;
@@ -30,21 +37,18 @@ public abstract class AbstractQuery {
 
     private String query;
 
+    /**
+     * Warning if multiple terms filter are used, the logical operator used to combine them
+     * depend on the template
+     * @param terms a map containing terms filters (key is the field used for the terms filter
+     *              and value is a set of ids to filter on)
+     */
+    @Setter
+    private Map<String, Set<String>> terms;
+
     private String rootField;
 
     private String rootIdentifier;
-
-    public long getFrom() {
-        return from;
-    }
-
-    public void setFrom(long from) {
-        this.from = from;
-    }
-
-    public long getTo() {
-        return to;
-    }
 
     public void setTo(long to) {
         long now = System.currentTimeMillis();
@@ -52,37 +56,5 @@ public abstract class AbstractQuery {
             this.to = now;
         }
         this.to = to;
-    }
-
-    public long getInterval() {
-        return interval;
-    }
-
-    public void setInterval(long interval) {
-        this.interval = interval;
-    }
-
-    public String getQuery() {
-        return query;
-    }
-
-    public void setQuery(String query) {
-        this.query = query;
-    }
-
-    public String getRootField() {
-        return rootField;
-    }
-
-    public void setRootField(String rootField) {
-        this.rootField = rootField;
-    }
-
-    public String getRootIdentifier() {
-        return rootIdentifier;
-    }
-
-    public void setRootIdentifier(String rootIdentifier) {
-        this.rootIdentifier = rootIdentifier;
     }
 }

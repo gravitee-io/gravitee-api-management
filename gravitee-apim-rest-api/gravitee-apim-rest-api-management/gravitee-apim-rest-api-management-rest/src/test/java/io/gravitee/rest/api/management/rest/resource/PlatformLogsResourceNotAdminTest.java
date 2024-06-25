@@ -89,7 +89,12 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
             .findPlatform(
                 any(ExecutionContext.class),
                 argThat(query ->
-                    Objects.equals(query.getQuery(), "(foo:bar) AND (application:(app1) OR api:(api1))") &&
+                    Objects.equals(query.getQuery(), "foo:bar") &&
+                    query.getTerms().size() == 2 &&
+                    query.getTerms().containsKey("application") &&
+                    query.getTerms().get("application").equals(Set.of("app1")) &&
+                    query.getTerms().containsKey("api") &&
+                    query.getTerms().get("api").equals(Set.of("api1")) &&
                     query.getPage() == 1 &&
                     query.getSize() == 10 &&
                     query.getFrom() == 0 &&
@@ -125,7 +130,10 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
             .findPlatform(
                 any(ExecutionContext.class),
                 argThat(query ->
-                    Objects.equals(query.getQuery(), "(foo:bar) AND (application:(app1))") &&
+                    Objects.equals(query.getQuery(), "foo:bar") &&
+                    query.getTerms().size() == 1 &&
+                    query.getTerms().containsKey("application") &&
+                    query.getTerms().get("application").equals(Set.of("app1")) &&
                     query.getPage() == 1 &&
                     query.getSize() == 10 &&
                     query.getFrom() == 0 &&
@@ -162,7 +170,10 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
             .findPlatform(
                 any(ExecutionContext.class),
                 argThat(query ->
-                    Objects.equals(query.getQuery(), "(foo:bar) AND (api:(api1))") &&
+                    Objects.equals(query.getQuery(), "foo:bar") &&
+                    query.getTerms().size() == 1 &&
+                    query.getTerms().containsKey("api") &&
+                    query.getTerms().get("api").equals(Set.of("api1")) &&
                     query.getPage() == 1 &&
                     query.getSize() == 10 &&
                     query.getFrom() == 0 &&
