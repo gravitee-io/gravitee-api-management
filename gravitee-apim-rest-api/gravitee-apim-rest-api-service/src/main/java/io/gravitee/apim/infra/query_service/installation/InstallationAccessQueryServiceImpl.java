@@ -42,6 +42,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,6 @@ import org.springframework.stereotype.Service;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
 @Service
 @Slf4j
 public class InstallationAccessQueryServiceImpl implements InstallationAccessQueryService {
@@ -74,6 +74,22 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     private final Map<String, String> consoleUrls = new HashMap<>();
     private final Map<String, String> portalUrls = new HashMap<>();
+
+    public InstallationAccessQueryServiceImpl(
+        final ConfigurableEnvironment environment,
+        final InstallationTypeDomainService installationTypeDomainService,
+        final AccessPointQueryService accessPointQueryService,
+        final ParameterService parameterService,
+        @Lazy final OrganizationService organizationService,
+        @Lazy final EnvironmentService environmentService
+    ) {
+        this.environment = environment;
+        this.installationTypeDomainService = installationTypeDomainService;
+        this.accessPointQueryService = accessPointQueryService;
+        this.parameterService = parameterService;
+        this.organizationService = organizationService;
+        this.environmentService = environmentService;
+    }
 
     @PostConstruct
     public void afterPropertiesSet() {
