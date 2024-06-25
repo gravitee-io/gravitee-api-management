@@ -88,10 +88,6 @@ spec:
       {{- if .Values.api.additionalPlugins -}}
         {{- $plugins = concat $plugins .Values.api.additionalPlugins -}}
       {{- end -}}
-      {{- if .Values.api.federation.enabled -}}
-        {{- $plugins = concat $plugins .Values.cluster.plugins -}}
-      {{- end -}}
-
       {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "initContainers" $initContainers -}}
       {{- if or .Values.api.extraInitContainers $plugins .Values.jdbc.driver }}
       initContainers:
@@ -127,6 +123,12 @@ spec:
               value: "false"
             - name: GRAVITEE_CLOUD_ENABLED
               value: "false"
+            - name: GRAVITEE_INTEGRATION_ENABLED
+              value: "false"
+            - name: GRAVITEE_CLUSTER_TYPE
+              value: "standalone"
+            - name: GRAVITEE_CACHE_TYPE
+              value: "standalone"
             {{- if $plugins }}
             - name: GRAVITEE_PLUGINS_PATH_0
               value: '${gravitee.home}/plugins'
@@ -160,11 +162,6 @@ spec:
             - name: config
               mountPath: /opt/graviteeio-management-api/config/gravitee.yml
               subPath: gravitee.yml
-          {{- if .Values.api.federation.enabled }}
-            - name: config
-              mountPath: /opt/graviteeio-management-api/config/hazelcast.xml
-              subPath: hazelcast.xml
-          {{- end }}
           {{- if .Values.api.logging.debug }}
             - name: config
               mountPath: /opt/graviteeio-management-api/config/logback.xml
