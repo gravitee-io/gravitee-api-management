@@ -830,7 +830,7 @@ api:
   #      issuer: MY_ISSUER
 
   federation:
-    enabled: true
+    enabled: false
     port: 8072
     ingress:
       enabled: true
