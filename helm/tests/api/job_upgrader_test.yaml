@@ -87,6 +87,39 @@ tests:
             name: GRAVITEE_CLOUD_ENABLED
             value: "false"
 
+  - it: Check that federation have been disabled
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GRAVITEE_INTEGRATION_ENABLED
+            value: "false"
+
+  - it: Check that standalone mode is enabled
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GRAVITEE_CLUSTER_TYPE
+            value: "standalone"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GRAVITEE_CACHE_TYPE
+            value: "standalone"
+
   - it: Check if the helm hook annotations are present
     set:
       api:
