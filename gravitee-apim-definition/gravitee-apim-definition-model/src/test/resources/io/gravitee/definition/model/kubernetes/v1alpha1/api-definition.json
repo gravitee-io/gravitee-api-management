@@ -126,7 +126,8 @@
             "name": "default",
             "weight": 1,
             "type": "http",
-            "target": "https://api.gravitee.io/echo"
+            "target": "https://api.gravitee.io/echo",
+            "status": "UP"
           }
         ],
         "load_balancing": {
