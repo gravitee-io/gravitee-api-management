@@ -24,7 +24,13 @@ import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.log.ElasticLogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
+<<<<<<< HEAD:gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/log/ElasticsearchLogRepositoryTest.java
 import org.junit.jupiter.api.Test;
+=======
+import java.util.Map;
+import java.util.Set;
+import org.junit.Test;
+>>>>>>> 9ecb8bd7c7 (fix: implement new terms filter to avoid max clause count issues):gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/ElasticsearchLogRepositoryTest.java
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -47,7 +53,12 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withQuery() throws Exception {
         TabularResponse response = logRepository.query(
-            tabular().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").page(1).size(20).build()
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                .page(1)
+                .size(20)
+                .build()
         );
 
         assertThat(response).isNotNull();
