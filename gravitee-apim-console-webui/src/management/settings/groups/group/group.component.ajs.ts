@@ -127,7 +127,12 @@ const GroupComponentAjs: ng.IComponentOptions = {
         It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
         It means that to add members, the group must be manageable (i.e. the current user is a group admin) and the group must have email invitation or system invitation enabled.
        */
-        this.canAddMembers = this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation));
+        /*
+        It is possible to add members only when a group is first created, otherwise we can't associate members to the group (without id)
+       */
+        this.canAddMembers =
+          this.updateMode &&
+          (this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation)));
 
         this.loadGroupApis();
       };
