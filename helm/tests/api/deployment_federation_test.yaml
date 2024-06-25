@@ -6,8 +6,9 @@ tests:
   - it: Check Federation port is defined
     template: api/api-deployment.yaml
     set:
-      federation:
-        enabled: true
+      api:
+        federation:
+          enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -24,8 +25,9 @@ tests:
   - it: Check cluster plugins are downloaded
     template: api/api-deployment.yaml
     set:
-      federation:
-        enabled: true
+      api:
+        federation:
+          enabled: true
     asserts:
       - hasDocuments:
           count: 1

@@ -2,8 +2,25 @@ suite: Test Management API - Integration Controller Service
 templates:
   - "api/api-service.yaml"
 tests:
+  - it: Check federation service disabled by default
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - notContains:
+          path: spec.ports
+          content:
+            name: api-integration-controller
+
   - it: Check default integration service
     template: api/api-service.yaml
+    set:
+      api:
+        federation:
+          enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -27,6 +44,7 @@ tests:
     set:
       api:
         federation:
+          enabled: true
           service:
             externalPort: 8888
     asserts:

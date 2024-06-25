@@ -2,10 +2,10 @@ suite: Test Management API - Federation Controller Ingress
 templates:
   - "api/api-ingress-federation-controller.yaml"
 tests:
-  - it: Check federation ingress enabled by default
+  - it: Check federation ingress disabled by default
     asserts:
       - hasDocuments:
-          count: 1
+          count: 0
 
   - it: Check federation disabled
     set:
@@ -30,6 +30,10 @@ tests:
           count: 0
 
   - it: Check default federation ingress
+    set:
+      api:
+        federation:
+          enabled: true
     asserts:
       - hasDocuments:
           count: 1
