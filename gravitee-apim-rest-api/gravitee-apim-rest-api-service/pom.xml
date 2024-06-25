@@ -170,6 +170,11 @@
 			<artifactId>gravitee-node-api</artifactId>
 		</dependency>
 
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-container</artifactId>
+        </dependency>
+
 		<dependency>
 			<groupId>io.gravitee.node.services</groupId>
 			<artifactId>gravitee-node-services-upgrader</artifactId>

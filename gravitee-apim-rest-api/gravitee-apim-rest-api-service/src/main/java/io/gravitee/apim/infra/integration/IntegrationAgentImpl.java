@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.integration;
 import static io.gravitee.apim.core.integration.model.IntegrationSubscription.apiKey;
 import static io.gravitee.apim.core.integration.model.IntegrationSubscription.oAuth;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
@@ -50,6 +51,7 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -58,9 +60,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class IntegrationAgentImpl implements IntegrationAgent {
 
-    private final ExchangeController exchangeController;
+    private final Optional<ExchangeController> exchangeController;
 
-    public IntegrationAgentImpl(@Qualifier("integrationExchangeController") ExchangeController exchangeController) {
+    public IntegrationAgentImpl(@Qualifier("integrationExchangeController") Optional<ExchangeController> exchangeController) {
         this.exchangeController = exchangeController;
     }
 
@@ -179,29 +181,45 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
     private Single<IngestReply> sendIngestCommand(IngestCommand fetchCommand, String integrationId) {
         return exchangeController
-            .sendCommand(fetchCommand, integrationId)
-            .cast(IngestReply.class)
-            .onErrorReturn(throwable -> new IngestReply(fetchCommand.getId(), throwable.getMessage()));
+            .map(controller ->
+                controller
+                    .sendCommand(fetchCommand, integrationId)
+                    .cast(IngestReply.class)
+                    .onErrorReturn(throwable -> new IngestReply(fetchCommand.getId(), throwable.getMessage()))
+            )
+            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<SubscribeReply> sendSubscribeCommand(SubscribeCommand subscribeCommand, String integrationId) {
         return exchangeController
-            .sendCommand(subscribeCommand, integrationId)
-            .cast(SubscribeReply.class)
-            .onErrorReturn(throwable -> new SubscribeReply(subscribeCommand.getId(), throwable.getMessage()));
+            .map(controller ->
+                controller
+                    .sendCommand(subscribeCommand, integrationId)
+                    .cast(SubscribeReply.class)
+                    .onErrorReturn(throwable -> new SubscribeReply(subscribeCommand.getId(), throwable.getMessage()))
+            )
+            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<UnsubscribeReply> sendUnsubscribeCommand(UnsubscribeCommand command, String integrationId) {
         return exchangeController
-            .sendCommand(command, integrationId)
-            .cast(UnsubscribeReply.class)
-            .onErrorReturn(throwable -> new UnsubscribeReply(command.getId(), throwable.getMessage()));
+            .map(controller ->
+                controller
+                    .sendCommand(command, integrationId)
+                    .cast(UnsubscribeReply.class)
+                    .onErrorReturn(throwable -> new UnsubscribeReply(command.getId(), throwable.getMessage()))
+            )
+            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<DiscoverReply> sendDiscoverCommand(DiscoverCommand command, String integrationId) {
         return exchangeController
-            .sendCommand(command, integrationId)
-            .cast(DiscoverReply.class)
-            .onErrorReturn(throwable -> new DiscoverReply(command.getId(), throwable.getMessage()));
+            .map(controller ->
+                controller
+                    .sendCommand(command, integrationId)
+                    .cast(DiscoverReply.class)
+                    .onErrorReturn(throwable -> new DiscoverReply(command.getId(), throwable.getMessage()))
+            )
+            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 }

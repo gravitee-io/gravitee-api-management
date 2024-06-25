@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
+import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
 import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.api.initializer.Initializer;
+import io.gravitee.node.api.license.LicenseManager;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,21 +31,32 @@ import org.springframework.stereotype.Component;
 public class IntegrationControllerInitializer implements Initializer {
 
     private final ExchangeController integrationExchangeController;
+    private final IdentifyConfiguration identifyConfiguration;
 
-    public IntegrationControllerInitializer(@Qualifier("integrationExchangeController") ExchangeController integrationExchangeController) {
-        this.integrationExchangeController = integrationExchangeController;
+    public IntegrationControllerInitializer(
+        @Qualifier("integrationExchangeController") Optional<ExchangeController> integrationExchangeController,
+        @Qualifier("integrationIdentifyConfiguration") Optional<IdentifyConfiguration> identifyConfiguration
+    ) {
+        this.integrationExchangeController = integrationExchangeController.orElse(null);
+        this.identifyConfiguration = identifyConfiguration.orElse(null);
     }
 
     @Override
     public boolean initialize() {
-        try {
-            integrationExchangeController.start();
-            log.info("Integrations started.");
-        } catch (Exception e) {
-            log.error("Fail to start Integration Controller", e);
-            throw new RuntimeException(e);
+        if (shouldStart()) {
+            try {
+                integrationExchangeController.start();
+                log.info("Integrations started.");
+            } catch (Exception e) {
+                log.error("Fail to start Integration Controller", e);
+                throw new RuntimeException(e);
+            }
         }
         return true;
+    }
+
+    private boolean shouldStart() {
+        return identifyConfiguration != null && identifyConfiguration.getProperty("enabled", Boolean.class, false);
     }
 
     @Override
