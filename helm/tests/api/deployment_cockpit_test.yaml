@@ -19,22 +19,22 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].name
+          path: spec.template.spec.containers[0].volumeMounts[1].name
           value: gravitee-cockpit-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/cockpit
       - equal:
-          path: spec.template.spec.containers[0].env[2].name
+          path: spec.template.spec.containers[0].env[0].name
           value: gravitee_cockpit_enabled
       - equal:
-          path: spec.template.spec.containers[0].env[2].value
+          path: spec.template.spec.containers[0].env[0].value
           value: "true"
       - equal:
-          path: spec.template.spec.containers[0].env[7].name
+          path: spec.template.spec.containers[0].env[5].name
           value: gravitee_cockpit_keystore_password
       - equal:
-          path: spec.template.spec.containers[0].env[7].value
+          path: spec.template.spec.containers[0].env[5].value
           value: "my_password"
 
   - it: Check cockpit deployment with keystore from secretKeyRef
@@ -56,22 +56,22 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].name
+          path: spec.template.spec.containers[0].volumeMounts[1].name
           value: gravitee-cockpit-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/cockpit
       - equal:
-          path: spec.template.spec.containers[0].env[2].name
+          path: spec.template.spec.containers[0].env[0].name
           value: gravitee_cockpit_enabled
       - equal:
-          path: spec.template.spec.containers[0].env[2].value
+          path: spec.template.spec.containers[0].env[0].value
           value: "true"
       - equal:
-          path: spec.template.spec.containers[0].env[7].name
+          path: spec.template.spec.containers[0].env[5].name
           value: gravitee_cockpit_keystore_password
       - equal:
-          path: spec.template.spec.containers[0].env[7].valueFrom
+          path: spec.template.spec.containers[0].env[5].valueFrom
           value:
             secretKeyRef:
               name: mysecret
@@ -96,22 +96,22 @@ tests:
       - isAPIVersion:
           of: apps/v1
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].name
+          path: spec.template.spec.containers[0].volumeMounts[1].name
           value: gravitee-cockpit-certificates
       - equal:
-          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/cockpit
       - equal:
-          path: spec.template.spec.containers[0].env[2].name
+          path: spec.template.spec.containers[0].env[0].name
           value: gravitee_cockpit_enabled
       - equal:
-          path: spec.template.spec.containers[0].env[2].value
+          path: spec.template.spec.containers[0].env[0].value
           value: "true"
       - equal:
-          path: spec.template.spec.containers[0].env[7].name
+          path: spec.template.spec.containers[0].env[5].name
           value: gravitee_cockpit_keystore_password
       - equal:
-          path: spec.template.spec.containers[0].env[7].valueFrom
+          path: spec.template.spec.containers[0].env[5].valueFrom
           value:
             configMapKeyRef:
               name: special-config

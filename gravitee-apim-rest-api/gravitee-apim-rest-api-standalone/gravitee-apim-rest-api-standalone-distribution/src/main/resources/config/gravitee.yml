@@ -688,6 +688,7 @@ notifiers:
 
 # Integration
 integration:
+  enabled: false
   controller:
     ws:
       port: 8072

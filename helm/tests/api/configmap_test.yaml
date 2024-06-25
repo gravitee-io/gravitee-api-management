@@ -167,7 +167,7 @@ tests:
     template: api/api-configmap.yaml
     set:
       api:
-        integration:
+        federation:
           enabled: true
     asserts:
       - matchRegex:
