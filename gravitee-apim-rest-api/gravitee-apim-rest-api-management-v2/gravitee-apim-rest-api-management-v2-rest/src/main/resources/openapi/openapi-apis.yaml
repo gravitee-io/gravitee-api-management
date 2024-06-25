@@ -6102,12 +6102,6 @@ components:
                     type: string
                     description: Page's parent path.
                     example: /parent
-                excludedGroups:
-                    type: array
-                    description: List of group ids that are considered when looking for acces control.
-                    items:
-                        type: string
-                        example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                 excludedAccessControls:
                     type: boolean
                     description: Flag to restrict access to user matching the restrictions.

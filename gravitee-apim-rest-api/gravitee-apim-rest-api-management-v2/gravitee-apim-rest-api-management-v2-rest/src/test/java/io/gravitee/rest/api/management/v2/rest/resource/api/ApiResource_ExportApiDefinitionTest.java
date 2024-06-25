@@ -679,8 +679,13 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         assertEquals("text/markdown", page.getContentType());
         assertEquals("crossId", page.getCrossId());
-        assertEquals(List.of("excludedGroup"), page.getExcludedGroups());
+
         assertEquals(false, page.getExcludedAccessControls());
+        assertNotNull(page.getAccessControls());
+        assertEquals(1, page.getAccessControls().size());
+        assertEquals("role-id", page.getAccessControls().get(0).getReferenceId());
+        assertEquals("ROLE", page.getAccessControls().get(0).getReferenceType());
+
         assertEquals(false, page.getHomepage());
         assertEquals("page-id", page.getId());
         assertEquals("last-contributor-id", page.getLastContributor());
