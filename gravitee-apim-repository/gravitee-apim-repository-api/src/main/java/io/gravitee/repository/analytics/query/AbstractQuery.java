@@ -16,6 +16,7 @@
 package io.gravitee.repository.analytics.query;
 
 import io.gravitee.repository.analytics.query.response.Response;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +29,8 @@ public abstract class AbstractQuery<T extends Response> implements Query<T> {
     private TimeRangeFilter timeRangeFilter;
 
     private QueryFilter queryFilter;
+
+    private List<TermsFilter> termsFilters;
 
     public RootFilter root() {
         return rootFilter;
@@ -51,5 +54,13 @@ public abstract class AbstractQuery<T extends Response> implements Query<T> {
 
     void query(QueryFilter queryFilter) {
         this.queryFilter = queryFilter;
+    }
+
+    public List<TermsFilter> terms() {
+        return termsFilters;
+    }
+
+    void terms(List<TermsFilter> termsFilters) {
+        this.termsFilters = termsFilters;
     }
 }

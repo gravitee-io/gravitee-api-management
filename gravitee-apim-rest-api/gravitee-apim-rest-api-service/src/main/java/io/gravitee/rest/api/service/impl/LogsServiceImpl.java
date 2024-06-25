@@ -281,6 +281,7 @@ public class LogsServiceImpl implements LogsService {
                     .page(query.getPage())
                     .size(query.getSize())
                     .query(query.getQuery())
+                    .terms(query.getTerms())
                     .sort(SortBuilder.on(field, query.isOrder() ? Order.ASC : Order.DESC, null))
                     .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                     //                            .root("application", application)
