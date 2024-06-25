@@ -24,6 +24,8 @@ import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.model.ExtendedLog;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,7 +56,12 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     public void testTabular_withQuery() throws Exception {
         TabularResponse response = logRepository.query(
             queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").page(1).size(20).build()
+            tabular()
+                .timeRange(lastDays(60), hours(1))
+                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                .page(1)
+                .size(20)
+                .build()
         );
 
         assertThat(response).isNotNull();

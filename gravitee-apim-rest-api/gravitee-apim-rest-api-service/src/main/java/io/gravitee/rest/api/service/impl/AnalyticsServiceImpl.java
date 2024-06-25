@@ -33,7 +33,6 @@ import io.gravitee.repository.analytics.query.response.histogram.DateHistogramRe
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.TenantEntity;
 import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.analytics.Bucket;
@@ -51,7 +50,6 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.TenantService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
@@ -130,6 +128,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 QueryBuilders
                     .stats()
                     .query(query.getQuery())
+                    .terms(query.getTerms())
                     .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                     .root(query.getRootField(), query.getRootIdentifier())
                     .field(query.getField())
@@ -151,6 +150,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 QueryBuilders
                     .count()
                     .query(query.getQuery())
+                    .terms(query.getTerms())
                     .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                     .root(query.getRootField(), query.getRootIdentifier())
                     .build()
@@ -169,6 +169,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             DateHistogramQueryBuilder queryBuilder = QueryBuilders
                 .dateHistogram()
                 .query(query.getQuery())
+                .terms(query.getTerms())
                 .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                 .root(query.getRootField(), query.getRootIdentifier());
 
@@ -195,6 +196,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             GroupByQueryBuilder queryBuilder = QueryBuilders
                 .groupBy()
                 .query(query.getQuery())
+                .terms(query.getTerms())
                 .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                 .root(query.getRootField(), query.getRootIdentifier())
                 .field(query.getField());
