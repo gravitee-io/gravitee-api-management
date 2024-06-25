@@ -26,7 +26,10 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class can be reset with all system roles for an organization.
@@ -60,6 +63,15 @@ public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlter
             .filter(role -> role.getReferenceId().equals(referenceContext.getReferenceId()))
             .filter(role -> role.getName().equals(name))
             .findFirst();
+    }
+
+    @Override
+    public Set<Role> findByIds(Set<String> ids) {
+        if (Objects.isNull(ids) || ids.isEmpty()) {
+            return Set.of();
+        }
+
+        return storage.stream().filter(role -> ids.contains(role.getId())).collect(Collectors.toSet());
     }
 
     public void resetSystemRoles(String organizationId) {
