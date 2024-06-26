@@ -6267,62 +6267,69 @@ components:
                 - name
                 - type
 
-        CreateDocumentationMarkdown:
-            title: "CreateDocumentationMarkdown"
-            description: Create documentation markdown page.
-            type: object
-            allOf:
-                - $ref: "#/components/schemas/CreateDocumentation"
-                - properties:
-                      content:
-                          type: string
-                          description: Page's content.
-                          example: My Page content
-                      homepage:
+        CreateDocumentationWithSource:
+          title: "CreateDocumentationWithSource"
+          description: Base object for creating documentation with a source.
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/CreateDocumentation"
+            - properties:
+                content:
+                  type: string
+                  description: Page's content.
+                  example: My Page content
+                homepage:
+                  type: boolean
+                  description: Page's homepage status.
+                  example: true
+                source:
+                  type: object
+                  description: Source configuration for fetching documentation content.
+                  properties:
+                    type:
+                      type: string
+                      description: Type of the source.
+                      example: http-fetcher
+                    configuration:
+                      type: string
+                      description: Configuration for the source.
+                      properties:
+                        useSystemProxy:
                           type: boolean
-                          description: Page's homepage status.
-                          example: true
-            required:
-                - name
-                - type
+                          description: Whether to use the system proxy.
+                          example: false
+                        autoFetch:
+                          type: boolean
+                          description: Whether to automatically fetch the content.
+                          example: false
+                        url:
+                          type: string
+                          description: URL of the source.
+                          example: https://apim-master-api.team-apim.gravitee.dev/management/openapi.yaml
+          required:
+            - name
+            - type
+
+        CreateDocumentationMarkdown:
+          title: "CreateDocumentationMarkdown"
+          description: Create documentation markdown page.
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/CreateDocumentationWithSource"
 
         CreateDocumentationSwagger:
             title: "CreateDocumentationSwagger"
             description: Create documentation Swagger.
             type: object
             allOf:
-                - $ref: "#/components/schemas/CreateDocumentation"
-                - properties:
-                      content:
-                          type: string
-                          description: Page's content.
-                          example: My Page content
-                      homepage:
-                          type: boolean
-                          description: Page's homepage status.
-                          example: true
-            required:
-                - name
-                - type
+              - $ref: "#/components/schemas/CreateDocumentationWithSource"
 
         CreateDocumentationAsyncApi:
             title: "CreateDocumentationAsyncApi"
             description: Create documentation Async API.
             type: object
             allOf:
-                - $ref: "#/components/schemas/CreateDocumentation"
-                - properties:
-                      content:
-                          type: string
-                          description: Page's content.
-                          example: My Page content
-                      homepage:
-                          type: boolean
-                          description: Page's homepage status.
-                          example: true
-            required:
-                - name
-                - type
+              - $ref: "#/components/schemas/CreateDocumentationWithSource"
 
         UpdateDocumentation:
             type: object

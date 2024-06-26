@@ -45,6 +45,7 @@ public class DocumentationValidationDomainService {
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final PageCrudService pageCrudService;
     private final PageSourceDomainService pageSourceDomainService;
+    private final PageFetcher pageFetcher;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
@@ -108,6 +109,10 @@ public class DocumentationValidationDomainService {
         }
 
         this.validateNameIsUnique(sanitizedPage);
+
+        if (page.getContent() == null && page.getSource() != null/*&& page != ROOT*/) {
+            pageFetcher.fetchPage(page);
+        }
 
         return sanitizedPage;
     }

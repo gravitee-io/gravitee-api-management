@@ -85,7 +85,8 @@ public class DocumentationValidationDomainServiceTest {
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 pageCrudService,
-                pageSourceDomainService
+                pageSourceDomainService,
+                null
             );
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
