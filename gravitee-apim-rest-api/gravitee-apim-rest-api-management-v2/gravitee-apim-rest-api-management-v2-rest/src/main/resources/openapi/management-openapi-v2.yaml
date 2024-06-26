@@ -57,7 +57,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
-                - $ref: "#/components/parameters/apiExpandsParam"
+                - $ref: "#/components/parameters/apisSearchExpandsParam"
             tags:
                 - APIs
             summary: List APIs
@@ -134,7 +134,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/apiSortByParam"
-                - $ref: "#/components/parameters/apiExpandsParam"
+                - $ref: "#/components/parameters/apisGetExpandsParam"
             tags:
                 - APIs
             summary: Search APIs
@@ -5702,7 +5702,7 @@ components:
         ###############################
         # Other Query Parameters      #
         ###############################
-        apiExpandsParam:
+        apisSearchExpandsParam:
             name: expands
             in: query
             description: Expansion of data to return in APIs.
@@ -5712,6 +5712,17 @@ components:
                     type: string
                     enum:
                         - deploymentState
+        apisGetExpandsParam:
+            name: expands
+            in: query
+            description: Expansion of data to return in APIs.
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - deploymentState
+                        - primaryOwner
     responses:
         EnvironmentsResponse:
             description: Page of environments
