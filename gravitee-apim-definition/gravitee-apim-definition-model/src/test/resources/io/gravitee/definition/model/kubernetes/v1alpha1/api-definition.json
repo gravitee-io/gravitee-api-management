@@ -85,9 +85,15 @@
           "enabled": true
         }
       ],
+<<<<<<< HEAD
       "comment_message": "some comment message",
       "general_conditions": "some-page-id",
       "comment_required": false
+=======
+      "comment_required": false,
+      "comment_message": "some message",
+      "general_conditions": "some-page-id"
+>>>>>>> 74c2be2288 (fix: remove unsupported fields from v2 crd plan export)
     }
   ],
   "metadata": [
