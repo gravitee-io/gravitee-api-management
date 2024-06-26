@@ -164,6 +164,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private CategoryMapper categoryMapper;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
+    private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -676,6 +677,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ExecutionContext executionContext,
         final String userId,
         final boolean isAdmin,
+        final Set<String> expands,
         final Pageable pageable
     ) {
         ApiCriteria.Builder criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
@@ -701,13 +703,31 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return apis
             .getContent()
             .stream()
-            .map(api -> genericApiMapper.toGenericApi(api, null))
+            .map(api -> {
+                PrimaryOwnerEntity primaryOwner = null;
+
+                if (expands != null && expands.contains(EXPAND_PRIMARY_OWNER)) {
+                    primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+                }
+
+                return genericApiMapper.toGenericApi(api, primaryOwner);
+            })
             .collect(
                 Collectors.collectingAndThen(
                     Collectors.toList(),
                     apiEntityList -> new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
                 )
             );
+    }
+
+    @Override
+    public Page<GenericApiEntity> findAll(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final Pageable pageable
+    ) {
+        return this.findAll(executionContext, userId, isAdmin, Collections.emptySet(), pageable);
     }
 
     @Override
