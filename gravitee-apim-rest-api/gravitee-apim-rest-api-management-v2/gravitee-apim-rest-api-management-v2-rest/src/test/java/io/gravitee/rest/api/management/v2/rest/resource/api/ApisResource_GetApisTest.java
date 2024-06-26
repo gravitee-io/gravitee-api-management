@@ -16,22 +16,31 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV1;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -119,7 +128,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
@@ -189,7 +206,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
@@ -259,7 +284,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
@@ -323,7 +356,9 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi1);
         apiList.add(returnedApi2);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
+        when(
+            apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), isNull(), eq(new PageableImpl(1, 2)))
+        )
             .thenReturn(new Page<>(apiList, 1, 2, 42));
 
         final Response response = rootTarget()
@@ -380,7 +415,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi1);
         apiList.add(returnedApi2);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                eq(Set.of("deploymentState", "primaryOwner")),
+                eq(new PageableImpl(1, 2))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, 2, 42));
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
 
@@ -389,7 +432,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         final Response response = rootTarget()
             .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
             .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
-            .queryParam("expands", "deploymentState")
+            .queryParam("expands", "deploymentState,primaryOwner")
             .request()
             .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -410,63 +453,5 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         ApiV2 api2 = apis.get(1).getApiV2();
         Assertions.assertEquals("api-2", api2.getId());
         Assertions.assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, api2.getDeploymentState());
-    }
-
-    @Test
-    public void should_list_api_with_all_primaryOwner_expand_params() {
-        PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder().id("user-1").displayName("user-display-name").build();
-
-        ApiEntity returnedApi1 = new ApiEntity();
-        returnedApi1.setId("api-1");
-        returnedApi1.setState(Lifecycle.State.STOPPED);
-        returnedApi1.setDefinitionVersion(DefinitionVersion.V4);
-        returnedApi1.setPrimaryOwner(primaryOwner);
-
-        io.gravitee.rest.api.model.api.ApiEntity returnedApi2 = new io.gravitee.rest.api.model.api.ApiEntity();
-        returnedApi2.setId("api-2");
-        returnedApi2.setState(Lifecycle.State.STOPPED);
-        returnedApi2.setGraviteeDefinitionVersion("2.0.0");
-        returnedApi2.setPrimaryOwner(primaryOwner);
-
-        var apiList = new ArrayList<GenericApiEntity>();
-        apiList.add(returnedApi1);
-        apiList.add(returnedApi2);
-
-        when(primaryOwnerService.getPrimaryOwner(eq(GraviteeContext.getExecutionContext()), eq("user-1"))).thenReturn(primaryOwner);
-
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
-            .thenReturn(new Page<>(apiList, 1, 2, 42));
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
-
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(false);
-
-        final Response response = rootTarget()
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
-            .queryParam("expands", "primaryOwner")
-            .request()
-            .get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        // Check Response content
-        final ApisResponse apisResponse = response.readEntity(ApisResponse.class);
-        assertNotNull(apisResponse.getData());
-        assertNotNull(apisResponse.getPagination());
-        assertNotNull(apisResponse.getLinks());
-
-        // Check apis
-        List<Api> apis = apisResponse.getData();
-        Assertions.assertEquals(2, apis.size());
-        ApiV4 api1 = apis.get(0).getApiV4();
-        Assertions.assertEquals("api-1", api1.getId());
-        Assertions.assertNull(api1.getDeploymentState());
-        Assertions.assertEquals("user-1", api1.getPrimaryOwner().getId());
-        Assertions.assertEquals("user-display-name", api1.getPrimaryOwner().getDisplayName());
-
-        ApiV2 api2 = apis.get(1).getApiV2();
-        Assertions.assertEquals("api-2", api2.getId());
-        Assertions.assertNull(api2.getDeploymentState());
-        Assertions.assertEquals("user-1", api2.getPrimaryOwner().getId());
-        Assertions.assertEquals("user-display-name", api2.getPrimaryOwner().getDisplayName());
     }
 }

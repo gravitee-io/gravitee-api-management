@@ -96,12 +96,30 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -146,6 +164,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private CategoryMapper categoryMapper;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
+    private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -661,6 +680,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ExecutionContext executionContext,
         final String userId,
         final boolean isAdmin,
+        final Set<String> expands,
         final Pageable pageable
     ) {
         ApiCriteria.Builder criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
@@ -687,8 +707,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .getContent()
             .stream()
             .map(api -> {
-                PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-                return genericApiMapper.toGenericApi(api, PrimaryOwnerEntity.builder().id(primaryOwner.getId()).build());
+                PrimaryOwnerEntity primaryOwner = null;
+
+                if (expands != null && expands.contains(EXPAND_PRIMARY_OWNER)) {
+                    primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+                }
+
+                return genericApiMapper.toGenericApi(api, primaryOwner);
             })
             .collect(
                 Collectors.collectingAndThen(
@@ -696,6 +721,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     apiEntityList -> new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
                 )
             );
+    }
+
+    @Override
+    public Page<GenericApiEntity> findAll(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final Pageable pageable
+    ) {
+        return this.findAll(executionContext, userId, isAdmin, Collections.emptySet(), pageable);
     }
 
     @Override

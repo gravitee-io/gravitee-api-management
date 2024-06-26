@@ -15,78 +15,70 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
-import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
 import static io.gravitee.rest.api.service.impl.promotion.PromotionServiceTest.USER_ID;
-import static java.util.Arrays.asList;
-import static java.util.Collections.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
-import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
-import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.listener.http.Path;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
-import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
-import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -315,8 +307,6 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
-        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString())).thenReturn(mock(PrimaryOwnerEntity.class));
-
         when(
             apiRepository.search(
                 eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
@@ -351,8 +341,6 @@ public class ApiServiceImpl_findAllTest {
         api1.setId("API_1");
         var api2 = new Api();
         api2.setId("API_2");
-
-        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString())).thenReturn(mock(PrimaryOwnerEntity.class));
 
         when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
             .thenReturn(Set.of("API_1"));
@@ -407,5 +395,41 @@ public class ApiServiceImpl_findAllTest {
         assertThat(apis.getPageElements()).isEqualTo(0);
 
         verify(apiRepository, never()).search(any(), any(), any(), any());
+    }
+
+    @Test
+    public void should_expand_primary_owner() {
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        var api1 = new Api();
+        api1.setId("API_1");
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                isNull(),
+                eq(pageable),
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
+            )
+        )
+            .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+
+        when(primaryOwnerService.getPrimaryOwner(any(ExecutionContext.class), anyString()))
+            .thenReturn(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
+
+        final Page<GenericApiEntity> apis = apiService.findAll(
+            GraviteeContext.getExecutionContext(),
+            "UnitTests",
+            true,
+            Set.of("primaryOwner"),
+            new PageableImpl(1, 10)
+        );
+
+        assertThat(apis).isNotNull();
+        assertThat(apis.getContent().size()).isEqualTo(1);
+        assertThat(apis.getContent().get(0))
+            .extracting(GenericApiEntity::getPrimaryOwner)
+            .isEqualTo(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
+
+        verify(primaryOwnerService).getPrimaryOwner(any(ExecutionContext.class), eq("API_1"));
     }
 }
