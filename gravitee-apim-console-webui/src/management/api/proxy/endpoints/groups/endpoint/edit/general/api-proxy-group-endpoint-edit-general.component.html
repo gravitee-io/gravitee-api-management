@@ -51,6 +51,7 @@
         <mat-label>Target</mat-label>
         <input type="text" aria-label="Endpoint target input" matInput formControlName="target" required />
         <mat-error *ngIf="generalForm.get('target').hasError('required')"> Target is required. </mat-error>
+        <mat-error *ngIf="generalForm.get('target').hasError('pattern')"> Target value does not respect the pattern: ^\S+$ </mat-error>
       </mat-form-field>
     </div>
 
