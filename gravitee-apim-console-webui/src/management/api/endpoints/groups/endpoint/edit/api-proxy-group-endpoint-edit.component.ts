@@ -171,7 +171,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
         ],
       ],
       type: [{ value: this.endpoint?.type ?? 'http', disabled: this.isReadOnly }, [Validators.required]],
-      target: [{ value: this.endpoint?.target ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      target: [{ value: this.endpoint?.target ?? null, disabled: this.isReadOnly }, [Validators.required, Validators.pattern(/^\S+$/)]],
       weight: [{ value: this.endpoint?.weight ?? null, disabled: this.isReadOnly }, [Validators.required]],
       tenants: [{ value: this.endpoint?.tenants ?? null, disabled: this.isReadOnly }],
       backup: [{ value: this.endpoint?.backup ?? false, disabled: this.isReadOnly }],
