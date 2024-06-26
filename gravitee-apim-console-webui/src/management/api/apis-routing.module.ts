@@ -822,37 +822,47 @@ const apisRoutes: Routes = [
         data: {
           docs: null,
         },
-        component: ApiDocumentationV4Component,
-      },
-      {
-        path: 'v4/documentation/new',
-        data: {
-          docs: null,
-          permissions: {
-            anyOf: ['api-documentation-c'],
+        children: [
+          {
+            path: '',
+            redirectTo: 'pages',
+            pathMatch: 'full',
           },
-        },
-        component: ApiDocumentationV4EditPageComponent,
-      },
-      {
-        path: 'v4/documentation/metadata',
-        data: {
-          docs: null,
-          permissions: {
-            anyOf: ['api-metadata-r'],
+          {
+            path: 'pages',
+            component: ApiDocumentationV4Component,
           },
-        },
-        component: ApiDocumentationV4MetadataComponent,
-      },
-      {
-        path: 'v4/documentation/:pageId',
-        data: {
-          docs: null,
-          permissions: {
-            anyOf: ['api-documentation-u', 'api-documentation-r'],
+          {
+            path: 'pages/new',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-c'],
+              },
+            },
+            component: ApiDocumentationV4EditPageComponent,
           },
-        },
-        component: ApiDocumentationV4EditPageComponent,
+          {
+            path: 'pages/:pageId',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-u', 'api-documentation-r'],
+              },
+            },
+            component: ApiDocumentationV4EditPageComponent,
+          },
+          {
+            path: 'metadata',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-metadata-r'],
+              },
+            },
+            component: ApiDocumentationV4MetadataComponent,
+          },
+        ],
       },
       {
         path: 'v4/policy-studio',

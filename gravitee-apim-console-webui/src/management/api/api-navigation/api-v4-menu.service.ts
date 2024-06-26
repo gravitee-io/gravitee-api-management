@@ -216,8 +216,8 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
       tabs.push({
         displayName: 'Pages',
-        routerLink: 'v4/documentation',
-        routerLinkActiveOptions: { exact: true },
+        routerLink: 'v4/documentation/pages',
+        routerLinkActiveOptions: { exact: false },
       });
     }
 
