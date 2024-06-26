@@ -42,10 +42,17 @@ export interface Page {
   contentRevision?: Revision;
   hidden?: boolean;
   generalConditions?: boolean;
+  accessControls?: AccessControl[];
+  excludedAccessControls?: boolean;
 }
 
 export interface Breadcrumb {
   id: string;
   name: string;
   position: number;
+}
+
+export interface AccessControl {
+  referenceId?: string;
+  referenceType?: string;
 }

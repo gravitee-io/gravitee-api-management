@@ -52,18 +52,40 @@
         <mat-step>
           <ng-template matStepLabel>Configure page</ng-template>
           <div class="stepper__content">
-            <form [formGroup]="stepOneForm">
+            <form [formGroup]="form.controls.stepOne" class="stepper__content__form">
               <mat-form-field>
                 <mat-label>Name</mat-label>
                 <input matInput formControlName="name" placeholder="Name" autofocus />
-                <mat-error *ngIf="stepOneForm.controls.name?.errors?.required">Name is required</mat-error>
-                <mat-error *ngIf="stepOneForm.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
+                <mat-error *ngIf="form.controls.stepOne.controls.name?.errors?.required">Name is required</mat-error>
+                <mat-error *ngIf="form.controls.stepOne.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
               </mat-form-field>
               <api-documentation-visibility formControlName="visibility"></api-documentation-visibility>
+              @if (form.controls.stepOne.controls.visibility.value === 'PRIVATE') {
+                <mat-form-field>
+                  <mat-label>Groups with permissions to view the page</mat-label>
+                  <mat-select formControlName="accessControlGroups" multiple>
+                    @for (group of groups; track group.id) {
+                      <mat-option [value]="group.id">{{ group.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <gio-form-slide-toggle>
+                  <b>Exclude the selected groups</b>
+                  <div>
+                    When selected, reverses the operation for the group permissions. Users belonging to any of the specified groups will NOT
+                    be able to view the page.
+                  </div>
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="excludeGroups"
+                    aria-label="Exclude selected groups"
+                  ></mat-slide-toggle>
+                </gio-form-slide-toggle>
+              }
             </form>
           </div>
           <div class="stepper__actions">
-            <button mat-flat-button color="primary" matStepperNext [disabled]="stepOneForm.invalid">Next</button>
+            <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.stepOne.invalid">Next</button>
           </div>
         </mat-step>
         <mat-step *ngIf="mode === 'create'">
@@ -110,7 +132,7 @@
               [disabled]="isReadOnly"
               *ngIf="form.value?.source === 'IMPORT'"
             ></api-documentation-file-upload>
-            <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
+            <mat-error *ngIf="form.controls.content.errors?.required">Page content cannot be empty</mat-error>
           </div>
           <div class="stepper__actions">
             <ng-container *ngIf="mode === 'create'">

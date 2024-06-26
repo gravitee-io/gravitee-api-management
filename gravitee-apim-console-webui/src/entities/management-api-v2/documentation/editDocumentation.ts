@@ -15,12 +15,15 @@
  */
 import { Visibility } from './visibility';
 import { PageType } from './pageType';
+import { AccessControl } from './page';
 
 export interface BaseEditDocumentation {
   type?: PageType;
   name?: string;
   order?: number;
   visibility?: Visibility;
+  accessControls?: AccessControl[];
+  excludedAccessControls?: boolean;
 }
 
 export type EditDocumentationFolder = BaseEditDocumentation;

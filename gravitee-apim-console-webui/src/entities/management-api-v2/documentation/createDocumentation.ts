@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Visibility } from './visibility';
+import { AccessControl } from './page';
 
 const CreateDocumentationTypeEnum = {
   MARKDOWN: 'MARKDOWN',
@@ -29,6 +30,8 @@ export interface BaseCreateDocumentation {
   order?: number;
   visibility?: Visibility;
   parentId?: string;
+  accessControls?: AccessControl[];
+  excludedAccessControls?: boolean;
 }
 
 export type CreateDocumentationFolder = BaseCreateDocumentation;

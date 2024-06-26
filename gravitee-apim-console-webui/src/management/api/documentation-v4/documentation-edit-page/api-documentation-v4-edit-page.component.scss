@@ -55,6 +55,12 @@ $typography: map.get(gio.$mat-theme, typography);
     .mat-mdc-radio-group {
       width: 100%;
     }
+
+    &__form {
+      display: flex;
+      flex-flow: column;
+      gap: 14px;
+    }
   }
 
   &__actions {

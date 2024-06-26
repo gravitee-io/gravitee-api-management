@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,10 +31,25 @@ import {
   PageType,
   Api,
   getTooltipForPageType,
+  AccessControl,
+  Visibility,
+  Group,
 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+
+interface EditPageForm {
+  stepOne: FormGroup<{
+    name: FormControl<string>;
+    visibility: FormControl<Visibility>;
+    accessControlGroups: FormControl<string[]>;
+    excludeGroups: FormControl<boolean>;
+  }>;
+  content: FormControl<string>;
+  source: FormControl<string>;
+}
 
 @Component({
   selector: 'api-documentation-edit-page',
@@ -42,8 +57,7 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
   styleUrls: ['./api-documentation-v4-edit-page.component.scss'],
 })
 export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
-  form: UntypedFormGroup;
-  stepOneForm: UntypedFormGroup;
+  form: FormGroup<EditPageForm>;
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
   exitLabel = 'Exit without saving';
@@ -58,30 +72,33 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   iconUrl: string;
   iconTooltip: string;
   isReadOnly: boolean = false;
+  groups: Group[];
 
   private existingNames: string[] = [];
+  private initialAccessControlGroups: string[] = [];
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly formBuilder: UntypedFormBuilder,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
+    private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
-    this.stepOneForm = this.formBuilder.group({
-      name: this.formBuilder.control('', [Validators.required, this.pageNameUniqueValidator()]),
-      visibility: this.formBuilder.control('PUBLIC', [Validators.required]),
-    });
-    this.form = this.formBuilder.group({
-      stepOne: this.stepOneForm,
-      source: this.formBuilder.control(this.source, [Validators.required]),
-      content: this.formBuilder.control('', [Validators.required]),
+    this.form = new FormGroup<EditPageForm>({
+      stepOne: new FormGroup({
+        name: new FormControl<string>('', [Validators.required, this.pageNameUniqueValidator()]),
+        visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
+        accessControlGroups: new FormControl<string[]>([]),
+        excludeGroups: new FormControl<boolean>(false),
+      }),
+      content: new FormControl<string>('', [Validators.required]),
+      source: new FormControl<string>(this.source, [Validators.required]),
     });
 
     if (this.activatedRoute.snapshot.params.pageId) {
@@ -97,7 +114,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
                 this.page.name === value.stepOne?.name &&
                 this.page.visibility === value.stepOne?.visibility &&
                 this.source === value.source &&
-                this.page.content === value.content;
+                this.page.content === value.content &&
+                (this.page.excludedAccessControls === undefined || this.page.excludedAccessControls === value.stepOne.excludeGroups) &&
+                this.initialAccessControlGroups === value.stepOne.accessControlGroups;
             }
           }),
         )
@@ -121,11 +140,13 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
           this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
           return this.mode === 'edit' ? this.loadEditPage() : of({});
         }),
-        switchMap((_) => this.apiDocumentationService.getApiPages(this.api.id, this.getParentId())),
+        switchMap((_) =>
+          combineLatest([this.apiDocumentationService.getApiPages(this.api.id, this.getParentId()), this.groupService.list(1, 999)]),
+        ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (pagesResponse) => {
+        next: ([pagesResponse, groupsResponse]) => {
           this.iconUrl = getLogoForPageType(this.pageType);
           this.iconTooltip = getTooltipForPageType(this.pageType);
 
@@ -133,10 +154,12 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
           this.existingNames = pagesResponse.pages
             .filter((page) => page.id !== this.page?.id && page.type === this.pageType)
             .map((page) => page.name.toLowerCase().trim());
+
+          this.groups = groupsResponse?.data ?? [];
         },
       });
 
-    this.stepOneForm.get('name').valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
+    this.form.controls.stepOne.controls.name.valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
   }
 
   ngOnDestroy() {
@@ -197,14 +220,21 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
     return this.apiDocumentationService.getApiPage(this.api.id, this.activatedRoute.snapshot.params.pageId).pipe(
-      switchMap((page) =>
-        this.apiDocumentationService.updateDocumentationPage(this.api.id, this.activatedRoute.snapshot.params.pageId, {
+      switchMap((page) => {
+        const nonGroupAccessControls = page.accessControls ? page.accessControls.filter((ac) => ac.referenceType !== 'GROUP') : [];
+        const selectedGroupAccessControls: AccessControl[] = formValue.stepOne.accessControlGroups.map((referenceId) => ({
+          referenceId,
+          referenceType: 'GROUP',
+        }));
+        return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.activatedRoute.snapshot.params.pageId, {
           ...page,
           name: formValue.stepOne.name,
           visibility: formValue.stepOne.visibility,
           content: formValue.content,
-        }),
-      ),
+          excludedAccessControls: formValue.stepOne.excludeGroups,
+          accessControls: [...nonGroupAccessControls, ...selectedGroupAccessControls],
+        });
+      }),
       catchError((err) => {
         this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
         return EMPTY;
@@ -257,6 +287,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       visibility: this.form.getRawValue().stepOne.visibility,
       content: this.form.getRawValue().content,
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
+      accessControls: this.form.getRawValue().stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),
+      excludedAccessControls: this.form.getRawValue().stepOne.excludeGroups,
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err) => {
@@ -273,10 +305,18 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         this.page = page;
         this.pageType = page.type;
 
-        this.stepOneForm.get('name').setValue(this.page.name);
-        this.stepOneForm.get('visibility').setValue(this.page.visibility);
+        this.form.controls.stepOne.controls.name.setValue(this.page.name);
+        this.form.controls.stepOne.controls.visibility.setValue(this.page.visibility);
+        if (this.page.accessControls) {
+          this.form.controls.stepOne.controls.accessControlGroups.setValue(
+            this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId),
+          );
+        }
+        this.initialAccessControlGroups = this.form.value.stepOne.accessControlGroups;
 
-        this.form.get('content').setValue(this.page.content);
+        this.form.controls.stepOne.controls.excludeGroups.setValue(this.page.excludedAccessControls === true);
+
+        this.form.controls.content.setValue(this.page.content);
       }),
     );
   }
