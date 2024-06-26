@@ -17,7 +17,9 @@ package io.gravitee.apim.core.api.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.GroupQueryServiceInMemory;
@@ -27,6 +29,7 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,8 +85,13 @@ class ValidateFederatedApiDomainServiceTest {
 
     @Test
     void should_validate_and_sanitize_api_for_update() {
-        var existingApi = ApiFixtures.aFederatedApi();
-        var updateApi = ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build();
+        var existingApi = ApiFixtures.aFederatedApi().toBuilder().categories(Set.of("oldcat")).build();
+        var updateApi = ApiFixtures
+            .aFederatedApi()
+            .toBuilder()
+            .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+            .categories(Set.of("cat"))
+            .build();
         var primaryOwner = PrimaryOwnerEntity
             .builder()
             .id("primary-owner-id")
@@ -91,9 +99,18 @@ class ValidateFederatedApiDomainServiceTest {
             .email("primary-owner-email")
             .type(PrimaryOwnerEntity.Type.USER)
             .build();
+        when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of("catId"));
 
         var result = service.validateAndSanitizeForUpdate(updateApi, existingApi, primaryOwner);
 
-        assertThat(result).isEqualTo(updateApi);
+        assertThat(result)
+            .isEqualTo(
+                ApiFixtures
+                    .aFederatedApi()
+                    .toBuilder()
+                    .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                    .categories(Set.of("catId"))
+                    .build()
+            );
     }
 }

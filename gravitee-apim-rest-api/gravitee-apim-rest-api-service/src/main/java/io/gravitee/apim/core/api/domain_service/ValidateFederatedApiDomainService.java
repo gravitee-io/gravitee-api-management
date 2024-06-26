@@ -51,7 +51,7 @@ public class ValidateFederatedApiDomainService {
         );
         updateApi.setGroups(groupIds);
 
-        updateApi.setCategories(categoryDomainService.toCategoryId(existingApi, existingApi.getEnvironmentId()));
+        updateApi.setCategories(categoryDomainService.toCategoryId(updateApi, existingApi.getEnvironmentId()));
 
         var lifecycleState = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
             existingApi.getApiLifecycleState(),
