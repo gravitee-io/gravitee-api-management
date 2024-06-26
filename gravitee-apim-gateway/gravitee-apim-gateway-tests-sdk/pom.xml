@@ -184,6 +184,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-content-provider-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.connector</groupId>
             <artifactId>gravitee-connector-http</artifactId>
             <version>${gravitee-connector-http.version}</version>
