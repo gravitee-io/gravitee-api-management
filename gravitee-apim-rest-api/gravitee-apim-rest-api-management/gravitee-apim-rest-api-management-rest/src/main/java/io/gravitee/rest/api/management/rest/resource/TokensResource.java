@@ -97,8 +97,7 @@ public class TokensResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public void revokeToken(@PathParam("token") String tokenId) {
         // Check that token exists and belongs to user
-        Token tokenToRevoke = tokenService.findByToken(tokenId);
-        if (!tokenToRevoke.getReferenceId().equalsIgnoreCase(getAuthenticatedUserOrNull())) {
+        if (!tokenService.tokenExistsForUser(tokenId, getAuthenticatedUserOrNull())) {
             throw new TokenNotFoundException(tokenId);
         }
 
