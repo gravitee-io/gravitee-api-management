@@ -154,13 +154,7 @@ export class CatalogComponent {
 
   private loadCategories$(): Observable<Category[]> {
     return this.categoriesService.categories().pipe(
-      map(response => {
-        if (response) {
-          return response.data.sort((a, b) => a.name!.localeCompare(b.name!));
-        } else {
-          return [];
-        }
-      }),
+      map(response => response.data ?? []),
       catchError(_ => of([])),
     );
   }
