@@ -274,6 +274,20 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         });
       });
     });
+
+    it('should not be able to save url with spaces', async () => {
+      const targetInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }));
+      await targetInput.setValue('https//dummy.com');
+
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+
+      await targetInput.setValue('https//dummy.com    ');
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await targetInput.setValue('https//     dummy.com');
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
+    });
   });
 
   describe('Create mode with existing endpoints', () => {
