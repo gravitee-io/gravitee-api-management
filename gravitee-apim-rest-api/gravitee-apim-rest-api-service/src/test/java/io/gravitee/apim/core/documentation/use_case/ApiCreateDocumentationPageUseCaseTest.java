@@ -32,8 +32,10 @@ import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainServic
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -42,7 +44,9 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,6 +62,12 @@ class ApiCreateDocumentationPageUseCaseTest {
     private static final String API_ID = "api-id";
     private static final String PARENT_ID = "parent-id";
     private static final String PAGE_ID = "page-id";
+    private static final String ROLE_ID = "role-id";
+    private static final String GROUP_ID = "group-id";
+    private static final Set<AccessControl> ACCESS_CONTROLS = Set.of(
+        AccessControl.builder().referenceId(ROLE_ID).referenceType("ROLE").build(),
+        AccessControl.builder().referenceId(GROUP_ID).referenceType("GROUP").build()
+    );
 
     private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
 
@@ -126,7 +136,7 @@ class ApiCreateDocumentationPageUseCaseTest {
             List.of(
                 Role
                     .builder()
-                    .id("role-id")
+                    .id(ROLE_ID)
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
@@ -134,6 +144,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                     .build()
             )
         );
+        groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
         membershipQueryService.initWith(
             List.of(
                 Membership
@@ -202,6 +213,8 @@ class ApiCreateDocumentationPageUseCaseTest {
                             .order(1)
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(API_ID)
+                            .accessControls(ACCESS_CONTROLS)
+                            .excludedAccessControls(true)
                             .build()
                     )
                     .auditInfo(AUDIT_INFO)
@@ -217,7 +230,9 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("order", 0);
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("accessControls", ACCESS_CONTROLS)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true);
 
             var savedPage = pageCrudService
                 .storage()
@@ -579,6 +594,69 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }
+
+        @Test
+        void should_only_return_valid_access_controls() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            var accessControls = new HashSet<>(ACCESS_CONTROLS);
+            accessControls.add(AccessControl.builder().referenceId("group-does-not-exist").referenceType("GROUP").build());
+            accessControls.add(AccessControl.builder().referenceId("role-does-not-exist").referenceType("ROLE").build());
+            accessControls.add(AccessControl.builder().referenceId("type-does-exist").referenceType("USER").build());
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page ")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .accessControls(accessControls)
+                            .excludedAccessControls(true)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new page")
+                .hasFieldOrPropertyWithValue("type", Page.Type.MARKDOWN)
+                .hasFieldOrPropertyWithValue("content", "nice content")
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("accessControls", ACCESS_CONTROLS)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true);
+
+            var savedPage = pageCrudService
+                .storage()
+                .stream()
+                .filter(page -> page.getId().equals(res.createdPage().getId()))
+                .toList()
+                .get(0);
+            assertThat(savedPage).isEqualTo(res.createdPage());
+        }
     }
 
     @Nested
@@ -612,6 +690,8 @@ class ApiCreateDocumentationPageUseCaseTest {
                             .order(1)
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(API_ID)
+                            .accessControls(ACCESS_CONTROLS)
+                            .excludedAccessControls(true)
                             .build()
                     )
                     .auditInfo(AUDIT_INFO)
@@ -627,7 +707,9 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("order", 0);
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("accessControls", ACCESS_CONTROLS)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true);
 
             var savedPage = pageCrudService
                 .storage()
@@ -989,6 +1071,69 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }
+
+        @Test
+        void should_only_return_valid_access_controls() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            var accessControls = new HashSet<>(ACCESS_CONTROLS);
+            accessControls.add(AccessControl.builder().referenceId("group-does-not-exist").referenceType("GROUP").build());
+            accessControls.add(AccessControl.builder().referenceId("role-does-not-exist").referenceType("ROLE").build());
+            accessControls.add(AccessControl.builder().referenceId("type-does-exist").referenceType("USER").build());
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page ")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .accessControls(accessControls)
+                            .excludedAccessControls(true)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new page")
+                .hasFieldOrPropertyWithValue("type", Page.Type.SWAGGER)
+                .hasFieldOrPropertyWithValue("content", "openapi: 3.0.0")
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("accessControls", ACCESS_CONTROLS)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true);
+
+            var savedPage = pageCrudService
+                .storage()
+                .stream()
+                .filter(page -> page.getId().equals(res.createdPage().getId()))
+                .toList()
+                .get(0);
+            assertThat(savedPage).isEqualTo(res.createdPage());
+        }
     }
 
     @Nested
@@ -1022,6 +1167,8 @@ class ApiCreateDocumentationPageUseCaseTest {
                             .order(1)
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(API_ID)
+                            .accessControls(ACCESS_CONTROLS)
+                            .excludedAccessControls(true)
                             .build()
                     )
                     .auditInfo(AUDIT_INFO)
@@ -1037,7 +1184,9 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("order", 0);
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("accessControls", ACCESS_CONTROLS)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true);
 
             var savedPage = pageCrudService
                 .storage()
@@ -1365,6 +1514,69 @@ class ApiCreateDocumentationPageUseCaseTest {
                 )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
+        }
+
+        @Test
+        void should_only_return_valid_access_controls() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            var accessControls = new HashSet<>(ACCESS_CONTROLS);
+            accessControls.add(AccessControl.builder().referenceId("group-does-not-exist").referenceType("GROUP").build());
+            accessControls.add(AccessControl.builder().referenceId("role-does-not-exist").referenceType("ROLE").build());
+            accessControls.add(AccessControl.builder().referenceId("type-does-exist").referenceType("USER").build());
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page ")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .accessControls(accessControls)
+                            .excludedAccessControls(true)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new page")
+                .hasFieldOrPropertyWithValue("type", Page.Type.ASYNCAPI)
+                .hasFieldOrPropertyWithValue("content", "nice content")
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("accessControls", ACCESS_CONTROLS)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true);
+
+            var savedPage = pageCrudService
+                .storage()
+                .stream()
+                .filter(page -> page.getId().equals(res.createdPage().getId()))
+                .toList()
+                .get(0);
+            assertThat(savedPage).isEqualTo(res.createdPage());
         }
     }
 

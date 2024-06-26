@@ -23,10 +23,13 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -71,6 +74,14 @@ public class ApiUpdateDocumentationPageUseCase {
         newPage.homepage(input.homepage);
         newPage.order(input.order);
 
+        if (Objects.nonNull(input.excludedAccessControls)) {
+            newPage.excludedAccessControls(input.excludedAccessControls);
+        }
+
+        if (Objects.nonNull(input.accessControls)) {
+            newPage.accessControls(this.documentationValidationDomainService.sanitizeAccessControls(input.accessControls));
+        }
+
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(newPage.build(), oldPage, input.auditInfo);
 
         if (!updatedPage.isFolder() && updatedPage.isHomepage() && !oldPage.isHomepage()) {
@@ -98,7 +109,9 @@ public class ApiUpdateDocumentationPageUseCase {
         Page.Visibility visibility,
         String content,
         boolean homepage,
-        AuditInfo auditInfo
+        AuditInfo auditInfo,
+        Set<AccessControl> accessControls,
+        Boolean excludedAccessControls
     ) {}
 
     public record Output(Page page) {}

@@ -31,8 +31,10 @@ import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -42,7 +44,9 @@ import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,6 +66,12 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private static final String PARENT_ID = "parent-id";
     private static final String PAGE_ID = "page-id";
     private static final Date DATE = new Date();
+    private static final String ROLE_ID = "role-id";
+    private static final String GROUP_ID = "group-id";
+    private static final Set<AccessControl> ACCESS_CONTROLS = Set.of(
+        AccessControl.builder().referenceId(ROLE_ID).referenceType("ROLE").build(),
+        AccessControl.builder().referenceId(GROUP_ID).referenceType("GROUP").build()
+    );
     private static final Page PARENT_FOLDER = Page
         .builder()
         .id(PARENT_ID)
@@ -205,7 +215,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             List.of(
                 Role
                     .builder()
-                    .id("role-id")
+                    .id(ROLE_ID)
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
@@ -213,6 +223,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             )
         );
+        groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
         membershipQueryService.initWith(
             List.of(
                 Membership
@@ -240,7 +251,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 userCrudService,
                 roleQueryService,
                 membershipQueryService,
-                userCrudService
+                groupQueryService
             )
             .forEach(InMemoryAlternative::reset);
     }
@@ -263,6 +274,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .content("new content")
                     .name("new name   ")
                     .auditInfo(AUDIT_INFO)
+                    .excludedAccessControls(true)
+                    .accessControls(ACCESS_CONTROLS)
                     .build()
             );
 
@@ -279,7 +292,11 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("crossId", "cross id")
                 .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
                 .hasFieldOrPropertyWithValue("published", true)
-                .hasFieldOrPropertyWithValue("createdAt", DATE);
+                .hasFieldOrPropertyWithValue("createdAt", DATE)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", true)
+                .extracting(Page::getAccessControls)
+                .isNotNull()
+                .isEqualTo(ACCESS_CONTROLS);
 
             assertThat(res.page().getUpdatedAt()).isNotEqualTo(DATE);
         }
@@ -418,6 +435,42 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
             var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
+        }
+
+        @Test
+        void should_only_retain_existing_groups_and_roles_in_access_controls() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
+
+            var accessControlsWithInvalidEntities = new HashSet<>(ACCESS_CONTROLS);
+            accessControlsWithInvalidEntities.add(AccessControl.builder().referenceType("USER").referenceId("user-1").build());
+            accessControlsWithInvalidEntities.add(AccessControl.builder().referenceType("GROUP").referenceId("does-not-exist").build());
+            accessControlsWithInvalidEntities.add(AccessControl.builder().referenceType("ROLE").referenceId("does-not-exist").build());
+            accessControlsWithInvalidEntities.add(AccessControl.builder().referenceType("group").referenceId(GROUP_ID).build());
+            accessControlsWithInvalidEntities.add(AccessControl.builder().referenceType("role").referenceId(ROLE_ID).build());
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .content("new content")
+                    .name("new name   ")
+                    .auditInfo(AUDIT_INFO)
+                    .excludedAccessControls(false)
+                    .accessControls(accessControlsWithInvalidEntities)
+                    .build()
+            );
+
+            assertThat(res.page())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("excludedAccessControls", false)
+                .extracting(Page::getAccessControls)
+                .isNotNull()
+                .isEqualTo(ACCESS_CONTROLS);
         }
 
         @Test
