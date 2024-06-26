@@ -166,6 +166,7 @@ public class ApisResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             isAdmin(),
+            expands,
             paginationParam.toPageable()
         );
 
