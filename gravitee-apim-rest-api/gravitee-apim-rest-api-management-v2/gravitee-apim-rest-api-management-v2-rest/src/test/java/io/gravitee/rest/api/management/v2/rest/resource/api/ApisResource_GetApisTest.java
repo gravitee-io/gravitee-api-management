@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
@@ -127,7 +128,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
@@ -197,7 +206,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
@@ -267,7 +284,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
@@ -331,7 +356,9 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi1);
         apiList.add(returnedApi2);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
+        when(
+            apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), isNull(), eq(new PageableImpl(1, 2)))
+        )
             .thenReturn(new Page<>(apiList, 1, 2, 42));
 
         final Response response = rootTarget()
@@ -388,7 +415,15 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi1);
         apiList.add(returnedApi2);
 
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
+        when(
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                eq(Set.of("deploymentState", "primaryOwner")),
+                eq(new PageableImpl(1, 2))
+            )
+        )
             .thenReturn(new Page<>(apiList, 1, 2, 42));
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
 
@@ -397,7 +432,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         final Response response = rootTarget()
             .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
             .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
-            .queryParam("expands", "deploymentState")
+            .queryParam("expands", "deploymentState,primaryOwner")
             .request()
             .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
