@@ -46,7 +46,9 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         "updated_at",
         "published_at",
         "definitionVersion",
-        "environmentId"
+        "environmentId",
+        "comment_message",
+        "general_conditions"
     );
 
     private static final List<String> UNSUPPORTED_PAGE_FIELDS = List.of(
