@@ -16,14 +16,13 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -43,6 +42,14 @@ public interface ApiService {
     );
 
     void delete(final ExecutionContext executionContext, final String apiId, boolean closePlans);
+
+    Page<GenericApiEntity> findAll(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final Set<String> expands,
+        final Pageable pageable
+    );
 
     Page<GenericApiEntity> findAll(
         final ExecutionContext executionContext,
