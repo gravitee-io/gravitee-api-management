@@ -86,7 +86,9 @@
           "enabled": true
         }
       ],
-      "comment_required": false
+      "comment_required": false,
+      "comment_message": "some message",
+      "general_conditions": "some-page-id"
     }
   ],
   "metadata": [
