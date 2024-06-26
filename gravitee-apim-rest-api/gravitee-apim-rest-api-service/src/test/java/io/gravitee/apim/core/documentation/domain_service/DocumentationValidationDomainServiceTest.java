@@ -25,9 +25,11 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -36,6 +38,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +88,9 @@ public class DocumentationValidationDomainServiceTest {
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 pageCrudService,
-                pageSourceDomainService
+                pageSourceDomainService,
+                groupQueryService,
+                roleQueryService
             );
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
@@ -138,6 +143,69 @@ public class DocumentationValidationDomainServiceTest {
         void should_sanitize_name() {
             assertThat(cut.sanitizeDocumentationName("foo")).isEqualTo("foo");
             assertThat(cut.sanitizeDocumentationName("bar     ")).isEqualTo("bar");
+        }
+    }
+
+    @Nested
+    class SanitizeAccessControls {
+
+        @Test
+        void should_return_null_if_null_access_controls() {
+            assertThat(cut.sanitizeAccessControls(null)).isNull();
+        }
+
+        @Test
+        void should_return_empty_list_if_empty_access_controls() {
+            assertThat(cut.sanitizeAccessControls(Set.of())).isEqualTo(Set.of());
+        }
+
+        @Test
+        void should_return_only_groups_that_exist() {
+            groupQueryService.initWith(List.of(Group.builder().id("group-1").build()));
+            var existingAccessControl = AccessControl.builder().referenceId("group-1").referenceType("GROUP").build();
+            var nonExistingAccessControl = AccessControl.builder().referenceId("group-2").referenceType("GROUP").build();
+
+            assertThat(cut.sanitizeAccessControls(Set.of(nonExistingAccessControl, existingAccessControl)))
+                .isEqualTo(Set.of(existingAccessControl));
+        }
+
+        @Test
+        void should_return_only_roles_that_exist() {
+            roleQueryService.initWith(List.of(Role.builder().id("role-1").build()));
+            var existingAccessControl = AccessControl.builder().referenceId("role-1").referenceType("ROLE").build();
+            var nonExistingAccessControl = AccessControl.builder().referenceId("role-2").referenceType("ROLE").build();
+
+            assertThat(cut.sanitizeAccessControls(Set.of(nonExistingAccessControl, existingAccessControl)))
+                .isEqualTo(Set.of(existingAccessControl));
+        }
+
+        @Test
+        void should_return_existing_roles_and_groups() {
+            roleQueryService.initWith(List.of(Role.builder().id("role-1").build()));
+            var existingRoleAccessControl = AccessControl.builder().referenceId("role-1").referenceType("ROLE").build();
+            var nonExistingRoleAccessControl = AccessControl.builder().referenceId("role-2").referenceType("ROLE").build();
+
+            groupQueryService.initWith(List.of(Group.builder().id("group-1").build()));
+            var existingGroupAccessControl = AccessControl.builder().referenceId("group-1").referenceType("GROUP").build();
+            var nonExistingGroupAccessControl = AccessControl.builder().referenceId("group-2").referenceType("GROUP").build();
+
+            assertThat(
+                cut.sanitizeAccessControls(
+                    Set.of(
+                        nonExistingRoleAccessControl,
+                        existingRoleAccessControl,
+                        nonExistingGroupAccessControl,
+                        existingGroupAccessControl
+                    )
+                )
+            )
+                .isEqualTo(Set.of(existingRoleAccessControl, existingGroupAccessControl));
+        }
+
+        @Test
+        void should_only_return_roles_and_groups() {
+            assertThat(cut.sanitizeAccessControls(Set.of(AccessControl.builder().referenceId("one-id").referenceType("USER").build())))
+                .isEqualTo(Set.of());
         }
     }
 

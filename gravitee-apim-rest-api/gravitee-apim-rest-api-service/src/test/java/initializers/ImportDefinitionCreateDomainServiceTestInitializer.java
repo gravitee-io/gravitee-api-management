@@ -179,7 +179,9 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 pageCrudService,
-                pageSourceDomainService
+                pageSourceDomainService,
+                groupQueryService,
+                roleQueryService
             );
         roleQueryService.initWith(
             List.of(

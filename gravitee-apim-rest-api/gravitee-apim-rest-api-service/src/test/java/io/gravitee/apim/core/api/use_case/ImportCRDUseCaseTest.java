@@ -334,7 +334,9 @@ class ImportCRDUseCaseTest {
             ),
             new ApiDocumentationDomainService(pageQueryService, planQueryService),
             pageCrudService,
-            pageSourceDomainService
+            pageSourceDomainService,
+            groupQueryService,
+            roleQueryService
         );
         PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
         var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(

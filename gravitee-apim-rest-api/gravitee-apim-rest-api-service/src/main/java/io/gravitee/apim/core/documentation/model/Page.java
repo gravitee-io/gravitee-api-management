@@ -46,6 +46,8 @@ public class Page {
     private Date createdAt;
     private Date updatedAt;
     private String parentId;
+    private boolean excludedAccessControls;
+    private Set<AccessControl> accessControls;
 
     // Folder attributes
     @With
@@ -61,8 +63,6 @@ public class Page {
     // Legacy support
     private PageSource source;
     private Map<String, String> configuration;
-    private boolean excludedAccessControls;
-    private Set<AccessControl> accessControls;
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private List<PageMedia> attachedMedia;
