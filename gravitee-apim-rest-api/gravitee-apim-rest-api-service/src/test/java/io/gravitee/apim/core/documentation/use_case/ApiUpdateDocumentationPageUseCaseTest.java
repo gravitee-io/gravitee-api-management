@@ -178,7 +178,9 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 pageCrudService,
-                pageSourceDomainService
+                pageSourceDomainService,
+                groupQueryService,
+                roleQueryService
             );
 
         updateApiDocumentationDomainService =

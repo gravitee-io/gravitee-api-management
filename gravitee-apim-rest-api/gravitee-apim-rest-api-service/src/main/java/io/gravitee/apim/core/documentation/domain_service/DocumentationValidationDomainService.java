@@ -21,14 +21,22 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
@@ -45,12 +53,22 @@ public class DocumentationValidationDomainService {
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final PageCrudService pageCrudService;
     private final PageSourceDomainService pageSourceDomainService;
+    private final GroupQueryService groupQueryService;
+    private final RoleQueryService roleQueryService;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
             throw new InvalidPageNameException();
         }
         return name.trim();
+    }
+
+    public Set<AccessControl> sanitizeAccessControls(Set<AccessControl> accessControls) {
+        if (Objects.isNull(accessControls)) {
+            return null;
+        }
+
+        return this.retainExistingGroupAndRoleAccessControls(accessControls);
     }
 
     public void validateContent(String content, String apiId, String organizationId) {
@@ -97,7 +115,11 @@ public class DocumentationValidationDomainService {
     }
 
     public Page validateAndSanitizeForCreation(Page page, String organizationId, boolean shouldValidateParentId) {
-        var sanitizedPage = page.toBuilder().name(this.sanitizeDocumentationName(page.getName())).build();
+        var sanitizedPage = page
+            .toBuilder()
+            .name(this.sanitizeDocumentationName(page.getName()))
+            .accessControls(this.sanitizeAccessControls(page.getAccessControls()))
+            .build();
 
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
@@ -113,15 +135,17 @@ public class DocumentationValidationDomainService {
     }
 
     public Page validateAndSanitizeForUpdate(Page page, String organizationId, boolean shouldValidateParentId) {
-        pageSourceDomainService.setContentFromSource(page);
+        var sanitizedPage = page.toBuilder().accessControls(this.sanitizeAccessControls(page.getAccessControls())).build();
 
-        validatePageContent(organizationId, page);
+        pageSourceDomainService.setContentFromSource(sanitizedPage);
+
+        validatePageContent(organizationId, sanitizedPage);
 
         if (shouldValidateParentId) {
-            this.validateParentId(page);
+            this.validateParentId(sanitizedPage);
         }
 
-        return page;
+        return sanitizedPage;
     }
 
     private void validatePageContent(String organizationId, Page sanitizedPage) {
@@ -150,5 +174,41 @@ public class DocumentationValidationDomainService {
 
     private void validateNameIsUnique(Page page) {
         this.apiDocumentationDomainService.validateNameIsUnique(page.getReferenceId(), page.getParentId(), page.getName(), page.getType());
+    }
+
+    private Set<AccessControl> retainExistingGroupAndRoleAccessControls(Set<AccessControl> accessControls) {
+        var accessControlsByGroupAndRole = accessControls
+            .stream()
+            .filter(accessControl ->
+                Objects.equals("GROUP", accessControl.getReferenceType()) || Objects.equals("ROLE", accessControl.getReferenceType())
+            )
+            .collect(Collectors.groupingBy(AccessControl::getReferenceType));
+
+        accessControlsByGroupAndRole.computeIfPresent(
+            "GROUP",
+            (key, acs) -> {
+                var foundGroupIds =
+                    this.groupQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
+                        .stream()
+                        .map(Group::getId)
+                        .toList();
+
+                return acs.stream().filter(accessControl -> foundGroupIds.contains(accessControl.getReferenceId())).toList();
+            }
+        );
+
+        accessControlsByGroupAndRole.computeIfPresent(
+            "ROLE",
+            (key, acs) -> {
+                var foundRoleIds =
+                    this.roleQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
+                        .stream()
+                        .map(Role::getId)
+                        .toList();
+                return acs.stream().filter(accessControl -> foundRoleIds.contains(accessControl.getReferenceId())).toList();
+            }
+        );
+
+        return accessControlsByGroupAndRole.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
 }

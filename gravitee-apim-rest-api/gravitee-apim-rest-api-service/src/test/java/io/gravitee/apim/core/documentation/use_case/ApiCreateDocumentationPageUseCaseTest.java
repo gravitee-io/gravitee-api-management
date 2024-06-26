@@ -102,7 +102,9 @@ class ApiCreateDocumentationPageUseCaseTest {
                 ),
                 new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 pageCrudService,
-                pageSourceDomainService
+                pageSourceDomainService,
+                groupQueryService,
+                roleQueryService
             );
 
         createApiDocumentationDomainService =
