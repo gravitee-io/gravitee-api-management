@@ -12,14 +12,6 @@ spec:
   flow_mode: "DEFAULT"
   resources: []
   properties: []
-  pages:
-    My Folder:
-      name: "My Folder"
-      type: "FOLDER"
-      order: 1
-      published: false
-      visibility: "PUBLIC"
-      homepage: false
   plans:
   - description: "free plan"
     validation: "AUTO"
