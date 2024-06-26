@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import static io.gravitee.apim.core.documentation.model.Page.Type.ROOT;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
@@ -110,7 +112,7 @@ public class DocumentationValidationDomainService {
 
         this.validateNameIsUnique(sanitizedPage);
 
-        if (page.getContent() == null && page.getSource() != null/*&& page != ROOT*/) {
+        if (page.getContent() == null && page.getSource() != null && page.getType() != ROOT) {
             pageFetcher.fetchPage(page);
         }
 
