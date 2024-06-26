@@ -25,7 +25,10 @@ import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.UserMapper;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
+import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -39,7 +42,6 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -59,11 +61,8 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -77,8 +76,6 @@ public class ApisResource extends AbstractResource {
     private final UserMapper userMapper = UserMapper.INSTANCE;
 
     private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";
-
-    private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
 
     @Context
     private ResourceContext resourceContext;
@@ -119,10 +116,11 @@ public class ApisResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             isAdmin(),
+            expands,
             paginationParam.toPageable()
         );
 
-        ApisResponse response = new ApisResponse()
+        return new ApisResponse()
             .data(
                 ApiMapper.INSTANCE.map(
                     apis.getContent(),
@@ -139,39 +137,6 @@ public class ApisResource extends AbstractResource {
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
             .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
-
-        expandData(response, expands);
-
-        return response;
-    }
-
-    private void expandData(ApisResponse response, Set<String> expands) {
-        if (expands == null || expands.isEmpty()) {
-            return;
-        }
-
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
-        if (expands.contains(EXPAND_PRIMARY_OWNER)) {
-            final Set<String> primaryOwnerIds = response
-                .getData()
-                .stream()
-                .map(api -> ((GenericApi) api.getActualInstance()).getPrimaryOwner().getId())
-                .collect(Collectors.toSet());
-
-            final Collection<BaseUser> users = userMapper.mapToBaseUserList(userService.findByIds(executionContext, primaryOwnerIds));
-            users.forEach(user ->
-                response
-                    .getData()
-                    .stream()
-                    .filter(api -> ((GenericApi) api.getActualInstance()).getPrimaryOwner().getId().equals(user.getId()))
-                    .forEach(api ->
-                        ((GenericApi) api.getActualInstance()).setPrimaryOwner(
-                                new PrimaryOwner().id(user.getId()).displayName(user.getDisplayName())
-                            )
-                    )
-            );
-        }
     }
 
     @POST
