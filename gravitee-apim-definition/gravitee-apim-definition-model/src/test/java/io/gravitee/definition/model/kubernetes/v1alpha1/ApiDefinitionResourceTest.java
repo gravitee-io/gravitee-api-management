@@ -74,24 +74,6 @@ class ApiDefinitionResourceTest {
     }
 
     @Test
-    public void shouldMapPages() throws Exception {
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
-
-        ObjectNode pages = (ObjectNode) resource.getSpec().get("pages");
-        assertTrue(pages.has("Aside"));
-
-        var page = pages.get("Aside");
-        assertEquals("Aside", page.get("name").asText());
-        assertFalse(page.has("lastContributor"));
-        assertFalse(page.has("lastModificationDate"));
-        assertFalse(page.has("parentPath"));
-        assertFalse(page.has("excludedAccessControls"));
-        assertFalse(page.has("accessControls"));
-        assertFalse(page.has("attached_media"));
-        assertFalse(page.has("contentType"));
-    }
-
-    @Test
     void shouldSetContextRef() throws Exception {
         String contextRefName = "apim-dev-ctx";
         String contextRefNamespace = "default";

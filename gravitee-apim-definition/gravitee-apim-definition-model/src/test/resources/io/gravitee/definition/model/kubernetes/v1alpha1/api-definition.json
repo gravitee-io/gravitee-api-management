@@ -85,6 +85,8 @@
           "enabled": true
         }
       ],
+      "comment_message": "some comment message",
+      "general_conditions": "some-page-id",
       "comment_required": false
     }
   ],
