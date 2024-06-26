@@ -6291,7 +6291,7 @@ components:
                       description: Type of the source.
                       example: http-fetcher
                     configuration:
-                      type: string
+                      type: object
                       description: Configuration for the source.
                       properties:
                         useSystemProxy:
