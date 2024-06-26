@@ -19,6 +19,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   GioFormFilePickerModule,
   GioFormSelectionInlineModule,
+  GioFormSlideToggleModule,
   GioIconsModule,
   GioMonacoEditorModule,
 } from '@gravitee/ui-particles-angular';
@@ -36,6 +37,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
+import { MatOption } from '@angular/material/autocomplete';
+import { MatSelect } from '@angular/material/select';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -106,6 +110,10 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     GioAsyncApiModule,
     GioMetadataModule,
     GioApiMetadataListModule,
+    MatOption,
+    MatSelect,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
   ],
 })
 export class ApiDocumentationV4Module {}

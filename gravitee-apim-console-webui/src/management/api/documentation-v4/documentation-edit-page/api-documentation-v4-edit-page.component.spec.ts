@@ -33,7 +33,16 @@ import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit
 
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { Breadcrumb, Page, fakeFolder, fakeMarkdown, fakeApiV4 } from '../../../../entities/management-api-v2';
+import {
+  Breadcrumb,
+  Page,
+  fakeFolder,
+  fakeMarkdown,
+  fakeApiV4,
+  Group,
+  fakeGroupsResponse,
+  fakeGroup,
+} from '../../../../entities/management-api-v2';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
@@ -111,6 +120,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       expectGetPage(page);
     }
     expectGetPages(input.pages, input.breadcrumb, input.parentId);
+    expectGetGroups([fakeGroup({ id: 'group-1', name: 'group 1' }), fakeGroup({ id: 'group-2', name: 'group 2' })]);
     fixture.detectChanges();
   };
 
@@ -167,6 +177,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             stepOne: {
               name: 'New page',
               visibility: 'PRIVATE',
+              accessControlGroups: [],
+              excludeGroups: false,
             },
             content: '',
             source: 'FILL',
@@ -179,6 +191,61 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
           await harness.setName(EXISTING_PAGE.name);
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
+        });
+
+        it('should not show select groups + exclude groups if public', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+
+          await harness.setName('New page');
+
+          expect(await harness.getAccessControlGroups()).toBeFalsy();
+          expect(await harness.getExcludeGroups()).toBeFalsy();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'New page',
+              visibility: 'PUBLIC',
+              accessControlGroups: [],
+              excludeGroups: false,
+            },
+            content: '',
+            source: 'FILL',
+          });
+        });
+
+        it('should select groups and set exclude groups if private', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+
+          await harness.setName('New page');
+          await harness.checkVisibility('PRIVATE');
+
+          const selectAccessControlGroups = await harness.getAccessControlGroups();
+          expect(selectAccessControlGroups).toBeTruthy();
+          await selectAccessControlGroups.open();
+          await selectAccessControlGroups.clickOptions({ text: 'group 1' });
+
+          const toggleExcludeGroups = await harness.getExcludeGroups();
+          expect(toggleExcludeGroups).toBeTruthy();
+          await toggleExcludeGroups.toggle();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'New page',
+              visibility: 'PRIVATE',
+              accessControlGroups: ['group-1'],
+              excludeGroups: true,
+            },
+            content: '',
+            source: 'FILL',
+          });
         });
       });
 
@@ -212,6 +279,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         beforeEach(async () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
           await harness.setName('New page');
+          await harness.checkVisibility('PRIVATE');
+
+          const selectAccessControlGroups = await harness.getAccessControlGroups();
+          await selectAccessControlGroups.open();
+          await selectAccessControlGroups.clickOptions({ text: 'group 1' });
+
+          const toggleExcludeGroups = await harness.getExcludeGroups();
+          await toggleExcludeGroups.toggle();
 
           await harness.getNextButton().then(async (btn) => {
             expect(await btn.isDisabled()).toEqual(false);
@@ -267,9 +342,11 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           expect(req.request.body).toEqual({
             type: 'MARKDOWN',
             name: 'New page',
-            visibility: 'PUBLIC',
+            visibility: 'PRIVATE',
             content: '#TITLE  This is the file content', // TODO: check why \n is removed
             parentId: 'ROOT',
+            accessControls: [{ referenceId: 'group-1', referenceType: 'GROUP' }],
+            excludedAccessControls: true,
           });
         });
 
@@ -291,9 +368,11 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           expect(req.request.body).toEqual({
             type: 'MARKDOWN',
             name: 'New page',
-            visibility: 'PUBLIC',
+            visibility: 'PRIVATE',
             content: '#TITLE  This is the file content', // TODO: check why \n is removed
             parentId: 'ROOT',
+            accessControls: [{ referenceId: 'group-1', referenceType: 'GROUP' }],
+            excludedAccessControls: true,
           });
 
           const publishReq = httpTestingController.expectOne({
@@ -423,6 +502,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           visibility: 'PUBLIC',
           content: 'File content',
           parentId: 'parent-folder-id',
+          accessControls: [],
+          excludedAccessControls: false,
         });
       });
     });
@@ -431,7 +512,18 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   describe('Edit page', () => {
     describe('In the root folder', () => {
       describe('with published page', () => {
-        const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+        const PAGE = fakeMarkdown({
+          id: 'page-id',
+          name: 'page-name',
+          content: 'my content',
+          visibility: 'PUBLIC',
+          published: true,
+          accessControls: [
+            { referenceId: 'group-1', referenceType: 'GROUP' },
+            { referenceId: 'role-1', referenceType: 'ROLE' },
+          ],
+          excludedAccessControls: true,
+        });
         const OTHER_PAGE = fakeMarkdown({
           id: 'other-page',
           name: 'other-page-name',
@@ -474,6 +566,58 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
           await harness.setName(' Other-page-Name  ');
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
+        });
+
+        it('should not show select groups + exclude groups if public', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.setName('another name');
+
+          expect(await harness.getAccessControlGroups()).toBeFalsy();
+          expect(await harness.getExcludeGroups()).toBeFalsy();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'another name',
+              visibility: 'PUBLIC',
+              accessControlGroups: ['group-1'],
+              excludeGroups: true,
+            },
+            content: 'my content',
+            source: 'FILL',
+          });
+        });
+
+        it('should select groups and set exclude groups if private', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.checkVisibility('PRIVATE');
+
+          const selectAccessControlGroups = await harness.getAccessControlGroups();
+          expect(selectAccessControlGroups).toBeTruthy();
+          await selectAccessControlGroups.open();
+          await selectAccessControlGroups.clickOptions({ text: 'group 2' });
+
+          const toggleExcludeGroups = await harness.getExcludeGroups();
+          expect(toggleExcludeGroups).toBeTruthy();
+          await toggleExcludeGroups.toggle();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'page-name',
+              visibility: 'PRIVATE',
+              accessControlGroups: ['group-1', 'group-2'],
+              excludeGroups: false,
+            },
+            content: 'my content',
+            source: 'FILL',
+          });
         });
 
         it('should show markdown editor with existing content', async () => {
@@ -522,6 +666,56 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             name: 'New name',
             visibility: 'PRIVATE',
             content: 'New content',
+            accessControls: [
+              { referenceId: 'role-1', referenceType: 'ROLE' },
+              { referenceId: 'group-1', referenceType: 'GROUP' },
+            ],
+            excludedAccessControls: true,
+          });
+          req.flush(PAGE);
+
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+            relativeTo: expect.anything(),
+            queryParams: { parentId: 'ROOT' },
+          });
+        });
+
+        it('should save new access control settings', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.checkVisibility('PRIVATE');
+
+          const selectAccessControlGroups = await harness.getAccessControlGroups();
+          await selectAccessControlGroups.open();
+          await selectAccessControlGroups.clickOptions({ text: 'group 2' });
+          await selectAccessControlGroups.clickOptions({ text: 'group 1' });
+
+          const toggleExcludeGroups = await harness.getExcludeGroups();
+          expect(toggleExcludeGroups).toBeTruthy();
+          await toggleExcludeGroups.toggle();
+
+          await harness.getNextButton().then(async (btn) => btn.click());
+          await harness.getNextButton().then(async (btn) => btn.click());
+
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Publish changes' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          expectGetPage(PAGE);
+
+          const req = httpTestingController.expectOne({
+            method: 'PUT',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+          });
+          expect(req.request.body).toEqual({
+            ...PAGE,
+            name: 'page-name',
+            visibility: 'PRIVATE',
+            content: 'my content',
+            accessControls: [
+              { referenceId: 'role-1', referenceType: 'ROLE' },
+              { referenceId: 'group-2', referenceType: 'GROUP' },
+            ],
+            excludedAccessControls: false,
           });
           req.flush(PAGE);
 
@@ -581,6 +775,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
               name: 'New name',
               visibility: 'PUBLIC',
               content: PAGE.content,
+              accessControls: [],
+              excludedAccessControls: false,
             });
             req.flush({ ...PAGE, name: 'New name' });
           });
@@ -603,6 +799,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
               name: 'New name',
               visibility: 'PUBLIC',
               content: PAGE.content,
+              accessControls: [],
+              excludedAccessControls: false,
             });
             req.flush(updatedPage);
 
@@ -816,6 +1014,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
     req.flush({ pages, breadcrumb });
   };
+
   const expectGetPage = (page: Page) => {
     const req = httpTestingController.expectOne({
       method: 'GET',
@@ -823,6 +1022,15 @@ describe('ApiDocumentationV4EditPageComponent', () => {
     });
 
     req.flush(page);
+  };
+
+  const expectGetGroups = (groups: Group[]) => {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=999`,
+      })
+      .flush(fakeGroupsResponse({ data: groups }));
   };
 
   const getPageTitle = (): string => {

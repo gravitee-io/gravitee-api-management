@@ -17,6 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { ApiDocumentationV4VisibilityHarness } from '../components/api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
 
@@ -27,6 +29,8 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
   private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Delete page' }));
   private nameInputLocator = this.locatorFor(MatInputHarness);
   private visibilityHarness = this.locatorFor(ApiDocumentationV4VisibilityHarness);
+  private selectAccessGroupsHarness = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="accessControlGroups"]' }));
+  private toggleExcludeGroups = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="excludeGroups"]' }));
   private sourceSelectionInlineHarness = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source' }));
 
   async getNextButton() {
@@ -60,6 +64,13 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
 
   async visibilityIsDisabled(): Promise<boolean> {
     return this.visibilityHarness().then((harness) => harness.formIsDisabled());
+  }
+
+  async getAccessControlGroups(): Promise<MatSelectHarness | null> {
+    return this.selectAccessGroupsHarness().catch((_) => null);
+  }
+  async getExcludeGroups(): Promise<MatSlideToggleHarness | null> {
+    return this.toggleExcludeGroups().catch((_) => null);
   }
 
   async getSourceSelectionInlineHarnessHarness() {
