@@ -32,6 +32,8 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationSwagger;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationWithSource;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationWithSourceAllOfSource;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentation;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
@@ -111,6 +113,10 @@ public class ApiPagesResource extends AbstractResource {
             pageToCreate = mapper.map(asyncApi);
         }
 
+        if (createDocumentation instanceof CreateDocumentationWithSource createDocumentationWithSource) {
+            populatePageSource(createDocumentationWithSource, pageToCreate);
+        }
+
         if (pageToCreate != null) {
             pageToCreate.setReferenceId(apiId);
             pageToCreate.setReferenceType(Page.ReferenceType.API);
@@ -122,6 +128,14 @@ public class ApiPagesResource extends AbstractResource {
             return Response.created(this.getLocationHeader(createdPage.getId())).entity(mapper.mapPage(createdPage)).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
+    private void populatePageSource(CreateDocumentationWithSource createDocumentationWithSource, Page pageToCreate) {
+        if (pageToCreate != null && createDocumentationWithSource != null && createDocumentationWithSource.getSource() != null) {
+            CreateDocumentationWithSourceAllOfSource source = createDocumentationWithSource.getSource();
+            CreateDocumentation.TypeEnum type = createDocumentationWithSource.getType();
+            pageToCreate.mapSource(source.getConfiguration(), type.getValue());
         }
     }
 
