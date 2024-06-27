@@ -34,15 +34,10 @@ import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
-<<<<<<< HEAD:gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/analytics/ElasticsearchAnalyticsRepositoryTest.java
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
-import org.junit.jupiter.api.Test;
-=======
 import java.util.Map;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
->>>>>>> 9ecb8bd7c7 (fix: implement new terms filter to avoid max clause count issues):gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/ElasticsearchAnalyticsRepositoryTest.java
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -177,8 +172,6 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
 
     @Test
     public void testCountWithTwoApis() throws Exception {
-        Assert.assertNotNull(analyticsRepository);
-
         CountResponse response = analyticsRepository.query(
             count()
                 .timeRange(lastDays(30), hours(1))
@@ -186,8 +179,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
                 .build()
         );
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(4, response.getCount());
+        assertThat(response).isNotNull();
+        assertThat(response.getCount()).isEqualTo(4);
     }
 
     @Test
