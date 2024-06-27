@@ -1,6 +1,7 @@
 [
   {
     "id": "event01",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
@@ -12,6 +13,7 @@
   },
   {
     "id": "event02",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "UNPUBLISH_API",
     "payload": "{}",
@@ -23,6 +25,7 @@
   },
   {
     "id": "event03",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
@@ -35,6 +38,7 @@
   },
   {
     "id": "event04",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "STOP_API",
     "payload": "{}",
@@ -46,6 +50,7 @@
   },
   {
     "id": "event05",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
@@ -58,6 +63,7 @@
   },
   {
     "id": "event06",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
@@ -70,6 +76,7 @@
   },
   {
     "id": "event07",
+    "organizations": [ "DEFAULT"],
     "environments": ["OTHER_ENV", "OTHER_ENV_2"],
     "type": "GATEWAY_STOPPED",
     "payload": "{}",
@@ -79,6 +86,7 @@
   },
   {
     "id": "event08",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "STOP_DICTIONARY",
     "payload": "{}",
@@ -91,6 +99,7 @@
   },
   {
     "id": "event09",
+    "organizations": [ "DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "PUBLISH_DICTIONARY",
     "payload": "{}",
@@ -103,6 +112,7 @@
   },
   {
     "id": "event10",
+    "organizations": [ "OTHER_ORG"],
     "environments": ["OTHER"],
     "type": "PUBLISH_DICTIONARY",
     "payload": "{}",
@@ -115,6 +125,7 @@
   },
   {
     "id": "event11",
+    "organizations": [ "OTHER_ORG"],
     "environments": ["OTHER"],
     "type": "START_API",
     "payload": "{}",
@@ -127,6 +138,7 @@
   },
   {
     "id": "event12",
+    "organizations": [ "OTHER_ORG"],
     "environments": ["OTHER"],
     "type": "START_API",
     "payload": "{}",
@@ -139,6 +151,7 @@
   },
   {
     "id": "event13",
+    "organizations": [ "OTHER_ORG"],
     "environments": ["OTHER"],
     "type": "STOP_DICTIONARY",
     "payload": "{}",
@@ -151,6 +164,7 @@
   },
   {
     "id": "event14",
+    "organizations": [ "OTHER_ORG"],
     "environments": [
       "OTHER"
     ],
@@ -165,12 +179,82 @@
   },
   {
     "id": "event15",
+    "organizations": [ "ANOTHER_ORG"],
     "environments": ["ANOTHER_ENV"],
     "type": "START_API",
     "payload": "{}",
     "parentId": null,
     "properties": {
       "api_id": "api-5"
+    },
+    "createdAt": 1463739200000,
+    "updatedAt": 1463740200000
+  },
+  {
+    "id": "event16",
+    "organizations": [],
+    "environments": [],
+    "type": "GATEWAY_STARTED",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+    },
+    "createdAt": 1463739200000,
+    "updatedAt": 1463740200000
+  },
+  {
+    "id": "event17",
+    "organizations": ["DEFAULT"],
+    "environments": ["DEFAULT"],
+    "type": "GATEWAY_STARTED",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "environment_hrids": "default"
+    },
+    "createdAt": 1463739200000,
+    "updatedAt": 1463740200000
+  },
+  {
+    "id": "event18",
+    "organizations": ["DEFAULT"],
+    "environments": ["OTHER_ENV"],
+    "type": "GATEWAY_STARTED",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "environment_hrids": "other-env"
+    },
+    "createdAt": 1463739200000,
+    "updatedAt": 1463740200000
+  },
+  {
+    "id": "event19",
+    "organizations": [
+      "DEFAULT"
+    ],
+    "environments": [
+      "DEFAULT",
+      "OTHER_ENV"
+    ],
+    "type": "GATEWAY_STARTED",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "environment_hrids": "default,other-env"
+    },
+    "createdAt": 1463739200000,
+    "updatedAt": 1463740200000
+  },
+  {
+    "id": "event20",
+    "organizations": ["DEFAULT", "ANOTHER_ORG"],
+    "environments": ["DEFAULT","ANOTHER_ENV"],
+    "type": "GATEWAY_STARTED",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "environment_hrids": "default,another-env"
     },
     "createdAt": 1463739200000,
     "updatedAt": 1463740200000

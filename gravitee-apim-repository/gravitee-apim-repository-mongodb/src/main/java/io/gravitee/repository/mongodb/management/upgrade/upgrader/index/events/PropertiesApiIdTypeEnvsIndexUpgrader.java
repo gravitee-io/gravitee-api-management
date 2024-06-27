@@ -22,17 +22,21 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("EventsPropertiesDictionaryIdIndexUpgrader")
-public class PropertiesApiIdTypeIndexUpgrader extends IndexUpgrader {
+@Component("EventsPropertiesDictionaryIdEnvsIndexUpgrader")
+public class PropertiesApiIdTypeEnvsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
+        // Warn: Mongodb doesn't support multikey index if more than one to-be-indexed field of a document is an array.
+        // Thus, it is not possible to index both 'environments' and 'organizations' fields as they are both arrays.
+        // We prefer index the 'environments' field as it may have more cardinalities than the 'organizations' one.
         return Index
             .builder()
             .collection("events")
-            .name("pa1t1")
+            .name("pa1t1e1")
             .key("properties.api_id", ascending())
             .key("type", ascending())
+            .key("environments", ascending())
             .build();
     }
 }

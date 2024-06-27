@@ -131,6 +131,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     public EventEntity createApiEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         String apiId,
         Map<String, String> properties
@@ -139,8 +140,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (apiId != null) {
             eventProperties.put(Event.EventProperties.API_ID.getValue(), apiId);
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, null, eventProperties);
-        createOrPatchLatestEvent(apiId, event);
+        EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, null, eventProperties);
+        createOrPatchLatestEvent(apiId, organizationId, event);
         return event;
     }
 
@@ -148,6 +149,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     public EventEntity createApiEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         Api api,
         Map<String, String> properties
@@ -157,9 +159,9 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (apiDefinition != null) {
             eventProperties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, apiDefinition, eventProperties);
+        EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, apiDefinition, eventProperties);
         if (apiDefinition != null) {
-            createOrPatchLatestEvent(apiDefinition.getId(), event);
+            createOrPatchLatestEvent(apiDefinition.getId(), organizationId, event);
         }
         return event;
     }
@@ -168,6 +170,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     public EventEntity createDictionaryEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         Dictionary dictionary
     ) {
@@ -175,9 +178,9 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (dictionary != null) {
             eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary.getId());
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, dictionary, eventProperties);
+        EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, dictionary, eventProperties);
         if (dictionary != null) {
-            createOrPatchLatestEvent(dictionary.getId(), event);
+            createOrPatchLatestEvent(dictionary.getId(), organizationId, event);
         }
         return event;
     }
@@ -186,6 +189,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     public EventEntity createDynamicDictionaryEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         String dictionaryId
     ) {
@@ -193,8 +197,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (dictionaryId != null) {
             eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionaryId);
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, null, eventProperties);
-        createOrPatchLatestEvent(dictionaryId + "-dynamic", event);
+        EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, null, eventProperties);
+        createOrPatchLatestEvent(dictionaryId + "-dynamic", organizationId, event);
         return event;
     }
 
@@ -202,6 +206,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     public EventEntity createOrganizationEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         OrganizationEntity organization
     ) {
@@ -209,9 +214,9 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (organization != null) {
             eventProperties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organization.getId());
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, organization, eventProperties);
+        EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, organization, eventProperties);
         if (organization != null) {
-            createOrPatchLatestEvent(organization.getId(), event);
+            createOrPatchLatestEvent(organization.getId(), organizationId, event);
         }
         return event;
     }
@@ -228,6 +233,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     public EventEntity createEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
+        final String organizationId,
         EventType type,
         Object object,
         Map<String, String> properties
@@ -235,7 +241,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         try {
             String payload = object != null ? objectMapper.writeValueAsString(object) : null;
             NewEventEntity event = NewEventEntity.builder().type(type).payload(payload).properties(properties).build();
-            return createNewEventEntity(executionContext, environmentsIds, event);
+            return createNewEventEntity(executionContext, environmentsIds, organizationId, event);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException(String.format("Failed to create event [%s]", type), e);
         }
@@ -244,6 +250,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     protected EventEntity createNewEventEntity(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
+        final String organizationId,
         NewEventEntity newEventEntity
     ) {
         String hostAddress = "";
@@ -254,6 +261,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             Event event = convert(newEventEntity);
             event.setId(UuidString.generateRandom());
             event.setEnvironments(environmentsIds);
+            event.setOrganizations(Set.of(organizationId));
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
@@ -494,9 +502,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         return apiDefinitionV4;
     }
 
-    private void createOrPatchLatestEvent(final String latestEventId, final EventEntity event) {
+    private void createOrPatchLatestEvent(final String latestEventId, String organizationId, final EventEntity event) {
         Event latestEvent = convert(event);
         latestEvent.setId(latestEventId);
+        latestEvent.setOrganizations(Set.of(organizationId));
         if (latestEvent.getProperties() == null) {
             latestEvent.setProperties(new HashMap<>());
         }

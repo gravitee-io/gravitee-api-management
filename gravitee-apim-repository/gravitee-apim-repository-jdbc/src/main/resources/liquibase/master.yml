@@ -185,3 +185,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_4_0/06_add_new_api_category_order_table.yml
   - include:
       - file: liquibase/changelogs/v4_4_0/06_update_access_points.yml
+  - include:
+      - file: liquibase/changelogs/v4_4_2/00_add_event_organizations.yml

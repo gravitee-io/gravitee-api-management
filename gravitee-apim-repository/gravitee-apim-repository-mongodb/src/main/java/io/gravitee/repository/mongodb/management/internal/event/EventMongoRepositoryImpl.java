@@ -24,15 +24,13 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -76,6 +74,9 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         if (event.getEnvironments() != null) {
             update.set("environments", event.getEnvironments());
         }
+        if (event.getOrganizations() != null) {
+            update.set("organizations", event.getOrganizations());
+        }
         if (event.getType() != null) {
             update.set("type", event.getType());
         }
@@ -102,7 +103,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         return mongoTemplate.remove(query, EventMongo.class).getDeletedCount();
     }
 
-    private List<Criteria> buildDBCriteria(EventCriteria criteria) {
+    public static List<Criteria> buildDBCriteria(EventCriteria criteria) {
         List<Criteria> criteriaList = new ArrayList<>();
 
         if (!isEmpty(criteria.getTypes())) {
@@ -127,13 +128,37 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         } else if (criteria.getFrom() > 0) {
             criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
         } else if (criteria.getTo() > 0) {
-            criteriaList.add(Criteria.where("updatedAt").lt(new Date(criteria.getFrom())));
+            criteriaList.add(Criteria.where("updatedAt").lt(new Date(criteria.getTo())));
         }
 
-        if (!isEmpty(criteria.getEnvironments())) {
-            criteriaList.add(Criteria.where("environments").in(criteria.getEnvironments()));
+        if (!isEmpty(criteria.getEnvironments()) && !isEmpty(criteria.getOrganizations())) {
+            criteriaList.add(new Criteria().andOperator(buildEnvironmentsCriteria(criteria), buildOrganizationsCriteria(criteria)));
+        } else if (!isEmpty(criteria.getEnvironments())) {
+            criteriaList.add(buildEnvironmentsCriteria(criteria));
+        } else if (!isEmpty(criteria.getOrganizations())) {
+            criteriaList.add(buildOrganizationsCriteria(criteria));
         }
 
         return criteriaList;
+    }
+
+    private static Criteria buildOrganizationsCriteria(EventCriteria criteria) {
+        return new Criteria()
+            .orOperator(
+                Criteria.where("organizations").exists(false),
+                Criteria.where("organizations").isNull(),
+                Criteria.where("organizations").is(Collections.emptyList()),
+                Criteria.where("organizations").in(criteria.getOrganizations())
+            );
+    }
+
+    private static Criteria buildEnvironmentsCriteria(EventCriteria criteria) {
+        return new Criteria()
+            .orOperator(
+                Criteria.where("environments").exists(false),
+                Criteria.where("environments").isNull(),
+                Criteria.where("environments").is(Collections.emptyList()),
+                Criteria.where("environments").in(criteria.getEnvironments())
+            );
     }
 }

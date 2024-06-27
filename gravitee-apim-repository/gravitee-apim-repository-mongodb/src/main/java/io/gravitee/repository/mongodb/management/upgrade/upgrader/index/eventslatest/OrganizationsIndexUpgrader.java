@@ -20,19 +20,19 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpg
 import org.springframework.stereotype.Component;
 
 /**
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("EventsLatestPropertyApiIdTypeIndexUpgrader")
-public class PropertyApiIdTypeIndexUpgrader extends IndexUpgrader {
+@Component("EventsLatestOrganizationsIndexUpgrader")
+public class OrganizationsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
             .collection("events_latest")
-            .name("pai1t1")
-            .key("properties.api_id", ascending())
-            .key("type", ascending())
+            .name("eo1")
+            .key("organizations", ascending())
             .build();
     }
 }

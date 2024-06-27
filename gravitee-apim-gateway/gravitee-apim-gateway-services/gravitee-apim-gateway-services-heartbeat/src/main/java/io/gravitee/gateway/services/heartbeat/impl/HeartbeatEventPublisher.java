@@ -67,6 +67,7 @@ public class HeartbeatEventPublisher implements Runnable {
         eventLite.setId(heartbeatEvent.getId());
         eventLite.setType(heartbeatEvent.getType());
         eventLite.setUpdatedAt(heartbeatEvent.getUpdatedAt());
+        eventLite.setEnvironments(heartbeatEvent.getEnvironments());
         eventLite.setProperties(
             Map.of(
                 EVENT_LAST_HEARTBEAT_PROPERTY,

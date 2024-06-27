@@ -49,19 +49,21 @@ import org.springframework.util.CollectionUtils;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
 @Slf4j
+@Repository
 public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> implements EventLatestRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private final String EVENT_PROPERTIES;
     private final String EVENT_ENVIRONMENTS;
+    private final String EVENT_ORGANIZATIONS;
 
     JdbcEventLatestRepository(@Value("${management.jdbc.prefix:}") String tablePrefix, @Autowired JdbcTemplate jdbcTemplate) {
         super(tablePrefix, "events_latest");
         this.jdbcTemplate = jdbcTemplate;
         EVENT_PROPERTIES = getTableNameFor("events_latest_properties");
         EVENT_ENVIRONMENTS = getTableNameFor("events_latest_environments");
+        EVENT_ORGANIZATIONS = getTableNameFor("events_latest_organizations");
     }
 
     @Override
@@ -70,17 +72,20 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
 
         final List<Object> args = new ArrayList<>();
         final StringBuilder builder = new StringBuilder(
-            "select evt.*, evp.*, ev.* from " +
+            "select evt.*, evp.*, ev.*, evo.* from " +
             this.tableName +
             " evt inner join " +
             EVENT_PROPERTIES +
             " evp on evt.id = evp.event_id " +
             "left join " +
             EVENT_ENVIRONMENTS +
-            " ev on evt.id = ev.event_id"
+            " ev on evt.id = ev.event_id " +
+            "left join " +
+            EVENT_ORGANIZATIONS +
+            " evo on evt.id = evo.event_id "
         );
 
-        appendCriteria(builder, criteria, args, "evt", "ev", EVENT_PROPERTIES);
+        appendCriteria(builder, criteria, args, "evt", "ev", "evo", EVENT_PROPERTIES);
         if (group != null) {
             builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("evp.property_key = ? and evp.property_value is not null ");
             args.add(group.getValue());
@@ -132,38 +137,6 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         }
     }
 
-    @Override
-    public void delete(final String id) throws TechnicalException {
-        log.debug("JdbcEventRepository.delete({})", id);
-        try {
-            jdbcTemplate.update("delete from " + EVENT_PROPERTIES + " where event_id = ?", id);
-            jdbcTemplate.update("delete from " + EVENT_ENVIRONMENTS + " where event_id = ?", id);
-            jdbcTemplate.update(getOrm().getDeleteSql(), id);
-        } catch (final Exception ex) {
-            log.error("Failed to delete event", ex);
-            throw new TechnicalException("Failed to delete event", ex);
-        }
-    }
-
-    @Override
-    public Event createOrUpdate(Event event) {
-        if (event == null || event.getId() == null || event.getType() == null) {
-            throw new IllegalStateException("Event to create or update must have an id and a type");
-        }
-
-        final int updatedEventCount = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(event, event.getId()));
-        // No event updated so new one will be created
-        if (updatedEventCount <= 0) {
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(event));
-            storeProperties(event, false);
-            storeEnvironments(event, false);
-        } else {
-            storeProperties(event, true);
-            storeEnvironments(event, true);
-        }
-        return event;
-    }
-
     private void storeEnvironments(Event event, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + EVENT_ENVIRONMENTS + " where event_id = ?", event.getId());
@@ -188,7 +161,31 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         }
     }
 
-    List<Event> queryEvents(String sql, List<Object> args) {
+    private void storeOrganizations(Event event, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from " + EVENT_ORGANIZATIONS + " where event_id = ?", event.getId());
+        }
+        if (!CollectionUtils.isEmpty(event.getOrganizations())) {
+            List<String> list = new ArrayList<>(event.getOrganizations());
+            jdbcTemplate.batchUpdate(
+                "insert into " + EVENT_ORGANIZATIONS + " ( event_id, organization_id) values ( ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, event.getId());
+                        ps.setString(2, list.get(i));
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return list.size();
+                    }
+                }
+            );
+        }
+    }
+
+    private List<Event> queryEvents(String sql, List<Object> args) {
         log.debug("SQL: {}", sql);
         log.debug("Args: {}", args);
         final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler = new JdbcHelper.CollatingRowMapper<>(
@@ -215,5 +212,40 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         final List<Event> events = rowCallbackHandler.getRows();
         log.debug("Events found: {}", events);
         return events;
+    }
+
+    @Override
+    public void delete(final String id) throws TechnicalException {
+        log.debug("JdbcLatestEventRepository.delete({})", id);
+        try {
+            jdbcTemplate.update("delete from " + EVENT_PROPERTIES + " where event_id = ?", id);
+            jdbcTemplate.update("delete from " + EVENT_ENVIRONMENTS + " where event_id = ?", id);
+            jdbcTemplate.update("delete from " + EVENT_ORGANIZATIONS + " where event_id = ?", id);
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
+        } catch (final Exception ex) {
+            log.error("Failed to delete event by id [{}]", id);
+            throw new TechnicalException("Failed to delete event", ex);
+        }
+    }
+
+    @Override
+    public Event createOrUpdate(Event event) {
+        if (event == null || event.getId() == null || event.getType() == null) {
+            throw new IllegalStateException("Event to create or update must have an id and a type");
+        }
+
+        final int updatedEventCount = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(event, event.getId()));
+        // No event updated so new one will be created
+        if (updatedEventCount <= 0) {
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(event));
+            storeProperties(event, false);
+            storeEnvironments(event, false);
+            storeOrganizations(event, false);
+        } else {
+            storeProperties(event, true);
+            storeEnvironments(event, true);
+            storeOrganizations(event, true);
+        }
+        return event;
     }
 }
