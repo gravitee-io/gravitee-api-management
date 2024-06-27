@@ -6240,6 +6240,14 @@ components:
                     type: string
                     description: Page's parent id.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                excludedAccessControls:
+                  type: boolean
+                  description: Flag to restrict access to user matching the restrictions.
+                accessControls:
+                  type: array
+                  description: List of access controls.
+                  items:
+                    $ref: "#/components/schemas/AccessControl"
             required:
                 - name
                 - type
@@ -6342,6 +6350,14 @@ components:
                     minimum: 0
                 visibility:
                     $ref: "#/components/schemas/Visibility"
+                excludedAccessControls:
+                  type: boolean
+                  description: Flag to restrict access to user matching the restrictions.
+                accessControls:
+                  type: array
+                  description: List of access controls.
+                  items:
+                    $ref: "#/components/schemas/AccessControl"
             required:
                 - type
                 - name

@@ -29,7 +29,9 @@ import fixtures.core.model.PlanFixtures;
 import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -42,6 +44,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,11 +84,25 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     private MembershipQueryServiceInMemory membershipQueryService;
 
     @Autowired
+    private GroupQueryServiceInMemory groupQueryServiceInMemory;
+
+    @Autowired
     private IndexerInMemory indexer;
 
     protected static final String ENVIRONMENT = "my-env";
     protected static final String API_ID = "api-id";
     protected static final String PAGE_ID = "page-id";
+    private static final String ROLE_ID = "role-id";
+    private static final String GROUP_ID = "group-id";
+    private static final Set<io.gravitee.apim.core.documentation.model.AccessControl> REPO_ACCESS_CONTROLS = Set.of(
+        io.gravitee.apim.core.documentation.model.AccessControl.builder().referenceId(ROLE_ID).referenceType("ROLE").build(),
+        io.gravitee.apim.core.documentation.model.AccessControl.builder().referenceId(GROUP_ID).referenceType("GROUP").build()
+    );
+
+    private static final List<AccessControl> MAPI_V2_ACCESS_ROLES = List.of(
+        AccessControl.builder().referenceId(ROLE_ID).referenceType("ROLE").build(),
+        AccessControl.builder().referenceId(GROUP_ID).referenceType("GROUP").build()
+    );
 
     @BeforeEach
     void init() {
@@ -99,6 +116,20 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        roleQueryService.initWith(
+            List.of(
+                io.gravitee.apim.core.membership.model.Role
+                    .builder()
+                    .id(ROLE_ID)
+                    .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION)
+                    .name("PRIMARY_OWNER")
+                    .build()
+            )
+        );
+        groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).build()));
     }
 
     @AfterEach
@@ -114,6 +145,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 apiCrudServiceInMemory,
                 planQueryServiceInMemory,
                 membershipQueryService,
+                groupQueryServiceInMemory,
+                roleQueryService,
                 indexer
             )
             .forEach(InMemoryAlternative::reset);
@@ -173,6 +206,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .type(Page.Type.MARKDOWN)
                 .id("page-1")
                 .name("page-1")
+                .excludedAccessControls(true)
+                .accessControls(REPO_ACCESS_CONTROLS)
                 .build();
             Page page2 = Page
                 .builder()
@@ -205,21 +240,9 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
             assertThat(body.getBreadcrumb()).isNull();
             assertThat(body.getPages())
-                .isEqualTo(
+                .hasSize(4)
+                .containsAll(
                     List.of(
-                        io.gravitee.rest.api.management.v2.rest.model.Page
-                            .builder()
-                            .id("page-1")
-                            .type(PageType.MARKDOWN)
-                            .name("page-1")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false)
-                            .build(),
                         io.gravitee.rest.api.management.v2.rest.model.Page
                             .builder()
                             .id("swagger")
@@ -260,7 +283,28 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .hidden(true)
                             .build()
                     )
-                );
+                )
+                .satisfies(list -> {
+                    assertThat(list.get(0))
+                        .hasFieldOrPropertyWithValue("id", "page-1")
+                        .hasFieldOrPropertyWithValue("type", PageType.MARKDOWN)
+                        .hasFieldOrPropertyWithValue("name", "page-1")
+                        .hasFieldOrPropertyWithValue("order", 0)
+                        .hasFieldOrPropertyWithValue("homepage", false)
+                        .hasFieldOrPropertyWithValue("configuration", Map.of())
+                        .hasFieldOrPropertyWithValue("metadata", Map.of())
+                        .hasFieldOrPropertyWithValue("excludedAccessControls", true)
+                        .satisfies(page -> {
+                            assertThat(page.getAccessControls())
+                                .hasSize(2)
+                                .containsAll(
+                                    List.of(
+                                        AccessControl.builder().referenceId(ROLE_ID).referenceType("ROLE").build(),
+                                        AccessControl.builder().referenceId(GROUP_ID).referenceType("GROUP").build()
+                                    )
+                                );
+                        });
+                });
         }
 
         @Test
@@ -920,18 +964,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
-            roleQueryService.initWith(
-                List.of(
-                    io.gravitee.apim.core.membership.model.Role
-                        .builder()
-                        .id("role-id")
-                        .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
-                        .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
-                        .referenceId(ORGANIZATION)
-                        .name("PRIMARY_OWNER")
-                        .build()
-                )
-            );
             membershipQueryService.initWith(
                 List.of(
                     Membership
@@ -941,7 +973,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .memberType(Membership.Type.USER)
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId(API_ID)
-                        .roleId("role-id")
+                        .roleId(ROLE_ID)
                         .build()
                 )
             );
@@ -980,6 +1012,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .type(CreateDocumentation.TypeEnum.MARKDOWN)
                 .parentId(null)
                 .visibility(Visibility.PUBLIC)
+                .excludedAccessControls(true)
+                .accessControls(MAPI_V2_ACCESS_ROLES)
                 .build();
 
             final Response response = rootTarget().request().post(Entity.json(pageToCreate));
@@ -993,7 +1027,9 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasFieldOrPropertyWithValue("content", pageToCreate.getContent())
                 .hasFieldOrPropertyWithValue("order", 0)
                 .hasFieldOrPropertyWithValue("parentId", pageToCreate.getParentId())
-                .hasFieldOrPropertyWithValue("visibility", pageToCreate.getVisibility());
+                .hasFieldOrPropertyWithValue("visibility", pageToCreate.getVisibility())
+                .hasFieldOrPropertyWithValue("excludedAccessControls", pageToCreate.getExcludedAccessControls())
+                .satisfies(page -> assertThat(page.getAccessControls()).hasSize(2).containsAll(pageToCreate.getAccessControls()));
 
             assertThat(createdPage.getId()).isNotNull();
             assertThat(createdPage.getUpdatedAt()).isNotNull();
@@ -1227,7 +1263,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 List.of(
                     io.gravitee.apim.core.membership.model.Role
                         .builder()
-                        .id("role-id")
+                        .id(ROLE_ID)
                         .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
                         .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
@@ -1244,7 +1280,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .memberType(Membership.Type.USER)
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId(API_ID)
-                        .roleId("role-id")
+                        .roleId(ROLE_ID)
                         .build()
                 )
             );
@@ -1283,6 +1319,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .type(UpdateDocumentation.TypeEnum.MARKDOWN)
                 .order(1)
                 .visibility(Visibility.PUBLIC)
+                .excludedAccessControls(true)
+                .accessControls(MAPI_V2_ACCESS_ROLES)
                 .build();
             var oldMarkdown = Page
                 .builder()
@@ -1296,6 +1334,16 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .published(false)
                 .type(Page.Type.MARKDOWN)
                 .homepage(false)
+                .excludedAccessControls(false)
+                .accessControls(
+                    Set.of(
+                        io.gravitee.apim.core.documentation.model.AccessControl
+                            .builder()
+                            .referenceId("group-2")
+                            .referenceType("GROUP")
+                            .build()
+                    )
+                )
                 .build();
             givenApiPagesQuery(List.of(oldMarkdown));
 
@@ -1311,7 +1359,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasFieldOrPropertyWithValue("homepage", request.getHomepage())
                 .hasFieldOrPropertyWithValue("content", request.getContent())
                 .hasFieldOrPropertyWithValue("order", request.getOrder())
-                .hasFieldOrPropertyWithValue("visibility", request.getVisibility());
+                .hasFieldOrPropertyWithValue("visibility", request.getVisibility())
+                .hasFieldOrPropertyWithValue("excludedAccessControls", request.getExcludedAccessControls())
+                .satisfies(page -> {
+                    assertThat(page.getAccessControls()).hasSize(2).containsAll(MAPI_V2_ACCESS_ROLES);
+                });
 
             assertThat(createdPage.getId()).isNotNull();
             assertThat(createdPage.getUpdatedAt()).isNotNull();
