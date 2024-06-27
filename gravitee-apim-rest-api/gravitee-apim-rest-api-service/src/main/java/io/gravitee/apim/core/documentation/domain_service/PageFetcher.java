@@ -120,7 +120,7 @@ public class PageFetcher {
 
     @SuppressWarnings({ "Duplicates", "unchecked" })
     private Fetcher getFetcher(PageSource ps) throws FetcherException {
-        if (ps == null || ps.getConfiguration().isEmpty()) {
+        if (ps == null || ps.getConfiguration() == null) {
             return null;
         }
         try {
@@ -133,7 +133,8 @@ public class PageFetcher {
                 Class<? extends FilesFetcher> fetcherClass = (Class<? extends FilesFetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
-                    ps.getConfiguration()
+//                    ps.getConfiguration()
+                    ""
                 );
                 fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
             } else {
@@ -142,7 +143,8 @@ public class PageFetcher {
                 Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
-                    ps.getConfiguration()
+//                    ps.getConfiguration()
+                    ""
                 );
                 fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
             }

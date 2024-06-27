@@ -24,8 +24,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PageSource {
+public class PageSourceConfiguration {
 
-    private String type;
-    private PageSourceConfiguration configuration;
+    private boolean useSystemProxy;
+    private boolean autoFetch;
+    private String url;
 }

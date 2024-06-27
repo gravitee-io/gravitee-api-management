@@ -66,12 +66,12 @@ public class Page {
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private List<PageMedia> attachedMedia;
-
-    public void mapSource(String configuration, String typeValue) {
-        this.source = new PageSource();
-        this.source.setType(typeValue);
-        this.source.setConfiguration(configuration);
-    }
+//
+//    public void mapSource(String configuration, String typeValue) {
+//        this.source = new PageSource();
+//        this.source.setType(typeValue);
+//        this.source.setConfiguration(configuration);
+//    }
 
     public enum Visibility {
         PUBLIC,
