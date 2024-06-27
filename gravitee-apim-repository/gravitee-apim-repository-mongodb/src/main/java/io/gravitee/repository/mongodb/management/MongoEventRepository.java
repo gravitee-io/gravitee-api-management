@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -53,7 +52,7 @@ public class MongoEventRepository implements EventRepository {
         logger.debug("Find event by ID [{}]", id);
 
         EventMongo event = internalEventRepo.findById(id).orElse(null);
-        Event res = mapEvent(event);
+        Event res = mapper.map(event);
 
         logger.debug("Find event by ID [{}] - Done", id);
         return Optional.ofNullable(res);
@@ -63,10 +62,10 @@ public class MongoEventRepository implements EventRepository {
     public Event create(Event event) throws TechnicalException {
         logger.debug("Create event [{}]", event.getId());
 
-        EventMongo eventMongo = mapEvent(event);
+        EventMongo eventMongo = mapper.map(event);
         EventMongo createdEventMongo = internalEventRepo.insert(eventMongo);
 
-        Event res = mapEvent(createdEventMongo);
+        Event res = mapper.map(createdEventMongo);
 
         logger.debug("Create event [{}] - Done", event.getId());
 
@@ -92,8 +91,9 @@ public class MongoEventRepository implements EventRepository {
             eventMongo.setCreatedAt(event.getUpdatedAt());
             eventMongo.setUpdatedAt(event.getUpdatedAt());
             eventMongo.setEnvironments(event.getEnvironments());
+            eventMongo.setOrganizations(event.getOrganizations());
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
-            return mapEvent(eventMongoUpdated);
+            return mapper.map(eventMongoUpdated);
         } catch (Exception e) {
             logger.error("An error occurred when updating event", e);
             throw new TechnicalException("An error occurred when updating event");
@@ -146,42 +146,6 @@ public class MongoEventRepository implements EventRepository {
         Page<EventMongo> eventsMongo = internalEventRepo.search(filter, null);
 
         return mapper.mapEvents(eventsMongo.getContent());
-    }
-
-    private EventMongo mapEvent(Event event) {
-        if (event == null) {
-            return null;
-        }
-
-        EventMongo eventMongo = new EventMongo();
-        eventMongo.setId(event.getId());
-        eventMongo.setEnvironments(event.getEnvironments());
-        eventMongo.setType(event.getType().toString());
-        eventMongo.setPayload(event.getPayload());
-        eventMongo.setParentId(event.getParentId());
-        eventMongo.setProperties(event.getProperties());
-        eventMongo.setCreatedAt(event.getCreatedAt());
-        eventMongo.setUpdatedAt(event.getUpdatedAt());
-
-        return eventMongo;
-    }
-
-    private Event mapEvent(EventMongo eventMongo) {
-        if (eventMongo == null) {
-            return null;
-        }
-
-        Event event = new Event();
-        event.setId(eventMongo.getId());
-        event.setEnvironments(eventMongo.getEnvironments());
-        event.setType(EventType.valueOf(eventMongo.getType()));
-        event.setPayload(eventMongo.getPayload());
-        event.setParentId(eventMongo.getParentId());
-        event.setProperties(eventMongo.getProperties());
-        event.setCreatedAt(eventMongo.getCreatedAt());
-        event.setUpdatedAt(eventMongo.getUpdatedAt());
-
-        return event;
     }
 
     @Override

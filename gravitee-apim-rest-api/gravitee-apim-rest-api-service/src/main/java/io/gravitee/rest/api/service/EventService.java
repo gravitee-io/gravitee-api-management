@@ -37,6 +37,7 @@ public interface EventService {
     EventEntity createApiEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         String apiId,
         Map<String, String> properties
@@ -45,6 +46,7 @@ public interface EventService {
     EventEntity createApiEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         Api api,
         Map<String, String> properties
@@ -53,6 +55,7 @@ public interface EventService {
     EventEntity createDictionaryEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         Dictionary dictionary
     );
@@ -60,6 +63,7 @@ public interface EventService {
     EventEntity createDynamicDictionaryEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         String dictionaryId
     );
@@ -67,6 +71,7 @@ public interface EventService {
     EventEntity createOrganizationEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         OrganizationEntity organizationEntity
     );
@@ -74,6 +79,7 @@ public interface EventService {
     EventEntity createEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
+        String organizationId,
         EventType type,
         Object object,
         Map<String, String> properties

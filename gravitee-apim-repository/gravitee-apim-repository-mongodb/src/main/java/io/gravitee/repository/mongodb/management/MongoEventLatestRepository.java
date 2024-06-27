@@ -48,10 +48,10 @@ public class MongoEventLatestRepository implements EventLatestRepository {
             throw new IllegalStateException("Event to create or update must have an id and a type");
         }
 
-        EventLatestMongo eventMongo = mapEvent(event);
+        EventLatestMongo eventMongo = mapper.mapEvent(event);
         EventLatestMongo createdEventMongo = internalEventRepo.save(eventMongo);
 
-        return mapEvent(createdEventMongo);
+        return mapper.map(createdEventMongo);
     }
 
     @Override
@@ -68,41 +68,5 @@ public class MongoEventLatestRepository implements EventLatestRepository {
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         List<EventLatestMongo> eventsMongo = internalEventRepo.search(criteria, group, page, size);
         return mapper.mapEventLatests(eventsMongo);
-    }
-
-    private EventLatestMongo mapEvent(Event event) {
-        if (event == null) {
-            return null;
-        }
-
-        EventLatestMongo eventMongo = new EventLatestMongo();
-        eventMongo.setId(event.getId());
-        eventMongo.setEnvironments(event.getEnvironments());
-        eventMongo.setType(event.getType().toString());
-        eventMongo.setPayload(event.getPayload());
-        eventMongo.setParentId(event.getParentId());
-        eventMongo.setProperties(event.getProperties());
-        eventMongo.setCreatedAt(event.getCreatedAt());
-        eventMongo.setUpdatedAt(event.getUpdatedAt());
-
-        return eventMongo;
-    }
-
-    private Event mapEvent(EventLatestMongo eventMongo) {
-        if (eventMongo == null) {
-            return null;
-        }
-
-        Event event = new Event();
-        event.setId(eventMongo.getId());
-        event.setEnvironments(eventMongo.getEnvironments());
-        event.setType(EventType.valueOf(eventMongo.getType()));
-        event.setPayload(eventMongo.getPayload());
-        event.setParentId(eventMongo.getParentId());
-        event.setProperties(eventMongo.getProperties());
-        event.setCreatedAt(eventMongo.getCreatedAt());
-        event.setUpdatedAt(eventMongo.getUpdatedAt());
-
-        return event;
     }
 }

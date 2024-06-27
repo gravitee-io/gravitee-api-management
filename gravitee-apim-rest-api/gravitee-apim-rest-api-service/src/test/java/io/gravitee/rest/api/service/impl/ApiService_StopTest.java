@@ -156,6 +156,7 @@ public class ApiService_StopTest {
             .createApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.STOP_API),
                 argThat((ArgumentMatcher<Api>) apiArg -> apiArg.getId().equals(API_ID)),
                 eq(event.getProperties())
