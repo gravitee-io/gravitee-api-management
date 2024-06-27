@@ -188,6 +188,11 @@ export interface EnvSettings {
       maxSizeInOctet: number;
     };
   };
+  portalNext: {
+    access: {
+      enabled: boolean;
+    };
+  };
   reCaptcha: {
     enabled: boolean;
     siteKey: string;
