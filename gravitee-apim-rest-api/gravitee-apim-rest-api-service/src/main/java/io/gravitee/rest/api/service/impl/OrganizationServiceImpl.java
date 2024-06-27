@@ -171,6 +171,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         eventService.createOrganizationEvent(
             new ExecutionContext(organizationEntity.getId()),
             environmentIds,
+            organizationEntity.getId(),
             EventType.PUBLISH_ORGANIZATION,
             organizationEntity
         );
