@@ -56,6 +56,7 @@ class DashboardService {
       order: dashboard.order,
       enabled: dashboard.enabled,
       definition: dashboard.definition,
+      type: dashboard.type,
     });
   }
 
