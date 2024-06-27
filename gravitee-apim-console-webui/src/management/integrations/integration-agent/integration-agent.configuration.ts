@@ -71,8 +71,32 @@ services:
       - gravitee_integration_providers_0_configuration_1_appDomains=\${SOLACE_APPLICATION_1_DOMAIN:-}
 `;
 
+const azureConfigurationCode = `
+version: '3.8'
+
+services:
+  integration-agent:
+    image: \${APIM_REGISTRY:-graviteeio}/federation-agent-azure-api-management\${AGENT_VERSION:-latest}
+    restart: always
+    environment:
+      - gravitee_integration_connector_ws_endpoints_0=\${WS_ENDPOINTS}
+      - gravitee_integration_connector_ws_headers_0_name=Authorization
+      - gravitee_integration_connector_ws_headers_0_value=bearer \${WS_AUTH_TOKEN}
+      - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
+      - gravitee_integration_providers_0_type=azure-api-management
+      # authentication
+      - gravitee_integration_providers_0_configuration_auth_appId=\${APP_ID}
+      - gravitee_integration_providers_0_configuration_auth_appSecret=\${APP_SECRET}
+      - gravitee_integration_providers_0_configuration_auth_tenant=\${TENANT_ID}
+      # others configs
+      - gravitee_integration_providers_0_configuration_subscription=\${SUBSCRIPTION}
+      - gravitee_integration_providers_0_configuration_resourceGroup=\${RESOURCE_GROUP}
+      - gravitee_integration_providers_0_configuration_service=\${SERVICE}
+`;
+
 export const configurationCode = {
   'aws-api-gateway': awsConfigurationCode,
   solace: solaceConfigurationCode,
   apigee: apigeeConfigurationCode,
+  'azure-api-management': azureConfigurationCode,
 };

@@ -112,16 +112,19 @@ public class IngestIntegrationApisUseCase {
         integrationApi
             .pages()
             .stream()
-            .flatMap(page ->
-                switch (page.pageType()) {
+            .flatMap(page -> {
+                if (page == null || page.pageType() == null) {
+                    return Stream.empty();
+                }
+                return switch (page.pageType()) {
                     case SWAGGER -> Stream.of(buildSwaggerPage(integrationApi.name(), referenceId, page.content()));
                     case ASYNCAPI -> Stream.of(buildAsyncApiPage(integrationApi.name(), referenceId, page.content()));
                     case ASCIIDOC, MARKDOWN, MARKDOWN_TEMPLATE -> {
                         log.error("Impossible to import {} documentation for {}", page.pageType(), integrationApi.name());
                         yield Stream.empty();
                     }
-                }
-            )
+                };
+            })
             .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
     }
 
