@@ -1,0 +1,48 @@
+@use 'sass:map';
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+
+$textColor: map.get(gio.$mat-dove-palette, default);
+
+.developer-portal {
+  height: 100%;
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: 'menu content';
+
+  a {
+    text-decoration: none;
+  }
+
+  &__menu {
+    grid-area: menu;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__submenu {
+    z-index: 70;
+    height: 100%;
+    color: $textColor;
+  }
+
+  &__breadcrumb {
+    padding: 24px 32px 0 32px;
+
+    &__item {
+      display: contents;
+    }
+  }
+
+  &__content {
+    grid-area: content;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+
+    a {
+      text-decoration: none;
+    }
+  }
+}
