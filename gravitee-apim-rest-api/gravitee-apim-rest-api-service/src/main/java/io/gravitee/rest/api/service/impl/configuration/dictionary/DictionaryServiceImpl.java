@@ -109,6 +109,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
@@ -139,6 +140,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
                 EventType.UNPUBLISH_DICTIONARY,
                 dictionary
             );
@@ -169,6 +171,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.createDynamicDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
                 EventType.START_DICTIONARY,
                 id
             );
@@ -209,6 +212,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.createDynamicDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
                 EventType.STOP_DICTIONARY,
                 id
             );
@@ -283,6 +287,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 eventService.createDynamicDictionaryEvent(
                     executionContext,
                     Collections.singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
                     EventType.START_DICTIONARY,
                     id
                 );
@@ -323,6 +328,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
@@ -377,6 +383,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
                 EventType.UNPUBLISH_DICTIONARY,
                 dictionary
             );

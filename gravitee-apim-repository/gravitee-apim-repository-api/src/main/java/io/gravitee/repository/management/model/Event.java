@@ -45,9 +45,15 @@ public class Event implements Serializable {
     private String id;
 
     /**
-     * The list of ids of the environments the event is attached to
+     * The list of ids of the environments the event is attached to. Empty or null means all environments.
+     * If specified, the list of organizations related to these environments must be provided for consistency.
      */
     private Set<String> environments;
+
+    /**
+     * The list of IDs for the environments associated with the event. An empty or null list indicates that the event applies to all environments.
+     */
+    private Set<String> organizations;
 
     /**
      * The event Type

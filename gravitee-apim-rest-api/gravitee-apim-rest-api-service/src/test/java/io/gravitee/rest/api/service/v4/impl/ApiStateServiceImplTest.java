@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static io.gravitee.rest.api.model.EventType.STOP_API;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -247,6 +246,7 @@ public class ApiStateServiceImplTest {
             .createApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.PUBLISH_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
@@ -287,6 +287,7 @@ public class ApiStateServiceImplTest {
             .createApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.START_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
@@ -326,6 +327,7 @@ public class ApiStateServiceImplTest {
             .createApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.PUBLISH_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
@@ -365,6 +367,7 @@ public class ApiStateServiceImplTest {
             .createApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.STOP_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
@@ -403,6 +406,7 @@ public class ApiStateServiceImplTest {
             .createApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.STOP_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
