@@ -5,7 +5,8 @@
         "target":{
             "title":"Target url",
             "description":"The target url to use to contact the backend",
-            "type":"string"
+            "type":"string",
+            "pattern": "^\\S+$"
         }
     },
     "properties":{
