@@ -1,6 +1,7 @@
 [
   {
     "id": "api-1",
+    "organizations": ["DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
@@ -12,6 +13,7 @@
   },
   {
     "id": "api-2",
+    "organizations": ["DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "UNPUBLISH_API",
     "payload": "{}",
@@ -24,6 +26,7 @@
   },
   {
     "id": "api-3",
+    "organizations": ["DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "STOP_API",
     "payload": "{}",
@@ -35,6 +38,7 @@
   },
   {
     "id": "dictionary-1",
+    "organizations": ["DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "PUBLISH_DICTIONARY",
     "payload": "{}",
@@ -47,6 +51,7 @@
   },
   {
     "id": "api-4",
+    "organizations": ["DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
@@ -59,6 +64,7 @@
   },
   {
     "id": "api-5",
+    "organizations": ["DEFAULT"],
     "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
@@ -71,6 +77,7 @@
   },
   {
     "id": "dictionary-2",
+    "organizations": ["OTHER"],
     "environments": ["OTHER"],
     "type": "STOP_DICTIONARY",
     "payload": "{}",
@@ -80,5 +87,44 @@
     },
     "createdAt": 1475380000000,
     "updatedAt": 1475380000000
+  },
+  {
+    "id": "api-6",
+    "organizations": [],
+    "environments": [],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-6"
+    },
+    "createdAt": 1485380000000,
+    "updatedAt": 1485380000000
+  },
+  {
+    "id": "api-7",
+    "organizations": ["DEFAULT"],
+    "environments": ["OTHER_ENV"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-7"
+    },
+    "createdAt": 1495380000000,
+    "updatedAt": 1495380000000
+  },
+  {
+    "id": "api-8",
+    "organizations": ["DEFAULT", "OTHER"],
+    "environments": ["DEFAULT","ANOTHER_ENV"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-8"
+    },
+    "createdAt": 1505380000000,
+    "updatedAt": 1505380000000
   }
 ]

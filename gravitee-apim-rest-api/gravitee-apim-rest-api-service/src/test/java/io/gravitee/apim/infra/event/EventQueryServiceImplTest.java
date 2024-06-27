@@ -90,7 +90,7 @@ public class EventQueryServiceImplTest {
             verify(eventRepository).search(queryCaptor.capture(), pageableCaptor.capture());
             assertThat(queryCaptor.getValue())
                 .satisfies(criteria -> {
-                    assertThat(criteria.getEnvironments()).isEqualTo(List.of("environment-id"));
+                    assertThat(criteria.getEnvironments()).isEqualTo(Set.of("environment-id"));
                     assertThat(criteria.getTypes()).isEqualTo(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API));
                     assertThat(criteria.getProperties())
                         .containsExactlyInAnyOrderEntriesOf(

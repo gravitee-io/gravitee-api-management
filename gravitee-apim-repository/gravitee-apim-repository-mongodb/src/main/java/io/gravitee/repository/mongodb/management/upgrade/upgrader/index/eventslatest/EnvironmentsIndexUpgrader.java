@@ -22,16 +22,16 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("EventsLatestPropertyDictionaryIdIndexUpgrader")
-public class PropertyDictionaryIdIndexUpgrader extends IndexUpgrader {
+@Component("EventsLatestEnvironmentsIndexUpgrader")
+public class EnvironmentsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
             .collection("events_latest")
-            .name("pdi1")
-            .key("properties.dictionary_id", ascending())
+            .name("ei1")
+            .key("environments", ascending())
             .build();
     }
 }

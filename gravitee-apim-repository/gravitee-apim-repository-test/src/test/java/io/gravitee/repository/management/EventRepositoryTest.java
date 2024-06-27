@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -55,6 +56,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setEnvironments(singleton("DEFAULT"));
+        event.setOrganizations(singleton("DEFAULT"));
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
@@ -66,6 +68,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
         assertTrue("Invalid saved environment id.", eventCreated.getEnvironments().contains("DEFAULT"));
+        assertTrue("Invalid saved organization id.", eventCreated.getOrganizations().contains("DEFAULT"));
     }
 
     @Test
@@ -141,7 +144,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByMissingType() throws Exception {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria.builder().type(EventType.GATEWAY_STARTED).build(),
+            EventCriteria.builder().type(EventType.DEBUG_API).build(),
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
 
@@ -248,36 +251,113 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void searchByEnvironmentDefault() throws Exception {
+    public void searchByEnvironmentDefault() {
         List<Event> events = eventRepository.search(EventCriteria.builder().environments(singletonList("DEFAULT")).build());
 
-        assertEquals(8L, events.size());
-        final Iterator<Event> iterator = events.iterator();
-        assertEquals("event09", iterator.next().getId());
-        assertEquals("event08", iterator.next().getId());
-        assertEquals("event06", iterator.next().getId());
-        assertEquals("event05", iterator.next().getId());
-        assertEquals("event04", iterator.next().getId());
-        assertEquals("event03", iterator.next().getId());
-        assertEquals("event02", iterator.next().getId());
-        assertEquals("event01", iterator.next().getId());
+        assertEquals(12L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsExactly(
+                "event09",
+                "event08",
+                "event06",
+                "event20",
+                "event19",
+                "event17",
+                "event16",
+                "event05",
+                "event04",
+                "event03",
+                "event02",
+                "event01"
+            );
     }
 
     @Test
-    public void searchByEnvironmentsAll() throws Exception {
+    public void searchByEnvironmentDefaultAndOrganizationDefault() {
+        List<Event> events = eventRepository.search(
+            EventCriteria.builder().environments(singletonList("DEFAULT")).organizations(singletonList("DEFAULT")).build()
+        );
+
+        assertEquals(12L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsExactly(
+                "event09",
+                "event08",
+                "event06",
+                "event20",
+                "event19",
+                "event17",
+                "event16",
+                "event05",
+                "event04",
+                "event03",
+                "event02",
+                "event01"
+            );
+    }
+
+    @Test
+    public void searchByEnvironmentsDefaultAndOther() {
         List<Event> events = eventRepository.search(EventCriteria.builder().environments(Arrays.asList("DEFAULT", "OTHER_ENV")).build());
 
-        assertEquals(9, events.size());
-        final Iterator<Event> iterator = events.iterator();
-        assertEquals("event09", iterator.next().getId());
-        assertEquals("event08", iterator.next().getId());
-        assertEquals("event07", iterator.next().getId());
-        assertEquals("event06", iterator.next().getId());
-        assertEquals("event05", iterator.next().getId());
-        assertEquals("event04", iterator.next().getId());
-        assertEquals("event03", iterator.next().getId());
-        assertEquals("event02", iterator.next().getId());
-        assertEquals("event01", iterator.next().getId());
+        assertEquals(14L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsExactly(
+                "event09",
+                "event08",
+                "event07",
+                "event06",
+                "event20",
+                "event19",
+                "event18",
+                "event17",
+                "event16",
+                "event05",
+                "event04",
+                "event03",
+                "event02",
+                "event01"
+            );
+    }
+
+    @Test
+    public void searchAll() {
+        List<Event> events = eventRepository.search(EventCriteria.builder().build());
+
+        // All events.
+        assertEquals(20L, events.size());
+    }
+
+    @Test
+    public void searchByOrganizationsDefault() {
+        List<Event> events = eventRepository.search(EventCriteria.builder().organizations(List.of("DEFAULT")).build());
+
+        assertEquals(14L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsExactly(
+                "event09",
+                "event08",
+                "event07",
+                "event06",
+                "event20",
+                "event19",
+                "event18",
+                "event17",
+                "event16",
+                "event05",
+                "event04",
+                "event03",
+                "event02",
+                "event01"
+            );
+    }
+
+    @Test
+    public void searchByOrganizationsOther() {
+        List<Event> events = eventRepository.search(EventCriteria.builder().organizations(List.of("OTHER_ORG")).build());
+
+        assertEquals(6L, events.size());
+        assertThat(events.stream().map(Event::getId)).containsExactly("event13", "event10", "event14", "event12", "event11", "event16");
     }
 
     @Test
@@ -346,6 +426,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         String uuid = UUID.toString(UUID.random());
         event.setId(uuid);
         event.setEnvironments(singleton("DEFAULT"));
+        event.setOrganizations(singleton("DEFAULT"));
         // Here we use a PUBLISH_API event to ease the writing of this test and differentiate the cases
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
@@ -358,6 +439,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, createdEvent.getType());
         assertEquals("Invalid saved event payload.", "{}", createdEvent.getPayload());
         assertTrue("Invalid saved environment id.", createdEvent.getEnvironments().contains("DEFAULT"));
+        assertTrue("Invalid saved organization id.", createdEvent.getOrganizations().contains("DEFAULT"));
     }
 
     @Test
@@ -368,6 +450,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         Date createdDate = Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
         event.setId(uuid);
         event.setEnvironments(singleton("DEFAULT"));
+        event.setOrganizations(singleton("DEFAULT"));
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);

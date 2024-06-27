@@ -48,5 +48,8 @@ public class EventCriteria {
     private final long to = -1;
 
     @Singular
-    private final List<String> environments;
+    private final Set<String> organizations;
+
+    @Singular
+    private final Set<String> environments;
 }

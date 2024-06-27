@@ -598,6 +598,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
                     EventType.UNPUBLISH_API,
                     apiId,
                     properties
