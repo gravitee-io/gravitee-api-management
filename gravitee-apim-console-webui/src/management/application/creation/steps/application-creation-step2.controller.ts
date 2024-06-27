@@ -28,7 +28,7 @@ class ApplicationCreationStep2Controller {
 
   selectType(applicationType: ApplicationType) {
     this.selectedType = applicationType;
-    if (this.selectedType.isOauth()) {
+    if (this.selectedType && this.selectedType.isOauth()) {
       this.parent.application.settings = {
         oauth: {
           application_type: this.selectedType.id,
@@ -44,11 +44,11 @@ class ApplicationCreationStep2Controller {
   }
 
   displaySimpleAppConfig() {
-    return !this.selectedType.isOauth();
+    return !this.selectedType || !this.selectedType.isOauth();
   }
 
   displayRedirectUris() {
-    return this.selectedType.isOauth() && this.selectedType.requires_redirect_uris;
+    return this.selectedType && this.selectedType.isOauth() && this.selectedType.requires_redirect_uris;
   }
 }
 
