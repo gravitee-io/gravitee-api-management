@@ -132,6 +132,12 @@ class WidgetDataStatsConfigurationController implements IOnInit {
           unit: 'byte',
           color: '#42a5f5',
         },
+        {
+          key: 'sum',
+          label: 'sum',
+          unit: 'byte',
+          color: '#ff8f2d',
+        },
       ];
     } else {
       return [];
