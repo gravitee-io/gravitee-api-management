@@ -113,9 +113,9 @@ public class ApiPagesResource extends AbstractResource {
             pageToCreate = mapper.map(asyncApi);
         }
 
-        if (createDocumentation instanceof CreateDocumentationWithSource createDocumentationWithSource) {
-            populatePageSource(createDocumentationWithSource, pageToCreate);
-        }
+//        if (createDocumentation instanceof CreateDocumentationWithSource createDocumentationWithSource) {
+//            populatePageSource(createDocumentationWithSource, pageToCreate);
+//        }
 
         if (pageToCreate != null) {
             pageToCreate.setReferenceId(apiId);
@@ -131,13 +131,13 @@ public class ApiPagesResource extends AbstractResource {
         }
     }
 
-    private void populatePageSource(CreateDocumentationWithSource createDocumentationWithSource, Page pageToCreate) {
-        if (pageToCreate != null && createDocumentationWithSource != null && createDocumentationWithSource.getSource() != null) {
-            CreateDocumentationWithSourceAllOfSource source = createDocumentationWithSource.getSource();
-            CreateDocumentation.TypeEnum type = createDocumentationWithSource.getType();
-            pageToCreate.mapSource(source.getConfiguration(), type.getValue());
-        }
-    }
+//    private void populatePageSource(CreateDocumentationWithSource createDocumentationWithSource, Page pageToCreate) {
+//        if (pageToCreate != null && createDocumentationWithSource != null && createDocumentationWithSource.getSource() != null) {
+//            CreateDocumentationWithSourceAllOfSource source = createDocumentationWithSource.getSource();
+//            CreateDocumentation.TypeEnum type = createDocumentationWithSource.getType();
+//            pageToCreate.mapSource(source.getConfiguration(), type.getValue());
+//        }
+//    }
 
     @GET
     @Path("{pageId}")

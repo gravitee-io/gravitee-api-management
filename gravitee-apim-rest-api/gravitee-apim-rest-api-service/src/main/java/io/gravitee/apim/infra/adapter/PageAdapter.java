@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.documentation.model.*;
+import java.io.IOException;
 import java.util.List;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -41,4 +43,13 @@ public interface PageAdapter {
 
     @Mapping(target = "modificationDate", source = "createdAt")
     PageRevision toEntity(io.gravitee.repository.management.model.PageRevision pageRevision);
+
+    default PageSourceConfiguration map(String value) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(value, PageSourceConfiguration.class);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to map string to PageSourceConfiguration", e);
+        }
+    }
 }
