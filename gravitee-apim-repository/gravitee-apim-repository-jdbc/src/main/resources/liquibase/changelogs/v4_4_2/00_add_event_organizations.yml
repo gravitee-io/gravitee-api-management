@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.2_add_event_organizations
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}event_organizations
+            columns:
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+        - createTable:
+            tableName: ${gravitee_prefix}events_latest_organizations
+            columns:
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+        - createIndex:
+            indexName: idx_${gravitee_prefix}event_organizations_org_id
+            columns:
+              - column:
+                  name: organization_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}event_organizations
+        - createIndex:
+            indexName: idx_${gravitee_prefix}event_environments_env_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}event_environments
+        - createIndex:
+            indexName: idx_${gravitee_prefix}events_latest_organizations_org_id
+            columns:
+              - column:
+                  name: organization_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}events_latest_organizations
+        - createIndex:
+            indexName: idx_${gravitee_prefix}events_latest_environments_env_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}events_latest_environments
+        - sql:
+            sql: insert into ${gravitee_prefix}event_organizations(event_id, organization_id) select e.id, env.organization_id from ${gravitee_prefix}events e join ${gravitee_prefix}event_environments ee on ee.event_id = e.id join ${gravitee_prefix}environments env on env.id = ee.environment_id;
+        - sql:
+            sql: insert into ${gravitee_prefix}events_latest_organizations(event_id, organization_id) select e.id, env.organization_id from ${gravitee_prefix}events_latest e join ${gravitee_prefix}event_environments ee on ee.event_id = e.id join ${gravitee_prefix}environments env on env.id = ee.environment_id;

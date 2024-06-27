@@ -46,6 +46,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class DictionaryServiceImpl_StopTest {
 
     private static final String ENVIRONMENT_ID = GraviteeContext.getCurrentEnvironment();
+    protected static final String ORGANIZATION_ID = GraviteeContext.getCurrentOrganization();
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
@@ -88,6 +89,7 @@ public class DictionaryServiceImpl_StopTest {
             .createDynamicDictionaryEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
+                eq(ORGANIZATION_ID),
                 eq(EventType.STOP_DICTIONARY),
                 eq("dictionaryId")
             );
@@ -119,6 +121,7 @@ public class DictionaryServiceImpl_StopTest {
             .createDynamicDictionaryEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
+                eq(ORGANIZATION_ID),
                 eq(EventType.STOP_DICTIONARY),
                 eq("dictionaryId")
             );

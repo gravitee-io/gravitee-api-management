@@ -15,9 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,6 +26,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}events")
 public class EventMongo extends Auditable {
 
@@ -32,58 +35,11 @@ public class EventMongo extends Auditable {
     private String id;
 
     private Set<String> environments;
+    private Set<String> organizations;
     private String type;
     private String payload;
     private String parentId;
     private Map<String, String> properties;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Set<String> getEnvironments() {
-        return environments;
-    }
-
-    public void setEnvironments(Set<String> environments) {
-        this.environments = environments;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
 
     @Override
     public boolean equals(Object o) {
