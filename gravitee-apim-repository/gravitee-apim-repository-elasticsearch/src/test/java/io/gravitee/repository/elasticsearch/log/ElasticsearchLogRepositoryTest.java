@@ -24,13 +24,9 @@ import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.log.ElasticLogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
-<<<<<<< HEAD:gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/log/ElasticsearchLogRepositoryTest.java
-import org.junit.jupiter.api.Test;
-=======
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
->>>>>>> 9ecb8bd7c7 (fix: implement new terms filter to avoid max clause count issues):gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/ElasticsearchLogRepositoryTest.java
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
