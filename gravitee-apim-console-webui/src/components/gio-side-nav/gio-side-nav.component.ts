@@ -20,10 +20,11 @@ import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../entities/Constants';
+import { Constants, EnvSettings } from '../../entities/Constants';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
 import { Environment } from '../../entities/environment/environment';
 import { cleanRouterLink } from '../../util/router-link.util';
+import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
 
 interface MenuItem {
   icon: string;
@@ -62,6 +63,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly gioMenuSearchService: GioMenuSearchService,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -76,7 +78,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
           this.currentEnv = this.constants.org.currentEnv;
 
-          this.mainMenuItems = this.buildMainMenuItems();
+          this.mainMenuItems = this.buildMainMenuItems(this.constants.env.settings);
           this.footerMenuItems = this.buildFooterMenuItems();
           this.gioMenuSearchService.removeMenuSearchItems([SIDE_NAV_GROUP_ID]);
           this.gioMenuSearchService.addMenuSearchItems(this.getSideNaveMenuSearchItems());
@@ -88,6 +90,10 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     }
 
     this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
+
+    this.environmentSettingsService.get().subscribe((envSettings) => {
+      this.mainMenuItems = this.buildMainMenuItems(envSettings);
+    });
   }
 
   ngOnDestroy(): void {
@@ -103,7 +109,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     this.router.navigate([selectedItem.routerLink]);
   }
 
-  private buildMainMenuItems(): MenuItem[] {
+  private buildMainMenuItems(envSettings: EnvSettings): MenuItem[] {
     const auditLicenseOptions: LicenseOptions = {
       feature: ApimFeature.APIM_AUDIT_TRAIL,
       context: UTMTags.CONTEXT_ENVIRONMENT,
@@ -146,6 +152,18 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-instance-r'],
         category: 'Gateways',
       },
+    ];
+
+    if (envSettings.portalNext?.access.enabled) {
+      mainMenuItems.push({
+        icon: 'gio:monitor',
+        displayName: 'Developer Portal',
+        routerLink: './developer-portal',
+        category: 'Developer Portal',
+      });
+    }
+
+    mainMenuItems.push(
       {
         icon: 'gio:verified',
         displayName: 'Audit',
@@ -169,7 +187,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-platform-r'],
         category: 'Analytics',
       },
-    ];
+    );
 
     if (!this.constants.isOEM && this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
       mainMenuItems.push({

@@ -27,6 +27,8 @@ import lombok.Setter;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
 
     private Analytics analytics;
@@ -45,9 +47,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Portal portal;
 
     @Valid
-    @Getter
-    @Setter
-    private PortalNext portalNext = new PortalNext();
+    private PortalNext portalNext;
 
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
@@ -67,134 +67,16 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         openAPIDocViewer = new OpenAPIDocViewer();
         plan = new PlanSettings();
         portal = new Portal();
+        portalNext = new PortalNext();
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
         dashboards = new Dashboards();
     }
 
-    // Getters & Setters
-    public Analytics getAnalytics() {
-        return analytics;
-    }
-
-    public void setAnalytics(Analytics analytics) {
-        this.analytics = analytics;
-    }
-
-    public Api getApi() {
-        return api;
-    }
-
-    public void setApi(Api api) {
-        this.api = api;
-    }
-
-    public ApiQualityMetrics getApiQualityMetrics() {
-        return apiQualityMetrics;
-    }
-
-    public void setApiQualityMetrics(ApiQualityMetrics apiQualityMetrics) {
-        this.apiQualityMetrics = apiQualityMetrics;
-    }
-
-    public ApiReview getApiReview() {
-        return apiReview;
-    }
-
-    public void setApiReview(ApiReview apiReview) {
-        this.apiReview = apiReview;
-    }
-
-    public PortalApplicationSettings getApplication() {
-        return application;
-    }
-
-    public void setApplication(PortalApplicationSettings application) {
-        this.application = application;
-    }
-
-    public PortalAuthentication getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(PortalAuthentication authentication) {
-        this.authentication = authentication;
-    }
-
-    public Company getCompany() {
-        return company;
-    }
-
-    public void setCompany(Company company) {
-        this.company = company;
-    }
-
-    public PortalCors getCors() {
-        return cors;
-    }
-
-    public void setCors(PortalCors cors) {
-        this.cors = cors;
-    }
-
-    public Documentation getDocumentation() {
-        return documentation;
-    }
-
-    public void setDocumentation(Documentation documentation) {
-        this.documentation = documentation;
-    }
-
-    public OpenAPIDocViewer getOpenAPIDocViewer() {
-        return openAPIDocViewer;
-    }
-
-    public void setOpenAPIDocViewer(OpenAPIDocViewer openAPIDocViewer) {
-        this.openAPIDocViewer = openAPIDocViewer;
-    }
-
-    public PlanSettings getPlan() {
-        return plan;
-    }
-
-    public void setPlan(PlanSettings plan) {
-        this.plan = plan;
-    }
-
-    public Portal getPortal() {
-        return portal;
-    }
-
-    public void setPortal(Portal portal) {
-        this.portal = portal;
-    }
-
-    public PortalReCaptcha getReCaptcha() {
-        return reCaptcha;
-    }
-
-    public void setReCaptcha(PortalReCaptcha reCaptcha) {
-        this.reCaptcha = reCaptcha;
-    }
-
-    public PortalScheduler getScheduler() {
-        return scheduler;
-    }
-
-    public void setScheduler(PortalScheduler scheduler) {
-        this.scheduler = scheduler;
-    }
-
-    public Dashboards getDashboards() {
-        return dashboards;
-    }
-
-    public void setDashboards(Dashboards dashboards) {
-        this.dashboards = dashboards;
-    }
-
     // Classes
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    @Setter
     public static class PortalCors {
 
         @ParameterKey(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN)
@@ -211,45 +93,5 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
 
         @ParameterKey(Key.PORTAL_HTTP_CORS_MAX_AGE)
         private Integer maxAge;
-
-        public List<String> getAllowOrigin() {
-            return allowOrigin;
-        }
-
-        public void setAllowOrigin(List<String> allowOrigin) {
-            this.allowOrigin = allowOrigin;
-        }
-
-        public List<String> getAllowHeaders() {
-            return allowHeaders;
-        }
-
-        public void setAllowHeaders(List<String> allowHeaders) {
-            this.allowHeaders = allowHeaders;
-        }
-
-        public List<String> getAllowMethods() {
-            return allowMethods;
-        }
-
-        public void setAllowMethods(List<String> allowMethods) {
-            this.allowMethods = allowMethods;
-        }
-
-        public List<String> getExposedHeaders() {
-            return exposedHeaders;
-        }
-
-        public void setExposedHeaders(List<String> exposedHeaders) {
-            this.exposedHeaders = exposedHeaders;
-        }
-
-        public Integer getMaxAge() {
-            return maxAge;
-        }
-
-        public void setMaxAge(Integer maxAge) {
-            this.maxAge = maxAge;
-        }
     }
 }
