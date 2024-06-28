@@ -23,9 +23,10 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
-import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableEvent;
@@ -57,7 +58,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
     private final ObjectMapper objectMapper;
     private final VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
     private final ReactorHandlerRegistry reactorHandlerRegistry;
-    private final OrganizationManager organizationManager;
+    private final AccessPointManager accessPointManager;
 
     public DebugReactorEventListener(
         final Vertx vertx,
@@ -66,7 +67,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         final ObjectMapper objectMapper,
         final VertxDebugHttpClientConfiguration debugHttpClientConfiguration,
         final ReactorHandlerRegistry reactorHandlerRegistry,
-        OrganizationManager organizationManager
+        final AccessPointManager accessPointManager
     ) {
         super(eventManager, reactorHandlerRegistry);
         this.vertx = vertx;
@@ -75,7 +76,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         this.objectMapper = objectMapper;
         this.debugHttpClientConfiguration = debugHttpClientConfiguration;
         this.reactorHandlerRegistry = reactorHandlerRegistry;
-        this.organizationManager = organizationManager;
+        this.accessPointManager = accessPointManager;
     }
 
     @Override
@@ -200,17 +201,27 @@ public class DebugReactorEventListener extends ReactorEventListener {
         return options;
     }
 
-    private MultiMap buildHeaders(DebugApi debugApi, HttpRequest req) {
+    MultiMap buildHeaders(DebugApi debugApi, HttpRequest req) {
         final HeadersMultiMap headers = new HeadersMultiMap();
+        headers.addAll(convertHeaders(req.getHeaders()));
+
+        String host = null;
         // If API is configured in virtual hosts mode, we force the Host header
-        if (debugApi.getDefinition().getProxy().getVirtualHosts().size() > 1) {
-            String host = debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getHost();
-            if (host != null) {
-                // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
-                headers.add(HttpHeaderNames.HOST, host);
+        if (!debugApi.getDefinition().getProxy().getVirtualHosts().isEmpty()) {
+            host = debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getHost();
+        }
+        // If gateway is multi tenant, we need to apply access point host
+        if (host == null) {
+            List<ReactableAccessPoint> accessPoints = accessPointManager.getByEnvironmentId(debugApi.getEnvironmentId());
+            if (accessPoints != null && !accessPoints.isEmpty()) {
+                host = accessPoints.get(0).getHost();
             }
         }
-        return headers.addAll(convertHeaders(req.getHeaders()));
+        if (host != null) {
+            // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
+            headers.add(HttpHeaderNames.HOST, host);
+        }
+        return headers;
     }
 
     MultiMap convertHeaders(Map<String, List<String>> headers) {
