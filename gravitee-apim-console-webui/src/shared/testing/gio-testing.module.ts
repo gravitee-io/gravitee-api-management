@@ -18,6 +18,7 @@ import { NgModule, NgZone } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { Router } from '@angular/router';
+import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 
 import { Constants } from '../../entities/Constants';
 
@@ -52,12 +53,18 @@ export const CONSTANTS_TESTING: Constants = {
 };
 
 @NgModule({
-  imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]), MatIconTestingModule],
+  imports: [
+    HttpClientTestingModule,
+    RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
+    MatIconTestingModule,
+    MatMomentDateModule,
+  ],
   providers: [
     {
       provide: Constants,
       useValue: CONSTANTS_TESTING,
     },
+    provideMomentDateAdapter(undefined, { useUtc: true }),
   ],
 })
 export class GioTestingModule {
