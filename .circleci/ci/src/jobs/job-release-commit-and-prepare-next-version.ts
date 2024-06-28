@@ -65,6 +65,7 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 # UI
 sed -i 's/"version": ".*"/"version": "${environment.graviteeioVersion}"/' gravitee-apim-console-webui/build.json
 sed -i 's/"version": ".*"/"version": "${environment.graviteeioVersion}"/' gravitee-apim-portal-webui/build.json
+sed -i 's/"version": ".*"/"version": "${environment.graviteeioVersion}"/' gravitee-apim-portal-webui-next/build.json
 
 git add --update
 git commit -m "${environment.graviteeioVersion}"
@@ -78,6 +79,7 @@ sed -i "s#<sha1>.*</sha1>#<sha1>${nextQualifier}</sha1>#" pom.xml
 sed -i 's#version: ".*"#version: "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
 sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-console-webui/build.json
 sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
+sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-portal-webui-next/build.json
 
 # Helm chart increase version, appVersion and clean the artifacthub.io/changes annotation
 sed -e "0,/^version:/{s/version:.*/version: ${nextVersion}${nextQualifier}/}" \\
