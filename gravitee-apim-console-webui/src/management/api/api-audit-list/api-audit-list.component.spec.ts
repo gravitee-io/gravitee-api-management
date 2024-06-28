@@ -34,7 +34,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { fakeMetadataPageAudit } from '../../../entities/audit/Audit.fixture';
 
-describe('EnvAuditComponent', () => {
+describe('ApiAuditListComponent', () => {
   let fixture: ComponentFixture<ApiAuditListComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;

@@ -18,8 +18,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, distinctUntilChanged, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { isEqual, mapValues } from 'lodash';
+import { Moment } from 'moment';
 
 import { ApiAuditService } from '../../../services-ngx/api-audit.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -76,9 +77,9 @@ export class ApiAuditListComponent implements OnInit, OnDestroy {
   public ngOnInit() {
     this.auditForm = new UntypedFormGroup({
       event: new UntypedFormControl(null),
-      range: new UntypedFormGroup({
-        start: new UntypedFormControl(),
-        end: new UntypedFormControl(),
+      range: new FormGroup({
+        start: new FormControl<Moment>(null),
+        end: new FormControl<Moment>(null),
       }),
     });
 
@@ -91,8 +92,8 @@ export class ApiAuditListComponent implements OnInit, OnDestroy {
         auditFilters: {
           ...this.filtersStream.value.auditFilters,
           event,
-          from: range?.start?.getTime() ?? undefined,
-          to: range?.end?.getTime() ?? undefined,
+          from: range?.start?.valueOf() ?? undefined,
+          to: range?.end?.valueOf() ?? undefined,
         },
       });
     });
