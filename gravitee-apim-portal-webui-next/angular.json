@@ -39,6 +39,11 @@
                 "glob": "default.min.css",
                 "input": "node_modules/@asyncapi/web-component/node_modules/@asyncapi/react-component/styles",
                 "output": "assets/asyncapi"
+              },
+              {
+                "glob": "build.json",
+                "input": ".",
+                "output": "/"
               }
             ],
             "scripts": [
