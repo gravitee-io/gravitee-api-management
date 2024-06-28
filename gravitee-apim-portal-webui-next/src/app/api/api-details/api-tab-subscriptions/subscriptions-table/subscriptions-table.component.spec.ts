@@ -21,9 +21,9 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { SubscriptionsTableComponent } from './subscriptions-table.component';
-import { Subscription } from '../../../../entities/subscription/subscription';
-import { fakeSubscriptionResponse } from '../../../../entities/subscription/subscription.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { Subscription } from '../../../../../entities/subscription/subscription';
+import { fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 
 describe('SubscriptionsTableComponent', () => {
   let fixture: ComponentFixture<SubscriptionsTableComponent>;
