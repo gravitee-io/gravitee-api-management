@@ -71,7 +71,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void should_return_accesspoint_from_reference_id_and_type() throws Exception {
+    public void should_return_access_point_from_reference_id_and_type() throws Exception {
         List<AccessPoint> accessPoints = accessPointRepository.findByReferenceAndTarget(
             AccessPointReferenceType.ENVIRONMENT,
             "69a7a51a-98b7-4943-a7a5-1a98b79943e6",
@@ -91,7 +91,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void should_return_accesspoint_from_target() throws Exception {
+    public void should_return_access_point_from_target() throws Exception {
         List<AccessPoint> accessPoints = accessPointRepository.findByTarget(AccessPointTarget.PORTAL);
 
         assertFalse(accessPoints.isEmpty());
@@ -107,7 +107,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void should_return_accesspoint_from_host() throws Exception {
+    public void should_return_access_point_from_host() throws Exception {
         Optional<AccessPoint> accessPointOptional = accessPointRepository.findByHost("dev.en.company.apim-portal.gravitee.io:4100");
 
         assertTrue(accessPointOptional.isPresent());
@@ -122,7 +122,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void should_return_accesspoint_from_criteria() throws Exception {
+    public void should_return_access_point_from_criteria() throws Exception {
         AccessPointCriteria accessPointCriteria = AccessPointCriteria
             .builder()
             .from(1486771200000L - 1)
@@ -144,6 +144,21 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         assertFalse(accessPoint.isOverriding());
         assertEquals(AccessPointStatus.CREATED, accessPoint.getStatus());
         assertTrue(compareDate(new Date(1486771200000L), accessPoint.getUpdatedAt()));
+    }
+
+    @Test
+    public void should_return_access_point_from_criteria_paginated() throws Exception {
+        var accessPointCriteria = AccessPointCriteria
+            .builder()
+            .from(1486771200000L - 1)
+            .to(1486771200000L + 1)
+            .target(AccessPointTarget.GATEWAY)
+            .status(AccessPointStatus.CREATED)
+            .build();
+
+        var accessPoints = accessPointRepository.findByCriteria(accessPointCriteria, 0L, 2L);
+
+        assertEquals(2, accessPoints.size());
     }
 
     @Test
