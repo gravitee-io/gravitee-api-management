@@ -46,11 +46,13 @@
           </li>
         }
       </ul>
-      <mat-card-footer>
-        <div class="m3-body-medium">
-          {{ card.validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
-        </div>
-      </mat-card-footer>
+      @if (card.security !== 'KEY_LESS') {
+        <mat-card-footer>
+          <div class="m3-body-medium">
+            {{ card.validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
+          </div>
+        </mat-card-footer>
+      }
     </mat-card-content>
   </mat-card>
 }
