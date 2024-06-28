@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, shareReplay, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, shareReplay, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 
 import { Api } from '../../../entities/api';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -138,7 +138,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filtersForm.valueChanges
-      .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
+      .pipe(debounceTime(200), distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
       .subscribe(({ event, referenceType, environmentId, applicationId, apiId, range }) => {
         this.filtersStream.next({
           tableWrapper: {
@@ -153,8 +153,8 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
             environmentId,
             applicationId,
             apiId,
-            from: range?.start?.getTime() ?? undefined,
-            to: range?.end?.getTime() ?? undefined,
+            from: range?.start?.valueOf() ?? undefined,
+            to: range?.end?.valueOf() ?? undefined,
           },
         });
       });

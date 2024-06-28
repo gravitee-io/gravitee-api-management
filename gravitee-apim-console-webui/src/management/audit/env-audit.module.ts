@@ -24,7 +24,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatNativeDateModule } from '@angular/material/core';
 
 import { EnvAuditComponent } from './env-audit.component';
 
@@ -38,7 +37,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     MatFormFieldModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     MatTableModule,
     MatButtonModule,
     MatCardModule,

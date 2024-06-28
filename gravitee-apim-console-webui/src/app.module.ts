@@ -23,6 +23,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
+import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
@@ -50,6 +51,8 @@ import { AuthModule } from './auth/auth.module';
     }),
     UpgradeModule,
 
+    MatMomentDateModule,
+
     AppRoutingModule,
     GioPendoModule.forRoot(),
     GioMatConfigModule,
@@ -75,6 +78,7 @@ import { AuthModule } from './auth/auth.module';
       provide: 'isFactory',
       useValue: true,
     },
+    provideMomentDateAdapter(undefined, { useUtc: true }),
   ],
 })
 export class AppModule implements DoBootstrap {
