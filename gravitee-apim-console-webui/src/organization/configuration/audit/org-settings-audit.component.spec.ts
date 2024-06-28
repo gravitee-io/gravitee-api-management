@@ -140,10 +140,10 @@ describe('OrgSettingsAuditComponent', () => {
     // 2. Expect date range works and trigger new AuditListRequest
     const rangeSelect = await loader.getHarness(MatDateRangeInputHarness.with({ selector: '[formGroupName=range]' }));
     await (await rangeSelect.getStartInput()).setValue('4/11/2022');
-    expectAuditListRequest({ from: 986083200000 });
+    expectAuditListRequest({ from: 1649635200000 });
 
     await (await rangeSelect.getEndInput()).setValue('4/20/2022');
-    expectAuditListRequest({ from: 1649635200000, to: 986083200000 });
+    expectAuditListRequest({ from: 1649635200000, to: 1650412800000 });
   });
 
   it('should reset pagination on filter change', async () => {
