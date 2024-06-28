@@ -19,7 +19,7 @@ import { MatCard, MatCardContent, MatCardFooter, MatCardHeader } from '@angular/
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatTooltip } from '@angular/material/tooltip';
 
-import { SubscriptionPlan } from '../../../app/api-details/subscribe-to-api/subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.component';
+import { SubscriptionPlan } from '../../../app/api/subscribe-to-api/subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.component';
 import { ToPeriodTimeUnitLabelPipePipe } from '../../../pipe/time-unit.pipe';
 
 @Component({
