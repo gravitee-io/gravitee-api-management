@@ -13,25 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApiTabDetailsComponent } from './api-tab-details.component';
+import { ApiDetailsComponent } from './api-details.component';
 import { fakeApi } from '../../../entities/api/api.fixtures';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
-describe('ApiTabDetailsComponent', () => {
-  let component: ApiTabDetailsComponent;
-  let fixture: ComponentFixture<ApiTabDetailsComponent>;
+describe('ApiDetailsComponent', () => {
+  let component: ApiDetailsComponent;
+  let fixture: ComponentFixture<ApiDetailsComponent>;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiTabDetailsComponent, AppTestingModule],
+      imports: [ApiDetailsComponent, AppTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiTabDetailsComponent);
+    fixture = TestBed.createComponent(ApiDetailsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
     component.api = fakeApi();
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should create', () => {

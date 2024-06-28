@@ -18,12 +18,12 @@ import { Component, Input, OnInit } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 
-import { LoaderComponent } from '../../../components/loader/loader.component';
-import { PageComponent } from '../../../components/page/page.component';
-import { MarkdownDescriptionPipe } from '../../../components/pipe/markdown-description.pipe';
-import { Api } from '../../../entities/api/api';
-import { Page } from '../../../entities/page/page';
-import { PageService } from '../../../services/page.service';
+import { LoaderComponent } from '../../../../components/loader/loader.component';
+import { PageComponent } from '../../../../components/page/page.component';
+import { MarkdownDescriptionPipe } from '../../../../components/pipe/markdown-description.pipe';
+import { Api } from '../../../../entities/api/api';
+import { Page } from '../../../../entities/page/page';
+import { PageService } from '../../../../services/page.service';
 
 interface HomepageData {
   result?: Page;

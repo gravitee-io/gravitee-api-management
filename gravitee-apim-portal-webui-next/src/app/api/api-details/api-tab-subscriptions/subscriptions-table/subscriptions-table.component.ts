@@ -24,9 +24,9 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, startWith, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { SubscriptionData, SubscriptionMetadata, SubscriptionStatusEnum } from '../../../../entities/subscription/subscription';
-import { CapitalizeFirstPipe } from '../../../../pipe/capitalize-first.pipe';
-import { SubscriptionService } from '../../../../services/subscription.service';
+import { SubscriptionData, SubscriptionMetadata, SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
+import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
+import { SubscriptionService } from '../../../../../services/subscription.service';
 
 @Component({
   selector: 'app-subscriptions-table',

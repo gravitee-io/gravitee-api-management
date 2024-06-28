@@ -13,32 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApiDetailsComponent } from './api-details.component';
-import { fakeApi } from '../../entities/api/api.fixtures';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import { ApiTabDetailsComponent } from './api-tab-details.component';
+import { fakeApi } from '../../../../entities/api/api.fixtures';
+import { AppTestingModule } from '../../../../testing/app-testing.module';
 
-describe('ApiDetailsComponent', () => {
-  let component: ApiDetailsComponent;
-  let fixture: ComponentFixture<ApiDetailsComponent>;
-  let httpTestingController: HttpTestingController;
+describe('ApiTabDetailsComponent', () => {
+  let component: ApiTabDetailsComponent;
+  let fixture: ComponentFixture<ApiTabDetailsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiDetailsComponent, AppTestingModule],
+      imports: [ApiTabDetailsComponent, AppTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiDetailsComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(ApiTabDetailsComponent);
     component = fixture.componentInstance;
     component.api = fakeApi();
     fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    httpTestingController.verify();
   });
 
   it('should create', () => {

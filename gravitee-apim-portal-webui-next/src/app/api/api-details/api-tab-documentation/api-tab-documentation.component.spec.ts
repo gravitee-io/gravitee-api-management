@@ -18,9 +18,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiTabDocumentationComponent } from './api-tab-documentation.component';
-import { PageTreeHarness } from '../../../components/page-tree/page-tree.harness';
-import { fakePage } from '../../../entities/page/page.fixtures';
-import { AppTestingModule } from '../../../testing/app-testing.module';
+import { PageTreeHarness } from '../../../../components/page-tree/page-tree.harness';
+import { fakePage } from '../../../../entities/page/page.fixtures';
+import { AppTestingModule } from '../../../../testing/app-testing.module';
 
 describe('ApiTabDocumentationComponent', () => {
   let component: ApiTabDocumentationComponent;
