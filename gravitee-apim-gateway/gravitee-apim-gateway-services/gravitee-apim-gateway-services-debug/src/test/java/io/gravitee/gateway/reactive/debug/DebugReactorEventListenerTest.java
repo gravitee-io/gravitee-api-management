@@ -38,8 +38,9 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
-import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
+import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableEvent;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -92,7 +93,7 @@ class DebugReactorEventListenerTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private OrganizationManager organizationManager;
+    private AccessPointManager accessPointManager;
 
     @Mock
     private Vertx vertx;
@@ -114,7 +115,7 @@ class DebugReactorEventListenerTest {
                     objectMapper,
                     debugHttpClientConfiguration,
                     reactorHandlerRegistry,
-                    organizationManager
+                    accessPointManager
                 )
             );
     }
@@ -401,7 +402,46 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    void should_debug_api_and_filter_closed_plan() throws TechnicalException, JsonProcessingException {
+    void should_enforce_host_headers_from_virtual_host() {
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        debugApiModel.getProxy().getVirtualHosts().get(0).setHost("custom_host");
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApi("eventId", debugApiModel), httpRequest);
+        assertThat(result.get("host")).contains("custom_host");
+    }
+
+    @Test
+    void should_enforce_host_headers_from_access_points() {
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of(ReactableAccessPoint.builder().host("custom_host").build()));
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApi("eventId", debugApiModel), httpRequest);
+        assertThat(result.get("host")).contains("custom_host");
+    }
+
+    @Test
+    void should_not_enforce_host_headers_from_neither_empty_virtual_host_or_empty_access_points() {
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of());
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApi("eventId", debugApiModel), httpRequest);
+        assertThat(result.get("host")).isNull();
+    }
+
+    @Test
+    void should_debug_api_and_filter_closed_plan() throws JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         Plan keylessPlan = new Plan();
         keylessPlan.setId("keyless-plan");
