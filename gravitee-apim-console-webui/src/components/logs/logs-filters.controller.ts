@@ -283,7 +283,7 @@ class LogsFiltersController {
           this.filters['!_exists_'] = v;
           break;
         case 'body':
-          this.filters.body = v[0].replace(/\*/g, '');
+          this.filters.body = v[0].replace(/^\*(.*)\*$/g, '$1');
           break;
         case 'endpoint':
           this.filters.endpoint = v[0].replace(/\*|\\\\/g, '');
