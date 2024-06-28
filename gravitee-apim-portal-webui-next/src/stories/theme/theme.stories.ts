@@ -22,7 +22,7 @@ import { of } from 'rxjs/internal/observable/of';
 import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { computeAndInjectThemeForStory, CUSTOMIZATION_ARGS } from './theme.util';
-import { ApiDetailsComponent } from '../../app/api-details/api-details.component';
+import { ApiDetailsComponent } from '../../app/api/api-details/api-details.component';
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { CompanyTitleComponent } from '../../components/company-title/company-title.component';

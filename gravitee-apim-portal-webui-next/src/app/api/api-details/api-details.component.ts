@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
-import { BreadcrumbService } from 'xng-breadcrumb';
 
-import { ApiCardComponent } from '../../components/api-card/api-card.component';
-import { ApiPictureComponent } from '../../components/api-picture/api-picture.component';
-import { BannerComponent } from '../../components/banner/banner.component';
-import { BreadcrumbNavigationComponent } from '../../components/breadcrumb-navigation/breadcrumb-navigation.component';
-import { Api } from '../../entities/api/api';
-import { CurrentUserService } from '../../services/current-user.service';
+import { ApiCardComponent } from '../../../components/api-card/api-card.component';
+import { ApiPictureComponent } from '../../../components/api-picture/api-picture.component';
+import { BannerComponent } from '../../../components/banner/banner.component';
+import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
+import { Api } from '../../../entities/api/api';
+import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-api-details',
@@ -43,17 +43,14 @@ import { CurrentUserService } from '../../services/current-user.service';
     AsyncPipe,
     RouterModule,
     BreadcrumbNavigationComponent,
+    FormsModule,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',
 })
-export class ApiDetailsComponent implements OnInit {
+export class ApiDetailsComponent {
   @Input() api!: Api;
   isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
 
-  constructor(private breadcrumbService: BreadcrumbService) {}
-
-  ngOnInit(): void {
-    this.breadcrumbService.set('@apiName', this.api.name);
-  }
+  constructor() {}
 }
