@@ -269,7 +269,7 @@ public class DebugConfiguration {
         final ObjectMapper objectMapper,
         final VertxDebugHttpClientConfiguration debugHttpClientConfiguration,
         @Qualifier("debugReactorHandlerRegistry") final ReactorHandlerRegistry reactorHandlerRegistry,
-        OrganizationManager organizationManager
+        final AccessPointManager accessPointManager
     ) {
         return new DebugReactorEventListener(
             vertx,
@@ -278,7 +278,7 @@ public class DebugConfiguration {
             objectMapper,
             debugHttpClientConfiguration,
             reactorHandlerRegistry,
-            organizationManager
+            accessPointManager
         );
     }
 
