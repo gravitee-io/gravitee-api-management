@@ -15,23 +15,14 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.BaseApplicationEntity;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Mapper
-public interface ApplicationAdapter {
-    ApplicationAdapter INSTANCE = Mappers.getMapper(ApplicationAdapter.class);
-
-    @Mapping(target = "origin", source = "origin", defaultValue = "MANAGEMENT")
-    BaseApplicationEntity toEntity(Application application);
-
-    Application toRepository(ApplicationEntity api);
+public interface ApplicationCRDAdapter {
+    ApplicationCRDAdapter INSTANCE = Mappers.getMapper(ApplicationCRDAdapter.class);
 }

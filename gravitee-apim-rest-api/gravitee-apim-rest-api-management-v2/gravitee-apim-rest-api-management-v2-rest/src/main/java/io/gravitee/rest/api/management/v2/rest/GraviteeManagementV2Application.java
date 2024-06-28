@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
@@ -68,6 +69,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);
         register(ApisResource.class);
+        register(ApplicationsResource.class);
 
         // Resources deprecated at root level
         register(EndpointsResource.class);

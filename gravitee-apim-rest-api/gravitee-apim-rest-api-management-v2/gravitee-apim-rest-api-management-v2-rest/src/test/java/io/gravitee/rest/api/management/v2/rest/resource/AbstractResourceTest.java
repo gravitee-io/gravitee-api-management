@@ -19,7 +19,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.ApplicationMetadataCrudServiceInMemory;
+import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
@@ -171,6 +175,18 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService;
+
+    @Autowired
+    protected ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService;
+
+    @Autowired
+    protected ImportApplicationCRDDomainServiceInMemory applicationCRDDomainService;
+
+    @Autowired
+    protected ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService;
+
+    @Autowired
+    protected ApplicationCrudServiceInMemory applicationCrudService;
 
     @Autowired
     protected MembershipQueryServiceInMemory membershipQueryServiceInMemory;
