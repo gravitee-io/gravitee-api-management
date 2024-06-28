@@ -199,6 +199,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private EnvironmentService environmentService;
 
     @Autowired
+    @Lazy
     private ApplicationAlertService applicationAlertService;
 
     @Autowired

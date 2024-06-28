@@ -15,8 +15,13 @@
  */
 package fixtures;
 
+import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDMetadata;
+import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import java.util.List;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -32,5 +37,19 @@ public class ApplicationFixtures {
 
     public static ApplicationEntity anApplicationEntity() {
         return ApplicationModelFixtures.anApplicationEntity();
+    }
+
+    public static ApplicationCRDSpec anApplicationCRDSpec() {
+        var spec = new ApplicationCRDSpec();
+        spec.setName("test");
+        spec.setDescription("description");
+        spec.setSettings(new ApplicationSettings(new SimpleApplicationSettings("WEB", "test"), null));
+
+        ApplicationCRDMetadata metadata = new ApplicationCRDMetadata();
+        metadata.setName("test");
+        metadata.setValue("test");
+        spec.setMetadata(List.of(metadata));
+
+        return spec;
     }
 }

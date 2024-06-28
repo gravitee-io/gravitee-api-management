@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.application.domain_service;
 
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
-public interface ApplicationAdapter {
-    ApplicationAdapter INSTANCE = Mappers.getMapper(ApplicationAdapter.class);
-
-    @Mapping(target = "origin", source = "origin", defaultValue = "MANAGEMENT")
-    BaseApplicationEntity toEntity(Application application);
-
-    Application toRepository(ApplicationEntity api);
+@DomainService
+public interface ImportApplicationCRDDomainService {
+    BaseApplicationEntity create(NewApplicationEntity newApplicationEntity, AuditInfo auditInfo);
+    BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo);
 }

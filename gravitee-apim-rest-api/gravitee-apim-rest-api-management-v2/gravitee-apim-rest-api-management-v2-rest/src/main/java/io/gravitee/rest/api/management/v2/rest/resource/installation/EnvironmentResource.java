@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoryResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
@@ -52,6 +53,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/apis")
     public ApisResource getApisResource() {
         return resourceContext.getResource(ApisResource.class);
+    }
+
+    @Path("/applications")
+    public ApplicationsResource getApplicationsResource() {
+        return resourceContext.getResource(ApplicationsResource.class);
     }
 
     @Path("/groups")

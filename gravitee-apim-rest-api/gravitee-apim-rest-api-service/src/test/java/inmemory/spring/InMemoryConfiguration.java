@@ -15,7 +15,64 @@
  */
 package inmemory.spring;
 
-import inmemory.*;
+import inmemory.AccessPointQueryServiceInMemory;
+import inmemory.ApiAuthorizationDomainServiceInMemory;
+import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.ApiCategoryOrderQueryServiceInMemory;
+import inmemory.ApiCategoryQueryServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.ApplicationMetadataCrudServiceInMemory;
+import inmemory.ApplicationMetadataQueryServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.AuditMetadataQueryServiceInMemory;
+import inmemory.AuditQueryServiceInMemory;
+import inmemory.CategoryApiCrudServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
+import inmemory.ConnectionLogsCrudServiceInMemory;
+import inmemory.EndpointPluginQueryServiceInMemory;
+import inmemory.EntrypointPluginQueryServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
+import inmemory.ImportApplicationCRDDomainServiceInMemory;
+import inmemory.IndexerInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.InstanceQueryServiceInMemory;
+import inmemory.IntegrationAgentInMemory;
+import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.IntegrationQueryServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.MetadataCrudServiceInMemory;
+import inmemory.NoopSwaggerOpenApiResolver;
+import inmemory.NoopTemplateResolverDomainService;
+import inmemory.PageCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.ParametersDomainServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import inmemory.PolicyPluginQueryServiceInMemory;
+import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import inmemory.TagQueryServiceInMemory;
+import inmemory.ThemeQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UpdateCategoryApiDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
+import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +99,11 @@ public class InMemoryConfiguration {
     @Bean
     public ApplicationCrudServiceInMemory applicationRepository() {
         return new ApplicationCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService() {
+        return new ApplicationMetadataCrudServiceInMemory();
     }
 
     @Bean
@@ -262,6 +324,16 @@ public class InMemoryConfiguration {
     @Bean
     public PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService() {
         return new PrimaryOwnerDomainServiceInMemory();
+    }
+
+    @Bean
+    public ImportApplicationCRDDomainServiceInMemory applicationCRDDomainService() {
+        return new ImportApplicationCRDDomainServiceInMemory();
+    }
+
+    @Bean
+    public ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService() {
+        return new ApplicationMetadataQueryServiceInMemory();
     }
 
     @Bean
