@@ -6282,6 +6282,8 @@ components:
                           type: boolean
                           description: Page's homepage status.
                           example: true
+                      source:
+                        $ref: '#/components/schemas/SourceConfiguration'
             required:
                 - name
                 - type
@@ -6301,6 +6303,8 @@ components:
                           type: boolean
                           description: Page's homepage status.
                           example: true
+                      source:
+                        $ref: '#/components/schemas/SourceConfiguration'
             required:
                 - name
                 - type
@@ -6320,9 +6324,36 @@ components:
                           type: boolean
                           description: Page's homepage status.
                           example: true
+                      source:
+                        $ref: '#/components/schemas/SourceConfiguration'
             required:
                 - name
                 - type
+
+        SourceConfiguration:
+          type: object
+          description: Source configuration for fetching documentation content.
+          properties:
+            type:
+              type: string
+              description: Type of the source.
+              example: http-fetcher
+            configuration:
+              type: object
+              description: Configuration for the source.
+              properties:
+                useSystemProxy:
+                  type: boolean
+                  description: Whether to use the system proxy.
+                  example: false
+                autoFetch:
+                  type: boolean
+                  description: Whether to automatically fetch the content.
+                  example: false
+                url:
+                  type: string
+                  description: URL of the source.
+                  example: https://apim-master-api.team-apim.gravitee.dev/management/openapi.yaml
 
         UpdateDocumentation:
             type: object

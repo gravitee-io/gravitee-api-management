@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
 import io.gravitee.rest.api.management.v2.rest.model.PageSource;
 import io.gravitee.rest.api.management.v2.rest.model.Revision;
+import io.gravitee.rest.api.management.v2.rest.model.SourceConfigurationConfiguration;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationMarkdown;
@@ -99,6 +100,15 @@ public interface PageMapper {
 
     @Mapping(target = "uploadDate", source = "createdAt")
     MediaEntity mapMedia(Media media);
+
+    default String map(SourceConfigurationConfiguration value) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize configuration", e);
+        }
+    }
 
     io.gravitee.apim.core.documentation.model.Page map(
         io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown createDocumentationMarkdown
