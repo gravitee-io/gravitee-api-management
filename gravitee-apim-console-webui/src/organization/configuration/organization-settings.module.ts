@@ -34,7 +34,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatNativeDateModule, MatRippleModule } from '@angular/material/core';
+import { MatRippleModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
@@ -124,7 +124,6 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     MatProgressBarModule,
     MatSortModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     MatTabsModule,
 
     GioPermissionModule,
