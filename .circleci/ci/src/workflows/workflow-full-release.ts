@@ -19,7 +19,6 @@ import {
   ConsoleWebuiBuildJob,
   PackageBundleJob,
   PortalWebuiBuildJob,
-  PortalWebuiNextBuildJob,
   PublishProdDockerImagesJob,
   PublishRpmPackagesJob,
   ReleaseCommitAndPrepareNextVersionJob,
@@ -42,9 +41,6 @@ export class FullReleaseWorkflow {
 
     const slackAnnouncementJob = SlackAnnouncementJob.create(dynamicConfig);
     dynamicConfig.addJob(slackAnnouncementJob);
-
-    const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(portalWebuiNextBuildJob);
 
     const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(consoleWebuiBuildJob);
@@ -92,15 +88,10 @@ export class FullReleaseWorkflow {
       }),
 
       // APIM Portal
-      new workflow.WorkflowJob(portalWebuiNextBuildJob, {
-        name: 'Build APIM Portal Next',
-        context: config.jobContext,
-        requires: ['Setup'],
-      }),
       new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
         name: 'Build APIM Portal and publish image',
-        requires: ['Build APIM Portal Next'],
+        requires: ['Setup'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
         context: config.jobContext,

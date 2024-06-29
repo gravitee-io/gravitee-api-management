@@ -58,6 +58,19 @@ export class PortalWebuiBuildJob {
         },
         working_directory: `${config.dockerImages.portal.project}`,
       }),
+      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.dockerImages.portal.next.project}` }),
+      new commands.Run({
+        name: 'Update Build version',
+        command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.dockerImages.portal.next.project}/build.json`,
+      }),
+      new commands.Run({
+        name: 'Build',
+        command: 'yarn build:prod',
+        environment: {
+          NODE_OPTIONS: '--max_old_space_size=4086',
+        },
+        working_directory: `${config.dockerImages.portal.next.project}`,
+      }),
       new reusable.ReusedCommand(buildUiImageCommand, {
         'docker-image-name': `${config.dockerImages.portal.image}`,
         'apim-ui-project': `${config.dockerImages.portal.project}`,
