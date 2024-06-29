@@ -24,7 +24,6 @@ ENV PORTAL_BASE_HREF "/"
 ENV PORTAL_API_URL "http://localhost:8083/portal"
 
 COPY ./dist /usr/share/nginx/html/
-COPY ./dist-next /usr/share/nginx/html/next
 
 COPY docker/config/config.json /usr/share/nginx/html/assets/config.json
 COPY docker/config/config-next.json /usr/share/nginx/html/next/browser/assets/config.json
