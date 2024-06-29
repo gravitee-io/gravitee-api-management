@@ -659,31 +659,6 @@ jobs:
 
             gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
       - cmd-notify-on-failure
-  job-portal-webui-next-build:
-    docker:
-      - image: cimg/node:20.11.1
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-portal-webui-next
-      - run:
-          name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
-      - run:
-          name: Build
-          command: yarn build:prod
-          environment:
-            NODE_OPTIONS: --max_old_space_size=4086
-          working_directory: gravitee-apim-portal-webui-next
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-portal-webui/dist-next
   job-portal-webui-build:
     docker:
       - image: cimg/node:20.11.1
@@ -706,6 +681,17 @@ jobs:
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: gravitee-apim-portal-webui
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui-next
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui-next
       - cmd-build-ui-image:
           docker-image-name: apim-portal-ui
           apim-ui-project: gravitee-apim-portal-webui
@@ -1203,16 +1189,10 @@ workflows:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
-      - job-portal-webui-next-build:
-          name: Build APIM Portal Next
-          context:
-            - cicd-orchestrator
       - job-portal-webui-build:
           name: Build APIM Portal and publish image
           context:
             - cicd-orchestrator
-          requires:
-            - Build APIM Portal Next
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:
