@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { BuildBackendImagesJob, BuildBackendJob, PortalWebuiNextBuildJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
+import {
+  BuildBackendImagesJob,
+  BuildBackendJob,
+  ConsoleWebuiBuildJob,
+  PortalWebuiBuildJob,
+  PortalWebuiNextBuildJob,
+  PublishPrEnvUrlsJob,
+  SetupJob,
+} from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
-import { WebuiBuildJob } from '../jobs/frontend';
 
 export class PublishDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
@@ -33,8 +40,11 @@ export class PublishDockerImagesWorkflow {
     const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiNextBuildJob);
 
-    const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(webuiBuildJob);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(consoleWebuiBuildJob);
+
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(portalWebuiBuildJob);
 
     const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig);
     dynamicConfig.addJob(publishPrEnvUrlsJob);
@@ -47,24 +57,20 @@ export class PublishDockerImagesWorkflow {
         requires: ['Build backend'],
         name: 'Build and push rest api and gateway images',
       }),
-      new workflow.WorkflowJob(webuiBuildJob, {
+      new workflow.WorkflowJob(consoleWebuiBuildJob, {
         context: config.jobContext,
         requires: ['Setup'],
         name: 'Build APIM Console and publish image',
-        'apim-ui-project': config.dockerImages.console.project,
-        'docker-image-name': config.dockerImages.console.image,
       }),
       new workflow.WorkflowJob(portalWebuiNextBuildJob, {
         name: 'Build APIM Portal Next',
         context: config.jobContext,
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(webuiBuildJob, {
+      new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
         requires: ['Build APIM Portal Next'],
         name: 'Build APIM Portal and publish image',
-        'apim-ui-project': config.dockerImages.portal.project,
-        'docker-image-name': config.dockerImages.portal.image,
       }),
       new workflow.WorkflowJob(publishPrEnvUrlsJob, {
         name: 'Publish environment URLs in Github PR',
