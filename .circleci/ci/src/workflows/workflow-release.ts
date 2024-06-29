@@ -16,11 +16,12 @@
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
   BackendBuildAndPublishOnArtifactoryJob,
+  ConsoleWebuiBuildJob,
+  PortalWebuiBuildJob,
   PortalWebuiNextBuildJob,
   ReleaseCommitAndPrepareNextVersionJob,
   SetupJob,
   SlackAnnouncementJob,
-  WebuiBuildJob,
   WebuiPublishArtifactoryJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
@@ -39,8 +40,11 @@ export class ReleaseWorkflow {
     const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiNextBuildJob);
 
-    const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(webuiBuildJob);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(consoleWebuiBuildJob);
+
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(portalWebuiBuildJob);
 
     const webuiPublishArtifactoryJob = WebuiPublishArtifactoryJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(webuiPublishArtifactoryJob);
@@ -66,11 +70,9 @@ export class ReleaseWorkflow {
         context: config.jobContext,
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(webuiBuildJob, {
+      new workflow.WorkflowJob(portalWebuiBuildJob, {
         context: config.jobContext,
         name: 'Build APIM Portal and publish image',
-        'apim-ui-project': config.dockerImages.portal.project,
-        'docker-image-name': 'apim-portal-ui',
         requires: ['Build APIM Portal Next'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
@@ -81,11 +83,9 @@ export class ReleaseWorkflow {
       }),
 
       // APIM Console
-      new workflow.WorkflowJob(webuiBuildJob, {
+      new workflow.WorkflowJob(consoleWebuiBuildJob, {
         context: config.jobContext,
         name: 'Build APIM Console and publish image',
-        'apim-ui-project': config.dockerImages.console.project,
-        'docker-image-name': 'apim-management-ui',
         requires: ['Setup'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {

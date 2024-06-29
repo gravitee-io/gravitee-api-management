@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 export * from './job-chromatic-console';
+export * from './job-console-webui-build';
 export * from './job-storybook-console';
+export * from './job-portal-webui-build';
 export * from './job-portal-webui-next-build';
 export * from './job-webui-build';
 export * from './job-webui-lint-test';

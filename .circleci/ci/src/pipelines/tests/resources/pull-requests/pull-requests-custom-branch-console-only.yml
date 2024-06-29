@@ -179,16 +179,7 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
-  job-webui-build:
-    parameters:
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-      docker-image-name:
-        type: string
-        default: ""
-        description: the name of the image
+  job-console-webui-build:
     docker:
       - image: cimg/node:20.11.1
     resource_class: large
@@ -200,24 +191,24 @@ jobs:
           version: default
       - cmd-install-yarn
       - cmd-webui-install:
-          apim-ui-project: << parameters.apim-ui-project >>
+          apim-ui-project: gravitee-apim-console-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' << parameters.apim-ui-project >>/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: gravitee-apim-console-webui
       - cmd-build-ui-image:
-          docker-image-name: << parameters.docker-image-name >>
-          apim-ui-project: << parameters.apim-ui-project >>
+          docker-image-name: apim-management-ui
+          apim-ui-project: gravitee-apim-console-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - << parameters.apim-ui-project >>/dist
+            - gravitee-apim-console-webui/dist
   job-console-webui-build-storybook:
     docker:
       - image: cimg/node:20.11.1
@@ -346,12 +337,10 @@ workflows:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-console-webui
           resource_class: xlarge
-      - job-webui-build:
+      - job-console-webui-build:
           name: Build APIM Console and publish image
           context:
             - cicd-orchestrator
-          apim-ui-project: gravitee-apim-console-webui
-          docker-image-name: apim-management-ui
       - job-console-webui-build-storybook:
           name: Build Console Storybook
           context:
