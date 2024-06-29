@@ -204,16 +204,7 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist-next
-  job-webui-build:
-    parameters:
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-      docker-image-name:
-        type: string
-        default: ""
-        description: the name of the image
+  job-portal-webui-build:
     docker:
       - image: cimg/node:20.11.1
     resource_class: large
@@ -225,24 +216,24 @@ jobs:
           version: default
       - cmd-install-yarn
       - cmd-webui-install:
-          apim-ui-project: << parameters.apim-ui-project >>
+          apim-ui-project: gravitee-apim-portal-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' << parameters.apim-ui-project >>/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
-          working_directory: << parameters.apim-ui-project >>
+          working_directory: gravitee-apim-portal-webui
       - cmd-build-ui-image:
-          docker-image-name: << parameters.docker-image-name >>
-          apim-ui-project: << parameters.apim-ui-project >>
+          docker-image-name: apim-portal-ui
+          apim-ui-project: gravitee-apim-portal-webui
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - << parameters.apim-ui-project >>/dist
+            - gravitee-apim-portal-webui/dist
   job-sonarcloud-analysis:
     parameters:
       working_directory:
@@ -308,14 +299,12 @@ workflows:
           name: Build APIM Portal Next
           context:
             - cicd-orchestrator
-      - job-webui-build:
+      - job-portal-webui-build:
           name: Build APIM Portal and publish image
           context:
             - cicd-orchestrator
           requires:
             - Build APIM Portal Next
-          apim-ui-project: gravitee-apim-portal-webui
-          docker-image-name: apim-portal-ui
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:

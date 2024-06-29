@@ -46,7 +46,8 @@ import {
   TestRepositoryJob,
   TestRestApiJob,
   ValidateJob,
-  WebuiBuildJob,
+  ConsoleWebuiBuildJob,
+  PortalWebuiBuildJob,
   WebuiLintTestJob,
 } from '../jobs';
 
@@ -212,8 +213,8 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(webuiBuildJob);
+      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(consoleWebuiBuildJob);
 
       const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig);
       dynamicConfig.addJob(storybookConsoleJob);
@@ -231,11 +232,9 @@ export class PullRequestsWorkflow {
           'apim-ui-project': config.dockerImages.console.project,
           resource_class: 'xlarge',
         }),
-        new workflow.WorkflowJob(webuiBuildJob, {
+        new workflow.WorkflowJob(consoleWebuiBuildJob, {
           name: 'Build APIM Console and publish image',
           context: config.jobContext,
-          'apim-ui-project': config.dockerImages.console.project,
-          'docker-image-name': config.dockerImages.console.image,
         }),
         new workflow.WorkflowJob(storybookConsoleJob, {
           name: 'Build Console Storybook',
@@ -265,8 +264,8 @@ export class PullRequestsWorkflow {
       const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(portalWebuiNextBuildJob);
 
-      const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(webuiBuildJob);
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(sonarCloudAnalysisJob);
@@ -287,12 +286,10 @@ export class PullRequestsWorkflow {
           name: 'Build APIM Portal Next',
           context: config.jobContext,
         }),
-        new workflow.WorkflowJob(webuiBuildJob, {
+        new workflow.WorkflowJob(portalWebuiBuildJob, {
           name: 'Build APIM Portal and publish image',
           context: config.jobContext,
           requires: ['Build APIM Portal Next'],
-          'apim-ui-project': config.dockerImages.portal.project,
-          'docker-image-name': config.dockerImages.portal.image,
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-portal-webui',
