@@ -258,9 +258,17 @@ class DebugApiUseCaseTest {
         return Stream.of(
             Arguments.of(List.of()),
             Arguments.of(List.of(Instance.builder().build())),
+            Arguments.of(List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).build())),
             Arguments.of(List.of(Instance.builder().startedAt(new Date()).build())),
+            Arguments.of(List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).startedAt(new Date()).build())),
             Arguments.of(List.of(Instance.builder().startedAt(new Date()).clusterPrimaryNode(false).build())),
-            Arguments.of(List.of(Instance.builder().startedAt(new Date()).clusterPrimaryNode(true).environments(Set.of()).build())),
+            Arguments.of(
+                List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).startedAt(new Date()).clusterPrimaryNode(false).build())
+            ),
+            Arguments.of(List.of(Instance.builder().environments(Set.of()).startedAt(new Date()).clusterPrimaryNode(true).build())),
+            Arguments.of(
+                List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).startedAt(new Date()).clusterPrimaryNode(true).build())
+            ),
             Arguments.of(
                 List.of(
                     Instance
