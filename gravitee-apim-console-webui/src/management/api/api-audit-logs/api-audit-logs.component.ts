@@ -16,13 +16,13 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { isEqual } from 'lodash';
-import { BehaviorSubject } from 'rxjs';
-import { distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 
 import { ApiAuditFilter } from './components/api-audits-filter-form/api-audits-filter-form.component';
 
 import { ApiAuditsV2Service } from '../../../services-ngx/api-audits-v2.service';
-import { Pagination } from '../../../entities/management-api-v2';
+import { Audit, PagedResult, Pagination } from '../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
 
 interface SearchQuery {
@@ -56,15 +56,24 @@ export class ApiAuditLogsComponent {
 
   protected filters = new BehaviorSubject<SearchQuery>(INITIAL_SEARCH_QUERY);
 
-  protected apiAudits$ = this.filters.pipe(
+  protected apiAudits$: Observable<{ isLoading: boolean } & Pick<PagedResult<Audit>, 'data' | 'pagination'>> = this.filters.pipe(
     distinctUntilChanged(isEqual),
     switchMap(({ query, pagination }) => {
-      return this.apiAuditsV2Service.searchApiAudit(this.apiId, {
-        events: query.events?.join(','),
-        from: query.from,
-        to: query.to,
-        ...pagination,
-      });
+      return this.apiAuditsV2Service
+        .searchApiAudit(this.apiId, {
+          events: query.events?.join(','),
+          from: query.from,
+          to: query.to,
+          ...pagination,
+        })
+        .pipe(
+          map((result) => ({
+            data: result.data,
+            pagination: result.pagination,
+            isLoading: false,
+          })),
+          startWith({ isLoading: true, data: [], pagination: { ...pagination, totalCount: 0 } }),
+        );
     }),
   );
   protected auditEvents$ = this.apiAuditsV2Service.listAllApiAuditEvents(this.apiId);

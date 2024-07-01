@@ -25,13 +25,14 @@
 
       <api-audits-filter-form [events]="auditEvents$ | async" (filtersChange)="queryChange($event)"></api-audits-filter-form>
 
-      <ng-container *ngIf="apiAudits$ | async as auditsResponse">
+      @if (apiAudits$ | async; as auditsResponse) {
         <api-audits-table
+          [isLoading]="auditsResponse.isLoading"
           [audits]="auditsResponse.data"
           [pagination]="auditsResponse.pagination"
           (paginationChange)="paginationChange($event)"
         ></api-audits-table>
-      </ng-container>
+      }
     </div>
 
     <div class="events">
