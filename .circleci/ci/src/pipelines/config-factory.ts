@@ -32,6 +32,7 @@ export function initDynamicConfig(): Config {
     'publish_docker_images',
     'release_helm',
     'repositories_tests',
+    'run_e2e_tests',
   ]);
   dynamicConfig.defineParameter('dry_run', 'boolean', true, 'Run in dry run mode?');
   dynamicConfig.defineParameter('docker_tag_as_latest', 'boolean', false, 'Is this version the latest version available?');

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './workflow-bridge-compatibility-tests';
-export * from './workflow-build-rpm-and-docker-images';
-export * from './workflow-full-release';
-export * from './workflow-repositories-tests';
-export * from './workflow-package-bundle';
-export * from './workflow-publish-docker-images';
-export * from './workflow-pull-requests';
-export * from './workflow-nexus-staging';
-export * from './workflow-release';
-export * from './workflow-release-helm';
-export * from './workflow-release-notes-apim';
-export * from './workflow-run-e2e-tests';
+import { Config } from '@circleci/circleci-config-sdk';
+import { RunE2ETestsWorkflow } from '../workflows';
+import { CircleCIEnvironment } from './circleci-environment';
+import { initDynamicConfig } from './config-factory';
+
+export function generateRunE2ETestsConfig(environment: CircleCIEnvironment): Config {
+  const dynamicConfig = initDynamicConfig();
+  const workflow = RunE2ETestsWorkflow.create(dynamicConfig, environment);
+  dynamicConfig.addWorkflow(workflow);
+  return dynamicConfig;
+}

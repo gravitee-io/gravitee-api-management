@@ -27,6 +27,7 @@ import { generateBuildRpmAndDockerImagesConfig } from './pipeline-build-rpm-and-
 import { generatePullRequestsConfig } from './pipeline-pull-requests';
 import { generateFullReleaseConfig } from './pipeline-full-release';
 import { generateHelmTestsConfig } from './pipeline-helm-tests';
+import { generateRunE2ETestsConfig } from './pipeline-run-e2e-tests';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
@@ -54,6 +55,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generatePublishDockerImagesConfig(environment);
     case 'helm_tests':
       return generateHelmTestsConfig();
+    case 'run_e2e_tests':
+      return generateRunE2ETestsConfig(environment);
   }
   return null;
 }
