@@ -22,7 +22,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { GioFormTagsInputModule } from '@gravitee/ui-particles-angular';
-import { MatNativeDateModule } from '@angular/material/core';
 
 import { ApiAuditsFilterFormComponent } from './api-audits-filter-form.component';
 
@@ -34,7 +33,6 @@ import { ApiAuditsFilterFormComponent } from './api-audits-filter-form.component
     ReactiveFormsModule,
     MatButtonModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     MatFormFieldModule,
     MatIconModule,
     MatSelectModule,

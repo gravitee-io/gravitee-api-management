@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
+import { UntypedFormControl, FormGroup, FormControl } from '@angular/forms';
 import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
+import { Moment } from 'moment';
 
 import { ApiService } from '../../services-ngx/api.service';
 import { ApplicationService } from '../../services-ngx/application.service';
@@ -47,14 +48,14 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
   public filteredTableData: AuditDataTable[] = [];
   public nbTotalAudit = 0;
 
-  public filtersForm = new UntypedFormGroup({
+  public filtersForm = new FormGroup({
     event: new UntypedFormControl(),
     referenceType: new UntypedFormControl(),
     applicationId: new UntypedFormControl(),
     apiId: new UntypedFormControl(),
-    range: new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+    range: new FormGroup({
+      start: new FormControl<Moment>(null),
+      end: new FormControl<Moment>(null),
     }),
   });
 
@@ -101,7 +102,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filtersForm.valueChanges
-      .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
+      .pipe(debounceTime(200), distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
       .subscribe(({ event, referenceType, applicationId, apiId, range }) => {
         this.filtersStream.next({
           tableWrapper: {
@@ -115,8 +116,8 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
             referenceType,
             applicationId,
             apiId,
-            from: range?.start?.getTime() ?? undefined,
-            to: range?.end?.getTime() ?? undefined,
+            from: range?.start?.valueOf() ?? undefined,
+            to: range?.end?.valueOf() ?? undefined,
           },
         });
       });
