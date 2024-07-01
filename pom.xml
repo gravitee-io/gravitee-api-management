@@ -99,7 +99,6 @@
         <gatling-charts-highcharts.version>3.11.5</gatling-charts-highcharts.version>
         <gson.version>2.11.0</gson.version>
         <guava.version>33.2.1-jre</guava.version>
-        <hamcrest.version>2.2</hamcrest.version>
         <hazelcast.version>5.4.0</hazelcast.version>
         <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
         <httpclient.version>4.5.14</httpclient.version>
@@ -932,12 +931,6 @@
                 <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-library</artifactId>
-                <version>${hamcrest.version}</version>
             </dependency>
 
             <dependency>
