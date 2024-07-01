@@ -59,10 +59,10 @@ public class Instance {
     private boolean clusterPrimaryNode;
 
     public boolean isRunningForEnvironment(String environmentId) {
-        return environments.contains(environmentId);
+        return environments == null || environments.isEmpty() || environments.contains(environmentId);
     }
 
     public boolean hasDebugPluginInstalled() {
-        return plugins.stream().map(PluginEntity::getId).anyMatch(DEBUG_PLUGIN_ID::equalsIgnoreCase);
+        return plugins != null && plugins.stream().map(PluginEntity::getId).anyMatch(DEBUG_PLUGIN_ID::equalsIgnoreCase);
     }
 }
