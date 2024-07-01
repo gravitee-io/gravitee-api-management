@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.processor;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
@@ -65,7 +64,7 @@ public class SynchronizationServiceTest {
 
         List<Object> requiredFields = synchronizationService.getRequiredFieldsForComparison(ApiEntity.class, entity);
 
-        assertThat(requiredFields.size() == apiEntityRequiredFieldCount, is(true));
+        assertThat(requiredFields).hasSize(apiEntityRequiredFieldCount);
     }
 
     /**
@@ -97,7 +96,7 @@ public class SynchronizationServiceTest {
 
         boolean isSynchronized = synchronizationService.checkSynchronization(ApiEntity.class, deployedEntity, entityToDeploy);
 
-        assertThat(isSynchronized, is(true));
+        assertThat(isSynchronized).isTrue();
     }
 
     /**
@@ -131,7 +130,7 @@ public class SynchronizationServiceTest {
 
         boolean isSynchronized = synchronizationService.checkSynchronization(ApiEntity.class, deployedEntity, entityToDeploy);
 
-        assertThat(isSynchronized, is(false));
+        assertThat(isSynchronized).isFalse();
     }
 
     /**
