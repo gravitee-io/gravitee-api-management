@@ -22,19 +22,18 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("EventsLatestTypeUpdatedAtPropertyDictionaryIdEnvsIndexUpgrader")
-public class TypeUpdatedAtPropertyDictionaryIdEnvsIndexUpgrader extends IndexUpgrader {
+@Component("EventsLatestTypeUpdatedAtPropertyApiIdIdIndexUpgrader")
+public class TypeUpdatedAtPropertyApiIdIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
             .collection("events_latest")
-            .name("t1u1pdi1e1")
+            .name("t1u1pai1")
             .key("type", ascending())
             .key("updatedAt", ascending())
-            .key("properties.dictionary_id", ascending())
-            .key("environments", ascending())
+            .key("properties.api_id", ascending())
             .build();
     }
 }

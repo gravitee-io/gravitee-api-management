@@ -46,7 +46,6 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
             eventService.createEvent(
                 new ExecutionContext(organizationId, environmentId),
                 environmentIds,
-                organizationId,
                 eventType,
                 content,
                 EventAdapter.INSTANCE.toStringEventPropertiesMap(properties)

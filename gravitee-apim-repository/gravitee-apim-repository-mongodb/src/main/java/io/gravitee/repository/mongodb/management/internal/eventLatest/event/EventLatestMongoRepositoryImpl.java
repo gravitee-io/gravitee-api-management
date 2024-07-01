@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.eventLatest.event;
 
-import static io.gravitee.repository.mongodb.management.internal.event.EventMongoRepositoryImpl.buildDBCriteria;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -23,7 +22,6 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,5 +81,41 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
         final AggregationResults<EventLatestMongo> events = mongoTemplate.aggregate(aggregation, collectionName, EventLatestMongo.class);
 
         return events.getMappedResults();
+    }
+
+    protected List<Criteria> buildDBCriteria(final EventCriteria criteria) {
+        List<Criteria> criteriaList = new ArrayList<>();
+
+        if (!isEmpty(criteria.getTypes())) {
+            criteriaList.add(Criteria.where("type").in(criteria.getTypes()));
+        }
+
+        if (!isEmpty(criteria.getProperties())) {
+            // set criteria query
+            criteria
+                .getProperties()
+                .forEach((k, v) -> {
+                    if (v instanceof Collection) {
+                        criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
+                    } else {
+                        criteriaList.add(Criteria.where("properties." + k).is(v));
+                    }
+                });
+        }
+
+        // set range query
+        if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
+            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lte(new Date(criteria.getTo())));
+        } else if (criteria.getFrom() > 0) {
+            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
+        } else if (criteria.getTo() > 0) {
+            criteriaList.add(Criteria.where("updatedAt").lte(new Date(criteria.getTo())));
+        }
+
+        if (!isEmpty(criteria.getEnvironments())) {
+            criteriaList.add(Criteria.where("environments").in(criteria.getEnvironments()));
+        }
+
+        return criteriaList;
     }
 }

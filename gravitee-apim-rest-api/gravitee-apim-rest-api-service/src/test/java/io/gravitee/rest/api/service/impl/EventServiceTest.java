@@ -17,8 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
@@ -26,7 +24,6 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -82,8 +79,6 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class EventServiceTest {
-
-    private static final String ORGANIZATION_ID = GraviteeContext.getCurrentOrganization();
 
     private static final String EVENT_ID = "id-event";
     private static final String EVENT_PAYLOAD = "{}";
@@ -156,7 +151,6 @@ public class EventServiceTest {
         final EventEntity eventEntity = eventService.createNewEventEntity(
             GraviteeContext.getExecutionContext(),
             Collections.singleton(GraviteeContext.getCurrentEnvironment()),
-            GraviteeContext.getCurrentOrganization(),
             newEvent
         );
 
@@ -424,30 +418,13 @@ public class EventServiceTest {
 
         eventService.createDynamicDictionaryEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
+            Set.of(),
             io.gravitee.rest.api.model.EventType.START_DICTIONARY,
             "dictionaryId"
         );
 
-        verify(eventRepository)
-            .create(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertTrue(e.getPayload() == null && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
-                    return true;
-                })
-            );
-        verify(eventLatestRepository)
-            .createOrUpdate(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertTrue(e.getPayload() == null && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
-                    return true;
-                })
-            );
+        verify(eventRepository, times(1))
+            .create(argThat(e -> e.getPayload() == null && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())));
         verifyNoMoreInteractions(eventRepository);
     }
 
@@ -460,33 +437,15 @@ public class EventServiceTest {
 
         eventService.createDictionaryEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
+            Set.of(),
             io.gravitee.rest.api.model.EventType.DEBUG_API,
             dictionary
         );
-
-        verify(eventRepository)
+        verify(eventRepository, times(1))
             .create(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertTrue(
-                        jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())
-                    );
-                    return true;
-                })
-            );
-        verify(eventLatestRepository)
-            .createOrUpdate(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertTrue(
-                        jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())
-                    );
-                    return true;
-                })
+                argThat(e ->
+                    jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())
+                )
             );
 
         verifyNoMoreInteractions(eventRepository);
@@ -498,27 +457,17 @@ public class EventServiceTest {
 
         eventService.createOrganizationEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_ORGANIZATION,
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
             null
         );
 
-        verify(eventRepository)
-            .create(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertNull(e.getPayload());
-                    return true;
-                })
-            );
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
         verifyNoMoreInteractions(eventRepository);
-        verifyNoInteractions(eventLatestRepository);
     }
 
     @Test
-    public void createOrganizationEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
+    public void createOrganizationApiEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
         String jsonValue = "serialized json value";
         OrganizationEntity organization = mock(OrganizationEntity.class);
         when(objectMapper.writeValueAsString(organization)).thenReturn(jsonValue);
@@ -526,37 +475,18 @@ public class EventServiceTest {
 
         eventService.createOrganizationEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_ORGANIZATION,
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
             organization
         );
-
-        verify(eventRepository)
+        verify(eventRepository, times(1))
             .create(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertTrue(
-                        jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue())
-                    );
-                    return true;
-                })
+                argThat(e ->
+                    jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue())
+                )
             );
 
         verifyNoMoreInteractions(eventRepository);
-
-        verify(eventLatestRepository)
-            .createOrUpdate(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertTrue(
-                        jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue())
-                    );
-                    return true;
-                })
-            );
     }
 
     @Test
@@ -565,24 +495,14 @@ public class EventServiceTest {
 
         eventService.createApiEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
             (Api) null,
             Map.of()
         );
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
 
-        verify(eventRepository)
-            .create(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertNull(e.getPayload());
-                    return true;
-                })
-            );
         verifyNoMoreInteractions(eventRepository);
-        verifyNoInteractions(eventLatestRepository);
     }
 
     @Test
@@ -591,32 +511,13 @@ public class EventServiceTest {
 
         eventService.createApiEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
             "apiId",
             Map.of()
         );
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
 
-        verify(eventRepository)
-            .create(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertNull(e.getPayload());
-                    return true;
-                })
-            );
-
-        verify(eventLatestRepository)
-            .createOrUpdate(
-                argThat(e -> {
-                    assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                    assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                    assertNull(e.getPayload());
-                    return true;
-                })
-            );
         verifyNoMoreInteractions(eventRepository);
     }
 
@@ -643,8 +544,7 @@ public class EventServiceTest {
 
         eventService.createApiEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
+            Set.of(),
             io.gravitee.rest.api.model.EventType.START_API,
             api,
             Map.of()
@@ -652,7 +552,7 @@ public class EventServiceTest {
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
-        verify(eventRepository).create(createdEvent.capture());
+        verify(eventRepository, times(1)).create(createdEvent.capture());
         verifyNoMoreInteractions(eventRepository);
 
         Event eventCaptured = createdEvent.getValue();
@@ -682,8 +582,7 @@ public class EventServiceTest {
 
         eventService.createApiEvent(
             GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
+            Set.of(),
             io.gravitee.rest.api.model.EventType.PUBLISH_API,
             api,
             new HashMap<>()
@@ -691,7 +590,7 @@ public class EventServiceTest {
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
-        verify(eventRepository).create(createdEvent.capture());
+        verify(eventRepository, times(1)).create(createdEvent.capture());
         verifyNoMoreInteractions(eventRepository);
 
         // deserialize payload event and check it contains api flows from database
@@ -702,9 +601,6 @@ public class EventServiceTest {
         assertEquals(2, payloadApiDefinition.getFlows().size());
         assertEquals("flow1", payloadApiDefinition.getFlows().get(0).getName());
         assertEquals("flow2", payloadApiDefinition.getFlows().get(1).getName());
-
-        assertEquals(Set.of(ENVIRONMENT_ID), eventCaptured.getEnvironments());
-        assertEquals(Set.of(ORGANIZATION_ID), eventCaptured.getOrganizations());
     }
 
     private PlanEntity buildPlanEntity(String id, PlanStatus status) {
@@ -719,5 +615,24 @@ public class EventServiceTest {
         Flow flow = new Flow();
         flow.setName(name);
         return flow;
+    }
+
+    private Event generateInstanceEvent(String name, boolean isUnknown) {
+        Event event = new Event();
+        event.setId("evt1");
+        event.setCreatedAt(new Date(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()));
+        event.setUpdatedAt(new Date(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
+        Map<String, String> properties = new HashMap<>();
+        properties.put("started_at", String.valueOf(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()));
+        if (isUnknown) {
+            event.setType(EventType.GATEWAY_STARTED);
+            properties.put("last_heartbeat_at", String.valueOf(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
+        } else {
+            event.setType(EventType.GATEWAY_STOPPED);
+            properties.put("last_heartbeat_at", String.valueOf(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
+            properties.put("stopped_at", String.valueOf(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
+        }
+        event.setProperties(properties);
+        return event;
     }
 }

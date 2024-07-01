@@ -16,8 +16,6 @@
 package io.gravitee.repository.management;
 
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -31,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.NoArgsConstructor;
 import org.junit.Test;
 
 public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest {
@@ -52,7 +49,6 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setEnvironments(singleton("DEFAULT"));
-        event.setOrganizations(singleton("MY_ORG"));
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
@@ -64,7 +60,6 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
         assertTrue("Invalid saved environment id.", eventCreated.getEnvironments().contains("DEFAULT"));
-        assertTrue("Invalid saved organization id.", eventCreated.getOrganizations().contains("MY_ORG"));
     }
 
     @Test
@@ -73,7 +68,6 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         Event event = new Event();
         event.setId(id);
         event.setEnvironments(singleton("DEFAULT"));
-        event.setOrganizations(singleton("MY_ORG"));
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
@@ -88,7 +82,6 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
         assertEquals("Invalid saved event properties.", properties, eventCreated.getProperties());
         assertTrue("Invalid saved environment id.", eventCreated.getEnvironments().contains("DEFAULT"));
-        assertTrue("Invalid saved organization id.", eventCreated.getOrganizations().contains("MY_ORG"));
 
         eventCreated.setCreatedAt(new Date());
         eventCreated.setUpdatedAt(event.getCreatedAt());
@@ -97,7 +90,6 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("Invalid updated event payload.", "{}", eventUpdated.getPayload());
         assertEquals("Invalid updated event properties.", properties, eventUpdated.getProperties());
         assertTrue("Invalid updated environment id.", eventUpdated.getEnvironments().contains("DEFAULT"));
-        assertTrue("Invalid saved organization id.", eventUpdated.getOrganizations().contains("MY_ORG"));
 
         List<Event> eventFounds = eventLatestRepository.search(EventCriteria.builder().property("key", "value").build(), null, null, null);
         assertEquals("Invalid found event", eventUpdated, eventFounds.get(0));
@@ -107,9 +99,13 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
     public void shouldReturnAllApiEventsWhenSearchingWithoutPagingAndSize() {
         List<Event> events = eventLatestRepository.search(EventCriteria.builder().build(), Event.EventProperties.API_ID, null, null);
 
-        assertEquals(8L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly("api-1", "api-2", "api-3", "api-4", "api-5", "api-6", "api-7", "api-8");
+        assertEquals(5L, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-3", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
     }
 
     @Test
@@ -167,9 +163,8 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 2L, 2L);
         iterator = events.iterator();
-        assertEquals(2L, events.size());
+        assertEquals(1L, events.size());
         assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-6", iterator.next().getId());
 
         // Test 3 by 3
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 3L);
@@ -181,10 +176,9 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 1L, 3L);
         iterator = events.iterator();
-        assertEquals(3L, events.size());
+        assertEquals(2L, events.size());
         assertEquals("api-4", iterator.next().getId());
         assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-6", iterator.next().getId());
 
         // Test 4 by 4
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 4L);
@@ -197,11 +191,8 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 1L, 4L);
         iterator = events.iterator();
-        assertEquals(4L, events.size());
+        assertEquals(1L, events.size());
         assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-6", iterator.next().getId());
-        assertEquals("api-7", iterator.next().getId());
-        assertEquals("api-8", iterator.next().getId());
 
         // Test 5 by 5
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 5L);
@@ -248,47 +239,6 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         );
 
         assertEquals(1, events.size());
-    }
-
-    @Test
-    public void shouldReturnApiEventsWhenSearchingWithDefaultEnvironment() {
-        List<Event> events = eventLatestRepository.search(
-            EventCriteria.builder().types(Set.of(EventType.START_API, EventType.PUBLISH_API)).environments(singleton("DEFAULT")).build(),
-            Event.EventProperties.API_ID,
-            0L,
-            10L
-        );
-
-        assertEquals(5, events.size());
-        assertThat(events.stream().map(Event::getId)).containsExactly("api-1", "api-4", "api-5", "api-6", "api-8");
-    }
-
-    @Test
-    public void shouldReturnApiEventsWhenSearchingWithOtherOrganization() {
-        eventLatestRepository.search(EventCriteria.builder().build(), Event.EventProperties.API_ID, 0L, 10L);
-        List<Event> events = eventLatestRepository.search(
-            EventCriteria.builder().types(Set.of(EventType.START_API, EventType.PUBLISH_API)).organizations(singleton("OTHER")).build(),
-            Event.EventProperties.API_ID,
-            0L,
-            10L
-        );
-
-        assertEquals(2, events.size());
-        assertThat(events.stream().map(Event::getId)).containsExactly("api-6", "api-8");
-    }
-
-    @Test
-    public void shouldReturnEventsWhenSearchingByEnvironmentDefaultAndOrganizationDefault() {
-        List<Event> events = eventLatestRepository.search(
-            EventCriteria.builder().environments(singletonList("DEFAULT")).organizations(singletonList("DEFAULT")).build(),
-            null,
-            0L,
-            100L
-        );
-
-        assertEquals(8L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly("api-1", "api-2", "api-3", "api-4", "api-5", "dictionary-1", "api-6", "api-8");
     }
 
     @Test

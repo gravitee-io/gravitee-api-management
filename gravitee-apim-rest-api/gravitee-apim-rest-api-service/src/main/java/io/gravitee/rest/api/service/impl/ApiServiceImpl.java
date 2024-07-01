@@ -1507,7 +1507,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
-                    executionContext.getOrganizationId(),
                     EventType.UNPUBLISH_API,
                     apiId,
                     properties
@@ -1729,14 +1728,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         addDeploymentLabelToProperties(executionContext, apiId, eventType, properties, apiDeploymentEntity);
 
         // And create event
-        eventService.createApiEvent(
-            executionContext,
-            singleton(executionContext.getEnvironmentId()),
-            executionContext.getOrganizationId(),
-            eventType,
-            api,
-            properties
-        );
+        eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), eventType, api, properties);
 
         final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
@@ -1816,7 +1808,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
-                    executionContext.getOrganizationId(),
                     eventType,
                     lastPublishedAPI,
                     properties

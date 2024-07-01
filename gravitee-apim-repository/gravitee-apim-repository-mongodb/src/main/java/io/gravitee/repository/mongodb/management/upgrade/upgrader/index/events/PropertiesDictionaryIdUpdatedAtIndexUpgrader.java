@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.eventslatest;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.events;
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
@@ -22,17 +22,17 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("EventsLatestPropertyDictionaryIdEnvsIndexUpgrader")
-public class PropertyDictionaryIdEnvsIndexUpgrader extends IndexUpgrader {
+@Component("EventsPropertiesDictionaryIdUpdatedAtIndexUpgrader")
+public class PropertiesDictionaryIdUpdatedAtIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
-            .collection("events_latest")
-            .name("pdi1e1")
+            .collection("events")
+            .name("pdi1u1")
             .key("properties.dictionary_id", ascending())
-            .key("environments", ascending())
+            .key("updatedAt", descending())
             .build();
     }
 }
