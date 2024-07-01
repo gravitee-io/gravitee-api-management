@@ -25,6 +25,7 @@ parameters:
                 release_helm,
                 repositories_tests,
                 helm_tests,
+                run_e2e_tests,
             ]
         default: pull_requests
     dry_run:
