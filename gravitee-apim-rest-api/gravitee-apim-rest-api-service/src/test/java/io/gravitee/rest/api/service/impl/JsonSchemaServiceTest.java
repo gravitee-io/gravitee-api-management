@@ -45,13 +45,13 @@ public class JsonSchemaServiceTest {
         assertThatThrownBy(() -> jsonSchemaService.validate(schema, configuration))
             .isInstanceOf(InvalidDataException.class)
             .hasMessage(
-                "#/ssl/trustStore: required key [content] not found\n" +
                 "#/ssl/trustStore/type: \n" +
+                "#/ssl/trustStore: required key [content] not found\n" +
                 "#/ssl/trustStore: required key [path] not found\n" +
-                "#/ssl/trustStore: required key [path] not found\n" +
+                "#/ssl/trustStore: required key [content] not found\n" +
                 "#/ssl/trustStore: required key [password] not found\n" +
                 "#/ssl/trustStore/type: string [PEM] does not match pattern JKS|PKCS12\n" +
-                "#/ssl/trustStore: required key [content] not found\n" +
+                "#/ssl/trustStore: required key [path] not found\n" +
                 "#/ssl/trustStore: required key [password] not found\n" +
                 "#/ssl/trustStore/type: string [PEM] does not match pattern JKS|PKCS12"
             );
