@@ -33,7 +33,7 @@ import org.apache.xmlbeans.impl.schema.BuiltinSchemaTypeSystem;
 public abstract class AbstractSoapBuilder {
 
     private SchemaTypeSystem shemaTypeSystem;
-    private Map<Object, Object> namespaceMappings;
+    private Map<String, String> namespaceMappings;
 
     protected SoapVersion version;
     protected BindingOperation bindingOperation;
@@ -59,7 +59,7 @@ public abstract class AbstractSoapBuilder {
         return this;
     }
 
-    public AbstractSoapBuilder withNamespaceMappings(Map<Object, Object> namespaceMappings) {
+    public AbstractSoapBuilder withNamespaceMappings(Map<String, String> namespaceMappings) {
         this.namespaceMappings = namespaceMappings;
         return this;
     }
