@@ -36,6 +36,9 @@ export class ApiAuditsTableComponent {
   @Input()
   public audits: Audit[];
 
+  @Input()
+  public isLoading: boolean;
+
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
 

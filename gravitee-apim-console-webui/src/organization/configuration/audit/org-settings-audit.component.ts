@@ -47,6 +47,7 @@ interface AuditDataTable {
 export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];
   public filteredTableData: AuditDataTable[] = [];
+  public tableIsLoading = true;
   public nbTotalAudit = 0;
 
   public filtersForm = new UntypedFormGroup({
@@ -163,6 +164,10 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
       .pipe(
         throttleTime(100),
         distinctUntilChanged(isEqual),
+        tap(() => {
+          this.filteredTableData = [];
+          this.tableIsLoading = true;
+        }),
         switchMap(({ auditFilters, tableWrapper }) =>
           this.auditService.listByOrganization(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size).pipe(
             catchError(() => {
@@ -186,6 +191,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
           patch: JSON.parse(audit.patch),
           displayPatch: false,
         }));
+        this.tableIsLoading = false;
       });
   }
 

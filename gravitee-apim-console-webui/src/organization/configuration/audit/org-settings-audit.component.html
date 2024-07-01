@@ -180,7 +180,8 @@
 
     <!-- Row shown when there is no data -->
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No audit</td>
+      <td *ngIf="tableIsLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">Loading...</td>
+      <td *ngIf="!tableIsLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No audit</td>
     </tr>
   </table>
 </gio-table-wrapper>
