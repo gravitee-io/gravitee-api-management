@@ -27,7 +27,12 @@ import java.io.StringWriter;
 import java.util.*;
 import javax.wsdl.*;
 import javax.wsdl.extensions.schema.Schema;
-import org.apache.xmlbeans.*;
+import org.apache.xmlbeans.SchemaTypeSystem;
+import org.apache.xmlbeans.XmlBeans;
+import org.apache.xmlbeans.XmlCursor;
+import org.apache.xmlbeans.XmlException;
+import org.apache.xmlbeans.XmlObject;
+import org.apache.xmlbeans.XmlOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +42,15 @@ public class SoapMessageBuilder {
     public static final String XMLSCHEMA = "http://www.w3.org/2001/XMLSchema";
     public static final String XSD_PREFIX = "xsd";
 
-    private final Map<Object, Object> namespaceMappings;
-    private final Map<Object, Object> prefixToNamespaces;
+    private final Map<String, String> namespaceMappings;
+    private final Map<String, String> prefixToNamespaces;
     private final XmlOptions options;
 
     private List<XmlObject> schemas = new ArrayList<>();
     private SchemaTypeSystem shemaTypeSystem;
     private boolean compiled = false;
 
-    public SoapMessageBuilder(Map<Object, Object> namespaceMappings) {
+    public SoapMessageBuilder(Map<String, String> namespaceMappings) {
         this.namespaceMappings = namespaceMappings;
         this.namespaceMappings.put(SampleXmlUtil.XSI_TYPE.getNamespaceURI(), SampleXmlUtil.XSI_TYPE.getPrefix());
         this.namespaceMappings.put(XMLSCHEMA, XSD_PREFIX);
@@ -56,7 +61,7 @@ public class SoapMessageBuilder {
 
         // provide prefixes used by the WSDL to keep naming consistency in SoapEnvelope message
         this.prefixToNamespaces = new HashMap();
-        for (Map.Entry entry : namespaceMappings.entrySet()) {
+        for (var entry : namespaceMappings.entrySet()) {
             this.prefixToNamespaces.put(entry.getValue(), entry.getKey());
         }
         this.options.setSaveSuggestedPrefixes(this.prefixToNamespaces);
