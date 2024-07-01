@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -126,21 +125,30 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
     }
 
     private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties) {
-        final Optional<List<String>> optOrganizationHridsList = heartbeatStrategyConfiguration.gatewayConfiguration().organizations();
-        final Optional<List<String>> optEnvironmentHridsList = heartbeatStrategyConfiguration.gatewayConfiguration().environments();
-
-        optOrganizationHridsList.ifPresent(organizationHrids ->
-            properties.put(Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), String.join(", ", organizationHrids))
+        final Optional<List<String>> optOrganizationsList = heartbeatStrategyConfiguration.gatewayConfiguration().organizations();
+        optOrganizationsList.ifPresent(organizationsHrids ->
+            properties.put(Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), String.join(", ", organizationsHrids))
         );
 
-        optEnvironmentHridsList
-            .map(TreeSet::new)
-            .ifPresent(environmentHrids ->
-                properties.put(Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), String.join(", ", environmentHrids))
-            );
+        final Optional<List<String>> optEnvironmentsList = heartbeatStrategyConfiguration.gatewayConfiguration().environments();
+        Set<String> environmentsHrids = optEnvironmentsList
+            .map(HashSet::new)
+            .orElseGet(() -> {
+                HashSet<String> defaultHrids = new HashSet<>();
+                defaultHrids.add("DEFAULT");
+                return defaultHrids;
+            });
+        properties.put(Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), String.join(", ", environmentsHrids));
 
-        event.setEnvironments((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS));
-        event.setOrganizations((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ORGANIZATIONS));
+        Set<String> environmentsIds = new HashSet<>(
+            (Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS)
+        );
+        // The first time APIM starts, if the Gateway is launched before the environments collection is created by the Rest API, then environmentsIds will be empty.
+        // We must put at least "DEFAULT" environment.
+        if (environmentsIds.isEmpty()) {
+            environmentsIds.add("DEFAULT");
+        }
+        event.setEnvironments(environmentsIds);
     }
 
     private InstanceEventPayload createInstanceInfo() {

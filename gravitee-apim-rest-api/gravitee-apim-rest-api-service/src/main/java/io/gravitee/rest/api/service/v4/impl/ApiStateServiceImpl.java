@@ -205,14 +205,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
 
         // And create event
-        eventService.createApiEvent(
-            executionContext,
-            singleton(executionContext.getEnvironmentId()),
-            executionContext.getOrganizationId(),
-            PUBLISH_API,
-            api,
-            properties
-        );
+        eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
     }
 
     private void addDeploymentLabelToProperties(
@@ -363,7 +356,6 @@ public class ApiStateServiceImpl implements ApiStateService {
                 eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
-                    executionContext.getOrganizationId(),
                     eventType,
                     lastPublishedAPI,
                     properties

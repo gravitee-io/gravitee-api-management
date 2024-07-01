@@ -276,7 +276,7 @@ public class ApiService_DeleteTest {
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(eventService, times(1))
-            .createApiEvent(any(ExecutionContext.class), anySet(), anyString(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
+            .createApiEvent(any(ExecutionContext.class), anySet(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
     }
 
     @Test
@@ -291,6 +291,6 @@ public class ApiService_DeleteTest {
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(eventService, never())
-            .createApiEvent(any(ExecutionContext.class), anySet(), anyString(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
+            .createApiEvent(any(ExecutionContext.class), anySet(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
     }
 }

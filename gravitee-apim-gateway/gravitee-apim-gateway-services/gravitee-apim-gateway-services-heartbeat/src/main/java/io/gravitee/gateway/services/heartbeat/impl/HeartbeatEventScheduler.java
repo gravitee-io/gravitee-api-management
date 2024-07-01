@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventScheduler> {
 
-    public static final String HEARTBEATS = "heartbeats";
+    private static final String HEARTBEATS = "heartbeats";
     private final ClusterManager clusterManager;
     private final int delay;
     private final TimeUnit unit;

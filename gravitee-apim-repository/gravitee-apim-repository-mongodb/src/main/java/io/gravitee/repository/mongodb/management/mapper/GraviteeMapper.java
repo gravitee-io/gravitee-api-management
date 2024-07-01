@@ -158,8 +158,6 @@ public interface GraviteeMapper {
 
     List<Event> mapEventLatests(Collection<EventLatestMongo> toMap);
 
-    EventLatestMongo mapEvent(Event toMap);
-
     // Flow mapping
     Flow map(FlowMongo toMap);
 

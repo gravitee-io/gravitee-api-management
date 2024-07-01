@@ -83,7 +83,6 @@ class ApiEventQueryServiceImplTest {
         final Event event = new Event(
             "event-id",
             Set.of("env-id"),
-            Set.of("org-id"),
             EventType.PUBLISH_API,
             GraviteeJacksonMapper.getInstance().writeValueAsString(ApiAdapter.INSTANCE.toRepository(api)),
             null,

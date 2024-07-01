@@ -218,7 +218,6 @@ public class ApiStateServiceImpl_DeployTest {
             .createApiEvent(
                 any(ExecutionContext.class),
                 anySet(),
-                anyString(),
                 eq(EventType.PUBLISH_API),
                 eq(api),
                 argThat(properties ->
@@ -268,7 +267,6 @@ public class ApiStateServiceImpl_DeployTest {
             .createApiEvent(
                 any(ExecutionContext.class),
                 anySet(),
-                anyString(),
                 eq(EventType.PUBLISH_API),
                 eq(api),
                 argThat(properties ->
