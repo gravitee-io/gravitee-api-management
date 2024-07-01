@@ -15,13 +15,14 @@
  */
 import { Routes } from '@angular/router';
 
-import { ApiDetailsComponent } from './api-details/api-details.component';
-import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
-import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
-import { ApiTabSubscriptionsComponent } from './api-details/api-tab-subscriptions/api-tab-subscriptions.component';
-import { SubscriptionsDetailsComponent } from './api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
-import { SubscriptionsTableComponent } from './api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
-import { SubscribeToApiComponent } from './api-details/subscribe-to-api/subscribe-to-api.component';
+import { ApiDetailsComponent } from './api/api-details/api-details.component';
+import { ApiTabDetailsComponent } from './api/api-details/api-tab-details/api-tab-details.component';
+import { ApiTabDocumentationComponent } from './api/api-details/api-tab-documentation/api-tab-documentation.component';
+import { ApiTabSubscriptionsComponent } from './api/api-details/api-tab-subscriptions/api-tab-subscriptions.component';
+import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
+import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
+import { ApiComponent } from './api/api.component';
+import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
@@ -40,8 +41,8 @@ export const routes: Routes = [
       { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' }, canActivate: [redirectGuard] },
       {
         path: 'api/:apiId',
-        component: ApiDetailsComponent,
-        resolve: { api: apiResolver, pages: pagesResolver },
+        component: ApiComponent,
+        resolve: { api: apiResolver },
         data: { breadcrumb: { alias: 'apiName' } },
         children: [
           {
@@ -50,37 +51,44 @@ export const routes: Routes = [
             pathMatch: 'full',
           },
           {
-            path: 'details',
-            component: ApiTabDetailsComponent,
-            data: { breadcrumb: { skip: true } },
-          },
-          {
-            path: 'documentation',
-            component: ApiTabDocumentationComponent,
-            data: { breadcrumb: { skip: true } },
-          },
-          {
-            path: 'subscriptions',
-            component: ApiTabSubscriptionsComponent,
-            data: { breadcrumb: { skip: true } },
-            canActivate: [authGuard],
+            path: '',
+            component: ApiDetailsComponent,
+            resolve: { pages: pagesResolver },
             children: [
               {
-                path: '',
-                component: SubscriptionsTableComponent,
+                path: 'details',
+                component: ApiTabDetailsComponent,
+                data: { breadcrumb: { skip: true } },
               },
               {
-                path: ':subscriptionApplicationId',
-                component: SubscriptionsDetailsComponent,
+                path: 'documentation',
+                component: ApiTabDocumentationComponent,
+                data: { breadcrumb: { skip: true } },
+              },
+              {
+                path: 'subscriptions',
+                component: ApiTabSubscriptionsComponent,
+                data: { breadcrumb: { skip: true } },
+                canActivate: [authGuard],
+                children: [
+                  {
+                    path: '',
+                    component: SubscriptionsTableComponent,
+                  },
+                  {
+                    path: ':subscriptionApplicationId',
+                    component: SubscriptionsDetailsComponent,
+                  },
+                ],
               },
             ],
           },
+          {
+            path: 'subscribe',
+            component: SubscribeToApiComponent,
+            data: { breadcrumb: 'Subscribe' },
+          },
         ],
-      },
-      {
-        path: 'api/:apiId/subscribe',
-        component: SubscribeToApiComponent,
-        data: { breadcrumb: 'Subscribe' },
       },
     ],
   },

@@ -20,13 +20,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
-import { fakeApi, fakeApisResponse } from '../../../../entities/api/api.fixtures';
-import { ApisResponse } from '../../../../entities/api/apis-response';
-import { Application } from '../../../../entities/application/application';
-import { fakeApplication } from '../../../../entities/application/application.fixture';
-import { Subscription, SubscriptionData } from '../../../../entities/subscription/subscription';
-import { fakeSubscription, fakeSubscriptionResponse } from '../../../../entities/subscription/subscription.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { fakeApi, fakeApisResponse } from '../../../../../entities/api/api.fixtures';
+import { ApisResponse } from '../../../../../entities/api/apis-response';
+import { Application } from '../../../../../entities/application/application';
+import { fakeApplication } from '../../../../../entities/application/application.fixture';
+import { Subscription, SubscriptionData } from '../../../../../entities/subscription/subscription';
+import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 
 describe('SubscriptionsDetailsComponent', () => {
   let fixture: ComponentFixture<SubscriptionsDetailsComponent>;

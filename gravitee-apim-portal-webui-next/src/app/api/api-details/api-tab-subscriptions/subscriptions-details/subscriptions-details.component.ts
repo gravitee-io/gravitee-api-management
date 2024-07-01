@@ -28,13 +28,13 @@ import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { getApiSecurityTypeLabel } from '../../../../entities/api/api';
-import { SubscriptionMetadata } from '../../../../entities/subscription/subscription';
-import { CapitalizeFirstPipe } from '../../../../pipe/capitalize-first.pipe';
-import { ApiService } from '../../../../services/api.service';
-import { ApplicationService } from '../../../../services/application.service';
-import { ConfigService } from '../../../../services/config.service';
-import { SubscriptionService } from '../../../../services/subscription.service';
+import { getApiSecurityTypeLabel } from '../../../../../entities/api/api';
+import { SubscriptionMetadata } from '../../../../../entities/subscription/subscription';
+import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
+import { ApiService } from '../../../../../services/api.service';
+import { ApplicationService } from '../../../../../services/application.service';
+import { ConfigService } from '../../../../../services/config.service';
+import { SubscriptionService } from '../../../../../services/subscription.service';
 
 export interface SubscriptionDetailsData {
   application?: string;

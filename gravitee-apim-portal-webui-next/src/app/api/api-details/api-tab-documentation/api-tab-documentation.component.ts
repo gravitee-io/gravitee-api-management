@@ -19,11 +19,11 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { catchError, map, Observable, of } from 'rxjs';
 
-import { LoaderComponent } from '../../../components/loader/loader.component';
-import { PageComponent } from '../../../components/page/page.component';
-import { PageTreeComponent, PageTreeNode } from '../../../components/page-tree/page-tree.component';
-import { Page } from '../../../entities/page/page';
-import { PageService } from '../../../services/page.service';
+import { LoaderComponent } from '../../../../components/loader/loader.component';
+import { PageComponent } from '../../../../components/page/page.component';
+import { PageTreeComponent, PageTreeNode } from '../../../../components/page-tree/page-tree.component';
+import { Page } from '../../../../entities/page/page';
+import { PageService } from '../../../../services/page.service';
 
 interface SelectedPageData {
   result?: Page;
