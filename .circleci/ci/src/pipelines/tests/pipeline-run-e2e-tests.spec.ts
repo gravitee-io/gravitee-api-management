@@ -20,6 +20,7 @@ describe('Run e2e tests', () => {
   it('should generate Run e2e tests pipeline', () => {
     const result = generateRunE2ETestsConfig({
       action: 'run_e2e_tests',
+      baseBranch: 'master',
       branch: 'apim-xxx-test',
       sha1: '784ff35ca',
       changedFiles: [],
