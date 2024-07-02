@@ -20,7 +20,7 @@ import { ApplicationSubscriptionService } from './application-subscription.servi
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey.fixture';
-import { fakeApplicationSubscription } from '../entities/subscription/subscription.fixture';
+import { fakeSubscription } from '../entities/subscription/subscription.fixture';
 import { fakeNewSubscriptionEntity } from '../entities/application/NewSubscriptionEntity.fixtures';
 
 describe('ApplicationSubscriptionService', () => {
@@ -42,7 +42,7 @@ describe('ApplicationSubscriptionService', () => {
 
   describe('getSubscription', () => {
     it('should call the API', (done) => {
-      const expectedSubscription = fakeApplicationSubscription({ id: 'subscriptionId' });
+      const expectedSubscription = fakeSubscription({ id: 'subscriptionId' });
 
       service.getSubscription('applicationId', 'subscriptionId').subscribe((subscription) => {
         expect(subscription).toEqual(expectedSubscription);

@@ -24,7 +24,7 @@ import { Scope, Tuple } from '../../../../../entities/alert';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeTenant } from '../../../../../entities/tenant/tenant.fixture';
 import { fakePlan } from '../../../../../entities/plan/plan.fixture';
-import { fakeApplicationSubscription } from '../../../../../entities/subscription/subscription.fixture';
+import { fakeSubscriptionPage } from '../../../../../entities/subscription/subscription.fixture';
 import { fakePagedResult } from '../../../../../entities/pagedResult';
 import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
 import { statusLoader } from '../../../../../entities/alerts/healthcheck.metrics';
@@ -94,7 +94,7 @@ describe('RuntimeAlertCreateService', () => {
 
     const metadata = {};
     metadata[plan.id] = { name: plan.name };
-    const response = fakePagedResult([fakeApplicationSubscription({ plan: plan.id })], null, metadata);
+    const response = fakePagedResult([fakeSubscriptionPage({ plan: plan.id })], null, metadata);
     req.flush(response);
   });
 

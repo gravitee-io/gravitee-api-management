@@ -29,7 +29,7 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
-import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
+import { SubscriptionPage } from '../../../../../entities/subscription/subscription';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import {
@@ -56,7 +56,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
   private destroyRef = inject(DestroyRef);
   private canUseSharedApiKeys = this.environmentSettingsService.getSnapshot().plan?.security?.sharedApiKey?.enabled;
   private isFederatedApi = false;
-  private apiKeySubscriptions: ApplicationSubscription[];
+  private apiKeySubscriptions: SubscriptionPage[];
   private entrypointsMap = new Map<string, { icon: string; name: string }>();
   protected availableSubscriptionEntrypoints: { type: string; name?: string; icon?: string }[] = [];
   protected application: Application;

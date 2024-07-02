@@ -47,9 +47,9 @@ import {
   Plan,
 } from '../../../../../entities/management-api-v2';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
-import { fakeApplicationSubscription } from '../../../../../entities/subscription/subscription.fixture';
+import { fakeSubscriptionPage } from '../../../../../entities/subscription/subscription.fixture';
 import { PlanSecurityType } from '../../../../../entities/plan';
-import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
+import { SubscriptionPage } from '../../../../../entities/subscription/subscription';
 import { NewSubscriptionEntity } from '../../../../../entities/application';
 import { fakeNewSubscriptionEntity } from '../../../../../entities/application/NewSubscriptionEntity.fixtures';
 
@@ -101,7 +101,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
     commentRequired: false,
     generalConditions: null,
   });
-  const API_KEY_SUBSCRIPTION = fakeApplicationSubscription({
+  const API_KEY_SUBSCRIPTION = fakeSubscriptionPage({
     api: ANOTHER_API_ID,
     plan: API_KEY_PLAN.id,
     security: PlanSecurityType.API_KEY,
@@ -403,7 +403,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
   });
 
   const expectSubscriptionsGetRequest = (
-    subscriptions: ApplicationSubscription[],
+    subscriptions: SubscriptionPage[],
     size = '10',
     status = 'ACCEPTED,PAUSED,PENDING',
     securityTypes?: string,
