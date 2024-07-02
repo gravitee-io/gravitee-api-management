@@ -339,9 +339,11 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.loadGroupApis = () => {
-      GroupService.getMemberships(this.group.id, 'api').then((response) => {
-        $scope.groupApis = _.sortBy(response.data, 'name');
-      });
+      if (this.group && this.group.id) {
+        GroupService.getMemberships(this.group.id, 'api').then((response) => {
+          $scope.groupApis = _.sortBy(response.data, 'name');
+        });
+      }
     };
 
     this.loadGroupApplications = () => {
