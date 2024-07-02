@@ -17,11 +17,13 @@ import { commands, Config, parameters } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { AbstractTestContainerJob } from './abstract-job-test-container';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class JdbcTestContainerJob extends AbstractTestContainerJob {
-  public static create(dynamicConfig: Config) {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     return super.create(
       dynamicConfig,
+      environment,
       'job-jdbc-test-container',
       new parameters.CustomParametersList([
         new parameters.CustomParameter('jdbcType', 'string', '', 'Type and version of the database to test. Example: mariadb:10.5'),

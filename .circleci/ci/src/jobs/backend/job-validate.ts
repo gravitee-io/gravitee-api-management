@@ -18,11 +18,12 @@ import { OpenJdkExecutor } from '../../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class ValidateJob {
   private static jobName = 'job-validate';
-  public static create(dynamicConfig: Config): Job {
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
