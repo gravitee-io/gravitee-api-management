@@ -111,10 +111,10 @@ describe('CreateIntegrationComponent', () => {
           { icon: 'aws.svg', value: 'aws-api-gateway' },
           { icon: 'solace.svg', value: 'solace' },
           { icon: 'apigee.svg', value: 'apigee' },
+          { icon: 'azure.svg', value: 'azure-api-management' },
         ],
         comingSoon: [
           { icon: 'confluent.svg', value: 'confluent' },
-          { icon: 'azure.svg', value: 'azure' },
           { icon: 'kong.svg', value: 'kong' },
         ],
       };
