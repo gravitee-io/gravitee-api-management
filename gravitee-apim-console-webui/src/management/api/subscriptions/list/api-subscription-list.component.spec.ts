@@ -50,7 +50,7 @@ import { ApiKeyMode as ApplicationApiKeyMode, Application } from '../../../../en
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../entities/plan';
-import { ApplicationSubscription } from '../../../../entities/subscription/subscription';
+import { SubscriptionPage } from '../../../../entities/subscription/subscription';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../entities/Constants';
 
@@ -938,7 +938,7 @@ describe('ApiSubscriptionListComponent', () => {
     }
   }
 
-  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<ApplicationSubscription>[]) {
+  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<SubscriptionPage>[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?expand=security`,
@@ -970,7 +970,7 @@ describe('ApiSubscriptionListComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiKeySubscriptionsGetRequest(applicationId: string, subscriptions: ApplicationSubscription[]) {
+  function expectApiKeySubscriptionsGetRequest(applicationId: string, subscriptions: SubscriptionPage[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&status=ACCEPTED,PENDING,PAUSED&security_types=API_KEY`,

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Api, ApiPlan } from '../api';
-import { Application } from '../application/Application';
+import { ApiKeyMode } from '../application/Application';
 import { User } from '../user/user';
+import { DefinitionVersion } from '../management-api-v2';
 
 export type SubscriptionStatus = 'PENDING' | 'REJECTED' | 'ACCEPTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';
 
-export interface Subscription {
+export interface SubscriptionPage {
   id?: string;
-  api?: Api;
-  plan?: ApiPlan;
-  application?: Application;
+  api?: string;
+  plan?: string;
+  application?: string;
   status?: SubscriptionStatus;
   processed_at?: Date;
   processed_by?: string;
@@ -38,6 +38,57 @@ export interface Subscription {
   paused_at?: Date;
   client_id?: string;
   security?: string;
+}
+
+export interface Subscription {
+  id?: string;
+  api?: SubscriptionApi;
+  plan?: SubscriptionPlan;
+  application?: SubscriptionApplication;
+  status?: SubscriptionStatus;
+  processed_at?: Date;
+  processed_by?: string;
+  subscribed_by?: User;
+  request?: string;
+  reason?: string;
+  starting_at?: Date;
+  ending_at?: Date;
+  created_at?: Date;
+  updated_at?: Date;
+  closed_at?: Date;
+  paused_at?: Date;
+  client_id?: string;
+  security?: string;
+}
+
+export interface SubscriptionApi {
+  id: string;
+  name: string;
+  version: string;
+  definitionVersion: DefinitionVersion;
+  owner: {
+    id: string;
+    displayName: string;
+  };
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  security: string;
+}
+
+export interface SubscriptionApplication {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  domain: string;
+  apiKeyMode: ApiKeyMode;
+  owner: {
+    id: string;
+    displayName: string;
+  };
 }
 
 export interface ApplicationSubscription {

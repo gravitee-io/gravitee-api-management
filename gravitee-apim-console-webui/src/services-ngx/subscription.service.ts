@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
+import { SubscriptionPage } from '../entities/subscription/subscription';
 import { PagedResult } from '../entities/pagedResult';
 
 @Injectable({
@@ -30,14 +30,14 @@ export class SubscriptionService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public getApiSubscriptionsByPlan(apiId: string, planId): Observable<PagedResult<Subscription>> {
-    return this.http.get<PagedResult<Subscription>>(
+  public getApiSubscriptionsByPlan(apiId: string, planId): Observable<PagedResult<SubscriptionPage>> {
+    return this.http.get<PagedResult<SubscriptionPage>>(
       `${this.constants.env.baseURL}/apis/${apiId}/subscriptions?plan=${planId}&status=accepted,pending,rejected,closed,paused`,
     );
   }
 
-  public getApplicationSubscriptions(appId: string): Observable<PagedResult<ApplicationSubscription>> {
-    return this.http.get<PagedResult<ApplicationSubscription>>(
+  public getApplicationSubscriptions(appId: string): Observable<PagedResult<SubscriptionPage>> {
+    return this.http.get<PagedResult<SubscriptionPage>>(
       `${this.constants.env.baseURL}/applications/${appId}/subscriptions?expand=security`,
     );
   }
