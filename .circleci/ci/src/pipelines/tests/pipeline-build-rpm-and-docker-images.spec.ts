@@ -29,6 +29,7 @@ describe('Build RPM & Docker images workflow tests', () => {
     ({ graviteeioVersion, isDryRun, dockerTagAsLatest, expectedFileName }) => {
       const result = generateBuildRpmAndDockerImagesConfig({
         action: 'build_rpm_&_docker_images',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],
@@ -51,6 +52,7 @@ describe('Build RPM & Docker images workflow tests', () => {
     try {
       generateBuildRpmAndDockerImagesConfig({
         action: 'build_rpm_&_docker_images',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],
@@ -72,6 +74,7 @@ describe('Build RPM & Docker images workflow tests', () => {
     try {
       generateBuildRpmAndDockerImagesConfig({
         action: 'build_rpm_&_docker_images',
+        baseBranch: '',
         branch: '',
         sha1: '784ff35ca',
         changedFiles: [],

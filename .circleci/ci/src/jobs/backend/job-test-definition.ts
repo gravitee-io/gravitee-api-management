@@ -17,11 +17,13 @@ import { commands, Config } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
 import { OpenJdkExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestDefinitionJob extends AbstractTestJob {
-  public static create(dynamicConfig: Config) {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     return super.create(
       dynamicConfig,
+      environment,
       'job-test-definition',
       new commands.Run({
         name: `Run definition tests`,

@@ -18,16 +18,18 @@ import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheC
 import { UbuntuExecutor } from '../../executors';
 import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
 import { AnyParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export abstract class AbstractTestContainerJob {
   protected static create(
     dynamicConfig: Config,
+    environment: CircleCIEnvironment,
     jobName: string,
     parameters: parameters.CustomParametersList<AnyParameterLiteral>,
     testStep: commands.Run,
     executor: Executor = UbuntuExecutor.create(),
   ) {
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
