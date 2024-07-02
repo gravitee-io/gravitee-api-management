@@ -35,9 +35,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v9-<< parameters.jobName >>-4.0.x
+            - gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v10-<< parameters.jobName >>-4.0.x
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -50,7 +50,7 @@ commands:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
       - save_cache:
-          key: gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -224,7 +224,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2/repository/io/gravitee/apim
-          key: gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -246,7 +246,7 @@ jobs:
           jobName: job-test-definition
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run definition tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C
@@ -290,7 +290,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v10-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -302,7 +302,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v10-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-test-gateway:
     docker:
@@ -316,7 +316,7 @@ jobs:
           jobName: job-test-gateway
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run gateway tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -T 2C
@@ -347,7 +347,7 @@ jobs:
           jobName: job-test-rest-api
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Rest API tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -T 2C
@@ -379,7 +379,7 @@ jobs:
           jobName: job-test-integration
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run tests
           command: |-
@@ -427,7 +427,7 @@ jobs:
           jobName: job-test-plugin
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run plugin tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
@@ -459,7 +459,7 @@ jobs:
           jobName: job-test-repository
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run repository tests
           command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -T 2C
