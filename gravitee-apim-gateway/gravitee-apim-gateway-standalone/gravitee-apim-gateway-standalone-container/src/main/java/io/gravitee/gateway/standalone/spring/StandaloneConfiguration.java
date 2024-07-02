@@ -27,6 +27,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.spring.AccessPointConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
+import io.gravitee.gateway.handlers.environmentflow.spring.EnvironmentFlowConfiguration;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
@@ -55,6 +56,7 @@ import org.springframework.context.annotation.Import;
         ReporterConfiguration.class,
         ApiHandlerConfiguration.class,
         AccessPointConfiguration.class,
+        EnvironmentFlowConfiguration.class,
         DictionaryConfiguration.class,
         PolicyConfiguration.class,
         PlatformConfiguration.class,
