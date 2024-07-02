@@ -22,6 +22,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
@@ -30,6 +31,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.accessp
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
@@ -66,6 +68,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final DictionaryMapper dictionaryMapper;
     private final LicenseMapper licenseMapper;
     private final AccessPointMapper accessPointMapper;
+    private final EnvironmentFlowMapper environmentFlowMapper;
 
     @Override
     public void validate() {
@@ -217,6 +220,18 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return accessPointMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
             log.debug("Not a primary node, skipping access point event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(EnvironmentFlowReactorDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing environment flow event for {}", deployable.id());
+                return environmentFlowMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+            }
+            log.debug("Not a primary node, skipping environment flow event distribution");
             return Completable.complete();
         });
     }

@@ -24,6 +24,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
@@ -32,6 +33,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.access
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.environmentflow.api.DistributedEnvironmentFlowSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization.DistributedOrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription.DistributedSubscriptionSynchronizer;
@@ -83,6 +85,11 @@ public class DistributedSyncConfiguration {
     @Bean
     public AccessPointMapper distributedAccessPointMapper(ObjectMapper objectMapper) {
         return new AccessPointMapper(objectMapper);
+    }
+
+    @Bean
+    public EnvironmentFlowMapper distributedEnvironmentFlowMapper(ObjectMapper objectMapper) {
+        return new EnvironmentFlowMapper(objectMapper);
     }
 
     @Bean
@@ -218,6 +225,23 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public DistributedEnvironmentFlowSynchronizer distributedEnvironmentFlowSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        EnvironmentFlowMapper environmentFlowMapper
+    ) {
+        return new DistributedEnvironmentFlowSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            environmentFlowMapper
+        );
+    }
+
+    @Bean
     public DefaultDistributedSyncService distributedSyncService(
         final Node node,
         final ClusterManager clusterManager,
@@ -230,7 +254,8 @@ public class DistributedSyncConfiguration {
         final OrganizationMapper organizationMapper,
         final DictionaryMapper dictionaryMapper,
         final LicenseMapper licenseMapper,
-        final AccessPointMapper accessPointMapper
+        final AccessPointMapper accessPointMapper,
+        final EnvironmentFlowMapper environmentFlowMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -244,7 +269,8 @@ public class DistributedSyncConfiguration {
             organizationMapper,
             dictionaryMapper,
             licenseMapper,
-            accessPointMapper
+            accessPointMapper,
+            environmentFlowMapper
         );
     }
 }

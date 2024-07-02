@@ -27,7 +27,6 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
@@ -35,6 +34,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
@@ -42,6 +42,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.accessp
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
@@ -111,7 +112,8 @@ class DefaultDistributedSyncServiceTest {
                 new OrganizationMapper(objectMapper),
                 new DictionaryMapper(objectMapper),
                 new LicenseMapper(),
-                new AccessPointMapper(objectMapper)
+                new AccessPointMapper(objectMapper),
+                new EnvironmentFlowMapper(objectMapper)
             );
     }
 
@@ -139,6 +141,7 @@ class DefaultDistributedSyncServiceTest {
                     null,
                     distributedEventRepository,
                     distributedSyncStateRepository,
+                    null,
                     null,
                     null,
                     null,
@@ -199,6 +202,12 @@ class DefaultDistributedSyncServiceTest {
         @Test
         void should_distribute_dictionary() {
             cut.distributeIfNeeded(DictionaryDeployable.builder().id("id").build()).test().assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_environment_fow() {
+            cut.distributeIfNeeded(EnvironmentFlowReactorDeployable.builder().environmentFlowId("id").build()).test().assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
 
