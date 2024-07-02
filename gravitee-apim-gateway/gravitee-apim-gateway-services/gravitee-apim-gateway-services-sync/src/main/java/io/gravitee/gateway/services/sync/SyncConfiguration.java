@@ -23,6 +23,7 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.environmentflow.manager.EnvironmentFlowManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.healthcheck.SyncProcessProbe;
@@ -185,6 +186,7 @@ public class SyncConfiguration {
         LicenseManager licenseManager,
         LicenseFactory licenseFactory,
         AccessPointManager accessPointManager,
+        EnvironmentFlowManager environmentFlowManager,
         DistributedSyncService distributedSyncService
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
@@ -203,6 +205,7 @@ public class SyncConfiguration {
             licenseManager,
             licenseFactory,
             accessPointManager,
+            environmentFlowManager,
             distributedSyncService
         );
     }
