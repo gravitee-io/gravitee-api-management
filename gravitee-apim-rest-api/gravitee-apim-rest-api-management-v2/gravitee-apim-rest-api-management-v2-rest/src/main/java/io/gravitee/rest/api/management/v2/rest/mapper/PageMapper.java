@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
 import io.gravitee.rest.api.management.v2.rest.model.PageSource;
 import io.gravitee.rest.api.management.v2.rest.model.Revision;
+import io.gravitee.rest.api.management.v2.rest.model.SourceConfiguration;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationMarkdown;
@@ -49,6 +50,7 @@ import org.mapstruct.factory.Mappers;
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
+    ObjectMapper mapper = new GraviteeMapper();
 
     @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
     Page mapPage(io.gravitee.apim.core.documentation.model.Page page);
@@ -99,6 +101,10 @@ public interface PageMapper {
 
     @Mapping(target = "uploadDate", source = "createdAt")
     MediaEntity mapMedia(Media media);
+
+    @Mapping(target = "type", source = "type")
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    PageSource mapSourceConfigurationToPageSource(SourceConfiguration sourceConfiguration);
 
     io.gravitee.apim.core.documentation.model.Page map(
         io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown createDocumentationMarkdown
@@ -154,7 +160,6 @@ public interface PageMapper {
             return null;
         }
         if (configuration instanceof LinkedHashMap) {
-            ObjectMapper mapper = new GraviteeMapper();
             try {
                 return mapper.valueToTree(configuration);
             } catch (IllegalArgumentException e) {
