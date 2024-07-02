@@ -21,8 +21,8 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { SubscriptionsTableComponent } from './subscriptions-table.component';
-import { Subscription } from '../../../../../entities/subscription/subscription';
 import { fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
+import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 
 describe('SubscriptionsTableComponent', () => {
@@ -79,7 +79,7 @@ describe('SubscriptionsTableComponent', () => {
     });
   });
 
-  function expectSubscriptionList(subscriptionResponse: Subscription = fakeSubscriptionResponse(), apiId: string, status: string) {
+  function expectSubscriptionList(subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse(), apiId: string, status: string) {
     httpTestingController
       .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}`)
       .flush(subscriptionResponse);
