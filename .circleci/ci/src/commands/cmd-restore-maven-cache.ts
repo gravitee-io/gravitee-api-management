@@ -31,7 +31,6 @@ export class RestoreMavenJobCacheCommand {
           keys: [
             `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}`,
             `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}`,
-            `${config.cache.prefix}-<< parameters.jobName >>`,
           ],
         }),
       ],
