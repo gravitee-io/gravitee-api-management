@@ -60,6 +60,7 @@ import io.gravitee.integration.api.model.PlanSecurityType;
 import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionResult;
 import io.gravitee.integration.api.model.SubscriptionType;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
@@ -210,7 +211,9 @@ class IntegrationAgentImplTest {
     class Subscribe {
 
         static final String SUBSCRIPTION_ID = "subscription-id";
+        static final String APPLICATION_ID = "application-id";
         static final String APPLICATION_NAME = "application-name";
+        static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id(APPLICATION_ID).name(APPLICATION_NAME).build();
 
         @BeforeEach
         void setUp() {
@@ -239,7 +242,7 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
-                    APPLICATION_NAME
+                    APPLICATION
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -254,6 +257,7 @@ class IntegrationAgentImplTest {
                         "api-provider-id",
                         new Subscription(
                             SUBSCRIPTION_ID,
+                            APPLICATION_ID,
                             APPLICATION_NAME,
                             SubscriptionType.API_KEY,
                             Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id")
@@ -281,7 +285,7 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
-                    APPLICATION_NAME
+                    APPLICATION
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -296,6 +300,7 @@ class IntegrationAgentImplTest {
                         "api-provider-id",
                         new Subscription(
                             SUBSCRIPTION_ID,
+                            APPLICATION_ID,
                             APPLICATION_NAME,
                             SubscriptionType.OAUTH,
                             Map.of(Subscription.METADATA_PLAN_ID, planProviderId, Subscription.METADATA_CONSUMER_KEY, oAuthClientId)
@@ -312,7 +317,7 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION_NAME
+                    APPLICATION
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -335,7 +340,7 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION_NAME
+                    APPLICATION
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -354,7 +359,7 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION_NAME
+                    APPLICATION
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -395,7 +400,7 @@ class IntegrationAgentImplTest {
                 .isEqualTo(
                     new UnsubscribeCommandPayload(
                         "api-provider-id",
-                        new Subscription("subscription-id", null, null, Map.of("aws-api-key-id", "apikey-123"))
+                        new Subscription("subscription-id", null, null, null, Map.of("aws-api-key-id", "apikey-123"))
                     )
                 );
         }
@@ -435,7 +440,9 @@ class IntegrationAgentImplTest {
             assertThat(captor.getValue())
                 .isInstanceOf(UnsubscribeCommand.class)
                 .extracting(Command::getPayload)
-                .isEqualTo(new UnsubscribeCommandPayload("api-provider-id", new Subscription("subscription-id", null, null, Map.of())));
+                .isEqualTo(
+                    new UnsubscribeCommandPayload("api-provider-id", new Subscription("subscription-id", null, null, null, Map.of()))
+                );
         }
 
         @Test

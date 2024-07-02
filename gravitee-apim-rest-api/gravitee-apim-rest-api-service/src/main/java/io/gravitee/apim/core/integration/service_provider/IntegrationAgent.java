@@ -21,6 +21,7 @@ import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -41,7 +42,7 @@ public interface IntegrationAgent {
      * @param api The Federated API to subscribe.
      * @param subscriptionParameter The Federated Plan to subscribe.
      * @param subscriptionId The Subscription id.
-     * @param applicationName The name of the Application that subscribes to the API.
+     * @param application The Application that subscribes to the API.
      * @return {String} The API Key created
      */
     Single<IntegrationSubscription> subscribe(
@@ -49,7 +50,7 @@ public interface IntegrationAgent {
         FederatedApi api,
         SubscriptionParameter subscriptionParameter,
         String subscriptionId,
-        String applicationName
+        BaseApplicationEntity application
     );
 
     /**
