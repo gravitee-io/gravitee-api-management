@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, shareReplay, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, shareReplay, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 
 import { Api } from '../../../entities/api';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -47,6 +47,7 @@ interface AuditDataTable {
 export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];
   public filteredTableData: AuditDataTable[] = [];
+  public tableIsLoading = true;
   public nbTotalAudit = 0;
 
   public filtersForm = new UntypedFormGroup({
@@ -138,7 +139,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filtersForm.valueChanges
-      .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
+      .pipe(debounceTime(200), distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
       .subscribe(({ event, referenceType, environmentId, applicationId, apiId, range }) => {
         this.filtersStream.next({
           tableWrapper: {
@@ -153,8 +154,8 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
             environmentId,
             applicationId,
             apiId,
-            from: range?.start?.getTime() ?? undefined,
-            to: range?.end?.getTime() ?? undefined,
+            from: range?.start?.valueOf() ?? undefined,
+            to: range?.end?.valueOf() ?? undefined,
           },
         });
       });
@@ -163,6 +164,10 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
       .pipe(
         throttleTime(100),
         distinctUntilChanged(isEqual),
+        tap(() => {
+          this.filteredTableData = [];
+          this.tableIsLoading = true;
+        }),
         switchMap(({ auditFilters, tableWrapper }) =>
           this.auditService.listByOrganization(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size).pipe(
             catchError(() => {
@@ -186,6 +191,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
           patch: JSON.parse(audit.patch),
           displayPatch: false,
         }));
+        this.tableIsLoading = false;
       });
   }
 

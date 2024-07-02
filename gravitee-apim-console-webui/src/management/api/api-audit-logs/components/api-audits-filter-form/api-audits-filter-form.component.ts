@@ -18,6 +18,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { Moment } from 'moment';
 
 export interface ApiAuditFilter {
   events?: string[];
@@ -43,8 +44,8 @@ export class ApiAuditsFilterFormComponent implements OnInit, OnDestroy {
   protected filtersForm = new FormGroup({
     events: new FormControl<string[]>([]),
     range: new FormGroup({
-      start: new FormControl<Date>(null),
-      end: new FormControl<Date>(null),
+      start: new FormControl<Moment>(null),
+      end: new FormControl<Moment>(null),
     }),
   });
 
@@ -56,8 +57,8 @@ export class ApiAuditsFilterFormComponent implements OnInit, OnDestroy {
       .subscribe(({ events, range }) => {
         this.filtersChange.emit({
           events,
-          from: range?.start?.getTime() ?? null,
-          to: range?.end?.getTime() ?? null,
+          from: range?.start?.valueOf() ?? null,
+          to: range?.end?.valueOf() ?? null,
         });
       });
   }

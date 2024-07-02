@@ -34,7 +34,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { fakeMetadataPageAudit } from '../../../entities/audit/Audit.fixture';
 
-describe('EnvAuditComponent', () => {
+describe('ApiAuditListComponent', () => {
   let fixture: ComponentFixture<ApiAuditListComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -103,10 +103,10 @@ describe('EnvAuditComponent', () => {
 
     const rangeSelect = await loader.getHarness(MatDateRangeInputHarness.with({ selector: '[formGroupName=range]' }));
     await (await rangeSelect.getStartInput()).setValue('4/11/2022');
-    expectGetApiAuditListRequest({ from: 986083200000 });
+    expectGetApiAuditListRequest({ from: 1649635200000 });
 
     await (await rangeSelect.getEndInput()).setValue('4/20/2022');
-    expectGetApiAuditListRequest({ from: 1649635200000, to: 986083200000 });
+    expectGetApiAuditListRequest({ from: 1649635200000, to: 1650412800000 });
   });
 
   it('should reset pagination on filter change', async () => {

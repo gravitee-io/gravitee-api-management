@@ -25,7 +25,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatMomentDateModule, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
@@ -47,7 +46,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     MatDialogModule,
     MatInputModule,
     MatIconModule,
-    MatMomentDateModule,
     MatSelectModule,
     MatSnackBarModule,
     MatSortModule,
@@ -57,6 +55,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     GioPermissionModule,
     GioTableWrapperModule,
   ],
-  providers: [{ provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
+  providers: [],
 })
 export class GioMetadataModule {}
