@@ -18,7 +18,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Subscription, SubscriptionData } from '../entities/subscription/subscription';
+import { Subscription } from '../entities/subscription/subscription';
+import { SubscriptionsResponse } from '../entities/subscription/subscriptions-response';
 
 @Injectable({
   providedIn: 'root',
@@ -29,13 +30,13 @@ export class SubscriptionService {
     private configService: ConfigService,
   ) {}
 
-  list(apiId: string, statuses: string | null): Observable<Subscription> {
-    return this.http.get<Subscription>(`${this.configService.baseURL}/subscriptions`, {
+  list(apiId: string, statuses: string | null): Observable<SubscriptionsResponse> {
+    return this.http.get<SubscriptionsResponse>(`${this.configService.baseURL}/subscriptions`, {
       params: { apiId: apiId, statuses: statuses ?? [] },
     });
   }
 
-  listDetails(subscriptionId: string): Observable<SubscriptionData> {
-    return this.http.get<SubscriptionData>(`${this.configService.baseURL}/subscriptions/${subscriptionId}?include=keys`);
+  get(subscriptionId: string): Observable<Subscription> {
+    return this.http.get<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}?include=keys`);
   }
 }
