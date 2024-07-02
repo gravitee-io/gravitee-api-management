@@ -147,6 +147,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         category: 'Gateways',
       },
       {
+        icon: 'gio:monitor',
+        displayName: 'Developer Portal',
+        routerLink: './developer-portal',
+        category: 'Developer Portal',
+      },
+      {
         icon: 'gio:verified',
         displayName: 'Audit',
         routerLink: './audit',

@@ -1,0 +1,35 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="developer-portal-navigation">
+  <div class="developer-portal-navigation__menu">
+    <gio-submenu class="developer-portal-navigation__submenu">
+      <ng-container *ngFor="let group of this.items">
+        <gio-submenu-group [title]="group.title" *ngIf="group.items && group.items.length > 0">
+          <ng-container *ngFor="let item of group.items">
+            <a [routerLink]="item.routerLink" routerLinkActive #rla="routerLinkActive">
+              <gio-submenu-item tabIndex="1" [active]="rla.isActive">{{ item.displayName }}</gio-submenu-item>
+            </a>
+          </ng-container>
+        </gio-submenu-group>
+      </ng-container>
+    </gio-submenu>
+  </div>
+  <div class="developer-portal-navigation__content">
+    <router-outlet></router-outlet>
+  </div>
+</div>
