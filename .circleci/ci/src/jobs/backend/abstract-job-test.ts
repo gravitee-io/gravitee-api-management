@@ -18,17 +18,19 @@ import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheC
 import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
 import { config } from '../../config';
 import { JobOptionalProperties } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Job/types/Job.types';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export abstract class AbstractTestJob {
   protected static create(
     dynamicConfig: Config,
+    environment: CircleCIEnvironment,
     jobName: string,
     testStep: commands.Run,
     executor: Executor,
     pathsToPersist: string[],
     properties?: JobOptionalProperties,
   ) {
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);

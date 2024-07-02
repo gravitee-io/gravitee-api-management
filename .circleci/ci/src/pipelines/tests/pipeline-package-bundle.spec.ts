@@ -26,6 +26,7 @@ describe('Package bundle workflow tests', () => {
   `('should build package bundle with $graviteeioVersion', ({ graviteeioVersion, isDryRun, expectedFileName }) => {
     const result = generatePackageBundleConfig({
       action: 'package_bundle',
+      baseBranch: 'master',
       branch: 'master',
       sha1: '784ff35ca',
       changedFiles: [],
@@ -46,6 +47,7 @@ describe('Package bundle workflow tests', () => {
     try {
       generatePackageBundleConfig({
         action: 'package_bundle',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],

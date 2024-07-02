@@ -18,13 +18,13 @@ import { generateReleaseConfig } from '../pipeline-release';
 
 describe('Release tests', () => {
   it.each`
-    branch     | isDryRun | apimVersionPath                                              | graviteeioVersion  | expectedResult
-    ${'4.2.x'} | ${true}  | ${'./src/pipelines/tests/resources/common/pom.xml'}          | ${'4.2.0'}         | ${'release-4-2-0-dry-run.yml'}
-    ${'4.2.x'} | ${false} | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'4.2.0'}         | ${'release-4-2-0-snapshot.yml'}
-    ${'4.2.x'} | ${false} | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'}    | ${'4.2.0-alpha.1'} | ${'release-4-2-0-alpha.yml'}
+    baseBranch | branch     | isDryRun | apimVersionPath                                              | graviteeioVersion  | expectedResult
+    ${'4.2.x'} | ${'4.2.x'} | ${true}  | ${'./src/pipelines/tests/resources/common/pom.xml'}          | ${'4.2.0'}         | ${'release-4-2-0-dry-run.yml'}
+    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'4.2.0'}         | ${'release-4-2-0-snapshot.yml'}
+    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'}    | ${'4.2.0-alpha.1'} | ${'release-4-2-0-alpha.yml'}
   `(
     'should build release config on $branch with dry run $isDryRun and graviteeio version $graviteeioVersion',
-    ({ branch, isDryRun, apimVersionPath, graviteeioVersion, expectedResult }) => {
+    ({ baseBranch, branch, isDryRun, apimVersionPath, graviteeioVersion, expectedResult }) => {
       const result = generateReleaseConfig({
         action: 'release',
         sha1: '784ff35ca',
@@ -32,6 +32,7 @@ describe('Release tests', () => {
         buildNum: '1234',
         buildId: '1234',
         graviteeioVersion,
+        baseBranch,
         branch,
         apimVersionPath,
         isDryRun,
@@ -53,6 +54,7 @@ describe('Release tests', () => {
         buildNum: '1234',
         buildId: '1234',
         graviteeioVersion: '4.1.0',
+        baseBranch: 'master',
         branch: 'apim-1234-dev',
         apimVersionPath: '/some/path',
         isDryRun: false,

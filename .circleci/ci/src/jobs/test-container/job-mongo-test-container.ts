@@ -16,11 +16,13 @@
 import { commands, Config, parameters } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
 import { AbstractTestContainerJob } from './abstract-job-test-container';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class MongoTestContainerJob extends AbstractTestContainerJob {
-  public static create(dynamicConfig: Config) {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     return super.create(
       dynamicConfig,
+      environment,
       'job-mongo-test-container',
       new parameters.CustomParametersList([new parameters.CustomParameter('mongoVersion', 'string', '', 'Version of Mongo to test')]),
       new commands.Run({

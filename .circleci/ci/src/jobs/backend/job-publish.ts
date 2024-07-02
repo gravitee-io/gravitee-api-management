@@ -18,12 +18,13 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { config } from '../../config';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { OpenJdkExecutor } from '../../executors';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class PublishJob {
-  public static create(dynamicConfig: Config, target: 'nexus' | 'artifactory'): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, target: 'nexus' | 'artifactory'): Job {
     const jobName = `job-publish-on-${target}`;
 
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);

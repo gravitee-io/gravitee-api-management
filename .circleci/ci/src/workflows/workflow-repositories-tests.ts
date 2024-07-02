@@ -23,11 +23,11 @@ export class RepositoriesTestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
     const buildJob = BuildBackendJob.create(dynamicConfig, environment);
-    const jdbcTestContainerJob = JdbcTestContainerJob.create(dynamicConfig);
-    const mongoTestContainerJob = MongoTestContainerJob.create(dynamicConfig);
-    const elasticTestContainerJob = ElasticTestContainerJob.create(dynamicConfig);
-    const opensearchTestContainerJob = ElasticTestContainerJob.create(dynamicConfig);
-    const redisTestContainerJob = RedisTestContainerJob.create(dynamicConfig);
+    const jdbcTestContainerJob = JdbcTestContainerJob.create(dynamicConfig, environment);
+    const mongoTestContainerJob = MongoTestContainerJob.create(dynamicConfig, environment);
+    const elasticTestContainerJob = ElasticTestContainerJob.create(dynamicConfig, environment);
+    const opensearchTestContainerJob = ElasticTestContainerJob.create(dynamicConfig, environment);
+    const redisTestContainerJob = RedisTestContainerJob.create(dynamicConfig, environment);
 
     dynamicConfig.addJob(setupJob);
     dynamicConfig.addJob(buildJob);
