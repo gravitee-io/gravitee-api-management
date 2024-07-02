@@ -29,10 +29,10 @@ import { ApplicationSubscriptionListHarness } from './application-subscription-l
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
-import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
+import { SubscriptionPage } from '../../../../../entities/subscription/subscription';
 import { fakePagedResult } from '../../../../../entities/pagedResult';
 import { Api, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
-import { fakeApplicationSubscription } from '../../../../../entities/subscription/subscription.fixture';
+import { fakeSubscriptionPage } from '../../../../../entities/subscription/subscription.fixture';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { Application } from '../../../../../entities/application/Application';
 
@@ -159,7 +159,7 @@ describe('ApplicationSubscriptionListComponent', () => {
     }));
 
     it('should display a table with one row', fakeAsync(async () => {
-      const subscription = fakeApplicationSubscription({ api: API_ID, application: APPLICATION_ID, plan: PLAN_ID });
+      const subscription = fakeSubscriptionPage({ api: API_ID, application: APPLICATION_ID, plan: PLAN_ID });
       await initComponent([subscription]);
 
       const harness = await loader.getHarness(ApplicationSubscriptionListHarness);
@@ -190,7 +190,7 @@ describe('ApplicationSubscriptionListComponent', () => {
       await harness.selectStatus('Closed');
       tick(400);
 
-      const subscription = fakeApplicationSubscription({
+      const subscription = fakeSubscriptionPage({
         api: API_ID,
         application: APPLICATION_ID,
         plan: PLAN_ID,
@@ -208,7 +208,7 @@ describe('ApplicationSubscriptionListComponent', () => {
       await harness.addApiKey(key);
       tick(400);
 
-      const subscription = fakeApplicationSubscription({
+      const subscription = fakeSubscriptionPage({
         api: API_ID,
         application: APPLICATION_ID,
         plan: PLAN_ID,
@@ -234,7 +234,7 @@ describe('ApplicationSubscriptionListComponent', () => {
       await harness.selectStatus('Paused');
       tick(400);
 
-      const subscription = fakeApplicationSubscription({
+      const subscription = fakeSubscriptionPage({
         api: api.id,
         application: APPLICATION_ID,
         plan: PLAN_ID,
@@ -245,7 +245,7 @@ describe('ApplicationSubscriptionListComponent', () => {
   });
 
   async function initComponent(
-    subscriptions: ApplicationSubscription[],
+    subscriptions: SubscriptionPage[],
     params?: { apis?: string; status?: string; apiKey?: string },
     permissions = DEFAULT_PERMISSIONS,
   ) {
@@ -280,12 +280,7 @@ describe('ApplicationSubscriptionListComponent', () => {
     });
   }
 
-  const expectSubscriptionsGetRequest = (
-    subscriptions: ApplicationSubscription[] = [],
-    status?: string[],
-    apis?: string[],
-    apiKey?: string,
-  ) => {
+  const expectSubscriptionsGetRequest = (subscriptions: SubscriptionPage[] = [], status?: string[], apis?: string[], apiKey?: string) => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/subscriptions?page=1&size=10${

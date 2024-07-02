@@ -30,7 +30,7 @@ import { Constants } from '../../../../../../entities/Constants';
 import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../../services-ngx/icon.service';
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
-import { ApplicationSubscription } from '../../../../../../entities/subscription/subscription';
+import { SubscriptionPage } from '../../../../../../entities/subscription/subscription';
 
 export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];
@@ -64,7 +64,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   });
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private currentSubscriptions: ApplicationSubscription[];
+  private currentSubscriptions: SubscriptionPage[];
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent, ApiPortalSubscriptionCreationDialogResult>,

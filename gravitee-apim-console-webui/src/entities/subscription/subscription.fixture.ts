@@ -15,20 +15,20 @@
  */
 import { isFunction } from 'lodash';
 
-import { ApplicationSubscription, Subscription } from './subscription';
+import { Subscription, SubscriptionPage } from './subscription';
 
-import { fakeApi } from '../api/Api.fixture';
-import { fakeApplication } from '../application/Application.fixture';
-import { fakePlan } from '../plan/plan.fixture';
 import { fakeUser } from '../user/user.fixture';
+import { ApiKeyMode } from '../application/Application';
 
-export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: Subscription) => Subscription)): Subscription {
+export function fakeSubscriptionPage(
+  modifier?: Partial<SubscriptionPage> | ((baseApi: SubscriptionPage) => SubscriptionPage),
+): SubscriptionPage {
   const date = new Date();
-  const base: Subscription = {
+  const base: SubscriptionPage = {
     id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
-    api: fakeApi(),
-    plan: fakePlan(),
-    application: fakeApplication(),
+    api: 'api-id',
+    plan: 'plan-id',
+    application: 'application-id',
     status: 'ACCEPTED',
     processed_at: date,
     processed_by: 'me',
@@ -49,16 +49,37 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
   };
 }
 
-export function fakeApplicationSubscription(
-  modifier?: Partial<ApplicationSubscription> | ((baseApi: ApplicationSubscription) => ApplicationSubscription),
-): ApplicationSubscription {
+export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: Subscription) => Subscription)): Subscription {
   const date = new Date();
-  const base: ApplicationSubscription = {
+
+  const base: Subscription = {
     id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
-    api: fakeApi().id,
-    plan: fakePlan().id,
-    application: fakeApplication().id,
-    security: 'API_KEY',
+    api: {
+      id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
+      name: '\uD83E\uDE90 Planets',
+      version: '1.0',
+      owner: {
+        id: 'user-id',
+        displayName: 'John Doe',
+      },
+    },
+    plan: {
+      id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
+      name: 'Free Spaceshuttle',
+      security: 'KEY_LESS',
+    },
+    application: {
+      apiKeyMode: ApiKeyMode.UNSPECIFIED,
+      description: 'My default application',
+      id: '61840ad7-7a93-4b5b-840a-d77a937b5bff',
+      name: 'Default application',
+      type: 'SIMPLE',
+      domain: 'http://example.com',
+      owner: {
+        id: 'user-id',
+        displayName: 'John Doe',
+      },
+    },
     status: 'ACCEPTED',
     processed_at: date,
     processed_by: 'me',
@@ -66,6 +87,7 @@ export function fakeApplicationSubscription(
     starting_at: date,
     created_at: date,
     updated_at: date,
+    client_id: 'client_id',
   };
 
   if (isFunction(modifier)) {
