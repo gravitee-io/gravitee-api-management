@@ -16,7 +16,7 @@
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
 const cache = {
-  prefix: 'gravitee-api-management-v9',
+  prefix: 'gravitee-api-management-v10',
 };
 
 const dockerImages = {
