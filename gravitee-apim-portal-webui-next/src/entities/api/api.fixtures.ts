@@ -46,9 +46,6 @@ export function fakeApi(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api 
     },
     created_at: new Date(1630437434407),
     updated_at: new Date(1642675655553),
-    usage_configuration: {},
-    security: 'API_KEY',
-    validation: 'AUTO',
     categories: ['my-category'],
     _links: {
       picture:

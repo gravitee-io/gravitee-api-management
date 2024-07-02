@@ -22,18 +22,15 @@ import { catchError, map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { PlanCardComponent } from '../../../../components/subscribe/plan-card/plan-card.component';
-import { ApiUsageConfigurationRateOrQuota, getApiSecurityTypeLabel } from '../../../../entities/api/api';
-import { ApiService } from '../../../../services/api.service';
+import { getPlanSecurityTypeLabel, PlanUsageConfiguration } from '../../../../entities/plan/plan';
+import { PlanService } from '../../../../services/plan.service';
 
 export interface SubscriptionPlan {
   validation: string;
   name: string;
   security: string;
   authentication: string;
-  usageConfiguration: {
-    rate_limit?: ApiUsageConfigurationRateOrQuota;
-    quota?: ApiUsageConfigurationRateOrQuota;
-  };
+  usageConfiguration: PlanUsageConfiguration;
   id: string;
   isDisabled: boolean;
 }
@@ -56,7 +53,7 @@ export class SubscribeToApiChoosePlanComponent implements OnInit {
 
   selectedPlan = new FormControl();
 
-  constructor(private apiService: ApiService) {}
+  constructor(private planService: PlanService) {}
 
   ngOnInit() {
     this.subscriptionPlans$ = this.loadPlans$();
@@ -84,15 +81,15 @@ export class SubscribeToApiChoosePlanComponent implements OnInit {
   }
 
   loadPlans$(): Observable<SubscriptionPlan[]> {
-    return this.apiService.plans(this.apiId).pipe(
+    return this.planService.list(this.apiId).pipe(
       map(response => {
         if (response.data) {
           return response.data.map(plan => ({
             validation: plan.validation,
             name: plan.name,
-            authentication: getApiSecurityTypeLabel(plan.security ?? ''),
+            authentication: getPlanSecurityTypeLabel(plan.security ?? ''),
             security: plan.security,
-            usageConfiguration: plan.usage_configuration,
+            usageConfiguration: plan.usage_configuration ?? {},
             id: plan.id,
             isDisabled: plan.security !== 'KEY_LESS',
           }));
