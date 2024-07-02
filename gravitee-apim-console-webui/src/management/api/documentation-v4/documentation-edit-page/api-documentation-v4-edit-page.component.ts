@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -34,11 +34,14 @@ import {
   AccessControl,
   Visibility,
   Group,
+  EditDocumentation,
+  PageSource,
 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { FetcherService } from '../../../../services-ngx/fetcher.service';
 
 interface EditPageForm {
   stepOne: FormGroup<{
@@ -49,6 +52,7 @@ interface EditPageForm {
   }>;
   content: FormControl<string>;
   source: FormControl<string>;
+  sourceConfiguration: FormControl<undefined | unknown>;
 }
 
 @Component({
@@ -63,7 +67,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   exitLabel = 'Exit without saving';
   pageType: PageType;
   step3Title: string;
-  source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
+  source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
 
   api: Api;
@@ -73,6 +77,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   iconTooltip: string;
   isReadOnly: boolean = false;
   groups: Group[];
+  schema$: Observable<any>;
 
   private existingNames: string[] = [];
   private initialAccessControlGroups: string[] = [];
@@ -87,7 +92,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly fetcherService: FetcherService,
   ) {}
+
+  private readonly httpFetcherName = 'http-fetcher';
 
   ngOnInit(): void {
     this.form = new FormGroup<EditPageForm>({
@@ -99,6 +107,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       }),
       content: new FormControl<string>('', [Validators.required]),
       source: new FormControl<string>(this.source, [Validators.required]),
+      sourceConfiguration: new FormControl<undefined | unknown>({}),
     });
 
     if (this.activatedRoute.snapshot.params.pageId) {
@@ -159,7 +168,19 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         },
       });
 
+    this.schema$ = this.fetcherService.getList().pipe(
+      map((list) => list.find((fetcher) => fetcher.id === this.httpFetcherName)?.schema),
+      map((schema) => JSON.parse(schema)),
+    );
     this.form.controls.stepOne.controls.name.valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
+    this.form.controls.source.valueChanges.subscribe((value) => {
+      if (value === 'HTTP') {
+        this.form.controls.content.clearValidators();
+      } else {
+        this.form.controls.content.addValidators([Validators.required]);
+      }
+      this.form.controls.content.updateValueAndValidity();
+    });
   }
 
   ngOnDestroy() {
@@ -226,20 +247,36 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
           referenceId,
           referenceType: 'GROUP',
         }));
-        return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.activatedRoute.snapshot.params.pageId, {
+
+        const updateDocumentation: EditDocumentation = {
           ...page,
           name: formValue.stepOne.name,
           visibility: formValue.stepOne.visibility,
           content: formValue.content,
           excludedAccessControls: formValue.stepOne.excludeGroups,
           accessControls: [...nonGroupAccessControls, ...selectedGroupAccessControls],
-        });
+          ...formValue.source && { source: this.obtainSource(formValue.source, formValue.sourceConfiguration)},
+        };
+        return this.apiDocumentationService.updateDocumentationPage(
+          this.api.id,
+          this.activatedRoute.snapshot.params.pageId,
+          updateDocumentation,
+        );
       }),
       catchError((err) => {
         this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
         return EMPTY;
       }),
     );
+  }
+
+  private obtainSource(sourceType : string, configuration : unknown | undefined): PageSource {
+    if (sourceType === 'HTTP') {
+        return {
+          type: this.httpFetcherName,
+          configuration
+      }
+    }
   }
 
   goBackToPageList() {
@@ -289,6 +326,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
       accessControls: this.form.getRawValue().stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),
       excludedAccessControls: this.form.getRawValue().stepOne.excludeGroups,
+      ...this.form.getRawValue().source === 'HTTP' && { source: this.obtainSource(this.form.getRawValue().source, this.form.getRawValue().sourceConfiguration)},
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err) => {

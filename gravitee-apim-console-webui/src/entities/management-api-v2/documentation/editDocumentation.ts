@@ -16,6 +16,8 @@
 import { Visibility } from './visibility';
 import { PageType } from './pageType';
 import { AccessControl } from './page';
+import {PageSource} from "./pageSource";
+import {BaseCreateDocumentation} from "./createDocumentation";
 
 export interface BaseEditDocumentation {
   type?: PageType;
@@ -31,6 +33,19 @@ export type EditDocumentationFolder = BaseEditDocumentation;
 export interface EditDocumentationMarkdown extends BaseEditDocumentation {
   content?: string;
   homepage?: boolean;
+  source?: PageSource;
 }
 
-export type EditDocumentation = EditDocumentationFolder | EditDocumentationMarkdown;
+export interface EditDocumentationSwagger extends BaseEditDocumentation {
+  content?: string;
+  homepage?: boolean;
+  source?: PageSource;
+}
+
+export interface EditDocumentationAsyncApi extends BaseEditDocumentation {
+  content?: string;
+  homepage?: boolean;
+  source?: PageSource;
+}
+
+export type EditDocumentation = EditDocumentationFolder | EditDocumentationMarkdown | EditDocumentationSwagger | EditDocumentationAsyncApi;
