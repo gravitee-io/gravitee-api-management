@@ -108,21 +108,21 @@
           @if (details.apiKey) {
             <mat-form-field appearance="outline" class="subscriptions-details__field">
               <mat-label i18n="@@subscriptionDetailsApiKeyHeader">API key</mat-label>
-              <input matInput [value]="details.apiKey.key" readonly aria-label="API key input" />
+              <input matInput [value]="details.apiKey.key" readonly aria-label="API key" />
               <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.apiKey.key">
                 <mat-icon>content_copy</mat-icon>
               </button>
             </mat-form-field>
             <mat-form-field appearance="outline" class="subscriptions-details__field">
               <mat-label i18n="@@subscriptionDetailsApiKeyBaseUrl">Base URL</mat-label>
-              <input matInput [value]="details.apiKey.baseUrl" readonly />
+              <input matInput [value]="details.apiKey.baseUrl" readonly aria-label="Base URL" />
               <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.apiKey.baseUrl">
                 <mat-icon>content_copy</mat-icon>
               </button>
             </mat-form-field>
             <mat-form-field appearance="outline" class="subscriptions-details__field">
               <mat-label i18n="@@subscriptionDetailsApiKeyCommandLine">Command line</mat-label>
-              <input matInput [value]="details.apiKey.commandLine" readonly />
+              <input matInput [value]="details.apiKey.commandLine" readonly aria-label="Command Line" />
               <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.apiKey.commandLine">
                 <mat-icon>content_copy</mat-icon>
               </button>

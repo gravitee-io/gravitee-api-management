@@ -21,7 +21,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
 import { CompanyTitleHarness } from '../components/company-title/company-title.harness';
-import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
+import { Configuration } from '../entities/configuration/configuration';
 import { ConfigService } from '../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
@@ -58,8 +58,12 @@ describe('AppComponent', () => {
       get baseURL(): string {
         return TESTING_BASE_URL;
       }
-      get portalNext(): ConfigurationPortalNext {
-        return { siteTitle: 'My custom title' };
+      get configuration(): Configuration {
+        return {
+          portalNext: {
+            siteTitle: 'My custom title',
+          },
+        };
       }
     }
 

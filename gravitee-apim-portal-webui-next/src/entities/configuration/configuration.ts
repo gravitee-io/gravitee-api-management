@@ -19,12 +19,14 @@ import { ConfigurationApplication } from './configuration-application';
 import { ConfigurationAuthentication } from './configuration-authentication';
 import { ConfigurationDocumentation } from './configuration-documentation';
 import { ConfigurationPlan } from './configuration-plan';
+import { ConfigurationPortal } from './configuration-portal';
 import { ConfigurationPortalNext } from './configuration-portal-next';
 import { ConfigurationReCaptcha } from './configuration-re-captcha';
 import { ConfigurationScheduler } from './configuration-scheduler';
 import { Enabled } from './enabled';
 
 export interface Configuration {
+  portal?: ConfigurationPortal;
   portalNext?: ConfigurationPortalNext;
   authentication?: ConfigurationAuthentication;
   scheduler?: ConfigurationScheduler;

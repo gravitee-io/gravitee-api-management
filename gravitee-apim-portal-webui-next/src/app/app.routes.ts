@@ -76,7 +76,7 @@ export const routes: Routes = [
                     component: SubscriptionsTableComponent,
                   },
                   {
-                    path: ':subscriptionApplicationId',
+                    path: ':subscriptionId',
                     component: SubscriptionsDetailsComponent,
                   },
                 ],
