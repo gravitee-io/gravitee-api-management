@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.environmentflow.manager.EnvironmentFlowManager;
 import io.gravitee.gateway.services.sync.healthcheck.SyncProcessProbe;
 import io.gravitee.node.api.healthcheck.ProbeManager;
 import java.util.List;
@@ -38,6 +39,9 @@ public class SyncService extends AbstractService {
     @Autowired
     private ApiManager apiManager;
 
+    @Autowired
+    private EnvironmentFlowManager environmentFlowManager;
+
     @Autowired(required = false)
     private List<SyncManager> syncManagers;
 
@@ -55,8 +59,9 @@ public class SyncService extends AbstractService {
             // Register sync prob
             probeManager.register(syncProcessProbe);
 
-            // Force refresh based on internal state of the api manager (useful if apis definitions are maintained across the cluster).
+            // Force refresh based on internal state of the api manager and environment flow manager (useful if apis definitions are maintained across the cluster).
             apiManager.refresh();
+            environmentFlowManager.refresh();
 
             // Initialize the sync managers.
             if (syncManagers != null) {
