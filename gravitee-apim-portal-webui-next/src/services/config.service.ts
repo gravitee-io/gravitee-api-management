@@ -19,7 +19,6 @@ import { catchError, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { Configuration } from '../entities/configuration/configuration';
-import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
 
 /**
  * Object used in `config.json` file and `/ui/bootstrap` response
@@ -42,8 +41,8 @@ export class ConfigService {
     return this._baseURL;
   }
 
-  public get portalNext(): ConfigurationPortalNext {
-    return this._configuration.portalNext ?? {};
+  public get configuration(): Configuration {
+    return this._configuration ?? {};
   }
 
   private set baseURL(baseURL: string) {

@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { inject } from '@angular/core';
-
-import { ConfigService } from '../services/config.service';
-
-export const redirectGuard = (): boolean => {
-  const enabled = inject(ConfigService).configuration?.portalNext?.access?.enabled;
-
-  if (!enabled) {
-    window.location.href = window.location.href.substring(0, window.location.href.indexOf('/next')) + '/404';
-  }
-  return true;
-};
+export class ConfigurationPortal {
+  apikeyHeader?: string;
+}
