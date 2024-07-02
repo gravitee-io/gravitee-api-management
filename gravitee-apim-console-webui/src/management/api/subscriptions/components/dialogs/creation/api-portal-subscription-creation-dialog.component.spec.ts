@@ -52,8 +52,9 @@ import { fakePagedResult, PagedResult } from '../../../../../../entities/pagedRe
 import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
 import { PlanSecurityType } from '../../../../../../entities/plan';
-import { ApplicationSubscription } from '../../../../../../entities/subscription/subscription';
+import { SubscriptionPage } from '../../../../../../entities/subscription/subscription';
 import { Constants } from '../../../../../../entities/Constants';
+import { fakeSubscriptionPage } from '../../../../../../entities/subscription/subscription.fixture';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -393,10 +394,10 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        const apikeySubscription = {
+        const apikeySubscription = fakeSubscriptionPage({
           security: PlanSecurityType.API_KEY,
           api: 'another-plan-id',
-        };
+        });
         expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
 
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
@@ -821,7 +822,7 @@ describe('Subscription creation dialog', () => {
     fixture.detectChanges();
   }
 
-  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<ApplicationSubscription>[]) {
+  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<SubscriptionPage>[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?expand=security`,
@@ -833,7 +834,7 @@ describe('Subscription creation dialog', () => {
     fixture.detectChanges();
   }
 
-  const expectApiKeySubscriptionsGetRequest = (applicationId: string, subscriptions: ApplicationSubscription[]) => {
+  const expectApiKeySubscriptionsGetRequest = (applicationId: string, subscriptions: SubscriptionPage[]) => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&status=ACCEPTED,PENDING,PAUSED&security_types=API_KEY`,
