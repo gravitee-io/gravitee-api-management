@@ -17,11 +17,13 @@ import { commands, Config } from '@circleci/circleci-config-sdk';
 import { config } from '../../config';
 import { OpenJdkExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestGatewayJob extends AbstractTestJob {
-  public static create(dynamicConfig: Config) {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     return super.create(
       dynamicConfig,
+      environment,
       'job-test-gateway',
       new commands.Run({
         name: `Run gateway tests`,

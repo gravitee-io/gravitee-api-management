@@ -20,6 +20,7 @@ describe('Run bridge compatibility tests', () => {
   it('should generate bridge compatibility tests pipeline', () => {
     const result = generateBridgeCompatibilityTestsConfig({
       action: 'bridge_compatibility_tests',
+      baseBranch: 'master',
       branch: 'master',
       sha1: '784ff35ca',
       changedFiles: [],
