@@ -6,13 +6,13 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}event_organizations
             columns:
-              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_event_organizations } }
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_event_organizations } }
         - createTable:
             tableName: ${gravitee_prefix}events_latest_organizations
             columns:
-              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_events_latest_organizations } }
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_events_latest_organizations } }
         - createIndex:
             indexName: idx_${gravitee_prefix}event_organizations_org_id
             columns:
