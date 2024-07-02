@@ -86,7 +86,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
   apiId!: string;
 
   @Input()
-  subscriptionApplicationId!: string;
+  subscriptionId!: string;
 
   hidePassword: boolean = true;
   subscriptionDetails: Observable<SubscriptionDetailsData> = of();
@@ -113,7 +113,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
   }
 
   private loadDetails(): Observable<SubscriptionDetailsData> {
-    return this.subscriptionService.listDetails(this.subscriptionApplicationId).pipe(
+    return this.subscriptionService.listDetails(this.subscriptionId).pipe(
       switchMap(details => {
         return forkJoin({
           details: of(details),
@@ -124,7 +124,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
       }),
       map(({ details, list, api, application }) => {
         const selectedApi = api.data?.find((item: { id: string }) => item.id === details.plan);
-        const selectedSubscription = list.data.find(item => item.id === this.subscriptionApplicationId);
+        const selectedSubscription = list.data.find(item => item.id === this.subscriptionId);
 
         let subscriptionDetails: SubscriptionDetailsData = {
           application: this.retrieveMetadataName(<string>selectedSubscription?.application, list.metadata),
@@ -169,8 +169,14 @@ export class SubscriptionsDetailsComponent implements OnInit {
     );
   }
 
-  private formatCurlCommandLine(url: string, header: string): string {
-    const headersFormatted = `--header "${this.configService.baseURL}: ${header}" \\`;
-    return `curl ${headersFormatted} ${url}`;
+  private formatCurlCommandLine(entrypointUrl: string, apiKey?: string): string {
+    if (!entrypointUrl) {
+      return '';
+    }
+    const apiKeyHeader =
+      apiKey && this.configService.configuration.portal?.apikeyHeader
+        ? `--header "${this.configService.configuration.portal.apikeyHeader}: ${apiKey}" `
+        : '';
+    return `curl ${apiKeyHeader}${entrypointUrl}`;
   }
 }

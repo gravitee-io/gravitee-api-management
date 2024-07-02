@@ -85,8 +85,9 @@ export class CatalogComponent {
     private router: Router,
     private configService: ConfigService,
   ) {
-    this.bannerTitle = this.configService.portalNext.bannerTitle ?? 'Welcome to Gravitee Developer Portal!';
-    this.bannerSubtitle = this.configService.portalNext.bannerSubtitle ?? 'Discover powerful APIs to supercharge your projects.';
+    this.bannerTitle = this.configService.configuration?.portalNext?.bannerTitle ?? 'Welcome to Gravitee Developer Portal!';
+    this.bannerSubtitle =
+      this.configService.configuration?.portalNext?.bannerSubtitle ?? 'Discover powerful APIs to supercharge your projects.';
     this.apiPaginator$ = this.loadApis$();
     this.filterList$ = this.loadCategories$();
   }
