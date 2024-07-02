@@ -27,6 +27,8 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 import { set } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
+import { By } from '@angular/platform-browser';
 
 import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-page.harness';
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
@@ -501,6 +503,37 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           name: 'New page',
           visibility: 'PUBLIC',
           content: 'File content',
+          parentId: 'parent-folder-id',
+          accessControls: [],
+          excludedAccessControls: false,
+        });
+      });
+
+      it('should select from URL', async () => {
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+        await harness.setName('New page');
+
+        await harness.getNextButton().then(async (btn) => btn.click());
+        await harness.getNextButton().then(async (btn) => btn.click());
+
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        await editor.setValue('Import from URL');
+
+        const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+        expect(await saveBtn.isDisabled()).toEqual(false);
+        await saveBtn.click();
+
+        const req = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+        });
+
+        req.flush({});
+        expect(req.request.body).toEqual({
+          type: 'MARKDOWN',
+          name: 'New page',
+          visibility: 'PUBLIC',
+          content: 'Import from URL',
           parentId: 'parent-folder-id',
           accessControls: [],
           excludedAccessControls: false,

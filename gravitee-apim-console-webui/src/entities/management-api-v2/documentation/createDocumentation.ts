@@ -15,6 +15,7 @@
  */
 import { Visibility } from './visibility';
 import { AccessControl } from './page';
+import { PageSource } from './pageSource';
 
 const CreateDocumentationTypeEnum = {
   MARKDOWN: 'MARKDOWN',
@@ -39,16 +40,19 @@ export type CreateDocumentationFolder = BaseCreateDocumentation;
 export interface CreateDocumentationMarkdown extends BaseCreateDocumentation {
   content?: string;
   homepage?: boolean;
+  source?: PageSource;
 }
 
 export interface CreateDocumentationSwagger extends BaseCreateDocumentation {
   content?: string;
   homepage?: boolean;
+  source?: PageSource;
 }
 
 export interface CreateDocumentationAsyncApi extends BaseCreateDocumentation {
   content?: string;
   homepage?: boolean;
+  source?: PageSource;
 }
 
 export type CreateDocumentation =
