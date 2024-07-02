@@ -33,7 +33,7 @@
     <properties>
         <!-- Dependencies version -->
         <HikariCP.version>5.1.0</HikariCP.version>
-        <liquibase.version>4.28.0</liquibase.version>
+        <liquibase.version>4.25.0</liquibase.version>
         <liquibase-slf4j.version>5.0.0</liquibase-slf4j.version>
         <mariaDB.version>3.4.0</mariaDB.version>
         <mssql-jdbc.version>12.7.0.jre11-preview</mssql-jdbc.version>
