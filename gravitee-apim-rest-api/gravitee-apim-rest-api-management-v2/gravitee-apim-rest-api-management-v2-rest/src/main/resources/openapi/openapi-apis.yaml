@@ -5987,6 +5987,8 @@ components:
                 - UNPUBLISH_API
                 - UNPUBLISH_API_RESULT
                 - UNPUBLISH_DICTIONARY
+                - DEPLOY_ENVIRONMENT_FLOW
+                - UNDEPLOY_ENVIRONMENT_FLOW
 
         # Documentation pages
         AccessControl:
