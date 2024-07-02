@@ -117,9 +117,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v9-<< parameters.jobName >>-master
+            - gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v10-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -132,7 +132,7 @@ commands:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
       - save_cache:
-          key: gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -245,7 +245,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v10-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -257,7 +257,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v10-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-validate-workflow-status:
     docker:
