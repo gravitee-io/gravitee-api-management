@@ -19,10 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { SubscriptionService } from './subscription.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
-import { fakeApi } from '../entities/api/Api.fixture';
-import { fakeSubscription } from '../entities/subscription/subscription.fixture';
-import { fakePlan } from '../entities/plan/plan.fixture';
-import { fakeApplication } from '../entities/application/Application.fixture';
+import { fakeSubscriptionPage } from '../entities/subscription/subscription.fixture';
 
 describe('SubscriptionService', () => {
   let httpTestingController: HttpTestingController;
@@ -45,9 +42,7 @@ describe('SubscriptionService', () => {
     it('should get the api subscriptions', (done) => {
       const apiId = 'API#1';
       const planId = 'PLAN#1';
-      const api = fakeApi({ id: 'API#1' });
-      const plan = fakePlan({ id: 'PLAN#1', api: api.id });
-      const mockSubscription = fakeSubscription({ api, plan });
+      const mockSubscription = fakeSubscriptionPage();
 
       subscriptionService.getApiSubscriptionsByPlan(apiId, planId).subscribe((response) => {
         expect(response).toMatchObject([mockSubscription]);
@@ -65,18 +60,17 @@ describe('SubscriptionService', () => {
 
   describe('getApplicationSubscriptions', () => {
     it('should get the application subscriptions', (done) => {
-      const app = fakeApplication({ id: 'API#1' });
-      const plan = fakePlan({ id: 'PLAN#1' });
-      const mockSubscription = fakeSubscription({ plan });
+      const appId = 'APP#1';
+      const mockSubscription = fakeSubscriptionPage();
 
-      subscriptionService.getApplicationSubscriptions(app.id).subscribe((response) => {
+      subscriptionService.getApplicationSubscriptions(appId).subscribe((response) => {
         expect(response).toMatchObject([mockSubscription]);
         done();
       });
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${app.id}/subscriptions?expand=security`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?expand=security`,
       });
 
       req.flush([mockSubscription]);

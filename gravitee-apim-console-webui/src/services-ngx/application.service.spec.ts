@@ -21,7 +21,7 @@ import { ApplicationService } from './application.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../entities/application/Application.fixture';
-import { fakeApplicationSubscription } from '../entities/subscription/subscription.fixture';
+import { fakeSubscriptionPage } from '../entities/subscription/subscription.fixture';
 import { fakeApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey.fixture';
 
 describe('ApplicationService', () => {
@@ -309,7 +309,7 @@ describe('ApplicationService', () => {
 
   describe('getSubscriptionsPage', () => {
     const appId = 'my-app-id';
-    const subscriptions = [fakeApplicationSubscription({ application: appId })];
+    const subscriptions = [fakeSubscriptionPage({ application: appId })];
 
     it('should get application paged result', (done) => {
       applicationService.getSubscriptionsPage(appId).subscribe((response) => {
