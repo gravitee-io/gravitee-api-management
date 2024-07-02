@@ -28,7 +28,7 @@ export class DeployOnAzureJob {
 
     dynamicConfig.importOrb(orbs.keeper);
 
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);

@@ -18,11 +18,11 @@ import { generatePublishDockerImagesConfig } from '../pipeline-publish-docker-im
 
 describe('Publish docker images tests', () => {
   it.each`
-    branch                     | isDryRun | expectedResult
-    ${'apim-1234-branch-name'} | ${true}  | ${'publish-docker-images-dry-run.yml'}
-    ${'master'}                | ${false} | ${'publish-docker-images-master.yml'}
-    ${'4.1.x'}                 | ${false} | ${'publish-docker-images-4-1-x.yml'}
-  `('should build publish docker image pipeline for $branch and dry run $isDryRun', ({ branch, isDryRun, expectedResult }) => {
+    baseBranch  | branch                     | isDryRun | expectedResult
+    ${'master'} | ${'apim-1234-branch-name'} | ${true}  | ${'publish-docker-images-dry-run.yml'}
+    ${'master'} | ${'master'}                | ${false} | ${'publish-docker-images-master.yml'}
+    ${'4.1.x'}  | ${'4.1.x'}                 | ${false} | ${'publish-docker-images-4-1-x.yml'}
+  `('should build publish docker image pipeline for $branch and dry run $isDryRun', ({ baseBranch, branch, isDryRun, expectedResult }) => {
     const result = generatePublishDockerImagesConfig({
       action: 'publish_docker_images',
       sha1: '784ff35ca',
@@ -31,6 +31,7 @@ describe('Publish docker images tests', () => {
       buildId: '1234',
       graviteeioVersion: '4.2.0',
       apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
+      baseBranch,
       branch,
       isDryRun,
     });
