@@ -4,20 +4,6 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - addColumn:
-            tableName: ${gravitee_prefix}keys
-            columns:
-              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
-        - sql:
-            dbms: 'mysql,mariadb'
-            sql: UPDATE `${gravitee_prefix}keys` k LEFT OUTER JOIN `${gravitee_prefix}apis` a ON k.api = a.id SET k.environment_id = a.environment_id;
-        - sql:
-            dbms: 'postgresql,mssql'
-            sql: UPDATE ${gravitee_prefix}keys SET environment_id = a.environment_id FROM ${gravitee_prefix}apis a WHERE api = a.id;
-        - addNotNullConstraint:
-            tableName: ${gravitee_prefix}keys
-            columnName: environment_id
-            columnDataType: VARCHAR(64)
-        - addColumn:
             tableName: ${gravitee_prefix}subscriptions
             columns:
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
@@ -32,3 +18,23 @@ databaseChangeLog:
             columnDataType: VARCHAR(64)
             tableName: ${gravitee_prefix}subscriptions
             validate: true
+        - addColumn:
+            tableName: ${gravitee_prefix}keys
+            columns:
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: true }}
+        - sql:
+            dbms: 'mysql,mariadb'
+            sql: UPDATE `${gravitee_prefix}keys` k JOIN `${gravitee_prefix}apis` a ON k.api = a.id SET k.environment_id = a.environment_id;
+        - sql:
+            dbms: 'mysql,mariadb'
+            sql: UPDATE `${gravitee_prefix}keys` k JOIN `${gravitee_prefix}key_subscriptions` ks ON k.id = ks.key_id JOIN `${gravitee_prefix}subscriptions` s ON ks.subscription_id = s.id SET k.environment_id = s.environment_id;
+        - sql:
+            dbms: 'postgresql,mssql'
+            sql: UPDATE ${gravitee_prefix}keys SET environment_id = a.environment_id FROM ${gravitee_prefix}keys k, ${gravitee_prefix}apis a WHERE k.api = a.id;
+        - sql:
+            dbms: 'postgresql,mssql'
+            sql: UPDATE ${gravitee_prefix}keys SET environment_id = s.environment_id FROM ${gravitee_prefix}keys k, ${gravitee_prefix}key_subscriptions ks, ${gravitee_prefix}subscriptions s WHERE k.id = ks.key_id AND ks.subscription_id = s.id;
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}keys
+            columnName: environment_id
+            columnDataType: VARCHAR(64)
