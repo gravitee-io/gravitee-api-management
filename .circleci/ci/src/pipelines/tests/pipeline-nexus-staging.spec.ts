@@ -20,6 +20,7 @@ describe('Nexus staging workflow tests', () => {
   it('should build nexus staging with no dry run', function () {
     const result = generateNexusStagingConfig({
       action: 'nexus_staging',
+      baseBranch: 'master',
       branch: 'master',
       sha1: '784ff35ca',
       changedFiles: [],
@@ -40,6 +41,7 @@ describe('Nexus staging workflow tests', () => {
     try {
       generateNexusStagingConfig({
         action: 'nexus_staging',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],
@@ -60,6 +62,7 @@ describe('Nexus staging workflow tests', () => {
     try {
       generateNexusStagingConfig({
         action: 'nexus_staging',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],

@@ -20,6 +20,7 @@ describe('Run Repositories Tests', () => {
   it('should generate Repositories tests pipeline', () => {
     const result = generateRepositoriesTestsConfig({
       action: 'repositories_tests',
+      baseBranch: 'master',
       branch: 'master',
       sha1: '784ff35ca',
       changedFiles: [],

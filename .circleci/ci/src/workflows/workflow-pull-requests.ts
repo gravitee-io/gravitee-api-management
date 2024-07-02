@@ -89,7 +89,7 @@ export class PullRequestsWorkflow {
       const setupJob = SetupJob.create(dynamicConfig);
       dynamicConfig.addJob(setupJob);
 
-      const validateBackendJob = ValidateJob.create(dynamicConfig);
+      const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(validateBackendJob);
 
       const dangerJSJob = DangerJsJob.create(dynamicConfig);
@@ -98,22 +98,22 @@ export class PullRequestsWorkflow {
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
-      const testDefinitionJob = TestDefinitionJob.create(dynamicConfig);
+      const testDefinitionJob = TestDefinitionJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(testDefinitionJob);
 
-      const testGatewayJob = TestGatewayJob.create(dynamicConfig);
+      const testGatewayJob = TestGatewayJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(testGatewayJob);
 
-      const testRestApiJob = TestRestApiJob.create(dynamicConfig);
+      const testRestApiJob = TestRestApiJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(testRestApiJob);
 
-      const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
+      const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(testIntegrationJob);
 
-      const testPluginsJob = TestPluginJob.create(dynamicConfig);
+      const testPluginsJob = TestPluginJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(testPluginsJob);
 
-      const testRepositoryJob = TestRepositoryJob.create(dynamicConfig);
+      const testRepositoryJob = TestRepositoryJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(testRepositoryJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -372,16 +372,16 @@ export class PullRequestsWorkflow {
   }
 
   private static getMasterAndSupportJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig);
+    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(communityBuildJob);
 
     const snykApimChartsJob = SnykApimChartsJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(snykApimChartsJob);
 
-    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, 'artifactory');
+    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
     dynamicConfig.addJob(publishOnArtifactoryJob);
 
-    const publishOnNexusJob = PublishJob.create(dynamicConfig, 'nexus');
+    const publishOnNexusJob = PublishJob.create(dynamicConfig, environment, 'nexus');
     dynamicConfig.addJob(publishOnNexusJob);
 
     const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);

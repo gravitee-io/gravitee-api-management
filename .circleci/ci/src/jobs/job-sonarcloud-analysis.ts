@@ -40,7 +40,7 @@ export class SonarCloudAnalysisJob {
 
     const apimVersion = computeApimVersion(environment);
 
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);

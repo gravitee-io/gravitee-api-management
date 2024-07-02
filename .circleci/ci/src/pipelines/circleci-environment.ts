@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export type CircleCIEnvironment = {
+  baseBranch: string;
   branch: string;
   buildNum: string;
   buildId: string;

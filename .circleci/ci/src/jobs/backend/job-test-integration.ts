@@ -18,12 +18,13 @@ import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestIntegrationJob {
   private static jobName = 'job-test-integration';
 
-  public static create(dynamicConfig: Config) {
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);

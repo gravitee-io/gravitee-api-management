@@ -24,7 +24,7 @@ export class BackendBuildAndPublishOnArtifactoryJob {
   private static jobName = 'job-backend-build-and-publish-artifactory';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCommand);
 
     const prepareGpgCommand = PrepareGpgCmd.get(dynamicConfig);

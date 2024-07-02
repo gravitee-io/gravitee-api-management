@@ -26,6 +26,7 @@ describe('Release notes apim workflow tests', () => {
     ({ graviteeioVersion, isDryRun, expectedFileName }) => {
       const result = generateReleaseNotesApimConfig({
         action: 'release_notes_apim',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],
@@ -47,6 +48,7 @@ describe('Release notes apim workflow tests', () => {
     try {
       generateReleaseNotesApimConfig({
         action: 'release_notes_apim',
+        baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
         changedFiles: [],

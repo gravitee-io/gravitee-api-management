@@ -15,6 +15,7 @@
  */
 import { commands, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { config } from '../config';
+import { CircleCIEnvironment } from '../pipelines';
 
 export class RestoreMavenJobCacheCommand {
   private static commandName = 'cmd-restore-maven-job-cache';
@@ -23,18 +24,19 @@ export class RestoreMavenJobCacheCommand {
     new parameters.CustomParameter('jobName', 'string', '', 'The job name'),
   ]);
 
-  public static get(): reusable.ReusableCommand {
+  public static get(environment: CircleCIEnvironment): reusable.ReusableCommand {
+    const keys = [
+      `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}`,
+      `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}`,
+    ];
+
+    if (environment.baseBranch !== environment.branch) {
+      keys.push(`${config.cache.prefix}-<< parameters.jobName >>-${environment.baseBranch}`);
+    }
+
     return new reusable.ReusableCommand(
       RestoreMavenJobCacheCommand.commandName,
-      [
-        new commands.cache.Restore({
-          keys: [
-            `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}`,
-            `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}`,
-            `${config.cache.prefix}-<< parameters.jobName >>`,
-          ],
-        }),
-      ],
+      [new commands.cache.Restore({ keys })],
       RestoreMavenJobCacheCommand.customParametersList,
       'Restore Maven cache for a dedicated job',
     );
