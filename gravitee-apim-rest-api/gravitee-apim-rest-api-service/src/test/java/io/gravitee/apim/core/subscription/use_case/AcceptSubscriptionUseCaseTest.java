@@ -389,7 +389,15 @@ class AcceptSubscriptionUseCaseTest {
                     .applicationId(subscription.getApplicationId())
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .key(String.join("-", IntegrationSubscription.Type.API_KEY.name(), subscription.getId(), application.getName()))
+                    .key(
+                        String.join(
+                            "-",
+                            IntegrationSubscription.Type.API_KEY.name(),
+                            subscription.getId(),
+                            application.getId(),
+                            application.getName()
+                        )
+                    )
                     .subscriptions(List.of(subscription.getId()))
                     .expireAt(null)
                     .federated(true)
