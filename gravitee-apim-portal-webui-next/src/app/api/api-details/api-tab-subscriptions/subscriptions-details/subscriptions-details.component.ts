@@ -169,8 +169,12 @@ export class SubscriptionsDetailsComponent implements OnInit {
     );
   }
 
-  private formatCurlCommandLine(url: string, header: string): string {
-    const headersFormatted = `--header "${this.configService.baseURL}: ${header}" \\`;
-    return `curl ${headersFormatted} ${url}`;
+  private formatCurlCommandLine(entrypointUrl: string, apiKey?: string): string {
+    if (!entrypointUrl) {
+      return '';
+    }
+    const apiKeyHeader =
+      apiKey && this.configService.portal?.apikeyHeader ? `--header "${this.configService.portal.apikeyHeader}: ${apiKey}" ` : '';
+    return `curl ${apiKeyHeader}${entrypointUrl}`;
   }
 }
