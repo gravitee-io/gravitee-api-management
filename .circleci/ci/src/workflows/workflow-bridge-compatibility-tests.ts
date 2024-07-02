@@ -25,7 +25,7 @@ export class BridgeCompatibilityTestsWorkflow {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
 
-    const validateJob = ValidateJob.create(dynamicConfig);
+    const validateJob = ValidateJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(validateJob);
 
     const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
