@@ -24,7 +24,8 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, startWith, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { SubscriptionData, SubscriptionMetadata, SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
+import { Subscription, SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
+import { SubscriptionMetadata } from '../../../../../entities/subscription/subscriptions-response';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 
@@ -54,7 +55,7 @@ export class SubscriptionsTableComponent implements OnInit {
   public displayedColumns: string[] = ['application', 'plan', 'status', 'expand'];
   public subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
   public subscriptionsStatus = new FormControl();
-  public subscriptionsList$!: Observable<SubscriptionData[]>;
+  public subscriptionsList$!: Observable<Subscription[]>;
 
   constructor(
     private capitalizeFirstPipe: CapitalizeFirstPipe,
@@ -73,7 +74,7 @@ export class SubscriptionsTableComponent implements OnInit {
     }
   }
 
-  private loadSubscriptions$(): Observable<SubscriptionData[]> {
+  private loadSubscriptions$(): Observable<Subscription[]> {
     return this.subscriptionsStatus.valueChanges.pipe(
       map(status => status.map((value: string) => value.toUpperCase())),
       startWith(this.subscriptionsStatus.value),

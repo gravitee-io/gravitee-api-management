@@ -17,8 +17,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { SubscriptionService } from './subscription.service';
-import { Subscription } from '../entities/subscription/subscription';
 import { fakeSubscriptionResponse } from '../entities/subscription/subscription.fixture';
+import { SubscriptionsResponse } from '../entities/subscription/subscriptions-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('SubscriptionService', () => {
@@ -40,7 +40,7 @@ describe('SubscriptionService', () => {
   });
 
   it('should return subscription list', done => {
-    const subscriptionResponse: Subscription = fakeSubscriptionResponse();
+    const subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse();
     service.list(apiId, status).subscribe(response => {
       expect(response).toMatchObject(subscriptionResponse);
       done();

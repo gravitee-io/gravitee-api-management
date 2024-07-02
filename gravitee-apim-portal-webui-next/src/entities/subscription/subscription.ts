@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 export interface Subscription {
-  data: SubscriptionData[];
-  links: SubscriptionLinks;
-  metadata: SubscriptionMetadata;
-}
-
-export interface SubscriptionData {
-  id?: string;
-  api?: string;
-  application?: string;
+  id: string;
+  api: string;
+  application: string;
   closed_at?: string;
   created_at?: string;
-  plan?: string;
+  plan: string;
   reason?: string;
   request?: string;
-  status?: string;
+  status: SubscriptionStatusEnum;
   subscribed_by?: string;
-  keys: SubscriptionDataKeys[];
+  keys?: SubscriptionDataKeys[];
 }
 
-export interface SubscriptionLinks {
-  self?: string;
-}
+export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
+
+export const SubscriptionStatusEnum = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  CLOSED: 'CLOSED',
+  REJECTED: 'REJECTED',
+  PAUSED: 'PAUSED',
+};
 
 export interface SubscriptionDataKeys {
   key?: string;
@@ -45,24 +45,3 @@ export interface SubscriptionDataKeys {
     name: string;
   };
 }
-
-export interface SubscriptionMetadata {
-  [key: string]: SubscriptionMetadataEntrypoints;
-}
-
-export interface SubscriptionMetadataEntrypoints {
-  entrypoints?: SubscriptionMetadataEntrypointsTarget[];
-  name?: string;
-}
-
-export interface SubscriptionMetadataEntrypointsTarget {
-  target?: string;
-}
-
-export const SubscriptionStatusEnum = {
-  PENDING: 'PENDING',
-  ACCEPTED: 'ACCEPTED',
-  CLOSED: 'CLOSED',
-  REJECTED: 'REJECTED',
-  PAUSED: 'PAUSED',
-};
