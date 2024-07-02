@@ -53,4 +53,10 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException;
 
     boolean existById(final String appId) throws TechnicalException;
+
+    default Stream<String> searchV1ApisId() {
+        return searchV1ApisId(DEFAULT_STREAM_BATCH_SIZE);
+    }
+
+    Stream<String> searchV1ApisId(int batchSize);
 }

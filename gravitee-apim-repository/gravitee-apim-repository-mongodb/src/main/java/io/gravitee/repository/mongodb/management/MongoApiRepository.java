@@ -123,6 +123,23 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
+    public Stream<String> searchV1ApisId(int batchSize) {
+        var pageable = new PageableBuilder().pageSize(batchSize).pageNumber(0).build();
+        var page = internalApiRepo.searchV1ApisId(pageable);
+        if (page == null || page.getContent() == null) {
+            return Stream.empty();
+        }
+        return Stream
+            .iterate(page, p -> !isEmpty(p), p -> hasNext(p) ? internalApiRepo.searchV1ApisId(nextPageable(p, pageable)) : null)
+            .flatMap(p -> {
+                if (p != null && p.getContent() != null) {
+                    return p.getContent().stream();
+                }
+                return Stream.empty();
+            });
+    }
+
+    @Override
     public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         return internalApiRepo.searchIds(apiCriteria, pageable, sortable);
     }
