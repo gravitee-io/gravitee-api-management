@@ -15,12 +15,11 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { Subscription, SubscriptionData } from './subscription';
+import { Subscription } from './subscription';
+import { SubscriptionsResponse } from './subscriptions-response';
 
-export function fakeSubscription(
-  modifier?: Partial<SubscriptionData> | ((baseSubscription: SubscriptionData) => SubscriptionData),
-): SubscriptionData {
-  const base: SubscriptionData = {
+export function fakeSubscription(modifier?: Partial<Subscription> | ((baseSubscription: Subscription) => Subscription)): Subscription {
+  const base: Subscription = {
     id: '5ac5ca94-160f-4acd-85ca-94160fcacd7d',
     application: '99c6cbe6-eead-414d-86cb-e6eeadc14db3',
     plan: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
@@ -30,6 +29,7 @@ export function fakeSubscription(
     closed_at: '2024-04-17T10:34:05.598Z',
     subscribed_by: '4015f9f2-c0a4-4c0c-95f9-f2c0a4fc0c4c',
     status: 'REJECTED',
+    api: 'api-id',
     keys: [
       {
         id: '12f73b0a-59e6-4d23-b73b-0a59e62d2369',
@@ -53,9 +53,9 @@ export function fakeSubscription(
 }
 
 export function fakeSubscriptionResponse(
-  modifier?: Partial<Subscription> | ((baseSubscription: Subscription) => Subscription),
-): Subscription {
-  const base: Subscription = {
+  modifier?: Partial<SubscriptionsResponse> | ((baseSubscription: SubscriptionsResponse) => SubscriptionsResponse),
+): SubscriptionsResponse {
+  const base: SubscriptionsResponse = {
     data: [fakeSubscription()],
     links: {
       self: 'test',
