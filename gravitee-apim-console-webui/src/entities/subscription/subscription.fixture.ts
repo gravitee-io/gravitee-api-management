@@ -58,6 +58,7 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
       id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
       name: '\uD83E\uDE90 Planets',
       version: '1.0',
+      definitionVersion: 'V2',
       owner: {
         id: 'user-id',
         displayName: 'John Doe',

@@ -15,6 +15,7 @@
  */
 import { ApiKeyMode } from '../application/Application';
 import { User } from '../user/user';
+import { DefinitionVersion } from '../management-api-v2';
 
 export type SubscriptionStatus = 'PENDING' | 'REJECTED' | 'ACCEPTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';
 
@@ -64,6 +65,7 @@ export interface SubscriptionApi {
   id: string;
   name: string;
   version: string;
+  definitionVersion: DefinitionVersion;
   owner: {
     id: string;
     displayName: string;

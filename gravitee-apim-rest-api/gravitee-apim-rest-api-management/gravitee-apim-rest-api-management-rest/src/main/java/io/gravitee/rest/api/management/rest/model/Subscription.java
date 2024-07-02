@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
@@ -196,34 +197,21 @@ public class Subscription {
         }
     }
 
+    @Getter
     public static class Api {
 
         private final String id;
         private final String name;
         private final String version;
+        private final DefinitionVersion definitionVersion;
         private final User owner;
 
-        public Api(final String id, final String name, final String version, final User owner) {
+        public Api(final String id, final String name, final String version, final DefinitionVersion definitionVersion, final User owner) {
             this.id = id;
             this.name = name;
             this.version = version;
+            this.definitionVersion = definitionVersion;
             this.owner = owner;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public User getOwner() {
-            return owner;
-        }
-
-        public String getVersion() {
-            return version;
         }
     }
 
