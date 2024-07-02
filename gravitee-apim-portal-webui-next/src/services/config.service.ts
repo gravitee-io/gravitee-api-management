@@ -19,6 +19,7 @@ import { catchError, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { Configuration } from '../entities/configuration/configuration';
+import { ConfigurationPortal } from '../entities/configuration/configuration-portal';
 import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
 
 /**
@@ -44,6 +45,10 @@ export class ConfigService {
 
   public get portalNext(): ConfigurationPortalNext {
     return this._configuration.portalNext ?? {};
+  }
+
+  public get portal(): ConfigurationPortal {
+    return this._configuration.portal ?? {};
   }
 
   private set baseURL(baseURL: string) {
