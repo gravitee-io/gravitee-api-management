@@ -6288,6 +6288,8 @@ components:
                           type: boolean
                           description: Page's homepage status.
                           example: true
+                      source:
+                        $ref: '#/components/schemas/SourceConfiguration'
             required:
                 - name
                 - type
@@ -6307,6 +6309,8 @@ components:
                           type: boolean
                           description: Page's homepage status.
                           example: true
+                      source:
+                        $ref: '#/components/schemas/SourceConfiguration'
             required:
                 - name
                 - type
@@ -6326,9 +6330,23 @@ components:
                           type: boolean
                           description: Page's homepage status.
                           example: true
+                      source:
+                        $ref: '#/components/schemas/SourceConfiguration'
             required:
                 - name
                 - type
+
+        SourceConfiguration:
+          type: object
+          description: Source configuration for fetching documentation content.
+          properties:
+            type:
+              type: string
+              description: Type of the source.
+              example: http-fetcher
+            configuration:
+              type: object
+              description: Configuration for the source.
 
         UpdateDocumentation:
             type: object
