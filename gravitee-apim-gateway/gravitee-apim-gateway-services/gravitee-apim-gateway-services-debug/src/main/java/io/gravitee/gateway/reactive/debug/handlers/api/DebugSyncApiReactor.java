@@ -32,11 +32,15 @@ import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -96,5 +100,20 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     protected void doStart() throws Exception {
         super.doStart();
         securityChain.addHooks(new DebugPolicyHook());
+    }
+
+    @Override
+    public List<Acceptor<?>> acceptors() {
+        try {
+            return api
+                .getDefinition()
+                .getProxy()
+                .getVirtualHosts()
+                .stream()
+                .map(virtualHost -> new DefaultHttpAcceptor(null, virtualHost.getPath(), this, null))
+                .collect(Collectors.toList());
+        } catch (Exception ex) {
+            return Collections.emptyList();
+        }
     }
 }
