@@ -128,7 +128,7 @@ public class AcceptSubscriptionDomainService {
             }
 
             return integrationAgent
-                .subscribe(integrationId, api.getFederatedApiDefinition(), subscriptionParams, subscription.getId(), application.getName())
+                .subscribe(integrationId, api.getFederatedApiDefinition(), subscriptionParams, subscription.getId(), application)
                 .map(integrationSubscription -> acceptByIntegration(subscription.getId(), integrationSubscription, auditInfo))
                 .onErrorReturn(throwable -> rejectByIntegration(integrationId, subscription.getId(), auditInfo, throwable.getMessage()))
                 .blockingGet();

@@ -45,6 +45,7 @@ import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommandPayload
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReply;
 import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionType;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -91,7 +92,7 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         FederatedApi api,
         SubscriptionParameter subscriptionParameter,
         String subscriptionId,
-        String applicationName
+        BaseApplicationEntity application
     ) {
         Map<String, String> metadata;
         SubscriptionType type;
@@ -117,7 +118,8 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             Subscription
                 .builder()
                 .graviteeSubscriptionId(subscriptionId)
-                .graviteeApplicationName(applicationName)
+                .graviteeApplicationId(application.getId())
+                .graviteeApplicationName(application.getName())
                 .type(type)
                 .metadata(metadata)
                 .build()

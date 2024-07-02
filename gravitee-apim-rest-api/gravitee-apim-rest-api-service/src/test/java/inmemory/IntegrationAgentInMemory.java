@@ -23,6 +23,7 @@ import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -49,7 +50,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
         FederatedApi api,
         SubscriptionParameter subscriptionParameter,
         String subscriptionId,
-        String applicationName
+        BaseApplicationEntity application
     ) {
         subscriptions.compute(
             integrationId,
@@ -73,7 +74,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
             new IntegrationSubscription(
                 integrationId,
                 type,
-                String.join("-", type.name(), subscriptionId, applicationName),
+                String.join("-", type.name(), subscriptionId, application.getId(), application.getName()),
                 Map.of("key", "value")
             )
         );
