@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class MediaServiceImpl implements MediaService {
+public class MediaServiceImpl extends AbstractService implements MediaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaServiceImpl.class);
     private static final String MEDIA_TYPE_IMAGE = "image";
