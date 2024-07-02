@@ -119,6 +119,10 @@ public class GatewayConfiguration implements InitializingBean {
         return tenant;
     }
 
+    public boolean useLegacyEnvironmentHrids() {
+        return configuration.getProperty("useLegacyEnvironmentHrids", Boolean.class, true);
+    }
+
     private void initOrganizations() {
         String systemPropertyOrganizations = System.getProperty(ORGANIZATION_SYSTEM_PROPERTY);
         String orgs = systemPropertyOrganizations == null
