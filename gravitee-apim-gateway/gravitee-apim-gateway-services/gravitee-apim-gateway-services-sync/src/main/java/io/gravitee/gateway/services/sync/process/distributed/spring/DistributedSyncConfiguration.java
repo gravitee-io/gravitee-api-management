@@ -25,6 +25,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
@@ -34,6 +35,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.Di
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.node.DistributedNodeMetadataSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization.DistributedOrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.sharedpolicygroup.DistributedSharedPolicyGroupSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription.DistributedSubscriptionSynchronizer;
@@ -88,13 +90,18 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public SharedPolicyGroupMapper distributedDharedPolicyGroupMapper(ObjectMapper objectMapper) {
+    public SharedPolicyGroupMapper distributedSharedPolicyGroupMapper(ObjectMapper objectMapper) {
         return new SharedPolicyGroupMapper(objectMapper);
     }
 
     @Bean
-    LicenseMapper distributedLicenseMapper() {
+    public LicenseMapper distributedLicenseMapper() {
         return new LicenseMapper();
+    }
+
+    @Bean
+    public NodeMetadataMapper distributedNodeMetadataMapper(ObjectMapper objectMapper) {
+        return new NodeMetadataMapper(objectMapper);
     }
 
     @Bean
@@ -242,6 +249,23 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public DistributedNodeMetadataSynchronizer distributedNodeMetadataSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        NodeMetadataMapper nodeMetadataMapper
+    ) {
+        return new DistributedNodeMetadataSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            nodeMetadataMapper
+        );
+    }
+
+    @Bean
     public DefaultDistributedSyncService distributedSyncService(
         final Node node,
         final ClusterManager clusterManager,
@@ -255,7 +279,8 @@ public class DistributedSyncConfiguration {
         final DictionaryMapper dictionaryMapper,
         final LicenseMapper licenseMapper,
         final AccessPointMapper accessPointMapper,
-        final SharedPolicyGroupMapper sharedPolicyGroupMapper
+        final SharedPolicyGroupMapper sharedPolicyGroupMapper,
+        final NodeMetadataMapper nodeMetadataMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -270,7 +295,8 @@ public class DistributedSyncConfiguration {
             dictionaryMapper,
             licenseMapper,
             accessPointMapper,
-            sharedPolicyGroupMapper
+            sharedPolicyGroupMapper,
+            nodeMetadataMapper
         );
     }
 }

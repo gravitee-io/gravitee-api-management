@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.environment;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 import java.util.Optional;
 import java.util.Set;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentMongo, String> {
-    @Query("{ organizationId: ?0} }")
+    @Query("{ organizationId: ?0}")
     Set<EnvironmentMongo> findByOrganizationId(String organizationId);
 
     @Query("{ hrids: {$in: ?0} }")
@@ -42,4 +43,7 @@ public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentM
 
     @Query("{ cockpitId: ?0 }")
     Optional<EnvironmentMongo> findByCockpitId(String cockpitId);
+
+    @Query(value = "{ id: {$in: ?0} }", fields = "{ organizationId: 1}")
+    Set<EnvironmentMongo> findOrganizationIdsByEnvironments(Set<String> ids) throws TechnicalException;
 }

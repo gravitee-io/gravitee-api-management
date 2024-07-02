@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.synchronizer.acces
 
 import io.gravitee.gateway.services.sync.process.common.deployer.AccessPointDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
@@ -60,6 +61,6 @@ public class DistributedAccessPointSynchronizer extends AbstractDistributedSynch
 
     @Override
     public int order() {
-        return 1;
+        return Order.ACCESS_POINT.index();
     }
 }

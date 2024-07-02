@@ -20,7 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,9 +48,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.Before;
@@ -87,36 +93,22 @@ public class InstanceServiceTest {
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
         assertThat(result).isNotNull();
-        assertThat(result.getEnvironmentsHrids()).isEmpty();
-        assertThat(result.getOrganizationsHrids()).isEmpty();
+        assertThat(result.getEnvironments()).isNull();
     }
 
     @Test
     public void shouldFindByEventIfNoOrgProperty() {
         final EventEntity evt = new EventEntity();
-        evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), "evt-env"));
+        evt.setId("evt-id");
+        evt.setEnvironments(Set.of("env-id"));
+        evt.setProperties(Map.of("id", "instance-id"));
 
         when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
         assertThat(result).isNotNull();
-        assertThat(result.getEnvironmentsHrids()).hasSize(1);
-        assertThat(result.getOrganizationsHrids()).isEmpty();
-    }
-
-    @Test
-    public void shouldFindByEventIfNoEnvProperty() {
-        final EventEntity evt = new EventEntity();
-        evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
-
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
-
-        final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
-
-        assertThat(result).isNotNull();
-        assertThat(result.getEnvironmentsHrids()).isEmpty();
-        assertThat(result.getOrganizationsHrids()).hasSize(1);
+        assertThat(result.getEnvironments()).hasSize(1);
     }
 
     @Test
@@ -124,14 +116,12 @@ public class InstanceServiceTest {
         final EventEntity evt = new EventEntity();
         Instant aMinAgo = Instant.now().minus(1, ChronoUnit.MINUTES);
         Instant twoMinAgo = Instant.now().minus(2, ChronoUnit.MINUTES);
+        evt.setId("evt-id");
+        evt.setEnvironments(Set.of("env-id"));
         evt.setProperties(
             Map.of(
                 "id",
-                "evt-id",
-                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
-                "evt-env",
-                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
-                "evt-org",
+                "instance-id",
                 "last_heartbeat_at",
                 String.valueOf(aMinAgo.toEpochMilli()),
                 "started_at",
@@ -150,9 +140,8 @@ public class InstanceServiceTest {
         assertThat(result.getLastHeartbeatAt()).isEqualTo(Date.from(aMinAgo));
         assertThat(result.getStartedAt()).isEqualTo(Date.from(twoMinAgo));
         assertThat(result.getState()).isEqualTo(InstanceState.STARTED);
-        assertThat(result.getEnvironmentsHrids()).hasSize(1);
-        assertThat(result.getOrganizationsHrids()).hasSize(1);
-
+        assertThat(result.getId()).isEqualTo("instance-id");
+        assertThat(result.getEnvironments()).containsOnly("env-id");
         assertThat(result.getHostname()).isEqualTo("myhost");
         assertThat(result.getClusterId()).isEqualTo("cluster");
         assertThat(result.isClusterPrimaryNode()).isTrue();
@@ -161,17 +150,10 @@ public class InstanceServiceTest {
     @Test
     public void shouldFindByEventWithoutDateProperties() {
         final EventEntity evt = new EventEntity();
-        evt.setProperties(
-            Map.of(
-                "id",
-                "evt-id",
-                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
-                "evt-env",
-                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
-                "evt-org"
-            )
-        );
+        evt.setId("evt-id");
+        evt.setEnvironments(Set.of("env-id"));
         evt.setType(EventType.GATEWAY_STARTED);
+        evt.setProperties(Map.of("id", "instance-id"));
 
         when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
 
@@ -186,18 +168,9 @@ public class InstanceServiceTest {
         Instant aMinAgo = Instant.now().minus(1, ChronoUnit.MINUTES);
 
         final EventEntity evt = new EventEntity();
-        evt.setProperties(
-            Map.of(
-                "id",
-                "evt-id",
-                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
-                "evt-env",
-                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
-                "evt-org",
-                "stopped_at",
-                String.valueOf(aMinAgo.toEpochMilli())
-            )
-        );
+        evt.setId("evt-id");
+        evt.setEnvironments(Set.of("env-id"));
+        evt.setProperties(Map.of("id", "instance-id", "stopped_at", String.valueOf(aMinAgo.toEpochMilli())));
 
         when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
 
@@ -208,34 +181,21 @@ public class InstanceServiceTest {
     }
 
     @Test
-    public void shouldFindAllStartedEvenIfNoEnvOrOrgProperty() {
+    public void shouldFindAllStartedEvenIfNoEnvProperty() {
         final EventEntity evt = new EventEntity();
-        evt.setProperties(Map.of("id", "evt-id"));
+        evt.setId("evt-id1");
+        evt.setEnvironments(Set.of("env-id"));
+        evt.setProperties(Map.of("id", "instance-id2"));
 
-        final EventEntity evtWithEnv = new EventEntity();
-        evtWithEnv.setProperties(Map.of("id", "evt-id", Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), "evt-env"));
+        final EventEntity evtWithoutEnv = new EventEntity();
+        evtWithoutEnv.setId("evt-id2");
+        evtWithoutEnv.setProperties(Map.of("id", "instance-id2"));
 
-        final EventEntity evtWithOrg = new EventEntity();
-        evtWithOrg.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
-
-        final EventEntity evtWithEnvAndOrg = new EventEntity();
-        evtWithEnvAndOrg.setProperties(
-            Map.of(
-                "id",
-                "evt-id",
-                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
-                "evt-env",
-                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
-                "evt-org"
-            )
-        );
-
-        when(eventService.search(eq(executionContext), any(EventQuery.class)))
-            .thenReturn(List.of(evt, evtWithEnv, evtWithOrg, evtWithEnvAndOrg));
+        when(eventService.search(eq(executionContext), any(EventQuery.class))).thenReturn(List.of(evt, evtWithoutEnv));
 
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
 
-        assertThat(result).hasSize(4);
+        assertThat(result).hasSize(2);
     }
 
     @Test
@@ -274,16 +234,11 @@ public class InstanceServiceTest {
         query.setSize(100);
 
         EventEntity event = new EventEntity();
+        event.setId("evt-id");
+        event.setEnvironments(Set.of("env-id"));
         event.setType(EventType.GATEWAY_STARTED);
         event.setProperties(
-            Map.of(
-                "id",
-                "evt-id",
-                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
-                "evt-env",
-                "last_heartbeat_at",
-                String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli())
-            )
+            Map.of("id", "evt-id", "last_heartbeat_at", String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()))
         );
 
         when(eventService.search(any(ExecutionContext.class), anyList(), any(), anyLong(), anyLong(), anyInt(), anyInt(), anyList()))
@@ -314,7 +269,9 @@ public class InstanceServiceTest {
     @Test
     public void shouldHidePasswordsInSystemProperties() {
         final EventEntity evt = new EventEntity();
-        evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
+        evt.setId("evt-id");
+        evt.setEnvironments(Set.of("env-id"));
+        evt.setProperties(Map.of("id", "evt-id"));
         evt.setPayload(
             "{\"hostname\":\"myhost\",\"clusterId\":\"cluster\", \"systemProperties\": {\"-Djavax.net.ssl.trustStorePassword=ThisIsASecret\":\"mypassword\"} }"
         );

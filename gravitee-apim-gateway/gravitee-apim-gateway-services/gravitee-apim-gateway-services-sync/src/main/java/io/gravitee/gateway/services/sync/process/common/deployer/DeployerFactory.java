@@ -20,6 +20,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
@@ -49,6 +50,7 @@ public class DeployerFactory {
     private final Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier;
     private final CommandRepository commandRepository;
     private final Node node;
+    private final GatewayConfiguration gatewayConfiguration;
     private final ObjectMapper objectMapper;
 
     private final ApiManager apiManager;
@@ -91,6 +93,10 @@ public class DeployerFactory {
 
     public OrganizationDeployer createOrganizationDeployer() {
         return new OrganizationDeployer(organizationManager, distributedSyncService);
+    }
+
+    public NodeMetadataDeployer createNodeMetadataDeployer() {
+        return new NodeMetadataDeployer(node, gatewayConfiguration, distributedSyncService);
     }
 
     public DebugDeployer createDebugDeployer() {

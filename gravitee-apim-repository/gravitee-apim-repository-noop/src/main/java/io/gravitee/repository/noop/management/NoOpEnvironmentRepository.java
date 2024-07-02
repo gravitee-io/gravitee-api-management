@@ -68,4 +68,12 @@ public class NoOpEnvironmentRepository extends AbstractNoOpManagementRepository<
     public Set<Environment> findAll() throws TechnicalException {
         return Set.of(Environment.DEFAULT);
     }
+
+    @Override
+    public Set<String> findOrganizationIdsByEnvironments(final Set<String> ids) throws TechnicalException {
+        if (ids.stream().anyMatch(envHrid -> Environment.DEFAULT.getHrids().contains(envHrid))) {
+            return Set.of(Organization.DEFAULT.getId());
+        }
+        return Set.of();
+    }
 }

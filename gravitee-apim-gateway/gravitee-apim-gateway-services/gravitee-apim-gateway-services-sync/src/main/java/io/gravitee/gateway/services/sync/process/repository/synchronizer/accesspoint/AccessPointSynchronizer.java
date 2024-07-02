@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.access
 import io.gravitee.gateway.services.sync.process.common.deployer.AccessPointDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMapper;
@@ -140,6 +141,6 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 1;
+        return Order.ACCESS_POINT.index();
     }
 }

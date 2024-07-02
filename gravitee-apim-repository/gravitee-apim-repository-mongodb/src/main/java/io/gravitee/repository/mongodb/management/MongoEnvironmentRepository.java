@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -37,9 +36,8 @@ import org.springframework.util.CollectionUtils;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class MongoEnvironmentRepository implements EnvironmentRepository {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoEnvironmentRepository.class);
 
     @Autowired
     private EnvironmentMongoRepository internalEnvironmentRepo;
@@ -49,24 +47,24 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
 
     @Override
     public Optional<Environment> findById(String environmentId) throws TechnicalException {
-        LOGGER.debug("Find environment by ID [{}]", environmentId);
+        log.debug("Find environment by ID [{}]", environmentId);
 
         final EnvironmentMongo environment = internalEnvironmentRepo.findById(environmentId).orElse(null);
 
-        LOGGER.debug("Find environment by ID [{}] - Done", environment);
+        log.debug("Find environment by ID [{}] - Done", environment);
         return Optional.ofNullable(mapper.map(environment));
     }
 
     @Override
     public Environment create(Environment environment) throws TechnicalException {
-        LOGGER.debug("Create environment [{}]", environment.getName());
+        log.debug("Create environment [{}]", environment.getName());
 
         EnvironmentMongo environmentMongo = mapper.map(environment);
         EnvironmentMongo createdEnvironmentMongo = internalEnvironmentRepo.insert(environmentMongo);
 
         Environment res = mapper.map(createdEnvironmentMongo);
 
-        LOGGER.debug("Create environment [{}] - Done", environment.getName());
+        log.debug("Create environment [{}] - Done", environment.getName());
 
         return res;
     }
@@ -93,7 +91,7 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             EnvironmentMongo environmentMongoUpdated = internalEnvironmentRepo.save(environmentMongo);
             return mapper.map(environmentMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occurred when updating environment", e);
+            log.error("An error occurred when updating environment", e);
             throw new TechnicalException("An error occurred when updating environment");
         }
     }
@@ -103,7 +101,7 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
         try {
             internalEnvironmentRepo.deleteById(environmentId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting environment [{}]", environmentId, e);
+            log.error("An error occured when deleting environment [{}]", environmentId, e);
             throw new TechnicalException("An error occured when deleting environment");
         }
     }
@@ -137,13 +135,24 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
 
     @Override
     public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
-        LOGGER.debug("Find environment by cockpit ID [{}]", cockpitId);
+        log.debug("Find environment by cockpit ID [{}]", cockpitId);
 
         return internalEnvironmentRepo
             .findByCockpitId(cockpitId)
             .map(environment -> {
-                LOGGER.debug("Find environment by cockpit ID [{}] - Done", environment);
+                log.debug("Find environment by cockpit ID [{}] - Done", environment);
                 return mapper.map(environment);
             });
+    }
+
+    @Override
+    public Set<String> findOrganizationIdsByEnvironments(final Set<String> ids) throws TechnicalException {
+        log.debug("Find organization ids for environments [{}]", ids);
+
+        return internalEnvironmentRepo
+            .findOrganizationIdsByEnvironments(ids)
+            .stream()
+            .map(EnvironmentMongo::getOrganizationId)
+            .collect(Collectors.toSet());
     }
 }

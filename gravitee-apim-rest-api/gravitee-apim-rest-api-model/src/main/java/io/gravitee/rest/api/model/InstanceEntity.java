@@ -65,12 +65,6 @@ public class InstanceEntity {
 
     private Set<String> environments;
 
-    @JsonProperty("environments_hrids")
-    private List<String> environmentsHrids;
-
-    @JsonProperty("organizations_hrids")
-    private List<String> organizationsHrids;
-
     private InstanceState state = InstanceState.UNKNOWN;
 
     private Map<String, String> systemProperties;

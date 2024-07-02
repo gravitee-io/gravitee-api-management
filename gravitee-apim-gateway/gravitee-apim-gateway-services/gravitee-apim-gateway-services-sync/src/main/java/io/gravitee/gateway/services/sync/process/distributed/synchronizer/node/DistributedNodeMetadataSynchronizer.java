@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription;
+package io.gravitee.gateway.services.sync.process.distributed.synchronizer.node;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
-import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
-import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
+import io.gravitee.gateway.services.sync.process.common.deployer.NodeMetadataDeployer;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,40 +36,54 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class DistributedSubscriptionSynchronizer extends AbstractDistributedSynchronizer<SubscriptionDeployable, SubscriptionDeployer> {
+public class DistributedNodeMetadataSynchronizer extends AbstractDistributedSynchronizer<NodeMetadataDeployable, NodeMetadataDeployer> {
 
     private final DeployerFactory deployerFactory;
-    private final SubscriptionMapper subscriptionMapper;
+    private final NodeMetadataMapper nodeMetadataMapper;
 
-    public DistributedSubscriptionSynchronizer(
+    public DistributedNodeMetadataSynchronizer(
         final DistributedEventFetcher distributedEventFetcher,
         final ThreadPoolExecutor syncFetcherExecutor,
         final ThreadPoolExecutor syncDeployerExecutor,
         final DeployerFactory deployerFactory,
-        final SubscriptionMapper subscriptionMapper
+        final NodeMetadataMapper nodeMetadataMapper
     ) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
-        this.subscriptionMapper = subscriptionMapper;
+        this.nodeMetadataMapper = nodeMetadataMapper;
+    }
+
+    @Override
+    public Completable synchronize(final Long from, final Long to) {
+        if (from == -1) {
+            return super.synchronize(from, to);
+        } else {
+            return Completable.complete();
+        }
     }
 
     @Override
     protected DistributedEventType distributedEventType() {
-        return DistributedEventType.SUBSCRIPTION;
+        return DistributedEventType.NODE_METADATA;
     }
 
     @Override
-    protected Maybe<SubscriptionDeployable> mapTo(final DistributedEvent distributedEvent) {
-        return subscriptionMapper.to(distributedEvent).cast(SubscriptionDeployable.class);
+    protected Set<DistributedSyncAction> syncActions(final boolean initialSync) {
+        return INIT_SYNC_ACTIONS;
     }
 
     @Override
-    protected SubscriptionDeployer createDeployer() {
-        return deployerFactory.createSubscriptionDeployer();
+    protected Maybe<NodeMetadataDeployable> mapTo(final DistributedEvent distributedEvent) {
+        return nodeMetadataMapper.to(distributedEvent);
+    }
+
+    @Override
+    protected NodeMetadataDeployer createDeployer() {
+        return deployerFactory.createNodeMetadataDeployer();
     }
 
     @Override
     public int order() {
-        return Order.SUBSCRIPTION.index();
+        return Order.NODE_METADATA.index();
     }
 }
