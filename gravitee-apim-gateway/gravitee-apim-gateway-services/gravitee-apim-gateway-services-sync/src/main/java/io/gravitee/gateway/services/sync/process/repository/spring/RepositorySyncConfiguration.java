@@ -37,6 +37,7 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
@@ -49,6 +50,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Sub
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.FlowAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationSynchronizer;
@@ -98,6 +100,11 @@ public class RepositorySyncConfiguration {
     @Bean
     public AccessPointMapper accessPointMapper() {
         return new AccessPointMapper();
+    }
+
+    @Bean
+    public EnvironmentFlowMapper environmentFlowMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
+        return new EnvironmentFlowMapper(objectMapper, environmentService);
     }
 
     @Bean
@@ -270,6 +277,23 @@ public class RepositorySyncConfiguration {
         return new AccessPointSynchronizer(
             accessPointFetcher,
             accessPointMapper,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    public EnvironmentFlowSynchronizer environmentFlowSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        EnvironmentFlowMapper environmentFlowMapper,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new EnvironmentFlowSynchronizer(
+            eventsFetcher,
+            environmentFlowMapper,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor
