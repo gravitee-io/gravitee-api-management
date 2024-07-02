@@ -3625,9 +3625,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-components@npm:4.2.3":
-  version: 4.2.3
-  resolution: "@gravitee/ui-components@npm:4.2.3"
+"@gravitee/ui-components@npm:4.2.4":
+  version: 4.2.4
+  resolution: "@gravitee/ui-components@npm:4.2.4"
   dependencies:
     "@codemirror/basic-setup": "npm:^0.19.1"
     "@codemirror/language-data": "npm:^0.19.1"
@@ -3666,7 +3666,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/001fcb8481b805e980a1871db125666780043550482cf90dfa8a9052f88e6f00a5c60672fe8b954cce5fb91dd90ad467688a5e355926440575b1eb65cb28aa51
+  checksum: 10c0/0343acd950ea257efdcbe5b6961816af5a60d8070a03dbfccfbb3b363285663786cbd25c2d46ec30b31b2f5fd4e8b409c759a676a7d4a913801274205e778c92
   languageName: node
   linkType: hard
 
@@ -14099,7 +14099,7 @@ __metadata:
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:4.0.0"
     "@fontsource/libre-franklin": "npm:4.4.5"
     "@gravitee/ui-analytics": "npm:12.12.0"
-    "@gravitee/ui-components": "npm:4.2.3"
+    "@gravitee/ui-components": "npm:4.2.4"
     "@gravitee/ui-particles-angular": "npm:12.12.0"
     "@gravitee/ui-policy-studio-angular": "npm:12.12.0"
     "@gravitee/ui-schematics": "npm:12.11.3"
