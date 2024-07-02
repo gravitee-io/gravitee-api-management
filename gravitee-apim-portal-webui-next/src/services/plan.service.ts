@@ -18,30 +18,18 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Api } from '../entities/api/api';
-import { ApisResponse } from '../entities/api/apis-response';
+import { PlansResponse } from '../entities/plan/plans-response';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ApiService {
+export class PlanService {
   constructor(
     private readonly http: HttpClient,
     private configService: ConfigService,
   ) {}
 
-  search(page = 1, category: string = 'all', q: string, size = 9): Observable<ApisResponse> {
-    return this.http.post<ApisResponse>(`${this.configService.baseURL}/apis/_search`, null, {
-      params: {
-        page,
-        category: category !== 'all' && category !== undefined ? category : '',
-        size,
-        q: q,
-      },
-    });
-  }
-
-  details(apiId: string): Observable<Api> {
-    return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}`);
+  list(apiId: string): Observable<PlansResponse> {
+    return this.http.get<PlansResponse>(`${this.configService.baseURL}/apis/${apiId}/plans?size=-1`);
   }
 }
