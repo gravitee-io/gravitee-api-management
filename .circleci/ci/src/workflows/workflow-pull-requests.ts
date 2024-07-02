@@ -90,7 +90,7 @@ export class PullRequestsWorkflow {
       const setupJob = SetupJob.create(dynamicConfig);
       dynamicConfig.addJob(setupJob);
 
-      const validateBackendJob = ValidateJob.create(dynamicConfig);
+      const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(validateBackendJob);
 
       const dangerJSJob = DangerJsJob.create(dynamicConfig);
@@ -119,7 +119,7 @@ export class PullRequestsWorkflow {
       );
 
       if (!filterJobs || shouldTestDefinition(environment.changedFiles)) {
-        const testDefinitionJob = TestDefinitionJob.create(dynamicConfig);
+        const testDefinitionJob = TestDefinitionJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testDefinitionJob);
 
         const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -143,7 +143,7 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestGateway(environment.changedFiles)) {
-        const testGatewayJob = TestGatewayJob.create(dynamicConfig);
+        const testGatewayJob = TestGatewayJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testGatewayJob);
 
         const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -167,7 +167,7 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestRestApi(environment.changedFiles)) {
-        const testRestApiJob = TestRestApiJob.create(dynamicConfig);
+        const testRestApiJob = TestRestApiJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testRestApiJob);
 
         const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -191,7 +191,7 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
-        const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
+        const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testIntegrationJob);
 
         jobs.push(
@@ -204,7 +204,7 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
-        const testPluginsJob = TestPluginJob.create(dynamicConfig);
+        const testPluginsJob = TestPluginJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testPluginsJob);
 
         const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -228,7 +228,7 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestRepository(environment.changedFiles)) {
-        const testRepositoryJob = TestRepositoryJob.create(dynamicConfig);
+        const testRepositoryJob = TestRepositoryJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testRepositoryJob);
 
         const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -423,16 +423,16 @@ export class PullRequestsWorkflow {
   }
 
   private static getMasterAndSupportJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig);
+    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(communityBuildJob);
 
     const snykApimChartsJob = SnykApimChartsJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(snykApimChartsJob);
 
-    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, 'artifactory');
+    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
     dynamicConfig.addJob(publishOnArtifactoryJob);
 
-    const publishOnNexusJob = PublishJob.create(dynamicConfig, 'nexus');
+    const publishOnNexusJob = PublishJob.create(dynamicConfig, environment, 'nexus');
     dynamicConfig.addJob(publishOnNexusJob);
 
     const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);
