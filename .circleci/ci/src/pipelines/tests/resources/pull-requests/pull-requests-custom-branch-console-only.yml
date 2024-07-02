@@ -119,6 +119,7 @@ commands:
           keys:
             - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
             - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v9-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:

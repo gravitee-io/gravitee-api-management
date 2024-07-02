@@ -26,7 +26,7 @@ export class NexusStagingJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(keeper);
 
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
 
     const prepareGpgCmd = PrepareGpgCmd.get(dynamicConfig);
