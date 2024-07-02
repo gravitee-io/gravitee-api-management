@@ -126,19 +126,6 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
     }
 
     private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties) {
-        final Optional<List<String>> optOrganizationHridsList = heartbeatStrategyConfiguration.gatewayConfiguration().organizations();
-        final Optional<List<String>> optEnvironmentHridsList = heartbeatStrategyConfiguration.gatewayConfiguration().environments();
-
-        optOrganizationHridsList.ifPresent(organizationHrids ->
-            properties.put(Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), String.join(", ", organizationHrids))
-        );
-
-        optEnvironmentHridsList
-            .map(TreeSet::new)
-            .ifPresent(environmentHrids ->
-                properties.put(Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), String.join(", ", environmentHrids))
-            );
-
         event.setEnvironments((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS));
         event.setOrganizations((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ORGANIZATIONS));
     }
