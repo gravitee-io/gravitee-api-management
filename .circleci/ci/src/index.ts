@@ -46,6 +46,7 @@ changed
   .then(
     (changes) =>
       ({
+        baseBranch: GIT_BASE_BRANCH,
         branch: CIRCLE_BRANCH,
         buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
         buildId: CIRCLE_BUILD_NUM,
