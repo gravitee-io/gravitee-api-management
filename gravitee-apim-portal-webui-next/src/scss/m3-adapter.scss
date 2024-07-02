@@ -119,3 +119,7 @@ After migrating to Material 3, these classes can be deleted.
   letter-spacing: 0.5px;
   line-height: 16px;
 }
+
+.on-surface-variant {
+  color: var(--mdc-outlined-text-field-label-text-color);
+}
