@@ -1,0 +1,45 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card appearance="outlined" class="subscription-info">
+  <mat-card-header>
+    <div class="m3-title-medium subscription-info__header" i18n="@@subscriptionDetailsHeader">Subscription</div>
+  </mat-card-header>
+  <mat-card-content class="subscription-info__content on-surface-variant">
+    <div class="subscription-info__content-row">
+      <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderApp"> App: </span>
+      <span class="m3-body-medium">{{ applicationName }}</span>
+    </div>
+    <div>
+      <div class="subscription-info__content-row">
+        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderPlan">Plan: </span>
+        <span class="m3-body-medium">{{ planName }}</span>
+      </div>
+      <div class="subscription-info__content-row">
+        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderAuthentication"> Authentication: </span>
+        <span class="m3-body-medium">{{ getPlanSecurityTypeLabel(planSecurity) }}</span>
+      </div>
+    </div>
+
+    @if (subscriptionStatus) {
+      <div class="subscription-info__content-row">
+        <span class="m3-title-small" i18n="@@subscriptionDetailsSubscription">Subscription:</span>
+        <span class="m3-body-medium">{{ subscriptionStatus | capitalizeFirst }}</span>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
