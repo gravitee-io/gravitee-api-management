@@ -35,7 +35,7 @@ export class SubscriptionService {
     });
   }
 
-  listDetails(applicationId: string): Observable<SubscriptionData> {
-    return this.http.get<SubscriptionData>(`${this.configService.baseURL}/subscriptions/${applicationId}?include=keys`);
+  listDetails(subscriptionId: string): Observable<SubscriptionData> {
+    return this.http.get<SubscriptionData>(`${this.configService.baseURL}/subscriptions/${subscriptionId}?include=keys`);
   }
 }

@@ -17,6 +17,7 @@ import { HttpClientTestingModule, HttpTestingController, provideHttpClientTestin
 import { TestBed } from '@angular/core/testing';
 
 import { ConfigService } from './config.service';
+import { ConfigurationPortal } from '../entities/configuration/configuration-portal';
 import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
 
 describe('ConfigService', () => {
@@ -93,28 +94,54 @@ describe('ConfigService', () => {
   });
 
   describe('loadConfiguration', () => {
-    it('should load portal next', done => {
-      const portalNext: ConfigurationPortalNext = {
-        siteTitle: 'a site title',
-        bannerTitle: 'a title',
-        bannerSubtitle: 'a subtitle',
-      };
-      service.loadConfiguration().subscribe(() => {
-        expect(service.portalNext).toEqual(portalNext);
-        done();
+    describe('load portalNext configuration', () => {
+      it('should load portal next configuration', done => {
+        const portalNext: ConfigurationPortalNext = {
+          siteTitle: 'a site title',
+          bannerTitle: 'a title',
+          bannerSubtitle: 'a subtitle',
+        };
+        service.loadConfiguration().subscribe(() => {
+          expect(service.configuration.portalNext).toEqual(portalNext);
+          done();
+        });
+
+        httpTestingController.expectOne(`/configuration`).flush({ portalNext });
       });
 
-      httpTestingController.expectOne(`/configuration`).flush({ portalNext });
+      it('should load missing portal next configuration', done => {
+        const portalNext: ConfigurationPortalNext = {};
+        service.loadConfiguration().subscribe(() => {
+          expect(service.configuration.portalNext).toEqual(portalNext);
+          done();
+        });
+
+        httpTestingController.expectOne(`/configuration`).flush({ portalNext: {} });
+      });
     });
 
-    it('should load missing portal next', done => {
-      const portalNext: ConfigurationPortalNext = {};
-      service.loadConfiguration().subscribe(() => {
-        expect(service.portalNext).toEqual(portalNext);
-        done();
+    describe('load portal configuration', () => {
+      it('should load portal configuration', done => {
+        const portal: ConfigurationPortal = {
+          apikeyHeader: 'X-My-Apikey',
+        };
+        service.loadConfiguration().subscribe(() => {
+          expect(service.configuration.portal).toEqual(portal);
+          done();
+        });
+
+        httpTestingController.expectOne(`/configuration`).flush({ portal });
       });
 
-      httpTestingController.expectOne(`/configuration`).flush({});
+      it('should load missing portal configuration', done => {
+        const portal: ConfigurationPortal = {};
+        service.loadConfiguration().subscribe(() => {
+          expect(service.configuration.portal).toEqual(portal);
+          done();
+        });
+
+        httpTestingController.expectOne(`/configuration`).flush({ portal: {} });
+      });
     });
   });
 });

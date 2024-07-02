@@ -40,7 +40,7 @@ export class AppComponent {
     private breadcrumbService: BreadcrumbService,
     private title: Title,
   ) {
-    this.siteTitle = configService.portalNext.siteTitle ?? 'Developer Portal';
+    this.siteTitle = configService.configuration?.portalNext?.siteTitle ?? 'Developer Portal';
     this.title.setTitle(this.siteTitle);
   }
 }

@@ -32,7 +32,7 @@ describe('redirectGuard', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [{ provide: ConfigService, useValue: { portalNext: { access: { enabled: false } } } }],
+      providers: [{ provide: ConfigService, useValue: { configuration: { portalNext: { access: { enabled: false } } } } }],
     });
     configService = TestBed.inject(ConfigService);
     window.location.href = 'http://localhost/next';
@@ -44,8 +44,8 @@ describe('redirectGuard', () => {
   });
 
   it('should not redirect when access is enabled', () => {
-    if (configService.portalNext && configService.portalNext.access) {
-      configService.portalNext.access.enabled = true;
+    if (configService.configuration?.portalNext && configService.configuration?.portalNext.access) {
+      configService.configuration.portalNext.access.enabled = true;
     }
     expect(TestBed.runInInjectionContext(() => redirectGuard())).toBeTruthy();
     expect(window.location.href).toEqual('http://localhost/next');
