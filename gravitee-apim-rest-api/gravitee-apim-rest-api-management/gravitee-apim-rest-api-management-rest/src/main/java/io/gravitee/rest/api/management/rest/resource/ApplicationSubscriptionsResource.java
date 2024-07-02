@@ -24,9 +24,7 @@ import io.gravitee.rest.api.management.rest.model.wrapper.SubscriptionEntityPage
 import io.gravitee.rest.api.management.rest.resource.param.ListStringParam;
 import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatusParam;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
@@ -35,9 +33,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -54,7 +50,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -211,6 +214,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
                 genericApiEntity.getId(),
                 genericApiEntity.getName(),
                 genericApiEntity.getApiVersion(),
+                genericApiEntity.getDefinitionVersion(),
                 new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
             )
         );

@@ -336,6 +336,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             genericApiEntity.getId(),
             genericApiEntity.getName(),
             genericApiEntity.getApiVersion(),
+            genericApiEntity.getDefinitionVersion(),
             new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
         );
     }

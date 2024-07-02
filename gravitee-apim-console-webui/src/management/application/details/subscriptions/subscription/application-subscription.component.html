@@ -97,7 +97,11 @@
     <subscription-api-keys
       [applicationId]="pageVM.application.id"
       [subscriptionId]="pageVM.subscription.id"
-      [readonly]="pageVM.application.api_key_mode === 'SHARED' || pageVM.subscription.status !== 'ACCEPTED'"
+      [readonly]="
+        pageVM.application.api_key_mode === 'SHARED' ||
+        pageVM.subscription.status !== 'ACCEPTED' ||
+        pageVM.subscription.api.definitionVersion == 'FEDERATED'
+      "
       [subtitleText]="
         pageVM.application.api_key_mode === 'SHARED'
           ? 'This subscription uses a shared API Key. You can renew or revoke the shared API Key at the application level.'
