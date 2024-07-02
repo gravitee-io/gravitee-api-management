@@ -18,29 +18,30 @@ import { generatePullRequestsConfig } from '../pipeline-pull-requests';
 
 describe('Pull requests workflow tests', () => {
   it.each`
-    branchName                      | changedFiles                           | expectedFileName
-    ${'master'}                     | ${[]}                                  | ${'pull-requests-master.yml'}
-    ${'4.1.x'}                      | ${[]}                                  | ${'pull-requests-4-1-x.yml'}
-    ${'APIM-1234-run-e2e'}          | ${[]}                                  | ${'pull-requests-run-e2e.yml'}
-    ${'mergify/bp/4.0.x/pr-1234'}   | ${['pom.xml']}                         | ${'pull-requests-mergify.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['pom.xml']}                         | ${'pull-requests-custom-branch.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['helm']}                            | ${'pull-requests-custom-branch-helm-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-console-webui']}     | ${'pull-requests-custom-branch-console-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-portal-webui']}      | ${'pull-requests-custom-branch-portal-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-definition']}        | ${'pull-requests-custom-branch-backend-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-repository']}        | ${'pull-requests-custom-branch-backend-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-distribution']}      | ${'pull-requests-custom-branch-backend-distribution-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-gateway']}           | ${'pull-requests-custom-branch-backend-gateway-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-integration-tests']} | ${'pull-requests-custom-branch-backend-integration-tests-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-plugin']}            | ${'pull-requests-custom-branch-backend-plugin-only.yml'}
-    ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-rest-api']}          | ${'pull-requests-custom-branch-backend-rest-api-only.yml'}
+    baseBranch  | branch                          | changedFiles                           | expectedFileName
+    ${'master'} | ${'master'}                     | ${['pom.xml']}                         | ${'pull-requests-master.yml'}
+    ${'4.1.x'}  | ${'4.1.x'}                      | ${['pom.xml']}                         | ${'pull-requests-4-1-x.yml'}
+    ${'4.0.x'}  | ${'mergify/bp/4.0.x/pr-1234'}   | ${['pom.xml']}                         | ${'pull-requests-mergify.yml'}
+    ${'master'} | ${'APIM-1234-run-e2e'}          | ${['pom.xml']}                         | ${'pull-requests-run-e2e.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['pom.xml']}                         | ${'pull-requests-custom-branch.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['helm']}                            | ${'pull-requests-custom-branch-helm-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-console-webui']}     | ${'pull-requests-custom-branch-console-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-portal-webui']}      | ${'pull-requests-custom-branch-portal-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-definition']}        | ${'pull-requests-custom-branch-backend-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-distribution']}      | ${'pull-requests-custom-branch-backend-distribution-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-gateway']}           | ${'pull-requests-custom-branch-backend-gateway-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-integration-tests']} | ${'pull-requests-custom-branch-backend-integration-tests-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-plugin']}            | ${'pull-requests-custom-branch-backend-plugin-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-repository']}        | ${'pull-requests-custom-branch-backend-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-rest-api']}          | ${'pull-requests-custom-branch-backend-rest-api-only.yml'}
   `(
     'should generate pull-requests config for branch $branchName with changedFiles $changedFiles',
-    ({ branchName, changedFiles, expectedFileName }) => {
+    ({ baseBranch, branch, changedFiles, expectedFileName }) => {
       const result = generatePullRequestsConfig({
         action: 'pull_requests',
         apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
-        branch: branchName,
+        baseBranch,
+        branch,
         sha1: '784ff35ca',
         changedFiles: changedFiles,
         buildNum: '1234',
