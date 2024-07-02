@@ -23,7 +23,7 @@ import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { Application, ApplicationType } from '../entities/application/Application';
 import { SubscribedApi } from '../entities/application/SubscribedApi';
-import { ApplicationSubscription } from '../entities/subscription/subscription';
+import { SubscriptionPage } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
 import { CreateApplication } from '../entities/application/CreateApplication';
@@ -167,8 +167,8 @@ export class ApplicationService {
     return this.http.get<SubscribedApi[]>(`${this.constants.env.baseURL}/applications/${applicationId}/subscribed`);
   }
 
-  getSubscriptions(applicationId: string, expand?: string, statuses?: string[]): Observable<ApplicationSubscription[]> {
-    return this.http.get<ApplicationSubscription[]>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, {
+  getSubscriptions(applicationId: string, expand?: string, statuses?: string[]): Observable<PagedResult<SubscriptionPage>> {
+    return this.http.get<PagedResult<SubscriptionPage>>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, {
       params: {
         ...(statuses && statuses.length > 0 ? { status: statuses.join(',') } : {}),
         ...(expand ? { expand: expand } : {}),
@@ -187,7 +187,7 @@ export class ApplicationService {
     page: number = 1,
     size: number = 20,
     expand: ('keys' | 'security')[] = [],
-  ): Observable<PagedResult<ApplicationSubscription>> {
+  ): Observable<PagedResult<SubscriptionPage>> {
     let params = new HttpParams().appendAll({ page, size });
     if (filters?.status?.length > 0) params = params.append('status', filters.status.join(','));
     if (filters?.apis?.length > 0) params = params.append('api', filters.apis.join(','));
@@ -195,10 +195,9 @@ export class ApplicationService {
     if (filters?.security_types) params = params.append('security_types', filters.security_types.join(','));
     if (expand?.length > 0) params = params.append('expand', expand.join(','));
 
-    return this.http.get<PagedResult<ApplicationSubscription>>(
-      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
-      { params },
-    );
+    return this.http.get<PagedResult<SubscriptionPage>>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, {
+      params,
+    });
   }
 
   getLog(applicationId: string, logId: string, timestamp: string): Observable<ApplicationLog> {

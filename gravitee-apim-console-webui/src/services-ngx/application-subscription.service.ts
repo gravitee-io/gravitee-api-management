@@ -22,7 +22,7 @@ import { ApplicationService } from './application.service';
 
 import { Constants } from '../entities/Constants';
 import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
-import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
+import { Subscription } from '../entities/subscription/subscription';
 import { NewSubscriptionEntity } from '../entities/application';
 
 @Injectable({
@@ -40,9 +40,9 @@ export class ApplicationSubscriptionService {
     return this.http.get<Subscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
   }
 
-  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity): Observable<ApplicationSubscription> {
+  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity): Observable<Subscription> {
     return this.http
-      .post<ApplicationSubscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, subscription, {
+      .post<Subscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, subscription, {
         params: {
           plan: planId,
         },
