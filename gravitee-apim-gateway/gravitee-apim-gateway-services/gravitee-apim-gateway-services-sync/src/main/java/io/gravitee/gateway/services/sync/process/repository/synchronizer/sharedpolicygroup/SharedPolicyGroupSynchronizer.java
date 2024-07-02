@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.shared
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SharedPolicyGroupDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SharedPolicyGroupMapper;
@@ -100,7 +101,7 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 3;
+        return Order.SHARED_POLICY_GROUP.index();
     }
 
     private Flowable<SharedPolicyGroupReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {

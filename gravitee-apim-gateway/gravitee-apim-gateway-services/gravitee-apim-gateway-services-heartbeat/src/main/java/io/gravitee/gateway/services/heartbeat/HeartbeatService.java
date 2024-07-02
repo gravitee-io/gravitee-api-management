@@ -109,10 +109,10 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
         final String now = Long.toString(event.getCreatedAt().getTime());
         properties.put(EVENT_STARTED_AT_PROPERTY, now);
         properties.put(EVENT_LAST_HEARTBEAT_PROPERTY, now);
-
-        prepareOrganizationsAndEnvironmentsProperties(event, properties);
-
         event.setProperties(properties);
+
+        event.setEnvironments((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS));
+        event.setOrganizations((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ORGANIZATIONS));
 
         InstanceEventPayload instance = createInstanceInfo();
 
@@ -123,11 +123,6 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
             log.error("An error occurs while transforming instance information into JSON", jsex);
         }
         return event;
-    }
-
-    private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties) {
-        event.setEnvironments((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS));
-        event.setOrganizations((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ORGANIZATIONS));
     }
 
     private InstanceEventPayload createInstanceInfo() {

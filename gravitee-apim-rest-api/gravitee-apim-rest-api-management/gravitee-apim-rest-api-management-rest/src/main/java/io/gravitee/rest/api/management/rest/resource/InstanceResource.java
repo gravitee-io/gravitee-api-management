@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -55,9 +56,6 @@ public class InstanceResource {
     @Inject
     private InstanceService instanceService;
 
-    @Inject
-    private OrganizationService organizationService;
-
     @PathParam("instance")
     private String instance;
 
@@ -67,10 +65,7 @@ public class InstanceResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
     public InstanceEntity getInstance() {
         InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
-        if (
-            isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment()) &&
-            isInstanceAccessibleByOrga(instanceEntity.getOrganizationsHrids(), GraviteeContext.getCurrentOrganization())
-        ) {
+        if (isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment())) {
             return instanceEntity;
         }
         throw new InstanceNotFoundException(instance);
@@ -79,17 +74,6 @@ public class InstanceResource {
     @Path("monitoring/{gatewayId}")
     public MonitoringResource getMonitoringResource() {
         return resourceContext.getResource(MonitoringResource.class);
-    }
-
-    private boolean isInstanceAccessibleByOrga(List<String> organizationsHrids, String currentOrganization) {
-        if (organizationsHrids == null || organizationsHrids.isEmpty()) {
-            return true;
-        }
-        return organizationService
-            .findByHrids(new HashSet<>(organizationsHrids))
-            .stream()
-            .map(OrganizationEntity::getId)
-            .anyMatch(id -> id.equalsIgnoreCase(currentOrganization));
     }
 
     private boolean isInstanceAccessibleByEnv(Set<String> environments, String currentEnvironment) {

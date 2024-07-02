@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.synchronizer.dicti
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.DictionaryDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
@@ -66,6 +67,6 @@ public class DistributedDictionarySynchronizer extends AbstractDistributedSynchr
 
     @Override
     public int order() {
-        return 30;
+        return Order.DICTIONARY.index();
     }
 }

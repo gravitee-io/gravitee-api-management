@@ -29,8 +29,10 @@ import io.gravitee.gateway.services.sync.process.repository.RepositorySynchroniz
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.InstallationIdFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LicenseFetcher;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.OrganizationIdsFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
@@ -51,6 +53,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.FlowAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupSynchronizer;
@@ -58,8 +61,10 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscri
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
@@ -145,6 +150,16 @@ public class RepositorySyncConfiguration {
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
         return new AccessPointFetcher(accessPointRepository, bulkItems);
+    }
+
+    @Bean
+    public OrganizationIdsFetcher organizationIdsFetcher(EnvironmentRepository environmentRepository, GatewayConfiguration configuration) {
+        return new OrganizationIdsFetcher(environmentRepository, configuration);
+    }
+
+    @Bean
+    public InstallationIdFetcher installationIdFetcher(InstallationRepository installationRepository) {
+        return new InstallationIdFetcher(installationRepository);
     }
 
     @Bean
@@ -294,6 +309,23 @@ public class RepositorySyncConfiguration {
         return new SharedPolicyGroupSynchronizer(
             eventsFetcher,
             sharedPolicyGroupMapper,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    public NodeMetadataSynchronizer nodeMetadataSynchronizer(
+        OrganizationIdsFetcher organizationIdsFetcher,
+        InstallationIdFetcher installationIdFetcher,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new NodeMetadataSynchronizer(
+            organizationIdsFetcher,
+            installationIdFetcher,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor

@@ -154,4 +154,24 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         Optional<Environment> orgEnvironments = environmentRepository.findByCockpitId("cockpitId-findById");
         Assert.assertTrue("No environment found for cockpitId: cockpitId-findById", orgEnvironments.isPresent());
     }
+
+    @Test
+    public void shouldFindOrganizationIdsByEmptyEnvironments() throws Exception {
+        Set<String> organizationIds = environmentRepository.findOrganizationIdsByEnvironments(Set.of());
+        assertTrue("No organization ids found", organizationIds.isEmpty());
+    }
+
+    @Test
+    public void shouldFindOrganizationIdsByEnvironments() throws Exception {
+        Set<String> organizationIds = environmentRepository.findOrganizationIdsByEnvironments(Set.of("DEFAULT-update", "DEFAULT-findById"));
+        assertEquals(2, organizationIds.size());
+        assertTrue(organizationIds.stream().anyMatch(s -> s.equals("ANOTHER-ORG")));
+        assertTrue(organizationIds.stream().anyMatch(s -> s.equals("DEFAULT-ORG")));
+    }
+
+    @Test
+    public void shouldNotFindOrganizationIdsByWrongEnvironments() throws Exception {
+        Set<String> organizationIds = environmentRepository.findOrganizationIdsByEnvironments(Set.of("wrong"));
+        assertTrue("No organization ids found", organizationIds.isEmpty());
+    }
 }

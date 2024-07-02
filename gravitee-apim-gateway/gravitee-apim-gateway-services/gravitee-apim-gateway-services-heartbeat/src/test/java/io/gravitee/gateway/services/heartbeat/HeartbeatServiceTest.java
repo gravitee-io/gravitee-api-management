@@ -16,17 +16,12 @@
 package io.gravitee.gateway.services.heartbeat;
 
 import static io.gravitee.gateway.services.heartbeat.impl.HeartbeatEventScheduler.HEARTBEATS;
-import static io.gravitee.repository.management.model.Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY;
-import static io.gravitee.repository.management.model.Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.heartbeat.impl.HeartbeatEventScheduler;
 import io.gravitee.gateway.services.heartbeat.spring.configuration.HeartbeatStrategyConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -41,7 +36,6 @@ import io.gravitee.repository.management.model.EventType;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -136,17 +130,12 @@ class HeartbeatServiceTest {
         assertThat(gatewayStartedEvent.getPayload()).isNotBlank();
         assertThat(gatewayStartedEvent.getOrganizations()).isNull();
         assertThat(gatewayStartedEvent.getEnvironments()).isNull();
-        assertThat(gatewayStartedEvent.getProperties())
-            .doesNotContainKey(ORGANIZATIONS_HRIDS_PROPERTY.getValue())
-            .doesNotContainKey(ENVIRONMENTS_HRIDS_PROPERTY.getValue());
         assertThat(gatewayStartedEvent.getProperties().keySet()).allMatch(k -> !k.toUpperCase(Locale.ROOT).startsWith("GRAVITEE"));
     }
 
     @Test
     @SneakyThrows
     void should_create_gateway_start_event_with_org_and_env_ids_and_hrids_when_gateway_is_configured_with_org_and_env_hrids() {
-        when(gatewayConfiguration.organizations()).thenReturn(Optional.of(List.of("org1", "org2")));
-        when(gatewayConfiguration.environments()).thenReturn(Optional.of(List.of("env1", "env2")));
         when(node.metadata())
             .thenReturn(
                 Map.of(
@@ -168,8 +157,5 @@ class HeartbeatServiceTest {
         assertThat(gatewayStartedEvent.getType()).isEqualTo(EventType.GATEWAY_STARTED);
         assertThat(gatewayStartedEvent.getOrganizations()).isEqualTo(Set.of("org-id1", "org-id2"));
         assertThat(gatewayStartedEvent.getEnvironments()).isEqualTo(Set.of("env-id1", "env-id2"));
-        assertThat(gatewayStartedEvent.getProperties())
-            .containsEntry(ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "org1, org2")
-            .containsEntry(ENVIRONMENTS_HRIDS_PROPERTY.getValue(), "env1, env2");
     }
 }

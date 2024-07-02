@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.synchronizer.api;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
@@ -65,6 +66,6 @@ public class DistributedApiSynchronizer extends AbstractDistributedSynchronizer<
 
     @Override
     public int order() {
-        return 2;
+        return Order.API.index();
     }
 }

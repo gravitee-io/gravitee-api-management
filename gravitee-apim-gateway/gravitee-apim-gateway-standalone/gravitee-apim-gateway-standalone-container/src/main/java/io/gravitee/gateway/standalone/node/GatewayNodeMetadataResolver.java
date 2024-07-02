@@ -16,20 +16,15 @@
 package io.gravitee.gateway.standalone.node;
 
 import static io.gravitee.node.api.Node.META_ENVIRONMENTS;
-import static io.gravitee.node.api.Node.META_INSTALLATION;
 import static io.gravitee.node.api.Node.META_ORGANIZATIONS;
 
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.node.api.NodeMetadataResolver;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.management.model.Organization;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,10 +47,6 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
 
     @Lazy
     @Autowired
-    private InstallationRepository installationRepository;
-
-    @Lazy
-    @Autowired
     private OrganizationRepository organizationRepository;
 
     @Lazy
@@ -67,24 +58,15 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
 
     public Map<String, Object> resolve() {
         final HashMap<String, Object> metadata = new HashMap<>();
-        metadata.put(META_INSTALLATION, getInstallationId());
-        Set<String> organizationIds;
-        Set<String> environmentIds;
         if (configuration.useLegacyEnvironmentHrids()) {
-            organizationIds = resolveOrganizationsFromHrids();
-            environmentIds = resolveEnvironmentFromHrids(organizationIds);
+            Set<String> organizationIds = resolveOrganizationsFromHrids();
+            Set<String> environmentIds = resolveEnvironmentFromHrids(organizationIds);
+            metadata.put(META_ORGANIZATIONS, organizationIds);
+            metadata.put(META_ENVIRONMENTS, environmentIds);
         } else {
-            Set<Environment> environments = resolveEnvironments();
-            organizationIds = new HashSet<>();
-            environmentIds = new HashSet<>();
-            environments.forEach(environment -> {
-                organizationIds.add(environment.getOrganizationId());
-                environmentIds.add(environment.getId());
-            });
+            Set<String> environmentIds = resolveEnvironments();
+            metadata.put(META_ENVIRONMENTS, environmentIds);
         }
-        metadata.put(META_ORGANIZATIONS, Collections.unmodifiableSet(organizationIds));
-        metadata.put(META_ENVIRONMENTS, Collections.unmodifiableSet(environmentIds));
-
         configuration.tenant().ifPresent(tenant -> metadata.put("tenant", tenant));
         configuration.shardingTags().ifPresent(shardingTags -> metadata.put("tags", shardingTags));
         configuration.zone().ifPresent(zone -> metadata.put("zone", zone));
@@ -92,7 +74,7 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
         return metadata;
     }
 
-    private Set<Environment> resolveEnvironments() {
+    private Set<String> resolveEnvironments() {
         final Optional<List<String>> optEnvironmentsList = configuration.environments();
         return optEnvironmentsList
             .stream()
@@ -104,40 +86,20 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
                 }
                 return true;
             })
-            .map(id -> {
-                try {
-                    return environmentRepository.findById(id);
-                } catch (TechnicalException e) {
-                    log.warn("Unable to load environment from id {}, ignore it.", id, e);
-                    return Optional.<Environment>empty();
-                }
-            })
-            .filter(Optional::isPresent)
-            .map(Optional::get)
             .collect(Collectors.toSet());
     }
 
     private static boolean validateEnvironmentId(final String id) {
-        return Objects.equals(id, "DEFAULT") || valideUUID(id);
+        return Objects.equals(id, "DEFAULT") || validateUUID(id);
     }
 
-    private static boolean valideUUID(final String id) {
+    private static boolean validateUUID(final String id) {
         try {
             UUID.fromString(id);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
         }
-    }
-
-    private String getInstallationId() {
-        try {
-            return installationRepository.find().map(Installation::getId).orElse(null);
-        } catch (TechnicalException e) {
-            log.warn("Unable to load installation id", e);
-        }
-
-        return null;
     }
 
     @Deprecated(forRemoval = true, since = "4.5")

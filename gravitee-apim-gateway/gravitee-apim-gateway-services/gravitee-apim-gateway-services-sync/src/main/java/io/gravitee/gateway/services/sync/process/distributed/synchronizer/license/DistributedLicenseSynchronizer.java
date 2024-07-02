@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.synchronizer.licen
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.LicenseDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
@@ -49,7 +50,7 @@ public class DistributedLicenseSynchronizer extends AbstractDistributedSynchroni
 
     @Override
     public int order() {
-        return 0;
+        return Order.LICENSE.index();
     }
 
     @Override

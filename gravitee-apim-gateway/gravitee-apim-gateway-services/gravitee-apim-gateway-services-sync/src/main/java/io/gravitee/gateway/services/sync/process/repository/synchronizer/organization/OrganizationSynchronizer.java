@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.ORGA
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.OrganizationDeployer;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
@@ -28,7 +29,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,8 +39,8 @@ import lombok.extern.slf4j.Slf4j;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class OrganizationSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> EVENT_TYPES = Set.of(EventType.PUBLISH_ORGANIZATION);
@@ -94,12 +94,12 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
     }
 
     private static Flowable<OrganizationDeployable> deploy(
-        final OrganizationDeployer dictionaryDeployer,
+        final OrganizationDeployer organizationDeployer,
         final OrganizationDeployable deployable
     ) {
-        return dictionaryDeployer
+        return organizationDeployer
             .deploy(deployable)
-            .andThen(dictionaryDeployer.doAfterDeployment(deployable))
+            .andThen(organizationDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);
@@ -109,6 +109,6 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
 
     @Override
     public int order() {
-        return 20;
+        return Order.ORGANIZATION.index();
     }
 }

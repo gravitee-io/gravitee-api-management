@@ -133,6 +133,21 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     }
 
     @Override
+    public Set<String> findOrganizationIdsByEnvironments(final Set<String> environmentIds) {
+        try {
+            LOGGER.debug("Find organization id from environment ids");
+
+            return environmentRepository
+                .findOrganizationIdsByEnvironments(environmentIds)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find organization ids from environment ids", ex);
+        }
+    }
+
+    @Override
     public EnvironmentEntity createOrUpdate(String organizationId, String environmentId, final UpdateEnvironmentEntity environmentEntity) {
         try {
             // First we check that organization exists

@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
@@ -32,6 +33,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
@@ -69,6 +71,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final LicenseMapper licenseMapper;
     private final AccessPointMapper accessPointMapper;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
+    private final NodeMetadataMapper nodeMetadataMapper;
 
     @Override
     public void validate() {
@@ -232,6 +235,18 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return sharedPolicyGroupMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
             log.debug("Not a primary node, skipping shared policy group event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(final NodeMetadataDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing node metadata event for {}", deployable.id());
+                return nodeMetadataMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+            }
+            log.debug("Not a primary node, skipping node metadata event distribution");
             return Completable.complete();
         });
     }

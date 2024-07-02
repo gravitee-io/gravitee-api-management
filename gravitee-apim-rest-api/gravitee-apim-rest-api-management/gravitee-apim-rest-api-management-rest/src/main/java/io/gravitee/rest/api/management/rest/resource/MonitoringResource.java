@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MonitoringService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -54,7 +55,7 @@ public class MonitoringResource extends AbstractResource {
     private InstanceService instanceService;
 
     @Inject
-    private OrganizationService organizationService;
+    private EnvironmentService environmentService;
 
     @PathParam("instance")
     @Parameter(name = "instance", hidden = true)
@@ -68,21 +69,20 @@ public class MonitoringResource extends AbstractResource {
         InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
         if (
             !isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment()) ||
-            !isInstanceAccessibleByOrga(instanceEntity.getOrganizationsHrids(), GraviteeContext.getCurrentOrganization())
+            !isInstanceAccessibleByOrga(instanceEntity.getEnvironments(), GraviteeContext.getCurrentOrganization())
         ) {
             throw new InstanceNotFoundException(instance);
         }
         return monitoringService.findMonitoring(GraviteeContext.getExecutionContext(), gatewayId);
     }
 
-    private boolean isInstanceAccessibleByOrga(List<String> organizationsHrids, String currentOrganization) {
-        if (organizationsHrids == null || organizationsHrids.isEmpty()) {
+    private boolean isInstanceAccessibleByOrga(Set<String> environmentIds, String currentOrganization) {
+        if (environmentIds == null || environmentIds.isEmpty()) {
             return true;
         }
-        return organizationService
-            .findByHrids(new HashSet<>(organizationsHrids))
+        return environmentService
+            .findOrganizationIdsByEnvironments(environmentIds)
             .stream()
-            .map(OrganizationEntity::getId)
             .anyMatch(id -> id.equalsIgnoreCase(currentOrganization));
     }
 

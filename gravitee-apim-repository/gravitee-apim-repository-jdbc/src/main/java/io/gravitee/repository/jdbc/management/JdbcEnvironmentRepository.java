@@ -21,9 +21,12 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
@@ -33,9 +36,9 @@ import org.springframework.util.CollectionUtils;
  * @author njt
  */
 @Repository
+@Slf4j
 public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Environment, String> implements EnvironmentRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEnvironmentRepository.class);
     private final String ENVIRONMENT_HRIDS;
 
     JdbcEnvironmentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -126,7 +129,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcEnvironmentRepository.findByOrganization({})", organizationId);
+        log.debug("JdbcEnvironmentRepository.findByOrganization({})", organizationId);
         try {
             List<Environment> environments = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where organization_id = ?",
@@ -138,14 +141,14 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             }
             return new HashSet<>(environments);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find environments by organization:", ex);
+            log.error("Failed to find environments by organization:", ex);
             throw new TechnicalException("Failed to find environments by organization", ex);
         }
     }
 
     @Override
     public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
-        LOGGER.debug("findByOrganizationsAndHrids.findByHrids({}, {})", organizations, hrids);
+        log.debug("findByOrganizationsAndHrids.findByHrids({}, {})", organizations, hrids);
 
         if (CollectionUtils.isEmpty(organizations) && CollectionUtils.isEmpty(hrids)) {
             return new HashSet<>();
@@ -174,14 +177,15 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             }
             return new HashSet<>(environments);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find environments by organizations and hrids:", ex);
+            log.error("Failed to find environments by organizations and hrids:", ex);
             throw new TechnicalException("Failed to find environments by organizations and hrids", ex);
         }
     }
 
     @Override
     public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
-        LOGGER.debug("JdbcEnvironmentRepository.findByCockpitId({})", cockpitId);
+        log.debug("JdbcEnvironmentRepository.findByCockpitId({})", cockpitId);
+
         try {
             List<Environment> environments = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where cockpit_id = ?",
@@ -197,8 +201,30 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
             return environment;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find environments by cockpit:", ex);
+            log.error("Failed to find environments by cockpit:", ex);
             throw new TechnicalException("Failed to find environments by cockpit", ex);
+        }
+    }
+
+    @Override
+    public Set<String> findOrganizationIdsByEnvironments(final Set<String> ids) throws TechnicalException {
+        log.debug("JdbcEnvironmentRepository.findOrganizationIdsByEnvironments({})", ids);
+
+        if (CollectionUtils.isEmpty(ids)) {
+            return Set.of();
+        }
+
+        try {
+            final StringBuilder query = new StringBuilder("select env.organization_id from ").append(this.tableName).append(" env ");
+            getOrm().buildInCondition(true, query, "env.id", ids);
+            List<String> organizationIds = jdbcTemplate.query(
+                query.toString(),
+                (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1),
+                (rs, rowNum) -> rs.getString(1)
+            );
+            return new HashSet<>(organizationIds);
+        } catch (final Exception ex) {
+            throw new TechnicalException(String.format("Failed to find organization ids from given environments ids [%s]", ids), ex);
         }
     }
 }

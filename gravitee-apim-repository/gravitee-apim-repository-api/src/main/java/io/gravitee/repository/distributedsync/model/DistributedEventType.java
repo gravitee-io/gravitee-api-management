@@ -16,12 +16,13 @@
 package io.gravitee.repository.distributedsync.model;
 
 public enum DistributedEventType {
-    API,
-    DICTIONARY,
-    ORGANIZATION,
-    SUBSCRIPTION,
-    API_KEY,
-    LICENSE,
     ACCESS_POINT,
+    API,
+    API_KEY,
+    DICTIONARY,
+    LICENSE,
+    NODE_METADATA,
+    ORGANIZATION,
     SHARED_POLICY_GROUP,
+    SUBSCRIPTION,
 }

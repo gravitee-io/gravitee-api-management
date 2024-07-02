@@ -33,6 +33,8 @@ public interface EnvironmentService {
 
     EnvironmentEntity findById(String environmentId);
 
+    Set<String> findOrganizationIdsByEnvironments(Set<String> environmentIds);
+
     EnvironmentEntity createOrUpdate(String organizationId, String environmentId, UpdateEnvironmentEntity environment);
 
     void delete(String environmentId);

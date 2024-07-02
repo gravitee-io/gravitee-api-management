@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,10 +62,9 @@ import org.springframework.util.StringUtils;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class InstanceServiceImpl implements InstanceService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceServiceImpl.class);
-    private static final Pattern PROPERTY_SPLITTER = Pattern.compile(", ");
     private static final String REDACTED = "REDACTED";
 
     private final EventService eventService;
@@ -159,13 +159,10 @@ public class InstanceServiceImpl implements InstanceService {
     @Override
     public InstanceEntity findByEvent(ExecutionContext executionContext, String eventId) {
         try {
-            LOGGER.debug("Find instance by event ID: {}", eventId);
+            log.debug("Find instance by event ID: {}", eventId);
 
             EventEntity event = eventService.findById(executionContext, eventId);
-            List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
-            List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
-
-            return convert(event, environments, organizations);
+            return convert(event);
         } catch (EventNotFoundException enfe) {
             throw new InstanceNotFoundException(eventId);
         }
@@ -173,36 +170,17 @@ public class InstanceServiceImpl implements InstanceService {
 
     @Override
     public List<InstanceEntity> findAllStarted(final ExecutionContext executionContext) {
-        LOGGER.debug("Find started instances by event");
+        log.debug("Find started instances by event");
 
         final EventQuery query = new EventQuery();
         query.setTypes(instancesRunningOnly);
 
         Collection<EventEntity> events = eventService.search(executionContext, query);
 
-        return events
-            .stream()
-            .map(event -> {
-                List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
-                List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
-                return convert(event, environments, organizations);
-            })
-            .collect(Collectors.toList());
-    }
-
-    private List<String> extractProperty(EventEntity event, String property) {
-        final String extractedProperty = event.getProperties().get(property);
-
-        return extractedProperty == null
-            ? List.of()
-            : Stream.of(PROPERTY_SPLITTER.split(extractedProperty)).filter(StringUtils::hasText).collect(Collectors.toList());
+        return events.stream().map(this::convert).collect(Collectors.toList());
     }
 
     private InstanceEntity convert(EventEntity event) {
-        return convert(event, null, null);
-    }
-
-    private InstanceEntity convert(EventEntity event, List<String> environments, List<String> organizations) {
         Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
 
         Map<String, String> props = event.getProperties();
@@ -215,8 +193,6 @@ public class InstanceServiceImpl implements InstanceService {
             instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
         }
         instance.setEnvironments(event.getEnvironments());
-        instance.setEnvironmentsHrids(environments);
-        instance.setOrganizationsHrids(organizations);
 
         if (event.getPayload() != null) {
             try {
@@ -246,7 +222,7 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setPlugins(info.getPlugins());
                 instance.setClusterId(info.getClusterId());
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while getting instance data from event payload", ioe);
+                log.error("Unexpected error while getting instance data from event payload", ioe);
             }
         }
         if (!isBlank(props.get("cluster_primary_node"))) {
