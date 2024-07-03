@@ -19,5 +19,5 @@ import io.gravitee.apim.core.category.model.Category;
 import java.util.Optional;
 
 public interface CategoryQueryService {
-    Optional<Category> findById(String idOrKey, String environmentId);
+    Optional<Category> findByIdOrKey(String idOrKey, String environmentId);
 }

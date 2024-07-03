@@ -35,7 +35,9 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
+import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -71,10 +73,14 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -458,6 +464,66 @@ class ApisResourceTest extends AbstractResourceTest {
                     )
                 )
                 .build();
+        }
+    }
+
+    @Nested
+    class ImportCRD {
+
+        WebTarget target;
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget().path("/_import/crd");
+            apiCrudService.reset();
+            categoryQueryService.reset();
+            categoryQueryService.initWith(
+                List.of(Category.builder().id("category-id").build(), Category.builder().id("category-key").build())
+            );
+        }
+
+        @Test
+        void should_return_category_warning_in_status_without_saving_if_dry_run() {
+            var crdStatus = doImport("/crd/with-unknown-category.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        ApiCRDStatus
+                            .builder()
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                            .state("STARTED")
+                            .errors(
+                                ApiCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of("category 'unknown-category' is not defined in environment 'fake-env'"))
+                                    .severe(List.of())
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(apiCrudService.storage()).isEmpty();
+            });
+        }
+
+        private ApiCRDStatus doImport(String crdResource, boolean dryRun) {
+            try (var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(crdResource)))) {
+                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+                return response.readEntity(ApiCRDStatus.class);
+            }
+        }
+
+        private String readJSON(String resource) {
+            try (var reader = this.getClass().getResourceAsStream(resource)) {
+                return IOUtils.toString(reader, Charset.defaultCharset());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

@@ -42,6 +42,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -76,6 +77,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -88,6 +90,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
@@ -204,6 +207,7 @@ class ImportCRDUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    CategoryQueryServiceInMemory categoryQueryService = new CategoryQueryServiceInMemory();
     ApiImportDomainService apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
     MembershipCrudService membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
     MembershipQueryService membershipQueryServiceInMemory = new MembershipQueryServiceInMemory();
@@ -363,6 +367,10 @@ class ImportCRDUseCaseTest {
             )
         );
 
+        var crdValidator = new ValidateCRDDomainService(new ValidateCategoryIdsDomainService(categoryQueryService));
+
+        categoryQueryService.reset();
+
         useCase =
             new ImportCRDUseCase(
                 apiCrudService,
@@ -391,7 +399,8 @@ class ImportCRDUseCaseTest {
                 pageCrudService,
                 documentationValidationDomainService,
                 createApiDocumentationDomainService,
-                updateApiDocumentationDomainService
+                updateApiDocumentationDomainService,
+                crdValidator
             );
 
         enableApiPrimaryOwnerMode();
@@ -517,6 +526,32 @@ class ImportCRDUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .state("STARTED")
                         .plans(Map.of("keyless-key", "keyless-id"))
+                        .errors(ApiCRDStatus.Errors.EMPTY)
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_CRD_status_with_warnings() {
+            var result = useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().categories(Set.of("unknown-category")).build()));
+
+            assertThat(result.status())
+                .isEqualTo(
+                    ApiCRDStatus
+                        .builder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .organizationId(ORGANIZATION_ID)
+                        .state("STARTED")
+                        .plans(Map.of("keyless-key", "keyless-id"))
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(List.of("category 'unknown-category' is not defined in environment 'environment-id'"))
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -682,6 +717,69 @@ class ImportCRDUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .state("STARTED")
                         .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                        .errors(ApiCRDStatus.Errors.EMPTY)
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_CRD_status_with_warnings() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+
+            var result = useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .categories(Set.of("unknown-category"))
+                        .plans(
+                            Map.of(
+                                "keyless-key",
+                                PlanCRD
+                                    .builder()
+                                    .id(KEYLESS.getId())
+                                    .name(KEYLESS.getName())
+                                    .security(KEYLESS.getPlanSecurity())
+                                    .mode(KEYLESS.getPlanMode())
+                                    .validation(KEYLESS.getValidation())
+                                    .status(KEYLESS.getPlanStatus())
+                                    .type(KEYLESS.getType())
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
+                                    .build(),
+                                "apikey-key",
+                                PlanCRD
+                                    .builder()
+                                    .name("API Key")
+                                    .security(PlanSecurity.builder().type("API_KEY").build())
+                                    .mode(PlanMode.STANDARD)
+                                    .validation(Plan.PlanValidationType.AUTO)
+                                    .status(PlanStatus.STAGING)
+                                    .type(Plan.PlanType.API)
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("apikey-flow")))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            );
+
+            assertThat(result.status())
+                .isEqualTo(
+                    ApiCRDStatus
+                        .builder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .organizationId(ORGANIZATION_ID)
+                        .state("STARTED")
+                        .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(List.of("category 'unknown-category' is not defined in environment 'environment-id'"))
+                                .build()
+                        )
                         .build()
                 );
         }
