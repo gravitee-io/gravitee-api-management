@@ -23,7 +23,6 @@ import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.IngestStarted;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
@@ -37,7 +36,6 @@ import io.gravitee.exchange.api.controller.metrics.ChannelMetric;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
-import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
 import io.gravitee.integration.api.command.ingest.StartIngestCommand;
 import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;

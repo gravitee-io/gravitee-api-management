@@ -47,12 +47,7 @@ public class ThemeQueryServiceImpl extends AbstractService implements ThemeQuery
             var page =
                 this.themeRepository.search(ThemeCriteria.builder().enabled(criteria.getEnabled()).type(type).build(), convert(pageable));
 
-            return new Page<>(
-                ThemeAdapter.INSTANCE.map(page.getContent()),
-                page.getPageNumber(),
-                (int) page.getPageElements(),
-                page.getTotalElements()
-            );
+            return page.map(ThemeAdapter.INSTANCE::map);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
         }

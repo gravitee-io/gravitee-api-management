@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -332,15 +331,9 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         builder.environments(environmentsIds);
 
-        Page<Event> pageEvent = eventRepository.search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build());
-
-        List<EventEntity> content = pageEvent
-            .getContent()
-            .stream()
-            .map(event -> convert(executionContext, event))
-            .collect(Collectors.toList());
-
-        return new Page<>(content, pageEvent.getPageNumber(), (int) pageEvent.getPageElements(), pageEvent.getTotalElements());
+        return eventRepository
+            .search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build())
+            .map(event -> convert(executionContext, event));
     }
 
     @Override

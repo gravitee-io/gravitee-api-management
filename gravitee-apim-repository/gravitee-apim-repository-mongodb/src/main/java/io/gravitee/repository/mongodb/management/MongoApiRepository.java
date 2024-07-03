@@ -90,9 +90,7 @@ public class MongoApiRepository implements ApiRepository {
 
     @Override
     public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldFilter);
-        final List<Api> content = mapper.mapApis(apisMongo.getContent());
-        return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
+        return internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldFilter).map(mapper::map);
     }
 
     @Override

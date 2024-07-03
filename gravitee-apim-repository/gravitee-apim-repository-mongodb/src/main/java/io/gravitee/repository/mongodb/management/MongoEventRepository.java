@@ -135,10 +135,7 @@ public class MongoEventRepository implements EventRepository {
 
     @Override
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
-        Page<EventMongo> eventsMongo = internalEventRepo.search(filter, pageable);
-
-        List<Event> content = mapper.mapEvents(eventsMongo.getContent());
-        return new Page<>(content, eventsMongo.getPageNumber(), (int) eventsMongo.getPageElements(), eventsMongo.getTotalElements());
+        return internalEventRepo.search(filter, pageable).map(mapper::map);
     }
 
     @Override

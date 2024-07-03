@@ -1260,13 +1260,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             } else {
                 final SubscriptionCriteria.SubscriptionCriteriaBuilder builder = toSubscriptionCriteriaBuilder(query);
 
-                Page<Subscription> pageSubscription = subscriptionRepository.search(
-                    builder.build(),
-                    null,
-                    new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-                );
+                var pageSubscription = subscriptionRepository
+                    .search(
+                        builder.build(),
+                        null,
+                        new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+                    )
+                    .map(this::convert);
 
-                List<SubscriptionEntity> subscriptions = pageSubscription.getContent().stream().map(this::convert).collect(toList());
+                List<SubscriptionEntity> subscriptions = pageSubscription.getContent();
 
                 if (fillPlanSecurityType) {
                     fillPlanSecurityType(executionContext, subscriptions);

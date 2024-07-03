@@ -50,15 +50,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
-        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, sortable, pageable);
-
-        List<Subscription> content = mapper.mapSubscriptions(subscriptionsMongo.getContent());
-        return new Page<>(
-            content,
-            subscriptionsMongo.getPageNumber(),
-            (int) subscriptionsMongo.getPageElements(),
-            subscriptionsMongo.getTotalElements()
-        );
+        return internalSubscriptionRepository.search(criteria, sortable, pageable).map(mapper::map);
     }
 
     @Override

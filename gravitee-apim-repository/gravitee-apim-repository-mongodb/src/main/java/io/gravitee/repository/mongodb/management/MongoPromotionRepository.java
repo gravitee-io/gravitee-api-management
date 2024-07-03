@@ -25,7 +25,6 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,11 +99,10 @@ public class MongoPromotionRepository implements PromotionRepository {
     public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) {
         logger.debug("Searching promotions");
 
-        Page<PromotionMongo> promotions = internalRepository.search(criteria, sortable, pageable);
-        List<Promotion> content = mapper.mapPromotions(promotions.getContent());
+        var promotions = internalRepository.search(criteria, sortable, pageable).map(mapper::map);
 
         logger.debug("Searching promotions - Done");
-        return new Page<>(content, promotions.getPageNumber(), (int) promotions.getPageElements(), promotions.getTotalElements());
+        return promotions;
     }
 
     @Override

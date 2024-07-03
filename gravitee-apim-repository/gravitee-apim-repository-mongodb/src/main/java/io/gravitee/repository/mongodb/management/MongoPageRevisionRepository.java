@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class MongoPageRevisionRepository implements PageRevisionRepository {
 
@@ -51,15 +53,9 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
 
     @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
-        org.springframework.data.domain.Page<PageRevisionMongo> revisions = internalPageRevisionRepo.findAll(
-            PageRequest.of(pageable.pageNumber(), pageable.pageSize())
-        );
-        return new Page<>(
-            revisions.getContent().stream().map(page -> mapper.map(page)).collect(Collectors.toList()),
-            pageable.pageNumber(),
-            revisions.getNumberOfElements(),
-            revisions.getTotalElements()
-        );
+        var revisions = internalPageRevisionRepo.findAll(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+        return new Page<>(revisions.getContent(), pageable.pageNumber(), revisions.getNumberOfElements(), revisions.getTotalElements())
+            .map(page -> mapper.map(page));
     }
 
     @Override
