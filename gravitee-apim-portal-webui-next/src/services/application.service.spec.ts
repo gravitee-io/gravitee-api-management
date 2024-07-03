@@ -40,7 +40,7 @@ describe('ApplicationService', () => {
 
   it('should return application list', done => {
     const applicationResponse: Application = fakeApplication();
-    service.list(applicationId).subscribe(response => {
+    service.get(applicationId).subscribe(response => {
       expect(response).toMatchObject(applicationResponse);
       done();
     });

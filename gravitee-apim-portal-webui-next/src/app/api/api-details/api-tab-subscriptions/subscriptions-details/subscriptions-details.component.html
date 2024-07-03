@@ -20,116 +20,21 @@
   Manage subscriptions
 </div>
 
-@if (subscriptionDetails | async; as details) {
+@if (subscriptionDetails$ | async; as details) {
   <div class="subscriptions-details__container">
-    <mat-card appearance="outlined" class="subscriptions-details__card">
-      <mat-card-header>
-        <div class="m3-title-medium subscriptions-details__header" i18n="@@subscriptionDetailsHeader">Subscription</div>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="subscriptions-details__content-row">
-          <p
-            class="m3-title-small subscriptions-details__content-row-title subscriptions-details__content-row-app"
-            i18n="@@subscriptionDetailsHeaderApp">
-            App:
-          </p>
-          <p class="m3-body-medium subscriptions-details__content-row-app">{{ details.application }}</p>
-        </div>
-        <div class="subscriptions-details__content-row subscriptions-details__content-info">
-          <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderPlan">Plan:</p>
-          <p class="m3-body-medium">{{ details.plan }}</p>
-        </div>
-        <div class="subscriptions-details__content-row subscriptions-details__content-info">
-          <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderAuthentication">
-            Authentication:
-          </p>
-          <p class="m3-body-medium">{{ details.authentication }}</p>
-        </div>
-        @if (details.status) {
-          <div class="subscriptions-details__content-row">
-            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsSubscription">Subscription:</p>
-            <p class="m3-body-medium">{{ details.status | capitalizeFirst }}</p>
-          </div>
-        }
-      </mat-card-content>
-    </mat-card>
-    <mat-card appearance="outlined" class="subscriptions-details__card">
-      @if (details.status === 'PENDING') {
-        <div class="m3-title-medium subscriptions-details__pending">
-          <div class="m3-body-large" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
-          <div class="m3-body-small" i18n="@@subscriptionDetailsPendingContent">
-            Your subscription request is being validated. Come back later.
-          </div>
-        </div>
-      } @else if (details.status === 'REJECTED') {
-        <div class="m3-title-medium subscriptions-details__rejected">
-          <div class="m3-body-large" i18n="@@subscriptionDetailsRejectedHeader">Subscription rejected</div>
-        </div>
-      } @else if (details.status === 'PASUED') {
-        <div class="m3-title-medium subscriptions-details__paused">
-          <div class="m3-body-large" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
-        </div>
-      } @else if (details.status === 'CLOSED') {
-        <div class="m3-title-medium subscriptions-details__closed">
-          <div class="m3-body-large" i18n="@@subscriptionDetailsClosedHeader">Subscription closed</div>
-        </div>
-      } @else if (details.security === 'OAUTH2' || details.security === 'JWT') {
-        <mat-card-header>
-          <div class="m3-title-medium subscriptions-details__header" i18n="@@subscriptionDetailsOAuth2Header">OAuth 2</div>
-        </mat-card-header>
-        <mat-card-content>
-          @if (details.oauth2) {
-            <mat-form-field appearance="outline" class="subscriptions-details__field">
-              <mat-label i18n="@@subscriptionDetailsOAuth2ClientID">Client ID</mat-label>
-              <input matInput [value]="details.oauth2.clientId" readonly aria-label="Client ID" />
-              <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.oauth2.clientId">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </mat-form-field>
-          }
-          <mat-form-field appearance="outline" class="subscriptions-details__field">
-            <mat-label i18n="@@subscriptionDetailsOAuth2ClientSecret">Client secret</mat-label>
-            <input matInput [value]="details.oauth2?.clientSecret" [type]="hidePassword ? 'password' : 'text'" readonly />
-            <button
-              mat-icon-button
-              matSuffix
-              (click)="hidePassword = !hidePassword"
-              [attr.aria-label]="'Hide password'"
-              [attr.aria-pressed]="hidePassword">
-              <mat-icon> {{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-          </mat-form-field>
-        </mat-card-content>
-      } @else if (details.security === 'API_KEY') {
-        <mat-card-header>
-          <div class="m3-title-medium subscriptions-details__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
-        </mat-card-header>
-        <mat-card-content>
-          @if (details.apiKey) {
-            <mat-form-field appearance="outline" class="subscriptions-details__field">
-              <mat-label i18n="@@subscriptionDetailsApiKeyHeader">API key</mat-label>
-              <input matInput [value]="details.apiKey.key" readonly aria-label="API key" />
-              <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.apiKey.key">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="subscriptions-details__field">
-              <mat-label i18n="@@subscriptionDetailsApiKeyBaseUrl">Base URL</mat-label>
-              <input matInput [value]="details.apiKey.baseUrl" readonly aria-label="Base URL" />
-              <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.apiKey.baseUrl">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="subscriptions-details__field">
-              <mat-label i18n="@@subscriptionDetailsApiKeyCommandLine">Command line</mat-label>
-              <input matInput [value]="details.apiKey.commandLine" readonly aria-label="Command Line" />
-              <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.apiKey.commandLine">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </mat-form-field>
-          }
-        </mat-card-content>
-      }
-    </mat-card>
+    <app-subscription-info
+      class="subscriptions-details__subscription-info"
+      [applicationName]="details.applicationName"
+      [planName]="details.planName"
+      [planSecurity]="details.planSecurity"
+      [subscriptionStatus]="details.subscriptionStatus"
+      [planUsageConfiguration]="details.planUsageConfiguration" />
+    <app-api-access
+      [planSecurity]="details.planSecurity"
+      [subscriptionStatus]="details.subscriptionStatus"
+      [entrypointUrl]="details.entrypointUrl"
+      [apiKey]="details.apiKey"
+      [clientId]="details.clientId"
+      [clientSecret]="details.clientSecret" />
   </div>
 }

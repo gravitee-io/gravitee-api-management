@@ -18,16 +18,19 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
-import { fakeApi, fakeApisResponse } from '../../../../../entities/api/api.fixtures';
-import { ApisResponse } from '../../../../../entities/api/apis-response';
+import { ApiAccessHarness } from '../../../../../components/api-access/api-access.harness';
+import { Api } from '../../../../../entities/api/api';
+import { fakeApi } from '../../../../../entities/api/api.fixtures';
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
 import { Configuration } from '../../../../../entities/configuration/configuration';
-import { Subscription, SubscriptionData } from '../../../../../entities/subscription/subscription';
+import { fakePlan, fakePlansResponse } from '../../../../../entities/plan/plan.fixture';
+import { PlansResponse } from '../../../../../entities/plan/plans-response';
+import { Subscription } from '../../../../../entities/subscription/subscription';
 import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
+import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
 import { ConfigService } from '../../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 
@@ -35,6 +38,8 @@ describe('SubscriptionsDetailsComponent', () => {
   let fixture: ComponentFixture<SubscriptionsDetailsComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
+
+  const API_ID = 'testApiId';
 
   @Injectable()
   class CustomConfigurationServiceStub {
@@ -77,10 +82,11 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('subscription pending', () => {
     beforeEach(() => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'PENDING' }));
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testApiId');
-      expectApiPlansList(fakeApisResponse());
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'PENDING' }));
+      expectSubscriptionList(fakeSubscriptionResponse(), API_ID);
+      expectPlansList(fakePlansResponse());
       expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
     });
 
     it('should show pending status ', async () => {
@@ -90,10 +96,11 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('subscription rejected', () => {
     beforeEach(() => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'REJECTED' }));
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testApiId');
-      expectApiPlansList(fakeApisResponse());
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'REJECTED' }));
+      expectSubscriptionList(fakeSubscriptionResponse(), API_ID);
+      expectPlansList(fakePlansResponse());
       expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
     });
 
     it('should show pending status ', async () => {
@@ -103,10 +110,11 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('subscription closed', () => {
     beforeEach(() => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'CLOSED' }));
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testApiId');
-      expectApiPlansList(fakeApisResponse());
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'CLOSED' }));
+      expectSubscriptionList(fakeSubscriptionResponse(), API_ID);
+      expectPlansList(fakePlansResponse());
       expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
     });
 
     it('should show pending status ', async () => {
@@ -116,10 +124,11 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('subscription paused', () => {
     beforeEach(() => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'PAUSED' }));
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testApiId');
-      expectApiPlansList(fakeApisResponse());
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'PAUSED' }));
+      expectSubscriptionList(fakeSubscriptionResponse(), API_ID);
+      expectPlansList(fakePlansResponse());
       expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
     });
 
     it('should show pending status ', async () => {
@@ -129,10 +138,11 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('subscription rejected', () => {
     beforeEach(() => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'REJECTED' }));
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testApiId');
-      expectApiPlansList(fakeApisResponse());
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'REJECTED' }));
+      expectSubscriptionList(fakeSubscriptionResponse(), API_ID);
+      expectPlansList(fakePlansResponse());
       expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
     });
 
     it('should show pending status ', async () => {
@@ -141,12 +151,20 @@ describe('SubscriptionsDetailsComponent', () => {
   });
 
   describe('subscription accepted', () => {
-    it('should show subscription details with Api Key', async () => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'ACCEPTED', api: 'c42f51dd-fa20-4e68-af51-ddfa20be682c' }));
+    const PLAN_ID = 'plan-id';
+    const APP_ID = 'app-id';
+    const APP_NAME = 'app-name';
+    const API_KEY = 'my-api-key';
+
+    beforeEach(() => {
+      const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID });
+      const subscriptionWithKeys = { ...subscription, keys: [{ key: API_KEY, id: '1', application: { id: APP_ID, name: APP_NAME } }] };
+      expectSubscriptionWithKeys(subscriptionWithKeys);
       expectSubscriptionList(
         fakeSubscriptionResponse({
+          data: [subscription],
           metadata: {
-            'c42f51dd-fa20-4e68-af51-ddfa20be682c': {
+            [`${API_ID}`]: {
               entrypoints: [
                 {
                   target: 'https://gw/entrypoint',
@@ -155,51 +173,50 @@ describe('SubscriptionsDetailsComponent', () => {
             },
           },
         }),
-        'testApiId',
+        API_ID,
       );
-      expectApplicationsList(fakeApplication());
-      expectApiPlansList(
-        fakeApisResponse({
-          data: [fakeApi({ security: 'API_KEY' })],
-        }),
-      );
-      const apiKeyInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[aria-label="API key"]' }));
-      expect(await apiKeyInput.getValue()).toStrictEqual('240760d9-7a50-4e7c-8406-657cdee57fde');
-      const baseURLInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[aria-label="Base URL"]' }));
-      expect(await baseURLInput.getValue()).toStrictEqual('https://gw/entrypoint');
-      const curlCommandInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[aria-label="Command Line"]' }));
-      expect(await curlCommandInput.getValue()).toStrictEqual(
-        'curl --header "X-My-Apikey: 240760d9-7a50-4e7c-8406-657cdee57fde" https://gw/entrypoint',
-      );
+      expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
+      expectGetApi(fakeApi({ id: API_ID }));
+    });
+
+    it('should show subscription details with Api Key', async () => {
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'API_KEY' })] }));
+      fixture.detectChanges();
+
+      const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+      expect(await apiAccess.getApiKey()).toStrictEqual(API_KEY);
+      expect(await apiAccess.getBaseURL()).toStrictEqual('https://gw/entrypoint');
+      expect(await apiAccess.getCommandLine()).toStrictEqual(`curl --header "X-My-Apikey: ${API_KEY}" https://gw/entrypoint`);
     });
 
     it('should show subscription details with Oauth2', async () => {
-      expectSubscriptionListWithKeys(fakeSubscription({ status: 'ACCEPTED', api: 'c42f51dd-fa20-4e68-af51-ddfa20be682c' }));
-      expectSubscriptionList(fakeSubscriptionResponse(), 'testApiId');
-      expectApplicationsList(fakeApplication());
-      expectApiPlansList(
-        fakeApisResponse({
-          data: [fakeApi({ security: 'OAUTH2' })],
-        }),
-      );
-      const apiKeyInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[aria-label="Client ID"]' }));
-      expect(await apiKeyInput.getValue()).toStrictEqual('zLgNDMUCbbCBDNnpBGb-WOV_lNrUlQlAlUiSditR9Es');
+      expectPlansList(fakePlansResponse({ data: [fakePlan({ id: PLAN_ID, security: 'OAUTH2' })] }));
+      fixture.detectChanges();
+
+      const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+      expect(await apiAccess.getClientId()).toStrictEqual('zLgNDMUCbbCBDNnpBGb-WOV_lNrUlQlAlUiSditR9Es');
+      expect(await apiAccess.getClientSecret()).toContain('***');
+      await apiAccess.toggleClientSecretVisibility();
+      expect(await apiAccess.getClientSecret()).toStrictEqual('3zEYOXPqqCyaq7os--Nf1-6jrHjL0AjumFz4CL78nwQ');
     });
   });
 
-  function expectSubscriptionListWithKeys(subscriptionResponse: SubscriptionData = fakeSubscription()) {
+  function expectSubscriptionWithKeys(subscriptionResponse: Subscription = fakeSubscription()) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions/testSubscriptionId?include=keys`).flush(subscriptionResponse);
   }
 
-  function expectSubscriptionList(subscriptionResponse: Subscription = fakeSubscriptionResponse(), apiId: string) {
+  function expectSubscriptionList(subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse(), apiId: string) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}`).flush(subscriptionResponse);
   }
 
-  function expectApiPlansList(apisResponse: ApisResponse = fakeApisResponse()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/testApiId/plans?size=-1`).flush(apisResponse);
+  function expectPlansList(plansResponse: PlansResponse = fakePlansResponse()) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/testApiId/plans?size=-1`).flush(plansResponse);
   }
 
   function expectApplicationsList(applicationsResponse: Application = fakeApplication()) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/99c6cbe6-eead-414d-86cb-e6eeadc14db3`).flush(applicationsResponse);
+  }
+  function expectGetApi(api: Api = fakeApi()) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${api.id}`).flush(fakeApi());
   }
 });

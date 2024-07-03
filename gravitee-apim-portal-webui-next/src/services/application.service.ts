@@ -29,7 +29,7 @@ export class ApplicationService {
     private configService: ConfigService,
   ) {}
 
-  list(applicationId: string): Observable<Application> {
+  get(applicationId: string): Observable<Application> {
     return this.http.get<Application>(`${this.configService.baseURL}/applications/${applicationId}`);
   }
 }
