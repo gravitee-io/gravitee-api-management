@@ -33,9 +33,13 @@ export class UserAvatarComponent {
 
   constructor() {
     effect(() => {
-      const firstName = this.user().first_name ?? '';
-      const lastName = this.user().last_name ?? '';
-      this.initials = `${firstName.length ? firstName[0] : ''}${lastName.length ? lastName[0] : ''}`;
+      if (!!this.user().first_name || !!this.user().last_name) {
+        const firstName = this.user().first_name ?? '';
+        const lastName = this.user().last_name ?? '';
+        this.initials = `${firstName.length ? firstName[0] : ''}${lastName.length ? lastName[0] : ''}`;
+      } else {
+        this.initials = this.user().display_name?.[0] ?? '';
+      }
     });
   }
 }
