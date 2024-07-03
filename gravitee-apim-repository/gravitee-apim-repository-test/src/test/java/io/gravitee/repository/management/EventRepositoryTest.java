@@ -401,6 +401,21 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
     }
 
+    @Test
+    public void shouldFindEventByTypeByApiAndEnvironment() throws Exception {
+        EventCriteria.EventCriteriaBuilder criteria = EventCriteria
+            .builder()
+            .types(List.of(EventType.PUBLISH_API, EventType.UNPUBLISH_API))
+            .property(Event.EventProperties.API_ID.getValue(), "api-1")
+            .from(0)
+            .to(0)
+            .environment("DEFAULT");
+        List<Event> events = eventRepository.search(criteria.build(), new PageableBuilder().pageSize(1).pageNumber(0).build()).getContent();
+
+        assertEquals(1L, events.size());
+        assertThat(events.stream().map(Event::getId)).contains("event02");
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownEvent() throws Exception {
         Event unknownEvent = new Event();
