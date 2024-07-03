@@ -78,6 +78,7 @@ export const routes: Routes = [
                   {
                     path: ':subscriptionId',
                     component: SubscriptionsDetailsComponent,
+                    data: { breadcrumb: { skip: true } },
                   },
                 ],
               },
