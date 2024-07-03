@@ -20,7 +20,7 @@ import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatTooltip } from '@angular/material/tooltip';
 
 import { SubscriptionPlan } from '../../../app/api/subscribe-to-api/subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.component';
-import { ToPeriodTimeUnitLabelPipePipe } from '../../../pipe/time-unit.pipe';
+import { ToPeriodTimeUnitLabelPipe } from '../../../pipe/time-unit.pipe';
 
 @Component({
   selector: 'app-plan-card',
@@ -34,10 +34,10 @@ import { ToPeriodTimeUnitLabelPipePipe } from '../../../pipe/time-unit.pipe';
     MatCardContent,
     MatCardFooter,
     MatTooltip,
-    ToPeriodTimeUnitLabelPipePipe,
+    ToPeriodTimeUnitLabelPipe,
   ],
   templateUrl: './plan-card.component.html',
-  providers: [ToPeriodTimeUnitLabelPipePipe],
+  providers: [ToPeriodTimeUnitLabelPipe],
   styleUrl: './plan-card.component.scss',
 })
 export class PlanCardComponent {
