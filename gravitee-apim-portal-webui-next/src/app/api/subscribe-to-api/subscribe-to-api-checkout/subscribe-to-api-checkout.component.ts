@@ -26,7 +26,7 @@ import { catchError, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { Api } from '../../../../entities/api/api';
-import { ToPeriodTimeUnitLabelPipePipe } from '../../../../pipe/time-unit.pipe';
+import { ToPeriodTimeUnitLabelPipe } from '../../../../pipe/time-unit.pipe';
 import { ApiService } from '../../../../services/api.service';
 
 @Component({
@@ -41,12 +41,12 @@ import { ApiService } from '../../../../services/api.service';
     MatInput,
     CdkCopyToClipboard,
     AsyncPipe,
-    ToPeriodTimeUnitLabelPipePipe,
+    ToPeriodTimeUnitLabelPipe,
     MatSuffix,
   ],
   templateUrl: './subscribe-to-api-checkout.component.html',
   styleUrl: './subscribe-to-api-checkout.component.scss',
-  providers: [ToPeriodTimeUnitLabelPipePipe],
+  providers: [ToPeriodTimeUnitLabelPipe],
   standalone: true,
 })
 export class SubscribeToApiCheckoutComponent implements OnInit {
