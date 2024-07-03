@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ToPeriodTimeUnitLabelPipePipe } from './time-unit.pipe';
+import { ToPeriodTimeUnitLabelPipe } from './time-unit.pipe';
 
 describe('TimeUnitPipe', () => {
   it('create an instance', () => {
-    const pipe = new ToPeriodTimeUnitLabelPipePipe();
+    const pipe = new ToPeriodTimeUnitLabelPipe();
     expect(pipe).toBeTruthy();
   });
 });
