@@ -1,0 +1,57 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card appearance="outlined" class="api-access">
+  @if (subscriptionStatus === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
+    <mat-card-header>
+      <div class="m3-title-medium api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+    </mat-card-header>
+    <mat-card-content class="api-access__copy-code-content">
+      @if (planSecurity === 'API_KEY') {
+        <app-copy-code id="api-key" class="test-1" title="API Key" [text]="apiKey ?? ''" />
+      } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
+        <app-copy-code id="client-id" title="Client ID" [text]="clientId ?? ''" />
+        <app-copy-code id="client-secret" title="Client Secret" [text]="clientSecret ?? ''" [mode]="'PASSWORD'" />
+      }
+
+      @if (planSecurity === 'KEY_LESS' || planSecurity === 'API_KEY') {
+        <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrl ?? ''" />
+        <app-copy-code id="command-line" title="Command Line" [text]="curlCmd" />
+      }
+    </mat-card-content>
+  } @else {
+    <mat-card-content class="api-access__message">
+      @switch (subscriptionStatus) {
+        @case ('PENDING') {
+          <div class="m3-title-large" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
+          <div class="m3-body-large" i18n="@@subscriptionDetailsPendingContent">
+            Your subscription request is being validated. Come back later.
+          </div>
+        }
+        @case ('REJECTED') {
+          <div class="m3-title-large" i18n="@@subscriptionDetailsRejectedHeader">Subscription rejected</div>
+        }
+        @case ('PAUSED') {
+          <div class="m3-title-large" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
+        }
+        @case ('CLOSED') {
+          <div class="m3-title-large" i18n="@@subscriptionDetailsClosedHeader">Subscription closed</div>
+        }
+      }
+    </mat-card-content>
+  }
+</mat-card>
