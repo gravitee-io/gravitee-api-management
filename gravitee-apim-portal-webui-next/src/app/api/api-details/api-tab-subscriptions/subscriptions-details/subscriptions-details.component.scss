@@ -33,43 +33,7 @@
     gap: 32px;
   }
 
-  &__card {
-    flex: 1;
-  }
-
-  &__header {
-    padding: 5px 0 20px;
-  }
-
-  &__content-row {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-  }
-
-  &__content-row-title {
-    font-weight: 550;
-  }
-
-  &__pending,
-  &__rejected,
-  &__closed,
-  &__pasued {
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 16px;
-  }
-
-  &__field {
-    width: 100%;
-  }
-
-  &__content-info {
-    p {
-      margin: 0;
-    }
+  &__subscription-info {
+    min-width: 38%;
   }
 }

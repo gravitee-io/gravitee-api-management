@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { CdkCopyToClipboard } from '@angular/cdk/clipboard';
 import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -28,32 +27,25 @@ import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { getApiSecurityTypeLabel } from '../../../../../entities/api/api';
-import { SubscriptionMetadata } from '../../../../../entities/subscription/subscription';
+import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
+import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
+import { PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
+import { SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApiService } from '../../../../../services/api.service';
 import { ApplicationService } from '../../../../../services/application.service';
-import { ConfigService } from '../../../../../services/config.service';
+import { PlanService } from '../../../../../services/plan.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 
 export interface SubscriptionDetailsData {
-  application?: string;
-  plan?: string;
-  security?: string;
-  status?: string;
-  authentication?: string;
-  apiKey?: SubscriptionDetailsDataApiKey;
-  oauth2?: SubscriptionDetailsDataOauth2;
-}
-
-export interface SubscriptionDetailsDataApiKey {
-  key: string;
-  baseUrl: string;
-  commandLine: string;
-}
-
-export interface SubscriptionDetailsDataOauth2 {
-  clientId: string;
+  applicationName: string;
+  planName: string;
+  planSecurity: PlanSecurityEnum;
+  planUsageConfiguration: PlanUsageConfiguration;
+  subscriptionStatus: SubscriptionStatusEnum;
+  apiKey?: string;
+  entrypointUrl?: string;
+  clientId?: string;
   clientSecret?: string;
 }
 
@@ -73,7 +65,8 @@ export interface SubscriptionDetailsDataOauth2 {
     MatInput,
     MatIconButton,
     AsyncPipe,
-    CdkCopyToClipboard,
+    ApiAccessComponent,
+    SubscriptionInfoComponent,
   ],
   providers: [CapitalizeFirstPipe],
   selector: 'app-subscriptions-details',
@@ -88,75 +81,59 @@ export class SubscriptionsDetailsComponent implements OnInit {
   @Input()
   subscriptionId!: string;
 
-  hidePassword: boolean = true;
-  subscriptionDetails: Observable<SubscriptionDetailsData> = of();
+  subscriptionDetails$: Observable<SubscriptionDetailsData> = of();
 
   constructor(
-    private configService: ConfigService,
     private subscriptionService: SubscriptionService,
     private apiService: ApiService,
     private applicationService: ApplicationService,
-    private capitalizeFirstPipe: CapitalizeFirstPipe,
+
+    private planService: PlanService,
     public dialog: MatDialog,
   ) {}
 
   ngOnInit() {
-    this.subscriptionDetails = this.loadDetails();
-  }
-
-  retrieveMetadataName(id: string, metadata: SubscriptionMetadata) {
-    if (Object.hasOwn(metadata, id)) {
-      return this.capitalizeFirstPipe.transform(<string>metadata[id]['name']);
-    } else {
-      return '-';
-    }
+    this.subscriptionDetails$ = this.loadDetails();
   }
 
   private loadDetails(): Observable<SubscriptionDetailsData> {
-    return this.subscriptionService.listDetails(this.subscriptionId).pipe(
+    return this.subscriptionService.get(this.subscriptionId).pipe(
       switchMap(details => {
         return forkJoin({
           details: of(details),
+          plans: this.planService.list(this.apiId),
           list: this.subscriptionService.list(this.apiId, null),
-          api: this.apiService.plans(this.apiId),
-          application: this.applicationService.list(<string>details.application),
+          api: this.apiService.details(this.apiId),
+          application: this.applicationService.get(<string>details.application),
         });
       }),
-      map(({ details, list, api, application }) => {
-        const selectedApi = api.data?.find((item: { id: string }) => item.id === details.plan);
-        const selectedSubscription = list.data.find(item => item.id === this.subscriptionId);
+      map(({ details, plans, list, application }) => {
+        const foundPlan = plans.data?.find(plan => plan.id === details.plan);
+        const planSecurityType = foundPlan?.security ?? 'KEY_LESS';
 
-        let subscriptionDetails: SubscriptionDetailsData = {
-          application: this.retrieveMetadataName(<string>selectedSubscription?.application, list.metadata),
-          plan: this.retrieveMetadataName(<string>selectedSubscription?.plan, list.metadata),
-          security: selectedApi?.security,
-          authentication: getApiSecurityTypeLabel(<string>selectedApi?.security),
-          status: <string>details.status,
+        const subscriptionDetails: SubscriptionDetailsData = {
+          applicationName: application.name ?? '',
+          planName: foundPlan?.name ?? '',
+          planSecurity: planSecurityType,
+          planUsageConfiguration: foundPlan?.usage_configuration ?? {},
+          subscriptionStatus: details.status,
         };
 
         if (details.status === 'ACCEPTED') {
-          if (selectedApi?.security === 'API_KEY' && details.api) {
-            const baseUrl = list.metadata[details.api]?.entrypoints?.[0]?.target;
-            const commandLine = this.formatCurlCommandLine(
-              <string>list.metadata[details.api]?.entrypoints?.[0]?.target,
-              <string>details.keys[0].key,
-            );
+          if (foundPlan?.security === 'API_KEY' && details.api) {
+            const entrypointUrl = list.metadata[details.api]?.entrypoints?.[0]?.target;
+            const apiKey = details?.keys?.length && details.keys[0].key ? details.keys[0].key : '';
 
-            subscriptionDetails = {
+            return {
               ...subscriptionDetails,
-              apiKey: {
-                key: <string>details?.keys[0].key,
-                baseUrl: <string>baseUrl,
-                commandLine: commandLine,
-              },
+              apiKey,
+              entrypointUrl,
             };
-          } else if (selectedApi?.security === 'OAUTH2' || selectedApi?.security === 'JWT') {
-            subscriptionDetails = {
+          } else if (foundPlan?.security === 'OAUTH2' || foundPlan?.security === 'JWT') {
+            return {
               ...subscriptionDetails,
-              oauth2: {
-                clientId: <string>application.settings?.oauth.client_id,
-                clientSecret: <string>application.settings?.oauth.client_secret,
-              },
+              clientId: application.settings?.oauth.client_id,
+              clientSecret: application.settings?.oauth.client_secret,
             };
           }
         }
@@ -164,19 +141,8 @@ export class SubscriptionsDetailsComponent implements OnInit {
         return subscriptionDetails;
       }),
       catchError(_ => {
-        return of({});
+        return of();
       }),
     );
-  }
-
-  private formatCurlCommandLine(entrypointUrl: string, apiKey?: string): string {
-    if (!entrypointUrl) {
-      return '';
-    }
-    const apiKeyHeader =
-      apiKey && this.configService.configuration.portal?.apikeyHeader
-        ? `--header "${this.configService.configuration.portal.apikeyHeader}: ${apiKey}" `
-        : '';
-    return `curl ${apiKeyHeader}${entrypointUrl}`;
   }
 }
