@@ -133,8 +133,6 @@ public class MongoThemeRepository implements ThemeRepository {
 
     @Override
     public Page<Theme> search(ThemeCriteria criteria, Pageable pageable) {
-        final Page<ThemeMongo> page = internalThemeRepo.search(criteria, pageable);
-        final List<Theme> content = page.getContent().stream().map(themeMongo -> mapper.map(themeMongo)).toList();
-        return new Page<>(content, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements());
+        return internalThemeRepo.search(criteria, pageable).map(themeMongo -> mapper.map(themeMongo));
     }
 }

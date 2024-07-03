@@ -18,13 +18,11 @@ package io.gravitee.rest.api.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -56,12 +54,6 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,13 +83,14 @@ public class EventServiceTest {
     private static final String EVENT_ORIGIN = "localhost";
     private static final String API_ID = "id-api";
     private static final String ENVIRONMENT_ID = "DEFAULT";
-    private static final Map<String, String> EVENT_PROPERTIES = new HashMap<String, String>() {
-        {
-            put(Event.EventProperties.API_ID.getValue(), API_ID);
-            put(Event.EventProperties.USER.getValue(), EVENT_USERNAME);
-            put(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN);
-        }
-    };
+    private static final Map<String, String> EVENT_PROPERTIES = Map.of(
+        Event.EventProperties.API_ID.getValue(),
+        API_ID,
+        Event.EventProperties.USER.getValue(),
+        EVENT_USERNAME,
+        Event.EventProperties.ORIGIN.getValue(),
+        EVENT_ORIGIN
+    );
 
     @Before
     public void setup() {
@@ -110,7 +103,7 @@ public class EventServiceTest {
     }
 
     @InjectMocks
-    private EventServiceImpl eventService = new EventServiceImpl();
+    private EventServiceImpl eventService;
 
     @Mock
     private EventRepository eventRepository;
@@ -126,9 +119,6 @@ public class EventServiceTest {
 
     @Mock
     private Event event2;
-
-    @Mock
-    private Page<Event> eventPage;
 
     @Mock
     private UserService userService;
@@ -155,7 +145,7 @@ public class EventServiceTest {
 
         final EventEntity eventEntity = eventService.createNewEventEntity(
             GraviteeContext.getExecutionContext(),
-            Collections.singleton(GraviteeContext.getCurrentEnvironment()),
+            Set.of(GraviteeContext.getCurrentEnvironment()),
             GraviteeContext.getCurrentOrganization(),
             newEvent
         );
@@ -202,9 +192,6 @@ public class EventServiceTest {
 
     @Test
     public void shouldSearchNoResults() {
-        when(eventPage.getTotalElements()).thenReturn(0L);
-        when(eventPage.getContent()).thenReturn(Collections.emptyList());
-
         when(
             eventRepository.search(
                 EventCriteria
@@ -217,26 +204,23 @@ public class EventServiceTest {
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
         )
-            .thenReturn(eventPage);
+            .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         Page<EventEntity> eventPageEntity = eventService.search(
             GraviteeContext.getExecutionContext(),
-            Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
+            List.of(io.gravitee.rest.api.model.EventType.START_API),
             null,
             1420070400000L,
             1422748800000L,
             0,
             10,
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+            List.of(GraviteeContext.getCurrentEnvironment())
         );
         assertEquals(0L, eventPageEntity.getTotalElements());
     }
 
     @Test
-    public void shouldSearchBySingleEventType() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put("type", EventType.START_API.toString());
-
+    public void shouldSearchBySingleEventType() {
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
@@ -247,9 +231,6 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventPage.getTotalElements()).thenReturn(2L);
-        when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
-
         when(
             eventRepository.search(
                 EventCriteria
@@ -262,17 +243,17 @@ public class EventServiceTest {
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
         )
-            .thenReturn(eventPage);
+            .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
             GraviteeContext.getExecutionContext(),
-            Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
+            List.of(io.gravitee.rest.api.model.EventType.START_API),
             null,
             1420070400000L,
             1422748800000L,
             0,
             10,
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+            List.of(GraviteeContext.getCurrentEnvironment())
         );
 
         assertEquals(2L, eventPageEntity.getTotalElements());
@@ -280,7 +261,7 @@ public class EventServiceTest {
     }
 
     @Test
-    public void shouldSearchByMultipleEventType() throws Exception {
+    public void shouldSearchByMultipleEventType() {
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
@@ -290,9 +271,6 @@ public class EventServiceTest {
         when(event2.getType()).thenReturn(EventType.STOP_API);
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
-
-        when(eventPage.getTotalElements()).thenReturn(2L);
-        when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
         when(
             eventRepository.search(
@@ -306,17 +284,17 @@ public class EventServiceTest {
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
         )
-            .thenReturn(eventPage);
+            .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
             GraviteeContext.getExecutionContext(),
-            Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
+            List.of(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
             null,
             1420070400000L,
             1422748800000L,
             0,
             10,
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+            List.of(GraviteeContext.getCurrentEnvironment())
         );
 
         assertEquals(2L, eventPageEntity.getTotalElements());
@@ -324,9 +302,8 @@ public class EventServiceTest {
     }
 
     @Test
-    public void shouldSearchByAPIId() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put(Event.EventProperties.API_ID.getValue(), "id-api");
+    public void shouldSearchByAPIId() {
+        Map<String, Object> values = Map.of(Event.EventProperties.API_ID.getValue(), "id-api");
 
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
@@ -338,9 +315,6 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventPage.getTotalElements()).thenReturn(2L);
-        when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
-
         when(
             eventRepository.search(
                 EventCriteria
@@ -348,12 +322,12 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                    .environments(Collections.singletonList(ENVIRONMENT_ID))
+                    .environments(List.of(ENVIRONMENT_ID))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
         )
-            .thenReturn(eventPage);
+            .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
             GraviteeContext.getExecutionContext(),
@@ -363,7 +337,7 @@ public class EventServiceTest {
             1422748800000L,
             0,
             10,
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+            List.of(GraviteeContext.getCurrentEnvironment())
         );
 
         assertEquals(2L, eventPageEntity.getTotalElements());
@@ -371,9 +345,8 @@ public class EventServiceTest {
     }
 
     @Test
-    public void shouldSearchByMixProperties() throws Exception {
-        Map<String, Object> values = new HashMap<>();
-        values.put(Event.EventProperties.API_ID.getValue(), "id-api");
+    public void shouldSearchByMixProperties() {
+        Map<String, Object> values = Map.of(Event.EventProperties.API_ID.getValue(), "id-api");
 
         when(event.getId()).thenReturn("event1");
         when(event.getType()).thenReturn(EventType.START_API);
@@ -384,9 +357,6 @@ public class EventServiceTest {
         when(event2.getType()).thenReturn(EventType.STOP_API);
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
-
-        when(eventPage.getTotalElements()).thenReturn(2L);
-        when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
         when(
             eventRepository.search(
@@ -401,17 +371,17 @@ public class EventServiceTest {
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
         )
-            .thenReturn(eventPage);
+            .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
             GraviteeContext.getExecutionContext(),
-            Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
+            List.of(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
             values,
             1420070400000L,
             1422748800000L,
             0,
             10,
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
+            List.of(GraviteeContext.getCurrentEnvironment())
         );
 
         assertEquals(2L, eventPageEntity.getTotalElements());
@@ -686,7 +656,7 @@ public class EventServiceTest {
             ORGANIZATION_ID,
             io.gravitee.rest.api.model.EventType.PUBLISH_API,
             api,
-            new HashMap<>()
+            Map.of()
         );
 
         // check event has been created and capture his payload

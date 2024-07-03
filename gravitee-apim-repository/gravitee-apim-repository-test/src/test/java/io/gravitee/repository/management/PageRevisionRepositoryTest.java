@@ -15,14 +15,17 @@
  */
 package io.gravitee.repository.management;
 
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.PageRevision;
-import java.util.*;
+import java.time.Instant;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.Test;
 
 /**
@@ -40,19 +43,18 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
     public void shouldFindApiPageRevisionById() throws Exception {
         final Optional<PageRevision> pageRevision = pageRevisionRepository.findById("FindApiPage", 1);
 
-        assertNotNull(pageRevision);
-        assertTrue(pageRevision.isPresent());
+        assertThat(pageRevision).isPresent();
         assertFindPageRevision(pageRevision.get());
     }
 
     private void assertFindPageRevision(PageRevision pageRevision) {
-        assertEquals("page id", "FindApiPage", pageRevision.getPageId());
-        assertEquals("hash algo", "hexstring", pageRevision.getHash());
-        assertEquals("revision", 1, pageRevision.getRevision());
-        assertEquals("name", "Find apiPage by apiId or Id", pageRevision.getName());
-        assertEquals("content", "Content of the page", pageRevision.getContent());
+        assertThat(pageRevision.getPageId()).isEqualTo("FindApiPage");
+        assertThat(pageRevision.getHash()).isEqualTo("hexstring");
+        assertThat(pageRevision.getRevision()).isEqualTo(1);
+        assertThat(pageRevision.getName()).isEqualTo("Find apiPage by apiId or Id");
+        assertThat(pageRevision.getContent()).isEqualTo("Content of the page");
 
-        assertTrue("created at", compareDate(new Date(1486771200000L), pageRevision.getCreatedAt()));
+        assertThat(pageRevision.getCreatedAt()).isEqualTo(Instant.ofEpochMilli(1486771200000L));
     }
 
     @Test
@@ -60,27 +62,28 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         Page<PageRevision> revisions = pageRevisionRepository.findAll(
             new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
         );
-        assertNotNull(revisions);
-        assertNotNull(revisions.getContent());
-        assertEquals(revisions.getPageNumber(), 0);
-        assertEquals(revisions.getPageElements(), 6);
-        assertEquals(revisions.getTotalElements(), 6);
-        assertEquals(revisions.getContent().size(), 6);
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(revisions).isNotNull();
+            softly.assertThat(revisions.getPageNumber()).isEqualTo(0);
+            softly.assertThat(revisions.getPageElements()).isEqualTo(6);
+            softly.assertThat(revisions.getTotalElements()).isEqualTo(6);
+            softly.assertThat(revisions.getContent()).hasSize(6);
+        }
     }
 
     @Test
     public void shouldFindAll_PageSize3() throws TechnicalException {
         int pageNumber = 0;
-        Set<String> accumulator = new HashSet<>();
         do {
             Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(pageNumber).pageSize(3).build());
-            assertNotNull(revisions);
-            assertNotNull(revisions.getContent());
-            assertEquals(revisions.getPageNumber(), pageNumber);
-            assertEquals(revisions.getPageElements(), 3);
-            assertEquals(revisions.getTotalElements(), 6);
-            assertEquals(revisions.getContent().size(), 3);
-            revisions.getContent().stream().forEach(rev -> accumulator.add(rev.getPageId() + "-" + rev.getRevision()));
+
+            try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(revisions).isNotNull();
+                softly.assertThat(revisions.getContent()).hasSize(3);
+                softly.assertThat(revisions.getPageNumber()).isEqualTo(pageNumber);
+                softly.assertThat(revisions.getPageElements()).isEqualTo(3);
+                softly.assertThat(revisions.getTotalElements()).isEqualTo(6);
+            }
         } while (++pageNumber < 2);
     }
 
@@ -97,54 +100,51 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         Optional<PageRevision> optionalBefore = pageRevisionRepository.findById("new-page", 5);
         pageRevisionRepository.create(pageRevision);
         Optional<PageRevision> optionalAfter = pageRevisionRepository.findById("new-page", 5);
-        assertFalse("Page not found before", optionalBefore.isPresent());
-        assertTrue("Page saved not found", optionalAfter.isPresent());
+        assertThat(optionalBefore).isEmpty();
+        assertThat(optionalAfter).isPresent();
 
         final PageRevision pageSaved = optionalAfter.get();
-        assertEquals("Invalid saved pageRevision name.", pageRevision.getName(), pageSaved.getName());
-        assertEquals("Invalid pageRevision content.", pageRevision.getContent(), pageSaved.getContent());
-        assertEquals("Invalid pageRevision pageId.", pageRevision.getPageId(), pageSaved.getPageId());
-        assertEquals("Invalid pageRevision hash.", pageRevision.getHash(), pageSaved.getHash());
-        assertEquals("Invalid pageRevision revision.", pageRevision.getRevision(), pageSaved.getRevision());
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(pageSaved.getName()).isEqualTo(pageRevision.getName());
+            softly.assertThat(pageSaved.getContent()).isEqualTo(pageRevision.getContent());
+            softly.assertThat(pageSaved.getPageId()).isEqualTo(pageRevision.getPageId());
+            softly.assertThat(pageSaved.getHash()).isEqualTo(pageRevision.getHash());
+            softly.assertThat(pageSaved.getRevision()).isEqualTo(pageRevision.getRevision());
+        }
     }
 
     @Test
     public void shouldFindAllByPageId() throws Exception {
         List<PageRevision> pageShouldExists = pageRevisionRepository.findAllByPageId("findByPageId");
 
-        assertNotNull(pageShouldExists);
-        assertEquals(3, pageShouldExists.size());
-        for (PageRevision rev : pageShouldExists) {
-            assertEquals("findByPageId", rev.getPageId());
-        }
+        assertThat(pageShouldExists).hasSize(3).extracting(PageRevision::getPageId).containsOnly("findByPageId");
     }
 
     @Test
     public void shouldNotFindAllByPageId() throws Exception {
         List<PageRevision> pageShouldExists = pageRevisionRepository.findAllByPageId("findByPageId_unknown");
 
-        assertNotNull(pageShouldExists);
-        assertEquals(0, pageShouldExists.size());
+        assertThat(pageShouldExists).isNotNull().isEmpty();
     }
 
     @Test
     public void shouldFindLastByPageId() throws Exception {
         Optional<PageRevision> pageShouldExists = pageRevisionRepository.findLastByPageId("findByPageId");
 
-        assertNotNull(pageShouldExists);
-        assertTrue(pageShouldExists.isPresent());
-        assertEquals("findByPageId", pageShouldExists.get().getPageId());
-        assertEquals(3, pageShouldExists.get().getRevision());
-        assertEquals("lorem ipsum", pageShouldExists.get().getContent());
-        assertEquals("revision 3", pageShouldExists.get().getName());
-        assertEquals("findByPageId", pageShouldExists.get().getPageId());
+        assertThat(pageShouldExists).isNotNull().isPresent();
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(pageShouldExists.get().getPageId()).isEqualTo("findByPageId");
+            softly.assertThat(pageShouldExists.get().getRevision()).isEqualTo(3);
+            softly.assertThat(pageShouldExists.get().getContent()).isEqualTo("lorem ipsum");
+            softly.assertThat(pageShouldExists.get().getName()).isEqualTo("revision 3");
+            softly.assertThat(pageShouldExists.get().getPageId()).isEqualTo("findByPageId");
+        }
     }
 
     @Test
     public void shouldNotFindLastByPageId() throws Exception {
         Optional<PageRevision> pageShouldExists = pageRevisionRepository.findLastByPageId("findByPageId_unknown");
 
-        assertNotNull(pageShouldExists);
-        assertFalse(pageShouldExists.isPresent());
+        assertThat(pageShouldExists).isNotNull().isNotPresent();
     }
 }

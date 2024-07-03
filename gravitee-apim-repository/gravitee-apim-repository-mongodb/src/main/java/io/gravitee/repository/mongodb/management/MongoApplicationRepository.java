@@ -129,14 +129,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) {
-        final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, pageable, sortable);
-        final List<Application> applications = new ArrayList<>(mapApplications(applicationsMongo.getContent()));
-        return new Page<>(
-            applications,
-            applicationsMongo.getPageNumber(),
-            (int) applicationsMongo.getPageElements(),
-            applicationsMongo.getTotalElements()
-        );
+        return internalApplicationRepo.search(applicationCriteria, pageable, sortable).map(this::mapApplication);
     }
 
     @Override

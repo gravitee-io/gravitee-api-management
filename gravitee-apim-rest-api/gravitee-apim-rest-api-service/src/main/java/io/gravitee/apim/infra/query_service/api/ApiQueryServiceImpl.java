@@ -79,10 +79,6 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
             .excludePicture()
             .build();
 
-        var apiPage = apiRepository.search(searchCriteria, sortable, convert(pageable), fieldFilter);
-
-        List<Api> apis = apiPage.getContent().stream().map(ApiAdapter.INSTANCE::toCoreModel).toList();
-
-        return new Page<>(apis, apiPage.getPageNumber(), (int) apiPage.getPageElements(), apiPage.getTotalElements());
+        return apiRepository.search(searchCriteria, sortable, convert(pageable), fieldFilter).map(ApiAdapter.INSTANCE::toCoreModel);
     }
 }

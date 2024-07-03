@@ -25,7 +25,6 @@ import io.gravitee.repository.management.model.Ticket;
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
 import io.gravitee.repository.mongodb.management.internal.ticket.TicketMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,12 +66,11 @@ public class MongoTicketRepository implements TicketRepository {
     public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
         LOGGER.debug("Search tickets");
 
-        Page<TicketMongo> tickets = internalTicketRepo.search(criteria, sortable, pageable);
-        List<Ticket> content = mapper.mapTickets(tickets.getContent());
+        var tickets = internalTicketRepo.search(criteria, sortable, pageable).map(mapper::map);
 
         LOGGER.debug("Search tickets - Done");
 
-        return new Page<>(content, tickets.getPageNumber(), (int) tickets.getPageElements(), tickets.getTotalElements());
+        return tickets;
     }
 
     @Override

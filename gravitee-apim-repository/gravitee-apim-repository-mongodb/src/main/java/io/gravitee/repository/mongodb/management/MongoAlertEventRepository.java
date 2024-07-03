@@ -117,13 +117,7 @@ public class MongoAlertEventRepository implements AlertEventRepository {
     public Page<AlertEvent> search(AlertEventCriteria criteria, Pageable pageable) {
         Page<AlertEventMongo> alertEventsMongo = internalAlertEventRepo.search(criteria, pageable);
 
-        List<AlertEvent> content = mapper.mapAlertEvents(alertEventsMongo.getContent());
-        return new Page<>(
-            content,
-            alertEventsMongo.getPageNumber(),
-            (int) alertEventsMongo.getPageElements(),
-            alertEventsMongo.getTotalElements()
-        );
+        return alertEventsMongo.map(mapper::map);
     }
 
     @Override
