@@ -26,6 +26,7 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Updates.push;
+import static com.mongodb.client.model.Updates.unset;
 
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Sorts;
@@ -65,7 +66,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             pipeline.add(match(eq("revoked", false)));
         }
         if (!filter.isIncludeFederated()) {
-            pipeline.add(match(eq("federated", false)));
+            pipeline.add(match(or(eq("federated", false), eq("federated", null))));
         }
 
         // set range query
