@@ -182,6 +182,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             content: '',
             source: 'FILL',
+            sourceConfiguration: {},
           });
 
           expect(getPageTitle().includes('New page')).toBeTruthy();
@@ -214,6 +215,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             content: '',
             source: 'FILL',
+            sourceConfiguration: {},
           });
         });
 
@@ -245,6 +247,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             content: '',
             source: 'FILL',
+            sourceConfiguration: {},
           });
         });
       });
@@ -267,9 +270,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
           expect(options.length).toEqual(3);
           const sourceOptions = options.map((option) => option.text);
-          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from source (URL)Coming soon']);
+          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from URL']);
+          expect(await options[0].disabled).toEqual(false);
           expect(await options[1].disabled).toEqual(false);
-          expect(await options[2].disabled).toEqual(true);
+          expect(await options[2].disabled).toEqual(false);
 
           await harness.selectSource('IMPORT');
         });
@@ -460,6 +464,179 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           expect(fixture.componentInstance.form.getRawValue().content).toEqual('# Markdown content');
         });
       });
+
+      describe('step 3 - Import from URL ', () => {
+        let harness: ApiDocumentationV4EditPageHarness;
+        const openApiUrl = 'https://openapi.yml';
+        const http = 'HTTP';
+        const pageName = 'New page';
+        const emptyUrlSaveErrorMessage = 'Cannot save without a url';
+        const emptyUrlPublishErrorMessage = 'Cannot publish with empty URL';
+        beforeEach(async () => {
+          harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.setName(pageName);
+
+          let nextBtn = await harness.getNextButton();
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          await nextBtn.click();
+
+          await harness.selectSource(http);
+
+          const req = httpTestingController.expectOne({
+            method: 'GET',
+            url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+          });
+
+          req.flush([
+            {
+              id: 'http-fetcher',
+              name: http,
+              description: 'The Gravitee.IO Parent POM provides common settings for all Gravitee components.',
+              version: '2.0.1',
+              schema:
+                '{"type": "object","title": "http","properties": {"url": {"title": "URL","description": "Url to the file you want to fetch","type": "string"}}}',
+            },
+          ]);
+
+          fixture.detectChanges();
+
+          nextBtn = await harness.getNextButton();
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          await nextBtn.click();
+        });
+
+        it('should show http url', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          expect(httpUrlInput).toBeDefined();
+          expect(await httpUrlInput.isDisabled()).toEqual(false);
+          await httpUrlInput.setValue(openApiUrl);
+          expect(await httpUrlInput.getValue()).toEqual(openApiUrl);
+        });
+
+        it('should save', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue(http);
+
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          req.flush({});
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {
+                url: http,
+              },
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+          });
+        });
+
+        it('should save and publish', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue(http);
+
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          const page = fakeMarkdown({ id: 'page-id' });
+          req.flush(page);
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {
+                url: http,
+              },
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+          });
+
+          const publishReq = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+          });
+          publishReq.flush({ ...page, published: true });
+        });
+
+        it('should show error if raised on save', async () => {
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          req.flush({ message: emptyUrlSaveErrorMessage }, { status: 400, statusText: emptyUrlSaveErrorMessage });
+          fixture.detectChanges();
+
+          const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+          expect(await snackBar.getMessage()).toEqual(emptyUrlSaveErrorMessage);
+        });
+
+        it('should show error if raised on publish', async () => {
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          const page = fakeMarkdown({ id: 'page-id' });
+          req.flush(page);
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {},
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+          });
+
+          const publishReq = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+          });
+          publishReq.flush({ message: emptyUrlPublishErrorMessage }, { status: 400, statusText: emptyUrlPublishErrorMessage });
+
+          fixture.detectChanges();
+
+          const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+          expect(await snackBar.getMessage()).toEqual(emptyUrlPublishErrorMessage);
+        });
+      });
     });
     describe('Under another folder', () => {
       beforeEach(async () => {
@@ -588,6 +765,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             content: 'my content',
             source: 'FILL',
+            sourceConfiguration: {},
           });
         });
 
@@ -617,6 +795,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             content: 'my content',
             source: 'FILL',
+            sourceConfiguration: {},
           });
         });
 

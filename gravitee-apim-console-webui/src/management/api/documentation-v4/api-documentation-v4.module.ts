@@ -18,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   GioFormFilePickerModule,
+  GioFormJsonSchemaModule,
   GioFormSelectionInlineModule,
   GioFormSlideToggleModule,
   GioIconsModule,
@@ -114,6 +115,7 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     MatSelect,
     GioFormSlideToggleModule,
     MatSlideToggle,
+    GioFormJsonSchemaModule,
   ],
 })
 export class ApiDocumentationV4Module {}
