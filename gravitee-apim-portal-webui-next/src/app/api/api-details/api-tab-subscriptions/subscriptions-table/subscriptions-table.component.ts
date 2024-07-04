@@ -24,6 +24,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, startWith, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { Subscription, SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
 import { SubscriptionMetadata } from '../../../../../entities/subscription/subscriptions-response';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
@@ -43,6 +44,7 @@ import { SubscriptionService } from '../../../../../services/subscription.servic
     ReactiveFormsModule,
     MatOption,
     RouterLink,
+    LoaderComponent,
   ],
   providers: [CapitalizeFirstPipe],
   styleUrl: './subscriptions-table.component.scss',
