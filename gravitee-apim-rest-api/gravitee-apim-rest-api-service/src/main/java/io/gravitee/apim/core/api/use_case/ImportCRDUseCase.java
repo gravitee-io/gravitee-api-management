@@ -69,7 +69,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -78,7 +78,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -262,8 +261,8 @@ public class ImportCRDUseCase {
                 updatedApi
                     .toBuilder()
                     .originContext(
-                        new KubernetesContext(
-                            KubernetesContext.Mode.valueOf(input.crd().getDefinitionContext().getMode().toUpperCase()),
+                        new OriginContext.Kubernetes(
+                            OriginContext.Kubernetes.Mode.valueOf(input.crd().getDefinitionContext().getMode().toUpperCase()),
                             input.crd().getDefinitionContext().getSyncFrom().toUpperCase()
                         )
                     )

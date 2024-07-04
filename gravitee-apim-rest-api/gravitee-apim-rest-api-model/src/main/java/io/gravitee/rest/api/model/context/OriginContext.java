@@ -18,28 +18,55 @@ package io.gravitee.rest.api.model.context;
 /**
  * Context explaining where an API comes from.
  */
-public interface OriginContext {
-    Origin getOrigin();
+public sealed interface OriginContext {
+    Origin origin();
 
-    default boolean isOriginManagement() {
-        return getOrigin() == Origin.MANAGEMENT;
-    }
-
-    default boolean isOriginKubernetes() {
-        return getOrigin() == Origin.KUBERNETES;
-    }
-
-    default boolean isManagement(String value) {
-        return Origin.MANAGEMENT.name().equalsIgnoreCase(value);
-    }
-
-    default boolean isKubernetes(String value) {
-        return Origin.KUBERNETES.name().equalsIgnoreCase(value);
+    default String name() {
+        return origin().name().toLowerCase();
     }
 
     enum Origin {
         MANAGEMENT,
         KUBERNETES,
         INTEGRATION,
+    }
+
+    record Kubernetes(Origin origin, Kubernetes.Mode mode, String syncFrom) implements OriginContext {
+        public Kubernetes(Kubernetes.Mode mode) {
+            this(mode, Origin.KUBERNETES.name());
+        }
+
+        public Kubernetes(Kubernetes.Mode mode, String syncFrom) {
+            this(Origin.KUBERNETES, mode, syncFrom);
+        }
+
+        public enum Mode {
+            /** Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api. */
+            FULLY_MANAGED,
+        }
+    }
+
+    record Management(Origin origin) implements OriginContext {
+        public Management() {
+            this(Origin.MANAGEMENT);
+        }
+    }
+
+    non-sealed class Integration implements OriginContext {
+
+        private final String integrationId;
+
+        public Integration(String integrationId) {
+            this.integrationId = integrationId;
+        }
+
+        @Override
+        public Origin origin() {
+            return Origin.INTEGRATION;
+        }
+
+        public String integrationId() {
+            return integrationId;
+        }
     }
 }

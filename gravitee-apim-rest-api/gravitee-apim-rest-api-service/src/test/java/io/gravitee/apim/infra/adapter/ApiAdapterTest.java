@@ -32,8 +32,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -241,10 +240,11 @@ class ApiAdapterTest {
         @Test
         void should_convert_origin_context() {
             var apiWithManagementContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("management").build());
-            assertThat(apiWithManagementContext).hasOriginContext(new ManagementContext());
+            assertThat(apiWithManagementContext).hasOriginContext(new OriginContext.Management());
 
             var apiWithKubernetesContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").build());
-            assertThat(apiWithKubernetesContext).hasOriginContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
+            assertThat(apiWithKubernetesContext)
+                .hasOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED));
         }
     }
 
@@ -339,7 +339,7 @@ class ApiAdapterTest {
         @Test
         void should_convert_origin_context() {
             var apiWithManagementContext = ApiAdapter.INSTANCE.toRepository(
-                ApiFixtures.aProxyApiV4().toBuilder().originContext(new ManagementContext()).build()
+                ApiFixtures.aProxyApiV4().toBuilder().originContext(new OriginContext.Management()).build()
             );
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiWithManagementContext.getOrigin()).isEqualTo("management");
@@ -347,7 +347,11 @@ class ApiAdapterTest {
             });
 
             var apiWithKubernetesContext = ApiAdapter.INSTANCE.toRepository(
-                ApiFixtures.aProxyApiV4().toBuilder().originContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED)).build()
+                ApiFixtures
+                    .aProxyApiV4()
+                    .toBuilder()
+                    .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                    .build()
             );
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiWithKubernetesContext.getOrigin()).isEqualTo("kubernetes");

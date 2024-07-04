@@ -29,7 +29,6 @@ import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -127,15 +126,12 @@ public class ApiCRDSpec {
             .lifecycleState(Api.LifecycleState.valueOf(state))
             .categories(categories)
             .originContext(
-                KubernetesContext
-                    .builder()
-                    .syncFrom(
-                        definitionContext.isSyncFromManagement()
-                            ? OriginContext.Origin.MANAGEMENT.name()
-                            : OriginContext.Origin.KUBERNETES.name()
-                    )
-                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
-                    .build()
+                new OriginContext.Kubernetes(
+                    OriginContext.Kubernetes.Mode.FULLY_MANAGED,
+                    definitionContext.isSyncFromManagement()
+                        ? OriginContext.Origin.MANAGEMENT.name()
+                        : OriginContext.Origin.KUBERNETES.name()
+                )
             )
             .groups(groups);
     }

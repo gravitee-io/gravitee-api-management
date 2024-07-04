@@ -32,13 +32,11 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
-import io.gravitee.rest.api.model.context.IntegrationContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -67,7 +65,7 @@ public class ApiFixtures {
             .categories(Set.of("category-1"))
             .labels(List.of("label-1"))
             .disableMembershipNotifications(true)
-            .originContext(new ManagementContext())
+            .originContext(new OriginContext.Management())
             .background("api-background");
 
     public static Api aProxyApiV4() {
@@ -280,7 +278,7 @@ public class ApiFixtures {
             .lifecycleState(null)
             .apiDefinitionV4(null)
             .apiDefinition(null)
-            .originContext(new IntegrationContext("integration-id"))
+            .originContext(new OriginContext.Integration("integration-id"))
             .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
             .build();
     }

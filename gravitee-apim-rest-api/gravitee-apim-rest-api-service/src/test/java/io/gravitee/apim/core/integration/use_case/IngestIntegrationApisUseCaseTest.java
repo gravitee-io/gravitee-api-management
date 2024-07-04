@@ -97,7 +97,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -309,7 +309,7 @@ class IngestIntegrationApisUseCaseTest {
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .environmentId(ENVIRONMENT_ID)
                     .lifecycleState(null)
-                    .originContext(new IntegrationContext(INTEGRATION_ID))
+                    .originContext(new OriginContext.Integration(INTEGRATION_ID))
                     .federatedApiDefinition(
                         FederatedApi
                             .builder()

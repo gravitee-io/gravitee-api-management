@@ -18,9 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
-import io.gravitee.rest.api.model.context.IntegrationContext;
-import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -34,16 +31,20 @@ public interface OriginContextMapper {
             return null;
         }
 
-        return switch (source.getOrigin()) {
-            case MANAGEMENT -> map((ManagementContext) source);
-            case KUBERNETES -> map((KubernetesContext) source);
-            case INTEGRATION -> map((IntegrationContext) source);
-        };
+        if (source instanceof OriginContext.Kubernetes kub) {
+            return map(kub);
+        } else if (source instanceof OriginContext.Management manage) {
+            return map(manage);
+        } else if (source instanceof OriginContext.Integration integration) {
+            return map(integration);
+        } else {
+            return null;
+        }
     }
 
     default OriginContext map(io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext source) {
         if (source == null || source.getOrigin() == null) {
-            return new ManagementContext();
+            return new OriginContext.Management();
         }
         return switch (source.getOrigin()) {
             case MANAGEMENT -> map((ManagementOriginContext) source);
@@ -52,10 +53,10 @@ public interface OriginContextMapper {
         };
     }
 
-    ManagementOriginContext map(ManagementContext source);
-    KubernetesOriginContext map(KubernetesContext source);
-    IntegrationOriginContext map(IntegrationContext source);
-    ManagementContext map(ManagementOriginContext source);
-    KubernetesContext map(KubernetesOriginContext source);
-    IntegrationContext map(IntegrationOriginContext source);
+    ManagementOriginContext map(OriginContext.Management source);
+    KubernetesOriginContext map(OriginContext.Kubernetes source);
+    IntegrationOriginContext map(OriginContext.Integration source);
+    OriginContext.Management map(ManagementOriginContext source);
+    OriginContext.Kubernetes map(KubernetesOriginContext source);
+    OriginContext.Integration map(IntegrationOriginContext source);
 }

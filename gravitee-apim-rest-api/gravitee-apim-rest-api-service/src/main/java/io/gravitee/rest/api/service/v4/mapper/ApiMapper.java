@@ -35,8 +35,6 @@ import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.context.IntegrationContext;
-import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -366,18 +364,11 @@ public class ApiMapper {
             repoApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
         }
 
-        switch (apiEntity.getOriginContext().getOrigin()) {
-            case MANAGEMENT -> {
-                repoApi.setOrigin(OriginContext.Origin.MANAGEMENT.name().toLowerCase());
-            }
-            case KUBERNETES -> {
-                repoApi.setOrigin(OriginContext.Origin.KUBERNETES.name().toLowerCase());
-                repoApi.setMode(((KubernetesContext) apiEntity.getOriginContext()).getMode().name().toLowerCase());
-            }
-            case INTEGRATION -> {
-                repoApi.setOrigin(OriginContext.Origin.INTEGRATION.name().toLowerCase());
-                repoApi.setIntegrationId(((IntegrationContext) apiEntity.getOriginContext()).getIntegrationId());
-            }
+        repoApi.setOrigin(apiEntity.getOriginContext().name());
+        if (apiEntity.getOriginContext() instanceof OriginContext.Kubernetes kube) {
+            repoApi.setMode(kube.mode().name().toLowerCase());
+        } else if (apiEntity.getOriginContext() instanceof OriginContext.Integration integration) {
+            repoApi.setIntegrationId(integration.integrationId());
         }
 
         repoApi.setName(apiEntity.getName());

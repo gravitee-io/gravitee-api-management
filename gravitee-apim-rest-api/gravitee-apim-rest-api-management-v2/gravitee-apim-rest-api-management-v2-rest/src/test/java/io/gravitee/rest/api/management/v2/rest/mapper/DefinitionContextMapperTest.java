@@ -18,8 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
-import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -29,7 +28,7 @@ public class DefinitionContextMapperTest {
 
     @Test
     void shouldMapDefinitionContextWithManagementOriginString() {
-        var context = new ManagementContext();
+        var context = new OriginContext.Management();
 
         io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(context);
 
@@ -40,7 +39,7 @@ public class DefinitionContextMapperTest {
 
     @Test
     void shouldMapDefinitionContextWithKubernetesOriginString() {
-        var context = new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED);
+        var context = new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED);
 
         io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(context);
 

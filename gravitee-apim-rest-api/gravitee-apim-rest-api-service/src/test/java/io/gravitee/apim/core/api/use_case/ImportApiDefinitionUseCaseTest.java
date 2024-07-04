@@ -21,8 +21,6 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,71 +31,24 @@ import fixtures.core.model.PageFixtures;
 import fixtures.core.model.PlanWithFlowsFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
-import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiMetadataQueryServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.EntrypointPluginQueryServiceInMemory;
-import inmemory.FlowCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
-import inmemory.IndexerInMemory;
-import inmemory.MembershipCrudServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.MetadataCrudServiceInMemory;
-import inmemory.NoopSwaggerOpenApiResolver;
-import inmemory.NoopTemplateResolverDomainService;
-import inmemory.NotificationConfigCrudServiceInMemory;
-import inmemory.PageCrudServiceInMemory;
-import inmemory.PageQueryServiceInMemory;
-import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.PageSourceDomainServiceInMemory;
-import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.PlanQueryServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
-import inmemory.WorkflowCrudServiceInMemory;
-import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
-import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
-import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.metadata.model.Metadata;
-import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
-import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
-import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
-import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
-import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -111,7 +62,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
@@ -605,7 +556,7 @@ class ImportApiDefinitionUseCaseTest {
             .labels(List.of("label-1"))
             .listeners(List.of(HttpListener.builder().paths(List.of(new Path())).build()))
             .name("My Api")
-            .originContext(new ManagementContext())
+            .originContext(new OriginContext.Management())
             .picture(null)
             .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
             .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
@@ -646,7 +597,7 @@ class ImportApiDefinitionUseCaseTest {
             .id(API_ID)
             .labels(List.of("label-1"))
             .lifecycleState(Api.LifecycleState.STOPPED)
-            .originContext(new ManagementContext())
+            .originContext(new OriginContext.Management())
             .picture(null)
             .type(ApiType.PROXY)
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))

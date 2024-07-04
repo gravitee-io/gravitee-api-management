@@ -140,7 +140,6 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -1129,11 +1128,7 @@ class ImportCRDUseCaseTest {
         return aProxyApiV4()
             .toBuilder()
             .originContext(
-                KubernetesContext
-                    .builder()
-                    .syncFrom(OriginContext.Origin.KUBERNETES.name())
-                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
-                    .build()
+                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
             )
             .id(API_ID)
             .environmentId(ENVIRONMENT_ID)
