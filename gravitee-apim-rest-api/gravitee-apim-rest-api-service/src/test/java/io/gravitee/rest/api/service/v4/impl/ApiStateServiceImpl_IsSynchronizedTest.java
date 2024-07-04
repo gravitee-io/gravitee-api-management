@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -25,16 +23,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventType;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
@@ -89,7 +89,10 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     private CategoryService categoryService;
 
     @Mock
-    private PlanService planService;
+    private io.gravitee.rest.api.service.PlanService planService;
+
+    @Mock
+    private PlanService planServiceV4;
 
     @Mock
     private EventService eventService;
@@ -98,7 +101,10 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     private EventLatestRepository eventLatestRepository;
 
     @Mock
-    private FlowService flowService;
+    private io.gravitee.rest.api.service.configuration.flow.FlowService flowService;
+
+    @Mock
+    private FlowService flowServiceV4;
 
     @Mock
     private WorkflowService workflowService;
@@ -118,8 +124,9 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     @Mock
     private ApiValidationService apiValidationService;
 
-    @Mock
     private ApiConverter apiConverter;
+
+    private ApiMapper apiMapper;
 
     @Mock
     private PlanSearchService planSearchService;
@@ -152,14 +159,25 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
 
-        ApiMapper apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planService,
-            flowService,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+        apiConverter =
+            new ApiConverter(
+                new GraviteeMapper(),
+                planService,
+                flowService,
+                new CategoryMapper(categoryService),
+                parameterService,
+                workflowService
+            );
+
+        apiMapper =
+            new ApiMapper(
+                new GraviteeMapper(),
+                planServiceV4,
+                flowServiceV4,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService)
+            );
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiStateService =
             new ApiStateServiceImpl(
@@ -184,196 +202,270 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
     @Test
     public void should_return_true_for_V4_API() throws JsonProcessingException {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("apiId");
-        apiEntity.setName("Api name");
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
-        EventEntity eventEntity = new EventEntity();
-        eventEntity.setType(EventType.PUBLISH_API);
-        eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
 
         when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             )
         )
-            .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
+            .thenReturn(List.of(event));
 
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
 
-        verify(eventService, times(1))
+        verify(eventLatestRepository, times(1))
             .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
-        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-    }
-
-    @Test
-    public void should_return_true_for_V2_API() throws JsonProcessingException {
-        io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        apiEntity.setId("apiId");
-        apiEntity.setName("Api name");
-        apiEntity.setDefinitionContext(new DefinitionContext());
-
-        // Add flow
-        io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
-        apiEntity.setFlows(Collections.singletonList(flow));
-
-        EventEntity eventEntity = new EventEntity();
-        eventEntity.setType(EventType.PUBLISH_API);
-        eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
-
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
-            .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
-
-        // Mock apiConverter to return the defined apiEntity
-        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false))).thenReturn(apiEntity);
-
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
-
-        assertThat(isSynchronized).isTrue();
-
-        verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
-        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-    }
-
-    @Test
-    public void should_return_false_for_V2_API() throws JsonProcessingException {
-        io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        apiEntity.setId("apiId");
-        apiEntity.setName("Api name");
-        apiEntity.setDefinitionContext(new DefinitionContext());
-
-        // Add flow
-        io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
-        apiEntity.setFlows(Collections.singletonList(flow));
-
-        EventEntity eventEntity = new EventEntity();
-        eventEntity.setType(EventType.PUBLISH_API);
-        eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
-
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
-            .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
-
-        // Mock apiConverter to return the defined apiEntity
-        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false))).thenReturn(apiEntity);
-
-        // Add second flow to simulate a change
-        io.gravitee.definition.model.flow.Flow secondFlow = new io.gravitee.definition.model.flow.Flow();
-        apiEntity.setFlows(List.of(flow, secondFlow));
-
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
-
-        assertThat(isSynchronized).isTrue();
-
-        verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
     }
 
     @Test
     public void should_return_false_for_V4_API() throws JsonProcessingException {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("apiId");
-        apiEntity.setName("Api name");
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
-        EventEntity eventEntity = new EventEntity();
-        eventEntity.setType(EventType.PUBLISH_API);
-        eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
 
+        when(
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            )
+        )
+            .thenReturn(List.of(event));
+
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
         List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
         apiEntity.setFlows(apiFlows);
-
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
-            .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isFalse();
 
-        verify(eventService, times(1))
+        verify(eventLatestRepository, times(1))
             .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            );
+        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
+    }
+
+    @Test
+    public void should_return_true_for_V2_API() throws JsonProcessingException {
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(List.of(new VirtualHost("/api")));
+        io.gravitee.definition.model.Api apiDefinition = io.gravitee.definition.model.Api
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V2)
+            .plans(Map.of())
+            .proxy(proxy)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
+
+        when(
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            )
+        )
+            .thenReturn(List.of(event));
+
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = apiConverter.toApiEntity(
+            GraviteeContext.getExecutionContext(),
+            api,
+            null,
+            false
+        );
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(isSynchronized).isTrue();
+
+        verify(eventLatestRepository, times(1))
+            .search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            );
+        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
+    }
+
+    @Test
+    public void should_return_false_for_V2_API() throws JsonProcessingException {
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(List.of(new VirtualHost("/api")));
+        io.gravitee.definition.model.Api apiDefinition = io.gravitee.definition.model.Api
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V2)
+            .plans(Map.of())
+            .proxy(proxy)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
+
+        when(
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
+            )
+        )
+            .thenReturn(List.of(event));
+
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = apiConverter.toApiEntity(
+            GraviteeContext.getExecutionContext(),
+            api,
+            null,
+            false
+        );
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        // Add Flows to make API not synchronized
+        io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
+        apiEntity.setFlows(Collections.singletonList(flow));
+
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(isSynchronized).isFalse();
+
+        verify(eventLatestRepository, times(1))
+            .search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
     }
@@ -383,29 +475,43 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("apiId");
-        apiEntity.setName("Api name");
-        apiEntity.setDeployedAt(nowDate);
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+        api.setDeployedAt(nowDate);
 
-        EventEntity eventEntity = new EventEntity();
-        eventEntity.setType(EventType.PUBLISH_API);
-        eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
 
         when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             )
         )
-            .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
+            .thenReturn(List.of(event));
+
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         final PlanEntity planPublished = new PlanEntity();
         planPublished.setStatus(PlanStatus.PUBLISHED);
@@ -424,16 +530,21 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
         assertThat(isSynchronized).isTrue();
 
-        verify(eventService, times(1))
+        verify(eventLatestRepository, times(1))
             .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
         verify(planSearchService, times(1)).findByApi(any(), any());
@@ -444,29 +555,43 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("apiId");
-        apiEntity.setName("Api name");
-        apiEntity.setDeployedAt(nowDate);
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
+            .builder()
+            .id("apiId")
+            .name("Api name")
+            .definitionVersion(DefinitionVersion.V4)
+            .build();
+        Api api = new Api();
+        api.setId("apiId");
+        api.setName("Api name");
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+        api.setDeployedAt(nowDate);
 
-        EventEntity eventEntity = new EventEntity();
-        eventEntity.setType(EventType.PUBLISH_API);
-        eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
+        Event event = new Event();
+        event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
+        event.setPayload(objectMapper.writeValueAsString(api));
 
         when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+            eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             )
         )
-            .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
+            .thenReturn(List.of(event));
+
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         final PlanEntity planPublished = new PlanEntity();
         planPublished.setStatus(PlanStatus.PUBLISHED);
@@ -480,16 +605,21 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
         assertThat(isSynchronized).isFalse();
 
-        verify(eventService, times(1))
+        verify(eventLatestRepository, times(1))
             .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), "apiId"))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             );
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
         verify(planSearchService, times(1)).findByApi(any(), any());

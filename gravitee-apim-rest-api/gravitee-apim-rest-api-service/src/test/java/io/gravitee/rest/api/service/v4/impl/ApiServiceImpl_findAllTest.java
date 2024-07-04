@@ -177,9 +177,6 @@ public class ApiServiceImpl_findAllTest {
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
 
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
-
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
@@ -232,6 +229,16 @@ public class ApiServiceImpl_findAllTest {
             workflowService,
             new CategoryMapper(categoryService)
         );
+
+        ApiConverter apiConverter = new ApiConverter(
+            new ObjectMapper(),
+            mock(io.gravitee.rest.api.service.PlanService.class),
+            mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
+            mock(CategoryMapper.class),
+            mock(ParameterService.class),
+            mock(WorkflowService.class)
+        );
+
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService =
             new ApiServiceImpl(
