@@ -62,31 +62,32 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@AllArgsConstructor
-@NoArgsConstructor
 public class ApiConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiConverter.class);
 
-    @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    @Lazy
     private PlanService planService;
-
-    @Autowired
-    @Lazy
     private FlowService flowService;
-
-    @Autowired
     private CategoryMapper categoryMapper;
-
-    @Autowired
     private ParameterService parameterService;
-
-    @Autowired
     private WorkflowService workflowService;
+
+    public ApiConverter(
+        final ObjectMapper objectMapper,
+        @Lazy final PlanService planService,
+        @Lazy final FlowService flowService,
+        final CategoryMapper categoryMapper,
+        final ParameterService parameterService,
+        final WorkflowService workflowService
+    ) {
+        this.objectMapper = objectMapper;
+        this.planService = planService;
+        this.flowService = flowService;
+        this.categoryMapper = categoryMapper;
+        this.parameterService = parameterService;
+        this.workflowService = workflowService;
+    }
 
     public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
         ApiEntity apiEntity = new ApiEntity();
