@@ -61,7 +61,6 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-@NoArgsConstructor
 public class ApiConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiConverter.class);
