@@ -13,74 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CdkCopyToClipboard } from '@angular/cdk/clipboard';
-import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { MatButtonModule, MatIconButton } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
-import { catchError, Observable } from 'rxjs';
-import { of } from 'rxjs/internal/observable/of';
+import { Component, Input } from '@angular/core';
 
+import { ApiAccessComponent } from '../../../../components/api-access/api-access.component';
+import { SubscriptionInfoComponent } from '../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../entities/api/api';
-import { ToPeriodTimeUnitLabelPipe } from '../../../../pipe/time-unit.pipe';
-import { ApiService } from '../../../../services/api.service';
+import { Application } from '../../../../entities/application/application';
+import { Plan } from '../../../../entities/plan/plan';
 
 @Component({
   selector: 'app-subscribe-to-api-checkout',
-  imports: [
-    MatCardModule,
-    MatButtonModule,
-    MatFormField,
-    MatIcon,
-    MatIconButton,
-    MatLabel,
-    MatInput,
-    CdkCopyToClipboard,
-    AsyncPipe,
-    ToPeriodTimeUnitLabelPipe,
-    MatSuffix,
-  ],
+  imports: [SubscriptionInfoComponent, ApiAccessComponent],
   templateUrl: './subscribe-to-api-checkout.component.html',
   styleUrl: './subscribe-to-api-checkout.component.scss',
-  providers: [ToPeriodTimeUnitLabelPipe],
+  providers: [],
   standalone: true,
 })
-export class SubscribeToApiCheckoutComponent implements OnInit {
+export class SubscribeToApiCheckoutComponent {
   @Input()
-  apiId!: string;
+  api!: Api;
 
-  @Input() subscribeForm!: FormGroup;
+  @Input()
+  plan!: Plan;
 
-  subscriptionDetails: Observable<Api> = of();
-  constructor(private apiService: ApiService) {}
-
-  ngOnInit() {
-    this.subscriptionDetails = this.loadDetails();
-  }
-
-  public formatCurlCommandLine(url: string): string {
-    return `curl ${url}`;
-  }
-
-  goBackStepper() {
-    this.subscribeForm.controls['step'].setValue(
-      this.subscribeForm.value.step - (this.skipNextStep(this.subscribeForm.value.plan.security) ? 2 : 1),
-    );
-  }
-
-  skipNextStep(authenticationType: string): boolean {
-    return authenticationType === 'KEY_LESS';
-  }
-
-  private loadDetails(): Observable<Api> {
-    return this.apiService.details(this.apiId).pipe(
-      catchError(_ => {
-        return of();
-      }),
-    );
-  }
+  @Input()
+  application?: Application;
 }
