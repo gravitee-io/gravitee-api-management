@@ -15,76 +15,16 @@
     limitations under the License.
 
 -->
-<mat-card-header class="subscriptions-header">
-  <div class="m3-title-large">Checkout</div>
-  <div class="subscriptions-header__content">This plan does not need any subscription to consume the API.</div>
-</mat-card-header>
-
-@if (subscriptionDetails | async; as details) {
-  <div class="subscriptions-details__container">
-    <mat-card appearance="outlined" class="subscriptions-details__card">
-      <mat-card-header>
-        <div class="m3-title-medium subscriptions-details__header" i18n="@@subscriptionDetailsHeader">Subscription</div>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="subscriptions-details__content-row subscriptions-details__content-info">
-          <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderPlan">Plan:</p>
-          <p class="m3-body-medium">{{ subscribeForm.value.plan.name }}</p>
-        </div>
-        <div class="subscriptions-details__content-row subscriptions-details__content-info">
-          <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderAuthentication">
-            Authentication:
-          </p>
-          <p class="m3-body-medium">{{ subscribeForm.value.plan.authentication }}</p>
-        </div>
-        @if (subscribeForm.value.plan.usageConfiguration.quota) {
-          <div class="subscriptions-details__content-row subscriptions-details__content-info">
-            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderQuota">Quota: up to</p>
-            <p class="m3-body-medium">
-              {{ subscribeForm.value.plan.usageConfiguration.quota.limit }} hits /
-              {{ subscribeForm.value.plan.usageConfiguration.quota | toPeriodTimeUnitLabelPipe }}
-            </p>
-          </div>
-        }
-        @if (subscribeForm.value.plan.usageConfiguration.rate_limit) {
-          <div class="subscriptions-details__content-row subscriptions-details__content-info">
-            <p class="m3-title-small subscriptions-details__content-row-title" i18n="@@subscriptionDetailsHeaderQuota">Rate-limit: up to</p>
-            <p class="m3-body-medium">
-              {{ subscribeForm.value.plan.usageConfiguration.rate_limit.limit }} hits /
-              {{ subscribeForm.value.plan.usageConfiguration.rate_limit | toPeriodTimeUnitLabelPipe }}
-            </p>
-          </div>
-        }
-        <mat-card-footer>
-          <p class="m3-body-medium">
-            {{
-              subscribeForm.value.plan.validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.'
-            }}
-          </p>
-        </mat-card-footer>
-      </mat-card-content>
-    </mat-card>
-    <mat-card appearance="outlined" class="subscriptions-details__card">
-      <mat-card-header>
-        <div class="m3-title-medium subscriptions-details__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-form-field appearance="outline" class="subscriptions-details__field">
-          <mat-label i18n="@@subscriptionDetailsApiKeyBaseUrl">Base URL</mat-label>
-          <input matInput [value]="details.entrypoints[0]" readonly />
-          <button mat-icon-button matSuffix [cdkCopyToClipboard]="details.entrypoints[0]">
-            <mat-icon>content_copy</mat-icon>
-          </button>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="subscriptions-details__field">
-          <mat-label i18n="@@subscriptionDetailsApiKeyCommandLine">Command line</mat-label>
-          <input matInput [value]="formatCurlCommandLine(details.entrypoints[0])" readonly />
-          <button mat-icon-button matSuffix [cdkCopyToClipboard]="formatCurlCommandLine(details.entrypoints[0])">
-            <mat-icon>content_copy</mat-icon>
-          </button>
-        </mat-form-field>
-      </mat-card-content>
-    </mat-card>
-  </div>
-}
-<button (click)="goBackStepper()" class="subscribe-checkout__button-back" mat-stroked-button color="primary">Previous</button>
+<div class="subscribe-to-api-checkout__container">
+  <app-subscription-info
+    class="subscribe-to-api-checkout__container__subscription-info"
+    [applicationName]="application?.name"
+    [planName]="plan.name"
+    [planUsageConfiguration]="plan.usage_configuration"
+    [planSecurity]="plan.security" />
+  @if (plan.security === 'KEY_LESS') {
+    <app-api-access [planSecurity]="plan.security" [entrypointUrl]="api.entrypoints[0]" />
+  } @else {
+    <div>Coming soon...</div>
+  }
+</div>
