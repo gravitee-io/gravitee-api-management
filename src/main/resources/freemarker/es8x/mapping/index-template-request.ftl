@@ -18,6 +18,9 @@
                 "api": {
                     "type": "keyword"
                 },
+                "api-name": {
+                    "type": "keyword"
+                },
                 "api-response-time": {
                     "type": "long"
                 },

@@ -14,6 +14,9 @@
                 "api": {
                     "type": "keyword"
                 },
+                "api-name": {
+                    "type": "keyword"
+                },
                 "available": {
                     "type": "boolean",
                     "index": false

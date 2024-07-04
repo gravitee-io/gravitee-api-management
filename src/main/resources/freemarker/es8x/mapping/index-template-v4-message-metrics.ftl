@@ -21,6 +21,9 @@
                 "api-id": {
                     "type": "keyword"
                 },
+                "api-name": {
+                    "type": "keyword"
+                },
                 "request-id": {
                     "type": "keyword"
                 },

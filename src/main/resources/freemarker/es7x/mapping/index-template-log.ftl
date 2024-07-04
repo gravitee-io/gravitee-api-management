@@ -30,6 +30,9 @@
                 "api": {
                     "type": "keyword"
                 },
+                "api-name": {
+                    "type": "keyword"
+                },
                 "client-request": {
                     "type": "object",
                     "properties": {
