@@ -127,7 +127,7 @@ public class ApiSearchService_SearchTest {
             new ApiSearchServiceImpl(
                 apiRepository,
                 apiMapper,
-                new GenericApiMapper(apiMapper, new ApiConverter()),
+                new GenericApiMapper(apiMapper, mock(ApiConverter.class)),
                 primaryOwnerService,
                 categoryService,
                 searchEngineService,

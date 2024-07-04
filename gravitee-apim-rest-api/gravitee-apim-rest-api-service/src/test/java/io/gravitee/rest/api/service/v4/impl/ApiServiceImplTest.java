@@ -263,8 +263,8 @@ public class ApiServiceImplTest {
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
 
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    @Mock
+    private ApiConverter apiConverter;
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
