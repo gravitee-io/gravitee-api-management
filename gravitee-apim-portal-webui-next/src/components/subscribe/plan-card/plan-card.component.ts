@@ -13,48 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatCard, MatCardContent, MatCardFooter, MatCardHeader } from '@angular/material/card';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatTooltip } from '@angular/material/tooltip';
 
-import { SubscriptionPlan } from '../../../app/api/subscribe-to-api/subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.component';
+import { getPlanSecurityTypeLabel, Plan } from '../../../entities/plan/plan';
 import { ToPeriodTimeUnitLabelPipe } from '../../../pipe/time-unit.pipe';
 
 @Component({
   selector: 'app-plan-card',
   standalone: true,
-  imports: [
-    MatCard,
-    MatCardHeader,
-    MatRadioButton,
-    MatRadioGroup,
-    ReactiveFormsModule,
-    MatCardContent,
-    MatCardFooter,
-    MatTooltip,
-    ToPeriodTimeUnitLabelPipe,
-  ],
+  imports: [MatCard, MatCardHeader, MatRadioButton, MatRadioGroup, MatCardContent, MatCardFooter, MatTooltip, ToPeriodTimeUnitLabelPipe],
   templateUrl: './plan-card.component.html',
   providers: [ToPeriodTimeUnitLabelPipe],
   styleUrl: './plan-card.component.scss',
 })
-export class PlanCardComponent {
-  @Input() selectedPlanControl = new FormControl();
+export class PlanCardComponent implements OnInit {
+  @Input() plan!: Plan;
 
-  @Input() card!: SubscriptionPlan;
+  @Input()
+  selected: boolean = false;
 
-  isPlanSelected = false;
+  @Input()
+  disabled: boolean = false;
 
-  selectPlan() {
-    if (!this.card.isDisabled) {
-      this.selectedPlanControl.setValue(this.card.id);
-      this.isPlanSelected = true;
-    }
+  @Output()
+  selectPlan = new EventEmitter<Plan>();
+
+  authentication: string = '';
+
+  ngOnInit() {
+    this.authentication = getPlanSecurityTypeLabel(this.plan.security);
   }
 
-  isSelected() {
-    return this.selectedPlanControl.value === this.card.id;
+  onSelectPlan() {
+    if (!this.disabled) {
+      this.selectPlan.emit(this.plan);
+    }
   }
 }
