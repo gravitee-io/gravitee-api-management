@@ -232,6 +232,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final Metrics metrics = ctx.metrics();
 
         metrics.setApiId(api.getId());
+        metrics.setApiName(api.getName());
         metrics.setApiType(api.getDefinition().getType().getLabel());
     }
 
