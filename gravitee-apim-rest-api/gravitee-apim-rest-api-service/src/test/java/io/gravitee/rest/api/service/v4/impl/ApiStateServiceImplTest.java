@@ -133,8 +133,8 @@ public class ApiStateServiceImplTest {
     @Mock
     private ApiValidationService apiValidationService;
 
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    @Mock
+    private ApiConverter apiConverter;
 
     @Mock
     private PlanSearchService planSearchService;

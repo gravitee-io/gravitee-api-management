@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -178,9 +179,6 @@ public class ApiServiceImpl_findAllTest {
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
 
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
-
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
@@ -236,6 +234,16 @@ public class ApiServiceImpl_findAllTest {
             workflowService,
             new CategoryMapper(categoryService)
         );
+
+        ApiConverter apiConverter = new ApiConverter(
+            new ObjectMapper(),
+            mock(io.gravitee.rest.api.service.PlanService.class),
+            mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
+            mock(CategoryMapper.class),
+            mock(ParameterService.class),
+            mock(WorkflowService.class)
+        );
+
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService =
             new ApiServiceImpl(

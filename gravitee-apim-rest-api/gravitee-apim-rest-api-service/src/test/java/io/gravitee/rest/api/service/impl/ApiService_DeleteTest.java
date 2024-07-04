@@ -132,7 +132,9 @@ public class ApiService_DeleteTest {
     private ApiCategoryService apiCategoryService;
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
+    );
 
     private Api api;
     private PlanEntity planEntity;
