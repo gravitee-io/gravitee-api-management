@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.times;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -54,13 +56,17 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import java.util.ArrayList;
@@ -87,8 +93,10 @@ public class ApiServiceCockpitImplTest {
     private static final String ENVIRONMENT_ID = "environment#id";
     private static final String PAGE_ID = "page#id";
     private static final String SWAGGER_DEFINITION = "";
-    private final ApiConverter apiConverter = new ApiConverter();
     private final PageConverter pageConverter = new PageConverter();
+
+    @Mock
+    private ApiConverter apiConverter;
 
     @Mock
     private ApiService apiService;
@@ -130,6 +138,15 @@ public class ApiServiceCockpitImplTest {
 
     @Before
     public void setUp() throws Exception {
+        apiConverter =
+            new ApiConverter(
+                new ObjectMapper(),
+                mock(PlanService.class),
+                mock(FlowService.class),
+                mock(CategoryMapper.class),
+                mock(ParameterService.class),
+                mock(WorkflowService.class)
+            );
         service =
             new ApiServiceCockpitImpl(
                 new ObjectMapper(),
