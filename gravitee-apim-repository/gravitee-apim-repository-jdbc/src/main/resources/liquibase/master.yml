@@ -188,4 +188,6 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v4_4_2/00_add_event_organizations.yml
   - include:
+      - file: liquibase/changelogs/v4_4_2/01_federated_api_keys.yml
+  - include:
       - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
