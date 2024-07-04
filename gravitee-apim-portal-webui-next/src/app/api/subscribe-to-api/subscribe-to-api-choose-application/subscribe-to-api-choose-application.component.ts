@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { MatButton } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
-  imports: [MatCardModule, MatButton],
+  imports: [],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
   standalone: true,

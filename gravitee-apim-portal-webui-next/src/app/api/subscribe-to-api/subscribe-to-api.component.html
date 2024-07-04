@@ -15,18 +15,71 @@
     limitations under the License.
 
 -->
-<form [formGroup]="subscribeToApiForm">
-  <mat-card class="subscribe-details" appearance="outlined">
-    @if (subscribeToApiForm.controls['step'].value === 1) {
-      <app-subscribe-to-api-choose-plan [apiId]="apiId" [subscribeForm]="subscribeToApiForm" />
-    }
-
-    @if (subscribeToApiForm.controls['step'].value === 2) {
+<mat-card class="subscribe-to-api" appearance="outlined">
+  @if (currentStep() === 1) {
+    <mat-card-header class="subscribe-to-api__header">
+      <div class="m3-title-large" i18n="@@subscribeChoosePlan">Choose a plan</div>
+      <div i18n="@@subscribeChoosePlanDescription">Select the plan that best suit for your needs.</div>
+    </mat-card-header>
+    <mat-card-content>
+      @if (plans$ | async; as plans) {
+        @if (plans.length) {
+          <app-subscribe-to-api-choose-plan [plans]="plans" [selectedPlan]="currentPlan" (selectPlan)="currentPlan.set($event)" />
+        }
+      } @else {
+        <app-loader />
+      }
+    </mat-card-content>
+  } @else if (currentStep() === 2) {
+    <mat-card-header class="subscribe-to-api__header">
+      <div class="m3-title-large" i18n="@@subscribeChooseApplication">Choose an application</div>
+      <div i18n="@@subscribeChooseApplicationDescription">
+        An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via
+        subscriptions.
+      </div>
+    </mat-card-header>
+    <mat-card-content>
       <app-subscribe-to-api-choose-application />
-    }
+    </mat-card-content>
+  } @else if (currentStep() === 3) {
+    <mat-card-header class="subscribe-to-api__header">
+      <div class="m3-title-large" i18n="@@subscribeCheckout">Checkout</div>
+      @if (currentPlan()?.security === 'KEY_LESS') {
+        <div i18n="@@subscribeChooseApplicationDescription">This plan does not need any subscription to consume the API.</div>
+      }
+    </mat-card-header>
+    <mat-card-content>
+      @if (currentPlan(); as plan) {
+        @if (api$ | async; as api) {
+          <app-subscribe-to-api-checkout [api]="api" [application]="currentApplication()" [plan]="plan" />
+        } @else {
+          <app-loader />
+        }
+      }
+    </mat-card-content>
+  }
 
-    @if (subscribeToApiForm.controls['step'].value === 3) {
-      <app-subscribe-to-api-checkout [apiId]="apiId" [subscribeForm]="subscribeToApiForm" />
-    }
-  </mat-card>
-</form>
+  <mat-card-actions class="subscribe-to-api__actions">
+    <div>
+      @if (currentStep() > 1) {
+        <button (click)="goToPreviousStep()" mat-stroked-button color="primary" i18n="@@subscribeToApiPrevious">Previous</button>
+      }
+    </div>
+    <div>
+      @if (currentStep() < 3) {
+        <button (click)="goToNextStep()" mat-flat-button class="secondary-button" [disabled]="stepIsInvalid()" i18n="@@subscribeToApiNext">
+          Next
+        </button>
+      } @else if (currentStep() === 3 && currentPlan()?.security !== 'KEY_LESS') {
+        <button
+          (click)="subscribe()"
+          mat-flat-button
+          class="secondary-button"
+          [disabled]="stepIsInvalid()"
+          i18n="@@subscribeToApiSubscribe">
+          Subscribe
+        </button>
+      }
+    </div>
+  </mat-card-actions>
+</mat-card>
