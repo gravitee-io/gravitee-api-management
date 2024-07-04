@@ -77,7 +77,10 @@ export class SubscribeToApiComponent implements OnInit {
   ngOnInit(): void {
     this.plans$ = this.planService.list(this.apiId).pipe(
       map(({ data }) => data ?? []),
-      catchError(_ => of([])),
+      catchError(err => {
+        console.log(err);
+        return of([]);
+      }),
     );
     this.api$ = this.apiService.details(this.apiId).pipe(catchError(_ => of()));
   }

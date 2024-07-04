@@ -19,6 +19,7 @@
 <div class="plan-list__container">
   @for (plan of plans; track plan.id) {
     <app-plan-card
+      [id]="plan.id"
       [plan]="plan"
       [selected]="selectedPlanId() === plan.id"
       [disabled]="plan.security !== 'KEY_LESS'"
