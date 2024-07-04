@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
-import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
@@ -64,6 +62,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -171,7 +170,13 @@ public class ApiStateServiceImpl implements ApiStateService {
             addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
 
             // And create event
-            eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
+            eventService.createApiEvent(
+                executionContext,
+                singleton(executionContext.getEnvironmentId()),
+                EventType.PUBLISH_API,
+                api,
+                properties
+            );
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to deploy API: {}", api.getId(), e);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + api.getId(), e);
@@ -298,7 +303,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         throws TechnicalException {
         final EventQuery query = new EventQuery();
         query.setApi(apiId);
-        query.setTypes(singleton(PUBLISH_API));
+        query.setTypes(singleton(EventType.PUBLISH_API));
 
         final Optional<EventEntity> optEvent = eventService
             .search(executionContext, query)
@@ -366,24 +371,27 @@ public class ApiStateServiceImpl implements ApiStateService {
             }
 
             // 1 - Check if the api definition is sync with last one in events
-            Map<String, Object> properties = Map.of(Event.EventProperties.API_ID.getValue(), genericApiEntity.getId());
-
-            io.gravitee.common.data.domain.Page<EventEntity> events = eventService.search(
-                executionContext,
-                Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
-                properties,
-                (long) 0,
-                (long) 0,
-                0,
-                1,
-                singletonList(executionContext.getEnvironmentId())
+            List<Event> events = eventLatestRepository.search(
+                EventCriteria
+                    .builder()
+                    .types(
+                        List.of(
+                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                        )
+                    )
+                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), genericApiEntity.getId()))
+                    .build(),
+                Event.EventProperties.API_ID,
+                0L,
+                1L
             );
 
-            if (!events.getContent().isEmpty()) {
+            if (!events.isEmpty()) {
                 // According to page size, we know that we have only one element in the list
-                EventEntity lastEvent = events.getContent().get(0);
+                Event lastEvent = events.get(0);
                 boolean sync = false;
-                if (PUBLISH_API.equals(lastEvent.getType())) {
+                if (io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType())) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
 
                     if (
