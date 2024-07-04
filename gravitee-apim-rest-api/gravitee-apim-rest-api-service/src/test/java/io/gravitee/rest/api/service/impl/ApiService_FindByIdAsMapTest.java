@@ -34,6 +34,8 @@ import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -43,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -94,7 +97,9 @@ public class ApiService_FindByIdAsMapTest {
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
+    );
 
     @Test
     public void shouldFindByIdAsMap() throws TechnicalException {
@@ -116,7 +121,8 @@ public class ApiService_FindByIdAsMapTest {
             .thenAnswer(i -> getObjectMapper().convertValue(i.getArgument(0), Map.class));
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(userEntity));
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwner);
         when(apiMetadataService.findAllByApi("api-id")).thenReturn(buildMetadatas());
 
         Map resultMap = apiService.findByIdAsMap("api-id");

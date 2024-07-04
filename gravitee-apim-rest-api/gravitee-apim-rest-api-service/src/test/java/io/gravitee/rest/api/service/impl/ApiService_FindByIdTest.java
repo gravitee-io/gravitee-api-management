@@ -99,11 +99,16 @@ public class ApiService_FindByIdTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private WorkflowService workflowService;
+
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
+    );
 
     @Mock
     private RoleService roleService;
