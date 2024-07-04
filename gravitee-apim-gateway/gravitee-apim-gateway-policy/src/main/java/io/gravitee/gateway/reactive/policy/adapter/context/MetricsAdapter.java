@@ -71,6 +71,11 @@ public class MetricsAdapter extends Metrics {
     }
 
     @Override
+    public String getApiName() {
+        return metrics.getApiName();
+    }
+
+    @Override
     public String getApplication() {
         return metrics.getApplicationId();
     }
@@ -226,6 +231,11 @@ public class MetricsAdapter extends Metrics {
     @Override
     public void setApi(final String api) {
         metrics.setApiId(api);
+    }
+
+    @Override
+    public void setApiName(final String apiName) {
+        metrics.setApiName(apiName);
     }
 
     @Override

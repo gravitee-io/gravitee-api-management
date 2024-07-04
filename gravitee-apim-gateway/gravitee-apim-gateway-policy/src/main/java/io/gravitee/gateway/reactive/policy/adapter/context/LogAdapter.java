@@ -91,4 +91,14 @@ public class LogAdapter extends Log {
     public void setProxyResponse(final Response proxyResponse) {
         log.setEndpointResponse(proxyResponse);
     }
+
+    @Override
+    public String getApiName() {
+        return log.getApiName();
+    }
+
+    @Override
+    public void setApiName(final String apiName) {
+        log.setApiName(apiName);
+    }
 }

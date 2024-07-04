@@ -42,6 +42,7 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
 
             if (context.request().metrics().getLog() != null) {
                 context.request().metrics().getLog().setApi(context.request().metrics().getApi());
+                context.request().metrics().getLog().setApiName(context.request().metrics().getApiName());
                 reporterService.report(context.request().metrics().getLog());
             }
         } catch (Exception ex) {
