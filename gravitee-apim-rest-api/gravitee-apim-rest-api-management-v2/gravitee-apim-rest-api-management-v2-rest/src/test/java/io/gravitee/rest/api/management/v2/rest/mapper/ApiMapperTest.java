@@ -16,13 +16,27 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.ApiFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
+import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.ArrayList;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 
 public class ApiMapperTest {
@@ -111,5 +125,61 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
         assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
         assertThat(updateApiEntity.getExecutionMode().name()).isEqualTo(updateApi.getExecutionMode().getValue());
+    }
+
+    @Nested
+    class ComputeOriginContext {
+
+        static Stream<Arguments> computeOriginContext() {
+            return Stream.of(
+                arguments(new OriginContext.Management(), new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT)),
+                arguments(
+                    new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED),
+                    new KubernetesOriginContext()
+                        .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
+                        .syncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES)
+                        .origin(BaseOriginContext.OriginEnum.KUBERNETES)
+                ),
+                arguments(
+                    new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "MANAGEMENT"),
+                    new KubernetesOriginContext()
+                        .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
+                        .syncFrom(KubernetesOriginContext.SyncFromEnum.MANAGEMENT)
+                        .origin(BaseOriginContext.OriginEnum.KUBERNETES)
+                ),
+                arguments(
+                    new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "KUBERNETES"),
+                    new KubernetesOriginContext()
+                        .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
+                        .syncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES)
+                        .origin(BaseOriginContext.OriginEnum.KUBERNETES)
+                ),
+                arguments(
+                    new OriginContext.Integration("integID"),
+                    new IntegrationOriginContext().integrationId("integID").origin(BaseOriginContext.OriginEnum.INTEGRATION)
+                ),
+                arguments(
+                    new FederatedApiEntity.OriginContextView(new OriginContext.Integration("integID"), "provider", "inte name"),
+                    new IntegrationOriginContext()
+                        .integrationId("integID")
+                        .provider("provider")
+                        .integrationName("inte name")
+                        .origin(BaseOriginContext.OriginEnum.INTEGRATION)
+                )
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource
+        void computeOriginContext(OriginContext input, BaseOriginContext expected) {
+            // Given
+            GenericApiEntity api = new ApiEntity().withOriginContext(input);
+
+            // When
+            var context = ApiMapper.INSTANCE.computeOriginContext(api);
+
+            // Then
+            assertThat(context).isEqualTo(expected);
+        }
     }
 }

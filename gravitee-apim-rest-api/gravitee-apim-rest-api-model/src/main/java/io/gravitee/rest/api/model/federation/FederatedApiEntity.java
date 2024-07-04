@@ -18,27 +18,23 @@ package io.gravitee.rest.api.model.federation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Read model for Federated API.
@@ -84,7 +80,7 @@ public class FederatedApiEntity implements GenericApiEntity {
 
     private List<String> labels;
 
-    private OriginContext originContext;
+    private OriginContext.Integration originContext;
 
     private ApiLifecycleState lifecycleState;
 
@@ -93,6 +89,10 @@ public class FederatedApiEntity implements GenericApiEntity {
     private String background;
 
     private String backgroundUrl;
+
+    private String provider;
+
+    private String integrationName;
 
     @JsonIgnore
     private String referenceType;
@@ -123,5 +123,27 @@ public class FederatedApiEntity implements GenericApiEntity {
     @Override
     public WorkflowState getWorkflowState() {
         return null;
+    }
+
+    @ToString
+    @EqualsAndHashCode(callSuper = true)
+    public static final class OriginContextView extends OriginContext.Integration {
+
+        private final String provider;
+        private final String integrationName;
+
+        public OriginContextView(OriginContext.Integration baseCtx, String provider, String integrationName) {
+            super(baseCtx.integrationId());
+            this.provider = provider;
+            this.integrationName = integrationName;
+        }
+
+        public String provider() {
+            return provider;
+        }
+
+        public String integrationName() {
+            return integrationName;
+        }
     }
 }

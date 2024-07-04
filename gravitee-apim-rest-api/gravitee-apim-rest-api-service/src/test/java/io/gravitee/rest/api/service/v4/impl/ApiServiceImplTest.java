@@ -85,6 +85,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -287,6 +288,9 @@ public class ApiServiceImplTest {
     @Mock
     private ApiCategoryService apiCategoryService;
 
+    @Mock
+    private IntegrationRepository integrationRepository;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -362,7 +366,8 @@ public class ApiServiceImplTest {
             primaryOwnerService,
             categoryService,
             searchEngineService,
-            apiAuthorizationService
+            apiAuthorizationService,
+            integrationRepository
         );
         apiStateService =
             new ApiStateServiceImpl(

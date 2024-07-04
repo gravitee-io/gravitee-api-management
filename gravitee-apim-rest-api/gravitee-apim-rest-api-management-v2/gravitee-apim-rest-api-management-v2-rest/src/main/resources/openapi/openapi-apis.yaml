@@ -3251,6 +3251,14 @@ components:
                           description: |-
                               The id of the integration that created the API.
                           example: b300b445-8bbb-4034-865c-d2113ba5b768
+                      provider:
+                        type: string
+                        description: Provider of this Federated API.
+                        example: solace
+                      integrationName:
+                        type: string
+                        description: Name of integration of this Federated API.
+                        example: My Solace env
 
         DefinitionContext:
             deprecated: true
