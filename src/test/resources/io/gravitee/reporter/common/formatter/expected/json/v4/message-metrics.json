@@ -2,6 +2,7 @@
   "timestamp": 1692796321153,
   "requestId": "1d1d007b-7891-45d0-9d00-7b789175d0a2",
   "apiId": "be926300-20aa-4109-9263-0020aa31096c",
+  "apiName": "API Name",
   "clientIdentifier": "b6cf5bd6081fb775fc3f89927e582d7e945f955c35b73a07879d75bb4ea96a01",
   "correlationId": "10e949d4-fa38-4ff4-a139-1358bbacd127",
   "operation": "SUBSCRIBE",

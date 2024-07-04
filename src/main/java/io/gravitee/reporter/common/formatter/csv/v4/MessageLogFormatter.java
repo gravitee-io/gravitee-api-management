@@ -46,6 +46,7 @@ public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
 
     appendString(buffer, log.getRequestId());
     appendString(buffer, log.getApiId());
+    appendString(buffer, log.getApiName());
     appendString(buffer, log.getCorrelationId());
     appendString(buffer, log.getParentCorrelationId());
     appendString(

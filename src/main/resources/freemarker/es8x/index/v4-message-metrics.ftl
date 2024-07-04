@@ -21,6 +21,7 @@
   ,"@timestamp":"${@timestamp}"
   ,"request-id":"${metrics.getRequestId()}"
   ,"api-id":"${metrics.getApiId()}"
+  ,"api-name":"${metrics.getApiName()?j_string}"
   ,"client-identifier":"${metrics.getClientIdentifier()}"
   ,"correlation-id":"${metrics.getCorrelationId()}"
   <#if metrics.getParentCorrelationId()??>

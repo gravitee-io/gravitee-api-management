@@ -43,6 +43,7 @@ public class LogFormatter extends SingleValueFormatter<Log> {
 
     appendString(buffer, log.getRequestId());
     appendString(buffer, log.getApi());
+    appendString(buffer, log.getApiName());
 
     try {
       appendString(buffer, mapper.writeValueAsString(log.getClientRequest()));

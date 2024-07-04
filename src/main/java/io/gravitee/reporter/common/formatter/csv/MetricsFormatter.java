@@ -37,6 +37,7 @@ public final class MetricsFormatter extends SingleValueFormatter<Metrics> {
     appendString(buffer, metrics.getRemoteAddress());
     appendString(buffer, metrics.getLocalAddress());
     appendString(buffer, metrics.getApi());
+    appendString(buffer, metrics.getApiName());
     appendString(buffer, metrics.getApplication());
     appendString(buffer, metrics.getPlan());
     appendString(buffer, metrics.getSubscription());

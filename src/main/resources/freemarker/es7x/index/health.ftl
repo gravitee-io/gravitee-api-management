@@ -22,6 +22,7 @@
     "_id" : "${status.getId()}",
 </#if>
     "api":"${status.getApi()}",
+    "api-name":"${status.getApiName()?j_string}",
     "endpoint":"${status.getEndpoint()?j_string}",
     "available":${status.isAvailable()?c},
     "response-time":${status.getResponseTime()},

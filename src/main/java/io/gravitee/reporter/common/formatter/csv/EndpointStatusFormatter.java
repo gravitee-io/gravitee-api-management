@@ -48,6 +48,7 @@ public class EndpointStatusFormatter
 
     appendString(buffer, status.getId());
     appendString(buffer, status.getApi());
+    appendString(buffer, status.getApiName());
     appendString(buffer, status.getEndpoint());
     appendInt(buffer, status.getState());
     appendBoolean(buffer, status.isAvailable());

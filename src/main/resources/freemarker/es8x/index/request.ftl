@@ -32,6 +32,7 @@
   </#if>
   <#if metrics.getApi()??>
   ,"api":"${metrics.getApi()}"
+  ,"api-name":"${metrics.getApiName()?j_string}"
   </#if>
   <#if metrics.getApplication()??>
   ,"application":"${metrics.getApplication()}"

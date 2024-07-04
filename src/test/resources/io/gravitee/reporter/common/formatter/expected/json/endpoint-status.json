@@ -2,6 +2,7 @@
   "timestamp": 1692358263003,
   "id": "4902ad30-eda7-44e3-82ad-30eda794e31a",
   "api": "ff3c6c48-53e0-41d6-bc6c-4853e011d656",
+  "apiName": "API Name",
   "endpoint": "default",
   "state": 3,
   "available": true,

@@ -14,6 +14,7 @@
   ,"_id" : "${log.getRequestId()}"
   </#if>
   ,"api-id":"${log.getApiId()}"
+  ,"api-name":"${log.getApiName()?j_string}"
   ,"request-id":"${log.getRequestId()}"
   ,"client-identifier":"${log.getClientIdentifier()}"
   ,"request-ended":"${log.isRequestEnded()?c}"

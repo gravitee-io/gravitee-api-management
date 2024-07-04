@@ -44,6 +44,7 @@ public class LogFormatter extends SingleValueFormatter<Log> {
 
     appendString(buffer, log.getRequestId());
     appendString(buffer, log.getApiId());
+    appendString(buffer, log.getApiName());
     appendString(buffer, log.getClientIdentifier());
     appendBoolean(buffer, log.isRequestEnded());
 

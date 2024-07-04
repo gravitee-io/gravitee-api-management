@@ -13,7 +13,8 @@
     "date" : "${date}",
     "_id" : "${log.getRequestId()}",
   </#if>
-  "api":"${log.getApi()}"
+  "api":"${log.getApi()}",
+  "api-name":"${log.getApiName()?j_string}"
   <#if log.getClientRequest()??>
   ,"client-request": {
   "method":"${log.getClientRequest().getMethod()}",
