@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 
 import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration } from '../../entities/plan/plan';
 import { CapitalizeFirstPipe } from '../../pipe/capitalize-first.pipe';
+import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
 
 @Component({
   selector: 'app-subscription-info',
   standalone: true,
-  imports: [CapitalizeFirstPipe, MatCard, MatCardContent, MatCardHeader],
+  imports: [CapitalizeFirstPipe, MatCard, MatCardContent, MatCardHeader, ToPeriodTimeUnitLabelPipe],
   templateUrl: './subscription-info.component.html',
   styleUrl: './subscription-info.component.scss',
 })
-export class SubscriptionInfoComponent {
+export class SubscriptionInfoComponent implements OnInit {
   @Input()
-  applicationName: string = '';
+  applicationName?: string = '';
 
   @Input()
   planName: string = '';
@@ -37,10 +38,14 @@ export class SubscriptionInfoComponent {
   planSecurity!: PlanSecurityEnum;
 
   @Input()
-  planUsageConfiguration: PlanUsageConfiguration = {};
+  planUsageConfiguration?: PlanUsageConfiguration = {};
 
   @Input()
   subscriptionStatus: string = '';
 
-  protected readonly getPlanSecurityTypeLabel = getPlanSecurityTypeLabel;
+  authentication: string = '';
+
+  ngOnInit() {
+    this.authentication = getPlanSecurityTypeLabel(this.planSecurity);
+  }
 }
