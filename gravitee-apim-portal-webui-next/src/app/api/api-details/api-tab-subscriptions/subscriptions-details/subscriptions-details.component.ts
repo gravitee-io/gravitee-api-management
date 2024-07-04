@@ -28,6 +28,7 @@ import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
+import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import { SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
@@ -67,6 +68,7 @@ export interface SubscriptionDetailsData {
     AsyncPipe,
     ApiAccessComponent,
     SubscriptionInfoComponent,
+    LoaderComponent,
   ],
   providers: [CapitalizeFirstPipe],
   selector: 'app-subscriptions-details',
@@ -104,7 +106,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           plans: this.planService.list(this.apiId),
           list: this.subscriptionService.list(this.apiId, null),
           api: this.apiService.details(this.apiId),
-          application: this.applicationService.get(<string>details.application),
+          application: this.applicationService.get(details.application),
         });
       }),
       map(({ details, plans, list, application }) => {
