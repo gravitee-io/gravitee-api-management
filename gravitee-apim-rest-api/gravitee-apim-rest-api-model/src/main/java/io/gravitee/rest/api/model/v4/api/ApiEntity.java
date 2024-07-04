@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.v4.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
@@ -26,7 +25,6 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -36,7 +34,6 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -189,7 +186,7 @@ public class ApiEntity implements GenericApiEntity {
 
     /** Context explaining where the API comes from. */
     @Builder.Default
-    private OriginContext originContext = new ManagementContext();
+    private OriginContext originContext = new OriginContext.Management();
 
     @JsonIgnore
     @Builder.Default

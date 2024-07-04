@@ -17,9 +17,6 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.context.IntegrationContext;
-import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 
@@ -35,19 +32,12 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     public Api toRepository(io.gravitee.apim.core.api.model.Api source) {
         var api = delegate.toRepository(source);
 
-        switch (source.getOriginContext().getOrigin()) {
-            case MANAGEMENT -> {
-                api.setOrigin(OriginContext.Origin.MANAGEMENT.name().toLowerCase());
-            }
-            case KUBERNETES -> {
-                api.setOrigin(OriginContext.Origin.KUBERNETES.name().toLowerCase());
-                api.setMode(((KubernetesContext) source.getOriginContext()).getMode().name().toLowerCase());
-                api.setSyncFrom(((KubernetesContext) source.getOriginContext()).getSyncFrom());
-            }
-            case INTEGRATION -> {
-                api.setOrigin(OriginContext.Origin.INTEGRATION.name().toLowerCase());
-                api.setIntegrationId(((IntegrationContext) source.getOriginContext()).getIntegrationId());
-            }
+        api.setOrigin(source.getOriginContext().name());
+        if (source.getOriginContext() instanceof OriginContext.Integration integration) {
+            api.setIntegrationId(integration.integrationId());
+        } else if (source.getOriginContext() instanceof OriginContext.Kubernetes kub) {
+            api.setMode(kub.mode().name().toLowerCase());
+            api.setSyncFrom(kub.syncFrom());
         }
 
         return api;
@@ -63,31 +53,33 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     @Override
     public FederatedApiEntity toFederatedApiEntity(Api source, PrimaryOwnerEntity primaryOwnerEntity) {
         var api = delegate.toFederatedApiEntity(source, primaryOwnerEntity);
-        api.setOriginContext(toOriginContext(source));
+        OriginContext originContext = toOriginContext(source);
+        if (originContext instanceof OriginContext.Integration integrationCtx) {
+            api.setOriginContext(integrationCtx);
+        }
         api.setCategories(source.getCategories());
         return api;
     }
 
     public static OriginContext toOriginContext(Api source) {
-        OriginContext.Origin origin;
-        try {
-            if (source.getOrigin() == null) {
-                origin = OriginContext.Origin.MANAGEMENT;
-            } else {
-                origin = OriginContext.Origin.valueOf(source.getOrigin().toUpperCase());
-            }
-        } catch (IllegalArgumentException e) {
-            origin = OriginContext.Origin.MANAGEMENT;
-        }
-
-        return switch (origin) {
-            case MANAGEMENT -> new ManagementContext();
-            case KUBERNETES -> new KubernetesContext(
+        return switch (getOriginContextOrDefault(source)) {
+            case MANAGEMENT -> new OriginContext.Management();
+            case KUBERNETES -> new OriginContext.Kubernetes(
                 source.getMode() != null
-                    ? KubernetesContext.Mode.valueOf(source.getMode().toUpperCase())
-                    : KubernetesContext.Mode.FULLY_MANAGED
+                    ? OriginContext.Kubernetes.Mode.valueOf(source.getMode().toUpperCase())
+                    : OriginContext.Kubernetes.Mode.FULLY_MANAGED
             );
-            case INTEGRATION -> new IntegrationContext(source.getIntegrationId());
+            case INTEGRATION -> new OriginContext.Integration(source.getIntegrationId());
         };
+    }
+
+    private static OriginContext.Origin getOriginContextOrDefault(Api source) {
+        try {
+            return source.getOrigin() == null
+                ? OriginContext.Origin.MANAGEMENT
+                : OriginContext.Origin.valueOf(source.getOrigin().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return OriginContext.Origin.MANAGEMENT;
+        }
     }
 }

@@ -23,7 +23,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
 
 public class ApiModelFactory {
@@ -90,7 +90,7 @@ public class ApiModelFactory {
             .updatedAt(now)
             .environmentId(integration.getEnvironmentId())
             .lifecycleState(null)
-            .originContext(new IntegrationContext(integration.getId()))
+            .originContext(new OriginContext.Integration(integration.getId()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }

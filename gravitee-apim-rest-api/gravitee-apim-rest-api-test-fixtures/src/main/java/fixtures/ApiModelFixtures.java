@@ -21,7 +21,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.Date;
@@ -92,7 +92,7 @@ public class ApiModelFixtures {
         .pictureUrl("my-picture-url")
         .categories(Set.of("my-category1", "my-category2"))
         .labels(List.of("my-label1", "my-label2"))
-        .originContext(new ManagementContext())
+        .originContext(new OriginContext.Management())
         .metadata(Map.of("key", "value"))
         .lifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED)
         .workflowState(WorkflowState.REVIEW_OK)

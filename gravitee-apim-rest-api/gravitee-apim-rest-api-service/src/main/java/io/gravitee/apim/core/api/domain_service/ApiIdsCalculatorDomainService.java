@@ -26,6 +26,7 @@ import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.HashMap;
 import java.util.List;
@@ -186,8 +187,7 @@ public class ApiIdsCalculatorDomainService {
 
     private boolean canRecalculateIds(ImportDefinition api) {
         // If the definition is managed by kubernetes, do not try to recalculate ids because k8s is the source of truth.
-        var originContext = api.getApiExport().getOriginContext();
-        return !originContext.isOriginKubernetes();
+        return !(api.getApiExport().getOriginContext() instanceof OriginContext.Kubernetes);
     }
 
     private ImportDefinition generateEmptyIdsForPlansAndPages(ImportDefinition toRecalculate) {
