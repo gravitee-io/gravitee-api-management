@@ -112,9 +112,17 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     GioAsyncApiModule,
     GioMetadataModule,
     GioApiMetadataListModule,
+<<<<<<< HEAD
     GioFormJsonSchemaModule,
     MatMenu,
     MatMenuItem,
+=======
+    MatOption,
+    MatSelect,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
+    GioFormJsonSchemaModule,
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
   ],
 })
 export class ApiDocumentationV4Module {}

@@ -170,6 +170,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             content: '',
             source: 'FILL',
+            sourceConfiguration: {},
           });
 
           expect(getPageTitle().includes('New page')).toBeTruthy();
@@ -180,6 +181,66 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           await harness.setName(EXISTING_PAGE.name);
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
+<<<<<<< HEAD
+=======
+
+        it('should not show select groups + exclude groups if public', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+
+          await harness.setName('New page');
+
+          expect(await harness.getAccessControlGroups()).toBeFalsy();
+          expect(await harness.getExcludeGroups()).toBeFalsy();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'New page',
+              visibility: 'PUBLIC',
+              accessControlGroups: [],
+              excludeGroups: false,
+            },
+            content: '',
+            source: 'FILL',
+            sourceConfiguration: {},
+          });
+        });
+
+        it('should select groups and set exclude groups if private', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+
+          await harness.setName('New page');
+          await harness.checkVisibility('PRIVATE');
+
+          const selectAccessControlGroups = await harness.getAccessControlGroups();
+          expect(selectAccessControlGroups).toBeTruthy();
+          await selectAccessControlGroups.open();
+          await selectAccessControlGroups.clickOptions({ text: 'group 1' });
+
+          const toggleExcludeGroups = await harness.getExcludeGroups();
+          expect(toggleExcludeGroups).toBeTruthy();
+          await toggleExcludeGroups.toggle();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'New page',
+              visibility: 'PRIVATE',
+              accessControlGroups: ['group-1'],
+              excludeGroups: true,
+            },
+            content: '',
+            source: 'FILL',
+            sourceConfiguration: {},
+          });
+        });
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
       });
 
       describe('step 2 - Determine source', () => {
@@ -200,9 +261,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
           expect(options.length).toEqual(3);
           const sourceOptions = options.map((option) => option.text);
-          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from source (URL)Coming soon']);
+          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from URL']);
+          expect(await options[0].disabled).toEqual(false);
           expect(await options[1].disabled).toEqual(false);
-          expect(await options[2].disabled).toEqual(true);
+          expect(await options[2].disabled).toEqual(false);
 
           await harness.selectSource('IMPORT');
         });
@@ -381,6 +443,179 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           expect(fixture.componentInstance.form.getRawValue().content).toEqual('# Markdown content');
         });
       });
+
+      describe('step 3 - Import from URL ', () => {
+        let harness: ApiDocumentationV4EditPageHarness;
+        const openApiUrl = 'https://openapi.yml';
+        const http = 'HTTP';
+        const pageName = 'New page';
+        const emptyUrlSaveErrorMessage = 'Cannot save without a url';
+        const emptyUrlPublishErrorMessage = 'Cannot publish with empty URL';
+        beforeEach(async () => {
+          harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.setName(pageName);
+
+          let nextBtn = await harness.getNextButton();
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          await nextBtn.click();
+
+          await harness.selectSource(http);
+
+          const req = httpTestingController.expectOne({
+            method: 'GET',
+            url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+          });
+
+          req.flush([
+            {
+              id: 'http-fetcher',
+              name: http,
+              description: 'The Gravitee.IO Parent POM provides common settings for all Gravitee components.',
+              version: '2.0.1',
+              schema:
+                '{"type": "object","title": "http","properties": {"url": {"title": "URL","description": "Url to the file you want to fetch","type": "string"}}}',
+            },
+          ]);
+
+          fixture.detectChanges();
+
+          nextBtn = await harness.getNextButton();
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          await nextBtn.click();
+        });
+
+        it('should show http url', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          expect(httpUrlInput).toBeDefined();
+          expect(await httpUrlInput.isDisabled()).toEqual(false);
+          await httpUrlInput.setValue(openApiUrl);
+          expect(await httpUrlInput.getValue()).toEqual(openApiUrl);
+        });
+
+        it('should save', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue(http);
+
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          req.flush({});
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {
+                url: http,
+              },
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+          });
+        });
+
+        it('should save and publish', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue(http);
+
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          const page = fakeMarkdown({ id: 'page-id' });
+          req.flush(page);
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {
+                url: http,
+              },
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+          });
+
+          const publishReq = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+          });
+          publishReq.flush({ ...page, published: true });
+        });
+
+        it('should show error if raised on save', async () => {
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          req.flush({ message: emptyUrlSaveErrorMessage }, { status: 400, statusText: emptyUrlSaveErrorMessage });
+          fixture.detectChanges();
+
+          const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+          expect(await snackBar.getMessage()).toEqual(emptyUrlSaveErrorMessage);
+        });
+
+        it('should show error if raised on publish', async () => {
+          const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          const page = fakeMarkdown({ id: 'page-id' });
+          req.flush(page);
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {},
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+          });
+
+          const publishReq = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+          });
+          publishReq.flush({ message: emptyUrlPublishErrorMessage }, { status: 400, statusText: emptyUrlPublishErrorMessage });
+
+          fixture.detectChanges();
+
+          const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+          expect(await snackBar.getMessage()).toEqual(emptyUrlPublishErrorMessage);
+        });
+      });
     });
     describe('Under another folder', () => {
       beforeEach(async () => {
@@ -476,6 +711,63 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
 
+<<<<<<< HEAD
+=======
+        it('should not show select groups + exclude groups if public', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.setName('another name');
+
+          expect(await harness.getAccessControlGroups()).toBeFalsy();
+          expect(await harness.getExcludeGroups()).toBeFalsy();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'another name',
+              visibility: 'PUBLIC',
+              accessControlGroups: ['group-1'],
+              excludeGroups: true,
+            },
+            content: 'my content',
+            source: 'FILL',
+            sourceConfiguration: {},
+          });
+        });
+
+        it('should select groups and set exclude groups if private', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.checkVisibility('PRIVATE');
+
+          const selectAccessControlGroups = await harness.getAccessControlGroups();
+          expect(selectAccessControlGroups).toBeTruthy();
+          await selectAccessControlGroups.open();
+          await selectAccessControlGroups.clickOptions({ text: 'group 2' });
+
+          const toggleExcludeGroups = await harness.getExcludeGroups();
+          expect(toggleExcludeGroups).toBeTruthy();
+          await toggleExcludeGroups.toggle();
+
+          const nextBtn = await harness.getNextButton();
+
+          expect(await nextBtn.isDisabled()).toEqual(false);
+          expect(await nextBtn.click());
+          expect(fixture.componentInstance.form.getRawValue()).toEqual({
+            stepOne: {
+              name: 'page-name',
+              visibility: 'PRIVATE',
+              accessControlGroups: ['group-1', 'group-2'],
+              excludeGroups: false,
+            },
+            content: 'my content',
+            source: 'FILL',
+            sourceConfiguration: {},
+          });
+        });
+
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
         it('should show markdown editor with existing content', async () => {
           const editor = await harnessLoader
             .getHarness(ApiDocumentationV4ContentEditorHarness)

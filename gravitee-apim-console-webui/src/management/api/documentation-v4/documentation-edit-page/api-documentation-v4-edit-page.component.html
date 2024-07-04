@@ -82,10 +82,9 @@
                   <gio-card-content-title>Import from file</gio-card-content-title>
                 </gio-form-selection-inline-card-content>
               </gio-form-selection-inline-card>
-              <gio-form-selection-inline-card value="EXTERNAL" [disabled]="true">
+              <gio-form-selection-inline-card value="HTTP">
                 <gio-form-selection-inline-card-content icon="gio:language">
-                  <gio-card-content-title>Import from source (URL)</gio-card-content-title>
-                  <gio-card-content-subtitle><div class="gio-badge-primary">Coming soon</div></gio-card-content-subtitle>
+                  <gio-card-content-title>Import from URL</gio-card-content-title>
                 </gio-form-selection-inline-card-content>
               </gio-form-selection-inline-card>
             </gio-form-selection-inline>
@@ -110,7 +109,16 @@
               [disabled]="isReadOnly"
               *ngIf="form.value?.source === 'IMPORT'"
             ></api-documentation-file-upload>
+<<<<<<< HEAD
             <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
+=======
+            @if (form.value?.source === 'HTTP') {
+              @if (schema$ | async; as schema) {
+                <gio-form-json-schema formControlName="sourceConfiguration" [jsonSchema]="schema"></gio-form-json-schema>
+              }
+            }
+            <mat-error *ngIf="form.controls.content.errors?.required">Page content cannot be empty</mat-error>
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
           </div>
           <div class="stepper__actions">
             <ng-container *ngIf="mode === 'create'">

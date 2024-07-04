@@ -28,6 +28,7 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
   private nameInputLocator = this.locatorFor(MatInputHarness);
   private visibilityHarness = this.locatorFor(ApiDocumentationV4VisibilityHarness);
   private sourceSelectionInlineHarness = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source' }));
+  private httpUrlLocator = this.locatorFor(MatInputHarness.with({ selector: '[id*="url"]' }));
 
   async getNextButton() {
     return this.nextButtonLocator();
@@ -62,9 +63,25 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
     return this.visibilityHarness().then((harness) => harness.formIsDisabled());
   }
 
+<<<<<<< HEAD
   async getSourceSelectionInlineHarnessHarness() {
+=======
+  async getAccessControlGroups(): Promise<MatSelectHarness | null> {
+    return this.selectAccessGroupsHarness().catch((_) => null);
+  }
+  async getExcludeGroups(): Promise<MatSlideToggleHarness | null> {
+    return this.toggleExcludeGroups().catch((_) => null);
+  }
+
+  async getSourceSelectionInlineHarness() {
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
     return await this.sourceSelectionInlineHarness();
   }
+
+  async getHttpUrlHarness() {
+    return await this.httpUrlLocator();
+  }
+
   async getSourceOptions() {
     return Promise.all(await this.sourceSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
   }

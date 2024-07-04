@@ -15,6 +15,11 @@
  */
 import { Visibility } from './visibility';
 import { PageType } from './pageType';
+<<<<<<< HEAD
+=======
+import { AccessControl } from './page';
+import { PageSource } from './pageSource';
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
 
 export interface BaseEditDocumentation {
   type?: PageType;
@@ -28,6 +33,19 @@ export type EditDocumentationFolder = BaseEditDocumentation;
 export interface EditDocumentationMarkdown extends BaseEditDocumentation {
   content?: string;
   homepage?: boolean;
+  source?: PageSource;
 }
 
-export type EditDocumentation = EditDocumentationFolder | EditDocumentationMarkdown;
+export interface EditDocumentationSwagger extends BaseEditDocumentation {
+  content?: string;
+  homepage?: boolean;
+  source?: PageSource;
+}
+
+export interface EditDocumentationAsyncApi extends BaseEditDocumentation {
+  content?: string;
+  homepage?: boolean;
+  source?: PageSource;
+}
+
+export type EditDocumentation = EditDocumentationFolder | EditDocumentationMarkdown | EditDocumentationSwagger | EditDocumentationAsyncApi;

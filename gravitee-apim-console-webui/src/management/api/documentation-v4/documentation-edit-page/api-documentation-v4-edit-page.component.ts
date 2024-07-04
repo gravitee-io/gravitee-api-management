@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+<<<<<<< HEAD
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
+=======
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,10 +37,35 @@ import {
   PageType,
   Api,
   getTooltipForPageType,
+<<<<<<< HEAD
+=======
+  AccessControl,
+  Visibility,
+  Group,
+  EditDocumentation,
+  PageSource,
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+<<<<<<< HEAD
+=======
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { FetcherService } from '../../../../services-ngx/fetcher.service';
+
+interface EditPageForm {
+  stepOne: FormGroup<{
+    name: FormControl<string>;
+    visibility: FormControl<Visibility>;
+    accessControlGroups: FormControl<string[]>;
+    excludeGroups: FormControl<boolean>;
+  }>;
+  content: FormControl<string>;
+  source: FormControl<string>;
+  sourceConfiguration: FormControl<undefined | unknown>;
+}
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
 
 @Component({
   selector: 'api-documentation-edit-page',
@@ -49,7 +80,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   exitLabel = 'Exit without saving';
   pageType: PageType;
   step3Title: string;
-  source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
+  source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
 
   api: Api;
@@ -58,9 +89,17 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   iconUrl: string;
   iconTooltip: string;
   isReadOnly: boolean = false;
+<<<<<<< HEAD
+=======
+  groups: Group[];
+  schema$: Observable<any>;
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
 
   private existingNames: string[] = [];
   private unsubscribe$: Subject<void> = new Subject<void>();
+  private readonly httpFetcherName = 'http-fetcher';
+
+  private readonly httpValue = 'HTTP';
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -71,9 +110,11 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly fetcherService: FetcherService,
   ) {}
 
   ngOnInit(): void {
+<<<<<<< HEAD
     this.stepOneForm = this.formBuilder.group({
       name: this.formBuilder.control('', [Validators.required, this.pageNameUniqueValidator()]),
       visibility: this.formBuilder.control('PUBLIC', [Validators.required]),
@@ -82,6 +123,18 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       stepOne: this.stepOneForm,
       source: this.formBuilder.control(this.source, [Validators.required]),
       content: this.formBuilder.control('', [Validators.required]),
+=======
+    this.form = new FormGroup<EditPageForm>({
+      stepOne: new FormGroup({
+        name: new FormControl<string>('', [Validators.required, this.pageNameUniqueValidator()]),
+        visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
+        accessControlGroups: new FormControl<string[]>([]),
+        excludeGroups: new FormControl<boolean>(false),
+      }),
+      content: new FormControl<string>('', [Validators.required]),
+      source: new FormControl<string>(this.source, [Validators.required]),
+      sourceConfiguration: new FormControl<undefined | unknown>({}),
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
     });
 
     if (this.activatedRoute.snapshot.params.pageId) {
@@ -140,7 +193,23 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         },
       });
 
+<<<<<<< HEAD
     this.stepOneForm.get('name').valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
+=======
+    this.schema$ = this.fetcherService.getList().pipe(
+      map((list) => list.find((fetcher) => fetcher.id === this.httpFetcherName)?.schema),
+      map((schema) => JSON.parse(schema)),
+    );
+    this.form.controls.stepOne.controls.name.valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
+    this.form.controls.source.valueChanges.subscribe((value) => {
+      if (value === this.httpValue) {
+        this.form.controls.content.clearValidators();
+      } else {
+        this.form.controls.content.addValidators([Validators.required]);
+      }
+      this.form.controls.content.updateValueAndValidity();
+    });
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
   }
 
   ngOnDestroy() {
@@ -201,19 +270,54 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
     return this.apiDocumentationService.getApiPage(this.api.id, this.activatedRoute.snapshot.params.pageId).pipe(
+<<<<<<< HEAD
       switchMap((page) =>
         this.apiDocumentationService.updateDocumentationPage(this.api.id, this.activatedRoute.snapshot.params.pageId, {
+=======
+      switchMap((page) => {
+        const nonGroupAccessControls = page.accessControls ? page.accessControls.filter((ac) => ac.referenceType !== 'GROUP') : [];
+        const selectedGroupAccessControls: AccessControl[] = formValue.stepOne.accessControlGroups.map((referenceId) => ({
+          referenceId,
+          referenceType: 'GROUP',
+        }));
+
+        const updateDocumentation: EditDocumentation = {
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
           ...page,
           name: formValue.stepOne.name,
           visibility: formValue.stepOne.visibility,
           content: formValue.content,
+<<<<<<< HEAD
         }),
       ),
+=======
+          excludedAccessControls: formValue.stepOne.excludeGroups,
+          accessControls: [...nonGroupAccessControls, ...selectedGroupAccessControls],
+          ...(formValue.source === this.httpValue && {
+            source: this.obtainSource(formValue.source, formValue.sourceConfiguration),
+          }),
+        };
+        return this.apiDocumentationService.updateDocumentationPage(
+          this.api.id,
+          this.activatedRoute.snapshot.params.pageId,
+          updateDocumentation,
+        );
+      }),
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
       catchError((err) => {
         this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
         return EMPTY;
       }),
     );
+  }
+
+  private obtainSource(sourceType: string, configuration: unknown | undefined): PageSource {
+    if (sourceType === this.httpValue) {
+      return {
+        type: this.httpFetcherName,
+        configuration,
+      };
+    }
   }
 
   goBackToPageList() {
@@ -250,6 +354,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   private createPage(): Observable<Page> {
+    const formValue = this.form.getRawValue();
     // Only Markdown, Swagger, and AsyncAPI pages can be created
     if (this.pageType !== 'MARKDOWN' && this.pageType !== 'SWAGGER' && this.pageType !== 'ASYNCAPI') {
       this.snackBarService.error(`Cannot create page with type [${this.pageType}]`);
@@ -257,10 +362,18 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     }
     const createPage: CreateDocumentation = {
       type: this.pageType as CreateDocumentationType,
-      name: this.form.getRawValue().stepOne.name,
-      visibility: this.form.getRawValue().stepOne.visibility,
-      content: this.form.getRawValue().content,
+      name: formValue.stepOne.name,
+      visibility: formValue.stepOne.visibility,
+      content: formValue.content,
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
+<<<<<<< HEAD
+=======
+      accessControls: formValue.stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),
+      excludedAccessControls: formValue.stepOne.excludeGroups,
+      ...(formValue.source === this.httpValue && {
+        source: this.obtainSource(formValue.source, formValue.sourceConfiguration),
+      }),
+>>>>>>> 2eb1d7f2cd (feat(console): User can import and publish a page from a remote URL)
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err) => {
