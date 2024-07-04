@@ -32,6 +32,7 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
   private selectAccessGroupsHarness = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="accessControlGroups"]' }));
   private toggleExcludeGroups = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="excludeGroups"]' }));
   private sourceSelectionInlineHarness = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source' }));
+  private httpUrlLocator = this.locatorFor(MatInputHarness.with({ selector: '[id*="url"]' }));
 
   async getNextButton() {
     return this.nextButtonLocator();
@@ -73,9 +74,14 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
     return this.toggleExcludeGroups().catch((_) => null);
   }
 
-  async getSourceSelectionInlineHarnessHarness() {
+  async getSourceSelectionInlineHarness() {
     return await this.sourceSelectionInlineHarness();
   }
+
+  async getHttpUrlHarness() {
+    return await this.httpUrlLocator();
+  }
+
   async getSourceOptions() {
     return Promise.all(await this.sourceSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
   }
