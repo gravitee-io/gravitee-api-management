@@ -187,3 +187,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_4_0/06_update_access_points.yml
   - include:
       - file: liquibase/changelogs/v4_4_2/00_add_event_organizations.yml
+  - include:
+      - file: liquibase/changelogs/v4_4_2/01_federated_api_keys.yml

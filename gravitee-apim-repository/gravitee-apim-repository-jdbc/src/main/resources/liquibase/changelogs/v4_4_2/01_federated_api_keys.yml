@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.2_federated_api_keys
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}keys set [federated] = 0 where [federated] is null;
+
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}keys
+            columnName: federated
+            columnDataType: boolean
