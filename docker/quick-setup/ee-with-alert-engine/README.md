@@ -4,7 +4,7 @@ Here is a docker-compose to run APIM Enterprise Edition with Alert Engine
 
 ---
 > For more information, please read :
-> https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-alerts
+> https://documentation.gravitee.io/apim/getting-started/configuration/notifications#configure-alerts
 ---
 
 ## How to run ?
