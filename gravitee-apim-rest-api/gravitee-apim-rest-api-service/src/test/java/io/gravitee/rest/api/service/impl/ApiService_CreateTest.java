@@ -60,6 +60,7 @@ import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.V4EmulationEngineService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
@@ -175,7 +176,9 @@ public class ApiService_CreateTest {
     private ApiCategoryService apiCategoryService;
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
+    );
 
     @Spy
     private V4EmulationEngineService v4EmulationEngine = new V4EmulationEngineServiceImpl(YES.getLabel());

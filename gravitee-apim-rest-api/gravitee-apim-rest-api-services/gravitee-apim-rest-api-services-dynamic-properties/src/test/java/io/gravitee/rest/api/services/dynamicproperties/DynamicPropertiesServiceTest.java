@@ -42,6 +42,10 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.event.ApiEvent;
@@ -108,7 +112,16 @@ public class DynamicPropertiesServiceTest {
     private ObjectMapper objectMapper = Mockito.spy(new GraviteeMapper());
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(
+            objectMapper,
+            mock(PlanService.class),
+            mock(FlowService.class),
+            categoryMapper,
+            mock(ParameterService.class),
+            mock(WorkflowService.class)
+        )
+    );
 
     @InjectMocks
     private DynamicPropertiesService cut;

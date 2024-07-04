@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -64,6 +65,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -130,11 +132,19 @@ public class ApiSearchService_SearchIdsTest {
             workflowService,
             new CategoryMapper(categoryService)
         );
+        ApiConverter apiConverter = new ApiConverter(
+            new GraviteeMapper(),
+            Mockito.mock(io.gravitee.rest.api.service.PlanService.class),
+            Mockito.mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
+            new CategoryMapper(categoryService),
+            parameterService,
+            workflowService
+        );
         apiSearchService =
             new ApiSearchServiceImpl(
                 apiRepository,
                 apiMapper,
-                new GenericApiMapper(apiMapper, new ApiConverter()),
+                new GenericApiMapper(apiMapper, apiConverter),
                 primaryOwnerService,
                 categoryService,
                 searchEngineService,

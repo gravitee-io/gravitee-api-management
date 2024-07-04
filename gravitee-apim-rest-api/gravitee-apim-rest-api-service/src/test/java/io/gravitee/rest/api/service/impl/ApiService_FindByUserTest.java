@@ -65,6 +65,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -136,11 +137,16 @@ public class ApiService_FindByUserTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private WorkflowService workflowService;
+
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
+    );
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
