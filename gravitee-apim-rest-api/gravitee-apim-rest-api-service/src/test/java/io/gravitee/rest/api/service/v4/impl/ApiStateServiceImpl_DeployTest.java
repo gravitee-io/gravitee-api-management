@@ -55,6 +55,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -84,7 +85,10 @@ public class ApiStateServiceImpl_DeployTest {
     private CategoryService categoryService;
 
     @Mock
-    private PlanService planService;
+    private PlanService planServiceV4;
+
+    @Mock
+    private io.gravitee.rest.api.service.PlanService planService;
 
     @Mock
     private EventService eventService;
@@ -93,7 +97,10 @@ public class ApiStateServiceImpl_DeployTest {
     private EventLatestRepository eventLatestRepository;
 
     @Mock
-    private FlowService flowService;
+    private FlowService flowServiceV4;
+
+    @Mock
+    private io.gravitee.rest.api.service.configuration.flow.FlowService flowService;
 
     @Mock
     private WorkflowService workflowService;
@@ -113,8 +120,18 @@ public class ApiStateServiceImpl_DeployTest {
     @Mock
     private ApiValidationService apiValidationService;
 
+    @Spy
+    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = new ApiConverter(
+        objectMapper,
+        planService,
+        flowService,
+        categoryMapper,
+        parameterService,
+        workflowService
+    );
 
     @Mock
     private PlanSearchService planSearchService;
@@ -146,8 +163,8 @@ public class ApiStateServiceImpl_DeployTest {
     public void setUp() {
         ApiMapper apiMapper = new ApiMapper(
             new ObjectMapper(),
-            planService,
-            flowService,
+            planServiceV4,
+            flowServiceV4,
             parameterService,
             workflowService,
             new CategoryMapper(categoryService)

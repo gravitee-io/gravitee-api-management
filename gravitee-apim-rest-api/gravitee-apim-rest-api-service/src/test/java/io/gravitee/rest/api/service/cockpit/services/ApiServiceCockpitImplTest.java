@@ -19,7 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -28,6 +37,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -50,12 +60,16 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,8 +97,10 @@ public class ApiServiceCockpitImplTest {
     private static final String PAGE_ID = "page#id";
     private static final String SWAGGER_DEFINITION = "";
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-    private final ApiConverter apiConverter = new ApiConverter();
     private final PageConverter pageConverter = new PageConverter();
+
+    @Mock
+    private ApiConverter apiConverter;
 
     @Mock
     private ApiService apiService;
@@ -129,6 +145,15 @@ public class ApiServiceCockpitImplTest {
 
     @Before
     public void setUp() throws Exception {
+        apiConverter =
+            new ApiConverter(
+                new ObjectMapper(),
+                mock(PlanService.class),
+                mock(FlowService.class),
+                mock(CategoryMapper.class),
+                mock(ParameterService.class),
+                mock(WorkflowService.class)
+            );
         service =
             new ApiServiceCockpitImpl(
                 new ObjectMapper(),

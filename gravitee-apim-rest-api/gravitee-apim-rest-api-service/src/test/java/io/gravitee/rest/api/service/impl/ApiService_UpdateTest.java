@@ -298,7 +298,9 @@ public class ApiService_UpdateTest {
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+    private ApiConverter apiConverter = Mockito.spy(
+        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
+    );
 
     @Mock
     private ApiNotificationService apiNotificationService;
@@ -334,7 +336,6 @@ public class ApiService_UpdateTest {
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        apiConverter = spy(new ApiConverter());
         MockitoAnnotations.openMocks(this);
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
