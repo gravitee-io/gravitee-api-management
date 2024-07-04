@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.model.context;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 /**
  * Context explaining where an API comes from.
  */
@@ -52,6 +55,8 @@ public sealed interface OriginContext {
         }
     }
 
+    @EqualsAndHashCode
+    @ToString
     non-sealed class Integration implements OriginContext {
 
         private final String integrationId;
