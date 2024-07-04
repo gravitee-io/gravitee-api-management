@@ -5,7 +5,8 @@ Here is a docker-compose to run APIM with one gateway and Prometheus scrapping e
 To test the **Prometheus scrapping endpoint**, you can call, for example, `http://localhost:18092/_node/metrics/prometheus` to see values.
 
 ---
-> For more information, please read this doc: https://documentation.gravitee.io/apim/getting-started/configuration/configure-apim-management-api/logging#expose-metrics-to-prometheus
+> For more information, please read this doc:
+> https://documentation.gravitee.io/apim/getting-started/configuration/apim-gateway/logging#expose-metrics-to-prometheus
 ---
 
 ## How to run ?
