@@ -23,14 +23,21 @@
         <div class="m3-headline-small">{{ api.name }}</div>
         <div class="m3-body-medium">{{ api.version }}</div>
       </div>
-      <button
-        [routerLink]="['..', api.id, 'subscribe']"
-        [disabled]="!isAuthenticated()"
-        i18n="@@logInOrSignUpToSubscribe"
-        mat-flat-button
-        class="api-details__header-button secondary-button">
-        {{ isAuthenticated() ? 'Subscribe' : 'Log in to subscribe' }}
-      </button>
+      @if (plans$ | async; as plans) {
+        <div class="api-details__header-button">
+          @if (!plans.length) {
+            <div class="m3-body-medium on-surface-variant" i18n="@@apiDetailsNoPlans">No plans available</div>
+          }
+          <button
+            [routerLink]="['..', api.id, 'subscribe']"
+            [disabled]="!isAuthenticated() || !plans.length"
+            i18n="@@logInOrSignUpToSubscribe"
+            mat-flat-button
+            class="secondary-button">
+            {{ isAuthenticated() ? 'Subscribe' : 'Log in to subscribe' }}
+          </button>
+        </div>
+      }
     </div>
     @if (api.description) {
       <app-banner class="api-details__banner">
