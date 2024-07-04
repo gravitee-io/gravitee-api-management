@@ -9,15 +9,16 @@ You can classically call your apis through your gateway, for example: `http://lo
 To test the **Bridge Server**, you can call, for example, `http://localhost:18092/_bridge/apis` to list all the apis directly from database.
 
 ---
-> For more information, please read this doc: https://documentation.gravitee.io/apim/getting-started/hybrid-deployment
-> and https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/jdbc
+> For more information, please read this doc:
+> * https://documentation.gravitee.io/apim/getting-started/hybrid-deployment
+> * https://documentation.gravitee.io/apim/getting-started/configuration/repositories/jdbc
 ---
 
 ## Requirements
 
 You need to provide a JDBC driver for postgresql.
 Put it in a `.driver` folder
-You can download one here: https://jdbc.postgresql.org/download.html
+You can download one here: https://jdbc.postgresql.org/download/
 
 ## How to run ?
 
