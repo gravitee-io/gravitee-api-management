@@ -15,24 +15,13 @@
     limitations under the License.
 
 -->
-<mat-card-header class="api-details__header">
-  <div class="m3-title-large">Choose a plan</div>
-  <div class="api-details__header-content">Select the plan that best suit for your needs.</div>
-</mat-card-header>
-<mat-card-content>
-  <div class="plan-list__container">
-    @for (card of subscriptionPlans$ | async; track card.id) {
-      <app-plan-card [card]="card" [selectedPlanControl]="selectedPlan"></app-plan-card>
-    }
-  </div>
-  <mat-card-actions class="api-details__action">
-    <button
-      (click)="onChangeStepper()"
-      class="api-details__action--button"
-      mat-flat-button
-      color="primary"
-      [disabled]="!selectedPlan.value">
-      Next
-    </button>
-  </mat-card-actions>
-</mat-card-content>
+
+<div class="plan-list__container">
+  @for (plan of plans; track plan.id) {
+    <app-plan-card
+      [plan]="plan"
+      [selected]="selectedPlanId() === plan.id"
+      [disabled]="plan.security !== 'KEY_LESS'"
+      (selectPlan)="selectPlan.emit(plan)"></app-plan-card>
+  }
+</div>

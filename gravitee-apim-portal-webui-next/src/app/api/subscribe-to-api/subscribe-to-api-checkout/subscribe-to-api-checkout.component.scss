@@ -1,76 +1,27 @@
 /*
  * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *         http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.subscriptions-header {
-  display: flex;
-  flex-direction: column;
-
-  &__content {
-    margin-top: 10px;
-  }
-}
-
-.subscriptions-details {
-  &__navigate-back {
-    display: flex;
-    align-items: center;
-    padding-left: 8px;
-    gap: 8px;
-  }
-
-  &__arrow_backward {
-    cursor: pointer;
-    transform: scale(0.8);
-  }
-
+.subscribe-to-api-checkout {
   &__container {
     display: flex;
     flex-direction: row;
     padding: 32px 16px 0;
     gap: 32px;
-  }
 
-  &__card {
-    flex: 1;
-  }
-
-  &__header {
-    padding: 5px 0 20px;
-  }
-
-  &__content-row {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-  }
-
-  &__content-row-title {
-    font-weight: 550;
-  }
-
-  &__field {
-    width: 100%;
-  }
-
-  &__content-info {
-    p {
-      margin: 0;
+    &__subscription-info {
+      min-width: 38%;
     }
   }
-}
-
-.subscribe-checkout__button-back {
-  margin: 16px;
 }
