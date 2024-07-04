@@ -17,8 +17,8 @@ export interface Application {
   api_key_mode?: string;
   applicationType?: string;
   created_at?: string;
-  id?: string;
-  name?: string;
+  id: string;
+  name: string;
   description?: string;
   hasClientId?: boolean;
   owner?: ApplicationOwner;

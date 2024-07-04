@@ -20,22 +20,44 @@
     <div class="m3-title-medium subscription-info__header" i18n="@@subscriptionDetailsHeader">Subscription</div>
   </mat-card-header>
   <mat-card-content class="subscription-info__content on-surface-variant">
-    <div class="subscription-info__content-row">
-      <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderApp"> App: </span>
-      <span class="m3-body-medium">{{ applicationName }}</span>
-    </div>
+    @if (!!applicationName) {
+      <div class="subscription-info__content-row">
+        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderApp"> App: </span>
+        <span class="m3-body-medium">{{ applicationName }}</span>
+      </div>
+    }
+
     <div>
       <div class="subscription-info__content-row">
         <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderPlan">Plan: </span>
         <span class="m3-body-medium">{{ planName }}</span>
       </div>
       <div class="subscription-info__content-row">
-        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderAuthentication"> Authentication: </span>
-        <span class="m3-body-medium">{{ getPlanSecurityTypeLabel(planSecurity) }}</span>
+        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderAuthentication">Authentication: </span>
+        <span class="m3-body-medium">{{ authentication }}</span>
       </div>
+
+      @if (!!planUsageConfiguration?.quota?.limit) {
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderQuota">Quota: </span>
+          <span class="m3-body-medium">
+            up to {{ planUsageConfiguration?.quota?.limit ?? 0 }} hits /
+            {{ planUsageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+          </span>
+        </div>
+      }
+      @if (!!planUsageConfiguration?.rate_limit?.limit) {
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderRateLimit">Rate-limit: </span>
+          <span class="m3-body-medium">
+            up to {{ planUsageConfiguration?.rate_limit?.limit ?? 0 }} hits /
+            {{ planUsageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+          </span>
+        </div>
+      }
     </div>
 
-    @if (subscriptionStatus) {
+    @if (subscriptionStatus && planSecurity !== 'KEY_LESS') {
       <div class="subscription-info__content-row">
         <span class="m3-title-small" i18n="@@subscriptionDetailsSubscription">Subscription:</span>
         <span class="m3-body-medium">{{ subscriptionStatus | capitalizeFirst }}</span>
