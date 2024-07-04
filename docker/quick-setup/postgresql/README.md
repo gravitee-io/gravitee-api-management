@@ -4,13 +4,13 @@ Here is a docker-compose to run APIM with PostgreSQL as database.
 
 ---
 > For more information, please read :
-> https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/jdbc
+> https://documentation.gravitee.io/apim/getting-started/configuration/repositories/jdbc
 ---
 ## Requirements
 
 You need to provide a JDBC driver for postgresql.
 Put it in a `.driver` folder
-You can download one here: https://jdbc.postgresql.org/download.html
+You can download one here: https://jdbc.postgresql.org/download/
 
 ## How to run ?
 
