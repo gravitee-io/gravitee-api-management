@@ -608,6 +608,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-oas-validation</artifactId>
+            <version>${gravitee-policy-oas-validation.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-openid-connect-userinfo</artifactId>
             <version>${gravitee-policy-openid-connect-userinfo.version}</version>
             <type>zip</type>
