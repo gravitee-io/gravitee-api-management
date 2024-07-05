@@ -10,7 +10,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
-  version: "4.2.13-SNAPSHOT"
+  version: "4.2.14-SNAPSHOT"
 servers:
   - url: http://localhost:8083/portal/environments/{envId}
     description: The portal API for a given environment
