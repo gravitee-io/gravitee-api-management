@@ -17,12 +17,13 @@
 -->
 <div class="gio-connector__description">
   <div class="gio-connector__description__title">
-    <ng-content select="gio-connector-list-option-layout-title"></ng-content>
+    <div class="gio-connector__description__title__icon"><ng-content select="gio-selection-list-option-layout-icon"></ng-content></div>
+    <ng-content select="gio-selection-list-option-layout-title"></ng-content>
   </div>
   <div class="gio-connector__description__body">
-    <ng-content select="gio-connector-list-option-layout-body"></ng-content>
+    <ng-content select="gio-selection-list-option-layout-body"></ng-content>
   </div>
 </div>
 <div class="gio-connector__button">
-  <ng-content select="gio-connector-list-option-layout-action"></ng-content>
+  <ng-content select="gio-selection-list-option-layout-action"></ng-content>
 </div>

@@ -15,8 +15,8 @@
  */
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 
-export class GioConnectorRadioListHarness extends MatRadioGroupHarness {
-  static override hostSelector = '.gio-connector-list';
+export class GioSelectionRadioListHarness extends MatRadioGroupHarness {
+  static override hostSelector = '.gio-selection-list';
 
   async selectOptionById(id: string): Promise<void> {
     await this.getRadioButtons({ selector: `[ng-reflect-value=${id}]` }).then((options) => options[0].check());

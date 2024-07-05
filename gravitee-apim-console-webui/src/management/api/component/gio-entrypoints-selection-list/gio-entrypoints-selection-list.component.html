@@ -17,7 +17,7 @@
 -->
 <mat-selection-list
   *ngIf="entrypoints.length > 0 && !singleChoice"
-  class="gio-connector-list"
+  class="gio-selection-list"
   disableRipple="true"
   [(ngModel)]="entrypointSelection"
 >
@@ -27,13 +27,13 @@
     togglePosition="before"
     [disableRipple]="true"
     #listOption
-    [class.gio-connector__selected]="listOption.selected"
+    [class.gio-selection__selected]="listOption.selected"
   >
     <ng-template *ngTemplateOutlet="listItem; context: { entrypoint }"></ng-template>
   </mat-list-option>
 </mat-selection-list>
 
-<mat-radio-group *ngIf="entrypoints.length > 0 && singleChoice" class="gio-connector-list" [(ngModel)]="entrypointSelection">
+<mat-radio-group *ngIf="entrypoints.length > 0 && singleChoice" class="gio-selection-list" [(ngModel)]="entrypointSelection">
   <mat-radio-button
     *ngFor="let entrypoint of entrypoints"
     [value]="entrypoint.id"
@@ -45,8 +45,8 @@
 </mat-radio-group>
 
 <ng-template #listItem let-entrypoint="entrypoint">
-  <gio-connector-list-option-layout>
-    <gio-connector-list-option-layout-title>
+  <gio-selection-list-option-layout>
+    <gio-selection-list-option-layout-title>
       <div class="title">
         <mat-icon class="api-creation-v4__icon" [svgIcon]="entrypoint.icon"></mat-icon>
         {{ entrypoint.name }}
@@ -54,19 +54,19 @@
         <span class="gio-badge-accent api-creation-v4__badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
         <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!entrypoint.deployed">Not deployed</span>
       </div>
-    </gio-connector-list-option-layout-title>
+    </gio-selection-list-option-layout-title>
 
-    <gio-connector-list-option-layout-body>
+    <gio-selection-list-option-layout-body>
       {{ entrypoint.description }}
-    </gio-connector-list-option-layout-body>
+    </gio-selection-list-option-layout-body>
 
-    <gio-connector-list-option-layout-action>
+    <gio-selection-list-option-layout-action>
       <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, entrypoint)">
         <mat-icon svgIcon="gio:eye-empty"></mat-icon>
         More information
       </button>
-    </gio-connector-list-option-layout-action>
-  </gio-connector-list-option-layout>
+    </gio-selection-list-option-layout-action>
+  </gio-selection-list-option-layout>
 </ng-template>
 
 <ng-template *ngIf="entrypoints.length <= 0"> No entrypoints available </ng-template>

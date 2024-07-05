@@ -48,7 +48,7 @@ import { ApiEndpointGroupCreateComponent } from './create/api-endpoint-group-cre
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioConnectorListModule } from '../../../../shared/components/gio-connector-list-option/gio-connector-list.module';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form/api-health-check-v4-form.module';
 import { GioLicenseBannerModule } from '../../../../shared/components/gio-license-banner/gio-license-banner.module';
 
@@ -83,7 +83,7 @@ import { GioLicenseBannerModule } from '../../../../shared/components/gio-licens
     MatTabsModule,
 
     GioBannerModule,
-    GioConnectorListModule,
+    GioSelectionListModule,
     GioFormFocusInvalidModule,
     GioFormJsonSchemaModule,
     GioFormSlideToggleModule,

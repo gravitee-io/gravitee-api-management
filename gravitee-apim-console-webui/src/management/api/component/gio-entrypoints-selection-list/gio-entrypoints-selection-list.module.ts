@@ -26,7 +26,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { GioEntrypointsSelectionListComponent } from './gio-entrypoints-selection-list.component';
 
-import { GioConnectorListModule } from '../../../../shared/components/gio-connector-list-option/gio-connector-list.module';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 
 @NgModule({
   imports: [
@@ -36,7 +36,7 @@ import { GioConnectorListModule } from '../../../../shared/components/gio-connec
     ReactiveFormsModule,
     MatListModule,
     MatCheckboxModule,
-    GioConnectorListModule,
+    GioSelectionListModule,
     GioIconsModule,
     MatButtonModule,
     FormsModule,

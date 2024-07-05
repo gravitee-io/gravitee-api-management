@@ -22,37 +22,37 @@
   <mat-radio-group
     *ngIf="endpoints; else loadingTpl"
     formControlName="endpointGroupType"
-    class="gio-connector-list"
+    class="gio-selection-list"
     aria-label="Select an endpoint group type"
   >
     <mat-radio-button
       *ngFor="let endpoint of endpoints"
       [value]="endpoint.id"
-      [class.gio-connector__selected]="endpointGroupTypeForm.get('endpointGroupType').value === endpoint.id"
+      [class.gio-selection__selected]="endpointGroupTypeForm.get('endpointGroupType').value === endpoint.id"
       (change)="checkLicense(endpoint)"
       labelPosition="after"
     >
-      <gio-connector-list-option-layout>
-        <gio-connector-list-option-layout-title>
+      <gio-selection-list-option-layout>
+        <gio-selection-list-option-layout-title>
           <div class="endpoint-group-type__endpoint__title">
             <mat-icon [svgIcon]="endpoint.icon"></mat-icon>
             {{ endpoint.name }}
             <span class="gio-badge-primary">New</span>
             <span class="gio-badge-warning" *ngIf="!endpoint.deployed">Not deployed</span>
           </div>
-        </gio-connector-list-option-layout-title>
+        </gio-selection-list-option-layout-title>
 
-        <gio-connector-list-option-layout-body>
+        <gio-selection-list-option-layout-body>
           {{ endpoint.description }}
-        </gio-connector-list-option-layout-body>
+        </gio-selection-list-option-layout-body>
 
-        <gio-connector-list-option-layout-action>
+        <gio-selection-list-option-layout-action>
           <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, endpoint)">
             <mat-icon svgIcon="gio:eye-empty"></mat-icon>
             More information
           </button>
-        </gio-connector-list-option-layout-action>
-      </gio-connector-list-option-layout>
+        </gio-selection-list-option-layout-action>
+      </gio-selection-list-option-layout>
     </mat-radio-button>
   </mat-radio-group>
   <div *ngIf="shouldUpgrade">

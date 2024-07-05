@@ -6,13 +6,13 @@ $typography: map.get(gio.$mat-theme, typography);
 
 ::ng-deep {
   // ⚠️ Complete mat-selection-list & mat-radio-group styles to have custom style
-  mat-selection-list.gio-connector-list,
-  mat-radio-group.gio-connector-list {
+  mat-selection-list.gio-selection-list,
+  mat-radio-group.gio-selection-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
 
-    .gio-connector-list-option,
+    .gio-selection-list-option,
 
     .mat-mdc-list-item.mat-mdc-list-option,
     mat-radio-button.mat-mdc-radio-button,
@@ -27,11 +27,11 @@ $typography: map.get(gio.$mat-theme, typography);
       border-radius: 4px;
     }
 
-    .gio-connector-list-option {
+    .gio-selection-list-option {
       padding: 0 16px;
     }
 
-    .gio-connector__selected {
+    .gio-selection__selected {
       border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
     }
 
@@ -64,7 +64,7 @@ $typography: map.get(gio.$mat-theme, typography);
 :host {
   display: flex;
   flex-direction: row;
-  margin: 16px 0;
+  margin: 16px 0 16px 8px;
   gap: 16px;
   justify-content: space-between;
   align-items: center;
@@ -75,8 +75,19 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__title {
       @include mat.typography-level($typography, body-1);
+      display: flex;
       margin-bottom: 8px;
       text-transform: capitalize;
+
+      &__icon {
+        margin-right: 8px;
+        width: 32px;
+        height: 32px;
+
+        &:empty {
+          display: none;
+        }
+      }
     }
 
     &__body {
@@ -85,7 +96,6 @@ $typography: map.get(gio.$mat-theme, typography);
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       margin: 0;
       white-space: pre-line;
-      max-width: 600px;
     }
   }
 }
