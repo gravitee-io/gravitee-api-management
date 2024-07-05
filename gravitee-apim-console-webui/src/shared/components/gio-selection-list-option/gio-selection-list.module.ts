@@ -17,25 +17,28 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
-  GioConnectorListOptionLayoutActionDirective,
-  GioConnectorListOptionLayoutBodyDirective,
-  GioConnectorListOptionLayoutComponent,
-  GioConnectorListOptionLayoutTitleDirective,
-} from './gio-connector-list-option-layout.component';
+  GioSelectionListOptionLayoutActionDirective,
+  GioSelectionListOptionLayoutBodyDirective,
+  GioSelectionListOptionLayoutComponent,
+  GioSelectionListOptionLayoutIconDirective,
+  GioSelectionListOptionLayoutTitleDirective,
+} from './gio-selection-list-option-layout.component';
 
 @NgModule({
   imports: [CommonModule],
   declarations: [
-    GioConnectorListOptionLayoutTitleDirective,
-    GioConnectorListOptionLayoutBodyDirective,
-    GioConnectorListOptionLayoutActionDirective,
-    GioConnectorListOptionLayoutComponent,
+    GioSelectionListOptionLayoutTitleDirective,
+    GioSelectionListOptionLayoutBodyDirective,
+    GioSelectionListOptionLayoutActionDirective,
+    GioSelectionListOptionLayoutIconDirective,
+    GioSelectionListOptionLayoutComponent,
   ],
   exports: [
-    GioConnectorListOptionLayoutTitleDirective,
-    GioConnectorListOptionLayoutBodyDirective,
-    GioConnectorListOptionLayoutActionDirective,
-    GioConnectorListOptionLayoutComponent,
+    GioSelectionListOptionLayoutIconDirective,
+    GioSelectionListOptionLayoutTitleDirective,
+    GioSelectionListOptionLayoutBodyDirective,
+    GioSelectionListOptionLayoutActionDirective,
+    GioSelectionListOptionLayoutComponent,
   ],
 })
-export class GioConnectorListModule {}
+export class GioSelectionListModule {}

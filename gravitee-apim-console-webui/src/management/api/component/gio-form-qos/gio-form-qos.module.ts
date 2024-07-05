@@ -26,7 +26,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { GioFormQosComponent } from './gio-form-qos.component';
 
-import { GioConnectorListModule } from '../../../../shared/components/gio-connector-list-option/gio-connector-list.module';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 
 @NgModule({
   imports: [
@@ -35,7 +35,7 @@ import { GioConnectorListModule } from '../../../../shared/components/gio-connec
     MatFormFieldModule,
     ReactiveFormsModule,
     MatListModule,
-    GioConnectorListModule,
+    GioSelectionListModule,
     GioIconsModule,
     MatButtonModule,
     FormsModule,

@@ -17,23 +17,28 @@
 import { Component, Directive } from '@angular/core';
 
 @Directive({
-  selector: 'gio-connector-list-option-layout-title',
+  selector: 'gio-selection-list-option-layout-icon',
 })
-export class GioConnectorListOptionLayoutTitleDirective {}
+export class GioSelectionListOptionLayoutIconDirective {}
 
 @Directive({
-  selector: 'gio-connector-list-option-layout-body',
+  selector: 'gio-selection-list-option-layout-title',
 })
-export class GioConnectorListOptionLayoutBodyDirective {}
+export class GioSelectionListOptionLayoutTitleDirective {}
 
 @Directive({
-  selector: 'gio-connector-list-option-layout-action',
+  selector: 'gio-selection-list-option-layout-body',
 })
-export class GioConnectorListOptionLayoutActionDirective {}
+export class GioSelectionListOptionLayoutBodyDirective {}
+
+@Directive({
+  selector: 'gio-selection-list-option-layout-action',
+})
+export class GioSelectionListOptionLayoutActionDirective {}
 
 @Component({
-  selector: 'gio-connector-list-option-layout',
-  templateUrl: './gio-connector-list-option-layout.component.html',
-  styleUrls: ['./gio-connector-list-option-layout.component.scss'],
+  selector: 'gio-selection-list-option-layout',
+  templateUrl: './gio-selection-list-option-layout.component.html',
+  styleUrls: ['./gio-selection-list-option-layout.component.scss'],
 })
-export class GioConnectorListOptionLayoutComponent {}
+export class GioSelectionListOptionLayoutComponent {}

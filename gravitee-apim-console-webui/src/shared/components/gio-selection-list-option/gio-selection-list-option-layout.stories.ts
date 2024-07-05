@@ -25,12 +25,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { action } from '@storybook/addon-actions';
 import { MatRadioModule } from '@angular/material/radio';
 
-import { GioConnectorListModule } from './gio-connector-list.module';
-import { GioConnectorListOptionLayoutComponent } from './gio-connector-list-option-layout.component';
+import { GioSelectionListModule } from './gio-selection-list.module';
+import { GioSelectionListOptionLayoutComponent } from './gio-selection-list-option-layout.component';
 
 export default {
-  title: 'Shared / Connector List Option Layout',
-  component: GioConnectorListOptionLayoutComponent,
+  title: 'Shared / Selection List Option Layout',
+  component: GioSelectionListOptionLayoutComponent,
   decorators: [
     moduleMetadata({
       imports: [
@@ -41,7 +41,7 @@ export default {
         MatIconModule,
         MatListModule,
         GioIconsModule,
-        GioConnectorListModule,
+        GioSelectionListModule,
         MatButtonModule,
         MatRadioModule,
       ],
@@ -75,31 +75,31 @@ export const SelectionList: StoryObj = {
     return {
       template: `
     <p>This component is to be used within the <b>mat-list-option</b> of <b>mat-selection-list</b>.</p>
-    <p>The <b>mat-selection-list</b> element must contain the class <i>gio-connector-list</i> in order to have the correct overrides for the component.</p>
+    <p>The <b>mat-selection-list</b> element must contain the class <i>gio-selection-list</i> in order to have the correct overrides for the component.</p>
     <form [formGroup]="formGroup" (ngSubmit)="onSubmit(formGroup.value.checkboxControl)" style="width: 700px">
-      <mat-selection-list class="gio-connector-list" formControlName="checkboxControl">
+      <mat-selection-list class="gio-selection-list" formControlName="checkboxControl">
         <mat-list-option
             *ngFor="let option of optionList"
             [value]="option.id"
             togglePosition="before"
             [disableRipple]="true"
             #listOption
-            [class.gio-connector__selected]="listOption.selected"
+            [class.gio-selection__selected]="listOption.selected"
             >
-            <gio-connector-list-option-layout>
-                <gio-connector-list-option-layout-title>
+            <gio-selection-list-option-layout>
+                <gio-selection-list-option-layout-title>
                     {{ option.name }}
-                </gio-connector-list-option-layout-title>
-                <gio-connector-list-option-layout-body>
+                </gio-selection-list-option-layout-title>
+                <gio-selection-list-option-layout-body>
                     {{ option.description }}
-                </gio-connector-list-option-layout-body>
-                <gio-connector-list-option-layout-action>
+                </gio-selection-list-option-layout-body>
+                <gio-selection-list-option-layout-action>
                     <button type="button" mat-raised-button (click)="onActionButtonClicked($event, option.id)">
                       <mat-icon svgIcon="gio:eye-empty"></mat-icon>
                       Action Button
                     </button>
-                </gio-connector-list-option-layout-action>
-            </gio-connector-list-option-layout>
+                </gio-selection-list-option-layout-action>
+            </gio-selection-list-option-layout>
         </mat-list-option>
       </mat-selection-list >
       <button type="submit" [disabled]="formGroup.invalid" mat-raised-button style="margin: 16px 0;">More than one checkbox selected</button>
@@ -114,7 +114,7 @@ export const SelectionList: StoryObj = {
         },
         onSubmit: (val) => action('Submit values')(val),
       },
-      styleUrls: ['./gio-connector-list-option-layout.component.scss'],
+      styleUrls: ['./gio-selection-list-option-layout.component.scss'],
     };
   },
 };
@@ -143,30 +143,30 @@ export const RadioGroup: StoryObj = {
     return {
       template: `
     <p>This component is to be used within the <b>mat-radio-button</b> of <b>mat-radio-group</b>.</p>
-    <p>The <b>mat-radio-group</b> element must contain the class <i>gio-connector-list</i> in order to have the correct overrides for the component.</p>
+    <p>The <b>mat-radio-group</b> element must contain the class <i>gio-selection-list</i> in order to have the correct overrides for the component.</p>
     <form [formGroup]="formGroup" (ngSubmit)="onSubmit(formGroup.value.radioControl)" style="width: 700px">
-      <mat-radio-group class="gio-connector-list" formControlName="radioControl">
+      <mat-radio-group class="gio-selection-list" formControlName="radioControl">
         <mat-radio-button
             *ngFor="let option of optionList"
             [value]="option.id"
             labelPosition="after"
             #listOption
-            [class.gio-connector__selected]="listOption.checked"
+            [class.gio-selection__selected]="listOption.checked"
             >
-            <gio-connector-list-option-layout>
-                <gio-connector-list-option-layout-title>
+            <gio-selection-list-option-layout>
+                <gio-selection-list-option-layout-title>
                     {{ option.name }}
-                </gio-connector-list-option-layout-title>
-                <gio-connector-list-option-layout-body>
+                </gio-selection-list-option-layout-title>
+                <gio-selection-list-option-layout-body>
                     {{ option.description }}
-                </gio-connector-list-option-layout-body>
-                <gio-connector-list-option-layout-action>
+                </gio-selection-list-option-layout-body>
+                <gio-selection-list-option-layout-action>
                     <button type="button" mat-raised-button (click)="onActionButtonClicked($event, option.id)">
                       <mat-icon svgIcon="gio:eye-empty"></mat-icon>
                       Action Button
                     </button>
-                </gio-connector-list-option-layout-action>
-            </gio-connector-list-option-layout>
+                </gio-selection-list-option-layout-action>
+            </gio-selection-list-option-layout>
         </mat-radio-button>
       </mat-radio-group >
       <button type="submit" [disabled]="formGroup.invalid" mat-raised-button style="margin: 16px 0;">One option selected</button>
@@ -181,7 +181,7 @@ export const RadioGroup: StoryObj = {
         },
         onSubmit: (val) => action('Submit values')(val),
       },
-      styleUrls: ['./gio-connector-list-option-layout.component.scss'],
+      styleUrls: ['./gio-selection-list-option-layout.component.scss'],
     };
   },
 };

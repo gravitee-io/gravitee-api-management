@@ -20,12 +20,12 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ApiEndpointGroupGeneralHarness } from '../general/api-endpoint-group-general.harness';
-import { GioConnectorRadioListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-radio-list.harness';
+import { GioSelectionRadioListHarness } from '../../../../../shared/components/gio-selection-list-option/gio-selection-radio-list.harness';
 
 export class ApiEndpointGroupCreateHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group-create';
 
-  protected getEndpointGroupRadio = this.locatorFor(GioConnectorRadioListHarness);
+  protected getEndpointGroupRadio = this.locatorFor(GioSelectionRadioListHarness);
   protected getButtonByText = (text: string) => this.locatorFor(MatButtonHarness.with({ text }))();
   protected getEndpointGroupGeneralHarness = this.locatorFor(ApiEndpointGroupGeneralHarness);
   protected getBannerBody = this.locatorFor(DivHarness.with({ selector: '.banner__wrapper__body' }));

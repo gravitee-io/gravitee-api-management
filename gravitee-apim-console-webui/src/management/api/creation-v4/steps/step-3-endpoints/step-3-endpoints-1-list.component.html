@@ -29,7 +29,7 @@
       <mat-selection-list
         *ngIf="endpoints; else loadingTpl"
         formControlName="selectedEndpointsIds"
-        class="gio-connector-list"
+        class="gio-selection-list"
         disableRipple="true"
       >
         <mat-list-option
@@ -37,10 +37,10 @@
           [value]="endpoint.id"
           checkboxPosition="before"
           #listOption
-          [class.gio-connector__selected]="listOption.selected"
+          [class.gio-selection__selected]="listOption.selected"
         >
-          <gio-connector-list-option-layout>
-            <gio-connector-list-option-layout-title>
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title>
               <div class="gio-connector-list__option-centered">
                 <mat-icon class="api-creation-v4__icon" [svgIcon]="endpoint.icon"></mat-icon>
                 {{ endpoint.name }}
@@ -48,19 +48,19 @@
                 <span class="gio-badge-accent api-creation-v4__badge" *ngIf="endpoint.isEnterprise">Enterprise</span>
                 <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!endpoint.deployed">Not deployed</span>
               </div>
-            </gio-connector-list-option-layout-title>
+            </gio-selection-list-option-layout-title>
 
-            <gio-connector-list-option-layout-body>
+            <gio-selection-list-option-layout-body>
               {{ endpoint.description }}
-            </gio-connector-list-option-layout-body>
+            </gio-selection-list-option-layout-body>
 
-            <gio-connector-list-option-layout-action>
+            <gio-selection-list-option-layout-action>
               <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, endpoint)">
                 <mat-icon svgIcon="gio:eye-empty"></mat-icon>
                 More information
               </button>
-            </gio-connector-list-option-layout-action>
-          </gio-connector-list-option-layout>
+            </gio-selection-list-option-layout-action>
+          </gio-selection-list-option-layout>
         </mat-list-option>
       </mat-selection-list>
 

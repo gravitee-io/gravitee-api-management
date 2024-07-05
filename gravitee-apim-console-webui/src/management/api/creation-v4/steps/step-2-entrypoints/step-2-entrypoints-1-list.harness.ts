@@ -16,14 +16,14 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { GioConnectorSelectionListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-selection-list.harness';
-import { GioConnectorRadioListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-radio-list.harness';
+import { GioSelectionSelectionListHarness } from '../../../../../shared/components/gio-selection-list-option/gio-selection-selection-list.harness';
+import { GioSelectionRadioListHarness } from '../../../../../shared/components/gio-selection-list-option/gio-selection-radio-list.harness';
 
 export class Step2Entrypoints1ListHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-1-list';
 
-  private readonly selectionList = this.locatorFor(GioConnectorSelectionListHarness);
-  private readonly radioList = this.locatorFor(GioConnectorRadioListHarness);
+  private readonly selectionList = this.locatorFor(GioSelectionSelectionListHarness);
+  private readonly radioList = this.locatorFor(GioSelectionRadioListHarness);
 
   protected getButtonByText = (text: string) =>
     this.locatorFor(
@@ -32,11 +32,11 @@ export class Step2Entrypoints1ListHarness extends ComponentHarness {
       }),
     )();
 
-  async getAsyncEntrypoints(): Promise<GioConnectorSelectionListHarness> {
+  async getAsyncEntrypoints(): Promise<GioSelectionSelectionListHarness> {
     return this.selectionList();
   }
 
-  async getSyncEntrypoints(): Promise<GioConnectorRadioListHarness> {
+  async getSyncEntrypoints(): Promise<GioSelectionRadioListHarness> {
     return this.radioList();
   }
 

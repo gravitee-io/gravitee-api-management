@@ -16,13 +16,13 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { GioConnectorRadioListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-radio-list.harness';
+import { GioSelectionRadioListHarness } from '../../../../../shared/components/gio-selection-list-option/gio-selection-radio-list.harness';
 import { GioLicenseBannerHarness } from '../../../../../shared/components/gio-license-banner/gio-license-banner.harness';
 
 export class Step2Entrypoints0ArchitectureHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-0-architecture';
 
-  private readonly selectionList = this.locatorFor(GioConnectorRadioListHarness);
+  private readonly selectionList = this.locatorFor(GioSelectionRadioListHarness);
   private readonly gioLicenseBanner = this.locatorForOptional(GioLicenseBannerHarness);
 
   protected getButtonByText = (text: string) =>
@@ -32,7 +32,7 @@ export class Step2Entrypoints0ArchitectureHarness extends ComponentHarness {
       }),
     )();
 
-  async getArchitecture(): Promise<GioConnectorRadioListHarness> {
+  async getArchitecture(): Promise<GioSelectionRadioListHarness> {
     return this.selectionList();
   }
 
