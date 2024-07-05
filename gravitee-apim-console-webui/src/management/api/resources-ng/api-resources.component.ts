@@ -30,7 +30,7 @@ import { stringFeature, UTMTags } from '../../../shared/components/gio-license/g
 import { Constants } from '../../../entities/Constants';
 
 @Component({
-  selector: 'api-resources',
+  selector: 'api-resources-old',
   templateUrl: './api-resources.component.html',
   styleUrls: ['./api-resources.component.scss'],
 })

@@ -27,7 +27,8 @@ import { ApiSubscriptionEditComponent } from './subscriptions/edit/api-subscript
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
-import { ApiResourcesComponent } from './resources-ng/api-resources.component';
+import { ApiResourcesComponent as ApiResourcesOldComponent } from './resources-ng/api-resources.component';
+import { ApiResourcesComponent } from './resources/api-resources.component';
 import { ApiPortalDocumentationMetadataComponent } from './documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
@@ -803,6 +804,18 @@ const apisRoutes: Routes = [
       },
       {
         path: 'resources',
+        component: ApiResourcesOldComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-policy-studio-resources',
+          },
+        },
+      },
+      {
+        path: 'resources-ng',
         component: ApiResourcesComponent,
         data: {
           permissions: {
