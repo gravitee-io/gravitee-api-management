@@ -16,7 +16,7 @@
 
 -->
 <nav mat-tab-nav-bar class="api-navigation-tabs" [tabPanel]="tabPanel">
-  <ng-container *ngFor="let menuItem of this.tabMenuItems">
+  @for (menuItem of this.tabMenuItems; track menuItem.displayName) {
     <a
       *ngIf="menuItem.routerLink !== 'DISABLED'"
       mat-tab-link
@@ -35,7 +35,7 @@
       class="api-navigation-tabs__link"
       >{{ menuItem.displayName }} <mat-icon class="api-navigation-tabs__link__icon" svgIcon="gio:info"></mat-icon
     ></a>
-  </ng-container>
+  }
 </nav>
 
 <mat-tab-nav-panel #tabPanel>
