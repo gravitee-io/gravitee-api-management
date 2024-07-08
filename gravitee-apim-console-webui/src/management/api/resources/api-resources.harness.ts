@@ -26,12 +26,22 @@ export class ApiResourcesHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Delete"]' })));
+      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove a property"]' })));
   }
 
-  public async deleteRow(index: number) {
-    const deleteButton = await this.getDeleteButton(index);
+  public async clickRemoveButton(rowIndex: number) {
+    const deleteButton = await this.getDeleteButton(rowIndex);
     await deleteButton.click();
+  }
+
+  public async clickAddResource() {
+    const addButton = await this.getAddButton();
+    await addButton.click();
+  }
+
+  public async clickEditResource(rowIndex: number) {
+    const editButton = await this.getEditButton(rowIndex);
+    await editButton.click();
   }
 
   public async getEditButton(index: number) {
@@ -40,7 +50,7 @@ export class ApiResourcesHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Edit"]' })));
+      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to edit a Response Template"]' })));
   }
 
   public async editRow(index: number) {
@@ -49,4 +59,5 @@ export class ApiResourcesHarness extends ComponentHarness {
   }
 
   public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add resource/ }));
 }
