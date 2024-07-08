@@ -64,6 +64,8 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.PolicyPluginQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.ResourcePluginCrudServiceInMemory;
+import inmemory.ResourcePluginQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
@@ -229,6 +231,16 @@ public class InMemoryConfiguration {
     @Bean
     public PolicyPluginQueryServiceInMemory policyPluginQueryService() {
         return new PolicyPluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public ResourcePluginQueryServiceInMemory resourcePluginQueryService() {
+        return new ResourcePluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public ResourcePluginCrudServiceInMemory resourcePluginCrudService() {
+        return new ResourcePluginCrudServiceInMemory();
     }
 
     @Bean
