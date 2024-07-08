@@ -40,10 +40,10 @@ export class CreateIntegrationComponent {
       { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
       { icon: 'solace', value: 'solace' },
       { icon: 'apigee', value: 'apigee' },
+      { icon: 'azure', value: 'azure-api-management' },
     ],
     comingSoon: [
       { icon: 'confluent', value: 'confluent' },
-      { icon: 'azure', value: 'azure' },
       { icon: 'kong', value: 'kong' },
       { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
       { icon: 'mulesoft', value: 'mulesoft' },
