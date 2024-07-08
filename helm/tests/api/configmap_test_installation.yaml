@@ -134,6 +134,30 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://mapi.example.com"
+  - it: Override installation.api.console.url
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: standalone
+        api:
+          console:
+            url: https://mapi.example.com
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*console:[\\S\\s\\n]*url: https://mapi.example.com"
+  - it: Override installation.api.portal.url
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: standalone
+        api:
+          portal:
+            url: https://mapi.example.com
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*portal:[\\S\\s\\n]*url: https://mapi.example.com"
 
   - it: Override api.ingress.[management/portal].ingess.path
     template: api/api-configmap.yaml
