@@ -66,6 +66,12 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Value("${installation.api.url:#{null}}")
     private String apiURL;
 
+    @Value("${installation.api.console.url:#{null}}")
+    private String consoleApiUrl;
+
+    @Value("${installation.api.portal.url:#{null}}")
+    private String portalApiUrl;
+
     @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
 
@@ -279,6 +285,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         if (installationTypeDomainService.isMultiTenant()) {
             AccessPoint consoleAccessPoint = accessPointQueryService.getConsoleApiAccessPoint(organizationId);
             consoleAPIBaseUrl = buildHttpUrl(consoleAccessPoint);
+        } else if (StringUtils.isNotEmpty(consoleApiUrl)) {
+            consoleAPIBaseUrl = consoleApiUrl;
         } else {
             consoleAPIBaseUrl = apiURL;
         }
@@ -347,6 +355,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         if (installationTypeDomainService.isMultiTenant()) {
             AccessPoint consoleAccessPoint = accessPointQueryService.getPortalApiAccessPoint(environmentId);
             portalAPIBaseUrl = buildHttpUrl(consoleAccessPoint);
+        } else if (StringUtils.isNotEmpty(portalApiUrl)) {
+            portalAPIBaseUrl = portalApiUrl;
         } else {
             portalAPIBaseUrl = apiURL;
         }
