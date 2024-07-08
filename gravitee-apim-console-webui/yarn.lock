@@ -12634,17 +12634,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff2html@npm:3.4.16":
-  version: 3.4.16
-  resolution: "diff2html@npm:3.4.16"
+"diff2html@npm:3.4.48":
+  version: 3.4.48
+  resolution: "diff2html@npm:3.4.48"
   dependencies:
-    diff: "npm:5.0.0"
-    highlight.js: "npm:11.2.0"
+    diff: "npm:5.1.0"
+    highlight.js: "npm:11.9.0"
     hogan.js: "npm:3.0.2"
   dependenciesMeta:
     highlight.js:
       optional: true
-  checksum: 10c0/3abe2c9ab08835daa5be515eff6fb55e777a40fb9dca4d89843af23869d7032d04426a9d1588875f65081f5a0b0a28efc16db0ba110012ecf37ff757f79b1a95
+  checksum: 10c0/38d941cc7a116c003105b66758097ea6ff1b0e73bba12809284fcb2bd916fa16403ee950f13b0f0e065182677085cd5d68e3c98bd6008a8098732f710624b825
   languageName: node
   linkType: hard
 
@@ -12655,10 +12655,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:5.0.0":
-  version: 5.0.0
-  resolution: "diff@npm:5.0.0"
-  checksum: 10c0/08c5904779bbababcd31f1707657b1ad57f8a9b65e6f88d3fb501d09a965d5f8d73066898a7d3f35981f9e4101892c61d99175d421f3b759533213c253d91134
+"diff@npm:5.1.0":
+  version: 5.1.0
+  resolution: "diff@npm:5.1.0"
+  checksum: 10c0/77a0d9beb9ed54796154ac2511872288432124ac90a1cabb1878783c9b4d81f1847f3b746a0630b1e836181461d2c76e1e6b95559bef86ed16294d114862e364
   languageName: node
   linkType: hard
 
@@ -14982,7 +14982,7 @@ __metadata:
     codemirror: "npm:5.65.17"
     codemirror-asciidoc: "npm:1.0.4"
     diff: "npm:3.5.0"
-    diff2html: "npm:3.4.16"
+    diff2html: "npm:3.4.48"
     dragular: "npm:4.6.0"
     eslint: "npm:8.56.0"
     eslint-config-angular: "npm:0.5.0"
@@ -15198,14 +15198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.js@npm:11.2.0":
-  version: 11.2.0
-  resolution: "highlight.js@npm:11.2.0"
-  checksum: 10c0/ec32c69740c7c8a129a65ea00a669262875aa1082ea41e74b3d0b9a97a18e7d72a504b445cb625b35eb8928c4cfa6bc31294b94ce87bb3ed3baf8a9e862d67d5
-  languageName: node
-  linkType: hard
-
-"highlight.js@npm:>7.0.0, highlight.js@npm:>=10.7.0 <12.0.0":
+"highlight.js@npm:11.9.0, highlight.js@npm:>7.0.0, highlight.js@npm:>=10.7.0 <12.0.0":
   version: 11.9.0
   resolution: "highlight.js@npm:11.9.0"
   checksum: 10c0/27cfa8717dc9d200aecbdb383eb122d5f45ce715d2f468583785d36fbfe5076ce033abb02486dc13b407171721cda6f474ed3f3a5a8e8c3d91367fa5f51ee374
