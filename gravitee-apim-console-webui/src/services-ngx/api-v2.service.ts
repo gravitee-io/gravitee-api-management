@@ -16,7 +16,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -182,6 +183,7 @@ export class ApiV2Service {
     return start.pipe(
       switchMap(() => this.lastApiFetch$.asObservable()),
       filter((api) => !!api),
+      distinctUntilChanged(isEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
   }
