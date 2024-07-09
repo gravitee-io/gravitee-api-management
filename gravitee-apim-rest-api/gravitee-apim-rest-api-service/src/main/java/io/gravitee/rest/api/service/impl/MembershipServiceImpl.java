@@ -319,7 +319,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             reference.getId()
                         );
                         if (emailNotification != null) {
-                            emailService.sendAsyncEmailNotification(executionContext, emailNotification);
+                            try {
+                                emailService.sendAsyncEmailNotification(executionContext, emailNotification);
+                            } catch (Exception e) {
+                                LOGGER.error(
+                                    "An error occurs while trying to send email notification for {} {} {}",
+                                    reference.getType(),
+                                    reference.getId(),
+                                    userEntity.getId(),
+                                    e
+                                );
+                            }
                         }
                     }
 
