@@ -358,7 +358,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.policy</groupId>
+            <groupId>com.graviteesource.policy</groupId>
             <artifactId>gravitee-policy-oas-validation</artifactId>
             <version>${gravitee-policy-oas-validation.version}</version>
             <scope>test</scope>
