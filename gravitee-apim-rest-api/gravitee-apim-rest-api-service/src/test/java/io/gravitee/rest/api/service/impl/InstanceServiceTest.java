@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -41,6 +42,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -307,6 +309,21 @@ public class InstanceServiceTest {
         // expect from to be today minus 7 days
         Instant now = Instant.now();
         assertEquals(now.minus(604800, ChronoUnit.SECONDS).toEpochMilli(), fromCaptor.getValue(), 1000);
+    }
+
+    @Test
+    public void shouldHidePasswordsInSystemProperties() {
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
+        evt.setPayload(
+            "{\"hostname\":\"myhost\",\"clusterId\":\"cluster\", \"systemProperties\": {\"-Djavax.net.ssl.trustStorePassword=ThisIsASecret\":\"mypassword\"} }"
+        );
+
+        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
+
+        assertThat(result.getSystemProperties()).containsOnly(entry("-Djavax.net.ssl.trustStorePassword=ThisIsASecret", "REDACTED"));
     }
 
     private void execFiltering(InstanceServiceImpl.ExpiredPredicate predicateDays, Stream<InstanceListItem> stream) {
