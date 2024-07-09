@@ -109,6 +109,7 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <classifier>${os.detected.classifier}</classifier>
+            <version>${netty-tcnative-boringssl-static.version}</version>
             <scope>test</scope>
         </dependency>
 
