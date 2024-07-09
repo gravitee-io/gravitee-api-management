@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
@@ -54,5 +55,12 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin<?>
     @Override
     public void validateResourceConfiguration(io.gravitee.definition.model.v4.resource.Resource resource) {
         validateConfiguration(resource.getType(), resource.getConfiguration());
+    }
+
+    @Override
+    protected PlatformPluginEntity convert(Plugin plugin) {
+        PlatformPluginEntity entity = super.convert(plugin);
+        entity.setIcon(getIcon(plugin.id()));
+        return entity;
     }
 }
