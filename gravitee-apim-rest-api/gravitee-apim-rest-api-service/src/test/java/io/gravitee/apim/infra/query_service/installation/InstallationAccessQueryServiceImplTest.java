@@ -81,7 +81,8 @@ class InstallationAccessQueryServiceImplTest {
                 organizationService,
                 environmentService
             );
-        setValue("apiURL", null);
+        setValue("consoleApiUrl", null);
+        setValue("portalApiUrl", null);
         setValue("managementProxyPath", "/management");
         setValue("portalProxyPath", "/portal");
     }
@@ -89,7 +90,7 @@ class InstallationAccessQueryServiceImplTest {
     @Test
     void should_throw_validation_error_when_api_url_is_malformed() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        setValue("apiURL", "wrong");
+        setValue("consoleApiUrl", "wrong");
 
         assertThatThrownBy(() -> cut.afterPropertiesSet())
             .isInstanceOf(InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class);
@@ -218,7 +219,8 @@ class InstallationAccessQueryServiceImplTest {
     @Test
     void should_use_api_url_when_installation_is_not_multi_tenant_and_console_and_portal_urls_are_not_defined() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        setValue("apiURL", "http://api.url");
+        setValue("consoleApiUrl", "http://api.url");
+        setValue("portalApiUrl", "http://api.url");
 
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/management");
