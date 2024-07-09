@@ -24,7 +24,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './api-documentation-v4-list-navigation-header.component';
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
-import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+import { ApiDocumentationV4BreadcrumbHarness } from '../../documentation-custom-page/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 

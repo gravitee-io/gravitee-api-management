@@ -1,6 +1,6 @@
 @use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
 @use 'src/scss/gio-layout' as gio-layout;
 $typography: map.get(gio.$mat-theme, typography);
 

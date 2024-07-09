@@ -24,16 +24,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   ApiDocumentationV4EditFolderDialog,
   ApiDocumentationV4EditFolderDialogData,
-} from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
+} from '../dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 
-import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
-import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, PageType, EditDocumentationFolder, Breadcrumb, Page, CreateDocumentationFolder } from '../../../entities/management-api-v2';
+import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Api, PageType, EditDocumentationFolder, Breadcrumb, Page, CreateDocumentationFolder } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-v4',
-  templateUrl: './api-documentation-v4.component.html',
+  templateUrl: './api-documentation-v4-custom-page.component.html',
   styleUrls: ['./api-documentation-v4.component.scss'],
 })
 export class ApiDocumentationV4Component implements OnInit, OnDestroy {

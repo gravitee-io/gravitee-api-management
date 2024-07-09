@@ -44,14 +44,14 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
-import { ApiDocumentationV4Component } from './api-documentation-v4.component';
+import { ApiDocumentationV4Component } from './documentation-custom-page/api-documentation-v4-custom-page.component';
 import { ApiDocumentationV4EditFolderDialog } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
-import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
+import { ApiDocumentationV4PagesListComponent } from './documentation-custom-page/documentation-pages-list/api-documentation-v4-pages-list.component';
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
-import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
+import { ApiDocumentationV4BreadcrumbComponent } from './documentation-custom-page/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/api-documentation-v4-metadata.component';
 
@@ -61,6 +61,9 @@ import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagge
 import { GioAsyncApiModule } from '../../../components/documentation/gio-async-api/gio-async-api-module';
 import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata.module';
 import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio-api-metadata-list.module';
+import {
+  ApiDocumentationV4HomePageComponent
+} from "./documentation-home-page/api-documentation-v4-home-page.component";
 
 @NgModule({
   declarations: [
@@ -73,6 +76,7 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4EditFolderDialog,
     ApiDocumentationV4EditPageComponent,
+    ApiDocumentationV4HomePageComponent,
     ApiDocumentationV4PagesListComponent,
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4FileUploadComponent,

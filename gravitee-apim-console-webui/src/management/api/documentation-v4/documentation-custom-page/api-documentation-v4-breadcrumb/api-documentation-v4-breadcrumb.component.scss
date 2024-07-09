@@ -1,6 +1,6 @@
 @use 'sass:map';
-@use '@angular/material/index' as mat;
-@use '@gravitee/ui-particles-angular/index' as gio;
+@use '../../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
 $typography: map.get(gio.$mat-theme, typography);
 
 .breadcrumb {

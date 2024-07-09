@@ -58,7 +58,7 @@ import { ApiCreationGetStartedComponent } from './creation-get-started/api-creat
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
-import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
+import { ApiDocumentationV4Component } from './documentation-v4/documentation-custom-page/api-documentation-v4-custom-page.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { ApisGuard } from './apis.guard';
@@ -95,6 +95,9 @@ import { ApimFeature } from '../../shared/components/gio-license/gio-license-dat
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
+import {
+  ApiDocumentationV4HomePageComponent
+} from "./documentation-v4/documentation-home-page/api-documentation-v4-home-page.component";
 
 const apisRoutes: Routes = [
   {
@@ -829,7 +832,7 @@ const apisRoutes: Routes = [
             pathMatch: 'full',
           },
           {
-            path: 'pages',
+            path: 'custom-pages',
             component: ApiDocumentationV4Component,
           },
           {
@@ -861,6 +864,16 @@ const apisRoutes: Routes = [
               },
             },
             component: ApiDocumentationV4MetadataComponent,
+          },
+          {
+            path: 'home-page',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-h'],
+              },
+            },
+            component: ApiDocumentationV4HomePageComponent,
           },
         ],
       },

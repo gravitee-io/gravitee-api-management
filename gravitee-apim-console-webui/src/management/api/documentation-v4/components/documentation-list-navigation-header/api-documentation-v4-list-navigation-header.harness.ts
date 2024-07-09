@@ -18,7 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 
-import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+import { ApiDocumentationV4BreadcrumbHarness } from '../../documentation-custom-page/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { PageType } from '../../../../../entities/page';
 
 export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarness {
