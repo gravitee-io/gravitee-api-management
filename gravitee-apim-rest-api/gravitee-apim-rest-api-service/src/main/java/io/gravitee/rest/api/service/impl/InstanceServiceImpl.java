@@ -65,6 +65,7 @@ public class InstanceServiceImpl implements InstanceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceServiceImpl.class);
     private static final Pattern PROPERTY_SPLITTER = Pattern.compile(", ");
+    private static final String REDACTED = "REDACTED";
 
     private final EventService eventService;
 
@@ -226,7 +227,22 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setTenant(info.getTenant());
                 instance.setVersion(info.getVersion());
                 instance.setTags(info.getTags());
-                instance.setSystemProperties(info.getSystemProperties());
+                instance.setSystemProperties(
+                    info.getSystemProperties() == null
+                        ? Collections.emptyMap()
+                        : info
+                            .getSystemProperties()
+                            .entrySet()
+                            .stream()
+                            .map(e -> {
+                                if (e.getKey().toLowerCase().contains("password")) {
+                                    return Map.entry(e.getKey(), REDACTED);
+                                } else {
+                                    return e;
+                                }
+                            })
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                );
                 instance.setPlugins(info.getPlugins());
                 instance.setClusterId(info.getClusterId());
             } catch (IOException ioe) {
