@@ -136,8 +136,8 @@
             <unpack>false</unpack>
             <includes>
                 <include>io.gravitee.*:*:jar</include>
+                <include>com.graviteesource.*:*:jar</include>
             </includes>
-            <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>644</fileMode>
         </dependencySet>
@@ -151,9 +151,8 @@
                 <exclude>com.sun.mail:mailapi:*</exclude>
                 <exclude>org.projectlombok:*:*</exclude>
                 <exclude>org.mapstruct:mapstruct-processor:*</exclude>
+                <exclude>org.junit.jupiter:*:*</exclude>
             </excludes>
-            <!-- Used to not include transitive dependencies for runtime dependency (All plugins) -->
-            <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>644</fileMode>
         </dependencySet>
