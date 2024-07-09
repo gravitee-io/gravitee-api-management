@@ -119,7 +119,6 @@
             <includes>
                 <include>io.gravitee.*:*:jar</include>
             </includes>
-            <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>644</fileMode>
         </dependencySet>
@@ -131,8 +130,9 @@
                 <exclude>com.graviteesource.*:*:*</exclude>
                 <exclude>org.projectlombok:*:*</exclude>
                 <exclude>org.mapstruct:mapstruct-processor:*</exclude>
+                <exclude>org.junit.jupiter:*:*</exclude>
+                <exclude>*:*:*:windows-x86_64</exclude>
             </excludes>
-            <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>644</fileMode>
         </dependencySet>
