@@ -1235,7 +1235,7 @@ class ImportCRDUseCaseTest {
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .deployedAt(null)
-            .disableMembershipNotifications(false)
+            .disableMembershipNotifications(true)
             .categories(null)
             .picture(null)
             .background(null)

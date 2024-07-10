@@ -55,6 +55,7 @@ public class ApiModelFactory {
             .updatedAt(now)
             .visibility(Api.Visibility.valueOf(crd.getVisibility()))
             .apiDefinitionV4(crd.toApiDefinitionBuilder().id(id).build())
+            .disableMembershipNotifications(!crd.isNotifyMembers())
             .build();
     }
 

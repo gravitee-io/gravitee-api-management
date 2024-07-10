@@ -399,7 +399,7 @@ public class ImportCRDUseCase {
 
     private void resolveGroups(Input input) {
         if (isEmpty(input.spec().getGroups())) {
-            log.debug("no group found to resolve in api spec spec");
+            log.debug("no group found to resolve in api crd spec");
             return;
         }
         log.debug("resolving api spec spec groups");

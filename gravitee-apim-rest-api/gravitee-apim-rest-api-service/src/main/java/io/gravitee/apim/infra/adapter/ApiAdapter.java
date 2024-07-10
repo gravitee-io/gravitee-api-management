@@ -69,7 +69,8 @@ public interface ApiAdapter {
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
-    UpdateApiEntity toUpdateApiEntity(ApiCRDSpec api);
+    @Mapping(target = "disableMembershipNotifications", expression = "java(!spec.isNotifyMembers())")
+    UpdateApiEntity toUpdateApiEntity(ApiCRDSpec spec);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(target = "id", source = "api.id")

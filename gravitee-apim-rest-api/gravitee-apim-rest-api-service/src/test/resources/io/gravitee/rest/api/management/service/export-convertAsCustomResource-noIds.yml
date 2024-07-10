@@ -74,3 +74,4 @@ spec:
       '*/*':
         status: 400
         body: "{\"bad\":\"news\"}"
+  notifyMembers: true
