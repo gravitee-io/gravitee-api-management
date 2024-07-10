@@ -47,6 +47,7 @@ public interface ApiCRDAdapter {
     @Mapping(target = "plans", expression = "java(mapPlans(exportEntity))")
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
+    @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity);
 
     PlanCRD toCRDPlan(PlanEntity planEntity);
