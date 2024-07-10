@@ -100,6 +100,8 @@ public class ApiCRDSpec {
 
     private Set<MemberCRD> members;
 
+    private boolean notifyMembers;
+
     private FlowExecution flowExecution;
 
     private Set<String> categories;

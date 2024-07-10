@@ -78,7 +78,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -178,10 +177,10 @@ public class ImportCRDUseCase {
 
     public record Output(ApiCRDStatus status) {}
 
-    public record Input(AuditInfo auditInfo, ApiCRDSpec crd) {}
+    public record Input(AuditInfo auditInfo, ApiCRDSpec spec) {}
 
     public Output execute(Input input) {
-        var api = apiQueryService.findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.crd.getCrossId());
+        var api = apiQueryService.findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.spec.getCrossId());
 
         var status = api.map(exiting -> this.update(input, exiting)).orElseGet(() -> this.create(input));
 
@@ -197,16 +196,16 @@ public class ImportCRDUseCase {
 
             resolveGroups(input);
 
-            cleanCategories(environmentId, input.crd);
+            cleanCategories(environmentId, input.spec);
 
             var createdApi = createApiDomainService.create(
-                ApiModelFactory.fromCrd(input.crd, environmentId),
+                ApiModelFactory.fromCrd(input.spec, environmentId),
                 primaryOwner,
                 input.auditInfo,
                 api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
             );
 
-            var planNameIdMapping = input.crd
+            var planNameIdMapping = input.spec
                 .getPlans()
                 .entrySet()
                 .stream()
@@ -221,11 +220,11 @@ public class ImportCRDUseCase {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             createMembers(input, createdApi.getId());
-            createOrUpdatePages(input.crd.getPages(), createdApi.getId(), input.auditInfo);
+            createOrUpdatePages(input.spec.getPages(), createdApi.getId(), input.auditInfo);
 
-            apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
+            apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.spec.getMetadata(), input.auditInfo);
 
-            if (input.crd.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
+            if (input.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
                 if (createdApi.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(createdApi, input.auditInfo);
                 } else {
@@ -252,9 +251,9 @@ public class ImportCRDUseCase {
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
             resolveGroups(input);
-            cleanCategories(input.auditInfo.environmentId(), input.crd);
+            cleanCategories(input.auditInfo.environmentId(), input.spec);
 
-            var updatedApi = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
+            var updatedApi = updateApiDomainService.update(existingApi.getId(), input.spec, input.auditInfo);
 
             // update state and definition context because legacy service does not update it
             // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
@@ -263,11 +262,11 @@ public class ImportCRDUseCase {
                     .toBuilder()
                     .originContext(
                         new KubernetesContext(
-                            KubernetesContext.Mode.valueOf(input.crd().getDefinitionContext().getMode().toUpperCase()),
-                            input.crd().getDefinitionContext().getSyncFrom().toUpperCase()
+                            KubernetesContext.Mode.valueOf(input.spec().getDefinitionContext().getMode().toUpperCase()),
+                            input.spec().getDefinitionContext().getSyncFrom().toUpperCase()
                         )
                     )
-                    .lifecycleState(Api.LifecycleState.valueOf(input.crd().getState()))
+                    .lifecycleState(Api.LifecycleState.valueOf(input.spec().getState()))
                     .build()
             );
 
@@ -275,7 +274,7 @@ public class ImportCRDUseCase {
             Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
 
             var planKeyIdMapping = input
-                .crd()
+                .spec()
                 .getPlans()
                 .entrySet()
                 .stream()
@@ -301,7 +300,7 @@ public class ImportCRDUseCase {
 
             deletePlans(api, existingPlans, planKeyIdMapping, input);
 
-            if (input.crd.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
+            if (input.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
                 if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(api, input.auditInfo);
                 } else {
@@ -312,10 +311,10 @@ public class ImportCRDUseCase {
             createMembers(input, updatedApi.getId());
             deleteOrphanMemberships(updatedApi.getId(), input);
 
-            createOrUpdatePages(input.crd.getPages(), updatedApi.getId(), input.auditInfo);
-            deleteRemovedPages(input.crd.getPages(), updatedApi.getId());
+            createOrUpdatePages(input.spec.getPages(), updatedApi.getId(), input.auditInfo);
+            deleteRemovedPages(input.spec.getPages(), updatedApi.getId());
 
-            apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
+            apiMetadataDomainService.saveApiMetadata(api.getId(), input.spec.getMetadata(), input.auditInfo);
 
             return ApiCRDStatus
                 .builder()
@@ -340,7 +339,7 @@ public class ImportCRDUseCase {
             )
             .filter(plan ->
                 // Keep existing plans that are not in the CRD
-                !input.crd.getPlans().containsKey(plan.getId())
+                !input.spec.getPlans().containsKey(plan.getId())
             )
             .toList();
         plansToDelete.forEach(plan -> {
@@ -381,13 +380,13 @@ public class ImportCRDUseCase {
     }
 
     private void resolveGroups(Input input) {
-        if (isEmpty(input.crd().getGroups())) {
+        if (isEmpty(input.spec().getGroups())) {
             log.debug("no group found to resolve in api crd spec");
             return;
         }
         log.debug("resolving api crd spec groups");
 
-        var crdGroups = new HashSet<>(input.crd.getGroups());
+        var crdGroups = new HashSet<>(input.spec.getGroups());
         var envId = input.auditInfo.environmentId();
 
         var groupsFromIds = groupQueryService.findByIds(crdGroups).stream().toList();
@@ -405,7 +404,7 @@ public class ImportCRDUseCase {
             log.warn("group '{}' found in spec will not be imported because it cannot found", unknownGroup);
         }
 
-        input.crd.setGroups(groupIds);
+        input.spec.setGroups(groupIds);
     }
 
     private void cleanCategories(String environmentId, ApiCRDSpec spec) {
@@ -420,7 +419,7 @@ public class ImportCRDUseCase {
     }
 
     private void createMembers(Input input, String apiId) {
-        Set<MemberCRD> members = input.crd.getMembers();
+        Set<MemberCRD> members = input.spec.getMembers();
         if (members != null && !members.isEmpty()) {
             Set<ApiMember> memberSet = members
                 .stream()
@@ -450,8 +449,8 @@ public class ImportCRDUseCase {
             .filter(m -> !m.getMemberId().equals(po.id()))
             .collect(toMap(Membership::getMemberId, Membership::getId));
 
-        if (input.crd != null && input.crd.getMembers() != null) {
-            input.crd.getMembers().forEach(am -> existingApiMembers.remove(am.getId()));
+        if (input.spec != null && input.spec.getMembers() != null) {
+            input.spec.getMembers().forEach(am -> existingApiMembers.remove(am.getId()));
         }
 
         existingApiMembers.forEach((k, v) -> membershipCrudService.delete(v));
