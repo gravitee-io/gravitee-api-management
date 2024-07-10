@@ -37,7 +37,6 @@
           <div class="endpoint-group-type__endpoint__title">
             <mat-icon [svgIcon]="endpoint.icon"></mat-icon>
             {{ endpoint.name }}
-            <span class="gio-badge-primary">New</span>
             <span class="gio-badge-warning" *ngIf="!endpoint.deployed">Not deployed</span>
           </div>
         </gio-selection-list-option-layout-title>
