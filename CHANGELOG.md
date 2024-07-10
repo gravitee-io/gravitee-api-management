@@ -1,3 +1,10 @@
+# [5.4.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.3.2...5.4.0) (2024-07-10)
+
+
+### Features
+
+* Show API name in reporters ([667eddb](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/667eddb96dac42a4a9da7606fb5badfde3916a8a))
+
 ## [5.3.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.3.1...5.3.2) (2024-06-04)
 
 
