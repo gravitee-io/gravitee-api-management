@@ -1,4 +1,4 @@
-# MongoDB
+# System proxy
 
 Here is a docker-compose to run APIM with MongoDB as database and using [mitmproxy](https://mitmproxy.org/).
 
@@ -18,4 +18,4 @@ To be sure to fetch last version of images, you can do
 
 ## Web interface for proxy
 You can connect [here](http://0.0.0.0:8081/) to monitor the proxy
-![img.png](img.png)
+![mitmproxy.png](mitmproxy.png)
