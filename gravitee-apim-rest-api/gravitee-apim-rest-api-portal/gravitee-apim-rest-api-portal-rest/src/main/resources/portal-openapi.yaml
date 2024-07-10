@@ -10,7 +10,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
-  version: "3.20.31-SNAPSHOT"
+  version: "3.20.33-SNAPSHOT"
 servers:
   - url: http://localhost:8083/portal/environments/{envId}
     description: The portal API for a given environment
@@ -2279,6 +2279,7 @@ paths:
         Modify current user information.
 
         Only the current user can modify his/her information.
+        The user email is not modifiable.
       operationId: updateCurrentUser
       responses:
         200:
@@ -5018,10 +5019,6 @@ components:
           writeOnly: true
         last_name:
           description: Lastname of the user.
-          type: string
-          writeOnly: true
-        email:
-          description: Email of the user.
           type: string
           writeOnly: true
         customFields:

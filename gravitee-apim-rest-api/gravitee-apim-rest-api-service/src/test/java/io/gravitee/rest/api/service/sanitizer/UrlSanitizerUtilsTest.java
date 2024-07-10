@@ -15,14 +15,17 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import java.util.Collections;
 import org.apache.commons.text.RandomStringGenerator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -35,9 +38,12 @@ public class UrlSanitizerUtilsTest {
         UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), true);
     }
 
-    @Test(expected = UrlForbiddenException.class)
+    @Test
     public void checkAllowed_disallowPrivate() {
-        UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false);
+        assertThrows(
+            UrlForbiddenException.class,
+            () -> UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false)
+        );
     }
 
     @Test
@@ -50,15 +56,21 @@ public class UrlSanitizerUtilsTest {
         UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.emptyList(), false);
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void checkAllowed_invalidUrl() {
         RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').build();
-        UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false);
+        assertThrows(
+            InvalidDataException.class,
+            () -> UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false)
+        );
     }
 
-    @Test(expected = UrlForbiddenException.class)
+    @Test
     public void checkAllowed_notWhitelisted() {
-        UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false);
+        assertThrows(
+            UrlForbiddenException.class,
+            () -> UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false)
+        );
     }
 
     @Test
@@ -81,21 +93,31 @@ public class UrlSanitizerUtilsTest {
         };
 
         for (String url : privateUrls) {
-            assertTrue("Url [" + url + "] should be considered private", UrlSanitizerUtils.isPrivate(url));
+            assertTrue(UrlSanitizerUtils.isPrivate(url));
         }
     }
 
     @Test
     public void isNotPrivate() {
-        assertFalse("Url should not be considered private", UrlSanitizerUtils.isPrivate("https://www.gravitee.io/"));
+        assertFalse(UrlSanitizerUtils.isPrivate("https://www.gravitee.io/"));
     }
 
-    @Test(expected = UrlForbiddenException.class)
+    @Test
     public void UriSyntaxNotValid() {
-        UrlSanitizerUtils.checkAllowed(
-            "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
-            Collections.emptyList(),
-            true
+        assertThrows(
+            UrlForbiddenException.class,
+            () ->
+                UrlSanitizerUtils.checkAllowed(
+                    "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
+                    Collections.emptyList(),
+                    true
+                )
         );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "https://g.io/%0Drestoftheurl", "https://g.io/%0Arestoftheurl" })
+    public void checkUrlForbiddenCharacters(String url) {
+        assertThrows(UrlForbiddenException.class, () -> UrlSanitizerUtils.checkAllowed(url, Collections.emptyList(), false));
     }
 }

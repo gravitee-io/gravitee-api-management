@@ -23,10 +23,11 @@ import {
   forPortalAsAppUser,
   forPortalAsSimpleUser,
 } from '@gravitee/utils/configuration';
-import { created, noContent, unauthorized } from '@lib/jest-utils';
+import { created, fail, noContent, unauthorized } from '@lib/jest-utils';
 import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
+import { ApiKeyModeEnum } from '../../../lib/portal-webclient-sdk/src/lib';
 
 const portalApplicationApiAsAdminUser = new ApplicationApi(forPortalAsAdminUser());
 const portalApplicationApiAsAppUser = new ApplicationApi(forPortalAsAppUser());
@@ -60,6 +61,16 @@ describe('Portal application tests', () => {
           }),
         );
       });
+    });
+
+    test('should fail because of api key mode is invalid', async () => {
+      await fail(
+        portalApplicationApiAsAdminUser.createApplicationRaw({
+          applicationInput: PortalApplicationFaker.newApplicationInput({ api_key_mode: 'dummy' as ApiKeyModeEnum }),
+        }),
+        400,
+        "Cannot construct instance of `io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum`, problem: Unexpected value 'dummy'",
+      );
     });
   });
 

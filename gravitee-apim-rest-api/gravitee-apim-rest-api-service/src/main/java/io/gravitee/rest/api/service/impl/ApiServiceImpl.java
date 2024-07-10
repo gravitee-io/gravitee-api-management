@@ -1119,6 +1119,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updateApiEntity.setGroups(groups);
             }
 
+            PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, apiToUpdate);
+            // if po is a group, add it as a member of the API
+            if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
+                if (updateApiEntity.getGroups() == null) {
+                    updateApiEntity.setGroups(new HashSet<>());
+                }
+                updateApiEntity.getGroups().add(primaryOwner.getId());
+            }
+
             // add a default path, if version is v1
             if (
                 Objects.equals(updateApiEntity.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
@@ -1261,7 +1270,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-            PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, updatedApi);
             ApiEntity apiEntity = convert(executionContext, updatedApi, primaryOwner, categories);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
@@ -1800,8 +1808,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     /**
      * Allows to deploy the last published API
-     * @param apiId the API id
-     * @param userId the user id
+     *
+     * @param apiId     the API id
+     * @param userId    the user id
      * @param eventType the event type
      * @return The persisted API or null
      * @throws TechnicalException if an exception occurs while saving the API

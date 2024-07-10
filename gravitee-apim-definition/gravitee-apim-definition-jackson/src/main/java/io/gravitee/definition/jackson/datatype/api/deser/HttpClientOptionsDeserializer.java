@@ -44,6 +44,8 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
 
         httpClientOptions.setIdleTimeout(node.path("idleTimeout").asLong(HttpClientOptions.DEFAULT_IDLE_TIMEOUT));
 
+        httpClientOptions.setKeepAliveTimeout(node.path("keepAliveTimeout").asLong(HttpClientOptions.DEFAULT_KEEP_ALIVE_TIMEOUT));
+
         httpClientOptions.setKeepAlive(node.path("keepAlive").asBoolean(HttpClientOptions.DEFAULT_KEEP_ALIVE));
 
         httpClientOptions.setPipelining(node.path("pipelining").asBoolean(HttpClientOptions.DEFAULT_PIPELINING));

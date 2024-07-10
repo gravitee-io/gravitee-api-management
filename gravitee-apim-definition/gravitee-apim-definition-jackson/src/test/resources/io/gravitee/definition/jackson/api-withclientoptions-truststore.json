@@ -9,7 +9,8 @@
         "name": "default",
         "target": "http://localhost:8083/myapi",
         "http": {
-          "idleTimeout": 5000,
+          "idleTimeout" : 5000,
+          "keepAliveTimeout" : 3000,
           "connectTimeout": 5000,
           "keepAlive": true,
           "followRedirects": true

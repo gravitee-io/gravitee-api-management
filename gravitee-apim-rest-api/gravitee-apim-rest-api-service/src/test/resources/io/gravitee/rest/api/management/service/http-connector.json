@@ -7,6 +7,21 @@
       "title": "HTTP Options",
       "id": "urn:jsonschema:io:gravitee:connector:http:configuration:HttpOptions",
       "properties": {
+        "clearTextUpgrade": {
+          "title": "Allow h2c Clear Text Upgrade",
+          "description": "If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge) ",
+          "type": "boolean",
+          "default": true,
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "http.version": "HTTP_1_1"
+                }
+              }
+            ]
+          }
+        },
         "version": {
           "title": "HTTP Protocol version",
           "description": "The version of the HTTP protocol to use",
@@ -47,19 +62,40 @@
         },
         "useCompression": {
           "title": "Enable compression (gzip, deflate)",
-          "description": "The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.",
+          "description": "The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server.",
           "type": "boolean",
           "default": true
         },
         "idleTimeout": {
           "type": "integer",
           "title": "Idle timeout (ms)",
-          "description": "Maximum time a connection will timeout and be closed if no data is received within the timeout.",
+          "description": "Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.",
           "default": 60000
+        },
+        "propagateClientAcceptEncoding": {
+          "title": "Propagate client Accept-Encoding header (no decompression if any)",
+          "description": "The gateway will propagate the Accept-Encoding header's value specified by the client's request to the backend (if any). The gateway will <b>NEVER attempt to decompress the content</b> if the backend response is compressed (gzip, deflate). It is then not possible to apply transformation policy if the body is compressed. Also, body will appear compressed if logging is enabled for the API. <b>DO NOT</b> activate this option if you plan to play with body responses.",
+          "type": "boolean",
+          "default": false,
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "http.useCompression": true
+                }
+              }
+            ]
+          }
+        },
+        "keepAliveTimeout": {
+          "type": "integer",
+          "title": "Keep-alive timeout (ms)",
+          "description": "Maximum time a connection will remain unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.",
+          "default": 30000
         },
         "followRedirects": {
           "title": "Follow HTTP redirects",
-          "description": "When the client receives an 301, 302, 303 or 307 status code, it follows the redirection provided by the Location response header",
+          "description": "When the client receives a status code in the range 3xx, it follows the redirection provided by the Location response header",
           "type": "boolean",
           "default": false
         },
@@ -68,29 +104,14 @@
           "title": "Max Concurrent Connections",
           "description": "Maximum pool size for connections.",
           "default": 100
-        },
-        "clearTextUpgrade": {
-          "title": "Allow h2c Clear Text Upgrade",
-          "description": "If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge) ",
-          "type": "boolean",
-          "default": true,
-          "x-schema-form": {
-            "hidden": [
-              {
-                "$eq": {
-                  "http.version": "HTTP_1_1"
-                }
-              }
-            ]
-          }
         }
       },
-      "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"]
+      "required": ["connectTimeout", "readTimeout", "idleTimeout", "keepAliveTimeout", "maxConcurrentConnections"]
     },
     "headers": {
       "type": "array",
       "title": "HTTP Headers",
-      "description": "Default HTTP headers added by the API gateway to upstream",
+      "description": "Default HTTP headers added or overridden by the API gateway to upstream",
       "items": {
         "type": "object",
         "title": "Header",
@@ -332,7 +353,7 @@
             "content": {
               "type": "string",
               "title": "Content",
-              "description": "Binary content",
+              "description": "Binary content as Base64",
               "x-schema-form": {
                 "type": "text",
                 "hidden": [
@@ -429,7 +450,7 @@
             "content": {
               "type": "string",
               "title": "Content",
-              "description": "Binary content",
+              "description": "Binary content as Base64",
               "x-schema-form": {
                 "type": "text",
                 "hidden": [
@@ -530,6 +551,17 @@
         }
       }
     }
+  },
+  "additionalProperties": false,
+  "patternProperties": {
+    "backup": true,
+    "healthcheck": true,
+    "inherit": true,
+    "name": true,
+    "target": true,
+    "tenants": true,
+    "type": true,
+    "weight": true
   },
   "x-schema-form": {
     "errors": {

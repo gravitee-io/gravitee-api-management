@@ -74,20 +74,8 @@
         "idleTimeout": {
           "type": "integer",
           "title": "Idle timeout (ms)",
-          "description": "Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.",
+          "description": "Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.",
           "default": 60000
-        },
-        "followRedirects": {
-          "title": "Follow HTTP redirects",
-          "description": "When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.",
-          "type": "boolean",
-          "default": false
-        },
-        "maxConcurrentConnections": {
-          "type": "integer",
-          "title": "Max Concurrent Connections",
-          "description": "Maximum pool size for connections.",
-          "default": 20
         },
         "propagateClientAcceptEncoding": {
           "title": "Propagate client Accept-Encoding header (no decompression if any)",
@@ -103,9 +91,27 @@
               }
             ]
           }
+        },
+        "keepAliveTimeout": {
+          "type": "integer",
+          "title": "Keep-alive timeout (ms)",
+          "description": "Maximum time a connection will remain unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.",
+          "default": 30000
+        },
+        "followRedirects": {
+          "title": "Follow HTTP redirects",
+          "description": "When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.",
+          "type": "boolean",
+          "default": false
+        },
+        "maxConcurrentConnections": {
+          "type": "integer",
+          "title": "Max Concurrent Connections",
+          "description": "Maximum pool size for connections.",
+          "default": 20
         }
       },
-      "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"]
+      "required": ["connectTimeout", "readTimeout", "idleTimeout", "keepAliveTimeout", "maxConcurrentConnections"]
     },
     "headers": {
       "type": "array",

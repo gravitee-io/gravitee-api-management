@@ -23,9 +23,10 @@ import {
   forManagementAsAppUser,
   forManagementAsSimpleUser,
 } from '@gravitee/utils/configuration';
-import { created, noContent, unauthorized } from '@lib/jest-utils';
+import { created, fail, noContent, unauthorized } from '@lib/jest-utils';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
+import { NewApiEntityFlowModeEnum, NewApplicationEntityOriginEnum } from '../../../lib/management-webclient-sdk/src/lib/models';
 
 const managementApplicationsApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
 const managementApplicationsApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());
@@ -65,6 +66,18 @@ describe('API Management Application tests', function () {
             envId,
             application: application.id,
           }),
+        );
+      });
+
+      test('should fail because of origin is invalid', async () => {
+        await fail(
+          applicationResource.createApplicationRaw({
+            orgId,
+            envId,
+            newApplicationEntity: ApplicationsFaker.newApplication({ origin: 'dummy' as NewApplicationEntityOriginEnum }),
+          }),
+          400,
+          'Cannot deserialize value of type `io.gravitee.definition.model.Origin` from String "dummy": not one of the values accepted for Enum class: [MANAGEMENT, KUBERNETES]',
         );
       });
     });

@@ -385,6 +385,7 @@ class VertxHttpClientTest {
         "                            \"followRedirects\": false,\n" +
         "                            \"readTimeout\": 10000,\n" +
         "                            \"idleTimeout\": 60000,\n" +
+        "                            \"keepAliveTimeout\": 30000,\n" +
         "                            \"connectTimeout\": 5000,\n" +
         "                            \"propagateClientAcceptEncoding\": true,\n" +
         "                            \"useCompression\": false,\n" +

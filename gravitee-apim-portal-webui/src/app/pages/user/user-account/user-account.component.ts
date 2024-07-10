@@ -64,7 +64,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
       const formDescriptor = {
         last_name: new FormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
         first_name: new FormControl({ value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
-        email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
+        email: new FormControl({ value: this.email, disabled: true }, Validators.email),
         avatar: new FormControl(this.avatar),
       };
 

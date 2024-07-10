@@ -124,6 +124,7 @@ public class ApiService_UpdateTest {
         "            \"http\": {\n" +
         "              \"connectTimeout\": 5000,\n" +
         "              \"idleTimeout\": 60000,\n" +
+        "              \"keepAliveTimeout\": 30000,\n" +
         "              \"keepAlive\": true,\n" +
         "              \"readTimeout\": 10000,\n" +
         "              \"pipelining\": false,\n" +
@@ -140,6 +141,7 @@ public class ApiService_UpdateTest {
         "        \"http\": {\n" +
         "          \"connectTimeout\": 5000,\n" +
         "          \"idleTimeout\": 60000,\n" +
+        "          \"keepAliveTimeout\": 30000,\n" +
         "          \"keepAlive\": true,\n" +
         "          \"readTimeout\": 10000,\n" +
         "          \"pipelining\": false,\n" +
@@ -456,6 +458,24 @@ public class ApiService_UpdateTest {
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
         fail("should throw InvalidDataException");
+    }
+
+    @Test
+    public void shouldUpdateWithPOGroupsWhenGroupsAreNotProvided() throws TechnicalException {
+        prepareUpdate();
+
+        PrimaryOwnerEntity po = mock(PrimaryOwnerEntity.class);
+        when(po.getType()).thenReturn(MembershipMemberType.GROUP.name());
+        when(po.getId()).thenReturn("group-with-po");
+        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(po);
+
+        updateApiEntity.setGroups(Sets.newSet());
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+        verify(apiRepository).update(argThat(api -> api.getId().equals(API_ID) && api.getGroups().equals(Sets.newSet("group-with-po"))));
     }
 
     private void prepareUpdate() throws TechnicalException {

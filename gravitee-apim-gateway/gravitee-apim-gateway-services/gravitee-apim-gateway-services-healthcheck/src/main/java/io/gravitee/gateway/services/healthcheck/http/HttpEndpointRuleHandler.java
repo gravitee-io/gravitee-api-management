@@ -59,8 +59,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
 
         // Set timeout on request
         if (rule.endpoint().getHttpClientOptions() != null) {
-            // We want to ensure that the read/write timeout will expire BEFORE an other HC will be executed
-            options.setTimeout(Math.min(getDelayMillis(), rule.endpoint().getHttpClientOptions().getReadTimeout()));
+            options.setTimeout(rule.endpoint().getHttpClientOptions().getReadTimeout());
         }
 
         return options;
@@ -82,8 +81,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                 .setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setTcpKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
-                // We want to ensure that the connect timeout will expire BEFORE an other HC will be executed
-                .setConnectTimeout((int) Math.min(getDelayMillis(), endpoint.getHttpClientOptions().getConnectTimeout()))
+                .setKeepAliveTimeout((int) (endpoint.getHttpClientOptions().getKeepAliveTimeout() / 1000))
+                .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
                 .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
 
             if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {

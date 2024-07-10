@@ -114,8 +114,8 @@ public class UserResource extends AbstractResource {
         } else {
             updateUserEntity.setPicture(existingUser.getPicture());
         }
-        if (user.getEmail() != null) {
-            updateUserEntity.setEmail(user.getEmail());
+        if (existingUser.getEmail() != null) {
+            updateUserEntity.setEmail(existingUser.getEmail());
         }
         if (user.getFirstName() != null) {
             updateUserEntity.setFirstname(user.getFirstName());

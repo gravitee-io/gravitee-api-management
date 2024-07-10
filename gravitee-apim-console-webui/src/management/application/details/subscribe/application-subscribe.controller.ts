@@ -111,18 +111,27 @@ class ApplicationSubscribeController {
 
   async onSubscribe(api, plan) {
     if (this.shouldPromptForKeyMode(plan)) {
-      this.selectKeyMode().then((mode) => this.doSubscribe(plan, mode), _.noop);
+      await this.selectKeyMode()
+        .then((mode) => this.ApplicationService.update({ ...this.application, api_key_mode: mode }))
+        .then(() => this.doSubscribe(plan), _.noop);
     } else {
       await this.doSubscribe(plan);
     }
   }
 
-  async doSubscribe(plan, apikeyMode?: ApiKeyMode) {
+  async doSubscribe(plan) {
     const message = await this.getMessage(plan);
 
-    this.ApplicationService.subscribe(this.application.id, plan.id, message, apikeyMode).then(() => {
+    this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
       this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-      this.$state.reload();
+      this.$state.transitionTo(
+        'management.applications.application.subscriptions.list',
+        {
+          applicationId: this.application.id,
+          ...this.$state.params,
+        },
+        { reload: true },
+      );
     });
   }
 

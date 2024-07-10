@@ -34,6 +34,7 @@ import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -48,6 +49,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -90,6 +92,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private final EndpointStatusDecorator endpointStatus;
     private TemplateEngine templateEngine;
     private Handler<EndpointStatus> statusHandler;
+    private Handler<Void> rescheduleHandler;
 
     private AlertEventProducer alertEventProducer;
     private Node node;
@@ -123,10 +126,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             T endpoint = rule.endpoint();
             logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
 
-            // Run request for each step
-            for (HealthCheckStep step : rule.steps()) {
-                runStep(endpoint, step);
-            }
+            // We only allow one step per rule. To support more than one step implement healthCheckResponseHandler accordingly
+            runStep(endpoint, rule.steps().get(0));
         } finally {
             MDC.remove("api");
         }
@@ -217,6 +218,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 request.setUri(hcRequestUrl.toString());
 
                 if (requestPreparationEvent.failed()) {
+                    rescheduleHandler.handle(null);
                     reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
                 } else {
                     healthRequest.response(healthRequestEvent -> {
@@ -233,18 +235,22 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                                 // Append step stepBuilder
                                 healthBuilder.step(healthCheckStep);
 
+                                rescheduleHandler.handle(null);
                                 report(healthBuilder.build());
                             });
-                            response.exceptionHandler(throwable ->
-                                logger.error("An error has occurred during Health check response handler", throwable)
-                            );
+                            response.exceptionHandler(throwable -> {
+                                logger.error("An error has occurred during Health check response handler", throwable);
+                                rescheduleHandler.handle(null);
+                            });
                         } else {
                             logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
+                            rescheduleHandler.handle(null);
                             reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
                         }
                     });
 
                     healthRequest.exceptionHandler(throwable -> {
+                        rescheduleHandler.handle(null);
                         reportThrowable(throwable, step, healthBuilder, startTime, request);
                     });
 
@@ -416,6 +422,10 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     public void setStatusHandler(Handler<EndpointStatus> statusHandler) {
         this.statusHandler = statusHandler;
+    }
+
+    public void setRescheduleHandler(Handler<Void> rescheduleHandler) {
+        this.rescheduleHandler = rescheduleHandler;
     }
 
     public void setAlertEventProducer(AlertEventProducer alertEventProducer) {
