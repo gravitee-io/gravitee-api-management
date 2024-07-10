@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.2.2...1.3.0) (2024-07-10)
+
+
+### Features
+
+* Show API name in reporters ([a8b6601](https://github.com/gravitee-io/gravitee-reporter-common/commit/a8b66011d7b9dba6ed2a1d10a950da8509bce60b))
+
 ## [1.2.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.2.1...1.2.2) (2024-06-03)
 
 
