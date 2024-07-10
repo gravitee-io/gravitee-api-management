@@ -18,8 +18,29 @@
 <span mat-dialog-title>Add API Resource</span>
 
 <mat-dialog-content>
+  <div class="filters" [formGroup]="filtersFormGroup">
+    <mat-form-field class="filters__search" appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput formControlName="search" />
+      <button
+        matIconSuffix
+        mat-icon-button
+        aria-label="Clear"
+        *ngIf="filtersFormGroup.get('search')?.value"
+        (click)="filtersFormGroup.get('search')?.setValue('')"
+      >
+        <mat-icon svgIcon="gio:cancel"></mat-icon>
+      </button>
+    </mat-form-field>
+    <mat-chip-listbox *ngIf="categories.length > 1" aria-label="Categories selection" multiple formControlName="category">
+      <mat-chip-option *ngFor="let category of categories" [selected]="category" [value]="category">{{
+        category | titlecase
+      }}</mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+
   <mat-radio-group class="gio-selection-list" [formControl]="resourceSelect">
-    @for (resource of resources; track resource.id) {
+    @for (resource of resources$ | async; track resource.id) {
       <mat-radio-button [value]="resource.id" [name]="resource.name">
         <ng-template *ngTemplateOutlet="listItem; context: { resource }"></ng-template>
       </mat-radio-button>
