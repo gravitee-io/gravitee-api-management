@@ -37,7 +37,7 @@
       [paginationPageSizeOptions]="[25, 50, 100]"
       (filtersChange)="onFiltersChanged($event)"
     >
-      <table mat-table matSort [dataSource]="apiResourceDS.resources" aria-label="API Properties">
+      <table mat-table matSort [dataSource]="apiResourceDS.resources" aria-label="API Resources">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
           <td mat-cell *matCellDef="let element">
@@ -59,7 +59,7 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element">
             @if (apiResourceDS.isReadOnly) {
-              <button mat-button aria-label="Button to view a Response Template" (click)="editResource(element.resourceIndex)">
+              <button mat-button aria-label="Button to view a resource" (click)="editResource(element.resourceIndex)">
                 <mat-icon svgIcon="gio:eye-empty"></mat-icon>
               </button>
             } @else {
@@ -74,23 +74,24 @@
               <button
                 *gioPermission="{ anyOf: ['api-definition-u'] }"
                 mat-button
-                aria-label="Button to edit a Response Template"
+                aria-label="Button to edit a resource"
+                [matTooltip]="'Edit'"
                 (click)="editResource(element.resourceIndex)"
               >
                 <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>
-            }
 
-            <button
-              *gioPermission="{ anyOf: ['api-definition-d'] }"
-              type="button"
-              mat-button
-              aria-label="Button to remove a property"
-              [matTooltip]="'Remove property'"
-              (click)="removeResource(element.resourceIndex)"
-            >
-              <mat-icon svgIcon="gio:trash"></mat-icon>
-            </button>
+              <button
+                *gioPermission="{ anyOf: ['api-definition-d'] }"
+                type="button"
+                mat-button
+                aria-label="Button to remove a resource"
+                [matTooltip]="'Remove'"
+                (click)="removeResource(element.resourceIndex)"
+              >
+                <mat-icon svgIcon="gio:trash"></mat-icon>
+              </button>
+            }
           </td>
         </ng-container>
 

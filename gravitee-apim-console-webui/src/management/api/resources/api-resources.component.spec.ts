@@ -128,7 +128,7 @@ describe('ApiResourcesComponent', () => {
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       method: 'PUT',
     });
-    expect(updateApiReq.request.body.resources).toStrictEqual([{ name: 'My Cache', type: 'cache', configuration: null }]);
+    expect(updateApiReq.request.body.resources).toStrictEqual([{ name: 'My Cache', type: 'cache', configuration: undefined }]);
   });
 
   it('should edit a resource', async () => {
