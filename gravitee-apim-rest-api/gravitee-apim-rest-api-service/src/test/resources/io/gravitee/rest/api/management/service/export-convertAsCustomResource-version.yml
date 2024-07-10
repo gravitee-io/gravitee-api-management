@@ -79,3 +79,4 @@ spec:
         status: 400
         body: "{\"bad\":\"news\"}"
   version: "1.0.0-alpha"
+  notifyMembers: true
