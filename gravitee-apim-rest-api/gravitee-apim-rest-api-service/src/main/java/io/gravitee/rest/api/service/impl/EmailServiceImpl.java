@@ -180,12 +180,15 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Override
     @Async
     public void sendAsyncEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
-        sendEmailNotification(
-            executionContext,
-            emailNotification,
-            executionContext.getReferenceContext().getReferenceId(),
-            ParameterReferenceType.valueOf(executionContext.getReferenceContext().getReferenceType().name())
-        );
+        new Thread(() -> {
+            sendEmailNotification(
+                executionContext,
+                emailNotification,
+                executionContext.getReferenceContext().getReferenceId(),
+                ParameterReferenceType.valueOf(executionContext.getReferenceContext().getReferenceType().name())
+            );
+        })
+            .start();
     }
 
     private String addResourcesInMessage(final MimeMessageHelper mailMessage, final String htmlText) throws Exception {
