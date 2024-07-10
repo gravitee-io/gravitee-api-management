@@ -16,13 +16,19 @@
 import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { GioFormJsonSchemaModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioFormSelectionInlineModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
-import { NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule, NgTemplateOutlet } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatChipsModule } from '@angular/material/chips';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+import { isEmpty, toLower } from 'lodash';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
-import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { ResourcePlugin } from '../../../../entities/management-api-v2';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 
 export interface ApiResourcesAddDialogData {
   resources: ResourcePlugin[];
@@ -40,22 +46,31 @@ export type ApiResourcesAddDialogResult =
   styleUrls: ['./api-resources-add-dialog.component.scss'],
   standalone: true,
   imports: [
+    CommonModule,
     MatDialogModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
     GioFormSelectionInlineModule,
     MatButtonModule,
     MatRadioModule,
-    NgForOf,
-    NgIf,
+    MatChipsModule,
     NgTemplateOutlet,
     GioSelectionListModule,
+    GioIconsModule,
     ReactiveFormsModule,
     GioFormJsonSchemaModule,
   ],
 })
 export class ApiResourcesAddDialogComponent {
-  resources: ResourcePlugin[];
+  resources$: Observable<ResourcePlugin[]>;
 
+  categories: string[] = [];
+
+  filtersFormGroup = new FormGroup({
+    search: new FormControl(''),
+    category: new FormControl([]),
+  });
   resourceSelect: FormControl<string> = new FormControl();
 
   constructor(
@@ -63,17 +78,30 @@ export class ApiResourcesAddDialogComponent {
     public data: ApiResourcesAddDialogData,
     public dialogRef: MatDialogRef<ApiResourcesAddDialogComponent, ApiResourcesAddDialogResult>,
   ) {
-    this.resources = data.resources
-      .map((resource) => ({
-        ...resource,
-        icon: resource.icon,
-      }))
-      .sort((a, b) => a.id.localeCompare(b.id));
+    data.resources = data.resources ?? [];
+
+    this.resources$ = this.filtersFormGroup.valueChanges.pipe(
+      startWith({ search: '', category: undefined }),
+      map(({ category, search }) => {
+        return data.resources
+          .filter((r) => isEmpty(category) || category.includes(r.category ?? 'others'))
+          .filter((policy) => {
+            return search ? toLower(policy.name).includes(toLower(search)) : true;
+          });
+      }),
+
+      map((resources) => resources.sort((a, b) => a.id.localeCompare(b.id))),
+    );
+
+    this.categories = Array.from(new Set(data.resources.map((r) => r.category ?? 'others')))
+      // sort and add others at the end
+      .sort((a, b) => a.localeCompare(b))
+      .sort((a, b) => (a === 'others' ? 1 : b === 'others' ? -1 : 0));
   }
 
   public select() {
     this.dialogRef.close({
-      resource: this.resources.find((r) => r.id === this.resourceSelect.value),
+      resource: this.data.resources.find((r) => r.id === this.resourceSelect.value),
     });
   }
 }
