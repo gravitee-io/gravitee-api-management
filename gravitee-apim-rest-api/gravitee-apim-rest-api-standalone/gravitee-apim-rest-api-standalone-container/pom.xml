@@ -181,13 +181,6 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- Mapstruct -->
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- Guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
