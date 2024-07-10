@@ -28,9 +28,8 @@ import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesAddDialogHarness } from './api-resources-add-dialog/api-resources-add-dialog.harness';
 import { ApiResourcesEditDialogHarness } from './api-resources-edit-dialog/api-resources-edit-dialog.harness';
 
-import { ApiV2, ApiV4, fakeApiV4 } from '../../../entities/management-api-v2';
+import { ApiV2, ApiV4, fakeApiV4, fakeResourcePlugin, ResourcePlugin } from '../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { ResourceListItem } from '../../../entities/resource/resourceListItem';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiResourcesComponent', () => {
@@ -93,10 +92,7 @@ describe('ApiResourcesComponent', () => {
         ],
       }),
     );
-    expectListResourcesRequest([
-      { id: 'cache', name: 'Cache', version: '', description: '', icon: '', schema: '' },
-      { id: 'oauth2', name: 'OAuth2', version: '', description: '', icon: '', schema: '' },
-    ]);
+    expectListResourcesRequest([fakeResourcePlugin({ id: 'cache', name: 'Cache' }), fakeResourcePlugin({ id: 'oauth2', name: 'OAuth2' })]);
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['MyCache', 'Cache', 'toggle_on'],
@@ -106,7 +102,7 @@ describe('ApiResourcesComponent', () => {
 
   it('should add a resource', async () => {
     expectApiGetRequest(fakeApiV4({ id: API_ID, resources: [] }));
-    expectListResourcesRequest([{ id: 'cache', name: 'Cache', version: '', description: '', icon: '', schema: '' }]);
+    expectListResourcesRequest([fakeResourcePlugin({ id: 'cache', name: 'Cache' })]);
 
     // Open Add dialog
     await componentHarness.clickAddResource();
@@ -118,6 +114,7 @@ describe('ApiResourcesComponent', () => {
 
     // Configure Cache resource
     const resourceEditDialog = await rootLoader.getHarness(ApiResourcesEditDialogHarness);
+    expectGetResourceSchemaRequest('cache');
     expect(await resourceEditDialog.getTitleText()).toEqual('Configure Cache resource');
 
     await resourceEditDialog.setResourceName('My Cache');
@@ -136,12 +133,12 @@ describe('ApiResourcesComponent', () => {
 
   it('should edit a resource', async () => {
     expectApiGetRequest(fakeApiV4({ id: API_ID, resources: [{ name: 'MyCache', type: 'cache', configuration: '' }] }));
-    expectListResourcesRequest([{ id: 'cache', name: 'Cache', version: '', description: '', icon: '', schema: '' }]);
+    expectListResourcesRequest([fakeResourcePlugin({ id: 'cache', name: 'Cache' })]);
 
     // Open Edit dialog
     await componentHarness.clickEditResource(0);
     const resourceEditDialog = await rootLoader.getHarness(ApiResourcesEditDialogHarness);
-
+    expectGetResourceSchemaRequest('cache');
     expect(await resourceEditDialog.getTitleText()).toEqual('Configure Cache resource');
 
     await resourceEditDialog.setResourceName('Renamed Cache');
@@ -160,7 +157,7 @@ describe('ApiResourcesComponent', () => {
 
   it('should remove a resource', async () => {
     expectApiGetRequest(fakeApiV4({ id: API_ID, resources: [{ name: 'MyCache', type: 'cache', configuration: '' }] }));
-    expectListResourcesRequest([{ id: 'cache', name: 'Cache', version: '', description: '', icon: '', schema: '' }]);
+    expectListResourcesRequest([fakeResourcePlugin({ id: 'cache', name: 'Cache' })]);
 
     // Remove resource
     await componentHarness.clickRemoveButton(0);
@@ -185,12 +182,21 @@ describe('ApiResourcesComponent', () => {
       .flush(api);
   }
 
-  function expectListResourcesRequest(resourceListItems: ResourceListItem[]) {
+  function expectListResourcesRequest(resourceList: ResourcePlugin[]) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`,
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/resources`,
         method: 'GET',
       })
-      .flush(resourceListItems);
+      .flush(resourceList);
+  }
+
+  function expectGetResourceSchemaRequest(resourceId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/resources/${resourceId}/schema`,
+        method: 'GET',
+      })
+      .flush(null);
   }
 });

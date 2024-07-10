@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './connectorFeature';
-export * from './connectorMode';
-export * from './connectorPlugin';
-export * from './connectorPlugin.fixture';
-export * from './executionPhase';
-export * from './moreInformation';
-export * from './platformPlugin';
-export * from './policyPlugin';
-export * from './policyPlugin.fixture';
-export * from './resourcePlugin';
-export * from './resourcePlugin.fixture';
+import { ResourcePlugin } from './resourcePlugin';
+
+export function fakeResourcePlugin(modifier?: Partial<ResourcePlugin>): ResourcePlugin {
+  const base: ResourcePlugin = {
+    id: 'resourcePluginId',
+    name: 'Resource Plugin Name',
+    category: 'test',
+  };
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeResourcePlugins(): ResourcePlugin[] {
+  return [
+    fakeResourcePlugin(),
+    fakeResourcePlugin({
+      id: 'anotherResourcePluginId',
+      name: 'Another Resource Plugin Name',
+    }),
+  ];
+}

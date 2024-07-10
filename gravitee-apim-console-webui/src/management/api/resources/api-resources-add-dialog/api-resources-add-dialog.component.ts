@@ -22,15 +22,15 @@ import { NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
-import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
+import { ResourcePlugin } from '../../../../entities/management-api-v2';
 
 export interface ApiResourcesAddDialogData {
-  resources: ResourceListItem[];
+  resources: ResourcePlugin[];
 }
 
 export type ApiResourcesAddDialogResult =
   | {
-      resource: ResourceListItem;
+      resource: ResourcePlugin;
     }
   | undefined;
 
@@ -54,7 +54,7 @@ export type ApiResourcesAddDialogResult =
   ],
 })
 export class ApiResourcesAddDialogComponent {
-  resources: ResourceListItem[];
+  resources: ResourcePlugin[];
 
   resourceSelect: FormControl<string> = new FormControl();
 

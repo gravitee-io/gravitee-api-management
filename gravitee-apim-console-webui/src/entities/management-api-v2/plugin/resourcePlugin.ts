@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './connectorFeature';
-export * from './connectorMode';
-export * from './connectorPlugin';
-export * from './connectorPlugin.fixture';
-export * from './executionPhase';
-export * from './moreInformation';
-export * from './platformPlugin';
-export * from './policyPlugin';
-export * from './policyPlugin.fixture';
-export * from './resourcePlugin';
-export * from './resourcePlugin.fixture';
+import { PlatformPlugin } from './platformPlugin';
+
+export interface ResourcePlugin extends PlatformPlugin {
+  id: string;
+  name: string;
+}

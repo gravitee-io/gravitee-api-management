@@ -32,12 +32,12 @@ import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
-import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
-import { Api } from '../../../../entities/management-api-v2';
+import { Api, ResourcePlugin } from '../../../../entities/management-api-v2';
 import { Json } from '../../../../util';
+import { ResourceV2Service } from '../../../../services-ngx/resource-v2.service';
 
 export interface ApiResourcesEditDialogData {
-  resource: ResourceListItem;
+  resource: ResourcePlugin;
   apiResourceToUpdate?: Api['resources'][number];
 }
 
@@ -70,9 +70,9 @@ export type ApiResourcesEditDialogResult = Api['resources'][number] | undefined;
   ],
 })
 export class ApiResourcesEditDialogComponent {
-  resource: ResourceListItem;
+  resource: ResourcePlugin;
 
-  resourceSchema?: GioJsonSchema;
+  resourceSchema$: Observable<GioJsonSchema>;
   resourceSchemaFormGroup: FormGroup<{
     name: FormControl<string>;
     resourceSchema: FormControl<Json>;
@@ -84,9 +84,10 @@ export class ApiResourcesEditDialogComponent {
     @Inject(MAT_DIALOG_DATA)
     public data: ApiResourcesEditDialogData,
     public dialogRef: MatDialogRef<ApiResourcesEditDialogComponent, ApiResourcesEditDialogResult>,
+    private readonly resourceV2Service: ResourceV2Service,
   ) {
     this.resource = data.resource;
-    this.resourceSchema = data.resource?.schema ? JSON.parse(data.resource.schema) : undefined;
+    this.resourceSchema$ = this.resourceV2Service.getSchema(this.resource.id);
 
     this.resourceSchemaFormGroup = new FormGroup({
       name: new FormControl(data.apiResourceToUpdate?.name, Validators.required),

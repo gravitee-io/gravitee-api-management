@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -49,14 +49,13 @@ import {
 
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { ApiResourcesService } from '../resources-ng/api-resources.service';
-import { Constants } from '../../../entities/Constants';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { onlyApiV2V4Filter } from '../../../util/apiFilter.operator';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Api } from '../../../entities/management-api-v2';
+import { ResourceV2Service } from '../../../services-ngx/resource-v2.service';
 
 type TableDataSource = {
   resourceIndex: number;
@@ -110,15 +109,14 @@ export class ApiResourcesComponent implements OnInit {
 
   private apiResources: Api['resources'];
 
-  private listResources$ = this.apiResourcesService.listResources({ expandSchema: true, expandIcon: true }).pipe(shareReplay(1));
+  private listResources$ = this.resourceV2Service.list().pipe(shareReplay(1));
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
-    private readonly apiResourcesService: ApiResourcesService,
+    private readonly resourceV2Service: ResourceV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
-    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   public ngOnInit(): void {
