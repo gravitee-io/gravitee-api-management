@@ -104,12 +104,26 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         name: new FormControl<string>('', [Validators.required, this.pageNameUniqueValidator()]),
         visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
         accessControlGroups: new FormControl<string[]>([]),
-        excludeGroups: new FormControl<boolean>(false),
+        excludeGroups: new FormControl<boolean>({ value: false, disabled: true }),
       }),
       content: new FormControl<string>('', [Validators.required]),
       source: new FormControl<string>(this.source, [Validators.required]),
       sourceConfiguration: new FormControl<undefined | unknown>({}),
     });
+
+    this.form.controls.stepOne.controls.accessControlGroups.valueChanges
+      .pipe(
+        tap((value) => {
+          if (value.length === 0) {
+            this.form.controls.stepOne.controls.excludeGroups.setValue(false);
+            this.form.controls.stepOne.controls.excludeGroups.disable();
+          } else {
+            this.form.controls.stepOne.controls.excludeGroups.enable();
+          }
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
 
     if (this.activatedRoute.snapshot.params.pageId) {
       this.mode = 'edit';
@@ -129,6 +143,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
                 this.initialAccessControlGroups === value.stepOne.accessControlGroups;
             }
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
 
@@ -173,8 +188,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       map((list) => list.find((fetcher) => fetcher.id === this.httpFetcherName)?.schema),
       map((schema) => JSON.parse(schema)),
     );
-    this.form.controls.stepOne.controls.name.valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
-    this.form.controls.source.valueChanges.subscribe((value) => {
+    this.form.controls.stepOne.controls.name.valueChanges
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => (this.pageTitle = value || 'Add new page'));
+    this.form.controls.source.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
       if (value === this.httpValue) {
         this.form.controls.content.clearValidators();
       } else {
@@ -357,9 +374,12 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
           );
         }
         this.initialAccessControlGroups = this.form.value.stepOne.accessControlGroups;
-
         this.form.controls.stepOne.controls.excludeGroups.setValue(this.page.excludedAccessControls === true);
-
+        if (this.initialAccessControlGroups.length === 0) {
+          this.form.controls.stepOne.controls.excludeGroups.disable();
+        } else {
+          this.form.controls.stepOne.controls.excludeGroups.enable();
+        }
         this.form.controls.content.setValue(this.page.content);
       }),
     );
