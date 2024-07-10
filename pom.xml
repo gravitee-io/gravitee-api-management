@@ -230,10 +230,10 @@
         <gravitee-policy-xslt.version>3.0.1</gravitee-policy-xslt.version>
         <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
 
-        <gravitee-resource-cache.version>2.0.0</gravitee-resource-cache.version>
-        <gravitee-resource-oauth2-provider-am.version>2.0.2</gravitee-resource-oauth2-provider-am.version>
-        <gravitee-resource-oauth2-provider-generic.version>2.0.2</gravitee-resource-oauth2-provider-generic.version>
-        <gravitee-resource-content-provider-inline.version>1.0.0-alpha.3</gravitee-resource-content-provider-inline.version>
+        <gravitee-resource-cache.version>2.1.0</gravitee-resource-cache.version>
+        <gravitee-resource-oauth2-provider-am.version>2.1.0</gravitee-resource-oauth2-provider-am.version>
+        <gravitee-resource-oauth2-provider-generic.version>2.1.0</gravitee-resource-oauth2-provider-generic.version>
+        <gravitee-resource-content-provider-inline.version>1.0.0-alpha.5</gravitee-resource-content-provider-inline.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
         <!-- Management API Only -->
         <gravitee-cockpit-connectors-ws.version>5.0.20</gravitee-cockpit-connectors-ws.version>
@@ -263,11 +263,11 @@
         <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
         <gravitee-policy-geoip-filtering.version>2.0.0</gravitee-policy-geoip-filtering.version>
         <gravitee-policy-javascript.version>1.3.3</gravitee-policy-javascript.version>
-        <gravitee-resource-auth-provider-http.version>1.3.2</gravitee-resource-auth-provider-http.version>
-        <gravitee-resource-auth-provider-inline.version>1.3.0</gravitee-resource-auth-provider-inline.version>
-        <gravitee-resource-auth-provider-ldap.version>1.3.0</gravitee-resource-auth-provider-ldap.version>
-        <gravitee-resource-cache-redis.version>1.3.0</gravitee-resource-cache-redis.version>
-        <gravitee-resource-oauth2-provider-keycloak.version>2.0.0</gravitee-resource-oauth2-provider-keycloak.version>
+        <gravitee-resource-auth-provider-http.version>1.4.0</gravitee-resource-auth-provider-http.version>
+        <gravitee-resource-auth-provider-inline.version>1.4.0</gravitee-resource-auth-provider-inline.version>
+        <gravitee-resource-auth-provider-ldap.version>1.4.0</gravitee-resource-auth-provider-ldap.version>
+        <gravitee-resource-cache-redis.version>1.4.0</gravitee-resource-cache-redis.version>
+        <gravitee-resource-oauth2-provider-keycloak.version>2.1.0</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
         <gravitee-secretprovider-kubernetes.version>1.0.1</gravitee-secretprovider-kubernetes.version>
 
@@ -283,7 +283,7 @@
         <gravitee-endpoint-solace.version>1.2.0</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>0.1.0</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
-        <gravitee-resource-schema-registry-confluent.version>3.0.0</gravitee-resource-schema-registry-confluent.version>
+        <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>3.0.0</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>5.0.2</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
