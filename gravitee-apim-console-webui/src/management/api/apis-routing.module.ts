@@ -803,7 +803,7 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'resources',
+        path: 'resources-old',
         component: ApiResourcesOldComponent,
         data: {
           permissions: {
@@ -815,14 +815,11 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'resources-ng',
+        path: 'resources',
         component: ApiResourcesComponent,
         data: {
           permissions: {
             anyOf: ['api-definition-r'],
-          },
-          docs: {
-            page: 'management-api-policy-studio-resources',
           },
         },
       },
