@@ -32,6 +32,8 @@
 
   <mat-dialog-actions align="end">
     <button mat-flat-button [mat-dialog-close]="false">Close</button>
-    <button mat-raised-button gioFormFocusInvalid [color]="(isValid$ | async) ? 'primary' : 'warn'" (click)="save()">Save</button>
+    @if (!data.readOnly) {
+      <button mat-raised-button gioFormFocusInvalid [color]="(isValid$ | async) ? 'primary' : 'warn'" (click)="save()">Save</button>
+    }
   </mat-dialog-actions>
 </form>

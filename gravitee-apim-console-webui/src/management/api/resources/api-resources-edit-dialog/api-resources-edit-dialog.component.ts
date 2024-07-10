@@ -28,7 +28,7 @@ import { MatIcon } from '@angular/material/icon';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { map } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
@@ -39,6 +39,7 @@ import { ResourceV2Service } from '../../../../services-ngx/resource-v2.service'
 export interface ApiResourcesEditDialogData {
   resource: ResourcePlugin;
   apiResourceToUpdate?: Api['resources'][number];
+  readOnly?: boolean;
 }
 
 export type ApiResourcesEditDialogResult = Api['resources'][number] | undefined;
@@ -90,10 +91,22 @@ export class ApiResourcesEditDialogComponent {
     this.resourceSchema$ = this.resourceV2Service.getSchema(this.resource.id);
 
     this.resourceSchemaFormGroup = new FormGroup({
-      name: new FormControl(data.apiResourceToUpdate?.name, Validators.required),
-      resourceSchema: new FormControl(data.apiResourceToUpdate?.configuration),
+      name: new FormControl(
+        {
+          value: data.apiResourceToUpdate?.name,
+          disabled: data.readOnly ?? false,
+        },
+        Validators.required,
+      ),
+      resourceSchema: new FormControl({
+        value: data.apiResourceToUpdate?.configuration,
+        disabled: data.readOnly ?? false,
+      }),
     });
-    this.isValid$ = this.resourceSchemaFormGroup.statusChanges.pipe(map((status) => status === 'VALID'));
+    this.isValid$ = this.resourceSchemaFormGroup.statusChanges.pipe(
+      startWith(this.resourceSchemaFormGroup.status),
+      map((status) => status === 'VALID'),
+    );
   }
 
   save() {

@@ -108,6 +108,7 @@ export class ApiResourcesComponent implements OnInit {
   public apiResourceDS$: Observable<ApiResourceDS>;
 
   private apiResources: Api['resources'];
+  private isReadOnly: boolean;
 
   private listResources$ = this.resourceV2Service.list().pipe(shareReplay(1));
 
@@ -146,9 +147,9 @@ export class ApiResourcesComponent implements OnInit {
         });
 
         const filteredResources = gioTableFilterCollection(apiResourcesDS, tableFilters);
-        const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+        this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
         return {
-          isReadOnly,
+          isReadOnly: this.isReadOnly,
           isLoading: false,
           totalResources: filteredResources.unpaginatedLength,
           resources: filteredResources.filteredCollection,
@@ -239,6 +240,7 @@ export class ApiResourcesComponent implements OnInit {
                 data: {
                   resource,
                   apiResourceToUpdate,
+                  readOnly: this.isReadOnly,
                 },
                 width: GIO_DIALOG_WIDTH.LARGE,
                 role: 'dialog',
