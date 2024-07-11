@@ -24,10 +24,10 @@ import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentS
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.repository.management.model.EnvironmentFlow;
-import io.gravitee.repository.management.model.EnvironmentFlowLifecycleState;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.repository.management.model.SharedPolicyGroup;
+import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -81,13 +81,13 @@ class EnvironmentFlowMapperTest {
         final Date date = new Date();
         event.setPayload(
             objectMapper.writeValueAsString(
-                EnvironmentFlow
+                SharedPolicyGroup
                     .builder()
                     .id("env_flow_id")
                     .environmentId("env")
                     .name("name")
                     .crossId("cross_id")
-                    .lifecycleState(EnvironmentFlowLifecycleState.DEPLOYED)
+                    .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
                     .version(1)
                     .createdAt(date)
                     .updatedAt(date)

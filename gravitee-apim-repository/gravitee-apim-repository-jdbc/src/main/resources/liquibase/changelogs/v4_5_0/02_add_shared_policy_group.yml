@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.0
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # shared policy group changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}sharedpolicygroups
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64) }
+              - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(1024) }
+              - column: {name: version, type: int, constraints: { nullable: false } }
+              - column: {name: api_type, type: nvarchar(10), constraints: { nullable: false } }
+              - column: {name: definition, type: nclob }
+              - column: {name: lifecycle_state, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}sharedpolicygroups
+            columnNames: id
+            tableName: ${gravitee_prefix}sharedpolicygroups
+        - createIndex:
+            tableName: ${gravitee_prefix}sharedpolicygroups
+            indexName: idx_${gravitee_prefix}sharedpolicygroups
+            columns:
+              - column:
+                  name: organization_id
+                  type: nvarchar(64)
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)

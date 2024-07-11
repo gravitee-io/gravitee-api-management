@@ -193,3 +193,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
   - include:
       - file: liquibase/changelogs/v4_5_0/01_add_integration_jobs_table.yml
+  - include:
+      - file: liquibase/changelogs/v4_5_0/02_add_shared_policy_group.yml
