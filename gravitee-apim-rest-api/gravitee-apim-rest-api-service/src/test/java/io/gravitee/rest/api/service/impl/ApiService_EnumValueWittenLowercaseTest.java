@@ -105,7 +105,8 @@ public class ApiService_EnumValueWittenLowercaseTest {
                 "  \"resources\" : [ ],\n" +
                 "  \"properties\" : [ ],\n" +
                 "  \"id\" : \"id-api\",\n" +
-                "  \"path_mappings\" : [ ]\n" +
+                "  \"path_mappings\" : [ ],\n" +
+                "  \"disable_membership_notifications\" : false\n" +
                 "}"
             );
     }
@@ -140,7 +141,8 @@ public class ApiService_EnumValueWittenLowercaseTest {
                 "  \"resources\" : [ ],\n" +
                 "  \"properties\" : [ ],\n" +
                 "  \"id\" : \"id-api\",\n" +
-                "  \"path_mappings\" : [ ]\n" +
+                "  \"path_mappings\" : [ ],\n" +
+                "  \"disable_membership_notifications\" : false\n" +
                 "}"
             );
     }
