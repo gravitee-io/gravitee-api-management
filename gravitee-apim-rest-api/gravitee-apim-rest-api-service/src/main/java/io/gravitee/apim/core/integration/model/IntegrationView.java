@@ -36,12 +36,18 @@ public class IntegrationView extends Integration {
 
     AgentStatus agentStatus;
 
+    IntegrationJob pendingJob;
+
     public enum AgentStatus {
         CONNECTED,
         DISCONNECTED,
     }
 
     public IntegrationView(Integration integration, AgentStatus agentStatus) {
+        this(integration, agentStatus, null);
+    }
+
+    public IntegrationView(Integration integration, AgentStatus agentStatus, IntegrationJob pendingJob) {
         super(
             integration.getId(),
             integration.getName(),
@@ -52,6 +58,7 @@ public class IntegrationView extends Integration {
             integration.getUpdatedAt()
         );
         this.agentStatus = agentStatus;
+        this.pendingJob = pendingJob;
     }
 
     public Integration toIntegration() {

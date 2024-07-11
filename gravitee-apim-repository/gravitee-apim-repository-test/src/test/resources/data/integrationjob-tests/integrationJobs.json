@@ -1,0 +1,32 @@
+[
+  {
+    "id": "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
+    "sourceId": "integration1",
+    "environmentId": "my-env",
+    "initiatorId": "user-id",
+    "status": "PENDING",
+    "upperLimit": 100,
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000
+  },
+  {
+    "id": "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3",
+    "sourceId": "source-id",
+    "environmentId": "my-env",
+    "initiatorId": "initiator-id",
+    "status": "PENDING",
+    "upperLimit": 100,
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000
+  },
+  {
+    "id": "459a022c-e79c-4411-9a02-2ce79c141165",
+    "sourceId": "source-id",
+    "environmentId": "my-env",
+    "initiatorId": "user-id",
+    "status": "SUCCESS",
+    "upperLimit": 100,
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000
+  }
+]

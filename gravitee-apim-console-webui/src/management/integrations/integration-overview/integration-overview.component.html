@@ -93,6 +93,21 @@
       </div>
     </mat-card-header>
 
+    <gio-banner-warning *ngIf="integration.pendingJob" class="pending-job-banner">
+      A discovery is in progress. The process should only take a few minutes to complete.
+      <div gioBannerAction>
+        <button
+          mat-raised-button
+          data-testid="refresh-button"
+          aria-label="Refresh"
+          [disabled]="isLoadingIntegration || isLoadingFederatedAPI"
+          (click)="refresh()"
+        >
+          Refresh
+        </button>
+      </div>
+    </gio-banner-warning>
+
     @if (federatedAPIs.length || isLoadingFederatedAPI) {
       <div class="card-table">
         <gio-table-wrapper

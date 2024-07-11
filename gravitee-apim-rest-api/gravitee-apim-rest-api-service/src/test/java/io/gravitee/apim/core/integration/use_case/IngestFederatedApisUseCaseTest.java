@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
+import static fixtures.core.model.IntegrationJobFixture.aPendingIngestJob;
 import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,9 +28,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiFixtures;
-import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.IntegrationApiFixtures;
-import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
@@ -40,9 +39,8 @@ import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
-import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.LicenseCrudServiceInMemory;
+import inmemory.IntegrationJobCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -54,6 +52,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
@@ -67,7 +66,6 @@ import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainServic
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
@@ -75,14 +73,11 @@ import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
-import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -136,22 +131,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class IngestIntegrationApisUseCaseTest {
+class IngestFederatedApisUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final Instant UPDATE_TIME = Instant.parse("2023-11-22T10:15:30Z");
+    private static final String INGEST_JOB_ID = "job-id";
     private static final String INTEGRATION_ID = "integration-id";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
 
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+    private static final IntegrationJob INGEST_JOB = aPendingIngestJob()
+        .toBuilder()
+        .id(INGEST_JOB_ID)
+        .sourceId(INTEGRATION_ID)
+        .initiatorId(USER_ID)
+        .environmentId(ENVIRONMENT_ID)
+        .build();
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    IntegrationJobCrudServiceInMemory integrationJobCrudService = new IntegrationJobCrudServiceInMemory();
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
@@ -166,17 +169,17 @@ class IngestIntegrationApisUseCaseTest {
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
 
-    IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     PageQueryServiceInMemory pageQueryServiceInMemory = new PageQueryServiceInMemory(pageCrudService);
     PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
 
     GroupValidationService groupValidationService = new GroupValidationService(groupQueryService);
     ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(
         new ValidateFederatedApiDomainService(groupValidationService, categoryDomainService)
     );
-    IngestIntegrationApisUseCase useCase;
+    IngestFederatedApisUseCase useCase;
 
     @BeforeAll
     static void beforeAll() {
@@ -290,21 +293,20 @@ class IngestIntegrationApisUseCaseTest {
         );
 
         useCase =
-            new IngestIntegrationApisUseCase(
-                integrationCrudService,
+            new IngestFederatedApisUseCase(
+                integrationJobCrudService,
                 apiPrimaryOwnerFactory,
                 validateFederatedApiDomainService,
                 apiCrudService,
+                planCrudService,
+                pageQueryServiceInMemory,
                 createApiDomainService,
-                integrationAgent,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
                 updateFederatedApiDomainService,
-                createApiDocumentationDomainService,
-                updateApiDocumentationDomainService,
                 createPlanDomainService,
                 updatePlanDomainService,
-                planCrudService,
-                pageQueryServiceInMemory
+                createApiDocumentationDomainService,
+                updateApiDocumentationDomainService,
+                triggerNotificationDomainService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -371,6 +373,7 @@ class IngestIntegrationApisUseCaseTest {
             )
             .forEach(InMemoryAlternative::reset);
         reset(licenseManager);
+        triggerNotificationDomainService.reset();
 
         TimeProvider.overrideClock(Clock.systemDefaultZone());
     }
@@ -381,22 +384,26 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_and_index_a_federated_api() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .id("asset-1")
-                    .name("api-1")
-                    .description("my description")
-                    .version("1.1.1")
-                    .connectionDetails(Map.of("url", "https://example.com"))
-                    .build()
-            );
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .id("asset-1")
+                        .name("api-1")
+                        .description("my description")
+                        .version("1.1.1")
+                        .connectionDetails(Map.of("url", "https://example.com"))
+                        .build()
+                );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
@@ -441,12 +448,14 @@ class IngestIntegrationApisUseCaseTest {
         void should_create_federated_api_with_default_version_if_none_exist() {
             // Given
             var expectedDefaultApiVersion = "0.0.0";
-            var nullVersionApi = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().version(null).build();
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(nullVersionApi);
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().version(null).build();
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             //Then
             assertThat(apiCrudService.storage()).extracting(Api::getVersion).containsExactly(expectedDefaultApiVersion);
@@ -455,11 +464,14 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_an_audit() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(auditCrudService.storage())
@@ -499,11 +511,14 @@ class IngestIntegrationApisUseCaseTest {
         void should_create_primary_owner_membership_when_user_or_hybrid_mode_is_enabled(ApiPrimaryOwnerMode mode) {
             // Given
             enableApiPrimaryOwnerMode(mode);
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(membershipCrudService.storage())
@@ -526,11 +541,14 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_not_create_default_metadata() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(metadataCrudService.storage()).isEmpty();
@@ -539,11 +557,14 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_not_create_default_email_notification_configuration() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(notificationConfigCrudService.storage()).isEmpty();
@@ -553,17 +574,17 @@ class IngestIntegrationApisUseCaseTest {
         void should_ignore_api_review_mode() {
             // Given
             enableApiReview();
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
+            givenAnIngestJob(INGEST_JOB);
+            var apisToIngest = List.of(
                 IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("asset-1").name("api-1").build(),
                 IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("asset-2").name("api-2").build()
             );
 
             // When
             useCase
-                .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, apisToIngest, false))
                 .test()
-                .awaitDone(0, TimeUnit.SECONDS)
+                .awaitDone(10, TimeUnit.SECONDS)
                 .assertComplete();
 
             // Then
@@ -583,17 +604,18 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_update_federated_api_if_exists() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .name("api-1-updated")
-                    .description("my description updated")
-                    .version("1.1.2")
-                    .build()
-            );
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .name("api-1-updated")
+                        .description("my description updated")
+                        .version("1.1.2")
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -609,7 +631,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
@@ -661,18 +686,19 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_updated_api_audit_log() {
             //Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan("plan1", "Updated Plan 1", "Updated description 1", IntegrationApi.PlanType.API_KEY)
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .plans(
+                            List.of(
+                                new IntegrationApi.Plan("plan1", "Updated Plan 1", "Updated description 1", IntegrationApi.PlanType.API_KEY)
+                            )
                         )
-                    )
-                    .build()
-            );
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -686,7 +712,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(auditCrudService.storage())
@@ -715,22 +744,26 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_all_plans_associated() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan("plan1", "My Plan 1", "Description 1", IntegrationApi.PlanType.API_KEY),
-                            new IntegrationApi.Plan("plan2", "My Plan 2", "Description 2", IntegrationApi.PlanType.API_KEY)
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .plans(
+                            List.of(
+                                new IntegrationApi.Plan("plan1", "My Plan 1", "Description 1", IntegrationApi.PlanType.API_KEY),
+                                new IntegrationApi.Plan("plan2", "My Plan 2", "Description 2", IntegrationApi.PlanType.API_KEY)
+                            )
                         )
-                    )
-                    .build()
-            );
+                        .build()
+                );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             SoftAssertions.assertSoftly(soft ->
@@ -788,18 +821,19 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_update_plans_if_exist() {
             // Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan("plan1", "Updated Plan 1", "Updated description 1", IntegrationApi.PlanType.API_KEY)
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .plans(
+                            List.of(
+                                new IntegrationApi.Plan("plan1", "Updated Plan 1", "Updated description 1", IntegrationApi.PlanType.API_KEY)
+                            )
                         )
-                    )
-                    .build()
-            );
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -835,7 +869,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             SoftAssertions.assertSoftly(soft ->
@@ -869,18 +906,19 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_update_plan_audit_log() {
             //Given
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan("plan1", "Updated Plan 1", "Updated description 1", IntegrationApi.PlanType.API_KEY)
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .plans(
+                            List.of(
+                                new IntegrationApi.Plan("plan1", "Updated Plan 1", "Updated description 1", IntegrationApi.PlanType.API_KEY)
+                            )
                         )
-                    )
-                    .build()
-            );
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -915,7 +953,10 @@ class IngestIntegrationApisUseCaseTest {
             );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
@@ -942,22 +983,26 @@ class IngestIntegrationApisUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+            givenAnIngestJob(INGEST_JOB);
         }
 
         @Test
         void should_create_swagger_documentation() {
             // Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                        .build()
+                );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var expectedPage = Page
                 .builder()
@@ -982,16 +1027,20 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_api_audit_log() {
             //Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                        .build()
+                );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
@@ -1015,16 +1064,20 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_and_index_a_federated_page() {
             //Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                        .build()
+                );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var expectedPage = Page
                 .builder()
@@ -1049,16 +1102,20 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_and_index_a_federated_page_for_asyncapi() {
             //Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc")))
+                        .build()
+                );
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var expectedPage = Page
                 .builder()
@@ -1082,16 +1139,13 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_not_create_documentation_if_pages_list_is_null() {
             //Given
-            var nullPagesIntegrationApi = IntegrationApiFixtures
-                .anIntegrationApiForIntegration(INTEGRATION_ID)
-                .toBuilder()
-                .pages(null)
-                .build();
-
-            givenIntegrationApis(nullPagesIntegrationApi);
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().pages(null).build();
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             //Then
             assertThat(pageCrudService.storage()).isEmpty();
@@ -1101,16 +1155,17 @@ class IngestIntegrationApisUseCaseTest {
         @EnumSource(value = IntegrationApi.PageType.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER", "ASYNCAPI" })
         void should_not_create_documentation_if_pageType_is_other_than_SWAGGER(IntegrationApi.PageType pageType) {
             //Given
-            var unsupportedPageTypeIntegrationApi = IntegrationApiFixtures
+            var apiToIngest = IntegrationApiFixtures
                 .anIntegrationApiForIntegration(INTEGRATION_ID)
                 .toBuilder()
                 .pages(List.of(new IntegrationApi.Page(pageType, "somePageTypeContent")))
                 .build();
 
-            givenIntegrationApis(unsupportedPageTypeIntegrationApi);
-
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             //Then
             assertThat(pageCrudService.storage()).isEmpty();
@@ -1122,20 +1177,21 @@ class IngestIntegrationApisUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+            givenAnIngestJob(INGEST_JOB);
         }
 
         @Test
         void should_update_swagger_doc_page_if_exists() {
             // Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc")))
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -1166,7 +1222,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var expectedPage = Page
                 .builder()
@@ -1191,14 +1250,15 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_update_async_api_doc_page_if_exists() {
             //Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc")))
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -1228,7 +1288,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var expectedPage = Page
                 .builder()
@@ -1252,13 +1315,14 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_create_doc_update_audit_log() {
             //Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc")))
+                        .build()
+                );
             givenExistingPage(
                 Page
                     .builder()
@@ -1288,7 +1352,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
@@ -1312,15 +1379,16 @@ class IngestIntegrationApisUseCaseTest {
         @Test
         void should_update_doc_if_api_name_changed() {
             // Given
-            givenIntegrationApis(
-                IntegrationApiFixtures
-                    .anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .name("new-name")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc")))
-                    .build()
-            );
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .uniqueId("uid-1")
+                        .name("new-name")
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc")))
+                        .build()
+                );
             givenExistingApi(
                 ApiFixtures
                     .aFederatedApi()
@@ -1351,7 +1419,10 @@ class IngestIntegrationApisUseCaseTest {
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
 
             // When
-            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var expectedPage = Page
                 .builder()
@@ -1376,31 +1447,35 @@ class IngestIntegrationApisUseCaseTest {
     }
 
     @Test
-    void should_throw_when_no_license_found() {
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
-
-        useCase
-            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
-            .test()
-            .assertError(NotAllowedDomainException.class);
-    }
-
-    @Test
-    void should_throw_when_no_integration_is_found() {
+    void should_do_nothing_when_no_job_is_found() {
         // When
-        var obs = useCase.execute(new IngestIntegrationApisUseCase.Input("unknown", AUDIT_INFO)).test();
+        useCase
+            .execute(
+                new IngestFederatedApisUseCase.Input(
+                    ORGANIZATION_ID,
+                    INGEST_JOB_ID,
+                    List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)),
+                    false
+                )
+            )
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
-        obs.assertError(IntegrationNotFoundException.class);
+        assertThat(apiCrudService.storage()).isEmpty();
     }
 
     @Test
     void should_do_nothing_when_no_apis_to_ingest() {
         // Given
-        givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
+        givenAnIngestJob(INGEST_JOB);
 
         // When
-        useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+        useCase
+            .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(), false))
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS);
 
         // Then
         Assertions.assertThat(apiCrudService.storage()).isEmpty();
@@ -1409,17 +1484,17 @@ class IngestIntegrationApisUseCaseTest {
     @Test
     void should_create_a_federated_api_for_each_integration_apis() {
         // Given
-        givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-        givenIntegrationApis(
+        givenAnIngestJob(INGEST_JOB);
+        var apisToIngest = List.of(
             IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-1").name("api-1").build(),
             IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-2").name("api-2").build()
         );
 
         // When
         useCase
-            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, apisToIngest, false))
             .test()
-            .awaitDone(0, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertComplete();
 
         // Then
@@ -1429,8 +1504,8 @@ class IngestIntegrationApisUseCaseTest {
     @Test
     void should_skip_creating_federated_api_when_validation_fails() {
         // Given
-        givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-        givenIntegrationApis(
+        givenAnIngestJob(INGEST_JOB);
+        var apisToIngest = List.of(
             IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-1").name("api-1").build(),
             IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-2").name("api-2").build(),
             IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-3").name("api-3").build()
@@ -1441,21 +1516,17 @@ class IngestIntegrationApisUseCaseTest {
 
         // When
         useCase
-            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, apisToIngest, false))
             .test()
-            .awaitDone(0, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertComplete();
 
         // Then
         Assertions.assertThat(apiCrudService.storage()).extracting(Api::getName).containsExactlyInAnyOrder("api-1", "api-3");
     }
 
-    private void givenAnIntegration(Integration integration) {
-        integrationCrudService.initWith(List.of(integration));
-    }
-
-    private void givenIntegrationApis(IntegrationApi... integrationApis) {
-        integrationAgent.initWith(List.of(integrationApis));
+    private void givenAnIngestJob(IntegrationJob job) {
+        integrationJobCrudService.initWith(List.of(job));
     }
 
     private void givenExistingApi(Api... apis) {

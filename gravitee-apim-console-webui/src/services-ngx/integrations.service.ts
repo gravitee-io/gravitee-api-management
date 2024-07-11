@@ -24,6 +24,7 @@ import {
   DeletedFederatedAPIsResponse,
   FederatedAPIsResponse,
   Integration,
+  IntegrationIngestionResponse,
   IntegrationPreview,
   IntegrationResponse,
   UpdateIntegrationPayload,
@@ -75,8 +76,8 @@ export class IntegrationsService {
     return this.httpClient.delete<Integration>(`${this.url}/${id}`);
   }
 
-  public ingestIntegration(id: string) {
-    return this.httpClient.post(`${this.url}/${id}/_ingest`, null);
+  public ingestIntegration(id: string): Observable<IntegrationIngestionResponse> {
+    return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${id}/_ingest`, null);
   }
 
   public previewIntegration(id: string): Observable<IntegrationPreview> {

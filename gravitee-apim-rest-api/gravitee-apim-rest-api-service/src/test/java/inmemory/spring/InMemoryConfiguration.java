@@ -47,6 +47,8 @@ import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.IntegrationJobCrudServiceInMemory;
+import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
@@ -314,8 +316,20 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public IntegrationJobCrudServiceInMemory integrationJobCrudService() {
+        return new IntegrationJobCrudServiceInMemory();
+    }
+
+    @Bean
     public IntegrationQueryServiceInMemory integrationQueryService(IntegrationCrudServiceInMemory integrationCrudServiceInMemory) {
         return new IntegrationQueryServiceInMemory(integrationCrudServiceInMemory);
+    }
+
+    @Bean
+    public IntegrationJobQueryServiceInMemory integrationJobQueryService(
+        IntegrationJobCrudServiceInMemory integrationJobCrudServiceInMemory
+    ) {
+        return new IntegrationJobQueryServiceInMemory(integrationJobCrudServiceInMemory);
     }
 
     @Bean

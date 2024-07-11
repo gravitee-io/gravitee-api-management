@@ -16,12 +16,14 @@
 package io.gravitee.integration.controller.command;
 
 import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.IngestFederatedApisUseCase;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.Reply;
 import io.gravitee.exchange.api.controller.ControllerCommandContext;
 import io.gravitee.exchange.api.controller.ControllerCommandHandlersFactory;
 import io.gravitee.integration.controller.command.hello.HelloCommandHandler;
+import io.gravitee.integration.controller.command.ingest.IngestCommandHandler;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -29,11 +31,15 @@ import lombok.RequiredArgsConstructor;
 public class IntegrationControllerCommandHandlerFactory implements ControllerCommandHandlersFactory {
 
     private final CheckIntegrationUseCase checkIntegrationUseCase;
+    private final IngestFederatedApisUseCase ingestFederatedApisUseCase;
 
     @Override
     public List<CommandHandler<? extends Command<?>, ? extends Reply<?>>> buildCommandHandlers(
         final ControllerCommandContext controllerCommandContext
     ) {
-        return List.of(new HelloCommandHandler(checkIntegrationUseCase, (IntegrationCommandContext) controllerCommandContext));
+        return List.of(
+            new HelloCommandHandler(checkIntegrationUseCase, (IntegrationCommandContext) controllerCommandContext),
+            new IngestCommandHandler(ingestFederatedApisUseCase, (IntegrationCommandContext) controllerCommandContext)
+        );
     }
 }

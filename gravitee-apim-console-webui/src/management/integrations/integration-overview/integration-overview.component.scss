@@ -171,3 +171,8 @@ gio-table-wrapper {
   height: 1px;
   background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 }
+
+.pending-job-banner {
+  margin-left: 16px;
+  margin-right: 16px;
+}

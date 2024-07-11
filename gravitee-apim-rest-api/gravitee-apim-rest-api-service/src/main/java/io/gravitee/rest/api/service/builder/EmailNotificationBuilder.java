@@ -174,6 +174,11 @@ public class EmailNotificationBuilder {
             "New support Ticket by ${user.displayName}"
         ),
         PORTAL_GROUP_INVITATION(PortalHook.GROUP_INVITATION, "groupInvitationNotification.html", "New group invitation - ${group.name}"),
+        PORTAL_FEDERATED_APIS_INGESTION_COMPLETE(
+            PortalHook.FEDERATED_APIS_INGESTION_COMPLETE,
+            "federatedApisIngestionComplete.html",
+            "Federated APIs ingestion complete for Integration ${integration.name}"
+        ),
         TEMPLATES_FOR_ACTION_USER_REGISTRATION(
             ActionHook.USER_REGISTRATION,
             "userRegistration.html",

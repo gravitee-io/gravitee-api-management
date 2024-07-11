@@ -120,24 +120,65 @@ describe('IntegrationOverviewComponent', () => {
       expect(discoverBtn.isDisabled()).toBeTruthy();
     });
 
-    it('should call _ingest endpoint on confirm', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
-      expectFederatedAPIsGetRequest();
+    describe('when confirming', () => {
+      it('should handle a pending Ingestion Job', async () => {
+        expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+        expectFederatedAPIsGetRequest();
 
-      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-      await discoverBtn.click();
-      expectPreviewGetRequest();
+        const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+        await discoverBtn.click();
+        expectPreviewGetRequest();
 
-      const dialogHarness: GioConfirmDialogHarness =
-        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.confirm();
+        const dialogHarness: GioConfirmDialogHarness =
+          await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        await dialogHarness.confirm();
 
-      expectIngestPostRequest({
-        status: 'SUCCESS',
-        message: 'Integration APIs have been ingested successfully',
+        expectIngestPostRequest({
+          status: 'PENDING',
+        });
+        expect(fakeSnackBarService.success).toHaveBeenCalledWith('Federated APIs ingestion started');
+
+        const banner = await componentHarness.getPendingJobBanner().then((e) => e.text());
+        expect(banner).toContain('A discovery is in progress. The process should only take a few minutes to complete.');
       });
-      expect(fakeSnackBarService.success).toHaveBeenCalledWith('APIs successfully created and ready for use!');
-      expectFederatedAPIsGetRequest();
+
+      it('should handle a completed Ingestion Job', async () => {
+        expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+        expectFederatedAPIsGetRequest();
+
+        const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+        await discoverBtn.click();
+        expectPreviewGetRequest();
+
+        const dialogHarness: GioConfirmDialogHarness =
+          await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        await dialogHarness.confirm();
+
+        expectIngestPostRequest({
+          status: 'SUCCESS',
+        });
+        expect(fakeSnackBarService.success).toHaveBeenCalledWith('Federated APIs ingestion completed');
+        expectFederatedAPIsGetRequest();
+      });
+
+      it('should handle a failed Ingestion Job', async () => {
+        expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+        expectFederatedAPIsGetRequest();
+
+        const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+        await discoverBtn.click();
+        expectPreviewGetRequest();
+
+        const dialogHarness: GioConfirmDialogHarness =
+          await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        await dialogHarness.confirm();
+
+        expectIngestPostRequest({
+          status: 'ERROR',
+          message: 'error message',
+        });
+        expect(fakeSnackBarService.error).toHaveBeenCalledWith('Federated APIs ingestion failed: error message');
+      });
     });
 
     it('should not call _ingest endpoint on cancel', async () => {
@@ -201,6 +242,16 @@ describe('IntegrationOverviewComponent', () => {
     });
 
     it('should display success badge', async (): Promise<void> => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
+      expectFederatedAPIsGetRequest();
+
+      const successBadge: TestElement = await componentHarness.getSuccessBadge();
+      expect(successBadge).toBeTruthy();
+
+      expect(await componentHarness.getErrorBanner()).toBeNull();
+    });
+
+    it('should display pending job banner when a job is pending', async (): Promise<void> => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
       expectFederatedAPIsGetRequest();
 

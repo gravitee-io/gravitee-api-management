@@ -16,11 +16,30 @@
 package io.gravitee.integration.controller.command;
 
 import io.gravitee.exchange.api.controller.ControllerCommandContext;
-import java.util.Set;
+import lombok.Data;
+import lombok.Setter;
 
-public record IntegrationCommandContext(boolean valid, String organizationId) implements ControllerCommandContext {
+@Data
+public final class IntegrationCommandContext implements ControllerCommandContext {
+
+    private final boolean valid;
+    private final String organizationId;
+
+    @Setter
+    private String integrationId;
+
+    public IntegrationCommandContext(boolean valid, String organizationId, String integrationId) {
+        this.valid = valid;
+        this.organizationId = organizationId;
+        this.integrationId = integrationId;
+    }
+
     public IntegrationCommandContext(boolean valid) {
-        this(valid, null);
+        this(valid, null, null);
+    }
+
+    public IntegrationCommandContext(boolean valid, String organizationId) {
+        this(valid, organizationId, null);
     }
 
     @Override

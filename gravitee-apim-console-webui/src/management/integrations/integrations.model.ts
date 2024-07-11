@@ -35,6 +35,24 @@ export interface Integration {
   provider: string;
   description: string;
   owner?: string;
+  pendingJob?: IntegrationJob;
+}
+
+export interface IntegrationIngestionResponse {
+  status: IngestionStatus;
+  message?: string;
+}
+
+export interface IntegrationJob {
+  id: string;
+  status: IngestionStatus;
+  startedAt: string;
+}
+
+export enum IngestionStatus {
+  SUCCESS = 'SUCCESS',
+  PENDING = 'PENDING',
+  ERROR = 'ERROR',
 }
 
 export enum AgentStatus {

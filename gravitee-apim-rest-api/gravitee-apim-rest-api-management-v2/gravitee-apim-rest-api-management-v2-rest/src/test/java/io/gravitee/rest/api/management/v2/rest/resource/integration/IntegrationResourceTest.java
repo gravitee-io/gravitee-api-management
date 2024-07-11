@@ -28,12 +28,15 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.IntegrationJobFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.IntegrationJobCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.LicenseManager;
@@ -61,6 +64,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -74,6 +78,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Autowired
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
+
+    @Autowired
+    IntegrationJobCrudServiceInMemory integrationJobCrudServiceInMemory;
 
     @Autowired
     ApiCrudServiceInMemory apiCrudServiceInMemory;
@@ -117,7 +124,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        Stream.of(apiCrudServiceInMemory, integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream
+            .of(apiCrudServiceInMemory, integrationCrudServiceInMemory, integrationJobCrudServiceInMemory)
+            .forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
         reset(licenseManager);
     }
@@ -127,9 +136,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_get_integration() {
-            //Given
-            var integration = IntegrationFixture.anIntegration().withId(INTEGRATION_ID);
-            integrationCrudServiceInMemory.initWith(List.of(integration));
+            // Given
+            var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
 
             //When
             Response response = target.request().get();
@@ -146,6 +154,38 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .description(integration.getDescription())
                         .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_get_integration_with_pending_job() {
+            // Given
+            var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
+            var job = givenAnIntegrationJob(IntegrationJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
+
+            //When
+            Response response = target.request().get();
+
+            //Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(Integration.class)
+                .isEqualTo(
+                    Integration
+                        .builder()
+                        .id(INTEGRATION_ID)
+                        .name(integration.getName())
+                        .description(integration.getDescription())
+                        .provider(integration.getProvider())
+                        .agentStatus(Integration.AgentStatusEnum.CONNECTED)
+                        .pendingJob(
+                            io.gravitee.rest.api.management.v2.rest.model.IngestionJob
+                                .builder()
+                                .id(job.getId())
+                                .status(IngestionStatus.PENDING)
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -234,9 +274,10 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_success_when_ingestion_succeed() {
+        public void should_return_success_when_ingestion_has_started() {
             //Given
             integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+            integrationAgentInMemory.configureApisNumberToIngest(INTEGRATION_ID, 10L);
 
             //When
             Response response = target.request().post(null);
@@ -245,7 +286,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationIngestionResponse.class)
-                .isEqualTo(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build());
+                .isEqualTo(IntegrationIngestionResponse.builder().status(IngestionStatus.PENDING).build());
         }
     }
 
@@ -637,5 +678,17 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .build()
                 );
         }
+    }
+
+    private io.gravitee.apim.core.integration.model.Integration givenAnIntegration(
+        io.gravitee.apim.core.integration.model.Integration integration
+    ) {
+        integrationCrudServiceInMemory.initWith(List.of(integration));
+        return integration;
+    }
+
+    private IntegrationJob givenAnIntegrationJob(IntegrationJob integrationJob) {
+        integrationJobCrudServiceInMemory.initWith(List.of(integrationJob));
+        return integrationJob;
     }
 }

@@ -24,19 +24,18 @@ import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.crud_service.IntegrationJobCrudService;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
-import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
-import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.model.hook.portal.FederatedApisIngestionCompleteHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
@@ -44,7 +43,9 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -56,70 +57,74 @@ import lombok.extern.slf4j.Slf4j;
 @UseCase
 @Slf4j
 @RequiredArgsConstructor
-public class IngestIntegrationApisUseCase {
+public class IngestFederatedApisUseCase {
 
-    private final IntegrationCrudService integrationCrudService;
+    private final IntegrationJobCrudService integrationJobCrudService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final ValidateFederatedApiDomainService validateFederatedApi;
     private final ApiCrudService apiCrudService;
-    private final CreateApiDomainService createApiDomainService;
-    private final IntegrationAgent integrationAgent;
-    private final LicenseDomainService licenseDomainService;
-    private final UpdateFederatedApiDomainService updateFederatedApiDomainService;
-    private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
-    private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
-    private final CreatePlanDomainService createPlanDomainService;
-    private final UpdatePlanDomainService updatePlanDomainService;
     private final PlanCrudService planCrudService;
     private final PageQueryService pageQueryService;
+    private final CreateApiDomainService createApiDomainService;
+    private final UpdateFederatedApiDomainService updateFederatedApiDomainService;
+    private final CreatePlanDomainService createPlanDomainService;
+    private final UpdatePlanDomainService updatePlanDomainService;
+    private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
+    private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
+    private final TriggerNotificationDomainService triggerNotificationDomainService;
 
     public Completable execute(Input input) {
-        var integrationId = input.integrationId;
-        var auditInfo = input.auditInfo;
-        var organizationId = auditInfo.organizationId();
-        var environmentId = auditInfo.environmentId();
+        log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
+        var ingestJobId = input.ingestJobId;
+        var organizationId = input.organizationId();
 
-        if (!licenseDomainService.isFederationFeatureAllowed(organizationId)) {
-            return Completable.error(NotAllowedDomainException.noLicenseForFederation());
-        }
+        return Maybe
+            .defer(() -> Maybe.fromOptional(integrationJobCrudService.findById(ingestJobId)))
+            .subscribeOn(Schedulers.computation())
+            .flatMapCompletable(job -> {
+                var environmentId = job.getEnvironmentId();
+                var userId = job.getInitiatorId();
+                var auditInfo = new AuditInfo(organizationId, environmentId, new AuditActor(userId, null, null));
+                var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
 
-        return Single
-            .fromCallable(() ->
-                integrationCrudService
-                    .findById(integrationId)
-                    .filter(integration -> integration.getEnvironmentId().equals(environmentId))
-                    .orElseThrow(() -> new IntegrationNotFoundException(integrationId))
-            )
-            .flatMapPublisher(integration -> {
-                var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
-                return integrationAgent
-                    .fetchAllApis(integration)
-                    .doOnNext(api -> {
-                        var federatedApi = ApiModelFactory.fromIntegration(api, integration);
+                return Flowable
+                    .fromIterable(input.apisToIngest)
+                    .flatMapCompletable(api ->
+                        Completable.fromRunnable(() -> {
+                            var federatedApi = ApiModelFactory.fromIngestionJob(api, job);
 
-                        apiCrudService
-                            .findById(federatedApi.getId())
-                            .ifPresentOrElse(
-                                existingApi -> updateApi(federatedApi, existingApi, api, auditInfo, primaryOwner),
-                                () -> createApi(federatedApi, api, auditInfo, primaryOwner)
+                            apiCrudService
+                                .findById(federatedApi.getId())
+                                .ifPresentOrElse(
+                                    existingApi -> updateApi(federatedApi, existingApi, api, auditInfo, primaryOwner),
+                                    () -> createApi(federatedApi, api, auditInfo, primaryOwner)
+                                );
+                        })
+                    )
+                    .doOnComplete(() -> {
+                        if (input.completed) {
+                            integrationJobCrudService.update(job.complete());
+                            triggerNotificationDomainService.triggerPortalNotification(
+                                organizationId,
+                                new FederatedApisIngestionCompleteHookContext(job.getSourceId())
                             );
+                        }
                     });
-            })
-            .ignoreElements();
+            });
     }
 
     private void createApi(Api federatedApi, IntegrationApi integrationApi, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwner) {
         try {
             createApiDomainService.create(federatedApi, primaryOwner, auditInfo, validateFederatedApi::validateAndSanitizeForCreation);
 
-            ofNullable(integrationApi.plans())
-                .stream()
+            Stream
+                .ofNullable(integrationApi.plans())
                 .flatMap(Collection::stream)
                 .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
                 .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, auditInfo));
 
-            ofNullable(integrationApi.pages())
-                .stream()
+            Stream
+                .ofNullable(integrationApi.pages())
                 .flatMap(Collection::stream)
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
                 .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
@@ -214,7 +219,7 @@ public class IngestIntegrationApisUseCase {
             .id(UuidString.generateRandom())
             .name(generatePageName(name, Page.Type.SWAGGER))
             .content(content)
-            .type(Page.Type.valueOf(IntegrationApi.PageType.SWAGGER.name()))
+            .type(Page.Type.SWAGGER)
             .referenceId(referenceId)
             .referenceType(Page.ReferenceType.API)
             .published(true)
@@ -233,7 +238,7 @@ public class IngestIntegrationApisUseCase {
             .id(UuidString.generateRandom())
             .name(generatePageName(name, Page.Type.ASYNCAPI))
             .content(content)
-            .type(Page.Type.valueOf(IntegrationApi.PageType.ASYNCAPI.name()))
+            .type(Page.Type.ASYNCAPI)
             .referenceId(referenceId)
             .referenceType(Page.ReferenceType.API)
             .published(true)
@@ -252,5 +257,5 @@ public class IngestIntegrationApisUseCase {
         };
     }
 
-    public record Input(String integrationId, AuditInfo auditInfo) {}
+    public record Input(String organizationId, String ingestJobId, List<IntegrationApi> apisToIngest, boolean completed) {}
 }
