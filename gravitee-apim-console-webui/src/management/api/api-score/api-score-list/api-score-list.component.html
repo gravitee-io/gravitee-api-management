@@ -1,0 +1,81 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-accordion>
+  <mat-expansion-panel [expanded]="!!scoreList.issues.length">
+    <mat-expansion-panel-header>
+      <mat-panel-title class="panel-title">
+        {{ scoreList.name }}
+        <span class="gio-badge-neutral">{{ scoreList.source }}</span>
+        <button (click)="openEditor($event)" class="api-score-action-button" mat-raised-button [disabled]="false">Open File Preview</button>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <gio-table-wrapper
+      class="table-wrapper"
+      [disableSearchInput]="true"
+      [length]="nbTotalInstances"
+      [filters]="filters"
+      (filtersChange)="runFilters($event)"
+    >
+      <table mat-table [dataSource]="issuesFiltered" aria-label="Table">
+        <caption style="display: none">
+          Table with APIs Scores
+        </caption>
+
+        <ng-container matColumnDef="severity">
+          <th mat-header-cell *matHeaderCellDef id="severity">Severity</th>
+          <td mat-cell *matCellDef="let issue">
+            <span class="gio-badge-warning">{{ issue.severity }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef id="location">Line/Column</th>
+          <td mat-cell *matCellDef="let issue">
+            {{ issue.location }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="recommendation">
+          <th mat-header-cell *matHeaderCellDef id="recommendation">Recommendation</th>
+          <td mat-cell *matCellDef="let issue">
+            {{ issue.recommendation }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="path">
+          <th mat-header-cell *matHeaderCellDef id="path">Path</th>
+          <td mat-cell *matCellDef="let issue">
+            {{ issue.path }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <!-- Row shown when there are no data for table -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td *ngIf="!scoreList.issues.length" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            {{ 'No issues found' }}
+          </td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </mat-expansion-panel>
+</mat-accordion>
