@@ -114,8 +114,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery) {
         String json = exportAsJson(executionContext, apiId, "2.0.0", exportQuery.getExcludedFields());
         try {
-            ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-
             JsonNode jsonNode = objectMapper.readTree(json);
 
             String name = jsonNode.get("name").asText();
@@ -143,9 +141,12 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
                 apiDefinitionResource.setVersion(exportQuery.getVersion());
             }
 
-            ((ObjectNode) jsonNode).set("notifyMembers", BooleanNode.valueOf(!apiEntity.isDisableMembershipNotifications()));
+            ((ObjectNode) jsonNode).set(
+                    "notifyMembers",
+                    BooleanNode.valueOf(!jsonNode.get("disable_membership_notifications").asBoolean())
+                );
 
-            ((ObjectNode) jsonNode).remove("disableMembershipNotifications");
+            ((ObjectNode) jsonNode).remove("disable_membership_notifications");
 
             return customResourceDefinitionMapper.toCustomResourceDefinition(apiDefinitionResource);
         } catch (final Exception e) {

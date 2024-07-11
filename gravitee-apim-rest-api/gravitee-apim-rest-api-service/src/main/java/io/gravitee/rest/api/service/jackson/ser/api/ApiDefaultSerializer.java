@@ -83,6 +83,8 @@ public class ApiDefaultSerializer extends ApiSerializer {
             jsonGenerator.writeObjectField("primaryOwner", apiEntity.getPrimaryOwner());
         }
 
+        jsonGenerator.writeObjectField("disable_membership_notifications", apiEntity.isDisableMembershipNotifications());
+
         // must end the writing process
         jsonGenerator.writeEndObject();
     }
