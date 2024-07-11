@@ -47,11 +47,11 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
     it('should have correct table header', function () {
       cy.getByDataTestId('api_list_table_header')
         .should('contain.text', 'Name')
+        .and('contain.text', 'Definition')
         .and('contain.text', 'Status')
         .and('contain.text', 'Access')
         .and('contain.text', 'Tags')
         .and('contain.text', 'Owner')
-        .and('contain.text', 'Definition')
         .and('contain.text', 'Visibility');
     });
   });
@@ -123,7 +123,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
 
     describe('Verify element of API list filled with sample data', function () {
       it(`should display ${noOfApis} v2 APIs and ${noOfApis} v4 APIs `, function () {
-        cy.get('tr:contains(V4 - Message)').should('have.length', noOfApis);
+        cy.get('tr:contains(V4 - HTTP Message)').should('have.length', noOfApis);
         cy.get('tr:contains(V2)').should('have.length', noOfApis);
       });
 
