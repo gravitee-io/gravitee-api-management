@@ -93,6 +93,11 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     }
 
     @Override
+    public Optional<Page> findByNameAndReferenceId(String name, String referenceId) {
+        return pages.stream().filter(p -> p.getName().equals(name) && p.getReferenceId().equals(referenceId)).findFirst();
+    }
+
+    @Override
     public long countByParentIdAndIsPublished(String parentId) {
         return pages.stream().filter(page -> Objects.equals(page.getParentId(), parentId) && page.isPublished()).count();
     }

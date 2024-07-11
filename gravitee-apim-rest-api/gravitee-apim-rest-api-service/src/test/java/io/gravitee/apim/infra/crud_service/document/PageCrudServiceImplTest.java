@@ -46,6 +46,7 @@ public class PageCrudServiceImplTest {
 
     private final Date DATE = new Date();
     private final String PAGE_ID = "page-id";
+    private final String PAGE_NAME = "page-name";
 
     @Mock
     PageRepository pageRepository;
@@ -72,7 +73,7 @@ public class PageCrudServiceImplTest {
                     .builder()
                     .id(PAGE_ID)
                     .type(Page.Type.MARKDOWN)
-                    .name("page name")
+                    .name(PAGE_NAME)
                     .createdAt(date)
                     .updatedAt(date)
                     .content("nice content")
@@ -93,7 +94,7 @@ public class PageCrudServiceImplTest {
                 .builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
-                .name("page name")
+                .name(PAGE_NAME)
                 .createdAt(date)
                 .updatedAt(date)
                 .content("nice content")
@@ -123,7 +124,7 @@ public class PageCrudServiceImplTest {
                 .builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
-                .name("page name")
+                .name(PAGE_NAME)
                 .createdAt(DATE)
                 .updatedAt(DATE)
                 .content("nice content")
@@ -145,7 +146,7 @@ public class PageCrudServiceImplTest {
                 .builder()
                 .id(PAGE_ID)
                 .type(Page.Type.MARKDOWN)
-                .name("page name")
+                .name(PAGE_NAME)
                 .createdAt(DATE)
                 .updatedAt(DATE)
                 .content("nice content")
@@ -187,7 +188,7 @@ public class PageCrudServiceImplTest {
                 .builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
-                .name("page name")
+                .name(PAGE_NAME)
                 .createdAt(DATE)
                 .updatedAt(DATE)
                 .content("nice content")
@@ -216,7 +217,7 @@ public class PageCrudServiceImplTest {
                 .builder()
                 .id(PAGE_ID)
                 .type(Page.Type.MARKDOWN)
-                .name("page name")
+                .name(PAGE_NAME)
                 .createdAt(DATE)
                 .updatedAt(DATE)
                 .content("nice content")
@@ -272,17 +273,17 @@ public class PageCrudServiceImplTest {
 
         @Test
         void should_delete_a_page() throws TechnicalException {
-            service.delete("page-id");
-            verify(pageRepository).delete("page-id");
+            service.delete(PAGE_ID);
+            verify(pageRepository).delete(PAGE_ID);
         }
 
         @Test
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
-            doThrow(new TechnicalException("exception")).when(pageRepository).delete("page-id");
-            assertThatThrownBy(() -> service.delete("page-id"))
+            doThrow(new TechnicalException("exception")).when(pageRepository).delete(PAGE_ID);
+            assertThatThrownBy(() -> service.delete(PAGE_ID))
                 .isInstanceOf(ApiPageNotDeletedException.class)
                 .hasMessage("Page page-id not deleted");
-            verify(pageRepository).delete("page-id");
+            verify(pageRepository).delete(PAGE_ID);
         }
     }
 }

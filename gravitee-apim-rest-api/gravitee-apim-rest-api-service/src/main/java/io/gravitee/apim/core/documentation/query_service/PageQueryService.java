@@ -25,4 +25,5 @@ public interface PageQueryService {
     List<Page> searchByApiIdAndParentId(String apiId, String parentId);
     Optional<Page> findByApiIdAndParentIdAndNameAndType(String apiId, String parentId, String name, Page.Type type);
     long countByParentIdAndIsPublished(String parentId);
+    Optional<Page> findByNameAndReferenceId(String name, String referenceId);
 }

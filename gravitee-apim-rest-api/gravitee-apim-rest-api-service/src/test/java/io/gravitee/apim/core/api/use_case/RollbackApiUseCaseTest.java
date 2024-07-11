@@ -492,14 +492,14 @@ class RollbackApiUseCaseTest {
             );
 
         // Check updated plan
-        var updatedPlan = planCrudService.findById(existingPlanToUpdate.getId());
+        var updatedPlan = planCrudService.getById(existingPlanToUpdate.getId());
         assertThat(updatedPlan.getName()).isEqualTo("plan-to-update-name-UPDATED");
         assertThat(updatedPlan.getPlanDefinitionV4().getFlows().get(0).getName()).isEqualTo("plan-to-update-new-flow");
         assertThat(updatedPlan.getDescription()).isEqualTo("Description not updated");
         assertThat(updatedPlan.getCommentMessage()).isEqualTo("Comment message not updated");
 
         // Check created plan
-        var createdPlan = planCrudService.findById("plan-to-add");
+        var createdPlan = planCrudService.getById("plan-to-add");
         assertThat(createdPlan.getId()).isEqualTo("plan-to-add");
         assertThat(createdPlan.getName()).isEqualTo("plan-to-add-name");
         assertThat(createdPlan.getPlanDefinitionV4().getFlows().get(0).getName()).isEqualTo("flow-name");

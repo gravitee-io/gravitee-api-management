@@ -86,7 +86,7 @@ public class SearchConnectionLogsUseCase {
     private GenericPlanEntity getPlanInfo(String planId) {
         final BasePlanEntity unknownPlan = BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
         try {
-            return planId != null ? planCrudService.findById(planId) : unknownPlan;
+            return planId != null ? planCrudService.getById(planId) : unknownPlan;
         } catch (PlanNotFoundException | TechnicalManagementException e) {
             return unknownPlan;
         }

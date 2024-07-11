@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -25,72 +26,31 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 
 @UseCase
 public class UpdateFederatedPlanUseCase {
 
-    private final PlanCrudService planCrudService;
-    private final PlanValidatorDomainService planValidatorService;
-    private final ReorderPlanDomainService reorderPlanDomainService;
-    private final AuditDomainService auditService;
+    private final UpdatePlanDomainService updatePlanDomainService;
 
-    public UpdateFederatedPlanUseCase(
-        PlanCrudService planCrudService,
-        PlanValidatorDomainService planValidatorService,
-        ReorderPlanDomainService reorderPlanDomainService,
-        AuditDomainService auditService
-    ) {
-        this.planCrudService = planCrudService;
-        this.planValidatorService = planValidatorService;
-        this.reorderPlanDomainService = reorderPlanDomainService;
-        this.auditService = auditService;
+    public UpdateFederatedPlanUseCase(UpdatePlanDomainService updatePlanDomainService) {
+        this.updatePlanDomainService = updatePlanDomainService;
     }
 
     public Output execute(Input input) {
         if (input.planToUpdate.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             throw new IllegalArgumentException(String.format("Can't update a %s plan", input.planToUpdate.getDefinitionVersion()));
         }
-        planValidatorService.validateGeneralConditionsPageStatus(input.planToUpdate);
 
-        var existingPlan = planCrudService.findById(input.planToUpdate.getId());
-        if (existingPlan.getPlanStatus() == PlanStatus.CLOSED && existingPlan.getPlanStatus() != input.planToUpdate.getPlanStatus()) {
-            throw new ValidationDomainException("Invalid status for plan '" + input.planToUpdate.getName() + "'");
-        }
-
-        var toUpdate = existingPlan.update(input.planToUpdate);
-
-        Plan updated;
-        if (toUpdate.getOrder() != existingPlan.getOrder()) {
-            updated = reorderPlanDomainService.reorderAfterUpdate(toUpdate);
-        } else {
-            updated = planCrudService.update(toUpdate);
-        }
-
-        createAuditLog(existingPlan, updated, input.auditInfo);
+        var updated = updatePlanDomainService.update(input.planToUpdate, List.of(), Map.of(), null, input.auditInfo);
 
         return new Output(updated);
-    }
-
-    private void createAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiId(newPlan.getApiId())
-                .event(PlanAuditEvent.PLAN_UPDATED)
-                .actor(auditInfo.actor())
-                .oldValue(oldPlan)
-                .newValue(newPlan)
-                .createdAt(newPlan.getUpdatedAt())
-                .properties(Map.of(AuditProperties.PLAN, newPlan.getId()))
-                .build()
-        );
     }
 
     @Builder

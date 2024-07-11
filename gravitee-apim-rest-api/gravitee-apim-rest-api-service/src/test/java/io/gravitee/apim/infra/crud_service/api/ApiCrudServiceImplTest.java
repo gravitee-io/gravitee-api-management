@@ -103,6 +103,63 @@ public class ApiCrudServiceImplTest {
     }
 
     @Nested
+    class Find {
+
+        @Test
+        void should_find_an_api() throws TechnicalException {
+            var existingApi = io.gravitee.repository.management.model.Api
+                .builder()
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .definition(
+                    """
+                    {"id":"my-api","name":"My Api","type":"proxy","apiVersion":"1.0.0","definitionVersion":"4.0.0","tags":["tag1"],"listeners":[{"type":"http","entrypoints":[{"type":"http-proxy","qos":"auto","configuration":{}}],"paths":[{"path":"/http_proxy"}]}],"endpointGroups":[{"name":"default-group","type":"http-proxy","loadBalancer":{"type":"round-robin"},"sharedConfiguration":{},"endpoints":[{"name":"default-endpoint","type":"http-proxy","secondary":false,"weight":1,"inheritConfiguration":true,"configuration":{"target":"https://api.gravitee.io/echo"},"services":{}}],"services":{}}],"analytics":{"enabled":false},"flowExecution":{"mode":"default","matchRequired":false},"flows":[]}
+                    """
+                )
+                .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                .lifecycleState(LifecycleState.STARTED)
+                .build();
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(existingApi));
+
+            var result = service.findById(API_ID);
+            Assertions
+                .assertThat(result)
+                .isPresent()
+                .get()
+                .extracting(Api::getId, Api::getApiLifecycleState, Api::getLifecycleState, Api::getDefinitionVersion)
+                .containsExactly(
+                    API_ID,
+                    io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED,
+                    io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED,
+                    DefinitionVersion.V4
+                );
+        }
+
+        @Test
+        void should_return_empty_if_api_not_found() throws TechnicalException {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+            var result = service.findById(API_ID);
+
+            Assertions.assertThat(result).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findById(API_ID));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find an api by id: api-id");
+        }
+    }
+
+    @Nested
     class Create {
 
         @BeforeEach

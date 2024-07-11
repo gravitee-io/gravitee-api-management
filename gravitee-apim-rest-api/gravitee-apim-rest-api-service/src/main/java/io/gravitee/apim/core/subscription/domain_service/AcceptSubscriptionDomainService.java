@@ -85,7 +85,7 @@ public class AcceptSubscriptionDomainService {
         log.debug("Auto accepting subscription {}", subscriptionId);
 
         var subscription = subscriptionCrudService.get(subscriptionId);
-        var plan = planCrudService.findById(subscription.getPlanId());
+        var plan = planCrudService.getById(subscription.getPlanId());
         return accept(subscription, plan, startingAt, endingAt, reason, customKey, auditInfo);
     }
 
