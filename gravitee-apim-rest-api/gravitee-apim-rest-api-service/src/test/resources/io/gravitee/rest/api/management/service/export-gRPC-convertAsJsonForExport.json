@@ -227,5 +227,6 @@
     "id": "johndoe",
     "displayName": "johndoe-sourceId",
     "type": "USER"
-  }
+  },
+  "disable_membership_notifications" : false
 }
