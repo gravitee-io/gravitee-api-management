@@ -104,13 +104,17 @@ data:
       {{ else }}
         url: {{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}
       {{- end }}
-      {{- if and .Values.installation.api.console .Values.installation.api.console.url }}
+      {{- if .Values.installation.api.console }}
         console:
+        {{- if .Values.installation.api.console.url }}
           url: {{ .Values.installation.api.console.url }}
+        {{- end }}
       {{- end }}
-      {{- if and .Values.installation.api.portal .Values.installation.api.portal.url }}
+      {{- if .Values.installation.api.portal }}
         portal:
+        {{- if .Values.installation.api.portal.url }}
           url: {{ .Values.installation.api.portal.url }}
+        {{- end }}
       {{- end }}
         proxyPath:
           management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.management.path }}
