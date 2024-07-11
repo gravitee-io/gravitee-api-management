@@ -36,7 +36,12 @@ export class ApiFederatedMenuService implements ApiMenuService {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
-    const subMenuItems: MenuItem[] = [this.addConfigurationMenuEntry(), this.addConsumersMenuEntry(), this.addDocumentationMenuEntry()];
+    const subMenuItems: MenuItem[] = [
+      this.addConfigurationMenuEntry(),
+      this.addApiScoreMenuEntry(),
+      this.addConsumersMenuEntry(),
+      this.addDocumentationMenuEntry()
+    ];
 
     return { subMenuItems, groupItems: [] };
   }
@@ -78,6 +83,20 @@ export class ApiFederatedMenuService implements ApiMenuService {
       header: {
         title: 'Configuration',
         subtitle: 'Manage general settings, user permissions, properties, and resources, and track changes to your API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addApiScoreMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    return {
+      displayName: 'API Score',
+      icon: 'shield-check',
+      routerLink: 'api-score',
+      header: {
+        title: 'API Score',
       },
       tabs: tabs,
     };

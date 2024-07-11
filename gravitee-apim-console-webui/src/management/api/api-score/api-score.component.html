@@ -1,0 +1,107 @@
+<mat-card>
+  <mat-card-header class="card-header">
+    <mat-card-title>API Name</mat-card-title>
+    <mat-card-subtitle>Last evaluated 1 minute ago.</mat-card-subtitle>
+
+    <div class="card-header__actions">
+      <button
+        mat-raised-button
+        color="primary"
+        data-testid="discover-button"
+        (click)="evaluate()"
+      >
+        Evaluate
+      </button>
+    </div>
+  </mat-card-header>
+
+  <div class="separator-hr"></div>
+
+  <mat-card-content>
+    <section>
+      <mat-button-toggle-group
+        class="gio-button-toggle-group"
+        name="status"
+        aria-label=""
+        [value]="status"
+      >
+        <mat-button-toggle value="all">All (0)</mat-button-toggle>
+        <mat-button-toggle value="errors">Errors (0)</mat-button-toggle>
+        <mat-button-toggle value="warnings">Warnings (0)</mat-button-toggle>
+        <mat-button-toggle value="infos">Infos (0)</mat-button-toggle>
+        <mat-button-toggle value="hints">Hints (0)</mat-button-toggle>
+
+      </mat-button-toggle-group>
+    </section>
+
+    @for(item of mockedData; track item.name) {
+      <mat-accordion>
+        <mat-expansion-panel expanded="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{item.name}}
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <gio-table-wrapper
+            class="table-wrapper"
+            [disableSearchInput]="true"
+            [length]="nbTotalInstances"
+            [filters]="filters"
+            (filtersChange)="onFiltersChanged($event)"
+          >
+            <table mat-table [dataSource]="item.issues" aria-label="Table">
+              <caption style="display: none">
+                Table with APIs
+              </caption>
+
+              <ng-container matColumnDef="severity">
+                <th mat-header-cell *matHeaderCellDef id="severity">Severity</th>
+                <td mat-cell *matCellDef="let issue">
+                  {{ issue.severity }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="location">
+                <th mat-header-cell *matHeaderCellDef id="location">Line/Column</th>
+                <td mat-cell *matCellDef="let issue">
+                  {{ issue.location }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="recommendation">
+                <th mat-header-cell *matHeaderCellDef id="recommendation">Recommendation</th>
+                <td mat-cell *matCellDef="let issue">
+                  {{ issue.recommendation }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="path">
+                <th mat-header-cell *matHeaderCellDef id="path">Path</th>
+                <td mat-cell *matCellDef="let issue">
+                  {{ issue.path }}
+                </td>
+              </ng-container>
+
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+              <!-- Row shown when there is no data -->
+              <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+                <td *ngIf="isLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+                  {{ 'Loading...' }}
+                </td>
+              </tr>
+            </table>
+          </gio-table-wrapper>
+
+        </mat-expansion-panel>
+      </mat-accordion>
+    }
+
+
+
+  </mat-card-content>
+
+</mat-card>
