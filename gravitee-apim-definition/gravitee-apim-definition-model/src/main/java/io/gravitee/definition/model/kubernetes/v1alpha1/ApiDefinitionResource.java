@@ -33,7 +33,6 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final List<String> UNSUPPORTED_API_FIELDS = List.of(
         "definition_context",
-        "execution_mode",
         "primaryOwner",
         "createdAt",
         "updatedAt",
