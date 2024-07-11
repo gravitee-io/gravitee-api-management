@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -37,13 +38,23 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     }
 
     @Override
-    public Plan findById(String planId) {
+    public Plan getById(String planId) {
         try {
-            log.debug("Find plan by id : {}", planId);
+            log.debug("Get plan by id : {}", planId);
             return planRepository
                 .findById(planId)
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .orElseThrow(() -> new PlanNotFoundException(planId));
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException(String.format("An error occurs while trying to get a plan by id: %s", planId), ex);
+        }
+    }
+
+    @Override
+    public Optional<Plan> findById(String planId) {
+        try {
+            log.debug("Find a plan by id : {}", planId);
+            return planRepository.findById(planId).map(PlanAdapter.INSTANCE::fromRepository);
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException(String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
         }

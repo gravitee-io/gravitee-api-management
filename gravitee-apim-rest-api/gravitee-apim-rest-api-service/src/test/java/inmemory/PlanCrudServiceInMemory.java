@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
@@ -29,7 +30,7 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     final List<Plan> storage = new ArrayList<>();
 
     @Override
-    public Plan findById(String planId) {
+    public Plan getById(String planId) {
         if (planId == null) {
             throw new TechnicalManagementException("planId should not be null");
         }
@@ -38,6 +39,11 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
             .filter(plan -> planId.equals(plan.getId()))
             .findFirst()
             .orElseThrow(() -> new PlanNotFoundException(planId));
+    }
+
+    @Override
+    public Optional<Plan> findById(String planId) {
+        return storage.stream().filter(plan -> planId.equals(plan.getId())).findFirst();
     }
 
     @Override

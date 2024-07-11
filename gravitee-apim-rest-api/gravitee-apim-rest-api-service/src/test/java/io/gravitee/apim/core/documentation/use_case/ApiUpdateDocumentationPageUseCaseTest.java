@@ -951,7 +951,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         }
 
         @Test
-        void should_not_create_a_page_revision_if_name_different() {
+        void should_create_a_page_revision_if_name_different() {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
@@ -968,12 +968,17 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var pageRevision = pageRevisionCrudService.storage();
-            assertThat(pageRevision).isEmpty();
+            var pageRevision = pageRevisionCrudService.storage().get(0);
+            assertThat(pageRevision)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
+                .hasFieldOrPropertyWithValue("contributor", null)
+                .hasFieldOrPropertyWithValue("name", "new name")
+                .hasFieldOrPropertyWithValue("content", "old content");
         }
 
         @Test
-        void should_not_create_a_page_revision_if_content_different() {
+        void should_create_a_page_revision_if_content_different() {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
@@ -990,8 +995,13 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var pageRevision = pageRevisionCrudService.storage();
-            assertThat(pageRevision).isEmpty();
+            var pageRevision = pageRevisionCrudService.storage().get(0);
+            assertThat(pageRevision)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
+                .hasFieldOrPropertyWithValue("contributor", null)
+                .hasFieldOrPropertyWithValue("name", OLD_ASYNC_API_PAGE.getName())
+                .hasFieldOrPropertyWithValue("content", "new content");
         }
 
         @Test

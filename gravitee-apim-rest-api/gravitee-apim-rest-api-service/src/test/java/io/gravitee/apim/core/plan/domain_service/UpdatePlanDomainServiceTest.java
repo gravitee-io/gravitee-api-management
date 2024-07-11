@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import assertions.CoreAssertions;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
@@ -166,7 +167,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -180,7 +181,7 @@ class UpdatePlanDomainServiceTest {
                 .thenThrow(new InvalidDataException("invalid"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
@@ -188,37 +189,161 @@ class UpdatePlanDomainServiceTest {
     }
 
     @Nested
-    class Common {
+    class FederatedPlan {
 
-        @ParameterizedTest
-        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
-        void should_throw_when_invalid_status_change_detected(Api api, Plan plan, List<Flow> flows) {
+        @Test
+        void should_update_federated_plan_attributes() {
             // Given
-            givenExistingPlan(plan.copy().setPlanStatus(PlanStatus.CLOSED));
+            var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, flows, api, AUDIT_INFO));
+            var result = service.update(
+                plan
+                    .toBuilder()
+                    .name("new name")
+                    .description("new description")
+                    .validation(Plan.PlanValidationType.AUTO)
+                    .characteristics(List.of("new characteristic"))
+                    .commentMessage("new comment message")
+                    .commentRequired(true)
+                    .build(),
+                List.of(),
+                Map.of(),
+                null,
+                AUDIT_INFO
+            );
+
+            // Then
+            CoreAssertions
+                .assertThat(planCrudService.getById(plan.getId()))
+                .isEqualTo(result)
+                .extracting(
+                    Plan::getName,
+                    Plan::getDescription,
+                    Plan::getValidation,
+                    Plan::getCharacteristics,
+                    Plan::getCommentMessage,
+                    Plan::isCommentRequired,
+                    Plan::getUpdatedAt
+                )
+                .contains(
+                    "new name",
+                    "new description",
+                    Plan.PlanValidationType.AUTO,
+                    List.of("new characteristic"),
+                    "new comment message",
+                    true,
+                    INSTANT_NOW.atZone(ZoneId.systemDefault())
+                );
+        }
+
+        @Test
+        void should_reorder_all_plans_when_order_is_updated() {
+            // Given
+            var plans = givenExistingPlans(
+                PlanFixtures.aFederatedPlan().toBuilder().id("plan1").order(1).build(),
+                PlanFixtures.aFederatedPlan().toBuilder().id("plan2").order(2).build(),
+                PlanFixtures.aFederatedPlan().toBuilder().id("plan3").order(3).build()
+            );
+
+            // When
+            var toUpdate = plans.get(0).toBuilder().order(2).build();
+
+            service.update(toUpdate, List.of(), null, null, AUDIT_INFO);
+
+            // Then
+            Assertions
+                .assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
+        }
+
+        @Test
+        void should_throw_when_general_conditions_page_is_not_published_while_updating_a_federated_plan() {
+            // Given
+            var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
+            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+
+            // When
+            var throwable = Assertions.catchThrowable(() ->
+                service.update(plan.toBuilder().generalConditions("page-id").build(), List.of(), null, null, AUDIT_INFO)
+            );
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Plan references a non published page as general conditions");
+        }
+
+        @Test
+        void should_throw_when_invalid_status_change_detected() {
+            // Given
+            var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.CLOSED));
+
+            // When
+            var throwable = Assertions.catchThrowable(() ->
+                service.update(plan.copy().setPlanStatus(PlanStatus.DEPRECATED), List.of(), null, null, AUDIT_INFO)
+            );
 
             // Then
             Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         }
+    }
+
+    @Nested
+    class V4Plan {
 
         @ParameterizedTest
-        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
+        void should_update_existing_plans(Api api, Plan plan, List<Flow> flows) {
+            // Given
+            givenExistingPlan(plan);
+
+            // When
+            Plan toUpdate = plan
+                .toBuilder()
+                .definitionVersion(DefinitionVersion.V4)
+                .name("updated name")
+                .description("updated description")
+                .commentRequired(true)
+                .commentMessage("updated comment")
+                .planDefinitionV4(
+                    plan
+                        .getPlanDefinitionV4()
+                        .toBuilder()
+                        .status(PlanStatus.PUBLISHED)
+                        .tags(Set.of("tag1"))
+                        .selectionRule("updated rule")
+                        .build()
+                )
+                .excludedGroups(List.of("updated group"))
+                .characteristics(List.of("updated characteristic"))
+                .build();
+            var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
+
+            // Then
+            Assertions.assertThat(planCrudService.storage()).hasSize(1).contains(result);
+            assertThat(result)
+                .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
+                .isEqualTo(toUpdate.toBuilder().updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build());
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
         void should_throw_when_a_plan_have_no_tag_matching_api_tags(Api api, Plan plan, List<Flow> flows) {
             // Given
             givenExistingPlan(plan);
             api.getApiDefinitionV4().setTags(Set.of("tag1", "tag2"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan.setPlanTags(Set.of("tag3")), flows, api, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.update(plan.setPlanTags(Set.of("tag3")), flows, null, api, AUDIT_INFO));
 
             // Then
             Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         }
 
         @ParameterizedTest
-        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             givenExistingPlan(plan);
@@ -227,7 +352,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, invalidFlows, api, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, invalidFlows, null, api, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
@@ -236,7 +361,7 @@ class UpdatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
         void should_throw_when_flows_contains_overlapped_path_parameters(Api api, Plan plan) {
             // Given
             givenExistingPlan(plan);
@@ -252,7 +377,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, invalidFlows, api, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, invalidFlows, null, api, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
@@ -261,7 +386,7 @@ class UpdatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
         void should_throw_when_general_conditions_page_is_not_published_while_updating_a_published_plan(
             Api api,
             Plan plan,
@@ -273,7 +398,7 @@ class UpdatePlanDomainServiceTest {
 
             // When
             var throwable = Assertions.catchThrowable(() ->
-                service.update(publishedPlan.toBuilder().generalConditions("page-id").build(), flows, api, AUDIT_INFO)
+                service.update(publishedPlan.toBuilder().generalConditions("page-id").build(), flows, null, api, AUDIT_INFO)
             );
 
             // Then
@@ -282,126 +407,104 @@ class UpdatePlanDomainServiceTest {
                 .hasMessage("Plan references a non published page as general conditions");
         }
 
-        @Nested
-        class UpdateExisting {
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
+        void should_set_needDeployAt_when_update_triggers_a_synchronization(Api api, Plan plan, List<Flow> flows) {
+            // Given
+            givenExistingPlan(plan);
+            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
 
-            @ParameterizedTest
-            @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
-            void should_update_existing_plans(Api api, Plan plan, List<Flow> flows) {
-                // Given
-                givenExistingPlan(plan);
+            // When
+            var toUpdate = plan
+                .toBuilder()
+                .planDefinitionV4(plan.getPlanDefinitionV4().toBuilder().selectionRule("updated rule").build())
+                .build();
+            var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
 
-                // When
-                Plan toUpdate = plan
-                    .toBuilder()
-                    .definitionVersion(DefinitionVersion.V4)
-                    .name("updated name")
-                    .description("updated description")
-                    .commentRequired(true)
-                    .commentMessage("updated comment")
-                    .planDefinitionV4(
-                        plan
-                            .getPlanDefinitionV4()
-                            .toBuilder()
-                            .status(PlanStatus.PUBLISHED)
-                            .tags(Set.of("tag1"))
-                            .selectionRule("updated rule")
-                            .build()
-                    )
-                    .excludedGroups(List.of("updated group"))
-                    .characteristics(List.of("updated characteristic"))
-                    .build();
-                var result = service.update(toUpdate, flows, api, AUDIT_INFO);
-
-                // Then
-                Assertions.assertThat(planCrudService.storage()).hasSize(1).contains(result);
-                assertThat(result)
-                    .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
-                    .isEqualTo(toUpdate.toBuilder().updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build());
-            }
-
-            @ParameterizedTest
-            @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
-            void should_save_all_flows(Api api, Plan plan, List<Flow> flows) {
-                // Given
-                givenExistingPlan(plan);
-
-                // When
-                service.update(plan, flows, api, AUDIT_INFO);
-
-                // Then
-                assertThat(flowCrudService.storage()).containsExactlyElementsOf(flows);
-            }
-
-            @ParameterizedTest
-            @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
-            void should_create_an_audit(Api api, Plan plan, List<Flow> flows) {
-                // Given
-                givenExistingPlan(plan);
-
-                // When
-                service.update(plan.toBuilder().name("updated name").build(), flows, api, AUDIT_INFO);
-
-                // Then
-                assertThat(auditCrudService.storage())
-                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-                    .containsExactly(
-                        AuditEntity
-                            .builder()
-                            .id("generated-id")
-                            .organizationId(ORGANIZATION_ID)
-                            .environmentId(ENVIRONMENT_ID)
-                            .referenceType(AuditEntity.AuditReferenceType.API)
-                            .referenceId(API_ID)
-                            .user(USER_ID)
-                            .properties(Map.of("PLAN", plan.getId()))
-                            .event(PlanAuditEvent.PLAN_UPDATED.name())
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build()
-                    );
-            }
-
-            @ParameterizedTest
-            @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
-            void should_set_needDeployAt_when_update_triggers_a_synchronization(Api api, Plan plan, List<Flow> flows) {
-                // Given
-                givenExistingPlan(plan);
-                when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
-
-                // When
-                var toUpdate = plan
-                    .toBuilder()
-                    .planDefinitionV4(plan.getPlanDefinitionV4().toBuilder().selectionRule("updated rule").build())
-                    .build();
-                var result = service.update(toUpdate, flows, api, AUDIT_INFO);
-
-                // Then
-                assertThat(result.getNeedRedeployAt()).isEqualTo(Date.from(INSTANT_NOW));
-            }
-
-            @Test
-            void should_reorder_all_plans_when_order_is_updated() {
-                // Given
-                var plans = givenExistingPlans(
-                    PlanFixtures.aKeylessV4().toBuilder().id("plan1").order(1).build(),
-                    PlanFixtures.aKeylessV4().toBuilder().id("plan2").order(2).build(),
-                    PlanFixtures.aKeylessV4().toBuilder().id("plan3").order(3).build()
-                );
-
-                // When
-                var toUpdate = plans.get(0).toBuilder().order(2).build();
-                service.update(toUpdate, List.of(), API_PROXY_V4, AUDIT_INFO);
-
-                // Then
-                Assertions
-                    .assertThat(planCrudService.storage())
-                    .extracting(Plan::getId, Plan::getOrder)
-                    .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
-            }
+            // Then
+            assertThat(result.getNeedRedeployAt()).isEqualTo(Date.from(INSTANT_NOW));
         }
     }
 
-    static Stream<Arguments> testData() {
+    @Nested
+    class Common {
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4WithFederatedTestData")
+        void should_throw_when_invalid_status_change_detected(Api api, Plan plan, List<Flow> flows) {
+            // Given
+            givenExistingPlan(plan.copy().setPlanStatus(PlanStatus.CLOSED));
+
+            // When
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, flows, null, api, AUDIT_INFO));
+
+            // Then
+            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4WithFederatedTestData")
+        void should_save_all_flows(Api api, Plan plan, List<Flow> flows) {
+            // Given
+            givenExistingPlan(plan);
+
+            // When
+            service.update(plan, flows, null, api, AUDIT_INFO);
+
+            // Then
+            assertThat(flowCrudService.storage()).containsExactlyElementsOf(flows);
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4WithFederatedTestData")
+        void should_create_an_audit(Api api, Plan plan, List<Flow> flows) {
+            // Given
+            givenExistingPlan(plan);
+
+            // When
+            service.update(plan.toBuilder().name("updated name").build(), flows, null, api, AUDIT_INFO);
+
+            // Then
+            assertThat(auditCrudService.storage())
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(
+                    AuditEntity
+                        .builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(API_ID)
+                        .user(USER_ID)
+                        .properties(Map.of("PLAN", plan.getId()))
+                        .event(PlanAuditEvent.PLAN_UPDATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_reorder_all_plans_when_order_is_updated() {
+            // Given
+            var plans = givenExistingPlans(
+                PlanFixtures.aKeylessV4().toBuilder().id("plan1").order(1).build(),
+                PlanFixtures.aKeylessV4().toBuilder().id("plan2").order(2).build(),
+                PlanFixtures.aKeylessV4().toBuilder().id("plan3").order(3).build()
+            );
+
+            // When
+            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
+
+            // Then
+            Assertions
+                .assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
+        }
+    }
+
+    static Stream<Arguments> v4testData() {
         return Stream.of(
             Arguments.of(
                 API_PROXY_V4,
@@ -426,6 +529,10 @@ class UpdatePlanDomainServiceTest {
                 List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
             )
         );
+    }
+
+    static Stream<Arguments> v4WithFederatedTestData() {
+        return Stream.concat(v4testData(), Stream.of(Arguments.of(null, PlanFixtures.aFederatedPlan(), List.of())));
     }
 
     Plan givenExistingPlan(Plan plan) {

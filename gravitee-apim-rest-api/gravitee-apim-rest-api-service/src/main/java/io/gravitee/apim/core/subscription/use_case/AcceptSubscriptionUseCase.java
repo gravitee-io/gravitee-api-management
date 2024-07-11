@@ -73,7 +73,7 @@ public class AcceptSubscriptionUseCase {
     }
 
     private Plan checkPlanStatus(SubscriptionEntity subscriptionEntity) {
-        var plan = planCrudService.findById(subscriptionEntity.getPlanId());
+        var plan = planCrudService.getById(subscriptionEntity.getPlanId());
         if (plan.isClosed()) {
             throw new PlanAlreadyClosedException(plan.getId());
         }

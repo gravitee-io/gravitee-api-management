@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageCrudService {
@@ -36,11 +37,12 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
 
     @Override
     public Page updateDocumentationPage(Page pageToUpdate) {
-        // Remove page from DB
-        pages = pages.stream().filter(p -> !p.getId().equals(pageToUpdate.getId())).collect(Collectors.toList());
-        pages.add(pageToUpdate);
-
-        return pageToUpdate;
+        OptionalInt index = this.findIndex(this.pages, page -> page.getId().equals(pageToUpdate.getId()));
+        if (index.isPresent()) {
+            pages.set(index.getAsInt(), pageToUpdate);
+            return pageToUpdate;
+        }
+        throw new IllegalStateException("Page not found");
     }
 
     @Override

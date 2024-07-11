@@ -20,9 +20,12 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.mock;
 
 import assertions.CoreAssertions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.EntrypointPluginQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
@@ -35,14 +38,19 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -73,6 +81,7 @@ class UpdateFederatedPlanUseCaseTest {
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
+    FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
 
     UpdateFederatedPlanUseCase useCase;
 
@@ -93,7 +102,23 @@ class UpdateFederatedPlanUseCaseTest {
         var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
         var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
         var reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
-        useCase = new UpdateFederatedPlanUseCase(planCrudService, planValidatorService, reorderPlanDomainService, auditDomainService);
+        var synchronizationService = new SynchronizationService(new ObjectMapper());
+        var planSynchronizationService = new PlanSynchronizationLegacyWrapper(synchronizationService);
+        var flowValidationDomainService = new FlowValidationDomainService(
+            policyValidationDomainService,
+            new EntrypointPluginQueryServiceInMemory()
+        );
+        var updatePlanDomainService = new UpdatePlanDomainService(
+            planQueryService,
+            planCrudService,
+            planValidatorService,
+            flowValidationDomainService,
+            flowCrudService,
+            auditDomainService,
+            planSynchronizationService,
+            reorderPlanDomainService
+        );
+        useCase = new UpdateFederatedPlanUseCase(updatePlanDomainService);
     }
 
     @AfterEach
@@ -124,7 +149,7 @@ class UpdateFederatedPlanUseCaseTest {
 
         // Then
         CoreAssertions
-            .assertThat(planCrudService.findById(plan.getId()))
+            .assertThat(planCrudService.getById(plan.getId()))
             .isEqualTo(result.updated())
             .extracting(
                 Plan::getName,
@@ -174,64 +199,16 @@ class UpdateFederatedPlanUseCaseTest {
     }
 
     @Test
-    void should_reorder_all_plans_when_order_is_updated() {
-        // Given
-        var plans = givenExistingPlans(
-            PlanFixtures.aFederatedPlan().toBuilder().id("plan1").order(1).build(),
-            PlanFixtures.aFederatedPlan().toBuilder().id("plan2").order(2).build(),
-            PlanFixtures.aFederatedPlan().toBuilder().id("plan3").order(3).build()
-        );
+    void should_throw_exception_when_update_plan_is_not_federated() {
+        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().build());
 
-        // When
-        var toUpdate = plans.get(0).toBuilder().order(2).build();
-        useCase.execute(new UpdateFederatedPlanUseCase.Input(toUpdate, AUDIT_INFO));
+        var throwable = Assertions.catchThrowable(() -> useCase.execute(new UpdateFederatedPlanUseCase.Input(plan, AUDIT_INFO)));
 
-        // Then
-        Assertions
-            .assertThat(planCrudService.storage())
-            .extracting(Plan::getId, Plan::getOrder)
-            .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
-    }
-
-    @Test
-    void should_throw_when_general_conditions_page_is_not_published_while_updating_a_federated_plan() {
-        // Given
-        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
-        pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
-
-        // When
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateFederatedPlanUseCase.Input(plan.toBuilder().generalConditions("page-id").build(), AUDIT_INFO))
-        );
-
-        // Then
-        assertThat(throwable)
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Plan references a non published page as general conditions");
-    }
-
-    @Test
-    void should_throw_when_invalid_status_change_detected() {
-        // Given
-        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.CLOSED));
-
-        // When
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateFederatedPlanUseCase.Input(plan.copy().setPlanStatus(PlanStatus.DEPRECATED), AUDIT_INFO))
-        );
-
-        // Then
-        Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        Assertions.assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessage("Can't update a V4 plan");
     }
 
     private Plan givenExistingPlan(Plan plan) {
         planCrudService.initWith(List.of(plan));
         return plan;
-    }
-
-    List<Plan> givenExistingPlans(Plan... plans) {
-        var list = Arrays.asList(plans);
-        planQueryService.initWith(list);
-        return list;
     }
 }
