@@ -331,6 +331,47 @@ public class ApiImportExportServiceImplTest {
     }
 
     @Test
+    public void should_create_member_using_role_id() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var poRole = RoleEntity.builder().id("po-role-id").scope(RoleScope.API).name("PRIMARY_OWNER").build();
+
+        var memberRole = RoleEntity.builder().id("role-id").scope(RoleScope.API).name(UUID.randomUUID().toString()).build();
+
+        var defaultRole = RoleEntity.builder().id("default-role-id").scope(RoleScope.API).name("USER").build();
+
+        var member = MemberEntity
+            .builder()
+            .id("member-id")
+            .type(MembershipMemberType.USER)
+            .referenceType(MembershipReferenceType.API)
+            .referenceId(API_ID)
+            .roles(List.of(memberRole))
+            .build();
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(poRole);
+
+        when(roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API)).thenReturn(List.of(defaultRole));
+
+        when(roleService.findById(memberRole.getName())).thenReturn(memberRole);
+
+        cut.createMembers(executionContext, API_ID, Set.of(member));
+
+        verify(membershipService, times(1))
+            .deleteReferenceMember(executionContext, MembershipReferenceType.API, API_ID, MembershipMemberType.USER, member.getId());
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                executionContext,
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                member.getId(),
+                memberRole.getId()
+            );
+    }
+
+    @Test
     public void should_create_member_using_default_role_if_no_roles() {
         var executionContext = GraviteeContext.getExecutionContext();
 
