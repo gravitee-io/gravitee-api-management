@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Event.EventProperties.ENVIRONMENT_FLOW_ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.reactive.reactor.environmentflow.ReactableEnvironmentFlow;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.reactivex.rxjava3.core.Maybe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,10 +50,7 @@ public class EnvironmentFlowMapper {
         return Maybe.fromCallable(() -> {
             try {
                 // Read API definition from event
-                var environmentFlow = objectMapper.readValue(
-                    environmentFlowEvent.getPayload(),
-                    io.gravitee.repository.management.model.EnvironmentFlow.class
-                );
+                var environmentFlow = objectMapper.readValue(environmentFlowEvent.getPayload(), SharedPolicyGroup.class);
 
                 var environmentFlowDefinition = objectMapper.readValue(
                     environmentFlow.getDefinition(),

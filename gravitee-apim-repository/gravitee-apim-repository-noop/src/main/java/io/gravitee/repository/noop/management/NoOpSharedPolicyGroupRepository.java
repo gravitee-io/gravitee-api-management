@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.noop.management;
+
+import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.model.SharedPolicyGroup;
 
 /**
- * Api lifecycle states
- *
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EnvironmentFlowLifecycleState {
-    DEPLOYED,
-    UNDEPLOYED,
-}
+public class NoOpSharedPolicyGroupRepository
+    extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
+    implements SharedPolicyGroupRepository {}

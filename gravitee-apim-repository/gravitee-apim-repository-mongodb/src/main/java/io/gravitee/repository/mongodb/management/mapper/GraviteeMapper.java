@@ -321,4 +321,8 @@ public interface GraviteeMapper {
     WorkflowMongo map(Workflow toMap);
 
     List<Integration> mapIntegrationsList(Collection<IntegrationMongo> toMap);
+
+    // SharedPolicyGroup mapping
+    SharedPolicyGroupMongo map(SharedPolicyGroup item);
+    SharedPolicyGroup map(SharedPolicyGroupMongo item);
 }

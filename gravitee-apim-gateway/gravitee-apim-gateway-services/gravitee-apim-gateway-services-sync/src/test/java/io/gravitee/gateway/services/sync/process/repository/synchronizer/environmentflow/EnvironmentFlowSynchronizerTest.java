@@ -15,15 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Event.EventProperties.ENVIRONMENT_FLOW_ID;
 import static io.gravitee.repository.management.model.EventType.DEPLOY_ENVIRONMENT_FLOW;
-import static io.gravitee.repository.management.model.EventType.PUBLISH_API;
-import static io.gravitee.repository.management.model.EventType.STOP_API;
 import static io.gravitee.repository.management.model.EventType.UNDEPLOY_ENVIRONMENT_FLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -33,34 +29,24 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.EnvironmentFlowDeployer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.EnvironmentFlow;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -164,7 +150,7 @@ class EnvironmentFlowSynchronizerTest {
         void should_register_api_when_fetching_publish_events() throws InterruptedException, JsonProcessingException {
             Event event = new Event();
             event.setId("id");
-            final EnvironmentFlow environmentFlow = EnvironmentFlow
+            final SharedPolicyGroup environmentFlow = SharedPolicyGroup
                 .builder()
                 .id("id")
                 .definition(

@@ -72,6 +72,7 @@ import org.junit.runners.Suite;
         QualityRuleRepositoryTest.class,
         RatingRepositoryTest.class,
         RoleRepositoryTest.class,
+        SharedPolicyGroupRepositoryTest.class,
         SubscriptionRepositoryTest.class,
         TagRepositoryTest.class,
         TenantRepositoryTest.class,

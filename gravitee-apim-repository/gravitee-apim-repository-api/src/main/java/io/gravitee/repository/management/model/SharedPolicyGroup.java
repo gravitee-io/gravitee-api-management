@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -36,55 +37,63 @@ import lombok.With;
 @Setter
 @ToString
 @With
-public class EnvironmentFlow {
+public class SharedPolicyGroup {
 
     /**
-     * The environment flow ID.
+     * The shared policy group ID
      */
     private String id;
     /**
-     * The ID of the environment the environment flow is attached to
+     * The ID of the environment attached
      */
     private String environmentId;
     /**
-     * The environment flow crossId uniquely identifies an environment flow across environments.
-     * Apis promoted between environments will share the same crossId.
+     * The ID of the organization attached
+     */
+    private String organizationId;
+    /**
+     * The shared policy group crossId uniquely identifies an shared policy group across environments.
+     * Apis promoted between environments will share the same crossId. Gateways will use this crossId to identify the shared policy group
      */
     private String crossId;
     /**
-     * The environment flow name.
+     * The shared policy group name.
      */
     private String name;
     /**
-     * the environment flow description.
+     * the shared policy group description.
      */
     private String description;
     /**
-     * The environment flow version.
+     * The shared policy group version.
      */
     private Integer version;
     /**
-     * The environment flow JSON definition
+     * Tha API type compatible with the shared policy group
+     */
+    private ApiType apiType;
+    /**
+     * The shared policy group JSON definition
      */
     private String definition;
     /**
-     * The api deployment date
+     * Deployment date
      */
     private Date deployedAt;
     /**
-     * The Api creation date
+     * Creation date
      */
     private Date createdAt;
     /**
-     * The Api last updated date
+     * Last updated date
      */
     private Date updatedAt;
     /**
      * The current runtime life cycle state.
      */
-    private EnvironmentFlowLifecycleState lifecycleState;
+    private SharedPolicyGroupLifecycleState lifecycleState;
 
-    public EnvironmentFlow(EnvironmentFlow cloned) {
+    public SharedPolicyGroup(SharedPolicyGroup cloned) {
         this.id = cloned.id;
         this.crossId = cloned.crossId;
         this.environmentId = cloned.environmentId;
@@ -102,7 +111,7 @@ public class EnvironmentFlow {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EnvironmentFlow api = (EnvironmentFlow) o;
+        SharedPolicyGroup api = (SharedPolicyGroup) o;
         return Objects.equals(id, api.id);
     }
 
@@ -112,8 +121,8 @@ public class EnvironmentFlow {
     }
 
     public enum AuditEvent implements Audit.AuditEvent {
-        ENVIRONMENT_FLOW_CREATED,
-        ENVIRONMENT_FLOW_UPDATED,
-        ENVIRONMENT_FLOW_DELETED,
+        SHARED_POLICY_GROUP_CREATED,
+        SHARED_POLICY_GROUP_UPDATED,
+        SHARED_POLICY_GROUP_DELETED,
     }
 }
