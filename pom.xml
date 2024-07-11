@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>22.1.2</version>
+        <version>22.1.3</version>
     </parent>
 
     <name>Gravitee.io APIM - Reporter - Common</name>
