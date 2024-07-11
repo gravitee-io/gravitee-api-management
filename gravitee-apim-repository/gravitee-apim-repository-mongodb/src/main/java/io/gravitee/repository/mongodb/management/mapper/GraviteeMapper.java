@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.mapper;
 
+import io.gravitee.definition.model.v4.environmentflow.EnvironmentFlow;
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.upgrader.UpgradeRecord;
 import io.gravitee.repository.management.model.*;
@@ -316,4 +317,9 @@ public interface GraviteeMapper {
     WorkflowMongo map(Workflow toMap);
 
     List<Integration> mapIntegrationsList(Collection<IntegrationMongo> toMap);
+
+    // Environment Flow mapping
+    EnvironmentFlowMongo map(EnvironmentFlow item);
+
+    EnvironmentFlow map(EnvironmentFlowMongo item);
 }
