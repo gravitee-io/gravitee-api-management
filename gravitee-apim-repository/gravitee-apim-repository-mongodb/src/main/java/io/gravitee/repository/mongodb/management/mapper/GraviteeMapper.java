@@ -190,6 +190,11 @@ public interface GraviteeMapper {
 
     InvitationMongo map(Invitation toMap);
 
+    // IntegrationJob mapping
+    IntegrationJob map(IntegrationJobMongo source);
+
+    IntegrationJobMongo map(IntegrationJob source);
+
     // License mapping
     @Mapping(target = "referenceId", source = "id.referenceId")
     @Mapping(target = "referenceType", source = "id.referenceType")

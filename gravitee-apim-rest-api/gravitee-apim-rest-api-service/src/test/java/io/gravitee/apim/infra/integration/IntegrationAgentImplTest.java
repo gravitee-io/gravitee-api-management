@@ -27,6 +27,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
+import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -45,6 +46,10 @@ import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
 import io.gravitee.integration.api.command.ingest.IngestReplyPayload;
+import io.gravitee.integration.api.command.ingest.StartIngestCommand;
+import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;
+import io.gravitee.integration.api.command.ingest.StartIngestReply;
+import io.gravitee.integration.api.command.ingest.StartIngestReplyPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
@@ -81,6 +86,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class IntegrationAgentImplTest {
 
     private static final String INTEGRATION_ID = "integration-id";
+    private static final String JOB_ID = "job-id";
     private static final Integration INTEGRATION = IntegrationFixture.anIntegration().withId(INTEGRATION_ID);
 
     @Mock
@@ -112,6 +118,69 @@ class IntegrationAgentImplTest {
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertValue(IntegrationAgent.Status.DISCONNECTED);
+        }
+    }
+
+    @Nested
+    class StartIngest {
+
+        @BeforeEach
+        void setUp() {
+            lenient()
+                .when(controller.sendCommand(any(), any()))
+                .thenReturn(Single.just(new StartIngestReply("command-id", new StartIngestReplyPayload(JOB_ID, 10L))));
+        }
+
+        @Test
+        void should_send_command_to_fetch_all_assets() {
+            agent.startIngest(INTEGRATION_ID, JOB_ID).test().awaitDone(10, TimeUnit.SECONDS);
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+
+            assertThat(captor.getValue())
+                .isInstanceOf(StartIngestCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(new StartIngestCommandPayload(JOB_ID, List.of()));
+        }
+
+        @Test
+        void should_return_ingest_started() {
+            agent
+                .startIngest(INTEGRATION_ID, JOB_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(result -> {
+                    assertThat(result).isEqualTo(new IngestStarted(JOB_ID, 10L));
+                    return true;
+                });
+        }
+
+        @Test
+        void should_throw_when_command_fails() {
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", "Fail to start ingest")));
+
+            agent
+                .startIngest(INTEGRATION_ID, JOB_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(IntegrationIngestionException.class).hasMessage("Fail to start ingest");
+                    return true;
+                });
+        }
+
+        @Test
+        void should_throw_when_no_controller() {
+            agent = new IntegrationAgentImpl(Optional.empty());
+            agent
+                .startIngest(INTEGRATION_ID, JOB_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
+                    return true;
+                });
         }
     }
 
@@ -546,7 +615,7 @@ class IntegrationAgentImplTest {
             when(controller.sendCommand(any(), any()))
                 .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of()))));
 
-            agent.fetchAllApis(INTEGRATION).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
+            agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
         }
 
         @Test

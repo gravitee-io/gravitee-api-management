@@ -3587,6 +3587,22 @@ components:
                     enum:
                         - CONNECTED
                         - DISCONNECTED
+                pendingJob:
+                    $ref: "#/components/schemas/IngestionJob"
+
+        IngestionJob:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Id of the ingestion job
+            startedAt:
+              type: string
+              format: date-time
+              description: The last datetime when the job was started.
+              example: 2023-05-25T12:40:46.184Z
+            status:
+              $ref: "#/components/schemas/IngestionStatus"
 
         IngestionPreviewResponse:
             type: object
@@ -3638,6 +3654,8 @@ components:
             example: SUCCESS
             enum:
                 - SUCCESS
+                - PENDING
+                - ERROR
 
         Links:
             description: List of links for pagination

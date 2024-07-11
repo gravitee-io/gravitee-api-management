@@ -30,6 +30,7 @@ public enum PortalHook implements Hook {
     USER_FIRST_LOGIN("First Login", "Triggered when an user log in for the first time", "USER"),
     PASSWORD_RESET("Password Reset", "Triggered when a password is reset", "USER"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
+    FEDERATED_APIS_INGESTION_COMPLETE("Ingestion complete", "Triggered when an ingestion has completed.", "FEDERATION"),
     GROUP_INVITATION("Group invitation", "Triggered when an user is invited in a group", "GROUP"),
     MESSAGE("Message", "Used when sending a custom message to an Environment Role", null, true);
 

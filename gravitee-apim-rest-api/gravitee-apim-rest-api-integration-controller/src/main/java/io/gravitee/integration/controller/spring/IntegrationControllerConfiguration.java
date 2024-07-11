@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.IngestFederatedApisUseCase;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
@@ -72,9 +73,10 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationControllerCommandHandlerFactory")
     public IntegrationControllerCommandHandlerFactory integrationControllerCommandHandlerFactory(
-        final CheckIntegrationUseCase checkIntegrationUseCase
+        final CheckIntegrationUseCase checkIntegrationUseCase,
+        final IngestFederatedApisUseCase ingestFederatedApisUseCase
     ) {
-        return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase);
+        return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase, ingestFederatedApisUseCase);
     }
 
     @Bean("integrationExchangeController")

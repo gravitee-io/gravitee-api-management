@@ -24,7 +24,7 @@ import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } fro
 import { isEqual } from 'lodash';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { AgentStatus, FederatedAPIsResponse, Integration } from '../integrations.model';
+import { AgentStatus, FederatedAPIsResponse, IngestionStatus, Integration } from '../integrations.model';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
@@ -109,6 +109,7 @@ export class IntegrationOverviewComponent implements OnInit {
       .subscribe((integration: Integration): void => {
         this.integration = integration;
         this.isLoadingIntegration = false;
+        this.isIngesting = this.integration.pendingJob?.status === IngestionStatus.PENDING;
       });
   }
 
@@ -140,10 +141,30 @@ export class IntegrationOverviewComponent implements OnInit {
           this.snackBarService.success('We’re discovering assets from the provider...');
           return this.integrationsService.ingestIntegration(this.integration.id);
         }),
-        tap(() => {
-          this.isIngesting = false;
-          this.snackBarService.success('APIs successfully created and ready for use!');
-          this.initFederatedAPIsList();
+        tap((response) => {
+          switch (response.status) {
+            case 'SUCCESS':
+              this.isIngesting = false;
+              this.snackBarService.success('Federated APIs ingestion completed');
+              this.initFederatedAPIsList();
+              break;
+            case 'PENDING':
+              this.isIngesting = true;
+              this.integration = {
+                ...this.integration,
+                pendingJob: {
+                  id: '',
+                  startedAt: new Date().toISOString(),
+                  status: IngestionStatus.PENDING,
+                },
+              };
+              this.snackBarService.success('Federated APIs ingestion started');
+              break;
+            case 'ERROR':
+              this.isIngesting = false;
+              this.snackBarService.error(`Federated APIs ingestion failed: ${response.message}`);
+              break;
+          }
         }),
         catchError(({ error }) => {
           this.isIngesting = false;
@@ -161,6 +182,10 @@ export class IntegrationOverviewComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  public refresh(): void {
+    this.ngOnInit();
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters): void {

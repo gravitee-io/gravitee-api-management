@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
+import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -36,6 +37,7 @@ import java.util.Map;
 public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlternative<IntegrationApi> {
 
     List<IntegrationApi> storage = new ArrayList<>();
+    Map<String, Long> apisNumberToIngest = new HashMap<>();
     Map<String, Status> statuses = new HashMap<>();
     Map<String, List<String>> subscriptions = new HashMap<>();
     Map<String, List<SubscriptionEntity>> closedSubscriptions = new HashMap<>();
@@ -43,6 +45,16 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     @Override
     public Single<Status> getAgentStatusFor(String integrationId) {
         return Single.just(statuses.getOrDefault(integrationId, Status.CONNECTED));
+    }
+
+    @Override
+    public Single<IngestStarted> startIngest(String integrationId, String ingestJobId) {
+        var total = apisNumberToIngest.getOrDefault(integrationId, null);
+
+        if (total != null) {
+            return Single.just(new IngestStarted(ingestJobId, total));
+        }
+        return Single.error(new RuntimeException("job fail to start"));
     }
 
     @Override
@@ -121,5 +133,9 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
 
     public void configureAgentFor(String integrationId, Status status) {
         statuses.put(integrationId, status);
+    }
+
+    public void configureApisNumberToIngest(String integrationId, Long total) {
+        apisNumberToIngest.put(integrationId, total);
     }
 }

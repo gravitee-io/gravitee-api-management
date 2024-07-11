@@ -19,11 +19,14 @@ import static io.gravitee.apim.core.integration.use_case.DiscoveryUseCase.Output
 import static io.gravitee.apim.core.integration.use_case.DiscoveryUseCase.Output.State.UPDATE;
 
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
+import io.gravitee.rest.api.management.v2.rest.model.IngestionJob;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner;
+import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
@@ -42,6 +45,8 @@ public interface IntegrationMapper {
 
     Integration map(CreateIntegration source);
 
+    IngestionJob map(IntegrationJob source);
+
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration source);
 
     io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source);
@@ -49,6 +54,8 @@ public interface IntegrationMapper {
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);
 
     Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
+
+    IngestionStatus map(IntegrationJob.Status source);
 
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
         return IngestionPreviewResponse

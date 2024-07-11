@@ -22,6 +22,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
+import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -37,6 +38,9 @@ import io.gravitee.integration.api.command.discover.DiscoverReply;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
+import io.gravitee.integration.api.command.ingest.StartIngestCommand;
+import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;
+import io.gravitee.integration.api.command.ingest.StartIngestReply;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
@@ -80,6 +84,21 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                 return Status.CONNECTED;
             })
             .switchIfEmpty(Single.just(Status.DISCONNECTED));
+    }
+
+    @Override
+    public Single<IngestStarted> startIngest(String integrationId, String ingestJobId) {
+        var command = new StartIngestCommand(new StartIngestCommandPayload(ingestJobId, List.of()));
+
+        log.debug("Start ingestion for [integrationId={}]", integrationId);
+        return sendStartIngestCommand(command, integrationId)
+            .flatMap(reply -> {
+                if (reply.getCommandStatus() == CommandStatus.SUCCEEDED) {
+                    log.debug("APIs ingestion for [integrationId={}] has started [total={}]", integrationId, reply.getPayload().total());
+                    return Single.just(new IngestStarted(ingestJobId, reply.getPayload().total()));
+                }
+                return Single.error(new IntegrationIngestionException(reply.getErrorDetails()));
+            });
     }
 
     @Override
@@ -194,6 +213,17 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                     .fromIterable(discoverReply.getPayload().apis())
                     .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId));
             });
+    }
+
+    private Single<StartIngestReply> sendStartIngestCommand(StartIngestCommand startIngestCommand, String integrationId) {
+        return exchangeController
+            .map(controller ->
+                controller
+                    .sendCommand(startIngestCommand, integrationId)
+                    .cast(StartIngestReply.class)
+                    .onErrorReturn(throwable -> new StartIngestReply(startIngestCommand.getId(), throwable.getMessage()))
+            )
+            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<IngestReply> sendIngestCommand(IngestCommand fetchCommand, String integrationId) {

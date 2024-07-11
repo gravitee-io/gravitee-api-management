@@ -19,12 +19,14 @@ import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMember
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static fixtures.repository.ApiFixtures.anApi;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
+import fixtures.repository.IntegrationFixture;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -42,6 +44,7 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.IntegrationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.Recipient;
@@ -49,6 +52,7 @@ import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplate
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
+import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
@@ -56,6 +60,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
@@ -63,6 +68,7 @@ import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -71,6 +77,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
+import io.gravitee.rest.api.service.notification.PortalHook;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Collections;
@@ -97,6 +104,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     public static final String USER_ID_2 = "user-id-2";
     public static final String API_ID = "api-id";
     public static final String APPLICATION_ID = "application-id";
+    public static final String INTEGRATION_ID = "integration-id";
 
     @Mock
     NotifierService notifierService;
@@ -112,6 +120,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
     @Mock
     SubscriptionRepository subscriptionRepository;
+
+    @Mock
+    IntegrationRepository integrationRepository;
 
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -136,6 +147,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     applicationRepository,
                     planRepository,
                     subscriptionRepository,
+                    integrationRepository,
                     new ApiPrimaryOwnerDomainService(
                         new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
                         new GroupQueryServiceInMemory(),
@@ -909,6 +921,54 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         }
     }
 
+    @Nested
+    class TriggerPortalNotification {
+
+        @Test
+        public void should_fetch_portal_notification_data() {
+            // Given
+            var integration = givenExistingIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
+
+            // When
+            var portalHookContext = new SimplePortalHookContextForTest(Map.of(HookContextEntry.INTEGRATION_ID, INTEGRATION_ID));
+            service.triggerPortalNotification(ORGANIZATION_ID, portalHookContext);
+
+            // Then
+            verify(notifierService)
+                .trigger(
+                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(PortalHook.FEDERATED_APIS_INGESTION_COMPLETE),
+                    paramsCaptor.capture()
+                );
+            var params = paramsCaptor.getValue();
+            assertThat(params)
+                .containsEntry(
+                    "integration",
+                    IntegrationNotificationTemplateData
+                        .builder()
+                        .id(INTEGRATION_ID)
+                        .name(integration.getName())
+                        .provider(integration.getProvider())
+                        .build()
+                );
+        }
+
+        static class SimplePortalHookContextForTest extends PortalHookContext {
+
+            private final Map<HookContextEntry, String> properties;
+
+            public SimplePortalHookContextForTest(Map<HookContextEntry, String> properties) {
+                super(PortalHook.FEDERATED_APIS_INGESTION_COMPLETE);
+                this.properties = properties;
+            }
+
+            @Override
+            protected Map<HookContextEntry, String> getChildProperties() {
+                return properties;
+            }
+        }
+    }
+
     @SneakyThrows
     private void givenExistingApi(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
         givenExistingApi(api, primaryOwnerEntity, List.of());
@@ -944,5 +1004,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     private void givenExistingSubscription(Subscription subscription) {
         lenient().when(subscriptionRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(subscriptionRepository.findById(eq(subscription.getId()))).thenReturn(Optional.of(subscription));
+    }
+
+    @SneakyThrows
+    private Integration givenExistingIntegration(Integration integration) {
+        lenient().when(integrationRepository.findById(any())).thenReturn(Optional.empty());
+        lenient().when(integrationRepository.findById(eq(integration.getId()))).thenReturn(Optional.of(integration));
+
+        return integration;
     }
 }

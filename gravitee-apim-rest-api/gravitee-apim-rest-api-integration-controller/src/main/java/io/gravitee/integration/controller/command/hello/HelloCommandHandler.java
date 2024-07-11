@@ -46,13 +46,14 @@ public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloRe
                 HelloCommandPayload payload = command.getPayload();
                 var result = checkIntegrationUseCase.execute(
                     new CheckIntegrationUseCase.Input(
-                        integrationCommandContext.organizationId(),
+                        integrationCommandContext.getOrganizationId(),
                         payload.getTargetId(),
                         payload.getProvider()
                     )
                 );
 
                 if (result.success()) {
+                    integrationCommandContext.setIntegrationId(payload.getTargetId());
                     return new HelloReply(command.getId(), HelloReplyPayload.builder().targetId(payload.getTargetId()).build());
                 }
 

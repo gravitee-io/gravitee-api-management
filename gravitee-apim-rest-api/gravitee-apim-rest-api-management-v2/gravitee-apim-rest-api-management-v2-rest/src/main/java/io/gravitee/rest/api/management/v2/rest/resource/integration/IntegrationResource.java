@@ -21,7 +21,7 @@ import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
-import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
+import io.gravitee.apim.core.integration.use_case.StartIngestIntegrationApisUseCase;
 import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
@@ -71,7 +71,7 @@ public class IntegrationResource extends AbstractResource {
     private UpdateIntegrationUseCase updateIntegrationUsecase;
 
     @Inject
-    private IngestIntegrationApisUseCase ingestIntegrationApisUseCase;
+    private StartIngestIntegrationApisUseCase startIngestIntegrationApisUseCase;
 
     @Inject
     private DiscoveryUseCase discoveryUseCase;
@@ -146,10 +146,10 @@ public class IntegrationResource extends AbstractResource {
 
         AuditInfo audit = getAuditInfo();
 
-        ingestIntegrationApisUseCase
-            .execute(new IngestIntegrationApisUseCase.Input(integrationId, audit))
+        startIngestIntegrationApisUseCase
+            .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, audit))
             .subscribe(
-                () -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build()),
+                status -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.PENDING).build()),
                 response::resume
             );
     }
