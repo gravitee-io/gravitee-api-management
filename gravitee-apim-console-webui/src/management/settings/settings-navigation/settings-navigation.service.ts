@@ -110,6 +110,11 @@ export class SettingsNavigationService {
             routerLink: './dictionaries',
             permissions: ['environment-dictionary-r'],
           },
+          {
+            displayName: 'Environment Flows',
+            routerLink: './environment-flows',
+            permissions: ['environment-flows-r'],
+          },
         ],
       },
       {
