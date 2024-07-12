@@ -75,11 +75,13 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   get value(): Color | null {
     return this._value;
   }
+
   set value(_color: Color | null) {
     this._value = _color;
     this._onChange(_color);
     this.stateChanges.next();
   }
+
   private _value: Color | null = null;
 
   // From ControlValueAccessor interface
@@ -94,14 +96,16 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   get placeholder() {
     return this._placeholder;
   }
+
   set placeholder(plh) {
     this._placeholder = plh;
     this.stateChanges.next();
   }
+
   private _placeholder: string;
 
   // From ControlValueAccessor interface
-  focused: boolean;
+  focused: boolean = false;
 
   // From ControlValueAccessor interface
   get empty() {
@@ -119,10 +123,12 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   get required() {
     return this._required;
   }
+
   set required(req) {
     this._required = coerceBooleanProperty(req);
     this.stateChanges.next();
   }
+
   private _required = false;
 
   // From ControlValueAccessor interface
@@ -130,6 +136,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   get disabled() {
     return this._disabled || (this.ngControl && this.ngControl.disabled);
   }
+
   set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
 
@@ -137,6 +144,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
 
     this.stateChanges.next();
   }
+
   private _disabled = false;
 
   // From ControlValueAccessor interface
@@ -162,6 +170,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   userAriaDescribedBy?: string;
 
   private unsubscribe$ = new Subject<boolean>();
+
   constructor(
     // From ControlValueAccessor interface
     @Optional() @Self() public readonly ngControl: NgControl,
@@ -224,13 +233,18 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
 
   // From ControlValueAccessor interface
   @HostBinding('attr.aria-describedby') describedBy = '';
+
   setDescribedByIds(ids: string[]): void {
     this.describedBy = ids.join(' ');
   }
 
   // From ControlValueAccessor interface
 
-  onContainerClick(_event: MouseEvent): void {}
+  onContainerClick(event: MouseEvent) {
+    if ((event.target as Element).tagName.toLowerCase() !== 'input') {
+      this.elRef.nativeElement.querySelector('input').focus();
+    }
+  }
 
   // From ControlValueAccessor interface
   setDisabledState(disabled: boolean) {
