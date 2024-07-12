@@ -123,7 +123,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
 
     describe('Verify element of API list filled with sample data', function () {
       it(`should display ${noOfApis} v2 APIs and ${noOfApis} v4 APIs `, function () {
-        cy.get('tr:contains(V4 - HTTP Message)').should('have.length', noOfApis);
+        cy.get('tr:contains(V4 - Message)').should('have.length', noOfApis);
         cy.get('tr:contains(V2)').should('have.length', noOfApis);
       });
 
