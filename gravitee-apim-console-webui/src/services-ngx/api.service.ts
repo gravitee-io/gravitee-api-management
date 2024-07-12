@@ -27,6 +27,7 @@ import { GroupMember } from '../entities/group/groupMember';
 import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
 import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/metadata';
 import { Event, EventType } from '../entities/event/event';
+import { EventEntityPage } from '../entities/event/EventEntityPage';
 
 export interface ContextPathValidatorParams {
   currentContextPath?: string;
@@ -340,6 +341,37 @@ export class ApiService {
    */
   getApiEvents(apiId: string, eventTypes: EventType[]): Observable<Event[]> {
     return this.http.get<Event[]>(`${this.constants.env.baseURL}/apis/${apiId}/events?type=${eventTypes ? `${eventTypes.join(',')}` : ''}`);
+  }
+
+  searchApiEvents(
+    type: string[],
+    api: string,
+    from: number,
+    to: number,
+    page: number,
+    size: number,
+    withPayload = false,
+  ): Observable<EventEntityPage> {
+    const params = {
+      page,
+      size,
+      type: type ? type.join(',') : '',
+    };
+    if (from) {
+      params['from'] = from;
+    }
+    if (to) {
+      params['to'] = to;
+    }
+    if (withPayload) {
+      params['withPayload'] = withPayload;
+    }
+
+    return this.http.get<EventEntityPage>(
+      `${this.constants.env.baseURL}/apis/${api}/events/search?${Object.entries(params)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&')}`,
+    );
   }
 }
 
