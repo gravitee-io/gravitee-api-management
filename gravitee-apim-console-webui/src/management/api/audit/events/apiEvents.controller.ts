@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { StateService } from '@uirouter/core';
+
+import { ApiService } from '../../../../services/api.service';
 
 class ApiEventsController {
-  private events: any;
   private eventsTimeline: any;
+  private eventPageSize = 100;
+  private eventPage = 0;
+  private eventTypes = 'START_API,STOP_API';
 
   /* @ngInject */
-  constructor(resolvedEvents) {
-    this.events = resolvedEvents.data;
+  constructor(private $state: StateService, private ApiService: ApiService) {
     this.eventsTimeline = [];
-    this.initTimeline(this.events);
+    this._loadEvents();
   }
 
   initTimeline(events) {
@@ -62,6 +66,27 @@ class ApiEventsController {
         eventTypeTimeline.badgeClass = 'info';
     }
     return eventTypeTimeline;
+  }
+
+  private _loadEvents() {
+    this.ApiService.searchApiEvents(
+      this.eventTypes,
+      this.$state.params.apiId,
+      undefined,
+      undefined,
+      this.eventPage,
+      this.eventPageSize,
+      false,
+    ).then((response) => {
+      const data = response.data;
+      const events = [...data.content];
+      this.initTimeline(events);
+
+      if (data.totalElements > data.pageNumber * this.eventPageSize + data.pageElements) {
+        this.eventPage++;
+        this._loadEvents();
+      }
+    });
   }
 }
 

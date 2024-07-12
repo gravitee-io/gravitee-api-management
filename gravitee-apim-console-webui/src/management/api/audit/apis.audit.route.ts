@@ -65,12 +65,6 @@ function apisAuditRouterConfig($stateProvider) {
       template: require('./events/apiEvents.html'),
       controller: 'ApiEventsController',
       controllerAs: 'apiEventsCtrl',
-      resolve: {
-        resolvedEvents: function ($stateParams, ApiService) {
-          const eventTypes = 'START_API,STOP_API';
-          return ApiService.getApiEvents($stateParams.apiId, eventTypes);
-        },
-      },
       data: {
         perms: {
           only: ['api-event-r'],
