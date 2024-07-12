@@ -27,7 +27,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiQueryServiceInMemory;
-import inmemory.InMemoryAlternative;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -39,6 +38,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
@@ -78,7 +78,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
@@ -349,6 +348,9 @@ class ApisResourceTest extends AbstractResourceTest {
         public void should_return_created_api() {
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+
+            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any()))
                 .thenAnswer(invocation -> {
                     Api api = invocation.getArgument(0);
@@ -480,6 +482,7 @@ class ApisResourceTest extends AbstractResourceTest {
             categoryQueryService.initWith(
                 List.of(Category.builder().id("category-id").build(), Category.builder().id("category-key").build())
             );
+            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
         }
 
         @Test

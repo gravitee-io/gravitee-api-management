@@ -37,7 +37,6 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -305,16 +304,32 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     ContextPathValidationResult checkContextPath(String environmentId, SwaggerApiEntity api, String apiId) {
         try {
-            var sanitizedPaths = verifyApiPathDomainService.checkAndSanitizeApiPaths(
-                environmentId,
-                apiId,
-                api
-                    .getProxy()
-                    .getVirtualHosts()
-                    .stream()
-                    .map(h -> Path.builder().path(h.getPath()).host(h.getHost()).overrideAccess(h.isOverrideEntrypoint()).build())
-                    .toList()
+            var validationResult = verifyApiPathDomainService.validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    environmentId,
+                    apiId,
+                    api
+                        .getProxy()
+                        .getVirtualHosts()
+                        .stream()
+                        .map(h -> Path.builder().path(h.getPath()).host(h.getHost()).overrideAccess(h.isOverrideEntrypoint()).build())
+                        .toList()
+                )
             );
+
+            validationResult
+                .severe()
+                .ifPresent(errors -> {
+                    throw new InvalidPathsException(errors.iterator().next().getMessage());
+                });
+
+            var sanitizedPaths = validationResult
+                .map(VerifyApiPathDomainService.Input::paths)
+                .value()
+                .stream()
+                .flatMap(List::stream)
+                .toList();
+
             return ContextPathValidationResult.builder().sanitizedPaths(sanitizedPaths).build();
         } catch (InvalidPathsException e) {
             String ctxPath = api.getProxy().getVirtualHosts().stream().findFirst().map(VirtualHost::getPath).orElse("");

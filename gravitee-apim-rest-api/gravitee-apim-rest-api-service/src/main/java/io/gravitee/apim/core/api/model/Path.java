@@ -25,7 +25,7 @@ import lombok.Data;
 import lombok.With;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @With
 public class Path {
 

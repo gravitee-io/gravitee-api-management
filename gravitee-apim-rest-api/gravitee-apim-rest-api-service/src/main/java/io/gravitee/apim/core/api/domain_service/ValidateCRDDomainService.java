@@ -35,6 +35,8 @@ public class ValidateCRDDomainService implements Validator<ValidateCRDDomainServ
 
     private final ValidateCategoryIdsDomainService categoryIdsValidator;
 
+    private final VerifyApiPathDomainService apiPathValidator;
+
     @Override
     public Validator.Result<ValidateCRDDomainService.Input> validateAndSanitize(ValidateCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
@@ -45,6 +47,12 @@ public class ValidateCRDDomainService implements Validator<ValidateCRDDomainServ
                 new ValidateCategoryIdsDomainService.Input(input.auditInfo().environmentId(), input.spec().getCategories())
             )
             .peek(sanitized -> sanitizedBuilder.categories(sanitized.idOrKeys()), errors::addAll);
+
+        apiPathValidator
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(input.auditInfo.environmentId(), input.spec.getId(), input.spec.getPaths())
+            )
+            .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
 
         return Validator.Result.ofBoth(new ValidateCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }

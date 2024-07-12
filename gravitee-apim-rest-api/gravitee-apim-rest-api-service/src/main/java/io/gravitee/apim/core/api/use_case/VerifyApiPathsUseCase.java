@@ -32,13 +32,17 @@ public class VerifyApiPathsUseCase {
     }
 
     public Response execute(Request request) throws InvalidPathsException {
-        return new Response(
-            verifyApiPathDomainService.checkAndSanitizeApiPaths(
-                GraviteeContext.getExecutionContext().getEnvironmentId(),
-                request.apiId,
-                request.paths
-            )
+        var validationResult = verifyApiPathDomainService.validateAndSanitize(
+            new VerifyApiPathDomainService.Input(GraviteeContext.getExecutionContext().getEnvironmentId(), request.apiId, request.paths)
         );
+
+        validationResult
+            .severe()
+            .ifPresent(errors -> {
+                throw new InvalidPathsException(errors.iterator().next().getMessage());
+            });
+
+        return validationResult.value().map(sanitized -> new Response(sanitized.paths())).orElseGet(() -> new Response(List.of()));
     }
 
     public record Request(String apiId, List<Path> paths) {}

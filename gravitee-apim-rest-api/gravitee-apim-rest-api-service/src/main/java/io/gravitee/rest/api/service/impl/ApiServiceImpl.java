@@ -447,8 +447,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             checkShardingTags(api, null, executionContext);
 
             // format context-path and check if context path is unique
-            final Collection<VirtualHost> sanitizedVirtualHosts = verifyApiPathDomainService
-                .checkAndSanitizeApiPaths(
+            var validationResult = verifyApiPathDomainService.validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
                     executionContext.getEnvironmentId(),
                     apiId,
                     api
@@ -456,11 +456,29 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .getVirtualHosts()
                         .stream()
                         .map(vh -> Path.builder().host(vh.getHost()).path(vh.getPath()).overrideAccess(vh.isOverrideEntrypoint()).build())
-                        .collect(toList())
+                        .toList()
                 )
+            );
+
+            validationResult
+                .severe()
+                .ifPresent(errors -> {
+                    throw new InvalidPathsException(errors.iterator().next().getMessage());
+                });
+
+            var sanitizedVirtualHosts = validationResult
+                .map(VerifyApiPathDomainService.Input::paths)
+                .map(paths ->
+                    paths
+                        .stream()
+                        .map(sanitized -> new VirtualHost(sanitized.getHost(), sanitized.getPath(), sanitized.isOverrideAccess()))
+                        .toList()
+                )
+                .value()
                 .stream()
-                .map(sanitized -> new VirtualHost(sanitized.getHost(), sanitized.getPath(), sanitized.isOverrideAccess()))
+                .flatMap(List::stream)
                 .toList();
+
             api.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
             // check endpoints configuration
@@ -1000,9 +1018,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiDefinitionVersionNotSupportedException(apiToUpdate.getDefinitionVersion().getLabel());
             }
 
-            // check if entrypoints are unique
-            final Collection<VirtualHost> sanitizedVirtualHosts = verifyApiPathDomainService
-                .checkAndSanitizeApiPaths(
+            var validationResult = verifyApiPathDomainService.validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
                     executionContext.getEnvironmentId(),
                     apiId,
                     updateApiEntity
@@ -1012,9 +1029,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .map(h -> Path.builder().host(h.getHost()).path(h.getPath()).overrideAccess(h.isOverrideEntrypoint()).build())
                         .collect(toList())
                 )
+            );
+
+            validationResult
+                .severe()
+                .ifPresent(errors -> {
+                    throw new InvalidPathsException(errors.iterator().next().getMessage());
+                });
+
+            var sanitizedVirtualHosts = validationResult
+                .map(VerifyApiPathDomainService.Input::paths)
+                .map(paths ->
+                    paths
+                        .stream()
+                        .map(sanitized -> new VirtualHost(sanitized.getHost(), sanitized.getPath(), sanitized.isOverrideAccess()))
+                        .toList()
+                )
+                .value()
                 .stream()
-                .map(r -> new VirtualHost(r.getHost(), r.getPath(), r.isOverrideAccess()))
+                .flatMap(List::stream)
                 .toList();
+
             updateApiEntity.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
             // check endpoints presence

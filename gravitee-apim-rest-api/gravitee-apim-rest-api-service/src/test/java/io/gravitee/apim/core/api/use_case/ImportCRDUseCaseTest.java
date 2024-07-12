@@ -78,6 +78,7 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -120,6 +121,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -220,6 +222,7 @@ class ImportCRDUseCaseTest {
     ApiMetadataDomainService apiMetadataDomainService = mock(ApiMetadataDomainService.class);
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
+    VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
 
     ImportCRDUseCase useCase;
 
@@ -367,7 +370,10 @@ class ImportCRDUseCaseTest {
             )
         );
 
-        var crdValidator = new ValidateCRDDomainService(new ValidateCategoryIdsDomainService(categoryQueryService));
+        var crdValidator = new ValidateCRDDomainService(
+            new ValidateCategoryIdsDomainService(categoryQueryService),
+            verifyApiPathDomainService
+        );
 
         categoryQueryService.reset();
 
@@ -438,6 +444,8 @@ class ImportCRDUseCaseTest {
                 Group.builder().id(GROUP_ID_2).environmentId(ENVIRONMENT_ID).name(GROUP_NAME).build()
             )
         );
+
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
     }
 
     @AfterEach
