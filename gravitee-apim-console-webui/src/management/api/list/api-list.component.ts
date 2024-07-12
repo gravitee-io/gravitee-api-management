@@ -214,7 +214,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
       case 'V2':
         return { label: this.titleCasePipe.transform(api.definitionVersion) };
       case 'V4':
-        return { label: `${api.definitionVersion} - ${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
+        return { label: `${api.definitionVersion} -${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
         return { label: this.titleCasePipe.transform(api.definitionVersion) };
       default:
@@ -223,9 +223,14 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   private getLabelType(api: Api): string {
-    if (api.definitionVersion === 'V4') {
-      return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? 'TCP' : 'HTTP';
+    if ((api as ApiV4).type === 'MESSAGE') {
+      return '';
     }
+
+    if (api.definitionVersion === 'V4') {
+      return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? ' TCP' : ' HTTP';
+    }
+
     return '';
   }
 
