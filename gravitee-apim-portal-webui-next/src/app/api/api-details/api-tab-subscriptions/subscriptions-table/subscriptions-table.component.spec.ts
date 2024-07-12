@@ -62,7 +62,7 @@ describe('SubscriptionsTableComponent', () => {
       const subscriptionTable = await harnessLoader.getHarness(MatTableHarness.with({ selector: '.api-tab-subscriptions__table' }));
       expect(subscriptionTable).toBeTruthy();
       expect(await subscriptionTable.getRows().then(value => value[0].getCellTextByColumnName())).toEqual({
-        application: 'Testapplication',
+        application: 'testApplication',
         expand: 'arrow_right',
         plan: '-',
         status: 'Rejected',
