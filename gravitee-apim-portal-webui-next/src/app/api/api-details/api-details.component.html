@@ -25,7 +25,7 @@
       </div>
       @if (plans$ | async; as plans) {
         <div class="api-details__header-button">
-          @if (!plans.length) {
+          @if (!plans.length && isAuthenticated()) {
             <div class="m3-body-medium on-surface-variant" i18n="@@apiDetailsNoPlans">No plans available</div>
           }
           <button
