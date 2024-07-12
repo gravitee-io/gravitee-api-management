@@ -34,37 +34,61 @@ type EventsTableDS = {
   styleUrls: ['./api-events.component.scss'],
 })
 export class ApiEventsComponent implements OnInit, OnDestroy {
+  private eventTypes = ['START_API', 'STOP_API', 'PUBLISH_API'];
+  private eventPageSize = 100;
+  private eventPage = 0;
   public displayedColumns = ['icon', 'type', 'createdAt', 'user'];
   public eventsTableDS: EventsTableDS[] = [];
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isLoadingData = true;
+
   constructor(
     public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiService,
   ) {}
 
   public ngOnInit(): void {
-    this.apiService
-      .getApiEvents(this.activatedRoute.snapshot.params.apiId, ['START_API', 'STOP_API', 'PUBLISH_API'])
-      .pipe(
-        tap((events) => {
-          this.eventsTableDS = events.map((event: Event) => {
-            return {
-              type: event.type,
-              createdAt: event.created_at,
-              user: event.user,
-            };
-          });
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => {
-        this.isLoadingData = false;
-      });
+    this.isLoadingData = true;
+    this._loadEvents();
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  private _loadEvents() {
+    this.apiService
+      .searchApiEvents(
+        this.eventTypes,
+        this.activatedRoute.snapshot.params.apiId,
+        undefined,
+        undefined,
+        this.eventPage,
+        this.eventPageSize,
+        false,
+      )
+      .pipe(
+        tap((response) => {
+          const events = [...response.content];
+          this.eventsTableDS = [
+            ...this.eventsTableDS,
+            ...events.map((event: Event) => {
+              return {
+                type: event.type,
+                createdAt: event.created_at,
+                user: event.user,
+              };
+            }),
+          ];
+
+          if (response.totalElements > response.pageNumber * this.eventPageSize + response.pageElements) {
+            this.eventPage++;
+            this._loadEvents();
+          }
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => (this.isLoadingData = false));
   }
 }
