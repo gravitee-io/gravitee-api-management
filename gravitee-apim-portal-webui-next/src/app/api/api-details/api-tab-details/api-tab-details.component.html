@@ -48,10 +48,10 @@
         </div>
       }
 
-      @if (api.categories?.length) {
+      @if (categories$ | async; as categories) {
         <div>
           <div i18n="@@apiDetailsCategories" class="m3-body-large">Categories</div>
-          <div class="m3-body-medium">{{ api.categories }}</div>
+          <div class="m3-body-medium">{{ categories }}</div>
         </div>
       }
     </mat-card>

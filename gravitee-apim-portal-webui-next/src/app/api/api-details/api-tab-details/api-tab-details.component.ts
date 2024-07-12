@@ -23,6 +23,7 @@ import { PageComponent } from '../../../../components/page/page.component';
 import { MarkdownDescriptionPipe } from '../../../../components/pipe/markdown-description.pipe';
 import { Api } from '../../../../entities/api/api';
 import { Page } from '../../../../entities/page/page';
+import { CategoriesService } from '../../../../services/categories.service';
 import { PageService } from '../../../../services/page.service';
 
 interface HomepageData {
@@ -43,8 +44,12 @@ export class ApiTabDetailsComponent implements OnInit {
   @Input()
   pages!: Page[];
   homepageData$: Observable<HomepageData> = of();
+  categories$: Observable<string> = of('');
 
-  constructor(private pageService: PageService) {}
+  constructor(
+    private pageService: PageService,
+    private categoriesService: CategoriesService,
+  ) {}
 
   ngOnInit(): void {
     this.homepageData$ = this.pageService.listByApiId(this.api.id, true).pipe(
@@ -59,5 +64,19 @@ export class ApiTabDetailsComponent implements OnInit {
         }
       }),
     );
+
+    if (this.api.categories?.length) {
+      this.categories$ = this.categoriesService.categories().pipe(
+        map(({ data }) => {
+          if (!data.length || !this.api.categories) {
+            return '';
+          }
+          return this.api.categories
+            .map(c => data.find(category => category.id === c)?.name)
+            .filter(c => !!c)
+            .join(', ');
+        }),
+      );
+    }
   }
 }
