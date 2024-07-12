@@ -111,7 +111,6 @@ describe('ApiNgEventsComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.isLoadingData).toEqual(false);
     expect(fixture.componentInstance.eventsTableDS).toBeDefined();
     expect(fixture.componentInstance.eventsTableDS.length).toEqual(events.length);
   }
@@ -130,10 +129,15 @@ describe('ApiNgEventsComponent', () => {
   function expectApiGetEvents(events: Event[]) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/events?type=START_API,STOP_API,PUBLISH_API`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/events/search?page=0&size=100&type=START_API,STOP_API,PUBLISH_API`,
         method: 'GET',
       })
-      .flush(events);
+      .flush({
+        content: events,
+        pageNumber: 0,
+        totalElements: events.length,
+        pageElements: events.length,
+      });
     fixture.detectChanges();
   }
 });
