@@ -64,11 +64,11 @@
                 <mat-form-field>
                   <mat-label>Groups with permissions to view the page</mat-label>
                   <mat-select formControlName="accessControlGroups" multiple>
-                    <mat-hint>If no groups are specified, all groups can view the page</mat-hint>
                     @for (group of groups; track group.id) {
                       <mat-option [value]="group.id">{{ group.name }}</mat-option>
                     }
                   </mat-select>
+                  <mat-hint>If no groups are specified, all groups can view the page</mat-hint>
                 </mat-form-field>
                 <gio-form-slide-toggle>
                   <gio-form-label>Exclude the selected groups</gio-form-label>
