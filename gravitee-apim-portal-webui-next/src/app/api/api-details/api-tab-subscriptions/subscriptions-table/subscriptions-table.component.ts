@@ -69,11 +69,7 @@ export class SubscriptionsTableComponent implements OnInit {
   }
 
   retrieveMetadataName(id: string, metadata: SubscriptionMetadata) {
-    if (Object.hasOwn(metadata, id)) {
-      return this.capitalizeFirstPipe.transform(<string>metadata[id]['name']);
-    } else {
-      return '-';
-    }
+    return Object.hasOwn(metadata, id) ? <string>metadata[id]['name'] : '-';
   }
 
   private loadSubscriptions$(): Observable<Subscription[]> {

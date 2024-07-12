@@ -16,20 +16,20 @@
 
 -->
 @if (subscriptionsList$ | async; as subscriptions) {
-  <mat-form-field appearance="outline">
-    <mat-label i18n="@@subscriptionStatusSelectLabel">Status</mat-label>
-    <mat-select [formControl]="subscriptionsStatus" multiple id="api-tab-subscription__select">
-      @for (status of subscriptionStatusesList; track status) {
-        <mat-option [value]="status">{{ status | capitalizeFirst }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
   @if (subscriptions.length === 0) {
     <div class="api-tab-subscription__empty" id="no-subscriptions">
       <header i18n="@@noSubscriptionAvailable" class="api-tab-subscription__empty-header">No subscription found</header>
       <p i18n="@@subscribeToApi">Subscribe to our API and your subscription will show up here.</p>
     </div>
   } @else {
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@subscriptionStatusSelectLabel">Status</mat-label>
+      <mat-select [formControl]="subscriptionsStatus" multiple id="api-tab-subscription__select">
+        @for (status of subscriptionStatusesList; track status) {
+          <mat-option [value]="status">{{ status | capitalizeFirst }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
     <table mat-table [dataSource]="subscriptions" class="api-tab-subscriptions__table">
       <ng-container matColumnDef="application">
         <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionTableColumnApplication" class="m3-title-medium">Application</th>
@@ -54,7 +54,11 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row class="api-tab-subscriptions__table-row" *matRowDef="let row; columns: displayedColumns"></tr>
+      <tr
+        mat-row
+        class="api-tab-subscriptions__table-row"
+        *matRowDef="let subscription; columns: displayedColumns"
+        [routerLink]="['./', subscription.id]"></tr>
     </table>
   }
 } @else {
