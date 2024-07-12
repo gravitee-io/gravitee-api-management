@@ -15,17 +15,19 @@
  */
 package io.gravitee.apim.core.utils;
 
-import java.util.Collection;
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class StringUtils {
 
-public class CollectionUtils {
+    private StringUtils() {}
 
-    private CollectionUtils() {}
-
-    public static boolean isEmpty(Collection<?> collection) {
-        return collection == null || collection.isEmpty();
+    public static boolean isEmpty(CharSequence cs) {
+        return cs == null || cs.isEmpty();
     }
 
-    public static boolean isNotEmpty(Collection<?> collection) {
-        return !isEmpty(collection);
+    public static boolean isNotEmpty(CharSequence cs) {
+        return !isEmpty(cs);
     }
 }

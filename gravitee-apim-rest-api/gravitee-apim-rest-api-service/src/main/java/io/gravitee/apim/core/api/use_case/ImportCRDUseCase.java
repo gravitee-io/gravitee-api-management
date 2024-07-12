@@ -49,6 +49,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
@@ -67,6 +68,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -200,7 +202,18 @@ public class ImportCRDUseCase {
                 .validateAndSanitize(new ValidateCRDDomainService.Input(input.auditInfo(), input.spec()))
                 .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-            var warnings = validationResult.warnings().orElseGet(List::of);
+            validationResult
+                .severe()
+                .ifPresent(errors -> {
+                    throw new ValidationDomainException(
+                        String.format(
+                            "Unable to import because of errors [%s]",
+                            String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                        )
+                    );
+                });
+
+            var warnings = validationResult.warning().orElseGet(List::of);
 
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
@@ -265,7 +278,7 @@ public class ImportCRDUseCase {
                 .validateAndSanitize(new ValidateCRDDomainService.Input(input.auditInfo(), input.spec()))
                 .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-            var warnings = validationResult.warnings().orElseGet(List::of);
+            var warnings = validationResult.warning().orElseGet(List::of);
 
             resolveGroups(input);
             cleanCategories(input.auditInfo.environmentId(), input.spec);

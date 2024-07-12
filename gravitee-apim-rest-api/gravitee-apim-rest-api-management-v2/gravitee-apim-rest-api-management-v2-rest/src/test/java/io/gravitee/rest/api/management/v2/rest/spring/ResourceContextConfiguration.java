@@ -23,8 +23,6 @@ import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -37,7 +35,6 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
-import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateCRDUseCase;
@@ -45,7 +42,6 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
-import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -399,7 +395,12 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ValidateCRDUseCase validateCRDUseCase(CategoryQueryServiceInMemory categoryQueryService) {
-        return new ValidateCRDUseCase(new ValidateCRDDomainService(new ValidateCategoryIdsDomainService(categoryQueryService)));
+    public ValidateCRDUseCase validateCRDUseCase(
+        CategoryQueryServiceInMemory categoryQueryService,
+        VerifyApiPathDomainService verifyApiPathDomainService
+    ) {
+        return new ValidateCRDUseCase(
+            new ValidateCRDDomainService(new ValidateCategoryIdsDomainService(categoryQueryService), verifyApiPathDomainService)
+        );
     }
 }

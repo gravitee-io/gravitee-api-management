@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
@@ -41,7 +42,6 @@ import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -122,11 +122,22 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         final HttpListener httpListener,
         final List<EndpointGroup> endpointGroups
     ) {
-        var sanitizedPaths = verifyApiPathDomainService.checkAndSanitizeApiPaths(
-            executionContext.getEnvironmentId(),
-            apiId,
-            PathAdapter.INSTANCE.fromV4HttpListenerPathList(httpListener.getPaths())
+        var validationResult = verifyApiPathDomainService.validateAndSanitize(
+            new VerifyApiPathDomainService.Input(
+                executionContext.getEnvironmentId(),
+                apiId,
+                PathAdapter.INSTANCE.fromV4HttpListenerPathList(httpListener.getPaths())
+            )
         );
+
+        validationResult
+            .severe()
+            .ifPresent(errors -> {
+                throw new InvalidPathsException(errors.iterator().next().getMessage());
+            });
+
+        var sanitizedPaths = validationResult.map(VerifyApiPathDomainService.Input::paths).value().stream().flatMap(List::stream).toList();
+
         httpListener.setPaths(PathAdapter.INSTANCE.toV4HttpListenerPathList(sanitizedPaths));
 
         validatePathMappings(httpListener.getPathMappings());

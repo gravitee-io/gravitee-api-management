@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.user;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.UserAdapter;
+import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Service;
 public class UserDomainServiceLegacyWrapper implements UserDomainService {
 
     private final UserService userService;
+
+    private final IdentityService identityService;
 
     @Override
     public BaseUserEntity findBySource(String organizationId, String source, String sourceId) {

@@ -16,13 +16,11 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
-import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -30,6 +28,7 @@ import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -55,6 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class VerifyApiPathDomainServiceTest {
 
     public static final String ENVIRONMENT_ID = "environment-id";
+    public static final String API_ID = "api-id";
 
     @Mock
     ApiQueryService apiSearchService;
@@ -101,26 +101,29 @@ class VerifyApiPathDomainServiceTest {
     public void should_sanitize_path(String path, String expectedPath) {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
-        var res = service.checkAndSanitizeApiPaths(
-            ENVIRONMENT_ID,
-            "api-id",
-            List.of(Path.builder().path(path).overrideAccess(true).build())
+        var result = service.validateAndSanitize(
+            new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path(path).overrideAccess(true).build()))
         );
-        assertThat(res).hasSize(1);
-        assertThat(res.get(0).getPath()).isEqualTo(expectedPath);
-        assertThat(res.get(0).getHost()).isNull();
-        assertThat(res.get(0).isOverrideAccess()).isTrue();
+        var optionalPaths = result.value().map(VerifyApiPathDomainService.Input::paths);
+        assertThat(optionalPaths).isNotEmpty();
+        var paths = optionalPaths.get();
+        assertThat(paths).hasSize(1);
+        assertThat(paths.get(0).getPath()).isEqualTo(expectedPath);
+        assertThat(paths.get(0).getHost()).isNull();
+        assertThat(paths.get(0).isOverrideAccess()).isTrue();
     }
 
     @Test
-    public void should_throw_exception_if_path_is_invalid() {
+    public void should_return_severe_errors_if_path_is_invalid() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
-        var throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid>path").build()))
-        );
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("invalid>path").build()))
+            )
+            .severe();
 
-        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [invalid>path] is invalid")));
     }
 
     @ParameterizedTest
@@ -128,125 +131,153 @@ class VerifyApiPathDomainServiceTest {
     public void should_check_domain_restrictions_if_host_is_present(String host, String expectedHost) {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net", "domain.com:123"));
 
-        var res = service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()));
+        var res = service.validateAndSanitize(
+            new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().host(host).path("/path/").build()))
+        );
 
-        assertThat(res).hasSize(1);
-        assertThat(res.get(0).getPath()).isEqualTo("/path/");
-        assertThat(res.get(0).getHost()).isEqualTo(expectedHost);
+        var paths = res.value().map(VerifyApiPathDomainService.Input::paths);
+
+        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(expectedHost).overrideAccess(true).build()));
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "wrong-domain.com", "not-same-port:8082" })
-    public void should_throw_exception_if_domain_is_invalid(String host) {
+    public void should_return_severe_error_exception_if_domain_is_invalid(String host) {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net", "not-same-port:1234"));
 
-        var throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()))
-        );
-
-        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
-    }
-
-    @Test
-    public void should_throw_exception_if_duplicate_paths() {
-        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
-
-        var throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(
-                ENVIRONMENT_ID,
-                null,
-                List.of(Path.builder().path("/abc/").build(), Path.builder().path("/path/").build(), Path.builder().path("/path/").build())
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().host(host).path("/path/").build()))
             )
-        );
-        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
-        assertThat(throwable.getMessage()).contains("/path");
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Domain [%s] is invalid", host)));
     }
 
     @Test
-    public void should_throw_exception_if_path_already_covered_by_other_api_for_api_creation() {
+    public void should_return_severe_error_if_duplicate_paths() {
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
+
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    null,
+                    List.of(
+                        Path.builder().path("/abc/").build(),
+                        Path.builder().path("/path/").build(),
+                        Path.builder().path("/path/").build()
+                    )
+                )
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] is duplicated")));
+    }
+
+    @Test
+    public void should_return_severe_error_if_path_already_covered_by_other_api_for_api_creation() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
-        var throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, null, List.of(Path.builder().path("/path/").build()))
-        );
-        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, null, List.of(Path.builder().path("/path/").build())))
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
-    public void should_throw_exception_if_path_already_used_by_api_v2() {
+    public void should_return_severe_error_if_path_already_used_by_api_v2() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
-        var throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
-        );
-        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/path/").build()))
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
-    public void should_throw_exception_if_path_already_used_by_api_v2_with_host() {
+    public void should_return_severe_error_if_path_already_used_by_api_v2_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/").build())
+                )
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
     public void should_ignore_path_used_by_same_api_v2_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        givenExistingApis(
-            ENVIRONMENT_ID,
-            Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api-id", List.of(Pair.of("domain.com", "/path/"))))
-        );
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("domain.com", "/path/")))));
 
         // Check should be ok if same path but different domain
-        var res = service.checkAndSanitizeApiPaths(
-            ENVIRONMENT_ID,
-            "api-id",
-            List.of(Path.builder().host("domain.com").path("/path/").build())
-        );
-        assertThat(res).hasSize(1);
-        assertThat(res.get(0).getPath()).isEqualTo("/path/");
-        assertThat(res.get(0).getHost()).isEqualTo("domain.com");
+        var paths = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/").build())
+                )
+            )
+            .map(VerifyApiPathDomainService.Input::paths)
+            .value();
+
+        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
     }
 
     @Test
-    public void should_throw_exception_if_path_is_subpath_of_another_api_v2() {
+    public void should_return_severe_error_if_path_is_sub_path_of_another_api_v2() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of());
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of(null, "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/path/subpath").build()))
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
-    public void should_throw_exception_if_path_is_subpath_of_another_api_v2_with_host() {
+    public void should_throw_exception_if_path_is_sub_path_of_another_api_v2_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(
-                ENVIRONMENT_ID,
-                "api-id",
-                List.of(Path.builder().host("domain.com").path("/path/subpath").build())
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/subpath").build())
+                )
             )
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -255,85 +286,106 @@ class VerifyApiPathDomainServiceTest {
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
-        var throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("").path("/path/").build()))
-        );
-        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().host("").path("/path/").build()))
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
     public void should_ignore_path_already_used_by_same_api_v4() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
-        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api-id", List.of(Pair.of("", "/path/")))));
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("", "/path/")))));
 
-        var res = service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()));
-        assertThat(res).hasSize(1);
-        assertThat(res.get(0).getPath()).isEqualTo("/path/");
-        assertThat(res.get(0).getHost()).isNullOrEmpty();
+        var paths = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/path/").build()))
+            )
+            .map(VerifyApiPathDomainService.Input::paths)
+            .value();
+
+        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(null).build()));
     }
 
     @Test
-    public void should_throw_exception_if_path_already_used_by_api_v4_with_host() {
+    public void should_return_error_if_path_already_used_by_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/").build())
+                )
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
     public void should_ignore_path_used_by_same_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        givenExistingApis(
-            ENVIRONMENT_ID,
-            Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api-id", List.of(Pair.of("domain.com", "/path/"))))
-        );
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, API_ID, List.of(Pair.of("domain.com", "/path/")))));
 
         // Check should be ok if same path but different domain
-        var res = service.checkAndSanitizeApiPaths(
-            ENVIRONMENT_ID,
-            "api-id",
-            List.of(Path.builder().host("domain.com").path("/path/").build())
-        );
-        assertThat(res).hasSize(1);
-        assertThat(res.get(0).getPath()).isEqualTo("/path/");
-        assertThat(res.get(0).getHost()).isEqualTo("domain.com");
+        var paths = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/").build())
+                )
+            )
+            .map(VerifyApiPathDomainService.Input::paths)
+            .value();
+
+        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
     }
 
     @Test
-    public void should_throw_exception_if_path_is_subpath_of_another_api_v4() {
+    public void should_return_severe_error_if_path_is_sub_path_of_another_api_v4() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of());
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of(null, "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/path/subpath").build()))
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
-    public void should_throw_exception_if_path_is_subpath_of_another_api_v4_with_host() {
+    public void should_throw_exception_if_path_is_sub_path_of_another_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         // If domain is not set, first domain of domain restriction is used
-        var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(
-                ENVIRONMENT_ID,
-                "api-id",
-                List.of(Path.builder().host("domain.com").path("/path/subpath").build())
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/subpath").build())
+                )
             )
-        );
-        assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     private void givenExistingRestrictedDomains(String environmentId, List<String> domainRestrictions) {

@@ -38,11 +38,14 @@ class ValidateCRDDomainServiceTest {
 
     ValidateCategoryIdsDomainService categoryIdsValidator = mock(ValidateCategoryIdsDomainService.class);
 
-    ValidateCRDDomainService cut = new ValidateCRDDomainService(categoryIdsValidator);
+    VerifyApiPathDomainService pathValidator = mock(VerifyApiPathDomainService.class);
+
+    ValidateCRDDomainService cut = new ValidateCRDDomainService(categoryIdsValidator, pathValidator);
 
     @BeforeEach
     void setUp() {
         reset(categoryIdsValidator);
+        when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
     }
 
     @Test

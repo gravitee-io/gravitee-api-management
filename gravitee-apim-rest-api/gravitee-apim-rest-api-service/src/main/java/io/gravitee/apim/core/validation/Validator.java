@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.validation;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -94,8 +95,16 @@ public interface Validator<I extends Validator.Input> {
             return Optional.ofNullable(errors);
         }
 
-        public Optional<List<Error>> warnings() {
-            return Optional.of(errors().stream().flatMap(List::stream).filter(Error::isWarning).toList());
+        public Optional<List<Error>> warning() {
+            return Optional
+                .of(errors().stream().flatMap(List::stream).filter(Error::isWarning).toList())
+                .filter(CollectionUtils::isNotEmpty);
+        }
+
+        public Optional<List<Error>> severe() {
+            return Optional
+                .of(errors().stream().flatMap(List::stream).filter(Error::isSevere).toList())
+                .filter(CollectionUtils::isNotEmpty);
         }
     }
 

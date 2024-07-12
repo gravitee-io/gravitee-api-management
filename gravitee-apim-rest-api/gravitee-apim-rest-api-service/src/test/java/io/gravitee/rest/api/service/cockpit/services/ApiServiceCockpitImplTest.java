@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.cockpit.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
@@ -34,10 +33,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
-import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -166,6 +164,9 @@ public class ApiServiceCockpitImplTest {
                 pageConverter,
                 verifyApiPathsDomainService
             );
+
+        when(verifyApiPathsDomainService.validateAndSanitize(any()))
+            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
     }
 
     @Test
@@ -764,15 +765,26 @@ public class ApiServiceCockpitImplTest {
         api.setProxy(proxy);
 
         lenient()
-            .when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
-            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
+            .when(verifyApiPathsDomainService.validateAndSanitize(any()))
+            .thenReturn(
+                Validator.Result.ofValue(
+                    new VerifyApiPathDomainService.Input(
+                        ENVIRONMENT_ID,
+                        API_ID,
+                        List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
+                    )
+                )
+            );
+
         var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
         verify(verifyApiPathsDomainService)
-            .checkAndSanitizeApiPaths(
-                any(),
-                eq(null),
-                eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()))
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    null,
+                    List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
+                )
             );
         assertThat(message.hasError()).isFalse();
     }
@@ -786,16 +798,20 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
-            .thenThrow(new InvalidPathsException("Invalid path"));
+        when(verifyApiPathsDomainService.validateAndSanitize(any()))
+            .thenReturn(Validator.Result.ofErrors(List.of(Validator.Error.severe("Invalid path"))));
+
         var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
         verify(verifyApiPathsDomainService)
-            .checkAndSanitizeApiPaths(
-                any(),
-                eq(null),
-                eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()))
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    null,
+                    List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
+                )
             );
+
         assertThat(message.getError())
             .contains("The path [contextPath] automatically generated from the name is already covered by another API.");
     }
@@ -819,8 +835,13 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setLabels(LABELS);
 
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), any(), anyList()))
-            .thenReturn(List.of(Path.builder().path("/sanitized/path").build()));
+        when(verifyApiPathsDomainService.validateAndSanitize(any()))
+            .thenReturn(
+                Validator.Result.ofValue(
+                    new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/sanitized/path").build()))
+                )
+            );
+
         when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
@@ -860,13 +881,24 @@ public class ApiServiceCockpitImplTest {
         api.setLabels(LABELS);
 
         when(
-            verifyApiPathsDomainService.checkAndSanitizeApiPaths(
-                EXECUTION_CONTEXT.getEnvironmentId(),
-                API_ID,
-                List.of(Path.builder().path("/un-sanitized/path/").build())
+            verifyApiPathsDomainService.validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    EXECUTION_CONTEXT.getEnvironmentId(),
+                    API_ID,
+                    List.of(Path.builder().path("/un-sanitized/path/").build())
+                )
             )
         )
-            .thenReturn(List.of(Path.builder().path("/sanitized/path").build()));
+            .thenReturn(
+                Validator.Result.ofValue(
+                    new VerifyApiPathDomainService.Input(
+                        EXECUTION_CONTEXT.getEnvironmentId(),
+                        API_ID,
+                        List.of(Path.builder().path("/sanitized/path").build())
+                    )
+                )
+            );
+
         when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
         when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), any(), any())).thenReturn(api);

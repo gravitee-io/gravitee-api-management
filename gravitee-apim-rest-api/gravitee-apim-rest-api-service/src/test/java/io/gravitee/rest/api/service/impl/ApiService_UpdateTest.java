@@ -33,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.clearInvocations;
@@ -55,6 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -366,7 +366,10 @@ public class ApiService_UpdateTest {
 
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         reset(searchEngineService);
-        when(verifyApiPathDomainService.checkAndSanitizeApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
+
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
+
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(1));
     }
@@ -718,7 +721,8 @@ public class ApiService_UpdateTest {
             "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
         );
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        when(verifyApiPathDomainService.checkAndSanitizeApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);

@@ -69,7 +69,7 @@ public class ApiDefinitionFixtures {
                 List.of(
                     HttpListener
                         .builder()
-                        .paths(List.of(Path.builder().path("/http_proxy").build()))
+                        .paths(List.of(Path.builder().path("/http_proxy/").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
                 )
