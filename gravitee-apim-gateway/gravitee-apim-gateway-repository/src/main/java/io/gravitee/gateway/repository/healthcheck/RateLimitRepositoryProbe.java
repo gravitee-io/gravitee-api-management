@@ -20,11 +20,12 @@ import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.disposables.Disposable;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,11 +33,16 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class RateLimitRepositoryProbe implements Probe {
 
+    private static final String NONE_RATE_LIMIT_TYPE = "none";
+
     @Autowired
     private Node node;
 
     @Autowired
     private RateLimitRepository<RateLimit> rateLimitRepository;
+
+    @Value("${ratelimit.type:}")
+    private String rateLimitType;
 
     @Override
     public String id() {
@@ -45,56 +51,52 @@ public class RateLimitRepositoryProbe implements Probe {
 
     @Override
     public CompletableFuture<Result> check() {
-        return CompletableFuture.supplyAsync(
-            new Supplier<Result>() {
-                @Override
-                public Result get() {
-                    CompletableFuture<Result> future = new CompletableFuture<>();
+        return CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<Result> future = new CompletableFuture<>();
 
-                    try {
-                        final String rlIdentifier = "hc-" + node.id();
+            try {
+                final String rlIdentifier = "hc-" + node.id();
 
-                        // Search for a rate-limit value to check repository connection
-                        rateLimitRepository
-                            .incrementAndGet(
-                                rlIdentifier,
-                                1L,
-                                new Supplier<RateLimit>() {
-                                    @Override
-                                    public RateLimit get() {
-                                        RateLimit rateLimit = new RateLimit(rlIdentifier);
-                                        rateLimit.setSubscription(rlIdentifier);
-                                        return rateLimit;
-                                    }
-                                }
-                            )
-                            .subscribe(
-                                new SingleObserver<RateLimit>() {
-                                    @Override
-                                    public void onSubscribe(Disposable d) {}
-
-                                    @Override
-                                    public void onSuccess(RateLimit rateLimit) {
-                                        future.complete(Result.healthy());
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable t) {
-                                        future.complete(Result.unhealthy(t));
-                                    }
-                                }
-                            );
-
-                        try {
-                            return future.get();
-                        } catch (Exception ex) {
-                            return Result.unhealthy(ex);
-                        }
-                    } catch (Throwable t) {
-                        return Result.unhealthy(t);
+                // Search for a rate-limit value to check repository connection
+                var rateLimitSingle = rateLimitRepository.incrementAndGet(
+                    rlIdentifier,
+                    1L,
+                    () -> {
+                        RateLimit rateLimit = new RateLimit(rlIdentifier);
+                        rateLimit.setSubscription(rlIdentifier);
+                        return rateLimit;
                     }
+                );
+
+                if (NONE_RATE_LIMIT_TYPE.equalsIgnoreCase(rateLimitType) && rateLimitSingle == null) {
+                    future.complete(Result.healthy("RateLimit type is none"));
+                } else {
+                    rateLimitSingle.subscribe(
+                        new SingleObserver<>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {}
+
+                            @Override
+                            public void onSuccess(RateLimit rateLimit) {
+                                future.complete(Result.healthy());
+                            }
+
+                            @Override
+                            public void onError(Throwable t) {
+                                future.complete(Result.unhealthy(t));
+                            }
+                        }
+                    );
                 }
+
+                try {
+                    return future.get();
+                } catch (Exception ex) {
+                    return Result.unhealthy(ex);
+                }
+            } catch (Throwable t) {
+                return Result.unhealthy(t);
             }
-        );
+        });
     }
 }
