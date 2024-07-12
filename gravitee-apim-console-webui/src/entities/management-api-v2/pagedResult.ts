@@ -34,7 +34,11 @@ export class PagedResult<T = any> {
   }
 }
 
-export const fakePagedResult = <T extends Array<any>>(data: T, pagination?: Page, links?: Record<string, string>): PagedResult<T> => {
+export const fakePagedResult = <T extends Array<any>>(
+  data: T,
+  pagination?: Page,
+  links?: Record<string, string>,
+): PagedResult<T[number]> => {
   const pr = new PagedResult<T[number]>();
   pr.data = data;
   pr.pagination = pagination ?? {

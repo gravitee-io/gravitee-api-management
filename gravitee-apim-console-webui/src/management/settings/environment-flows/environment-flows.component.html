@@ -18,11 +18,77 @@
 
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Hello environment-flows !</mat-card-title>
-    <mat-card-subtitle>Add a description here</mat-card-subtitle>
-    <div class="environment-flows__headerRightBtn">
-      <button mat-button>Right button</button>
+    <mat-card-title>Environment Flows !</mat-card-title>
+    <mat-card-subtitle>Flows allow to apply different policies on your API event phases</mat-card-subtitle>
+    <div class="environment-flows__headerRightBtn" *gioPermission="{ anyOf: ['environment-flows-c'] }">
+      <button mat-raised-button color="primary"><mat-icon svgIcon="gio:plus"></mat-icon>Add Flow</button>
     </div>
   </mat-card-header>
-  <mat-card-content> Put your card content here ! 👀 </mat-card-content>
+
+  @if (pageTableVM$ | async; as pageTableVM) {
+    <gio-table-wrapper
+      class="table"
+      [filters]="filters"
+      [length]="pageTableVM.totalItems"
+      [paginationPageSizeOptions]="[25, 50, 100]"
+      (filtersChange)="onFiltersChanged($event)"
+    >
+      <table mat-table matSort [dataSource]="pageTableVM.items" aria-label="Environment flows">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="name">Name</th>
+          <td mat-cell *matCellDef="let element">
+            <div>{{ element.name }}</div>
+            <div>{{ element.description }}</div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="phase">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="phase">Phase</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.phase }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastUpdate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="updatedAt">Last updated</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.updatedAt | date: 'medium' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastDeploy">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="deployedAt">Las deployed</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.deployedAt | date: 'medium' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <button
+              *gioPermission="{ anyOf: ['environment-flows-d'] }"
+              type="button"
+              mat-button
+              aria-label="Button to remove"
+              matTooltip="Remove"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            <div *ngIf="!pageTableVM.isLoading" class="mat-body">No resources</div>
+            <div *ngIf="pageTableVM.isLoading" class="mat-body">Loading...</div>
+          </td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  }
 </mat-card>
