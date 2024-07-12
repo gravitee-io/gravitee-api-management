@@ -44,7 +44,7 @@ describe('SettingsNavigationService', () => {
 
     const menuSearchItems = service.getSettingsNavigationSearchItems(envId);
 
-    expect(menuSearchItems).toHaveLength(16);
+    expect(menuSearchItems).toHaveLength(17);
     expect(menuSearchItems).toEqual(
       expect.arrayContaining(
         [
@@ -61,6 +61,7 @@ describe('SettingsNavigationService', () => {
           'Top APIs',
           'API Logging',
           'Dictionaries',
+          'Environment Flows',
           'User Fields',
           'Groups',
           'Notification settings',

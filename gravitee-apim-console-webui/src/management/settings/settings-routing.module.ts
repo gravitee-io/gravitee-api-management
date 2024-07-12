@@ -37,6 +37,7 @@ import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
+import { EnvironmentFlowsComponent } from './environment-flows/environment-flows.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -248,6 +249,15 @@ export const settingsRoutes: Routes = [
           permissions: {
             anyOf: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
             unauthorizedFallbackTo: '../metadata',
+          },
+        },
+      },
+      {
+        path: 'environment-flows',
+        component: EnvironmentFlowsComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-flows-r'],
           },
         },
       },
