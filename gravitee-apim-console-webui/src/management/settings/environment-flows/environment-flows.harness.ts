@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class EnvironmentFlowsHarness extends ComponentHarness {
   static readonly hostSelector = 'environment-flows';
+
+  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add flow/ }));
+  public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Environment flows"]' }));
+  public getTableWrapper = this.locatorFor(GioTableWrapperHarness);
+
+  public async getDeleteButton(index: number) {
+    const table = await this.getTable();
+    const rows = await table.getRows();
+
+    return await rows[index]
+      .getCells({ columnName: 'actions' })
+      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove"]' })));
+  }
 }

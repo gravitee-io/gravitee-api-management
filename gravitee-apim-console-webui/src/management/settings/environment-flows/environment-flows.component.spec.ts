@@ -15,28 +15,55 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { EnvironmentFlowsComponent } from './environment-flows.component';
 import { EnvironmentFlowsHarness } from './environment-flows.harness';
 
+import { GioTestingModule } from '../../../shared/testing';
+
 describe('EnvironmentFlowsComponent', () => {
-  let component: EnvironmentFlowsComponent;
   let fixture: ComponentFixture<EnvironmentFlowsComponent>;
   let componentHarness: EnvironmentFlowsHarness;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EnvironmentFlowsComponent],
+      imports: [EnvironmentFlowsComponent, NoopAnimationsModule, GioTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EnvironmentFlowsComponent);
-    component = fixture.componentInstance;
+    fixture.autoDetectChanges();
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EnvironmentFlowsHarness);
-    fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-    expect(componentHarness).toBeTruthy();
+  it('should display resources table', async () => {
+    const table = await componentHarness.getTable();
+
+    // TODO: When the API is available
+    // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    // expectListEnvironmentFlowsGetRequest();
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([
+      ['Environment flowSearch query: , sortBy: undefined, page: 1, perPage: 25', '', expect.any(String), expect.any(String), ''],
+    ]);
+  });
+
+  it('should refresh the table when filters change', async () => {
+    const table = await componentHarness.getTable();
+    const getTableWrapper = await componentHarness.getTableWrapper();
+
+    // TODO: When the API is available
+    // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    // expectListEnvironmentFlowsGetRequest();
+
+    await getTableWrapper.setSearchValue('test');
+
+    // TODO: When the API is available
+    // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    // expectListEnvironmentFlowsGetRequest();
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([
+      ['Environment flowSearch query: test, sortBy: undefined, page: 1, perPage: 25', '', expect.any(String), expect.any(String), ''],
+    ]);
   });
 });
