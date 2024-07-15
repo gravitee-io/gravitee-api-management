@@ -25,6 +25,13 @@ import { MatSortModule } from '@angular/material/sort';
 import { BehaviorSubject, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+
+import {
+  EnvironmentFlowsAddEditDialogComponent,
+  EnvironmentFlowsAddEditDialogData,
+  EnvironmentFlowsAddEditDialogResult,
+} from './environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.component';
 
 import { EnvironmentFlowsService } from '../../../services-ngx/environment-flows.service';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -77,6 +84,7 @@ export class EnvironmentFlowsComponent implements OnInit {
 
   private readonly environmentFlowsService = inject(EnvironmentFlowsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly matDialog = inject(MatDialog);
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
   ngOnInit(): void {
@@ -113,6 +121,20 @@ export class EnvironmentFlowsComponent implements OnInit {
   protected onFiltersChanged($event: GioTableWrapperFilters) {
     this.filters = $event;
     this.refreshPageTableVM$.next();
+  }
+
+  protected onAddEnvironmentFlow() {
+    return this.matDialog
+      .open<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogData, EnvironmentFlowsAddEditDialogResult>(
+        EnvironmentFlowsAddEditDialogComponent,
+        {
+          data: {},
+          role: 'dialog',
+          id: 'test-story-dialog',
+        },
+      )
+      .afterClosed()
+      .subscribe(() => {});
   }
 }
 
