@@ -28,6 +28,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -52,6 +53,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
+import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -164,6 +166,69 @@ public class ApiAuthorizationServiceImplTest {
         final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
         assertThat(apis).hasSize(1);
+    }
+
+    @Test
+    public void shouldFindIdsByUser_with_po_without_default_role() {
+        final String userRoleId = "API_USER";
+        final String poRoleId = "API_PRIMARY_OWNER";
+        final String groupName = "GROUP_NAME";
+
+        Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId(userRoleId);
+        userRole.setName(userRoleId);
+        userRole.setPermissions(Map.of());
+        userRole.setScope(RoleScope.API);
+
+        when(roleService.findById(userRoleId)).thenReturn(userRole);
+        when(api.getId()).thenReturn("api-1");
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
+
+        MembershipEntity membership = new MembershipEntity();
+        membership.setId("id");
+        membership.setMemberId(USER_NAME);
+        membership.setMemberType(MembershipMemberType.USER);
+        membership.setReferenceId(api.getId());
+        membership.setReferenceType(MembershipReferenceType.API);
+        membership.setRoleId(userRoleId);
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
+            .thenReturn(Collections.singleton(membership));
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(poRoleId);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                USER_NAME,
+                MembershipReferenceType.GROUP,
+                poRoleId
+            )
+        )
+            .thenReturn(
+                Set.of(MembershipEntity.builder().id("member-id").roleId(poRoleId).memberId(USER_NAME).referenceId(groupName).build())
+            );
+
+        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(Api.builder().id("api-id").build()));
+
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "api-id"))
+            .thenReturn(PrimaryOwnerEntity.builder().id(USER_NAME).build());
+
+        when(groupService.findByIds(Set.of(groupName)))
+            .thenReturn(Set.of(GroupEntity.builder().name(groupName).roles(Map.of()).id(groupName).build()));
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
+
+        when(apiRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+        final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, false);
+
+        assertThat(apis).isEmpty();
     }
 
     @Test
