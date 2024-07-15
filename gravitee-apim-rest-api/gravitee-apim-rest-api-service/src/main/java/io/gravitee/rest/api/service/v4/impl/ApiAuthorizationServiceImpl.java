@@ -544,7 +544,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                             if (manageOnly) {
                                 return canManageApi(role);
                             }
-                            return role.getScope().equals(RoleScope.API);
+                            return role != null && role.getScope().equals(RoleScope.API);
                         });
                 })
                 .map(Api::getId)
