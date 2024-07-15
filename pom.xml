@@ -241,7 +241,7 @@
         <gravitee-fetcher-git.version>2.0.0</gravitee-fetcher-git.version>
         <gravitee-fetcher-github.version>2.0.1</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>2.0.1</gravitee-fetcher-gitlab.version>
-        <gravitee-fetcher-http.version>2.0.1</gravitee-fetcher-http.version>
+        <gravitee-fetcher-http.version>2.0.2</gravitee-fetcher-http.version>
         <gravitee-notifier-email.version>1.5.1</gravitee-notifier-email.version>
         <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
         <gravitee-notifier-webhook.version>1.1.3</gravitee-notifier-webhook.version>
