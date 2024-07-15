@@ -21,7 +21,7 @@
     <mat-card-title>Environment Flows !</mat-card-title>
     <mat-card-subtitle>Flows allow to apply different policies on your API event phases</mat-card-subtitle>
     <div class="environment-flows__headerRightBtn" *gioPermission="{ anyOf: ['environment-flows-c'] }">
-      <button mat-raised-button color="primary"><mat-icon svgIcon="gio:plus"></mat-icon>Add Flow</button>
+      <button mat-raised-button color="primary" (click)="onAddEnvironmentFlow()"><mat-icon svgIcon="gio:plus"></mat-icon>Add Flow</button>
     </div>
   </mat-card-header>
 
