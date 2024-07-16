@@ -94,6 +94,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     @Override
     public void initWith(List<Api> items) {
+        reset();
         storage.addAll(items);
     }
 

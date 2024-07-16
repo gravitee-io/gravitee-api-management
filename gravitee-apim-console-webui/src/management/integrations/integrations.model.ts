@@ -76,4 +76,7 @@ export interface DeletedFederatedAPIsResponse {
 
 export interface IntegrationPreview {
   totalCount: number;
+  newCount: number;
+  updateCount: number;
+  apis: { id: string; name: string; state: 'NEW' | 'UPDATE' }[];
 }

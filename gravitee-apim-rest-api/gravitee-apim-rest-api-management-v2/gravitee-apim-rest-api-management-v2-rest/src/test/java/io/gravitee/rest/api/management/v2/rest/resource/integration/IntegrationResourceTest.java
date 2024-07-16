@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner.StateEnum.NEW;
 import static io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResourceTest.INTEGRATION_PROVIDER;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -32,7 +33,6 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
@@ -42,6 +42,7 @@ import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
+import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
@@ -626,8 +627,15 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(IngestionPreviewResponse.class)
-                .extracting(IngestionPreviewResponse::getTotalCount)
-                .isEqualTo(1);
+                .isEqualTo(
+                    IngestionPreviewResponse
+                        .builder()
+                        .totalCount(1)
+                        .newCount(1)
+                        .updateCount(0)
+                        .apis(List.of(IngestionPreviewResponseApisInner.builder().id("asset-id").name("An alien API").state(NEW).build()))
+                        .build()
+                );
         }
     }
 }

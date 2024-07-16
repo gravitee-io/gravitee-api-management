@@ -26,6 +26,7 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Collections;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 
 @DomainService
