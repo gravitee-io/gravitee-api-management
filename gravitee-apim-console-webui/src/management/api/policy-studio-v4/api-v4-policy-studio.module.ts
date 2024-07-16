@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
+import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiV4PolicyStudioDesignComponent } from './design/api-v4-policy-studio-design.component';
@@ -23,7 +23,7 @@ import { ApiV4PolicyStudioDesignComponent } from './design/api-v4-policy-studio-
 import { SpecificJsonSchemaTypeModule } from '../../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 
 @NgModule({
-  imports: [CommonModule, GioPolicyStudioModule, SpecificJsonSchemaTypeModule, MatSnackBarModule],
+  imports: [CommonModule, GioPolicyStudioComponent, SpecificJsonSchemaTypeModule, MatSnackBarModule],
   declarations: [ApiV4PolicyStudioDesignComponent],
 })
 export class ApiV4PolicyStudioModule {}

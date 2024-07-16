@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { importProvidersFrom } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -22,7 +23,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioPolicyStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { of } from 'rxjs';
-import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
@@ -56,7 +57,10 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        importProvidersFrom(GioFormJsonSchemaModule),
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -487,7 +491,8 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
               enabled: true,
               name: 'Test policy',
               policy: 'test-policy',
-              configuration: {},
+              condition: undefined,
+              configuration: undefined,
             },
           ],
           selectors: [
