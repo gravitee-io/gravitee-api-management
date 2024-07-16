@@ -17,12 +17,12 @@ import * as angular from 'angular';
 
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
-import { ApplicationRef, DoBootstrap, NgModule } from '@angular/core';
+import { ApplicationRef, DoBootstrap, importProvidersFrom, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
-import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioMatConfigModule } from '@gravitee/ui-particles-angular';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
@@ -79,6 +79,7 @@ import { AuthModule } from './auth/auth.module';
       useValue: true,
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
+    importProvidersFrom(GioFormJsonSchemaModule),
   ],
 })
 export class AppModule implements DoBootstrap {
