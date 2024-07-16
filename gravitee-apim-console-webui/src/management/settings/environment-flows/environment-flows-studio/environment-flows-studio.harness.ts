@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/gio-layout' as gio-layout;
+import { ComponentHarness } from '@angular/cdk/testing';
 
-:host {
-  @include gio-layout.gio-responsive-margin-container;
-}
-
-.environment-flows {
-  &__headerRightBtn {
-    margin: auto 0 auto auto;
-  }
-}
-
-.mat-column-actions {
-  .actions_btn {
-    display: flex;
-  }
+export class EnvironmentFlowsStudioHarness extends ComponentHarness {
+  static readonly hostSelector = 'environment-flows-studio';
 }

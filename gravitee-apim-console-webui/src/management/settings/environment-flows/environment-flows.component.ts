@@ -28,6 +28,7 @@ import { filter, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   EnvironmentFlowsAddEditDialogComponent,
@@ -41,9 +42,11 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { ApiV4, EnvironmentFlowsSortByParam } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 type PageTableVM = {
   items: {
+    id: string;
     name: string;
     description: string;
     updatedAt: Date;
@@ -87,13 +90,19 @@ export class EnvironmentFlowsComponent implements OnInit {
     isLoading: true,
   });
 
+  protected isReadOnly = false;
+
   private readonly environmentFlowsService = inject(EnvironmentFlowsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
+  private readonly permissionService = inject(GioPermissionService);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
   ngOnInit(): void {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-environment_flows-r']);
     this.refreshPageTableVM$
       .pipe(
         tap(() => this.pageTableVM$.next({ items: [], totalItems: 0, isLoading: true })),
@@ -107,6 +116,7 @@ export class EnvironmentFlowsComponent implements OnInit {
         ),
         map((pagedResult) => {
           const items = pagedResult.data.map((environmentFlow) => ({
+            id: environmentFlow.id,
             name: environmentFlow.name,
             description: environmentFlow.description,
             phase: environmentFlow.phase,
@@ -152,14 +162,18 @@ export class EnvironmentFlowsComponent implements OnInit {
         ),
       )
       .subscribe({
-        next: () => {
+        next: (environmentFlow) => {
           this.snackBarService.success('Environment flow created');
-          this.refreshPageTableVM$.next();
+          this.router.navigate([environmentFlow.id, 'studio'], { relativeTo: this.activatedRoute });
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error during environment flow creation!');
         },
       });
+  }
+
+  protected onEdit(environmentFlowId: string) {
+    this.router.navigate([environmentFlowId, 'studio'], { relativeTo: this.activatedRoute });
   }
 }
 

@@ -38,6 +38,7 @@ import { EnvironmentNotificationComponent } from './notification/environment-not
 import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
 import { EnvironmentFlowsComponent } from './environment-flows/environment-flows.component';
+import { EnvironmentFlowsStudioComponent } from './environment-flows/environment-flows-studio/environment-flows-studio.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -255,6 +256,16 @@ export const settingsRoutes: Routes = [
       {
         path: 'environment-flows',
         component: EnvironmentFlowsComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-environment_flows-r'],
+            unauthorizedFallbackTo: '../metadata',
+          },
+        },
+      },
+      {
+        path: 'environment-flows/:environmentFlowId/studio',
+        component: EnvironmentFlowsStudioComponent,
         data: {
           permissions: {
             anyOf: ['environment-environment_flows-r'],
