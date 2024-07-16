@@ -18,10 +18,10 @@
 
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Environment Flows !</mat-card-title>
+    <mat-card-title>Environment Flows</mat-card-title>
     <mat-card-subtitle>Flows allow to apply different policies on your API event phases</mat-card-subtitle>
-    <div class="environment-flows__headerRightBtn" *gioPermission="{ anyOf: ['environment-flows-c'] }">
       <button mat-raised-button color="primary" (click)="onAddEnvironmentFlow()"><mat-icon svgIcon="gio:plus"></mat-icon>Add Flow</button>
+    <div class="environment-flows__headerRightBtn" *gioPermission="{ anyOf: ['environment-environment_flows-c'] }">
     </div>
   </mat-card-header>
 
@@ -67,7 +67,7 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element">
             <button
-              *gioPermission="{ anyOf: ['environment-flows-d'] }"
+              *gioPermission="{ anyOf: ['environment-environment_flows-d'] }"
               type="button"
               mat-button
               aria-label="Button to remove"

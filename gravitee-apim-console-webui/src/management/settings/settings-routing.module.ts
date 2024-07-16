@@ -248,7 +248,7 @@ export const settingsRoutes: Routes = [
           },
           permissions: {
             anyOf: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
-            unauthorizedFallbackTo: '../metadata',
+            unauthorizedFallbackTo: '../environment-flows',
           },
         },
       },
@@ -257,7 +257,8 @@ export const settingsRoutes: Routes = [
         component: EnvironmentFlowsComponent,
         data: {
           permissions: {
-            anyOf: ['environment-flows-r'],
+            anyOf: ['environment-environment_flows-r'],
+            unauthorizedFallbackTo: '../metadata',
           },
         },
       },

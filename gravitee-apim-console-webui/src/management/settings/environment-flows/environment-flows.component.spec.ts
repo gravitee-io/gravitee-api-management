@@ -29,6 +29,17 @@ describe('EnvironmentFlowsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EnvironmentFlowsComponent, NoopAnimationsModule, GioTestingModule],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: [
+            'environment-environment_flows-c',
+            'environment-environment_flows-r',
+            'environment-environment_flows-u',
+            'environment-environment_flows-d',
+          ],
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EnvironmentFlowsComponent);

@@ -113,7 +113,7 @@ export class SettingsNavigationService {
           {
             displayName: 'Environment Flows',
             routerLink: './environment-flows',
-            permissions: ['environment-flows-r'],
+            permissions: ['environment-environment_flows-r'],
           },
         ],
       },
