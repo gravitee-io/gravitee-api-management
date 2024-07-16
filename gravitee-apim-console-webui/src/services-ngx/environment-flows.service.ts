@@ -16,6 +16,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
+import { uniqueId } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -26,7 +27,6 @@ import {
   fakePagedResult,
   PagedResult,
 } from '../entities/management-api-v2';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -68,6 +68,7 @@ export class EnvironmentFlowsService {
 
   create(createEnvironmentFlow: CreateEnvironmentFlow): Observable<EnvironmentFlow> {
     const environmentFlowToCreate = fakeEnvironmentFlow({
+      id: uniqueId(),
       name: createEnvironmentFlow.name,
       description: createEnvironmentFlow.description,
       phase: createEnvironmentFlow.phase,

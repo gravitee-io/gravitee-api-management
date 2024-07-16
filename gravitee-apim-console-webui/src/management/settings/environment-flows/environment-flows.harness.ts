@@ -23,7 +23,7 @@ import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wra
 export class EnvironmentFlowsHarness extends ComponentHarness {
   static readonly hostSelector = 'environment-flows';
 
-  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add Flow/ }));
+  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add Environment Flow/ }));
   public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Environment flows"]' }));
   public getTableWrapper = this.locatorFor(GioTableWrapperHarness);
 
