@@ -51,6 +51,7 @@ class ApiCreationV2ControllerAjs {
   selectedTenants: any[];
   attachableGroups: any[];
   poGroups: any[];
+  isCreating: boolean;
 
   private vm: {
     selectedStep: number;
@@ -233,64 +234,69 @@ class ApiCreationV2ControllerAjs {
    API creation
    */
   createAPI(deployAndStart, readyForReview?: boolean) {
-    // clear API pages json format
-    _.forEach(this.api.pages, (page) => {
-      if (!page.name) {
-        page.name = page.fileName;
-      }
-      delete page.fileName;
-      // handle publish state
-      page.published = deployAndStart;
-    });
+    if (!this.isCreating) {
+      this.isCreating = true;
 
-    // handle plan publish state
-    _.forEach(this.api.plans, (plan) => {
-      plan.status = deployAndStart ? 'PUBLISHED' : 'STAGING';
-    });
-
-    if (this.api.groups != null) {
-      this.api.groups = this.api.groups.map((group) => group.name);
-    }
-
-    // create API
-    if (deployAndStart) {
-      this.api.lifecycle_state = 'PUBLISHED';
-    }
-
-    this.ApiService.import(null, this.api, this.api.gravitee, false)
-      .then((api) => {
-        this.vm.showBusyText = false;
-        return api;
-      })
-      .then((api) => {
-        if (readyForReview) {
-          this.ApiService.askForReview(api.data).then((response) => {
-            api.data.workflow_state = 'IN_REVIEW';
-            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
-            this.api = api.data;
-          });
+      // clear API pages json format
+      _.forEach(this.api.pages, (page) => {
+        if (!page.name) {
+          page.name = page.fileName;
         }
-        return api;
-      })
-      .then((api) => {
-        if (deployAndStart) {
-          this.ApiService.deploy(api.data.id).then((response) => {
-            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
-            this.ApiService.start(api.data).then(() => {
-              this.NotificationService.show('API created, deployed and started');
-              this.$state.go('management.apis.general', { apiId: api.data.id });
-            });
-          });
-        } else {
-          this.NotificationService.show('API created');
-          this.$state.go('management.apis.general', { apiId: api.data.id });
-        }
-        return api;
-      })
-      .then((api) => this.ngApiV2Service.get(api.data.id).toPromise())
-      .catch(() => {
-        this.vm.showBusyText = false;
+        delete page.fileName;
+        // handle publish state
+        page.published = deployAndStart;
       });
+
+      // handle plan publish state
+      _.forEach(this.api.plans, (plan) => {
+        plan.status = deployAndStart ? 'PUBLISHED' : 'STAGING';
+      });
+
+      if (this.api.groups != null) {
+        this.api.groups = this.api.groups.map((group) => group.name);
+      }
+
+      // create API
+      if (deployAndStart) {
+        this.api.lifecycle_state = 'PUBLISHED';
+      }
+
+      this.ApiService.import(null, this.api, this.api.gravitee, false)
+        .then((api) => {
+          this.vm.showBusyText = false;
+          return api;
+        })
+        .then((api) => {
+          if (readyForReview) {
+            this.ApiService.askForReview(api.data).then((response) => {
+              api.data.workflow_state = 'IN_REVIEW';
+              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
+              this.api = api.data;
+            });
+          }
+          return api;
+        })
+        .then((api) => {
+          if (deployAndStart) {
+            this.ApiService.deploy(api.data.id).then((response) => {
+              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
+              this.ApiService.start(api.data).then(() => {
+                this.NotificationService.show('API created, deployed and started');
+                this.$state.go('management.apis.general', { apiId: api.data.id });
+              });
+            });
+          } else {
+            this.NotificationService.show('API created');
+            this.$state.go('management.apis.general', { apiId: api.data.id });
+          }
+          return api;
+        })
+        .then((api) => this.ngApiV2Service.get(api.data.id).toPromise())
+        .catch(() => {
+          this.vm.showBusyText = false;
+          this.isCreating = false;
+        });
+    }
   }
 
   /*
