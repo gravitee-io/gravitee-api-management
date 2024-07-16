@@ -16,7 +16,8 @@
 
 // TODO: complete the EnvironmentFlow interface when the OpenAPI is available
 export interface EnvironmentFlow {
-  name?: string;
+  id: string;
+  name: string;
   description?: string;
   phase?: string;
   updatedAt?: Date;

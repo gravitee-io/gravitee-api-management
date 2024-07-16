@@ -16,22 +16,81 @@
 import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { CommonModule } from '@angular/common';
+import { GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
+import { map, startWith } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
-export interface EnvironmentFlowsAddEditDialogData {}
+import { ApiV4, ExecutionPhase } from '../../../../entities/management-api-v2';
 
-export type EnvironmentFlowsAddEditDialogResult = boolean;
+export interface EnvironmentFlowsAddEditDialogData {
+  apiType: ApiV4['type'];
+}
+
+export type EnvironmentFlowsAddEditDialogResult = undefined | { name: string; description?: string; phase: ExecutionPhase };
+
+const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
+  PROXY: ['REQUEST', 'RESPONSE'],
+  MESSAGE: ['REQUEST', 'RESPONSE', 'MESSAGE_REQUEST', 'MESSAGE_RESPONSE'],
+};
 
 @Component({
   selector: 'environment-flows-add-edit-dialog',
   templateUrl: './environment-flows-add-edit-dialog.component.html',
   styleUrls: ['./environment-flows-add-edit-dialog.component.scss'],
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatButtonToggleModule,
+    ReactiveFormsModule,
+    GioFormFocusInvalidModule,
+  ],
 })
 export class EnvironmentFlowsAddEditDialogComponent {
+  protected apiTypeLabel: string;
+
+  protected formGroup: FormGroup<{ name: FormControl<string>; description: FormControl<string>; phase: FormControl<ExecutionPhase> }>;
+  protected isValid$: Observable<boolean>;
+
+  protected phases: ExecutionPhase[];
+
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: EnvironmentFlowsAddEditDialogData,
     public dialogRef: MatDialogRef<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogResult>,
-  ) {}
+  ) {
+    this.apiTypeLabel = data.apiType === 'MESSAGE' ? 'Message' : 'Proxy';
+    this.phases = PHASE_BY_API_TYPE[data.apiType];
+
+    this.formGroup = new FormGroup({
+      name: new FormControl('', Validators.required),
+      description: new FormControl(''),
+      phase: new FormControl(this.phases[0], Validators.required),
+    });
+
+    this.isValid$ = this.formGroup.statusChanges.pipe(
+      startWith(this.formGroup.status),
+      map((status) => status === 'VALID'),
+    );
+  }
+
+  protected onSave(): void {
+    if (this.formGroup.invalid) {
+      return;
+    }
+    this.dialogRef.close({
+      name: this.formGroup.get('name').value,
+      description: this.formGroup.get('description').value,
+      phase: this.formGroup.get('phase').value,
+    });
+  }
 }

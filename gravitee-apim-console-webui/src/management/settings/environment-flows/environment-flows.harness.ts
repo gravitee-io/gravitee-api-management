@@ -16,13 +16,14 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatMenuItemHarness } from '@angular/material/menu/testing';
 
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class EnvironmentFlowsHarness extends ComponentHarness {
   static readonly hostSelector = 'environment-flows';
 
-  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add flow/ }));
+  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add Flow/ }));
   public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Environment flows"]' }));
   public getTableWrapper = this.locatorFor(GioTableWrapperHarness);
 
@@ -33,5 +34,21 @@ export class EnvironmentFlowsHarness extends ComponentHarness {
     return await rows[index]
       .getCells({ columnName: 'actions' })
       .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove"]' })));
+  }
+
+  public async clickAddButton(apiType: 'MESSAGE' | 'PROXY') {
+    await this.getAddButton().then((button) => button.click());
+
+    const root = this.documentRootLocatorFactory();
+    if (apiType === 'MESSAGE') {
+      await root
+        .locatorFor(MatMenuItemHarness.with({ text: /Proxy API/ }))()
+        .then((button) => button.click());
+    }
+    if (apiType === 'PROXY') {
+      await root
+        .locatorFor(MatMenuItemHarness.with({ text: /Message API/ }))()
+        .then((button) => button.click());
+    }
   }
 }

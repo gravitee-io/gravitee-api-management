@@ -14,25 +14,9 @@
  * limitations under the License.
  */
 
-import { isFunction } from 'lodash';
-
-import { EnvironmentFlow } from './EnvironmentFlow';
-
-export function fakeEnvironmentFlow(modifier?: Partial<EnvironmentFlow> | ((base: EnvironmentFlow) => EnvironmentFlow)): EnvironmentFlow {
-  const base: EnvironmentFlow = {
-    id: '1',
-    name: 'Environment flow',
-    phase: 'REQUEST',
-    updatedAt: new Date('2024-04-04T00:00:00Z'),
-    deployedAt: new Date('2024-04-04T00:00:00Z'),
-  };
-
-  if (isFunction(modifier)) {
-    return modifier(base);
-  }
-
-  return {
-    ...base,
-    ...modifier,
-  };
+// TODO: complete the EnvironmentFlow interface when the OpenAPI is available
+export interface CreateEnvironmentFlow {
+  name?: string;
+  description?: string;
+  phase?: string;
 }

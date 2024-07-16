@@ -16,15 +16,15 @@
 
 import { isFunction } from 'lodash';
 
-import { EnvironmentFlow } from './EnvironmentFlow';
+import { CreateEnvironmentFlow } from './CreateEnvironmentFlow';
 
-export function fakeEnvironmentFlow(modifier?: Partial<EnvironmentFlow> | ((base: EnvironmentFlow) => EnvironmentFlow)): EnvironmentFlow {
-  const base: EnvironmentFlow = {
-    id: '1',
+export function fakeCreateEnvironmentFlow(
+  modifier?: Partial<CreateEnvironmentFlow> | ((base: CreateEnvironmentFlow) => CreateEnvironmentFlow),
+): CreateEnvironmentFlow {
+  const base: CreateEnvironmentFlow = {
     name: 'Environment flow',
+    description: 'Environment flow description',
     phase: 'REQUEST',
-    updatedAt: new Date('2024-04-04T00:00:00Z'),
-    deployedAt: new Date('2024-04-04T00:00:00Z'),
   };
 
   if (isFunction(modifier)) {

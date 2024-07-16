@@ -15,10 +15,11 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import {
+  CreateEnvironmentFlow,
   EnvironmentFlow,
   EnvironmentFlowsSortByParam,
   fakeEnvironmentFlow,
@@ -30,6 +31,16 @@ import {
   providedIn: 'root',
 })
 export class EnvironmentFlowsService {
+  private environmentFlows$ = new BehaviorSubject<PagedResult<EnvironmentFlow>>(
+    fakePagedResult([
+      fakeEnvironmentFlow({
+        id: 'SEARCH_ENV_FLOW',
+        name: 'Search env flow',
+        phase: 'REQUEST',
+      }),
+    ]),
+  );
+
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
@@ -37,12 +48,31 @@ export class EnvironmentFlowsService {
 
   list(searchQuery?: string, sortBy?: EnvironmentFlowsSortByParam, page = 1, perPage = 10): Observable<PagedResult<EnvironmentFlow>> {
     // TODO: implement this method when endpoint is available
-    return of(
-      fakePagedResult([
-        fakeEnvironmentFlow({
-          description: `Search query: ${searchQuery}, sortBy: ${sortBy}, page: ${page}, perPage: ${perPage}`,
+
+    this.environmentFlows$.next(
+      fakePagedResult(
+        this.environmentFlows$.value.data.map((flow) => {
+          if (flow.id === 'SEARCH_ENV_FLOW') {
+            return {
+              ...flow,
+              description: `Search query: ${searchQuery}, sortBy: ${sortBy}, page: ${page}, perPage: ${perPage}`,
+            };
+          }
+          return flow;
         }),
-      ]),
+      ),
     );
+
+    return this.environmentFlows$;
+  }
+
+  create(createEnvironmentFlow: CreateEnvironmentFlow): Observable<EnvironmentFlow> {
+    const environmentFlowToCreate = fakeEnvironmentFlow({
+      name: createEnvironmentFlow.name,
+      description: createEnvironmentFlow.description,
+      phase: createEnvironmentFlow.phase,
+    });
+    this.environmentFlows$.next(fakePagedResult([...this.environmentFlows$.value.data, environmentFlowToCreate]));
+    return of(environmentFlowToCreate);
   }
 }

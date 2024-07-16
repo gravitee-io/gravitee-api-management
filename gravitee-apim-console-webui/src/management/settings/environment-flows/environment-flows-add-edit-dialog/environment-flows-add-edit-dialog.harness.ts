@@ -16,6 +16,8 @@
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatDialogSection } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 
 export interface EnvironmentFlowsAddEditDialogHarnessOptions extends BaseHarnessFilters {}
 
@@ -29,6 +31,9 @@ export class EnvironmentFlowsAddEditDialogHarness extends ComponentHarness {
   protected _title = this.locatorForOptional(MatDialogSection.TITLE);
   protected _content = this.locatorForOptional(MatDialogSection.CONTENT);
   protected _actions = this.locatorForOptional(MatDialogSection.ACTIONS);
+  protected nameInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+  protected descriptionInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+  protected phaseToggleGroup = this.locatorForOptional(MatButtonToggleGroupHarness.with({ selector: '[formControlName="phase"]' }));
 
   public async getTitleText(): Promise<string> {
     return (await this._title())?.text() ?? '';
@@ -50,5 +55,26 @@ export class EnvironmentFlowsAddEditDialogHarness extends ComponentHarness {
   public async confirmMyAction(): Promise<void> {
     const confirmButton = await this.locatorFor(MatButtonHarness.with({ text: /My action/ }))();
     await confirmButton.click();
+  }
+
+  public async setName(text: string) {
+    await this.nameInput().then((input) => input.setValue(text));
+  }
+
+  public async setDescription(text: string) {
+    await this.descriptionInput().then((input) => input.setValue(text));
+  }
+
+  public async setPhase(text: string) {
+    const toggleGroup = await this.phaseToggleGroup().then((group) => group.getToggles({ text }));
+
+    if (toggleGroup.length === 1) {
+      await toggleGroup[0].check();
+    }
+  }
+
+  async save() {
+    const saveButton = await this.locatorFor(MatButtonHarness.with({ text: /Save/ }))();
+    await saveButton.click();
   }
 }

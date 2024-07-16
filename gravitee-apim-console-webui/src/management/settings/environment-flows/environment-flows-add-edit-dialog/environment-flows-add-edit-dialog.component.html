@@ -15,11 +15,36 @@
     limitations under the License.
 
 -->
-<span mat-dialog-title>environment-flows-add-edit-dialog</span>
+<span mat-dialog-title>Add Environment Flow for {{ apiTypeLabel }} API</span>
 
-<mat-dialog-content> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vel odio nec mi </mat-dialog-content>
+<form [formGroup]="formGroup">
+  <mat-dialog-content class="mat-typography content">
+    <p>Shared flows allow you to create policy collections that can be reused and executed within API flows.</p>
 
-<mat-dialog-actions align="end">
-  <button mat-flat-button [mat-dialog-close]="false">Close</button>
-  <button mat-raised-button [mat-dialog-close]="true">My action</button>
-</mat-dialog-actions>
+    <mat-form-field class="form-field">
+      <mat-label>Name</mat-label>
+      <input type="text" aria-label="Name" matInput formControlName="name" />
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description"></textarea>
+    </mat-form-field>
+
+    <label>Phase</label>
+    <mat-button-toggle-group formControlName="phase" class="gio-button-toggle-group">
+      @for (phase of phases; track phase) {
+        <mat-button-toggle [value]="phase">
+          {{ phase }}
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-flat-button [mat-dialog-close]="undefined">Close</button>
+    <button mat-raised-button color="primary" gioFormFocusInvalid [color]="(isValid$ | async) ? 'primary' : 'warn'" (click)="onSave()">
+      Save
+    </button>
+  </mat-dialog-actions>
+</form>

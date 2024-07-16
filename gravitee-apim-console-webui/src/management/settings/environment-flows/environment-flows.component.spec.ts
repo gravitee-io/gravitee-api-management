@@ -16,15 +16,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HarnessLoader } from '@angular/cdk/testing';
 
 import { EnvironmentFlowsComponent } from './environment-flows.component';
 import { EnvironmentFlowsHarness } from './environment-flows.harness';
+import { EnvironmentFlowsAddEditDialogHarness } from './environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('EnvironmentFlowsComponent', () => {
   let fixture: ComponentFixture<EnvironmentFlowsComponent>;
   let componentHarness: EnvironmentFlowsHarness;
+  let rootLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -44,6 +48,7 @@ describe('EnvironmentFlowsComponent', () => {
 
     fixture = TestBed.createComponent(EnvironmentFlowsComponent);
     fixture.autoDetectChanges();
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EnvironmentFlowsHarness);
   });
 
@@ -55,7 +60,7 @@ describe('EnvironmentFlowsComponent', () => {
     // expectListEnvironmentFlowsGetRequest();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Environment flowSearch query: , sortBy: undefined, page: 1, perPage: 25', '', expect.any(String), expect.any(String), ''],
+      ['Search env flowSearch query: , sortBy: undefined, page: 1, perPage: 25', 'REQUEST', expect.any(String), expect.any(String), ''],
     ]);
   });
 
@@ -74,7 +79,22 @@ describe('EnvironmentFlowsComponent', () => {
     // expectListEnvironmentFlowsGetRequest();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Environment flowSearch query: test, sortBy: undefined, page: 1, perPage: 25', '', expect.any(String), expect.any(String), ''],
+      ['Search env flowSearch query: test, sortBy: undefined, page: 1, perPage: 25', 'REQUEST', expect.any(String), expect.any(String), ''],
     ]);
+  });
+
+  it('should add a new environment flow', async () => {
+    await componentHarness.clickAddButton('MESSAGE');
+
+    fixture.detectChanges();
+    const addDialog = await rootLoader.getHarness(EnvironmentFlowsAddEditDialogHarness);
+
+    await addDialog.setName('test');
+    await addDialog.setDescription('test');
+    await addDialog.setPhase('test');
+    await addDialog.save();
+
+    // TODO: When the API is available
+    // expectCreateEnvironmentFlowsPostRequest();
   });
 });
