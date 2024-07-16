@@ -37,6 +37,7 @@ export enum UserType {
 })
 export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   isLoading = true;
+  isCreating = false;
   identityProviders?: Array<{ id: string; name: string }>;
 
   UserType = UserType;
@@ -126,10 +127,11 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    if (this.userForm.invalid) {
+    if (this.userForm.invalid || this.isCreating) {
       return;
     }
 
+    this.isCreating = true;
     const userFormValue = this.userForm.getRawValue();
 
     const userToCreate: NewPreRegisterUser = {
@@ -150,6 +152,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
+          this.isCreating = false;
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),

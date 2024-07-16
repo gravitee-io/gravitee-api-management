@@ -86,19 +86,13 @@
       <p style="padding-top: 0px" ng-if="!$ctrl.parent.Constants.env.settings.apiReview.enabled">
         You can now either
         <strong
-          ><md-button
-            class="md-raised"
-            ng-click="$ctrl.parent.createAPI(false)"
-            ng-disabled="$ctrl.parent.isCreating"
+          ><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(false)" ng-disabled="$ctrl.parent.isCreating"
             >create the API without deploying it</md-button
           ></strong
         >
         letting you continue configure the API or
         <strong
-          ><md-button
-            class="md-raised"
-            ng-click="$ctrl.parent.createAPI(true)"
-            ng-disabled="$ctrl.parent.isCreating"
+          ><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(true)" ng-disabled="$ctrl.parent.isCreating"
             >create and start the API</md-button
           ></strong
         >
@@ -107,19 +101,13 @@
       <p style="padding-top: 0px" ng-if="$ctrl.parent.Constants.env.settings.apiReview.enabled">
         You can now either
         <strong
-          ><md-button
-            class="md-raised"
-            ng-click="$ctrl.parent.createAPI(false, false)"
-            ng-disabled="$ctrl.parent.isCreating"
+          ><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(false, false)" ng-disabled="$ctrl.parent.isCreating"
             >create the API in draft</md-button
           ></strong
         >
         letting you continue configure the API or
         <strong
-          ><md-button
-            class="md-raised"
-            ng-click="$ctrl.parent.createAPI(false, true)"
-            ng-disabled="$ctrl.parent.isCreating"
+          ><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(false, true)" ng-disabled="$ctrl.parent.isCreating"
             >create the API and ask for review</md-button
           ></strong
         >
