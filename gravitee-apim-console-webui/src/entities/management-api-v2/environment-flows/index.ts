@@ -16,3 +16,5 @@
 export * from './EnvironmentFlow';
 export * from './EnvironmentFlow.fixture';
 export * from './EnvironmentFlowsSortByParam';
+export * from './CreateEnvironmentFlow';
+export * from './CreateEnvironmentFlow.fixture';

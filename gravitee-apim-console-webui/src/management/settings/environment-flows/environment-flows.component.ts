@@ -24,8 +24,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { BehaviorSubject, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { map, tap } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import {
   EnvironmentFlowsAddEditDialogComponent,
@@ -37,7 +39,8 @@ import { EnvironmentFlowsService } from '../../../services-ngx/environment-flows
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { EnvironmentFlowsSortByParam } from '../../../entities/management-api-v2';
+import { ApiV4, EnvironmentFlowsSortByParam } from '../../../entities/management-api-v2';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 type PageTableVM = {
   items: {
@@ -62,6 +65,8 @@ type PageTableVM = {
     MatTooltipModule,
     MatSortModule,
     MatTableModule,
+    MatMenuModule,
+    MatSnackBarModule,
     GioIconsModule,
     GioPermissionModule,
     GioTableWrapperModule,
@@ -85,6 +90,7 @@ export class EnvironmentFlowsComponent implements OnInit {
   private readonly environmentFlowsService = inject(EnvironmentFlowsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
   ngOnInit(): void {
@@ -103,6 +109,7 @@ export class EnvironmentFlowsComponent implements OnInit {
           const items = pagedResult.data.map((environmentFlow) => ({
             name: environmentFlow.name,
             description: environmentFlow.description,
+            phase: environmentFlow.phase,
             updatedAt: environmentFlow.updatedAt,
             deployedAt: environmentFlow.deployedAt,
           }));
@@ -123,18 +130,36 @@ export class EnvironmentFlowsComponent implements OnInit {
     this.refreshPageTableVM$.next();
   }
 
-  protected onAddEnvironmentFlow() {
+  protected onAddEnvironmentFlow(apiType: ApiV4['type']) {
     return this.matDialog
       .open<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogData, EnvironmentFlowsAddEditDialogResult>(
         EnvironmentFlowsAddEditDialogComponent,
         {
-          data: {},
+          data: { apiType },
           role: 'dialog',
           id: 'test-story-dialog',
         },
       )
       .afterClosed()
-      .subscribe(() => {});
+      .pipe(
+        filter((result) => !!result),
+        switchMap((payload) =>
+          this.environmentFlowsService.create({
+            name: payload.name,
+            description: payload.description,
+            phase: payload.phase,
+          }),
+        ),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Environment flow created');
+          this.refreshPageTableVM$.next();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error during environment flow creation!');
+        },
+      });
   }
 }
 
