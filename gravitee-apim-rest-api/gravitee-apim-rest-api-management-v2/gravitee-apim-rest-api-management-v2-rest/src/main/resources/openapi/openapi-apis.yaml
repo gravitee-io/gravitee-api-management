@@ -3593,8 +3593,34 @@ components:
             properties:
                 totalCount:
                     type: number
-                    description: number of new APIs found to ingest
+                    description: number of APIs found to ingest
                     example: 12
+                newCount:
+                  type: number
+                  description: number of new APIs found to ingest
+                  example: 8
+                updateCount:
+                  type: number
+                  description: number of update APIs found to ingest
+                  example: 4
+                apis:
+                  type: array
+                  description: number of new APIs found to ingest
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: the id of API
+                      name:
+                        type: string
+                        description: the name of API
+                      state:
+                        type: string
+                        description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
+                        enum:
+                          - NEW
+                          - UPDATE
 
         IntegrationIngestionResponse:
             type: object

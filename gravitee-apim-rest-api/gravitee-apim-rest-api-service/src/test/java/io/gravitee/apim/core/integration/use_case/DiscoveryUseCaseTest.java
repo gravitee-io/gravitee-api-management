@@ -29,20 +29,20 @@ import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.node.api.license.LicenseManager;
 import java.util.List;
 import java.util.stream.Stream;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class PreviewNewIntegrationApisUseCaseTest {
+class DiscoveryUseCaseTest {
 
     private static final String ENV_ID = "my-env";
     private static final String ORGANIZATION_ID = "my-org";
@@ -54,12 +54,12 @@ class PreviewNewIntegrationApisUseCaseTest {
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
-    PreviewNewIntegrationApisUseCase usecase;
+    DiscoveryUseCase usecase;
 
     @BeforeEach
     void setUp() {
         usecase =
-            new PreviewNewIntegrationApisUseCase(
+            new DiscoveryUseCase(
                 integrationAgent,
                 new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
                 apiQueryService,
@@ -80,50 +80,45 @@ class PreviewNewIntegrationApisUseCaseTest {
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            usecase.execute(new PreviewNewIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
-        );
-
-        // Then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
+        usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().assertError(NotAllowedDomainException.class);
     }
 
     @Test
     void should_throw_exception_if_no_integration_found() {
         //When
-        var throwable = Assertions.catchThrowable(() ->
-            usecase.execute(new PreviewNewIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
-        );
-
-        // Then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(IntegrationNotFoundException.class);
+        usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().assertError(IntegrationNotFoundException.class);
     }
 
     @Test
     void should_discover_new_api_if_this_api_not_exist() {
         //Given
         integrationCrudService.initWith(List.of(IntegrationFixture.anIntegration(ENV_ID)));
-        integrationAgent.initWith(List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)));
+        IntegrationApi api = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
+        integrationAgent.initWith(List.of(api));
+        apiQueryService.initWith(List.of());
 
         //When
-        var newApisCount = usecase.execute(new PreviewNewIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).newApisCount();
+        var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).blockingGet();
 
         //Then
-        assertThat(newApisCount).isEqualTo(1L);
+        assertThat(result.apis())
+            .containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api.id(), api.name(), DiscoveryUseCase.Output.State.NEW));
     }
 
     @Test
     void should_not_discover_new_api_if_this_api_is_already_ingested() {
         //Given
-        var discoveredApiId = "dbd87a33-d226-349f-a29b-77dd3fafd3ee";
         integrationCrudService.initWith(List.of(IntegrationFixture.anIntegration(ENV_ID)));
-        integrationAgent.initWith(List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)));
-        apiQueryService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(discoveredApiId).build()));
+        IntegrationApi api = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
+        var discoveredApiId = ApiModelFactory.generateFederatedApiId(ENV_ID, INTEGRATION_ID, api);
+        integrationAgent.initWith(List.of(api));
+        apiQueryService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(discoveredApiId).name("A name").build()));
 
         //When
-        var newApisCount = usecase.execute(new PreviewNewIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).newApisCount();
+        var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).blockingGet();
 
         //Then
-        assertThat(newApisCount).isEqualTo(0L);
+        assertThat(result.apis())
+            .containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api.id(), api.name(), DiscoveryUseCase.Output.State.UPDATE));
     }
 }

@@ -18,17 +18,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.use_case.DeleteIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
-import io.gravitee.apim.core.integration.use_case.PreviewNewIntegrationApisUseCase;
 import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
-import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
@@ -45,7 +44,14 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Response;
@@ -68,7 +74,7 @@ public class IntegrationResource extends AbstractResource {
     private IngestIntegrationApisUseCase ingestIntegrationApisUseCase;
 
     @Inject
-    private PreviewNewIntegrationApisUseCase previewNewIntegrationApisUseCase;
+    private DiscoveryUseCase discoveryUseCase;
 
     @Inject
     private DeleteIntegrationUseCase deleteIntegrationUseCase;
@@ -151,7 +157,7 @@ public class IntegrationResource extends AbstractResource {
     @GET
     @Path("/_preview")
     @Produces(MediaType.APPLICATION_JSON)
-    public IngestionPreviewResponse previewNewIntegrationApis(@PathParam("integrationId") String integrationId) {
+    public void previewNewIntegrationApis(@PathParam("integrationId") String integrationId, @Suspended final AsyncResponse response) {
         var executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(
@@ -172,9 +178,10 @@ public class IntegrationResource extends AbstractResource {
 
         AuditInfo audit = getAuditInfo();
 
-        var output = previewNewIntegrationApisUseCase.execute(new PreviewNewIntegrationApisUseCase.Input(integrationId, audit));
-
-        return IngestionPreviewResponse.builder().totalCount(output.newApisCount()).build();
+        discoveryUseCase
+            .execute(new DiscoveryUseCase.Input(integrationId, audit))
+            .map(IntegrationMapper::mapper)
+            .subscribe(response::resume, response::resume);
     }
 
     @GET

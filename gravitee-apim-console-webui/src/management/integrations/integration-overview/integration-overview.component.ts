@@ -119,14 +119,14 @@ export class IntegrationOverviewComponent implements OnInit {
     this.integrationsService
       .previewIntegration(this.activatedRoute.snapshot.paramMap.get('integrationId'))
       .pipe(
-        switchMap(({ totalCount }) => {
+        switchMap(({ newCount, updateCount }) => {
           this.isLoadingPreview = false;
           return this.matDialog
             .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
               width: GIO_DIALOG_WIDTH.SMALL,
               data: {
                 title: 'Discover',
-                content: `By proceeding, you'll initiate the creation of ${totalCount} new Federated APIs in Gravitee, one for each API discovered at the provider. Are you ready to continue?`,
+                content: `By proceeding, you'll initiate the creation of ${newCount} new Federated APIs in Gravitee (and ${updateCount} already ingested), one for each API discovered at the provider. Are you ready to continue?`,
                 confirmButton: 'Proceed',
               },
               role: 'alertdialog',
