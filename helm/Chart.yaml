@@ -18,4 +18,5 @@ kubeVersion: ">=1.14.0-0"
 annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - 'Fix cloud configuration: avoid empty secret generation and fix example in value.yaml'
