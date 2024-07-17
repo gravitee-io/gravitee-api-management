@@ -48,9 +48,15 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -205,5 +211,95 @@ class UpdateFederatedApiUseCaseTest {
         usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
 
         assertThat(indexer.storage()).isNotEmpty().hasSize(1);
+    }
+
+    @Test
+    void updating() {
+        ZonedDateTime inputDate = ZonedDateTime.now().plusDays(1);
+        Api input = Api
+            .builder()
+            .id("input")
+            .environmentId("input")
+            .crossId("input")
+            .name("input")
+            .description("input")
+            .version("input")
+            .originContext(new OriginContext.Integration("input"))
+            .definitionVersion(DefinitionVersion.V1)
+            .apiDefinitionV4(io.gravitee.definition.model.v4.Api.builder().build())
+            .apiDefinition(io.gravitee.definition.model.Api.builder().build())
+            .federatedApiDefinition(null)
+            .type(ApiType.MESSAGE)
+            .deployedAt(inputDate)
+            .createdAt(inputDate)
+            .updatedAt(inputDate)
+            .visibility(Api.Visibility.PRIVATE)
+            .lifecycleState(Api.LifecycleState.STOPPED)
+            .picture("input")
+            .groups(Set.of("input"))
+            .categories(Set.of("input"))
+            .labels(List.of("input"))
+            .disableMembershipNotifications(false)
+            .apiLifecycleState(Api.ApiLifecycleState.DEPRECATED)
+            .background("input")
+            .build();
+        UnaryOperator<Api> update = UpdateFederatedApiUseCase.update(input);
+        ZonedDateTime oldDate = ZonedDateTime.now().minusDays(1);
+        Api old = Api
+            .builder()
+            .id("old")
+            .environmentId("old")
+            .crossId("old")
+            .name("old")
+            .description("old")
+            .version("old")
+            .originContext(new OriginContext.Integration("old"))
+            .definitionVersion(DefinitionVersion.FEDERATED)
+            .apiDefinitionV4(null)
+            .apiDefinition(null)
+            .federatedApiDefinition(FederatedApi.builder().build())
+            .type(ApiType.PROXY)
+            .deployedAt(oldDate)
+            .createdAt(oldDate)
+            .updatedAt(oldDate)
+            .visibility(Api.Visibility.PUBLIC)
+            .lifecycleState(Api.LifecycleState.STARTED)
+            .picture("old")
+            .groups(Set.of("old"))
+            .categories(Set.of("old"))
+            .labels(List.of("old"))
+            .disableMembershipNotifications(true)
+            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+            .background("old")
+            .build();
+
+        Api result = update.apply(old);
+
+        // Not updated fields
+        assertThat(result.getId()).isEqualTo("old");
+        assertThat(result.getEnvironmentId()).isEqualTo("old");
+        assertThat(result.getCrossId()).isEqualTo("old");
+        assertThat(result.getOriginContext()).isEqualTo(new OriginContext.Integration("old"));
+        assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
+        assertThat(result.getApiDefinitionV4()).isEqualTo(null);
+        assertThat(result.getApiDefinition()).isEqualTo(null);
+        assertThat(result.getFederatedApiDefinition()).isEqualTo(FederatedApi.builder().build());
+        assertThat(result.getType()).isEqualTo(ApiType.PROXY);
+        assertThat(result.getDeployedAt()).isEqualTo(oldDate);
+        assertThat(result.getCreatedAt()).isEqualTo(oldDate);
+        assertThat(result.getUpdatedAt()).isEqualTo(oldDate);
+        assertThat(result.getLifecycleState()).isEqualTo(Api.LifecycleState.STARTED);
+        assertThat(result.getPicture()).isEqualTo("old");
+        assertThat(result.isDisableMembershipNotifications()).isEqualTo(true);
+        assertThat(result.getBackground()).isEqualTo("old");
+        // updated fields
+        assertThat(result.getName()).isEqualTo("input");
+        assertThat(result.getDescription()).isEqualTo("input");
+        assertThat(result.getVersion()).isEqualTo("input");
+        assertThat(result.getVisibility()).isEqualTo(Api.Visibility.PRIVATE);
+        assertThat(result.getLabels()).isEqualTo(List.of("input"));
+        assertThat(result.getCategories()).isEqualTo(Set.of("input"));
+        assertThat(result.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.DEPRECATED);
+        assertThat(result.getGroups()).isEqualTo(Set.of("input"));
     }
 }

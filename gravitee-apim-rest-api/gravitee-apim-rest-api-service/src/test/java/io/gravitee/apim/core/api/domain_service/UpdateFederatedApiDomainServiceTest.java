@@ -63,6 +63,8 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class UpdateFederatedApiDomainServiceTest {
@@ -176,18 +178,20 @@ class UpdateFederatedApiDomainServiceTest {
         String categoryId = "categoryId-1";
         categoryEntity.setId(categoryId);
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
-        when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of("key-1"));
+        when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of(categoryKey));
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
-        var updatedApi = usecase.update(apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
         //then
+        assertThat(apiCrudService.storage()).extracting("federatedApiDefinition").doesNotContainNull();
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
+            assertThat(updatedApi.getFederatedApiDefinition()).isNotNull();
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
-            assertThat(updatedApi.getCategories()).containsExactly("key-1");
+            assertThat(updatedApi.getCategories()).containsExactly(categoryKey);
             assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
         });
     }
@@ -213,51 +217,13 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
-        var updatedApi = usecase.update(apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
         //then
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
-            assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
-        });
-    }
-
-    @Test
-    public void update_federation_api_with_basic_configuration_info_with_category_id() {
-        //given
-        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
-        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        String categoryId = "categoryId-1";
-
-        var apiToUpdate = ApiFixtures
-            .aFederatedApi()
-            .toBuilder()
-            .name("updated-name")
-            .description("updated-description")
-            .version("2.0.0")
-            .labels(List.of("label-1"))
-            .categories(Set.of(categoryId))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
-
-        CategoryEntity categoryEntity = new CategoryEntity();
-        categoryEntity.setId(categoryId);
-        when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
-        when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of("key-1"));
-
-        var ownerEntity = buildPrimaryOwnerEntity();
-
-        //when
-        var updatedApi = usecase.update(apiToUpdate, auditInfo, ownerEntity);
-        //then
-        SoftAssertions.assertSoftly(soft -> {
-            assertThat(updatedApi.getName()).isEqualTo("updated-name");
-            assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
-            assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
-            assertThat(updatedApi.getLabels()).containsExactly("label-1");
-            assertThat(updatedApi.getCategories()).containsExactly("key-1");
             assertThat(updatedApi.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.PUBLISHED);
         });
     }
@@ -269,7 +235,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(ApiNotFoundException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
             .withMessage("Api not found.");
     }
 
@@ -281,7 +247,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(LifecycleStateChangeNotAllowedException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
             .withMessage("The API lifecycle state cannot be changed to PUBLISHED.");
     }
 
@@ -298,7 +264,7 @@ class UpdateFederatedApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate, auditInfo, ownerEntity))
+            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity))
             .withMessage("These groupIds [[not-existing-group]] do not exist");
     }
 
@@ -309,7 +275,7 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        usecase.update(apiToUpdate, auditInfo, ownerEntity);
+        usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
 
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
@@ -337,7 +303,7 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        var updatedApi = usecase.update(apiToUpdate, auditInfo, ownerEntity);
+        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity);
 
         assertThat(indexer.storage())
             .isNotEmpty()

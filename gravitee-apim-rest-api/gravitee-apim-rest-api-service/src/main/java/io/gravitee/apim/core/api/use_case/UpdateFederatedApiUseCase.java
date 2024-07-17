@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -40,7 +41,9 @@ public class UpdateFederatedApiUseCase {
             updateApi.getId()
         );
 
-        var updated = apiUpdateFederatedApiDomainService.update(input.apiToUpdate, auditInfo, primaryOwnerEntity);
+        var updating = update(input.apiToUpdate);
+
+        var updated = apiUpdateFederatedApiDomainService.update(input.apiToUpdate.getId(), updating, auditInfo, primaryOwnerEntity);
 
         return new Output(updated, primaryOwnerEntity);
     }
@@ -49,4 +52,19 @@ public class UpdateFederatedApiUseCase {
     public record Input(Api apiToUpdate, AuditInfo auditInfo) {}
 
     public record Output(Api updatedApi, PrimaryOwnerEntity primaryOwnerEntity) {}
+
+    static UnaryOperator<Api> update(Api newOne) {
+        return currentApi ->
+            currentApi
+                .toBuilder()
+                .name(newOne.getName())
+                .description(newOne.getDescription())
+                .version(newOne.getVersion())
+                .apiLifecycleState(newOne.getApiLifecycleState())
+                .visibility(newOne.getVisibility())
+                .labels(newOne.getLabels())
+                .categories(newOne.getCategories())
+                .groups(newOne.getGroups())
+                .build();
+    }
 }

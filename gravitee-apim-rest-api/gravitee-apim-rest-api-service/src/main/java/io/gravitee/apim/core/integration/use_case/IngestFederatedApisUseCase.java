@@ -50,6 +50,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -148,18 +149,8 @@ public class IngestFederatedApisUseCase {
              * If we move on to some predictable unique ID the existingApiName will become unnecessary.
              */
             var existingApiName = existingApi.getName();
-
-            updateFederatedApiDomainService.update(
-                existingApi
-                    .toBuilder()
-                    .name(federatedApi.getName())
-                    .description(federatedApi.getDescription())
-                    .version(federatedApi.getVersion())
-                    .federatedApiDefinition(federatedApi.getFederatedApiDefinition())
-                    .build(),
-                auditInfo,
-                primaryOwner
-            );
+            UnaryOperator<Api> updater = update(federatedApi);
+            updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner);
 
             ofNullable(integrationApi.plans())
                 .stream()
@@ -255,6 +246,17 @@ public class IngestFederatedApisUseCase {
             case ASYNCAPI -> apiName.concat(".json");
             default -> throw new IllegalStateException("Unexpected value: " + pageType);
         };
+    }
+
+    static UnaryOperator<Api> update(Api newOne) {
+        return previousApi ->
+            previousApi
+                .toBuilder()
+                .name(newOne.getName())
+                .description(newOne.getDescription())
+                .version(newOne.getVersion())
+                .federatedApiDefinition(newOne.getFederatedApiDefinition())
+                .build();
     }
 
     public record Input(String organizationId, String ingestJobId, List<IntegrationApi> apisToIngest, boolean completed) {}
