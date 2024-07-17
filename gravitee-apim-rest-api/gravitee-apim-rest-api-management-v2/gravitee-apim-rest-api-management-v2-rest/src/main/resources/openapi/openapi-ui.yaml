@@ -127,6 +127,52 @@ paths:
             $ref: "#/components/responses/ThemesResponse"
           default:
             $ref: "#/components/responses/Error"
+
+    /environments/{envId}/ui/themes/portal-next/_default:
+      servers:
+        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+          description: APIM Management API v2 - Base URL to target specific organizations
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+            orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+        - url: "{protocol}://{managementAPIHost}/management/v2"
+          description: APIM Management API v2 - Default base URL
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      get:
+        tags:
+          - Management UI
+        summary: Get default theme for Portal Next
+        description: |
+          Get default Portal Next theme for a given environment.
+          
+          User must have the ENVIRONMENT_THEME[READ] permission.
+        operationId: getPortalNextDefaultTheme
+        responses:
+          "200":
+            $ref: "#/components/schemas/Theme"
+          default:
+            $ref: "#/components/responses/Error"
 components:
     schemas:
         ConsoleCustomization:
