@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { GioEnvironmentFlowStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 
 export class EnvironmentFlowsStudioHarness extends ComponentHarness {
   static readonly hostSelector = 'environment-flows-studio';
+
+  public getEnvironmentFlowsStudio = this.locatorFor(GioEnvironmentFlowStudioHarness);
 }

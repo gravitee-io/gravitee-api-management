@@ -14,17 +14,77 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
+import {
+  GioEnvironmentFlowStudioComponent,
+  GioPolicyStudioComponent,
+  PolicyDocumentationFetcher,
+  PolicySchemaFetcher,
+} from '@gravitee/ui-policy-studio-angular';
+import { map } from 'rxjs/operators';
+
+import { EnvironmentFlow } from '../../../../entities/management-api-v2';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
+import { EnvironmentFlowsService } from '../../../../services-ngx/environment-flows.service';
+import { IconService } from '../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'environment-flows-studio',
   templateUrl: './environment-flows-studio.component.html',
   styleUrls: ['./environment-flows-studio.component.scss'],
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIcon, RouterLink],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    GioIconsModule,
+    RouterLink,
+    GioLoaderModule,
+    GioEnvironmentFlowStudioComponent,
+    GioPolicyStudioComponent,
+  ],
   standalone: true,
 })
-export class EnvironmentFlowsStudioComponent {}
+export class EnvironmentFlowsStudioComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly environmentFlowsService = inject(EnvironmentFlowsService);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly permissionService = inject(GioPermissionService);
+  private readonly policyV2Service = inject(PolicyV2Service);
+  private readonly iconService = inject(IconService);
+
+  protected isReadOnly = false;
+  protected environmentFlow$: Observable<EnvironmentFlow>;
+  protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
+  protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
+  protected policies$ = this.policyV2Service
+    .list()
+    .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
+
+  constructor() {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-environment_flows-r']);
+    const environmentFlowId = this.activatedRoute.snapshot.params['environmentFlowId'];
+
+    this.environmentFlow$ = this.environmentFlowsService.get(environmentFlowId).pipe(takeUntilDestroyed(this.destroyRef));
+  }
+
+  public onEdit(): void {
+    // TODO
+  }
+
+  public onDelete(): void {
+    // TODO
+  }
+
+  public onDeploy(): void {
+    // TODO
+  }
+
+  public onSave(): void {}
+}

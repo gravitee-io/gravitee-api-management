@@ -15,11 +15,15 @@
  */
 
 // TODO: complete the EnvironmentFlow interface when the OpenAPI is available
+import { ApiType } from '../api';
+import { ExecutionPhase } from '../plugin';
+
 export interface EnvironmentFlow {
   id: string;
   name: string;
+  apiType: ApiType;
   description?: string;
-  phase?: string;
+  phase: ExecutionPhase;
   updatedAt?: Date;
   deployedAt?: Date;
 }
