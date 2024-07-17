@@ -24,6 +24,7 @@ export function fakeCreateEnvironmentFlow(
   const base: CreateEnvironmentFlow = {
     name: 'Environment flow',
     description: 'Environment flow description',
+    apiType: 'PROXY',
     phase: 'REQUEST',
   };
 

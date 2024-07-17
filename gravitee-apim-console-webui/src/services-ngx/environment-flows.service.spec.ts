@@ -21,7 +21,7 @@ import { EnvironmentFlowsService } from './environment-flows.service';
 import { GioTestingModule } from '../shared/testing';
 
 describe('EnvironmentFlowsService', () => {
-  let _httpTestingController: HttpTestingController;
+  let httpTestingController: HttpTestingController;
   let service: EnvironmentFlowsService;
 
   beforeEach(() => {
@@ -29,14 +29,36 @@ describe('EnvironmentFlowsService', () => {
       imports: [GioTestingModule],
     });
 
-    _httpTestingController = TestBed.inject(HttpTestingController);
+    httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject<EnvironmentFlowsService>(EnvironmentFlowsService);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   describe('list', () => {
     it('should call the API', (done) => {
       service.list().subscribe((flows) => {
         expect(flows.data.length).toEqual(1);
+        done();
+      });
+    });
+  });
+
+  describe('create', () => {
+    it('should call the API', (done) => {
+      service.create({}).subscribe((flow) => {
+        expect(flow).toBeTruthy();
+        done();
+      });
+    });
+  });
+
+  describe('get', () => {
+    it('should call the API', (done) => {
+      service.get('SEARCH_ENV_FLOW').subscribe((flow) => {
+        expect(flow).toBeTruthy();
         done();
       });
     });

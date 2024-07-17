@@ -157,6 +157,7 @@ export class EnvironmentFlowsComponent implements OnInit {
           this.environmentFlowsService.create({
             name: payload.name,
             description: payload.description,
+            apiType,
             phase: payload.phase,
           }),
         ),

@@ -31,7 +31,7 @@ import {
   providedIn: 'root',
 })
 export class EnvironmentFlowsService {
-  private environmentFlows$ = new BehaviorSubject<PagedResult<EnvironmentFlow>>(
+  public environmentFlows$ = new BehaviorSubject<PagedResult<EnvironmentFlow>>(
     fakePagedResult([
       fakeEnvironmentFlow({
         id: 'SEARCH_ENV_FLOW',
@@ -64,6 +64,10 @@ export class EnvironmentFlowsService {
     );
 
     return this.environmentFlows$;
+  }
+
+  get(id: string): Observable<EnvironmentFlow> {
+    return of(this.environmentFlows$.value.data.find((flow) => flow.id === id));
   }
 
   create(createEnvironmentFlow: CreateEnvironmentFlow): Observable<EnvironmentFlow> {

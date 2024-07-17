@@ -23,6 +23,7 @@ export function fakeEnvironmentFlow(modifier?: Partial<EnvironmentFlow> | ((base
     id: '1',
     name: 'Environment flow',
     phase: 'REQUEST',
+    apiType: 'PROXY',
     updatedAt: new Date('2024-04-04T00:00:00Z'),
     deployedAt: new Date('2024-04-04T00:00:00Z'),
   };

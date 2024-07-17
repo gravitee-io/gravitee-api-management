@@ -20,13 +20,35 @@
   <a mat-button [routerLink]="'../../'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to the list</a>
 </div>
 
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Hello environment-flows-studio !</mat-card-title>
-    <mat-card-subtitle>Add a description here</mat-card-subtitle>
-    <div class="environment-flows-studio__headerRightBtn">
-      <button mat-button>Right button</button>
+<mat-card class="card">
+  @if (environmentFlow$ | async; as environmentFlow) {
+    <mat-card-header>
+      <mat-card-title
+        >{{ environmentFlow.name }} <span class="gio-badge-success">{{ environmentFlow.phase }}</span></mat-card-title
+      >
+      <mat-card-subtitle>{{ environmentFlow.description }}</mat-card-subtitle>
+      <div class="environment-flows-studio__headerRightBtn">
+        <button [disabled]="isReadOnly" mat-stroked-button (click)="onEdit()">
+          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+        </button>
+        <button [disabled]="isReadOnly" mat-stroked-button (click)="onDelete()">
+          <mat-icon svgIcon="gio:trash"></mat-icon>
+        </button>
+        <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onSave()">Save</button>
+        <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onDeploy()">Deploy</button>
+      </div>
+    </mat-card-header>
+
+    <div class="card__content">
+      <gio-environment-flow-studio
+        [policies]="policies$ | async"
+        [apiType]="environmentFlow.apiType"
+        [executionPhase]="environmentFlow.phase"
+        [policyDocumentationFetcher]="policyDocumentationFetcher"
+        [policySchemaFetcher]="policySchemaFetcher"
+      ></gio-environment-flow-studio>
     </div>
-  </mat-card-header>
-  <mat-card-content> Put your card content here ! 👀 </mat-card-content>
+  } @else {
+    <mat-card-content><gio-loader></gio-loader></mat-card-content>
+  }
 </mat-card>
