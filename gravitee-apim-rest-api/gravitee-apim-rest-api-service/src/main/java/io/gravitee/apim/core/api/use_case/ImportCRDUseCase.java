@@ -111,7 +111,6 @@ public class ImportCRDUseCase {
     private final MembershipQueryService membershipQueryService;
     private final GroupQueryService groupQueryService;
     private final ApiMetadataDomainService apiMetadataDomainService;
-    private final ApiCategoryQueryService apiCategoryQueryService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
@@ -138,7 +137,6 @@ public class ImportCRDUseCase {
         MembershipQueryService membershipQueryService,
         GroupQueryService groupQueryService,
         ApiMetadataDomainService apiMetadataDomainService,
-        ApiCategoryQueryService apiCategoryQueryService,
         PageQueryService pageQueryService,
         PageCrudService pageCrudService,
         DocumentationValidationDomainService documentationValidationDomainService,
@@ -166,7 +164,6 @@ public class ImportCRDUseCase {
         this.membershipQueryService = membershipQueryService;
         this.groupQueryService = groupQueryService;
         this.apiMetadataDomainService = apiMetadataDomainService;
-        this.apiCategoryQueryService = apiCategoryQueryService;
         this.pageQueryService = pageQueryService;
         this.pageCrudService = pageCrudService;
         this.documentationValidationDomainService = documentationValidationDomainService;
@@ -218,8 +215,6 @@ public class ImportCRDUseCase {
             );
 
             resolveGroups(sanitizedInput);
-
-            cleanCategories(environmentId, sanitizedInput.spec);
 
             var createdApi = createApiDomainService.create(
                 ApiModelFactory.fromCrd(sanitizedInput.spec, environmentId),
@@ -283,7 +278,6 @@ public class ImportCRDUseCase {
             var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
             resolveGroups(sanitizedInput);
-            cleanCategories(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec);
 
             var updatedApi = updateApiDomainService.update(existingApi.getId(), sanitizedInput.spec, sanitizedInput.auditInfo);
 
@@ -438,17 +432,6 @@ public class ImportCRDUseCase {
         }
 
         input.spec.setGroups(groupIds);
-    }
-
-    private void cleanCategories(String environmentId, ApiCRDSpec spec) {
-        if (!isEmpty(spec.getCategories())) {
-            var categories = new HashSet<>(spec.getCategories());
-            var existingCategories = apiCategoryQueryService.findByEnvironmentId(environmentId);
-            categories.removeIf(keyOrId ->
-                existingCategories.stream().noneMatch(category -> category.getKey().equals(keyOrId) || category.getId().equals(keyOrId))
-            );
-            spec.setCategories(categories);
-        }
     }
 
     private void createMembers(Input input, String apiId) {
