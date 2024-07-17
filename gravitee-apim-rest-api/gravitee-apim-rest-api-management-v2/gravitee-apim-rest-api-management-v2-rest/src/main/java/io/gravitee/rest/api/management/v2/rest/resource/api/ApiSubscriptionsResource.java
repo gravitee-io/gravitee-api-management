@@ -34,7 +34,6 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
