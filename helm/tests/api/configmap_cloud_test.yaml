@@ -10,7 +10,8 @@ tests:
         url: "http://localhost"
         connector:
           ws:
-            endpoints: "http://localhost.controller"
+            endpoints:
+            - "http://localhost.controller"
             ssl:
               verifyHost: false
               keystore:
@@ -23,7 +24,8 @@ tests:
           pattern: "cloud:\n
 				    *  connector:\n
 				    *    ws:\n
-				    *      endpoints: http://localhost.controller\n
+				    *      endpoints:\n
+				    *      - http://localhost.controller\n
 				    *      ssl:\n
 				    *        keystore:\n
 				    *          password: secret\n

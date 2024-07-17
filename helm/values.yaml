@@ -431,7 +431,8 @@ cloud:
   url: https://cloud.gravitee.io
   connector:
     ws:
-      endpoints: https://cloud-controller.gravitee.io
+      endpoints:
+        - https://cloud-controller.gravitee.io
       ssl:
         verifyHost: true
         keystore:
