@@ -36,6 +36,7 @@ class ApplicationCreationController {
   private applicationType: string;
   private apis: any[] = [];
   private groups: any[];
+  private isApplicationCreationInProgress = false;
 
   constructor(
     private Constants,
@@ -81,12 +82,15 @@ class ApplicationCreationController {
   }
 
   async createApplication() {
-    const { data: application } = await this.ApplicationService.create(this.application);
-    for (const plan of this.selectedPlans) {
-      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]);
+    if (!this.isApplicationCreationInProgress) {
+      this.isApplicationCreationInProgress = true;
+      const { data: application } = await this.ApplicationService.create(this.application);
+      for (const plan of this.selectedPlans) {
+        await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]);
+      }
+      this.NotificationService.show('Application ' + this.application.name + ' has been created');
+      this.ngRouter.navigate(['../', application.id], { relativeTo: this.activatedRoute });
     }
-    this.NotificationService.show('Application ' + this.application.name + ' has been created');
-    this.ngRouter.navigate(['../', application.id], { relativeTo: this.activatedRoute });
   }
 
   clientRegistrationEnabled() {
