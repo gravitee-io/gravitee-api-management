@@ -21,29 +21,21 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder(toBuilder = true)
-public class Theme {
+@Builder
+public class NewTheme {
 
-    private String id;
     private String name;
     private String referenceId;
-    private ReferenceType referenceType;
+    private Theme.ReferenceType referenceType;
 
     private ThemeDefinition definitionPortal;
     private io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition definitionPortalNext;
 
     private ThemeType type;
 
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
-
     private boolean enabled;
     private String logo;
     private String optionalLogo;
     private String favicon;
     private String backgroundImage;
-
-    public enum ReferenceType {
-        ENVIRONMENT,
-    }
 }
