@@ -314,7 +314,7 @@ class ImportCRDUseCaseTest {
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
                 apiPrimaryOwnerDomainService,
-                new ApiCategoryQueryServiceInMemory(),
+                apiCategoryQueryService,
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
@@ -401,7 +401,6 @@ class ImportCRDUseCaseTest {
                 membershipQueryServiceInMemory,
                 groupQueryService,
                 apiMetadataDomainService,
-                apiCategoryQueryService,
                 pageQueryService,
                 pageCrudService,
                 documentationValidationDomainService,
@@ -1077,7 +1076,8 @@ class ImportCRDUseCaseTest {
 
     @Test
     void should_clean_categories_and_keep_existing_categories() {
-        apiCategoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+        categoryQueryService.reset();
+        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
 
         var categories = Set.of("existing", "unknown");
 
