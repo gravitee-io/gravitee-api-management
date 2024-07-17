@@ -84,19 +84,21 @@ class ApplicationCreationController {
   }
 
   async createApplication() {
-    this.isApplicationCreationInProgress = true;
-    const { data: application } = await this.ApplicationService.create(this.application).catch((err) => {
-      this.isApplicationCreationInProgress = false;
-      throw err;
-    });
-    for (const plan of this.selectedPlans) {
-      await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]).catch((err) => {
+    if (!this.isApplicationCreationInProgress) {
+      this.isApplicationCreationInProgress = true;
+      const { data: application } = await this.ApplicationService.create(this.application).catch((err) => {
         this.isApplicationCreationInProgress = false;
         throw err;
       });
+      for (const plan of this.selectedPlans) {
+        await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]).catch((err) => {
+          this.isApplicationCreationInProgress = false;
+          throw err;
+        });
+      }
+      this.NotificationService.show('Application ' + this.application.name + ' has been created');
+      this.ngRouter.navigate(['../', application.id], { relativeTo: this.activatedRoute });
     }
-    this.NotificationService.show('Application ' + this.application.name + ' has been created');
-    this.ngRouter.navigate(['../', application.id], { relativeTo: this.activatedRoute });
   }
 
   clientRegistrationEnabled() {
