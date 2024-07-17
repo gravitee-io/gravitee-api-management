@@ -17,22 +17,51 @@ package io.gravitee.rest.api.model.theme.portalnext;
 
 import io.gravitee.rest.api.model.theme.portal.ThemeComponentDefinition;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ThemeDefinition {
 
-    private String primary;
-    private String secondary;
-    private String tertiary;
-    private String error;
-    private String background;
-    private Banner banner;
+    private String customCss;
+    private Font font;
+    private Color color;
 
     @Data
-    public static class Banner {
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Color {
 
-        private String background;
-        private String text;
+        private String primary;
+        private String secondary;
+        private String tertiary;
+        private String error;
+
+        private Background background;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Background {
+
+        private String page;
+        private String card;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Font {
+
+        private String fontFamily;
     }
 }

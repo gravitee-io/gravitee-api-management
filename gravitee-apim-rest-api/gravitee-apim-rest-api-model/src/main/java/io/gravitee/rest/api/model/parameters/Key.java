@@ -82,6 +82,22 @@ public enum Key {
     PORTAL_NEXT_HOMEPAGE_BANNER_TITLE("portal.next.bannerTitle", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_HOMEPAGE_BANNER_SUBTITLE("portal.next.bannerSubtitle", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_ACCESS_ENABLED("portal.next.access.enabled", "false", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_PRIMARY("portal.next.theme.color.primary", "#613CB0", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_SECONDARY("portal.next.theme.color.secondary", "#958BA9", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_TERTIARY("portal.next.theme.color.tertiary", "#B7818F", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_ERROR("portal.next.theme.color.error", "#EC6152", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE(
+        "portal.next.theme.color.background.page",
+        "#F7F8FD",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD(
+        "portal.next.theme.color.background.card",
+        "#FFFFFF",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_FONT_FAMILY("portal.next.theme.font.family", "Roboto", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

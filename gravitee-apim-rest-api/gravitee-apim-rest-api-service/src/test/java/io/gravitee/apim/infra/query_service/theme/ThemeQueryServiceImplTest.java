@@ -81,8 +81,10 @@ public class ThemeQueryServiceImplTest {
                 .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL)
                 .build();
 
-            var portalNextDefinition = new io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition();
-            portalNextDefinition.setPrimary("#fff");
+            var portalNextDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
+                .builder()
+                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
+                .build();
             var portalNextTheme = io.gravitee.apim.core.theme.model.Theme
                 .builder()
                 .id(PORTAL_NEXT_THEME_ID)
@@ -194,7 +196,7 @@ public class ThemeQueryServiceImplTest {
         theme.setId(PORTAL_NEXT_THEME_ID);
         theme.setName(PORTAL_NEXT_THEME_ID);
         theme.setType(ThemeType.PORTAL_NEXT);
-        theme.setDefinition("{ \"primary\": \"#fff\" }");
+        theme.setDefinition("{ \"color\": { \"primary\": \"#fff\" } }");
         return theme;
     }
 }
