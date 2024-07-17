@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
+import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -45,6 +46,9 @@ public interface ThemeAdapter {
     @Mapping(target = "definitionPortal", expression = "java(deserializeDefinitionPortal(theme))")
     @Mapping(target = "definitionPortalNext", expression = "java(deserializeDefinitionPortalNext(theme))")
     Theme map(io.gravitee.repository.management.model.Theme theme);
+
+    @Mapping(target = "definitionPortal", source = "definition")
+    Theme map(ThemeEntity themeEntity);
 
     List<Theme> map(List<io.gravitee.repository.management.model.Theme> themes);
     Set<Theme> map(Set<io.gravitee.repository.management.model.Theme> themes);

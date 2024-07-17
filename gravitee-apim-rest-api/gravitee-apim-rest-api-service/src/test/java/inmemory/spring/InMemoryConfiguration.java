@@ -72,6 +72,7 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import inmemory.ThemeServiceLegacyWrapperInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -392,5 +393,10 @@ public class InMemoryConfiguration {
     @Bean
     public ThemeCrudServiceInMemory themeCrudService() {
         return new ThemeCrudServiceInMemory();
+    }
+
+    @Bean
+    public ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper() {
+        return new ThemeServiceLegacyWrapperInMemory();
     }
 }
