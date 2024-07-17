@@ -34,13 +34,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ValidateCRDDomainServiceTest {
 
+    private static final String ORG_ID = "TEST";
     private static final String ENV_ID = "TEST";
 
     ValidateCategoryIdsDomainService categoryIdsValidator = mock(ValidateCategoryIdsDomainService.class);
 
     VerifyApiPathDomainService pathValidator = mock(VerifyApiPathDomainService.class);
 
-    ValidateCRDDomainService cut = new ValidateCRDDomainService(categoryIdsValidator, pathValidator);
+    ValidateCRDMembersDomainService membersValidator = mock(ValidateCRDMembersDomainService.class);
+
+    ValidateCRDDomainService cut = new ValidateCRDDomainService(categoryIdsValidator, pathValidator, membersValidator);
 
     @BeforeEach
     void setUp() {
@@ -55,6 +58,9 @@ class ValidateCRDDomainServiceTest {
 
         when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
             .thenReturn(Validator.Result.ofValue(new ValidateCategoryIdsDomainService.Input(ENV_ID, Set.of("id-1", "id-2"))));
+
+        when(membersValidator.validateAndSanitize(new ValidateCRDMembersDomainService.Input(ORG_ID, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
 

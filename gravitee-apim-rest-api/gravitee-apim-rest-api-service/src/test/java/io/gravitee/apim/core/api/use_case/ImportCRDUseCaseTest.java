@@ -78,6 +78,7 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
@@ -372,7 +373,8 @@ class ImportCRDUseCaseTest {
 
         var crdValidator = new ValidateCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
-            verifyApiPathDomainService
+            verifyApiPathDomainService,
+            new ValidateCRDMembersDomainService(userDomainService)
         );
 
         categoryQueryService.reset();
@@ -388,7 +390,6 @@ class ImportCRDUseCaseTest {
                 apiStateDomainService,
                 updateApiDomainService,
                 planQueryService,
-                userDomainService,
                 updatePlanDomainService,
                 deletePlanDomainService,
                 subscriptionQueryService,
@@ -1244,7 +1245,7 @@ class ImportCRDUseCaseTest {
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .deployedAt(null)
             .disableMembershipNotifications(true)
-            .categories(null)
+            .categories(Set.of())
             .picture(null)
             .background(null)
             .groups(null)

@@ -57,6 +57,11 @@
 			<artifactId>gravitee-apim-rest-api-idp-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.idp</groupId>
+            <artifactId>gravitee-apim-rest-api-idp-memory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api</groupId>
 			<artifactId>gravitee-apim-rest-api-fetcher</artifactId>

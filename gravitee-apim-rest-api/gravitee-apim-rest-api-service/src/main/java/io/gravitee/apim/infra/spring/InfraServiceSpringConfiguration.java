@@ -17,9 +17,12 @@ package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
+import io.gravitee.rest.api.idp.memory.lookup.InMemoryIdentityLookup;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @Import({ JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class })
