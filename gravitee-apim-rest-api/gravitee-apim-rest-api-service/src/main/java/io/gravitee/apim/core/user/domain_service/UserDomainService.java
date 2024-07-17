@@ -16,7 +16,8 @@
 package io.gravitee.apim.core.user.domain_service;
 
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import java.util.Optional;
 
 public interface UserDomainService {
-    BaseUserEntity findBySource(String organizationId, String source, String sourceId);
+    Optional<BaseUserEntity> findBySource(String organizationId, String source, String sourceId);
 }

@@ -22,6 +22,7 @@ import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -397,10 +399,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidateCRDUseCase validateCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
+        UserDomainServiceInMemory userDomainService,
         VerifyApiPathDomainService verifyApiPathDomainService
     ) {
         return new ValidateCRDUseCase(
-            new ValidateCRDDomainService(new ValidateCategoryIdsDomainService(categoryQueryService), verifyApiPathDomainService)
+            new ValidateCRDDomainService(
+                new ValidateCategoryIdsDomainService(categoryQueryService),
+                verifyApiPathDomainService,
+                new ValidateCRDMembersDomainService(userDomainService)
+            )
         );
     }
 }
