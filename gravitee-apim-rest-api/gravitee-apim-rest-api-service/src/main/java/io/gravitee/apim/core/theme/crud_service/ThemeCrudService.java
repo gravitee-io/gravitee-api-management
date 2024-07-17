@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.theme.query_service;
+package io.gravitee.apim.core.theme.crud_service;
 
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.core.theme.model.ThemeSearchCriteria;
-import io.gravitee.apim.core.theme.model.ThemeType;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.common.Pageable;
-import java.util.Set;
 
-public interface ThemeQueryService {
-    Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable);
-    Set<Theme> findByThemeTypeAndEnvironmentId(ThemeType themeType, String environmentId);
+public interface ThemeCrudService {
+    Theme create(Theme theme);
+    Theme update(Theme theme);
+    Theme get(String id);
 }

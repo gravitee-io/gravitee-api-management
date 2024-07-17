@@ -70,6 +70,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
+import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UpdateCategoryApiDomainServiceInMemory;
@@ -386,5 +387,10 @@ public class InMemoryConfiguration {
     @Bean
     public UpdateCategoryApiDomainServiceInMemory updateCategoryApiDomainService() {
         return new UpdateCategoryApiDomainServiceInMemory();
+    }
+
+    @Bean
+    public ThemeCrudServiceInMemory themeCrudService() {
+        return new ThemeCrudServiceInMemory();
     }
 }

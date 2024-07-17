@@ -27,7 +27,9 @@ import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -41,6 +43,7 @@ public class ThemeQueryServiceImplTest {
 
     private final String PORTAL_THEME_ID = "portal-id";
     private final String PORTAL_NEXT_THEME_ID = "portal-next-id";
+    private final String ENV_ID = "env-id";
 
     @Mock
     ThemeRepository themeRepository;
@@ -81,8 +84,10 @@ public class ThemeQueryServiceImplTest {
                 .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL)
                 .build();
 
-            var portalNextDefinition = new io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition();
-            portalNextDefinition.setPrimary("#fff");
+            var portalNextDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
+                .builder()
+                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
+                .build();
             var portalNextTheme = io.gravitee.apim.core.theme.model.Theme
                 .builder()
                 .id(PORTAL_NEXT_THEME_ID)
@@ -180,6 +185,40 @@ public class ThemeQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindByThemeTypeAndEnvironmentId {
+
+        @Test
+        void should_return_empty_results() throws Throwable {
+            when(themeRepository.findByReferenceIdAndReferenceTypeAndType(eq(ENV_ID), eq("ENVIRONMENT"), eq(ThemeType.PORTAL)))
+                .thenAnswer(invocation -> new HashSet<Theme>());
+
+            var result = service.findByThemeTypeAndEnvironmentId(io.gravitee.apim.core.theme.model.ThemeType.PORTAL, ENV_ID);
+
+            Assertions.assertThat(result).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_return_portal_theme() throws Throwable {
+            when(themeRepository.findByReferenceIdAndReferenceTypeAndType(eq(ENV_ID), eq("ENVIRONMENT"), eq(ThemeType.PORTAL)))
+                .thenAnswer(invocation -> Set.of(aPortalRepoTheme()));
+
+            var result = service.findByThemeTypeAndEnvironmentId(io.gravitee.apim.core.theme.model.ThemeType.PORTAL, ENV_ID);
+
+            var portalDefinition = new ThemeDefinition();
+            portalDefinition.setData(List.of());
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme
+                .builder()
+                .id(PORTAL_THEME_ID)
+                .name(PORTAL_THEME_ID)
+                .definitionPortal(portalDefinition)
+                .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL)
+                .build();
+
+            Assertions.assertThat(result).isNotNull().hasSize(1).contains(portalTheme);
+        }
+    }
+
     private Theme aPortalRepoTheme() {
         var theme = new Theme();
         theme.setId(PORTAL_THEME_ID);
@@ -194,7 +233,7 @@ public class ThemeQueryServiceImplTest {
         theme.setId(PORTAL_NEXT_THEME_ID);
         theme.setName(PORTAL_NEXT_THEME_ID);
         theme.setType(ThemeType.PORTAL_NEXT);
-        theme.setDefinition("{ \"primary\": \"#fff\" }");
+        theme.setDefinition("{ \"color\": { \"primary\": \"#fff\" } }");
         return theme;
     }
 }

@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.Set;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,21 @@ public class ThemeQueryServiceImpl extends AbstractService implements ThemeQuery
                 page.getPageNumber(),
                 (int) page.getPageElements(),
                 page.getTotalElements()
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Set<Theme> findByThemeTypeAndEnvironmentId(io.gravitee.apim.core.theme.model.ThemeType themeType, String environmentId) {
+        try {
+            return ThemeAdapter.INSTANCE.map(
+                this.themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                        environmentId,
+                        Theme.ReferenceType.ENVIRONMENT.name(),
+                        ThemeType.valueOf(themeType.name())
+                    )
             );
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
