@@ -16,7 +16,10 @@
 
 // TODO: complete the EnvironmentFlow interface when the OpenAPI is available
 
+import { StepV4 } from '../api';
+
 export interface UpdateEnvironmentFlow {
   name: string;
   description?: string;
+  policies?: StepV4[];
 }

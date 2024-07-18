@@ -34,6 +34,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
+import { SpecificJsonSchemaTypeModule } from './shared/components/specific-json-schema-type/specific-json-schema-type.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -59,6 +60,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     GioSideNavModule,
     GioTopNavModule,
+    SpecificJsonSchemaTypeModule,
   ],
   providers: [
     httpInterceptorProviders,

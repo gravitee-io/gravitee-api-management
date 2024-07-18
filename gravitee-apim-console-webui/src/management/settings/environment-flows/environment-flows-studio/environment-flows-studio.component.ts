@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, switchMap } from 'rxjs';
 import {
   GioEnvironmentFlowStudioComponent,
@@ -40,6 +40,7 @@ import {
   EnvironmentFlowsAddEditDialogResult,
 } from '../environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.component';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @Component({
   selector: 'environment-flows-studio',
@@ -54,10 +55,13 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
     GioLoaderModule,
     GioEnvironmentFlowStudioComponent,
     GioPolicyStudioComponent,
+    GioPermissionModule,
   ],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnvironmentFlowsStudioComponent {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly environmentFlowsService = inject(EnvironmentFlowsService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly permissionService = inject(GioPermissionService);
@@ -76,6 +80,8 @@ export class EnvironmentFlowsStudioComponent {
   protected policies$ = this.policyV2Service
     .list()
     .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
+  protected enableSaveButton = false;
+  protected enableDeployButton = false;
 
   constructor() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-environment_flows-r']);
@@ -101,6 +107,7 @@ export class EnvironmentFlowsStudioComponent {
             description: payload.description,
           }),
         ),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: () => {
@@ -119,7 +126,35 @@ export class EnvironmentFlowsStudioComponent {
 
   public onDeploy(): void {
     // TODO
+    this.enableDeployButton = false;
   }
 
-  public onSave(): void {}
+  public onSave(): void {
+    const environmentFlow = this.environmentFlow();
+    this.enableSaveButton = false;
+
+    this.environmentFlowsService
+      .update(environmentFlow.id, {
+        name: environmentFlow.name,
+        description: environmentFlow.description,
+        policies: environmentFlow.policies,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Environment flow updated');
+          this.refresh$.next();
+          this.enableDeployButton = true;
+        },
+        error: (error) => {
+          this.enableSaveButton = true;
+          this.snackBarService.error(error?.error?.message ?? 'Error during environment flow update!');
+        },
+      });
+  }
+
+  public onStudioChange(steps: any): void {
+    this.environmentFlow().policies = steps;
+    this.enableSaveButton = true;
+  }
 }

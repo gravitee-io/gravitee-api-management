@@ -42,7 +42,6 @@ import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit
 import { ApiPlanFormComponent } from './api-plan-form.component';
 
 import { GioSafePipeModule } from '../../../../shared/utils/safe.pipe.module';
-import { SpecificJsonSchemaTypeModule } from '../../../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 
 @NgModule({
   declarations: [ApiPlanFormComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
@@ -69,7 +68,6 @@ import { SpecificJsonSchemaTypeModule } from '../../../../shared/components/spec
     GioBannerModule,
     GioFormJsonSchemaModule,
     GioSafePipeModule,
-    SpecificJsonSchemaTypeModule,
   ],
 })
 export class ApiPlanFormModule {}

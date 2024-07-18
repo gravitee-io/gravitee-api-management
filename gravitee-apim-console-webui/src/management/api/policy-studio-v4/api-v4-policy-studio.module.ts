@@ -20,10 +20,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiV4PolicyStudioDesignComponent } from './design/api-v4-policy-studio-design.component';
 
-import { SpecificJsonSchemaTypeModule } from '../../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
-
 @NgModule({
-  imports: [CommonModule, GioPolicyStudioComponent, SpecificJsonSchemaTypeModule, MatSnackBarModule],
+  imports: [CommonModule, GioPolicyStudioComponent, MatSnackBarModule],
   declarations: [ApiV4PolicyStudioDesignComponent],
 })
 export class ApiV4PolicyStudioModule {}

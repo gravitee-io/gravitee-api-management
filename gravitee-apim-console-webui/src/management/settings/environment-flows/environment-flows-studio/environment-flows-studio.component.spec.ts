@@ -19,13 +19,21 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { importProvidersFrom } from '@angular/core';
+import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 
 import { EnvironmentFlowsStudioComponent } from './environment-flows-studio.component';
 import { EnvironmentFlowsStudioHarness } from './environment-flows-studio.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { fakeEnvironmentFlow, fakePagedResult, fakePoliciesPlugin, fakePolicyPlugin } from '../../../../entities/management-api-v2';
+import {
+  fakeEnvironmentFlow,
+  fakePagedResult,
+  fakePoliciesPlugin,
+  fakePolicyPlugin,
+  UpdateEnvironmentFlow,
+} from '../../../../entities/management-api-v2';
 import { EnvironmentFlowsService } from '../../../../services-ngx/environment-flows.service';
 import { EnvironmentFlowsAddEditDialogHarness } from '../environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.harness';
 
@@ -54,6 +62,7 @@ describe('EnvironmentFlowsStudioComponent', () => {
             'environment-environment_flows-d',
           ],
         },
+        importProvidersFrom(GioFormJsonSchemaModule),
       ],
     }).compileComponents();
 
@@ -110,8 +119,40 @@ describe('EnvironmentFlowsStudioComponent', () => {
     await addDialog.setDescription('New description');
     await addDialog.save();
 
-    // TODO: When the API is available
-    // expectUpdateEnvironmentFlowsPostRequest();
+    expectUpdateEnvironmentFlowsPostRequest(ENVIRONMENT_FLOW_ID, {
+      name: 'New name',
+      description: 'New description',
+    });
+  });
+
+  it('should add policy to phase', async () => {
+    const studio = await componentHarness.getEnvironmentFlowsStudio();
+
+    const phase = await studio.getFlowPhase('REQUEST');
+
+    await phase.addStep(0, {
+      policyName: fakePolicyPlugin().name,
+      waitForPolicyFormCompletionCb: async () => {
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/schema`).flush({});
+        httpTestingController
+          .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation`)
+          .flush('');
+      },
+    });
+
+    expectUpdateEnvironmentFlowsPostRequest(ENVIRONMENT_FLOW_ID, {
+      name: 'Environment flow',
+      policies: [
+        {
+          policy: 'test-policy',
+          name: 'Test policy',
+          description: undefined,
+          condition: undefined,
+          configuration: undefined,
+          enabled: true,
+        },
+      ],
+    });
   });
 
   function expectGetPolicies() {
@@ -121,5 +162,13 @@ describe('EnvironmentFlowsStudioComponent', () => {
         method: 'GET',
       })
       .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
+  }
+
+  function expectUpdateEnvironmentFlowsPostRequest(id: string, updateEnvironmentFlow: UpdateEnvironmentFlow) {
+    // TODO: When the API is available
+    const environmentFlowsService = TestBed.inject(EnvironmentFlowsService);
+    const environmentFlow = environmentFlowsService.environmentFlows$.value.data.find((flow) => flow.id === id);
+
+    expect(environmentFlow).toStrictEqual(expect.objectContaining(updateEnvironmentFlow));
   }
 });
