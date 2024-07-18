@@ -61,10 +61,6 @@ const managementRoutes: Routes = [
         loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule),
       },
       {
-        path: 'developer-portal',
-        loadChildren: () => import('./developer-portal/developer-portal-routing.module').then((m) => m.DeveloperPortalRoutingModule),
-      },
-      {
         path: 'support/tickets',
         loadChildren: () => import('../user/support/tickets.module').then((m) => m.TicketsModule),
       },
