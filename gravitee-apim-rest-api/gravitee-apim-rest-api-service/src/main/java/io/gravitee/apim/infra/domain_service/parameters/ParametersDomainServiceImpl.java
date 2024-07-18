@@ -18,9 +18,15 @@ package io.gravitee.apim.infra.domain_service.parameters;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -31,6 +37,7 @@ import org.springframework.stereotype.Service;
 public class ParametersDomainServiceImpl implements ParametersDomainService {
 
     private final ConfigurableEnvironment environment;
+    private final ParameterService parameterService;
 
     @Override
     public Map<Key, String> getSystemParameters(List<Key> keys) {
@@ -39,6 +46,16 @@ public class ParametersDomainServiceImpl implements ParametersDomainService {
             .map(this::getSystemParameter)
             .filter(Objects::nonNull)
             .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
+    }
+
+    @Override
+    public Map<Key, String> getEnvironmentParameters(ExecutionContext executionContext, List<Key> keys) {
+        return parameterService
+            .findAll(executionContext, keys, Function.identity(), ParameterReferenceType.ENVIRONMENT)
+            .entrySet()
+            .stream()
+            .filter(es -> !es.getValue().isEmpty())
+            .collect(Collectors.toMap(es -> Key.findByKey(es.getKey()), es -> es.getValue().get(0)));
     }
 
     private Parameter getSystemParameter(Key key) {

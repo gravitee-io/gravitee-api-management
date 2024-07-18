@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.parameters.domain_service;
+package io.gravitee.apim.core.theme.exception;
 
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
-import java.util.Map;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public interface ParametersDomainService {
-    Map<Key, String> getSystemParameters(List<Key> keys);
-    Map<Key, String> getEnvironmentParameters(ExecutionContext executionContext, List<Key> keys);
+public class ThemeTypeNotSupportedException extends ValidationDomainException {
+
+    public ThemeTypeNotSupportedException(String themeType) {
+        super("Theme type [" + themeType + "] is not supported");
+    }
 }
