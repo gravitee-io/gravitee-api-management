@@ -1,0 +1,186 @@
+{
+  "name": "api1",
+  "crossId": "5364d4fb-6ad0-4ad5-a4d4-fb6ad03ad50f",
+  "version": "1",
+  "execution_mode": "v3",
+  "description": "api 1",
+  "visibility": "PRIVATE",
+  "gravitee": "2.0.0",
+  "flow_mode": "DEFAULT",
+  "flows": [],
+  "createdAt": 1661848370924,
+  "resources": [],
+  "properties": [],
+  "picture": "L1VzZXJzL2Fjb3JkaWVyL0Rvd25sb2Fkcy9BdmF0YXItUHJvZmlsZS5wbmcK",
+  "apiMedia": [
+    {
+      "id": "7b5c71f5-5a83-4e59-9c71-f55a83be5945",
+      "hash": "573BBD2EC55AA637D539C3D0D18A25C6",
+      "type": "image",
+      "subType": "png",
+      "fileName": "Avatar-Profile.png",
+      "createAt": 1662974642783,
+      "size": 25721,
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AABkQElEQVR42ux9B3hUVfr+uO7",
+      "mimeType": "image/png"
+    }
+  ],
+  "groups" : [ "developers" ],
+  "members": [
+    {
+      "source": "memory",
+      "sourceId": "admin",
+      "roles": [
+        "dd0e6498-7a8c-492d-8e64-987a8c492d1f"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "id": "01b2e0c3-2831-39a8-8039-54f4e83d4379",
+      "crossId": "9edb1e92-1cc9-4523-9b1e-921cc9952311",
+      "name": "Aside",
+      "type": "SYSTEM_FOLDER",
+      "order": 0,
+      "published": true,
+      "visibility": "PUBLIC",
+      "lastModificationDate": 1662559764415,
+      "contentType": "application/json",
+      "homepage": false,
+      "parentPath": "",
+      "excludedAccessControls": false,
+      "accessControls": [],
+      "api": "f8216fd9-92e0-4008-a16f-d992e0e00860",
+      "attached_media": [],
+      "published_at": 1662559764415
+    },
+    {
+      "id": "1a0cb360-0b9a-42b7-8cb3-600b9a62b75a",
+      "crossId": "7be16a08-4d5e-4e3c-a16a-084d5e3e3c60",
+      "type": "ROOT",
+      "order": 0,
+      "lastContributor": "0ebcd2f4-1703-46b9-bcd2-f41703f6b954",
+      "published": false,
+      "visibility": "PUBLIC",
+      "lastModificationDate": 1721305200059,
+      "contentType": "application/json",
+      "source": {
+        "type": "github-fetcher",
+        "configuration": {
+          "githubUrl": "https://api.github.com",
+          "useSystemProxy": false,
+          "owner": "a-cordier",
+          "repository": "noon",
+          "branchOrTag": null,
+          "filepath": "/",
+          "username": "a-cordier",
+          "personalAccessToken": "********",
+          "editLink": null,
+          "fetchCron": "5 * * * *",
+          "autoFetch": true
+        }
+      }
+    }
+  ],
+  "plans": [
+    {
+      "id": "66dd9a40-e5ef-38ee-9493-8e44b70aff4a",
+      "crossId": "584e2c1b-2c81-49df-8e2c-1b2c81d9df04",
+      "name": "free",
+      "description": "free",
+      "validation": "AUTO",
+      "security": "KEY_LESS",
+      "type": "API",
+      "status": "PUBLISHED",
+      "api": "f8216fd9-92e0-4008-a16f-d992e0e00860",
+      "order": 0,
+      "characteristics": [],
+      "created_at": 1661848370924,
+      "updated_at": 1662631173273,
+      "paths": {},
+      "flows": [
+        {
+          "name": "",
+          "path-operator": {
+            "path": "/",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "consumers": [],
+          "methods": [],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        }
+      ],
+      "comment_required": false,
+      "comment_message": "some message",
+      "general_conditions": "some-page-id"
+    }
+  ],
+  "metadata": [
+    {
+      "key": "test",
+      "name": "test",
+      "format": "STRING",
+      "value": "test",
+      "apiId": "f8216fd9-92e0-4008-a16f-d992e0e00860"
+    },
+    {
+      "key": "email-support",
+      "name": "email-support",
+      "format": "MAIL",
+      "value": "${(api.primaryOwner.email)!''}",
+      "defaultValue": "support@change.me",
+      "apiId": "f8216fd9-92e0-4008-a16f-d992e0e00860"
+    }
+  ],
+  "id": "f8216fd9-92e0-4008-a16f-d992e0e00860",
+  "path_mappings": [],
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "host": "domain.restriction1.io",
+        "path": "/api1"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": false,
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "backup": false,
+            "inherit": true,
+            "name": "default",
+            "weight": 1,
+            "type": "http",
+            "target": "https://api.gravitee.io/echo",
+            "status": "UP"
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout" : 60000,
+          "keepAliveTimeout" : 30000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ]
+  },
+  "response_templates": {},
+  "primaryOwner": {
+    "id": "e3c249ed-61c1-4c24-8249-ed61c1ec2414",
+    "displayName": "admin",
+    "type": "USER"
+  }
+}
