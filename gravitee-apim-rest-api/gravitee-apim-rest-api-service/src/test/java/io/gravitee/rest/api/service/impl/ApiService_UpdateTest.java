@@ -33,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.clearInvocations;
@@ -43,12 +42,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.same;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -616,6 +613,27 @@ public class ApiService_UpdateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(apiRepository).update(argThat(api -> api.getId().equals(API_ID) && api.getGroups().equals(Sets.newSet("group-with-po"))));
+    }
+
+    @Test
+    public void shouldUpdateNotRemovingGroupsWhenGroupPOisApiPO() throws TechnicalException {
+        prepareUpdate();
+
+        when(membershipService.getPrimaryOwner(GraviteeContext.getDefaultOrganization(), MembershipReferenceType.API, API_ID))
+            .thenReturn(MembershipEntity.builder().memberId("api-po").memberType(MembershipMemberType.USER).build());
+
+        GroupEntity groupWithApiPOasPO = GroupEntity.builder().id("group-with-po").apiPrimaryOwner("api-po").build();
+
+        updateApiEntity.setGroups(Set.of("group-with-po"));
+
+        when(groupService.findByIds(Set.of("group-with-po"))).thenReturn(Set.of(groupWithApiPOasPO));
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+        verify(apiRepository).findById(API_ID);
         verify(apiRepository).update(argThat(api -> api.getId().equals(API_ID) && api.getGroups().equals(Sets.newSet("group-with-po"))));
     }
 
