@@ -1,0 +1,47 @@
+@use 'sass:map';
+@use '@gravitee/ui-particles-angular/index' as gio;
+@use '../../scss/gio-layout' as gio-layout;
+
+$textColor: map.get(gio.$mat-dove-palette, default);
+
+:host {
+  height: 100%;
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: 'menu content';
+}
+
+.portal-customization {
+  &__submenu {
+    grid-area: menu;
+    display: flex;
+    flex-direction: column;
+
+    a {
+      text-decoration: none;
+    }
+
+    &__content {
+      z-index: 70;
+      height: 100%;
+      color: $textColor;
+
+      &__item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        &__icon {
+          margin-right: 8px;
+          color: $textColor;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+  }
+
+  &__content {
+    grid-area: content;
+  }
+}
