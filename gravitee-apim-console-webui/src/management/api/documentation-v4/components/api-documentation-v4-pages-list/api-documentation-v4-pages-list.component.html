@@ -141,25 +141,26 @@
 
             <!-- insert empty slot so that flex keeps everything aligned when publish icon is missing -->
             <div *ngIf="page.type === 'FOLDER'"></div>
-
-            <button
-              mat-icon-button
-              (click)="onMoveUp.emit(page)"
-              [disabled]="i === 0 || page.order === 0 || isReadOnly"
-              aria-label="Move page up"
-              [matTooltip]="page.type === 'FOLDER' ? 'Move folder up' : 'Move page up'"
-            >
-              <mat-icon svgIcon="gio:arrow-up"></mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="onMoveDown.emit(page)"
-              [disabled]="i === dataSource.data.length - 1 || isReadOnly"
-              aria-label="Move page down"
-              [matTooltip]="page.type === 'FOLDER' ? 'Move folder down' : 'Move page down'"
-            >
-              <mat-icon svgIcon="gio:arrow-down"></mat-icon>
-            </button>
+            @if (mode == 'PAGE_LIST') {
+              <button
+                mat-icon-button
+                (click)="onMoveUp.emit(page)"
+                [disabled]="i === 0 || page.order === 0 || isReadOnly"
+                aria-label="Move page up"
+                [matTooltip]="page.type === 'FOLDER' ? 'Move folder up' : 'Move page up'"
+              >
+                <mat-icon svgIcon="gio:arrow-up"></mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                (click)="onMoveDown.emit(page)"
+                [disabled]="i === dataSource.data.length - 1 || isReadOnly"
+                aria-label="Move page down"
+                [matTooltip]="page.type === 'FOLDER' ? 'Move folder down' : 'Move page down'"
+              >
+                <mat-icon svgIcon="gio:arrow-down"></mat-icon>
+              </button>
+            }
           </ng-container>
 
           <button
