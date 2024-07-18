@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './EnvironmentFlow';
-export * from './EnvironmentFlow.fixture';
-export * from './EnvironmentFlowsSortByParam';
-export * from './CreateEnvironmentFlow';
-export * from './CreateEnvironmentFlow.fixture';
-export * from './UpdateEnvironmentFlow';
-export * from './UpdateEnvironmentFlow.fixture';
+
+// TODO: complete the EnvironmentFlow interface when the OpenAPI is available
+
+export interface UpdateEnvironmentFlow {
+  name: string;
+  description?: string;
+}

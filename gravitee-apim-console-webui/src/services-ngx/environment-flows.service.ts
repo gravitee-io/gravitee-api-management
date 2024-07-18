@@ -21,12 +21,14 @@ import { uniqueId } from 'lodash';
 import { Constants } from '../entities/Constants';
 import {
   CreateEnvironmentFlow,
+  UpdateEnvironmentFlow,
   EnvironmentFlow,
   EnvironmentFlowsSortByParam,
   fakeEnvironmentFlow,
   fakePagedResult,
   PagedResult,
 } from '../entities/management-api-v2';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -79,5 +81,18 @@ export class EnvironmentFlowsService {
     });
     this.environmentFlows$.next(fakePagedResult([...this.environmentFlows$.value.data, environmentFlowToCreate]));
     return of(environmentFlowToCreate);
+  }
+
+  update(id: string, updateEnvironmentFlow: UpdateEnvironmentFlow): Observable<EnvironmentFlow> {
+    const environmentFlowToUpdate = this.environmentFlows$.value.data.find((flow) => flow.id === id);
+    const updatedEnvironmentFlow = {
+      ...environmentFlowToUpdate,
+      name: updateEnvironmentFlow.name,
+      description: updateEnvironmentFlow.description,
+    };
+    this.environmentFlows$.next(
+      fakePagedResult(this.environmentFlows$.value.data.map((flow) => (flow.id === id ? updatedEnvironmentFlow : flow))),
+    );
+    return of(updatedEnvironmentFlow);
   }
 }

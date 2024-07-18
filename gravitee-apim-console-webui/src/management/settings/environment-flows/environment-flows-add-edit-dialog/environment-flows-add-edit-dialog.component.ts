@@ -25,11 +25,15 @@ import { GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ApiV4, ExecutionPhase } from '../../../../entities/management-api-v2';
+import { ApiV4, EnvironmentFlow, ExecutionPhase } from '../../../../entities/management-api-v2';
 
-export interface EnvironmentFlowsAddEditDialogData {
-  apiType: ApiV4['type'];
-}
+export type EnvironmentFlowsAddEditDialogData =
+  | {
+      apiType: ApiV4['type'];
+    }
+  | {
+      environmentFlow: EnvironmentFlow;
+    };
 
 export type EnvironmentFlowsAddEditDialogResult = undefined | { name: string; description?: string; phase: ExecutionPhase };
 
@@ -68,13 +72,15 @@ export class EnvironmentFlowsAddEditDialogComponent {
     public data: EnvironmentFlowsAddEditDialogData,
     public dialogRef: MatDialogRef<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogResult>,
   ) {
-    this.apiTypeLabel = data.apiType === 'MESSAGE' ? 'Message' : 'Proxy';
-    this.phases = PHASE_BY_API_TYPE[data.apiType];
+    const apiType = isEdit(data) ? data.environmentFlow.apiType : data.apiType;
+
+    this.apiTypeLabel = apiType === 'MESSAGE' ? 'Message' : 'Proxy';
+    this.phases = PHASE_BY_API_TYPE[apiType];
 
     this.formGroup = new FormGroup({
-      name: new FormControl('', Validators.required),
-      description: new FormControl(''),
-      phase: new FormControl(this.phases[0], Validators.required),
+      name: new FormControl(isEdit(data) ? data.environmentFlow.name : '', Validators.required),
+      description: new FormControl(isEdit(data) ? data.environmentFlow.description : ''),
+      phase: new FormControl(isEdit(data) ? { disabled: true, value: data.environmentFlow.phase } : this.phases[0], Validators.required),
     });
 
     this.isValid$ = this.formGroup.statusChanges.pipe(
@@ -94,3 +100,5 @@ export class EnvironmentFlowsAddEditDialogComponent {
     });
   }
 }
+
+const isEdit = (data: EnvironmentFlowsAddEditDialogData): data is { environmentFlow: EnvironmentFlow } => 'environmentFlow' in data;

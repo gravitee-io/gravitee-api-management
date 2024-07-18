@@ -60,9 +60,15 @@ export class EnvironmentFlowsAddEditDialogHarness extends ComponentHarness {
   public async setName(text: string) {
     await this.nameInput().then((input) => input.setValue(text));
   }
+  public async getName() {
+    return await this.nameInput().then((input) => input.getValue());
+  }
 
   public async setDescription(text: string) {
     await this.descriptionInput().then((input) => input.setValue(text));
+  }
+  public async getDescription() {
+    return await this.descriptionInput().then((input) => input.getValue());
   }
 
   public async setPhase(text: string) {
@@ -71,6 +77,10 @@ export class EnvironmentFlowsAddEditDialogHarness extends ComponentHarness {
     if (toggleGroup.length === 1) {
       await toggleGroup[0].check();
     }
+  }
+  public async getPhase() {
+    const toggle = await this.phaseToggleGroup().then((group) => group.getToggles({ checked: true }));
+    return toggle.length === 1 ? toggle[0].getText() : '';
   }
 
   async save() {

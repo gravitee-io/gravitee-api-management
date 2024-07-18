@@ -21,21 +21,23 @@
 </div>
 
 <mat-card class="card">
-  @if (environmentFlow$ | async; as environmentFlow) {
+  @if (environmentFlow(); as environmentFlow) {
     <mat-card-header>
       <mat-card-title
         >{{ environmentFlow.name }} <span class="gio-badge-success">{{ environmentFlow.phase }}</span></mat-card-title
       >
       <mat-card-subtitle>{{ environmentFlow.description }}</mat-card-subtitle>
       <div class="environment-flows-studio__headerRightBtn">
-        <button [disabled]="isReadOnly" mat-stroked-button (click)="onEdit()">
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        </button>
-        <button [disabled]="isReadOnly" mat-stroked-button (click)="onDelete()">
-          <mat-icon svgIcon="gio:trash"></mat-icon>
-        </button>
-        <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onSave()">Save</button>
-        <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onDeploy()">Deploy</button>
+        @if (!isReadOnly) {
+          <button [disabled]="isReadOnly" mat-stroked-button (click)="onEdit()">
+            <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
+          </button>
+          <button [disabled]="isReadOnly" mat-stroked-button (click)="onDelete()">
+            <mat-icon svgIcon="gio:trash">delete</mat-icon>
+          </button>
+          <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onSave()">Save</button>
+          <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onDeploy()">Deploy</button>
+        }
       </div>
     </mat-card-header>
 

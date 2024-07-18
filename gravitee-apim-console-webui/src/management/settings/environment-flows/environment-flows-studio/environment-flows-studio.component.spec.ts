@@ -17,6 +17,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { EnvironmentFlowsStudioComponent } from './environment-flows-studio.component';
 import { EnvironmentFlowsStudioHarness } from './environment-flows-studio.harness';
@@ -25,6 +27,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { fakeEnvironmentFlow, fakePagedResult, fakePoliciesPlugin, fakePolicyPlugin } from '../../../../entities/management-api-v2';
 import { EnvironmentFlowsService } from '../../../../services-ngx/environment-flows.service';
+import { EnvironmentFlowsAddEditDialogHarness } from '../environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.harness';
 
 describe('EnvironmentFlowsStudioComponent', () => {
   const ENVIRONMENT_FLOW_ID = 'environmentFlowId';
@@ -32,10 +35,11 @@ describe('EnvironmentFlowsStudioComponent', () => {
   let fixture: ComponentFixture<EnvironmentFlowsStudioComponent>;
   let componentHarness: EnvironmentFlowsStudioHarness;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EnvironmentFlowsStudioComponent, GioTestingModule],
+      imports: [EnvironmentFlowsStudioComponent, GioTestingModule, NoopAnimationsModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -66,6 +70,7 @@ describe('EnvironmentFlowsStudioComponent', () => {
 
     fixture = TestBed.createComponent(EnvironmentFlowsStudioComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EnvironmentFlowsStudioHarness);
     fixture.detectChanges();
     expectGetPolicies();
@@ -89,6 +94,24 @@ describe('EnvironmentFlowsStudioComponent', () => {
         type: 'connector',
       },
     ]);
+  });
+
+  it('should edit environment flow', async () => {
+    await componentHarness.clickEditButton();
+
+    fixture.detectChanges();
+    const addDialog = await rootLoader.getHarness(EnvironmentFlowsAddEditDialogHarness);
+
+    expect(await addDialog.getName()).toEqual('Environment flow');
+    expect(await addDialog.getDescription()).toEqual('');
+    expect(await addDialog.getPhase()).toEqual('REQUEST');
+
+    await addDialog.setName('New name');
+    await addDialog.setDescription('New description');
+    await addDialog.save();
+
+    // TODO: When the API is available
+    // expectUpdateEnvironmentFlowsPostRequest();
   });
 
   function expectGetPolicies() {
