@@ -20,7 +20,7 @@ import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { Constants, EnvSettings } from '../../entities/Constants';
+import { Constants } from '../../entities/Constants';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
 import { Environment } from '../../entities/environment/environment';
 import { cleanRouterLink } from '../../util/router-link.util';
@@ -78,7 +78,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
           this.currentEnv = this.constants.org.currentEnv;
 
-          this.mainMenuItems = this.buildMainMenuItems(this.constants.env.settings);
+          this.mainMenuItems = this.buildMainMenuItems();
           this.footerMenuItems = this.buildFooterMenuItems();
           this.gioMenuSearchService.removeMenuSearchItems([SIDE_NAV_GROUP_ID]);
           this.gioMenuSearchService.addMenuSearchItems(this.getSideNaveMenuSearchItems());
@@ -91,8 +91,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
     this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
 
-    this.environmentSettingsService.get().subscribe((envSettings) => {
-      this.mainMenuItems = this.buildMainMenuItems(envSettings);
+    this.environmentSettingsService.get().subscribe((_) => {
+      this.mainMenuItems = this.buildMainMenuItems();
     });
   }
 
@@ -109,7 +109,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     this.router.navigate([selectedItem.routerLink]);
   }
 
-  private buildMainMenuItems(envSettings: EnvSettings): MenuItem[] {
+  private buildMainMenuItems(): MenuItem[] {
     const auditLicenseOptions: LicenseOptions = {
       feature: ApimFeature.APIM_AUDIT_TRAIL,
       context: UTMTags.CONTEXT_ENVIRONMENT,
@@ -153,15 +153,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         category: 'Gateways',
       },
     ];
-
-    if (envSettings.portalNext?.access.enabled) {
-      mainMenuItems.push({
-        icon: 'gio:monitor',
-        displayName: 'Developer Portal',
-        routerLink: './developer-portal',
-        category: 'Developer Portal',
-      });
-    }
 
     mainMenuItems.push(
       {
