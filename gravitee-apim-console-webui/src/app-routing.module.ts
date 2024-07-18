@@ -56,6 +56,15 @@ const appRoutes: Routes = [
           import('./organization/configuration/organization-settings-routing.module').then((m) => m.OrganizationSettingsRoutingModule),
       },
       {
+        path: 'environments/:envHrid/_portal',
+        redirectTo: ':envHrid/_portal',
+      },
+      {
+        path: ':envHrid/_portal',
+        component: AppComponent,
+        loadChildren: () => import('./portal/portal-settings-routing.module').then((m) => m.PortalSettingsRoutingModule),
+      },
+      {
         path: 'environments/:envHrid',
         redirectTo: ':envHrid',
       },

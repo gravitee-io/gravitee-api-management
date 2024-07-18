@@ -1,0 +1,17 @@
+@use 'sass:map';
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.header {
+  display: flex;
+  gap: 4px;
+  flex-flow: column;
+  margin-bottom: 24px;
+
+  &__subtitle {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.typography-level($typography, 'body-2');
+  }
+}
