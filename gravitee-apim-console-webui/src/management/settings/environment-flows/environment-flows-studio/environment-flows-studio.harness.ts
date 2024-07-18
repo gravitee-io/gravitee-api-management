@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { GioEnvironmentFlowStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
+import { GioPolicyGroupStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class EnvironmentFlowsStudioHarness extends ComponentHarness {
@@ -22,7 +22,7 @@ export class EnvironmentFlowsStudioHarness extends ComponentHarness {
 
   public getEditButton = this.locatorFor(MatButtonHarness.with({ text: /edit/ }));
 
-  public getEnvironmentFlowsStudio = this.locatorFor(GioEnvironmentFlowStudioHarness);
+  public getPolicyGroupStudio = this.locatorFor(GioPolicyGroupStudioHarness);
 
   public async clickEditButton() {
     const editButton = await this.getEditButton();

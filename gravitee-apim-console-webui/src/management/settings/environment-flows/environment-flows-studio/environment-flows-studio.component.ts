@@ -22,7 +22,7 @@ import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular'
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, switchMap } from 'rxjs';
 import {
-  GioEnvironmentFlowStudioComponent,
+  GioPolicyGroupStudioComponent,
   GioPolicyStudioComponent,
   PolicyDocumentationFetcher,
   PolicySchemaFetcher,
@@ -53,9 +53,9 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioIconsModule,
     RouterLink,
     GioLoaderModule,
-    GioEnvironmentFlowStudioComponent,
     GioPolicyStudioComponent,
     GioPermissionModule,
+    GioPolicyGroupStudioComponent,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
