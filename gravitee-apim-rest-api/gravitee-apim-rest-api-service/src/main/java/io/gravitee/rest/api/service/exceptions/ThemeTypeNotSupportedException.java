@@ -33,6 +33,11 @@ public class ThemeTypeNotSupportedException extends AbstractManagementException 
     private final String id;
     private final ThemeType type;
 
+    public ThemeTypeNotSupportedException(ThemeType type) {
+        this.type = type;
+        this.id = null;
+    }
+
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
