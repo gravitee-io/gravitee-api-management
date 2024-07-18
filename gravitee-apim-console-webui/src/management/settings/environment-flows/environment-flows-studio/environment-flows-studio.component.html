@@ -42,14 +42,14 @@
     </mat-card-header>
 
     <div class="card__content">
-      <gio-environment-flow-studio
+      <gio-policy-group-studio
         [policies]="policies$ | async"
         [apiType]="environmentFlow.apiType"
         [executionPhase]="environmentFlow.phase"
         [policyDocumentationFetcher]="policyDocumentationFetcher"
         [policySchemaFetcher]="policySchemaFetcher"
-        (environmentFlowChange)="onStudioChange($event)"
-      ></gio-environment-flow-studio>
+        (policyGroupChange)="onStudioChange($event)"
+      ></gio-policy-group-studio>
     </div>
   } @else {
     <mat-card-content><gio-loader></gio-loader></mat-card-content>

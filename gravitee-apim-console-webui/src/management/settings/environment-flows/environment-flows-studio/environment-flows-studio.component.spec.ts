@@ -90,9 +90,9 @@ describe('EnvironmentFlowsStudioComponent', () => {
   });
 
   it('should display empty request phase', async () => {
-    const studio = await componentHarness.getEnvironmentFlowsStudio();
+    const studio = await componentHarness.getPolicyGroupStudio();
 
-    const phase = await studio.getFlowPhase('REQUEST');
+    const phase = await studio.getPolicyGroupPhase();
     expect(await phase.getSteps()).toEqual([
       {
         name: 'Incoming request',
@@ -126,13 +126,14 @@ describe('EnvironmentFlowsStudioComponent', () => {
   });
 
   it('should add policy to phase', async () => {
-    const studio = await componentHarness.getEnvironmentFlowsStudio();
+    const studio = await componentHarness.getPolicyGroupStudio();
 
-    const phase = await studio.getFlowPhase('REQUEST');
+    const phase = await studio.getPolicyGroupPhase();
 
     await phase.addStep(0, {
       policyName: fakePolicyPlugin().name,
-      waitForPolicyFormCompletionCb: async () => {
+      description: 'What does the 🦊 say?',
+      waitForInitHttpRequestCompletionCb: async () => {
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/schema`).flush({});
         httpTestingController
           .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation`)
@@ -146,7 +147,7 @@ describe('EnvironmentFlowsStudioComponent', () => {
         {
           policy: 'test-policy',
           name: 'Test policy',
-          description: undefined,
+          description: 'What does the 🦊 say?',
           condition: undefined,
           configuration: undefined,
           enabled: true,
