@@ -13,27 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Breadcrumb, PageType } from '../../../../../entities/management-api-v2';
+import { getLogoForPageType, getTitleForPageType, PageType } from '../../../../../entities/management-api-v2';
+
+interface PageTypeVM {
+  pageType: PageType;
+  label: string;
+  src: string;
+  alt: string;
+}
 
 @Component({
-  selector: 'api-documentation-list-navigation-header',
-  templateUrl: './api-documentation-v4-list-navigation-header.component.html',
-  styleUrls: ['./api-documentation-v4-list-navigation-header.component.scss'],
+  selector: 'api-documentation-v4-add-page-button',
+  templateUrl: './api-documentation-v4-add-page-button.component.html',
 })
-export class ApiDocumentationV4ListNavigationHeaderComponent {
+export class ApiDocumentationV4AddPageButtonComponent {
   @Input()
-  breadcrumbs: Breadcrumb[];
-  @Input()
-  isReadOnly: boolean;
+  disabled: boolean = false;
+
   @Input()
   hasPages: boolean;
-  @Output()
-  addFolder = new EventEmitter<void>();
+
+  @Input()
+  text: string;
+
   @Output()
   addPage = new EventEmitter<PageType>();
-  @Output()
-  onNavigateTo = new EventEmitter<string>();
+
+  private pageTypes: PageType[] = ['MARKDOWN', 'SWAGGER', 'ASYNCAPI'];
+
+  pageTypesVm: PageTypeVM[] = this.pageTypes.map((pageType) => ({
+    pageType,
+    label: getTitleForPageType(pageType),
+    src: getLogoForPageType(pageType),
+    alt: getTitleForPageType(pageType).toLowerCase() + ' logo',
+  }));
 }

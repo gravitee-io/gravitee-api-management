@@ -15,20 +15,17 @@
     limitations under the License.
 
 -->
-<div class="header">
-  <api-documentation-breadcrumb (onNavigateTo)="onNavigateTo.emit($event)" [breadcrumbs]="breadcrumbs"></api-documentation-breadcrumb>
-  <div class="header__action" *gioPermission="{ anyOf: ['api-documentation-c'] }">
-    <button
-      class="header__action__button"
-      mat-stroked-button
-      (click)="addFolder.emit()"
-      *gioPermission="{ anyOf: ['api-documentation-u'] }"
-      [disabled]="isReadOnly"
-    >
-      Add new folder
-    </button>
-    @if (hasPages) {
-      <api-documentation-v4-add-page-button (addPage)="addPage.emit($event)" text="Add new page"></api-documentation-v4-add-page-button>
+<div *gioPermission="{ anyOf: ['api-documentation-c'] }">
+  <button class="empty__action" mat-flat-button [disabled]="disabled" color="primary" [matMenuTriggerFor]="menu">
+    {{ text }}
+  </button>
+
+  <mat-menu #menu="matMenu">
+    @for (pageTypeVm of this.pageTypesVm; track pageTypeVm.pageType) {
+      <button (click)="addPage.emit(pageTypeVm.pageType)" mat-menu-item>
+        {{ pageTypeVm.label }}
+        <img [ngSrc]="pageTypeVm.src" height="24" width="24" [alt]="pageTypeVm.alt" />
+      </button>
     }
-  </div>
+  </mat-menu>
 </div>

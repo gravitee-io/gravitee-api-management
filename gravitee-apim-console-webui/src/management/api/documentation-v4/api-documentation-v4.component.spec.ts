@@ -30,7 +30,7 @@ import { ApiDocumentationV4Module } from './api-documentation-v4.module';
 import { ApiDocumentationV4EmptyStateHarness } from './components/documentation-empty-state/api-documentation-v4-empty-state.harness';
 import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
 import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
-import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
+import { ApiDocumentationV4PagesListHarness } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.harness';
 import { ApiDocumentationV4PageTitleHarness } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
@@ -219,7 +219,6 @@ describe('ApiDocumentationV4', () => {
     it('should hide create page button when folder is empty', async () => {
       await init([], []);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
-
       expect(await headerHarness.getNewPageButton()).toBeNull();
     });
 
