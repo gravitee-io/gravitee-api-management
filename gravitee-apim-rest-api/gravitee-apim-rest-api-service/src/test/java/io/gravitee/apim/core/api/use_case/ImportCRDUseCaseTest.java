@@ -557,7 +557,7 @@ class ImportCRDUseCaseTest {
                             ApiCRDStatus.Errors
                                 .builder()
                                 .severe(List.of())
-                                .warning(List.of("category 'unknown-category' is not defined in environment 'environment-id'"))
+                                .warning(List.of("category [unknown-category] is not defined in environment [environment-id]"))
                                 .build()
                         )
                         .build()
@@ -785,7 +785,7 @@ class ImportCRDUseCaseTest {
                             ApiCRDStatus.Errors
                                 .builder()
                                 .severe(List.of())
-                                .warning(List.of("category 'unknown-category' is not defined in environment 'environment-id'"))
+                                .warning(List.of("category [unknown-category] is not defined in environment [environment-id]"))
                                 .build()
                         )
                         .build()

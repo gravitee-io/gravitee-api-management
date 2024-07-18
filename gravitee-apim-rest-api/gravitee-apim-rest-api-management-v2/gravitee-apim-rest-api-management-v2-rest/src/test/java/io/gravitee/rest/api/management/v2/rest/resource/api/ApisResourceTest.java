@@ -503,7 +503,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .errors(
                                 ApiCRDStatus.Errors
                                     .builder()
-                                    .warning(List.of("category 'unknown-category' is not defined in environment 'fake-env'"))
+                                    .warning(List.of("category [unknown-category] is not defined in environment [fake-env]"))
                                     .severe(List.of())
                                     .build()
                             )
