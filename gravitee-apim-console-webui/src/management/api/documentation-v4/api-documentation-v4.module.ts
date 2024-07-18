@@ -18,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   GioFormFilePickerModule,
+  GioFormJsonSchemaModule,
   GioFormSelectionInlineModule,
   GioIconsModule,
   GioMonacoEditorModule,
@@ -34,7 +35,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenu, MatMenuItem, MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
@@ -43,12 +44,15 @@ import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4EditFolderDialog } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
-import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
+import { ApiDocumentationV4PagesListComponent } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.component';
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/api-documentation-v4-metadata.component';
+import { ApiDocumentationV4DefaultPageComponent } from './documentation-default-page/api-documentation-v4-default-page.component';
+import { ApiDocumentationV4HomePageHeaderComponent } from './components/documentation-home-page-header/api-documentation-v4-home-page-header.component';
+import { ApiDocumentationV4AddPageButtonComponent } from './components/api-documentation-v4-add-page-button/api-documentation-v4-add-page-button.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
@@ -62,14 +66,16 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4Component,
     ApiDocumentationV4EmptyStateComponent,
     ApiDocumentationV4ListNavigationHeaderComponent,
+    ApiDocumentationV4HomePageHeaderComponent,
     ApiDocumentationV4VisibilityComponent,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4PageTitleComponent,
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4EditFolderDialog,
     ApiDocumentationV4EditPageComponent,
+    ApiDocumentationV4DefaultPageComponent,
+    ApiDocumentationV4AddPageButtonComponent,
     ApiDocumentationV4PagesListComponent,
-    ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4MetadataComponent,
   ],
@@ -106,6 +112,9 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     GioAsyncApiModule,
     GioMetadataModule,
     GioApiMetadataListModule,
+    GioFormJsonSchemaModule,
+    MatMenu,
+    MatMenuItem,
   ],
 })
 export class ApiDocumentationV4Module {}

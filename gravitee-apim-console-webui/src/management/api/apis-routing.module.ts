@@ -83,6 +83,7 @@ import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 import { ApiImportV4Component } from './import-v4/api-import-v4.component';
 import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
+import { ApiDocumentationV4DefaultPageComponent } from './documentation-v4/documentation-default-page/api-documentation-v4-default-page.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -822,37 +823,67 @@ const apisRoutes: Routes = [
         data: {
           docs: null,
         },
-        component: ApiDocumentationV4Component,
-      },
-      {
-        path: 'v4/documentation/new',
-        data: {
-          docs: null,
-          permissions: {
-            anyOf: ['api-documentation-c'],
+        children: [
+          {
+            path: '',
+            redirectTo: 'pages',
+            pathMatch: 'full',
           },
-        },
-        component: ApiDocumentationV4EditPageComponent,
-      },
-      {
-        path: 'v4/documentation/metadata',
-        data: {
-          docs: null,
-          permissions: {
-            anyOf: ['api-metadata-r'],
+          {
+            path: 'pages',
+            component: ApiDocumentationV4Component,
           },
-        },
-        component: ApiDocumentationV4MetadataComponent,
-      },
-      {
-        path: 'v4/documentation/:pageId',
-        data: {
-          docs: null,
-          permissions: {
-            anyOf: ['api-documentation-u', 'api-documentation-r'],
+          {
+            path: 'pages/new',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-c'],
+              },
+            },
+            component: ApiDocumentationV4EditPageComponent,
           },
-        },
-        component: ApiDocumentationV4EditPageComponent,
+          {
+            path: 'default-pages/homepage/new',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-c', 'api-documentation-u', 'api-documentation-r'],
+              },
+            },
+            component: ApiDocumentationV4EditPageComponent,
+          },
+          {
+            path: 'pages/:pageId',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-u', 'api-documentation-r'],
+              },
+            },
+            component: ApiDocumentationV4EditPageComponent,
+          },
+          {
+            path: 'metadata',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-metadata-r'],
+              },
+            },
+            component: ApiDocumentationV4MetadataComponent,
+          },
+          {
+            path: 'default-pages',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-u'],
+              },
+            },
+            component: ApiDocumentationV4DefaultPageComponent,
+          },
+        ],
       },
       {
         path: 'v4/policy-studio',

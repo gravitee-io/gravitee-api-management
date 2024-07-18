@@ -59,6 +59,12 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
   beforeEach(async () => await init());
 
   it('should show empty state text', async () => {
+    component.emptyPageTitle = 'No pages available yet';
+    component.emptyPageMessage = 'Start creating pages to fill up your folder.';
+    component.showAddPageButton = true; // Ensure the button is displayed
+
+    fixture.detectChanges();
+
     const title = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-h2' }));
     expect(await title.getText()).toEqual('No pages available yet');
     const subtitle = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-body-2' }));
@@ -66,7 +72,10 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
   });
 
   it('should show menu to select page type and emit event when clicking on add button', async () => {
-    const spy = jest.spyOn(component.onAddPage, 'emit');
+    component.showAddPageButton = true;
+    fixture.detectChanges();
+
+    const spy = jest.spyOn(component.addPage, 'emit');
     const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add new page' }));
     await button.click();
 
