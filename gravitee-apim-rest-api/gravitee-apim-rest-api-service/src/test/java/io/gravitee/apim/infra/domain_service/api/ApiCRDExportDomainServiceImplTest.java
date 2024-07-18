@@ -31,7 +31,9 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.integration.api.model.Page;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
@@ -166,11 +168,28 @@ class ApiCRDExportDomainServiceImplTest {
         });
     }
 
+    @Test
+    void should_export_page_with_null_name() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(spec.getPages()).hasSize(1);
+            soft.assertThat(spec.getPages().get("page-id")).isNotNull();
+        });
+    }
+
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
         return ExportApiEntity
             .builder()
             .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().build())).build()))
             .apiEntity(apiEntity)
+            .pages(List.of(PageEntity.builder().id("page-id").name(null).build()))
             .plans(Set.of(PlanEntity.builder().name("plan-name").id("plan-id").security(new PlanSecurity("key-less", "{}")).build()))
             .build();
     }
