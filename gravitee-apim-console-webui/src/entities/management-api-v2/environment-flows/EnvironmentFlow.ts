@@ -15,7 +15,7 @@
  */
 
 // TODO: complete the EnvironmentFlow interface when the OpenAPI is available
-import { ApiType } from '../api';
+import { ApiType, StepV4 } from '../api';
 import { ExecutionPhase } from '../plugin';
 
 export interface EnvironmentFlow {
@@ -24,6 +24,7 @@ export interface EnvironmentFlow {
   apiType: ApiType;
   description?: string;
   phase: ExecutionPhase;
+  policies?: StepV4[];
   updatedAt?: Date;
   deployedAt?: Date;
 }

@@ -29,14 +29,14 @@
       <mat-card-subtitle>{{ environmentFlow.description }}</mat-card-subtitle>
       <div class="environment-flows-studio__headerRightBtn">
         @if (!isReadOnly) {
-          <button [disabled]="isReadOnly" mat-stroked-button (click)="onEdit()">
+          <button mat-stroked-button (click)="onEdit()">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
           </button>
-          <button [disabled]="isReadOnly" mat-stroked-button (click)="onDelete()">
+          <button *gioPermission="{ anyOf: ['environment-environment_flows-d'] }" mat-stroked-button (click)="onDelete()">
             <mat-icon svgIcon="gio:trash">delete</mat-icon>
           </button>
-          <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onSave()">Save</button>
-          <button [disabled]="isReadOnly" color="primary" mat-flat-button (click)="onDeploy()">Deploy</button>
+          <button [disabled]="!enableSaveButton" color="primary" mat-flat-button (click)="onSave()">Save</button>
+          <button [disabled]="!enableDeployButton" color="primary" mat-flat-button (click)="onDeploy()">Deploy</button>
         }
       </div>
     </mat-card-header>
@@ -48,6 +48,7 @@
         [executionPhase]="environmentFlow.phase"
         [policyDocumentationFetcher]="policyDocumentationFetcher"
         [policySchemaFetcher]="policySchemaFetcher"
+        (environmentFlowChange)="onStudioChange($event)"
       ></gio-environment-flow-studio>
     </div>
   } @else {
