@@ -101,7 +101,7 @@ describe('ApiResourcesComponent', () => {
   });
 
   it('should add a resource', async () => {
-    expectApiGetRequest(fakeApiV4({ id: API_ID, resources: [] }));
+    expectApiGetRequest(fakeApiV4({ id: API_ID, resources: undefined }));
     expectListResourcesRequest([fakeResourcePlugin({ id: 'cache', name: 'Cache' })]);
 
     // Open Add dialog
