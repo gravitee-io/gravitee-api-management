@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ValidateCategoryIdsDomainService implements Validator<ValidateCategoryIdsDomainService.Input> {
 
-    private static final String WARNING_FORMAT = "category '%s' is not defined in environment '%s'";
+    private static final String WARNING_FORMAT = "category [%s] is not defined in environment [%s]";
 
     public record Input(String environmentId, Set<String> idOrKeys) implements Validator.Input {
         Input sanitized(Collection<String> ids) {
