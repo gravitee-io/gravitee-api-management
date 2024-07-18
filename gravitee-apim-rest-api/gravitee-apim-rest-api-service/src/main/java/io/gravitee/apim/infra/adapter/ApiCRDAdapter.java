@@ -60,8 +60,12 @@ public interface ApiCRDAdapter {
 
     default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
-            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(PageCRD::getName, identity()))
+            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(this::pageKey, identity()))
             : null;
+    }
+
+    default String pageKey(PageCRD page) {
+        return page.getName() == null ? page.getId() : page.getName();
     }
 
     default Set<MemberCRD> mapMembers(ExportApiEntity definition) {
