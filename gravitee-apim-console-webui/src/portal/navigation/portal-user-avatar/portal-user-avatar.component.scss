@@ -1,0 +1,35 @@
+:host {
+  margin: 0 5px;
+}
+
+::ng-deep {
+  portal-user-avatar {
+    .portal-user-avatar__button-avatar {
+      gio-avatar {
+        img {
+          width: inherit;
+          height: inherit;
+        }
+      }
+    }
+  }
+}
+
+.portal-user-avatar {
+  &__header {
+    display: flex;
+    line-height: 0;
+    cursor: auto;
+    min-width: 220px;
+    gap: 12px;
+    height: 40px;
+
+    &:hover {
+      background-color: transparent;
+    }
+
+    &__user-avatar {
+      align-self: center;
+    }
+  }
+}
