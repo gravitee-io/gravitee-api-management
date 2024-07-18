@@ -203,7 +203,7 @@ export class ApiResourcesComponent implements OnInit {
             switchMap((api) => {
               return this.apiService.update(api.id, {
                 ...api,
-                resources: [...api.resources, resourceToAdd],
+                resources: [...(api.resources ?? []), resourceToAdd],
               });
             }),
           ),
@@ -327,7 +327,7 @@ export class ApiResourcesComponent implements OnInit {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api) => {
-          const updatedResources = api.resources.map((resource, index) => {
+          const updatedResources = api.resources?.map((resource, index) => {
             if (index === apiResourceIndex) {
               return {
                 ...resource,
