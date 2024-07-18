@@ -17,7 +17,7 @@ import { Injectable } from '@angular/core';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 import { EMPTY, Observable, of } from 'rxjs';
 import { isEmpty } from 'lodash';
-import { catchError, shareReplay, map } from 'rxjs/operators';
+import { catchError, shareReplay, map, startWith } from 'rxjs/operators';
 
 import { Resource } from '../../../entities/management-api-v2';
 import { ResourceService } from '../../../services-ngx/resource.service';
@@ -31,7 +31,7 @@ export type PlanOAuth2Resource = {
 
 @Injectable()
 export class ResourceTypeService extends FieldType<FieldTypeConfig> {
-  private resources: Observable<PlanOAuth2Resource[]>;
+  private resources: Observable<PlanOAuth2Resource[]> = of([]).pipe(startWith([]));
 
   private listResource$ = this.resourceService.list({ expandSchema: false, expandIcon: true }).pipe(
     catchError((error) => {
@@ -58,6 +58,10 @@ export class ResourceTypeService extends FieldType<FieldTypeConfig> {
         });
       }),
     );
+  }
+
+  public getResource(name: string, type: string): Observable<PlanOAuth2Resource> {
+    return this.resources.pipe(map((resources) => resources.find((resource) => resource.name === name && resource.type.startsWith(type))));
   }
 
   public filter$(term: string | undefined, type: string): Observable<PlanOAuth2Resource[]> {
