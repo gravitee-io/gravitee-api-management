@@ -15,13 +15,12 @@
     limitations under the License.
 
 -->
-<div class="empty">
-  <div class="empty__icon">
-    <mat-icon svgIcon="gio:search"></mat-icon>
-  </div>
-  <div class="mat-h2">{{ emptyPageTitle }}</div>
-  <div class="mat-body-2">{{ emptyPageMessage }}</div>
-  @if (showAddPageButton) {
-    <api-documentation-v4-add-page-button (addPage)="addPage.emit($event)" text="Add new page"> </api-documentation-v4-add-page-button>
-  }
+<h3 class="header__title">Homepage</h3>
+<div class="header__action" *gioPermission="{ anyOf: ['api-documentation-c'] }">
+  <button [disabled]="hasPages" class="header__action__button" mat-stroked-button>Choose Existing Page</button>
+  <api-documentation-v4-add-page-button
+    [disabled]="hasPages"
+    (addPage)="addPage.emit($event)"
+    text="Create New Page"
+  ></api-documentation-v4-add-page-button>
 </div>
