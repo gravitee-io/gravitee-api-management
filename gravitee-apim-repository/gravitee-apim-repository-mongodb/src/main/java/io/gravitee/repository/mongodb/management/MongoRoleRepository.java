@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,17 @@ public class MongoRoleRepository implements RoleRepository {
 
         LOGGER.debug("Find role by ID [{}] - Done", roleId);
         return Optional.ofNullable(map(role));
+    }
+
+    @Override
+    public Set<Role> findAllById(Set<String> ids) throws TechnicalException {
+        LOGGER.debug("Find roles by IDs [{}]", ids);
+
+        final Iterable<RoleMongo> rolesIterable = internalRoleRepo.findAllById(ids);
+
+        LOGGER.debug("Find roles by IDs [{}] - Done", ids);
+
+        return StreamSupport.stream(rolesIterable.spliterator(), false).map(this::map).collect(Collectors.toSet());
     }
 
     @Override
