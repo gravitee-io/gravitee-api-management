@@ -1,0 +1,58 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<gio-top-bar class="header">
+  @if (customLogo) {
+    <img [src]="customLogo" alt="custom logo" class="header__custom-logo" />
+  } @else {
+    <button mat-icon-button>
+      <mat-icon svgIcon="gio:gravitee" routerLink="/"></mat-icon>
+    </button>
+  }
+  <gio-top-bar-content type="portal" productName="Developer Portal"></gio-top-bar-content>
+  @if (portalUrl$ | async; as portalUrl) {
+    <gio-top-bar-link [url]="portalUrl" name="Open Website" />
+  }
+  <gio-top-bar-menu>
+    <portal-user-avatar />
+  </gio-top-bar-menu>
+</gio-top-bar>
+<div class="side-menu">
+  <gio-menu class="side-menu__container">
+    <gio-menu-list>
+      @for (menuItem of mainMenuItems; track menuItem) {
+        <a [routerLink]="menuItem.routerLink">
+          <gio-menu-item
+            tabIndex="1"
+            routerLinkActive
+            #rla="routerLinkActive"
+            [title]="menuItem.displayName"
+            [icon]="menuItem.icon"
+            [active]="rla.isActive"
+            >{{ menuItem.displayName }}</gio-menu-item
+          >
+        </a>
+      }
+    </gio-menu-list>
+    @if (footerMenuItems.length) {
+      <gio-menu-footer />
+    }
+  </gio-menu>
+</div>
+<div class="content">
+  <router-outlet />
+</div>
