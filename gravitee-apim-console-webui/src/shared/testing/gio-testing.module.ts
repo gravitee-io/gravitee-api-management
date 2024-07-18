@@ -19,10 +19,10 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { Router } from '@angular/router';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
+import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 
 import { Constants } from '../../entities/Constants';
 import { SpecificJsonSchemaTypeModule } from '../components/specific-json-schema-type/specific-json-schema-type.module';
-import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 
 export const CONSTANTS_TESTING: Constants = {
   org: {

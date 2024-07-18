@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 import { Observable } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { map, startWith, switchMap } from 'rxjs/operators';
 
 import { PlanOAuth2Resource, ResourceTypeService } from './resource-type.service';
 
@@ -27,6 +27,8 @@ import { PlanOAuth2Resource, ResourceTypeService } from './resource-type.service
 })
 export class ResourceTypeComponent extends FieldType<FieldTypeConfig> implements OnInit {
   filteredResources: Observable<PlanOAuth2Resource[]>;
+
+  resourceNotExist$: Observable<boolean>;
 
   constructor(private readonly planOauth2ResourceTypeService: ResourceTypeService) {
     super();
@@ -42,6 +44,11 @@ export class ResourceTypeComponent extends FieldType<FieldTypeConfig> implements
     this.filteredResources = this.formControl.valueChanges.pipe(
       startWith(''),
       switchMap((term) => this.planOauth2ResourceTypeService.filter$(term, this.props.resourceType)),
+    );
+
+    this.resourceNotExist$ = this.formControl.valueChanges.pipe(
+      switchMap((term) => this.planOauth2ResourceTypeService.getResource(term, this.props.resourceType)),
+      map((resource) => !resource),
     );
   }
 }
