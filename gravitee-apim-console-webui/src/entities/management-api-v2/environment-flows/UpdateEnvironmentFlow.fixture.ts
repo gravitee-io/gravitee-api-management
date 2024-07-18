@@ -13,10 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './EnvironmentFlow';
-export * from './EnvironmentFlow.fixture';
-export * from './EnvironmentFlowsSortByParam';
-export * from './CreateEnvironmentFlow';
-export * from './CreateEnvironmentFlow.fixture';
-export * from './UpdateEnvironmentFlow';
-export * from './UpdateEnvironmentFlow.fixture';
+
+import { isFunction } from 'lodash';
+
+import { UpdateEnvironmentFlow } from './UpdateEnvironmentFlow';
+
+export function fakeUpdateEnvironmentFlow(
+  modifier?: Partial<UpdateEnvironmentFlow> | ((base: UpdateEnvironmentFlow) => UpdateEnvironmentFlow),
+): UpdateEnvironmentFlow {
+  const base: UpdateEnvironmentFlow = {
+    name: 'Environment flow',
+    description: 'Environment flow description',
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}

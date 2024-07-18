@@ -19,6 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { EnvironmentFlowsService } from './environment-flows.service';
 
 import { GioTestingModule } from '../shared/testing';
+import { fakeCreateEnvironmentFlow, fakeUpdateEnvironmentFlow } from '../entities/management-api-v2';
 
 describe('EnvironmentFlowsService', () => {
   let httpTestingController: HttpTestingController;
@@ -48,7 +49,7 @@ describe('EnvironmentFlowsService', () => {
 
   describe('create', () => {
     it('should call the API', (done) => {
-      service.create({}).subscribe((flow) => {
+      service.create(fakeCreateEnvironmentFlow()).subscribe((flow) => {
         expect(flow).toBeTruthy();
         done();
       });
@@ -58,6 +59,15 @@ describe('EnvironmentFlowsService', () => {
   describe('get', () => {
     it('should call the API', (done) => {
       service.get('SEARCH_ENV_FLOW').subscribe((flow) => {
+        expect(flow).toBeTruthy();
+        done();
+      });
+    });
+  });
+
+  describe('update', () => {
+    it('should call the API', (done) => {
+      service.update('SEARCH_ENV_FLOW', fakeUpdateEnvironmentFlow()).subscribe((flow) => {
         expect(flow).toBeTruthy();
         done();
       });

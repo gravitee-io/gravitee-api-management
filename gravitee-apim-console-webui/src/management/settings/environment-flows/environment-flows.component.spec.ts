@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { EnvironmentFlowsComponent } from './environment-flows.component';
 import { EnvironmentFlowsHarness } from './environment-flows.harness';
@@ -29,6 +30,7 @@ describe('EnvironmentFlowsComponent', () => {
   let fixture: ComponentFixture<EnvironmentFlowsComponent>;
   let componentHarness: EnvironmentFlowsHarness;
   let rootLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -47,9 +49,14 @@ describe('EnvironmentFlowsComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(EnvironmentFlowsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture.autoDetectChanges();
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EnvironmentFlowsHarness);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should display resources table', async () => {

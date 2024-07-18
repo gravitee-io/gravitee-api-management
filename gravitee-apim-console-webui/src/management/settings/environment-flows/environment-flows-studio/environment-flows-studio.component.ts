@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { BehaviorSubject, switchMap } from 'rxjs';
 import {
   GioEnvironmentFlowStudioComponent,
   GioPolicyStudioComponent,
   PolicyDocumentationFetcher,
   PolicySchemaFetcher,
 } from '@gravitee/ui-policy-studio-angular';
-import { map } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
 
-import { EnvironmentFlow } from '../../../../entities/management-api-v2';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { EnvironmentFlowsService } from '../../../../services-ngx/environment-flows.service';
 import { IconService } from '../../../../services-ngx/icon.service';
+import {
+  EnvironmentFlowsAddEditDialogComponent,
+  EnvironmentFlowsAddEditDialogData,
+  EnvironmentFlowsAddEditDialogResult,
+} from '../environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.component';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'environment-flows-studio',
@@ -52,15 +58,19 @@ import { IconService } from '../../../../services-ngx/icon.service';
   standalone: true,
 })
 export class EnvironmentFlowsStudioComponent {
-  private readonly destroyRef = inject(DestroyRef);
   private readonly environmentFlowsService = inject(EnvironmentFlowsService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly permissionService = inject(GioPermissionService);
   private readonly policyV2Service = inject(PolicyV2Service);
   private readonly iconService = inject(IconService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
+  private refresh$ = new BehaviorSubject<void>(undefined);
 
   protected isReadOnly = false;
-  protected environmentFlow$: Observable<EnvironmentFlow>;
+  protected environmentFlow = toSignal(
+    this.refresh$.pipe(switchMap(() => this.environmentFlowsService.get(this.activatedRoute.snapshot.params.environmentFlowId))),
+  );
   protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
   protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
   protected policies$ = this.policyV2Service
@@ -69,13 +79,38 @@ export class EnvironmentFlowsStudioComponent {
 
   constructor() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-environment_flows-r']);
-    const environmentFlowId = this.activatedRoute.snapshot.params['environmentFlowId'];
-
-    this.environmentFlow$ = this.environmentFlowsService.get(environmentFlowId).pipe(takeUntilDestroyed(this.destroyRef));
   }
 
   public onEdit(): void {
-    // TODO
+    const environmentFlow = this.environmentFlow();
+    this.matDialog
+      .open<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogData, EnvironmentFlowsAddEditDialogResult>(
+        EnvironmentFlowsAddEditDialogComponent,
+        {
+          data: { environmentFlow },
+          role: 'dialog',
+          id: 'test-story-dialog',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((payload) =>
+          this.environmentFlowsService.update(environmentFlow.id, {
+            name: payload.name,
+            description: payload.description,
+          }),
+        ),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Environment flow updated');
+          this.refresh$.next();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error during environment flow update!');
+        },
+      });
   }
 
   public onDelete(): void {
