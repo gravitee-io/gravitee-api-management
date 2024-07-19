@@ -550,10 +550,11 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         if (!isEmpty(apiCriteria.getDefinitionVersion())) {
             List<DefinitionVersion> definitionVersionList = new ArrayList<>(apiCriteria.getDefinitionVersion());
 
+            var lookingForV2 = apiCriteria.getDefinitionVersion().stream().anyMatch(DefinitionVersion.V2::equals);
             boolean addNullClause = definitionVersionList.remove(null);
 
             StringBuilder clauseBuilder = new StringBuilder();
-            if (addNullClause) {
+            if (addNullClause || lookingForV2) {
                 if (definitionVersionList.isEmpty()) {
                     clauseBuilder.append("a.definition_version is null");
                 } else {
