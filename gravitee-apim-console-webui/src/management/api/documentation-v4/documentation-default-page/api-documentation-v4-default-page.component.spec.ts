@@ -24,6 +24,7 @@ import { BehaviorSubject } from 'rxjs';
 import { set } from 'lodash';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { By } from '@angular/platform-browser';
 
 import { ApiDocumentationV4DefaultPageComponent } from './api-documentation-v4-default-page.component';
 
@@ -33,7 +34,7 @@ import { ApiDocumentationV4EmptyStateHarness } from '../components/documentation
 import { PageType } from '../../../../entities/page';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { ApiLifecycleState, Breadcrumb, fakeApiV4, Page } from '../../../../entities/management-api-v2';
+import { ApiLifecycleState, Breadcrumb, fakeApiV4, fakeMarkdown, Page } from '../../../../entities/management-api-v2';
 import { ApiDocumentationV4DefaultPageHarness } from '../components/documentation-home-page-header/api-documentation-v4-home-page-header.harness';
 
 describe('ApiDocumentationV4DefaultPageComponent', () => {
@@ -127,8 +128,27 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'homepage', 'new'], {
         relativeTo: expect.anything(),
-        queryParams: { parentId: 'ROOT', pageType: 'MARKDOWN' },
+        queryParams: { parentId: 'ROOT', pageType: 'MARKDOWN', homepage: true },
       });
+    });
+  });
+
+  describe('Homepage section', () => {
+    it('should only show current homepage', async () => {
+      const pages = [
+        fakeMarkdown({ id: 'page-1', name: 'Page 1', homepage: true }),
+        fakeMarkdown({ id: 'page-2', name: 'Page 2', homepage: false }),
+      ];
+      await init(pages, []);
+
+      fixture.detectChanges();
+
+      const pageElements = fixture.debugElement.queryAll(By.css('api-documentation-v4-pages-list'));
+      expect(pageElements.length).toBe(1);
+
+      const pageListComponent = pageElements[0].componentInstance;
+      expect(pageListComponent.pages.length).toBe(1);
+      expect(pageListComponent.pages[0].id).toBe('page-1');
     });
   });
 

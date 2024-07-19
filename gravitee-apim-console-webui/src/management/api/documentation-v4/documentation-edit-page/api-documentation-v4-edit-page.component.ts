@@ -343,6 +343,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       type: this.pageType as CreateDocumentationType,
       name: formValue.stepOne.name,
       visibility: formValue.stepOne.visibility,
+      homepage: this.activatedRoute.snapshot.queryParams.homepage === 'true',
       content: formValue.content,
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
       accessControls: formValue.stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),

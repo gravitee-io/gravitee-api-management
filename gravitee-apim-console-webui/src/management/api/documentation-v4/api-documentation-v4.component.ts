@@ -72,7 +72,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe((res) => {
-        this.pages = res.pages;
+        this.pages = res.pages.filter((page) => !page.homepage);
         this.breadcrumbs = res.breadcrumb;
         this.isLoading = false;
       });
