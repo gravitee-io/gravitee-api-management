@@ -119,6 +119,11 @@ public class PageEntity implements Indexable {
         this.referenceId = referenceId;
     }
 
+    @JsonIgnore
+    public boolean isRoot() {
+        return PageType.ROOT.name().equals(type);
+    }
+
     public String getName() {
         return name;
     }
