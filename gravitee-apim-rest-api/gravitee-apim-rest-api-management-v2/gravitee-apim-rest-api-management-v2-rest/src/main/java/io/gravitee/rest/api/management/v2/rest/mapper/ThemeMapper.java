@@ -34,7 +34,11 @@ public interface ThemeMapper {
     ThemePortal mapToThemePortal(Theme theme);
 
     @Mapping(source = "definitionPortalNext", target = "definition")
+    @Mapping(source = "definitionPortalNext.color.background.page", target = "definition.color.pageBackground")
+    @Mapping(source = "definitionPortalNext.color.background.card", target = "definition.color.cardBackground")
     ThemePortalNext mapToThemePortalNext(Theme theme);
+
+    List<io.gravitee.rest.api.management.v2.rest.model.Theme> map(List<Theme> themes);
 
     default io.gravitee.rest.api.management.v2.rest.model.Theme map(Theme theme) {
         if (ThemeType.PORTAL.equals(theme.getType())) {
@@ -45,6 +49,4 @@ public interface ThemeMapper {
         }
         return null;
     }
-
-    List<io.gravitee.rest.api.management.v2.rest.model.Theme> map(List<Theme> themes);
 }
