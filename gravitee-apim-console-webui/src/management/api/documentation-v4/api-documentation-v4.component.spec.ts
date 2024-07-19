@@ -24,6 +24,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import { By } from '@angular/platform-browser';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
@@ -34,9 +35,7 @@ import { ApiDocumentationV4PagesListHarness } from './components/api-documentati
 import { ApiDocumentationV4PageTitleHarness } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
-import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
-import { ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
+import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PageType } from '../../../entities/page';
 import { Constants } from '../../../entities/Constants';
@@ -113,6 +112,45 @@ describe('ApiDocumentationV4', () => {
   afterEach(() => {
     httpTestingController.verify();
     jest.resetAllMocks();
+  });
+
+  describe('Custom section', () => {
+    it('should not include homepages in the custom pages (UI Test)', async () => {
+      const pages = [
+        fakeMarkdown({ id: 'page-1', name: 'Page 1', homepage: true }),
+        fakeMarkdown({ id: 'page-2', name: 'Page 2', homepage: false }),
+        fakeMarkdown({ id: 'page-3', name: 'Page 3', homepage: true }),
+        fakeMarkdown({ id: 'page-4', name: 'Page 4', homepage: false }),
+      ];
+      await init(pages, []);
+
+      fixture.detectChanges();
+
+      const pageElements = fixture.debugElement.queryAll(By.css('api-documentation-v4-pages-list'));
+      expect(pageElements.length).toBe(1);
+
+      const pageListComponent = pageElements[0].componentInstance;
+      expect(pageListComponent.pages.length).toBe(2);
+      expect(pageListComponent.pages[0].id).toBe('page-2');
+      expect(pageListComponent.pages[1].id).toBe('page-4');
+    });
+
+    it('should not show a homepage in the custom pages', async () => {
+      const pages = [
+        fakeMarkdown({ id: 'page-1', name: 'Page 1', homepage: true }),
+        fakeMarkdown({ id: 'page-2', name: 'Page 2', homepage: false }),
+      ];
+      await init(pages, []);
+
+      fixture.detectChanges();
+
+      const pageElements = fixture.debugElement.queryAll(By.css('api-documentation-v4-pages-list'));
+      expect(pageElements.length).toBe(1);
+
+      const pageListComponent = pageElements[0].componentInstance;
+      expect(pageListComponent.pages.length).toBe(1);
+      expect(pageListComponent.pages[0].id).toBe('page-2');
+    });
   });
 
   describe('API does not have pages', () => {

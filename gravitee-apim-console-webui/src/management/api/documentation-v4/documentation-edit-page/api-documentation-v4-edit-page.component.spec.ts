@@ -351,6 +351,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             parentId: 'ROOT',
             accessControls: [{ referenceId: 'group-1', referenceType: 'GROUP' }],
             excludedAccessControls: true,
+            homepage: false,
           });
         });
 
@@ -377,6 +378,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             parentId: 'ROOT',
             accessControls: [{ referenceId: 'group-1', referenceType: 'GROUP' }],
             excludedAccessControls: true,
+            homepage: false,
           });
 
           const publishReq = httpTestingController.expectOne({
@@ -541,6 +543,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             accessControls: [],
             excludedAccessControls: false,
+            homepage: false,
           });
         });
 
@@ -573,6 +576,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             accessControls: [],
             excludedAccessControls: false,
+            homepage: false,
           });
 
           const publishReq = httpTestingController.expectOne({
@@ -623,6 +627,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             accessControls: [],
             excludedAccessControls: false,
+            homepage: false,
           });
 
           const publishReq = httpTestingController.expectOne({
@@ -681,6 +686,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           parentId: 'parent-folder-id',
           accessControls: [],
           excludedAccessControls: false,
+          homepage: false,
         });
       });
     });
