@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeSearchCriteria;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -24,10 +25,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlternative<Theme> {
 
-    private final List<Theme> storage = new ArrayList<>();
+    private final List<Theme> storage;
+
+    public ThemeQueryServiceInMemory() {
+        this.storage = new ArrayList<>();
+    }
+
+    public ThemeQueryServiceInMemory(ThemeCrudServiceInMemory themeCrudServiceInMemory) {
+        storage = themeCrudServiceInMemory.storage;
+    }
 
     @Override
     public void initWith(List<Theme> items) {
@@ -55,5 +66,17 @@ public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlt
             .toList();
 
         return new Page<>(themes, 1, themes.size(), themes.size());
+    }
+
+    @Override
+    public Set<Theme> findByThemeTypeAndEnvironmentId(ThemeType themeType, String environmentId) {
+        return storage
+            .stream()
+            .filter(theme ->
+                Objects.equals(themeType, theme.getType()) &&
+                Objects.equals(environmentId, theme.getReferenceId()) &&
+                Objects.equals(Theme.ReferenceType.ENVIRONMENT, theme.getReferenceType())
+            )
+            .collect(Collectors.toSet());
     }
 }
