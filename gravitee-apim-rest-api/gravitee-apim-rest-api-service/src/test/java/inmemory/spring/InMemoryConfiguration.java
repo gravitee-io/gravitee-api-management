@@ -303,4 +303,9 @@ public class InMemoryConfiguration {
     public UpdateCategoryApiDomainServiceInMemory updateCategoryApiDomainService() {
         return new UpdateCategoryApiDomainServiceInMemory();
     }
+
+    @Bean
+    public ThemeCrudServiceInMemory themeCrudService() {
+        return new ThemeCrudServiceInMemory();
+    }
 }
