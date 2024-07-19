@@ -68,6 +68,7 @@ const TYPES_INFOS = {
 })
 export class ApplicationCreationComponent {
   private destroyRef = inject(DestroyRef);
+  private isCreating = false;
 
   public applicationFormGroup = new FormGroup<ApplicationForm>({
     name: new FormControl(undefined, Validators.required),
@@ -110,9 +111,10 @@ export class ApplicationCreationComponent {
   ) {}
 
   onSubmit() {
-    if (this.applicationFormGroup.invalid) {
+    if (this.applicationFormGroup.invalid || this.isCreating === true) {
       return;
     }
+    this.isCreating = true;
     const applicationPayload = this.applicationFormGroup.value;
 
     this.applicationService
@@ -145,6 +147,7 @@ export class ApplicationCreationComponent {
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'An error occurred while creating the application!');
+          this.isCreating = false;
         },
       });
   }
