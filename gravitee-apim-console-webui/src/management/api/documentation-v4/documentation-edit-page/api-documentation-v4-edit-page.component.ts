@@ -260,6 +260,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       name: this.form.getRawValue().stepOne.name,
       visibility: this.form.getRawValue().stepOne.visibility,
       content: this.form.getRawValue().content,
+      homepage: this.activatedRoute.snapshot.queryParams.homepage === 'true',
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(

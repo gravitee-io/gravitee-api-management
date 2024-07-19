@@ -270,6 +270,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             visibility: 'PUBLIC',
             content: '#TITLE  This is the file content', // TODO: check why \n is removed
             parentId: 'ROOT',
+            homepage: false,
           });
         });
 
@@ -294,6 +295,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             visibility: 'PUBLIC',
             content: '#TITLE  This is the file content', // TODO: check why \n is removed
             parentId: 'ROOT',
+            homepage: false,
           });
 
           const publishReq = httpTestingController.expectOne({
@@ -423,6 +425,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           visibility: 'PUBLIC',
           content: 'File content',
           parentId: 'parent-folder-id',
+          homepage: false,
         });
       });
     });

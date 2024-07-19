@@ -65,7 +65,7 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
         takeUntil(this.unsubscribe$),
       )
       .subscribe((res) => {
-        this.page = res.pages[0];
+        this.page = res.pages.find((p) => p.homepage === true);
         this.isLoading = false;
       });
   }
@@ -78,7 +78,7 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
   addPage(pageType: PageType) {
     this.router.navigate(['.', 'homepage', 'new'], {
       relativeTo: this.activatedRoute,
-      queryParams: { parentId: this.parentId, pageType },
+      queryParams: { parentId: this.parentId, pageType, homepage: true },
     });
   }
 
