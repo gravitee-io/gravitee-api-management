@@ -18,6 +18,7 @@ package io.gravitee.apim.core.theme.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.theme.exception.ThemeTypeNotSupportedException;
+import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -33,6 +34,8 @@ import lombok.RequiredArgsConstructor;
 public class DefaultThemeDomainService {
 
     private final ParametersDomainService parametersDomainService;
+    private final ThemeDomainService themeDomainService;
+    private final ThemeServiceLegacyWrapper themeServiceLegacyWrapper;
 
     private static final List<Key> PORTAL_NEXT_THEME_KEYS = List.of(
         Key.PORTAL_NEXT_THEME_COLOR_PRIMARY,
@@ -48,6 +51,27 @@ public class DefaultThemeDomainService {
     public Theme getDefaultTheme(ThemeType themeType, ExecutionContext executionContext) {
         if (Objects.requireNonNull(themeType) == ThemeType.PORTAL_NEXT) {
             return this.getPortalNextDefaultTheme(executionContext);
+        }
+
+        throw new ThemeTypeNotSupportedException(themeType.name());
+    }
+
+    public Theme createAndEnableDefaultTheme(ThemeType themeType, ExecutionContext executionContext) {
+        if (ThemeType.PORTAL_NEXT.equals(themeType)) {
+            var defaultTheme = this.getDefaultTheme(themeType, executionContext);
+            return this.themeDomainService.create(
+                    NewTheme
+                        .builder()
+                        .referenceId(defaultTheme.getReferenceId())
+                        .referenceType(defaultTheme.getReferenceType())
+                        .name(defaultTheme.getName())
+                        .definitionPortalNext(defaultTheme.getDefinitionPortalNext())
+                        .type(ThemeType.PORTAL_NEXT)
+                        .enabled(true)
+                        .build()
+                );
+        } else if (ThemeType.PORTAL.equals(themeType)) {
+            return this.themeServiceLegacyWrapper.getCurrentOrCreateDefaultPortalTheme(executionContext);
         }
 
         throw new ThemeTypeNotSupportedException(themeType.name());

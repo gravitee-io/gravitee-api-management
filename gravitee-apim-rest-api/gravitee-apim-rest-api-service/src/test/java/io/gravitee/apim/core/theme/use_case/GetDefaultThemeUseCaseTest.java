@@ -20,7 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
+import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeServiceLegacyWrapperInMemory;
 import io.gravitee.apim.core.theme.domain_service.DefaultThemeDomainService;
+import io.gravitee.apim.core.theme.domain_service.ThemeDomainService;
 import io.gravitee.apim.core.theme.exception.ThemeTypeNotSupportedException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
@@ -66,7 +69,9 @@ public class GetDefaultThemeUseCaseTest {
         .definitionPortalNext(EXPECTED_PORTAL_NEXT_THEME_DEFINITION)
         .build();
 
+    ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     ParametersDomainServiceInMemory parametersDomainService = new ParametersDomainServiceInMemory();
+    ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper = new ThemeServiceLegacyWrapperInMemory();
     GetDefaultThemeUseCase cut;
 
     @BeforeEach
@@ -131,8 +136,9 @@ public class GetDefaultThemeUseCaseTest {
                     .build()
             )
         );
+        var defaultThemeDomainService = new DefaultThemeDomainService(parametersDomainService, new ThemeDomainService(themeCrudService), themeServiceLegacyWrapper);
 
-        cut = new GetDefaultThemeUseCase(new DefaultThemeDomainService(parametersDomainService));
+        cut = new GetDefaultThemeUseCase(defaultThemeDomainService);
     }
 
     @AfterEach
