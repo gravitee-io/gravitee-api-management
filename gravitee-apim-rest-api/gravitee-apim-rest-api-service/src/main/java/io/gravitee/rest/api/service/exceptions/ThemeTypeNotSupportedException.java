@@ -22,20 +22,25 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.theme.ThemeType;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@AllArgsConstructor
 public class ThemeTypeNotSupportedException extends AbstractManagementException {
 
     private final String id;
-    private final ThemeType type;
+    private final String type;
 
-    public ThemeTypeNotSupportedException(ThemeType type) {
-        this.type = type;
+    public ThemeTypeNotSupportedException() {
         this.id = null;
+        this.type = null;
+    }
+
+    public ThemeTypeNotSupportedException(String id, ThemeType type) {
+        this.id = id;
+        this.type = type.name();
     }
 
     @Override
@@ -45,7 +50,7 @@ public class ThemeTypeNotSupportedException extends AbstractManagementException 
 
     @Override
     public String getMessage() {
-        return format("%s theme is currently not supported", type.name());
+        return format("[ %s ] theme is currently not supported", type);
     }
 
     @Override
