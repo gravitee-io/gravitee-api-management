@@ -64,7 +64,9 @@ public class DefaultThemeDomainServiceTest {
         .definitionPortalNext(EXPECTED_PORTAL_NEXT_THEME_DEFINITION)
         .build();
 
+    ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     ParametersDomainServiceInMemory parametersDomainService = new ParametersDomainServiceInMemory();
+    ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper = new ThemeServiceLegacyWrapperInMemory();
     DefaultThemeDomainService cut;
 
     @BeforeEach
@@ -130,12 +132,12 @@ public class DefaultThemeDomainServiceTest {
             )
         );
 
-        cut = new DefaultThemeDomainService(parametersDomainService);
+        cut = new DefaultThemeDomainService(parametersDomainService, new ThemeDomainService(themeCrudService), themeServiceLegacyWrapper);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(parametersDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(themeCrudService, parametersDomainService, themeServiceLegacyWrapper).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -151,6 +153,40 @@ public class DefaultThemeDomainServiceTest {
         void should_throw_error_for_portal_theme() {
             assertThatThrownBy(() -> cut.getDefaultTheme(ThemeType.PORTAL, EXECUTION_CONTEXT))
                 .isInstanceOf(ThemeTypeNotSupportedException.class);
+        }
+    }
+
+    @Nested
+    class CreateDefaultTheme {
+
+        @Test
+        void should_create_enabled_portal_next_theme() {
+            var result = cut.createAndEnableDefaultTheme(ThemeType.PORTAL_NEXT, EXECUTION_CONTEXT);
+
+            assertThat(result)
+                .hasFieldOrPropertyWithValue("referenceId", EXPECTED_DEFAULT_PORTAL_NEXT_THEME.getReferenceId())
+                .hasFieldOrPropertyWithValue("referenceType", EXPECTED_DEFAULT_PORTAL_NEXT_THEME.getReferenceType())
+                .hasFieldOrPropertyWithValue("name", EXPECTED_DEFAULT_PORTAL_NEXT_THEME.getName())
+                .hasFieldOrPropertyWithValue("definitionPortalNext", EXPECTED_DEFAULT_PORTAL_NEXT_THEME.getDefinitionPortalNext())
+                .hasFieldOrPropertyWithValue("type", EXPECTED_DEFAULT_PORTAL_NEXT_THEME.getType())
+                .hasFieldOrPropertyWithValue("enabled", true)
+                .satisfies(res -> {
+                    assertThat(res.getId()).isNotBlank();
+                    assertThat(res.getCreatedAt()).isNotNull();
+                    assertThat(res.getUpdatedAt()).isNotNull();
+                })
+                .isEqualTo(themeCrudService.get(result.getId()));
+        }
+
+        @Test
+        void should_create_portal_theme() {
+            var result = cut.createAndEnableDefaultTheme(ThemeType.PORTAL, EXECUTION_CONTEXT);
+
+            assertThat(result)
+                .hasFieldOrPropertyWithValue("referenceId", EXECUTION_CONTEXT.getEnvironmentId())
+                .hasFieldOrPropertyWithValue("referenceType", Theme.ReferenceType.ENVIRONMENT)
+                .hasFieldOrPropertyWithValue("type", ThemeType.PORTAL)
+                .hasFieldOrPropertyWithValue("enabled", true);
         }
     }
 }
