@@ -20,6 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
+import fixtures.core.model.ApiFixtures;
+import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -403,7 +405,13 @@ class VerifyApiPathDomainServiceTest {
         lenient()
             .when(
                 apiSearchService.search(
-                    eq(ApiSearchCriteria.builder().environmentId(environmentId).build()),
+                    eq(
+                        ApiSearchCriteria
+                            .builder()
+                            .environmentId(environmentId)
+                            .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                            .build()
+                    ),
                     eq(null),
                     eq(ApiFieldFilter.builder().pictureExcluded(true).build())
                 )
@@ -413,46 +421,56 @@ class VerifyApiPathDomainServiceTest {
 
     @SneakyThrows
     private Api buildApiV2WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
-        io.gravitee.definition.model.Api apiDefV2 = new io.gravitee.definition.model.Api();
-        Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(
-            paths
-                .stream()
-                .map(p -> {
-                    VirtualHost virtualHost = new VirtualHost();
-                    virtualHost.setHost(p.getLeft());
-                    virtualHost.setPath(p.getRight());
-                    return virtualHost;
-                })
-                .collect(Collectors.toList())
-        );
-        apiDefV2.setProxy(proxy);
+        io.gravitee.definition.model.Api apiDefV2 = ApiDefinitionFixtures
+            .anApiV2()
+            .toBuilder()
+            .proxy(
+                Proxy
+                    .builder()
+                    .virtualHosts(
+                        paths
+                            .stream()
+                            .map(p -> {
+                                VirtualHost virtualHost = new VirtualHost();
+                                virtualHost.setHost(p.getLeft());
+                                virtualHost.setPath(p.getRight());
+                                return virtualHost;
+                            })
+                            .toList()
+                    )
+                    .build()
+            )
+            .build();
 
-        return Api.builder().id(apiId).environmentId(environmentId).definitionVersion(DefinitionVersion.V2).apiDefinition(apiDefV2).build();
+        return Api.builder().id(apiId).environmentId(environmentId).apiDefinition(apiDefV2).build();
     }
 
     @SneakyThrows
     private Api buildApiV4WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
-        io.gravitee.definition.model.v4.Api apiDefV4 = new io.gravitee.definition.model.v4.Api();
-
-        HttpListener listener = HttpListener
-            .builder()
-            .paths(
-                paths
-                    .stream()
-                    .map(p -> io.gravitee.definition.model.v4.listener.http.Path.builder().host(p.getLeft()).path(p.getRight()).build())
-                    .collect(Collectors.toList())
+        io.gravitee.definition.model.v4.Api apiDefV4 = ApiDefinitionFixtures
+            .anApiV4()
+            .toBuilder()
+            .id((apiId))
+            .listeners(
+                List.of(
+                    HttpListener
+                        .builder()
+                        .paths(
+                            paths
+                                .stream()
+                                .map(p ->
+                                    io.gravitee.definition.model.v4.listener.http.Path
+                                        .builder()
+                                        .host(p.getLeft())
+                                        .path(p.getRight())
+                                        .build()
+                                )
+                                .toList()
+                        )
+                        .build()
+                )
             )
             .build();
-        apiDefV4.setListeners(List.of(listener));
-        apiDefV4.setId(apiId);
-
-        return Api
-            .builder()
-            .id(apiId)
-            .environmentId(environmentId)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionV4(apiDefV4)
-            .build();
+        return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionV4(apiDefV4).build();
     }
 }

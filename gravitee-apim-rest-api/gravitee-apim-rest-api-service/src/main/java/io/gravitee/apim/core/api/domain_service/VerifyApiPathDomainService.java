@@ -30,6 +30,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +129,11 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
         apiSearchService
             .search(
-                ApiSearchCriteria.builder().environmentId(input.environmentId).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .environmentId(input.environmentId)
+                    .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).build()
             )
@@ -198,11 +203,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private static List<Path> extractPaths(Api api) {
-        return Optional
-            .ofNullable(api.getDefinitionVersion())
-            .filter(definitionVersion -> definitionVersion != DefinitionVersion.FEDERATED)
-            .map(definitionVersion -> definitionVersion == DefinitionVersion.V4 ? getV4Paths(api) : getV2Paths(api))
-            .orElseGet(() -> getV2Paths(api));
+        return api.getDefinitionVersion() == DefinitionVersion.V4 ? getV4Paths(api) : getV2Paths(api);
     }
 
     private static List<Path> getV4Paths(Api api) {
