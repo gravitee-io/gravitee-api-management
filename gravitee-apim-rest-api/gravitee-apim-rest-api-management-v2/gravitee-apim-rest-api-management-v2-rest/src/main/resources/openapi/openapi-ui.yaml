@@ -127,6 +127,59 @@ paths:
             $ref: "#/components/responses/ThemesResponse"
           default:
             $ref: "#/components/responses/Error"
+
+    /environments/{envId}/ui/themes/_default:
+      servers:
+        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+          description: APIM Management API v2 - Base URL to target specific organizations
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+            orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+        - url: "{protocol}://{managementAPIHost}/management/v2"
+          description: APIM Management API v2 - Default base URL
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      get:
+        tags:
+          - Management UI
+        parameters:
+          - $ref: "#/components/parameters/themeTypeParam"
+        summary: Get default theme
+        description: |
+          Get default theme for a given environment.
+          Only PORTAL_NEXT is currently supported.
+          
+          User must have the ENVIRONMENT_THEME[READ] permission.
+        operationId: getDefaultTheme
+        responses:
+          "200":
+            description: The default theme.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Theme"
+          default:
+            $ref: "#/components/responses/Error"
 components:
     schemas:
         ConsoleCustomization:
@@ -351,6 +404,18 @@ components:
           type: object
           description: Theme definition used for Portal-Next
           properties:
+            color:
+              $ref: "#/components/schemas/PortalNextDefinitionColor"
+            font:
+              $ref: "#/components/schemas/PortalNextDefinitionFont"
+            customCss:
+              type: string
+              description: Custom CSS for Portal-Next
+
+        PortalNextDefinitionColor:
+          type: object
+          description: Theme definition used for Portal-Next
+          properties:
             primary:
               type: string
               description: Primary hex code color seed for Theme palette
@@ -367,22 +432,24 @@ components:
               type: string
               description: Error hex code color seed for Theme palette
               example: #e1f200
-            background:
+            pageBackground:
               type: string
               description: Background hex code color
               example: #e1f200
-            banner:
-              type: object
-              description: Banner customization
-              properties:
-                text:
-                  type: string
-                  description: Banner text hex code color
-                  example: #e1f200
-                background:
-                  type: string
-                  description: Banner background hex code color
-                  example: #e1f200
+            cardBackground:
+              type: string
+              description: Background hex code color
+              example: #e1f200
+
+        PortalNextDefinitionFont:
+          type: object
+          description: Theme definition used for Portal-Next
+          properties:
+            fontFamily:
+              type: string
+              description: Font-family used for Portal-Next
+              example: "Roboto"
+
         Theme:
           oneOf:
             - $ref: "#/components/schemas/ThemePortal"

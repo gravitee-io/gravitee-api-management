@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
+import io.gravitee.apim.core.theme.use_case.GetDefaultThemeUseCase;
 import io.gravitee.apim.core.theme.use_case.GetThemesUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ThemeMapper;
@@ -27,13 +28,17 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ThemeTypeNotSupportedException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -41,6 +46,9 @@ public class ThemesResource extends AbstractResource {
 
     @Inject
     private GetThemesUseCase getPortalThemesUseCase;
+
+    @Inject
+    private GetDefaultThemeUseCase getDefaultThemeUseCase;
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
@@ -73,5 +81,26 @@ public class ThemesResource extends AbstractResource {
                     .build()
             )
             .build();
+    }
+
+    @GET
+    @Path("_default")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDefaultTheme(@QueryParam("type") ThemeType type) {
+        if (Objects.isNull(type)) {
+            throw new ThemeTypeNotSupportedException();
+        }
+
+        var result = getDefaultThemeUseCase
+            .execute(
+                GetDefaultThemeUseCase.Input
+                    .builder()
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
+                    .executionContext(GraviteeContext.getExecutionContext())
+                    .build()
+            )
+            .result();
+        return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
     }
 }

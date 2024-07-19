@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -152,6 +153,65 @@ public class ThemesResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class GetDefaultTheme {
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_THEME),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+            final Response response = rootTarget().path("_default").queryParam("type", "PORTAL_NEXT").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        public void should_return_400_when_portal_theme_type() {
+            final Response response = rootTarget().path("_default").queryParam("type", "PORTAL").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Theme type [PORTAL] is not supported");
+        }
+
+        @Test
+        public void should_return_400_when_no_theme_type_specified() {
+            final Response response = rootTarget().path("_default").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("[ null ] theme is currently not supported");
+        }
+
+        @Test
+        public void should_get_portal_next_default_theme() {
+            final Response response = rootTarget().path("_default").queryParam("type", "PORTAL_NEXT").request().get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                .isNotNull();
+        }
+    }
+
     private Theme aPortalTheme() {
         var portalDefinition = new ThemeDefinition();
         portalDefinition.setData(List.of());
@@ -169,8 +229,10 @@ public class ThemesResourceTest extends AbstractResourceTest {
     }
 
     private Theme aPortalNextTheme() {
-        var portalDefinition = new io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition();
-        portalDefinition.setPrimary("#fff");
+        var portalDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
+            .builder()
+            .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
+            .build();
         return Theme
             .builder()
             .id(PORTAL_NEXT_THEME_ID)
