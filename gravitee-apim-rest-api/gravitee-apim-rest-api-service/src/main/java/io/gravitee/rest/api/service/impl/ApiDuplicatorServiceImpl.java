@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SystemFolderType;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.DuplicateApiEntity;
@@ -814,37 +815,72 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             replacePagesGroupNameById(executionContext, pagesList);
 
             if (apiJsonNode.isKubernetesOrigin()) {
-                deleteRemovedPages(executionContext, apiEntity, pagesList);
-                var rootPages = pagesList.stream().filter(PageEntity::isRoot).collect(toSet());
-                for (var page : rootPages) {
-                    pageService.importFiles(
-                        executionContext,
-                        apiEntity.getId(),
-                        ImportPageEntity
-                            .builder()
-                            .type(PageType.ROOT)
-                            .source(page.getSource())
-                            .configuration(page.getConfiguration())
-                            .published(page.isPublished())
-                            .visibility(page.getVisibility())
-                            .accessControls(page.getAccessControls())
-                            .excludedAccessControls(page.isExcludedAccessControls())
-                            .excludedGroups(page.getExcludedGroups())
-                            .build()
-                    );
-                }
-                pagesList.removeAll(rootPages);
+                importKubernetesPages(executionContext, apiEntity.getId(), pagesList);
+            } else {
+                pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
             }
-            pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
         } else if (apiJsonNode.isKubernetesOrigin()) {
             pageService.deleteAllByApi(executionContext, apiEntity.getId());
         }
     }
 
-    private void deleteRemovedPages(ExecutionContext executionContext, ApiEntity apiEntity, List<PageEntity> givenPages) {
+    private void importKubernetesPages(ExecutionContext executionContext, String apiId, List<PageEntity> pages) {
+        deleteRemovedPages(executionContext, apiId, pages);
+        var rootPages = pages.stream().filter(PageEntity::isRoot).toList();
+        importKubernetesRootPages(executionContext, apiId, pages);
+        pages.removeAll(rootPages);
+        pageService.createOrUpdatePages(executionContext, pages, apiId);
+    }
+
+    private void importKubernetesRootPages(ExecutionContext executionContext, String apiId, List<PageEntity> rootPages) {
+        for (var rootPage : rootPages) {
+            overrideAccessControls(
+                executionContext,
+                apiId,
+                rootPage,
+                pageService.importFiles(
+                    executionContext,
+                    apiId,
+                    ImportPageEntity
+                        .builder()
+                        .type(PageType.ROOT)
+                        .visibility(rootPage.getVisibility())
+                        .published(rootPage.isPublished())
+                        .source(rootPage.getSource())
+                        .build()
+                )
+            );
+        }
+    }
+
+    private void overrideAccessControls(
+        ExecutionContext executionContext,
+        String apiId,
+        PageEntity rootPage,
+        List<PageEntity> importedPages
+    ) {
+        pageService.createOrUpdatePages(
+            executionContext,
+            importedPages
+                .stream()
+                .map(page ->
+                    page
+                        .toBuilder()
+                        .visibility(rootPage.getVisibility())
+                        .accessControls(rootPage.getAccessControls())
+                        .excludedGroups(rootPage.getExcludedGroups())
+                        .excludedAccessControls(rootPage.isExcludedAccessControls())
+                        .build()
+                )
+                .toList(),
+            apiId
+        );
+    }
+
+    private void deleteRemovedPages(ExecutionContext executionContext, String apiId, List<PageEntity> givenPages) {
         var givenPageIds = givenPages.stream().map(PageEntity::getId).collect(toSet());
         var existingPageIds = pageService
-            .findByApi(executionContext.getEnvironmentId(), apiEntity.getId())
+            .findByApi(executionContext.getEnvironmentId(), apiId)
             .stream()
             .map(PageEntity::getId)
             .collect(toSet());
