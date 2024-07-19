@@ -21,13 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
@@ -68,6 +62,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -317,12 +312,27 @@ public class ApiDuplicatorServiceImplTest {
 
         when(apiEntity.getId()).thenReturn(API_ID);
 
+        when(pageService.importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null)))
+            .thenReturn(List.of(PageEntity.builder().type("MARKDOWN").build(), PageEntity.builder().type("MARKDOWN").build()));
+
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, node);
 
         verify(pageService, times(1))
             .importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null));
 
-        verify(pageService, times(1)).createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(), API_ID);
+        verify(pageService, atLeastOnce())
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pages ->
+                    pages
+                        .stream()
+                        .allMatch(page ->
+                            "MARKDOWN".equals(page.getType()) && page.isPublished() && page.getVisibility() == Visibility.PUBLIC
+                        )
+                ),
+                eq(API_ID)
+            );
+        verify(pageService, atLeastOnce()).createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(), API_ID);
     }
 
     @Test
