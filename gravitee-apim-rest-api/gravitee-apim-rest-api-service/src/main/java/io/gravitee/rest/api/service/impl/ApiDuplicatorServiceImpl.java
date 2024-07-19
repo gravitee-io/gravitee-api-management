@@ -32,6 +32,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewGroupEntity;
@@ -814,6 +815,25 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             if (apiJsonNode.isKubernetesOrigin()) {
                 deleteRemovedPages(executionContext, apiEntity, pagesList);
+                var rootPages = pagesList.stream().filter(PageEntity::isRoot).collect(toSet());
+                for (var page : rootPages) {
+                    pageService.importFiles(
+                        executionContext,
+                        apiEntity.getId(),
+                        ImportPageEntity
+                            .builder()
+                            .type(PageType.ROOT)
+                            .source(page.getSource())
+                            .configuration(page.getConfiguration())
+                            .published(page.isPublished())
+                            .visibility(page.getVisibility())
+                            .accessControls(page.getAccessControls())
+                            .excludedAccessControls(page.isExcludedAccessControls())
+                            .excludedGroups(page.getExcludedGroups())
+                            .build()
+                    );
+                }
+                pagesList.removeAll(rootPages);
             }
             pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
         } else if (apiJsonNode.isKubernetesOrigin()) {

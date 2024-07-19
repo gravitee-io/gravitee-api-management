@@ -1,0 +1,28 @@
+{
+  "id": "id-api",
+  "name": "with-pages",
+  "definition_context": {
+    "origin": "kubernetes"
+  },
+  "pages": [
+    {
+      "type": "ROOT",
+      "published": true,
+      "visibility": "PUBLIC",
+      "source": {
+        "type": "github-fetcher",
+        "configuration": {
+          "githubUrl": "https://api.github.com",
+          "owner": "gravitee-io",
+          "repository": "doc-samples",
+          "filepath": "/",
+          "branchOrTag": "main",
+          "username": "gravitee-bot",
+          "personalAccessToken": "***",
+          "autoFetch": "true",
+          "fetchCron": "*/5 * * * * *"
+        }
+      }
+    }
+  ]
+}
