@@ -308,4 +308,9 @@ public class InMemoryConfiguration {
     public ThemeCrudServiceInMemory themeCrudService() {
         return new ThemeCrudServiceInMemory();
     }
+
+    @Bean
+    public ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper() {
+        return new ThemeServiceLegacyWrapperInMemory();
+    }
 }
