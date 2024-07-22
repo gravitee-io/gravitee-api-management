@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
+import io.gravitee.apim.core.theme.use_case.GetCurrentThemeUseCase;
 import io.gravitee.apim.core.theme.use_case.GetDefaultThemeUseCase;
 import io.gravitee.apim.core.theme.use_case.GetThemesUseCase;
 import io.gravitee.common.http.MediaType;
@@ -49,6 +50,9 @@ public class ThemesResource extends AbstractResource {
 
     @Inject
     private GetDefaultThemeUseCase getDefaultThemeUseCase;
+
+    @Inject
+    private GetCurrentThemeUseCase getCurrentThemeUseCase;
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
@@ -95,6 +99,27 @@ public class ThemesResource extends AbstractResource {
         var result = getDefaultThemeUseCase
             .execute(
                 GetDefaultThemeUseCase.Input
+                    .builder()
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
+                    .executionContext(GraviteeContext.getExecutionContext())
+                    .build()
+            )
+            .result();
+        return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
+    }
+
+    @GET
+    @Path("_current")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCurrentTheme(@QueryParam("type") ThemeType type) {
+        if (Objects.isNull(type)) {
+            throw new ThemeTypeNotSupportedException();
+        }
+
+        var result = getCurrentThemeUseCase
+            .execute(
+                GetCurrentThemeUseCase.Input
                     .builder()
                     .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
                     .executionContext(GraviteeContext.getExecutionContext())
