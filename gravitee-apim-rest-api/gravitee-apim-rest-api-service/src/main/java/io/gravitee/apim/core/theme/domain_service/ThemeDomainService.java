@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.UpdateTheme;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +52,22 @@ public class ThemeDomainService {
             .build();
 
         return this.themeCrudService.create(themeToBeCreated);
+    }
+
+    public Theme update(UpdateTheme updateTheme, Theme existingTheme) {
+        var existingThemeWithUpdates = existingTheme
+            .toBuilder()
+            .name(updateTheme.getName())
+            .definitionPortal(updateTheme.getDefinitionPortal())
+            .definitionPortalNext(updateTheme.getDefinitionPortalNext())
+            .enabled(updateTheme.isEnabled())
+            .logo(updateTheme.getLogo())
+            .optionalLogo(updateTheme.getOptionalLogo())
+            .favicon(updateTheme.getFavicon())
+            .backgroundImage(updateTheme.getBackgroundImage())
+            .updatedAt(ZonedDateTime.now())
+            .build();
+
+        return this.themeCrudService.update(existingThemeWithUpdates);
     }
 }

@@ -19,5 +19,6 @@ import io.gravitee.apim.core.theme.model.Theme;
 
 public interface ThemeCrudService {
     Theme create(Theme theme);
+    Theme update(Theme theme);
     Theme get(String id);
 }
