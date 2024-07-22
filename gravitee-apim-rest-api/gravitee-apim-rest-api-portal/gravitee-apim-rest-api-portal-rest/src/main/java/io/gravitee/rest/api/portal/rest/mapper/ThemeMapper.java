@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.model.ThemeLinks;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,14 +35,33 @@ public class ThemeMapper {
         final ThemeResponse themeResponse = new ThemeResponse();
         themeResponse.setDefinition(themeEntity.getDefinition());
         themeResponse.setType(ThemeResponse.TypeEnum.valueOf(themeEntity.getType().name()));
-        themeResponse.setLinks(computeLinks(themeEntity, basePath));
+        themeResponse.setLinks(computeLinks(themeEntity.getUpdatedAt(), basePath));
         return themeResponse;
     }
 
-    public ThemeLinks computeLinks(ThemeEntity themeEntity, String basePath) {
+    public ThemeResponse convert(Theme theme, String basePath) {
+        final ThemeResponse themeResponse = new ThemeResponse();
+        if (ThemeType.PORTAL_NEXT.equals(theme.getType())) {
+            themeResponse.setDefinition(theme.getDefinitionPortalNext());
+        } else if (ThemeType.PORTAL.equals(theme.getType())) {
+            themeResponse.setDefinition(theme.getDefinitionPortal());
+        }
+        themeResponse.setType(ThemeResponse.TypeEnum.valueOf(theme.getType().name()));
+        themeResponse.setLinks(computeLinks(theme.getUpdatedAt(), basePath));
+        return themeResponse;
+    }
+
+    public ThemeLinks computeLinks(Date updatedAt, String basePath) {
+        return this.computeLinks(updatedAt == null ? "" : String.valueOf(updatedAt.getTime()), basePath);
+    }
+
+    public ThemeLinks computeLinks(ZonedDateTime updatedAt, String basePath) {
+        return this.computeLinks(updatedAt == null ? "" : String.valueOf(updatedAt.toInstant().toEpochMilli()), basePath);
+    }
+
+    private ThemeLinks computeLinks(String hash, String basePath) {
         ThemeLinks themeLinks = new ThemeLinks();
         themeLinks.setSelf(basePath);
-        final String hash = themeEntity.getUpdatedAt() == null ? "" : String.valueOf(themeEntity.getUpdatedAt().getTime());
         themeLinks.setBackgroundImage(basePath + "/backgroundImage?" + hash);
         themeLinks.setLogo(basePath + "/logo?" + hash);
         themeLinks.setOptionalLogo(basePath + "/optionalLogo?" + hash);
