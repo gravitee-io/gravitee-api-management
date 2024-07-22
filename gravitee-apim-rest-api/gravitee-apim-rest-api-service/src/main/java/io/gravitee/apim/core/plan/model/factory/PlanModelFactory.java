@@ -47,6 +47,7 @@ public class PlanModelFactory {
                     .status(PlanStatus.PUBLISHED)
                     .build()
             )
+            .characteristics(plan.characteristics())
             .createdAt(now)
             .updatedAt(now)
             .validation(Plan.PlanValidationType.MANUAL)

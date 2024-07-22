@@ -32,7 +32,7 @@ public record IntegrationApi(
     List<Plan> plans,
     List<Page> pages
 ) {
-    public record Plan(String id, String name, String description, PlanType type) {}
+    public record Plan(String id, String name, String description, PlanType type, List<String> characteristics) {}
     public enum PlanType {
         API_KEY,
         OAUTH2,
