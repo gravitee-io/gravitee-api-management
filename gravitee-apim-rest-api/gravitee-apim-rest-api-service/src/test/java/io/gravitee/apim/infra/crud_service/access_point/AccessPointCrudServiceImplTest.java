@@ -85,6 +85,8 @@ class AccessPointCrudServiceImplTest {
                 .status(AccessPointStatus.CREATED)
                 .build();
             when(accessPointRepository.findByCriteria(accessPointCriteria, null, null)).thenReturn(fetchedAccessPoints);
+            when(accessPointRepository.update(any(io.gravitee.repository.management.model.AccessPoint.class)))
+                .thenReturn(io.gravitee.repository.management.model.AccessPoint.builder().build());
 
             var dateBeforeDeletion = Instant.now().minusSeconds(1);
             service.deleteAccessPoints(referenceType, "ref-id");
@@ -98,7 +100,7 @@ class AccessPointCrudServiceImplTest {
                     assertThat(ap.getStatus()).isEqualTo(AccessPointStatus.DELETED);
                     assertThat(ap.getUpdatedAt()).isAfter(dateBeforeDeletion).isBefore(dateAfterDeletion);
                 });
-            verify(eventManager, times(2)).publishEvent(eq(AccessPointEvent.DELETED), any());
+            verify(eventManager, times(2)).publishEvent(eq(AccessPointEvent.DELETED), any(AccessPoint.class));
         }
     }
 
