@@ -2546,6 +2546,8 @@ paths:
     get:
       tags:
         - Portal
+      parameters:
+        - $ref: '#/components/parameters/themeTypeParam'
       summary: Get portal theme.
       operationId: getPortalTheme
       description: |
@@ -3427,6 +3429,18 @@ components:
           - STARTED
           - STOPPED
           - FAILURE
+
+    # Theme filtering
+    themeTypeParam:
+      name: type
+      in: query
+      required: true
+      description: Type of theme
+      schema:
+        type: string
+        enum:
+          - PORTAL
+          - PORTAL_NEXT
 
     #Users filtering
     usersQueryParam:
