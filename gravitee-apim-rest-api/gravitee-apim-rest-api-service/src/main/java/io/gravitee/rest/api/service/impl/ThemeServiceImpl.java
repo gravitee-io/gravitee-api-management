@@ -574,17 +574,23 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             return convertToPortalThemeEntity(theme);
         }
 
-        return io.gravitee.rest.api.model.theme.portalnext.ThemeEntity
-            .builder()
-            .id(theme.getId())
-            .name(theme.getName())
-            .definition(new io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition())
-            .createdAt(theme.getCreatedAt())
-            .updatedAt(theme.getUpdatedAt())
-            .logo(theme.getLogo())
-            .optionalLogo(theme.getOptionalLogo())
-            .favicon(theme.getFavicon())
-            .build();
+        try {
+            var portalNextDefinition = MAPPER.readPortalNextDefinition(theme.getDefinition());
+
+            return io.gravitee.rest.api.model.theme.portalnext.ThemeEntity
+                .builder()
+                .id(theme.getId())
+                .name(theme.getName())
+                .definition(portalNextDefinition)
+                .createdAt(theme.getCreatedAt())
+                .updatedAt(theme.getUpdatedAt())
+                .logo(theme.getLogo())
+                .optionalLogo(theme.getOptionalLogo())
+                .favicon(theme.getFavicon())
+                .build();
+        } catch (IOException e) {
+            throw new TechnicalManagementException(e);
+        }
     }
 
     private NewThemeEntity convert(ThemeEntity theme) {
