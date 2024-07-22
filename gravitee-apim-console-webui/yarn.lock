@@ -3530,10 +3530,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/libre-franklin@npm:4.4.5":
-  version: 4.4.5
-  resolution: "@fontsource/libre-franklin@npm:4.4.5"
-  checksum: 10c0/e097dd7709437ebd5bcb39bd1b527971d1a914761564363cfb2fbe2f9972e250b8b9b3fe8789934461e284d2fe1fd85159fec92bc07c67ff3755d59cc55a6b9e
+"@fontsource/libre-franklin@npm:4.5.11":
+  version: 4.5.11
+  resolution: "@fontsource/libre-franklin@npm:4.5.11"
+  checksum: 10c0/23bc4ab9d299c8138c5ff63c6bc6e71e8423a014c8d01ccba86050e814a61e52879452c016e5071aba3b66fc1127a802e8e467257c1b83e264885b220b1ee35b
   languageName: node
   linkType: hard
 
@@ -14097,7 +14097,7 @@ __metadata:
     "@asyncapi/web-component": "npm:1.2.26"
     "@danielmoncada/angular-datetime-picker": "npm:17.0.0"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:4.0.0"
-    "@fontsource/libre-franklin": "npm:4.4.5"
+    "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:12.17.0"
     "@gravitee/ui-components": "npm:4.2.4"
     "@gravitee/ui-particles-angular": "npm:12.17.0"
