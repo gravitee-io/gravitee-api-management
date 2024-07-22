@@ -212,6 +212,93 @@ public class ThemesResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class GetCurrentTheme {
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_THEME),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL_NEXT").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        public void should_return_400_when_no_theme_type_specified() {
+            final Response response = rootTarget().path("_current").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("[ null ] theme is currently not supported");
+        }
+
+        @Test
+        public void should_create_new_enabled_default_portal_next_theme() {
+            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL_NEXT").request().get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                .isNotNull()
+                .extracting(res -> res.getThemePortalNext().getName())
+                .isEqualTo("Default Portal Next Theme");
+        }
+
+        @Test
+        public void should_create_new_enabled_default_portal_theme() {
+            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL").request().get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                .isNotNull()
+                .extracting(res -> res.getThemePortal().getId())
+                .isEqualTo("portal-default-theme");
+        }
+
+        @Test
+        public void should_return_enabled_portal_next_theme() {
+            themeQueryService.initWith(List.of(aPortalNextTheme()));
+            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL_NEXT").request().get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                .isNotNull()
+                .extracting(res -> res.getThemePortalNext().getId())
+                .isEqualTo(aPortalNextTheme().getId());
+        }
+
+        @Test
+        public void should_return_enabled_portal_theme() {
+            themeQueryService.initWith(List.of(aPortalTheme()));
+            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL").request().get();
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                .isNotNull()
+                .extracting(res -> res.getThemePortal().getId())
+                .isEqualTo(aPortalTheme().getId());
+        }
+    }
+
     private Theme aPortalTheme() {
         var portalDefinition = new ThemeDefinition();
         portalDefinition.setData(List.of());
@@ -220,6 +307,8 @@ public class ThemesResourceTest extends AbstractResourceTest {
             .id(PORTAL_THEME_ID)
             .name(PORTAL_THEME_ID)
             .type(ThemeType.PORTAL)
+            .referenceType(Theme.ReferenceType.ENVIRONMENT)
+            .referenceId(ENVIRONMENT)
             .definitionPortal(portalDefinition)
             .createdAt(ZonedDateTime.now())
             .updatedAt(ZonedDateTime.now())
@@ -238,6 +327,8 @@ public class ThemesResourceTest extends AbstractResourceTest {
             .id(PORTAL_NEXT_THEME_ID)
             .name(PORTAL_NEXT_THEME_ID)
             .type(ThemeType.PORTAL_NEXT)
+            .referenceType(Theme.ReferenceType.ENVIRONMENT)
+            .referenceId(ENVIRONMENT)
             .definitionPortalNext(portalDefinition)
             .createdAt(ZonedDateTime.now())
             .updatedAt(ZonedDateTime.now())
