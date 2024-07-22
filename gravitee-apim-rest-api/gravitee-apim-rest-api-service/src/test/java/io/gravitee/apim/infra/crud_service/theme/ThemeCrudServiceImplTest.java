@@ -131,6 +131,88 @@ public class ThemeCrudServiceImplTest {
     }
 
     @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_portal_theme() {
+            var definitionPortal = new ThemeDefinition();
+            definitionPortal.setData(List.of());
+            var theme = Theme
+                .builder()
+                .id("portal-id")
+                .type(ThemeType.PORTAL)
+                .definitionPortal(definitionPortal)
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .build();
+            service.update(theme);
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Theme.class);
+            verify(themeRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.Theme
+                        .builder()
+                        .id("portal-id")
+                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
+                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_portal_next_theme() {
+            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
+                .builder()
+                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
+                .build();
+            var theme = Theme
+                .builder()
+                .id("portal-id")
+                .type(ThemeType.PORTAL_NEXT)
+                .definitionPortalNext(definitionPortal)
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .build();
+            service.update(theme);
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Theme.class);
+            verify(themeRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.Theme
+                        .builder()
+                        .id("portal-id")
+                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
+                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(themeRepository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(Theme.builder().build()));
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessage("Error during theme update");
+        }
+    }
+
+    @Nested
     class Get {
 
         @Test

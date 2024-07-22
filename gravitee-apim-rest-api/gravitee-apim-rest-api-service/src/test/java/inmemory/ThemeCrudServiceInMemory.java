@@ -51,6 +51,18 @@ public class ThemeCrudServiceInMemory implements ThemeCrudService, InMemoryAlter
     }
 
     @Override
+    public Theme update(Theme theme) {
+        OptionalInt index = this.findIndex(this.storage, t -> t.getId().equals(theme.getId()));
+
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), theme);
+            return theme;
+        }
+
+        throw new TechnicalDomainException("Theme not found");
+    }
+
+    @Override
     public Theme get(String id) {
         return storage
             .stream()
