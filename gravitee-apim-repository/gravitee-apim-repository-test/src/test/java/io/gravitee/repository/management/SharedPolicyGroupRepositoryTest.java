@@ -19,10 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
 import java.util.Optional;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositoryTest {
@@ -30,6 +34,29 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     @Override
     protected String getTestCasesPath() {
         return "/data/sharedPolicyGroup-tests/";
+    }
+
+    @Before
+    public void before() throws TechnicalException {
+        for (int i = 0; i < 10; i++) {
+            final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup
+                .builder()
+                .id("id_search_test_" + i)
+                .name("name search_test " + i)
+                .version(1)
+                .description("description")
+                .crossId("crossId")
+                .apiType(ApiType.PROXY)
+                .definition("definition")
+                .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .environmentId("environmentId")
+                .organizationId("organizationId")
+                .deployedAt(new Date())
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            sharedPolicyGroupRepository.create(sharedPolicyGroup);
+        }
     }
 
     @Test
@@ -140,5 +167,37 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void should_findAll() throws Exception {
         sharedPolicyGroupRepository.findAll();
         fail("An exception must be thrown");
+    }
+
+    @Test
+    public void should_search_with_no_criteria() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().build();
+
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).hasSize(2);
+        assertThat(page.getTotalElements()).isEqualTo(13);
+    }
+
+    @Test
+    public void should_search_with_name_criteria() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().name("search_test").build();
+
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).hasSize(2);
+        assertThat(page.getTotalElements()).isEqualTo(10);
+    }
+
+    @Test
+    public void should_search_page_2() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().name("search_test").build();
+
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(2).pageSize(2).build());
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).hasSize(2);
+        assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 4");
+        assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 5");
+        assertThat(page.getTotalElements()).isEqualTo(10);
     }
 }

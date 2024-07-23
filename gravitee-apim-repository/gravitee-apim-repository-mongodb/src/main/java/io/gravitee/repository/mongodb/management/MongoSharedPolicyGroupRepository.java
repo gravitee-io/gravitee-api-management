@@ -15,17 +15,23 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
 import io.gravitee.repository.mongodb.management.internal.sharedpolicygroups.SharedPolicyGroupMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -95,6 +101,33 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
     @Override
     public Set<SharedPolicyGroup> findAll() throws TechnicalException {
         throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+        Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
+        LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
+
+        try {
+            String name = criteria.getName() == null || criteria.getName().isEmpty() ? ".*" : criteria.getName();
+
+            final var mongoResult =
+                this.internalSharedPolicyGroupMongoRepo.search(
+                        name,
+                        PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.ASC, "createdAt")
+                    );
+
+            return new Page<>(
+                mongoResult.getContent().stream().map(this::mapSharedPolicyGroup).toList(),
+                mongoResult.getNumber(),
+                mongoResult.getNumberOfElements(),
+                mongoResult.getTotalElements()
+            );
+        } catch (Exception e) {
+            LOGGER.error("An error occurred when searching for shared policy groups", e);
+            throw new TechnicalException("An error occurred when searching for shared policy groups", e);
+        }
     }
 
     private SharedPolicyGroup mapSharedPolicyGroup(SharedPolicyGroupMongo item) {
