@@ -21,7 +21,7 @@ import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -40,7 +40,7 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
 
     protected final DefaultClassLoader defaultClassLoader;
     protected final ApplicationContext applicationContext;
-    protected final PolicyFactory policyFactory;
+    protected final PolicyFactoryManager policyFactoryManager;
     protected final PolicyClassLoaderFactory policyClassLoaderFactory;
     protected final ComponentProvider componentProvider;
     protected final io.gravitee.node.api.configuration.Configuration configuration;
@@ -69,7 +69,7 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
 
         return new OrganizationPolicyManager(
             defaultClassLoader,
-            policyFactory,
+            policyFactoryManager,
             new CachedPolicyConfigurationFactory(),
             configurablePluginManager,
             policyClassLoaderFactory,

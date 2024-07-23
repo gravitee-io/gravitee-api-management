@@ -32,7 +32,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.DefaultPlatform
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,7 +131,7 @@ public class PlatformConfiguration {
     @Bean
     public OrganizationReactorFactory organizationReactorFactory(
         DefaultClassLoader classLoader,
-        PolicyFactory policyFactory,
+        PolicyFactoryManager policyFactoryManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider,
         io.gravitee.node.api.configuration.Configuration configuration
@@ -139,7 +139,7 @@ public class PlatformConfiguration {
         return new DefaultOrganizationReactorFactory(
             classLoader,
             applicationContext,
-            policyFactory,
+            policyFactoryManager,
             policyClassLoaderFactory,
             componentProvider,
             configuration
