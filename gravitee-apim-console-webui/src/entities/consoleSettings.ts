@@ -31,6 +31,7 @@ export interface ConsoleSettings {
   alertEngine?: ConsoleSettingsAlertEngine;
   licenseExpirationNotification?: ConsoleSettingsLicenseExpirationNotification;
   trialInstance?: ConsoleSettingsTrialInstance;
+  federation?: ConsoleSettingsFederation;
 }
 
 export interface ConsoleSettingsEmail {
@@ -175,5 +176,9 @@ export interface ConsoleSettingsLicenseExpirationNotification {
 }
 
 export interface ConsoleSettingsTrialInstance {
+  enabled?: boolean;
+}
+
+export interface ConsoleSettingsFederation {
   enabled?: boolean;
 }

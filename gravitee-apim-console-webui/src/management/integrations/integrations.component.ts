@@ -16,9 +16,9 @@
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, Observable, of } from 'rxjs';
 import { catchError, distinctUntilChanged, mergeMap, switchMap } from 'rxjs/operators';
-import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { AgentStatus, Integration, IntegrationResponse } from './integrations.model';
@@ -27,6 +27,7 @@ import { IntegrationsService } from '../../services-ngx/integrations.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
+import { ConsoleSettingsService } from '../../services-ngx/console-settings.service';
 
 @Component({
   selector: 'app-integrations',
@@ -39,6 +40,7 @@ export class IntegrationsComponent implements OnInit {
   public integrations: Integration[] = [];
   public displayedColumns: string[] = ['name', 'provider', 'agent', 'action'];
   public isFreeTier: boolean = false;
+  public isFederationDisabled: boolean = false;
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
@@ -50,17 +52,18 @@ export class IntegrationsComponent implements OnInit {
     public readonly integrationsService: IntegrationsService,
     private readonly snackBarService: SnackBarService,
     private readonly licenseService: GioLicenseService,
+    private readonly consoleSettingsService: ConsoleSettingsService,
   ) {}
 
   ngOnInit(): void {
-    this.licenseService
-      .getLicense$()
+    combineLatest([this.consoleSettingsService.get(), this.licenseService.getLicense$()])
       .pipe(
-        mergeMap((license: License): Observable<null> | Observable<IntegrationResponse> => {
+        mergeMap(([settings, license]): Observable<null> | Observable<IntegrationResponse> => {
           if (license.isExpired || license.tier === 'oss') {
             this.isFreeTier = true;
             return of(null);
           }
+          this.isFederationDisabled = !settings.federation?.enabled;
           this.isLoading = true;
           return this.initFilters();
         }),
