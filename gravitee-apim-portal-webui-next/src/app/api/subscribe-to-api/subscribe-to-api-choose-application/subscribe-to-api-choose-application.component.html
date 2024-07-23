@@ -15,4 +15,41 @@
     limitations under the License.
 
 -->
-<div>Coming soon...</div>
+@if (!!applications.length) {
+  <div class="applications">
+    @for (application of applications; track application.id) {
+      <app-radio-card
+        [value]="application"
+        [title]="application.name"
+        [disabled]="application.disabled === true"
+        [disabledMessage]="application.disabledMessage ?? ''"
+        [selected]="application.id === selectedApplication?.id"
+        [displayPicture]="true"
+        [pictureUrl]="application._links ? application._links.picture : undefined"
+        [pictureHashValue]="application.name"
+        (selectItem)="selectApplication.emit(application)">
+        <div class="applications__description">{{ application.description }}</div>
+      </app-radio-card>
+    }
+  </div>
+  <div class="pagination">
+    <div class="m3-body-medium">
+      {{ pagination.start }} - {{ pagination.end }} <span i18n="@@paginationOf">of</span> {{ pagination.totalApplications }}
+    </div>
+    <button mat-icon-button [disabled]="pagination.start <= 1" (click)="previousPage.emit()" aria-label="Previous page of applications">
+      <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      [disabled]="pagination.end >= pagination.totalApplications"
+      (click)="nextPage.emit()"
+      aria-label="Next page of applications">
+      <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
+    </button>
+  </div>
+} @else {
+  <div class="no-applications">
+    <div class="m3-title-medium" i18n="@@subscribeToApiNoApplicationsFound">No application found</div>
+    <div class="m3-body-medium" i18n="@@subscribeToApiNoApplicationsFoundMessage">Create an application and it will show up here.</div>
+  </div>
+}

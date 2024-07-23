@@ -24,4 +24,19 @@
       min-width: 38%;
     }
   }
+
+  &__leave-a-comment {
+    width: 100%;
+
+    &__container {
+      display: flex;
+      height: 100%;
+      flex-flow: column;
+      gap: 14px;
+    }
+
+    &__field {
+      height: 100%;
+    }
+  }
 }

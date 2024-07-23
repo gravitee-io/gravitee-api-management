@@ -45,3 +45,15 @@ export interface SubscriptionDataKeys {
     name: string;
   };
 }
+
+export interface CreateSubscription {
+  api_key_mode?: 'SHARED' | 'EXCLUSIVE' | 'UNSPECIFIED';
+  application: string;
+  general_conditions_accepted?: boolean;
+  general_conditions_content_revision?: {
+    pageId?: string;
+    revision?: number;
+  };
+  plan: string;
+  request?: string;
+}
