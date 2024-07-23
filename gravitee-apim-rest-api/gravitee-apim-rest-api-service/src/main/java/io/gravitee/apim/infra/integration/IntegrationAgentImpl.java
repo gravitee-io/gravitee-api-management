@@ -33,6 +33,7 @@ import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.exchange.api.controller.metrics.ChannelMetric;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
@@ -76,13 +77,8 @@ public class IntegrationAgentImpl implements IntegrationAgent {
     public Single<Status> getAgentStatusFor(String integrationId) {
         return Maybe
             .fromOptional(exchangeController)
-            .flatMap(controller -> controller.channelsMetric(integrationId).toList().toMaybe())
-            .map(metrics -> {
-                if (metrics.isEmpty()) {
-                    return Status.DISCONNECTED;
-                }
-                return Status.CONNECTED;
-            })
+            .flatMap(controller -> controller.channelsMetricsForTarget(integrationId).toList().toMaybe())
+            .map(metrics -> metrics != null && metrics.stream().anyMatch(ChannelMetric::active) ? Status.CONNECTED : Status.DISCONNECTED)
             .switchIfEmpty(Single.just(Status.DISCONNECTED));
     }
 

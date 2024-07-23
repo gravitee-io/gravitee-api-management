@@ -103,15 +103,33 @@ class IntegrationAgentImplTest {
     class GetAgentStatus {
 
         @Test
-        void should_return_connected_when_channel_metrics_exist() {
-            when(controller.channelsMetric(INTEGRATION_ID)).thenReturn(Flowable.just(new ChannelMetric("c1", true, false, true)));
+        void should_return_connected_when_an_active_channel_exist() {
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
+                .thenReturn(Flowable.just(ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(true).primary(true).build()));
 
             agent.getAgentStatusFor(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertValue(IntegrationAgent.Status.CONNECTED);
         }
 
         @Test
+        void should_return_disconnected_when_no_active_channel_exist() {
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
+                .thenReturn(
+                    Flowable.just(
+                        ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(false).primary(false).build(),
+                        ChannelMetric.builder().id("c2").targetId(INTEGRATION_ID).active(false).primary(false).build()
+                    )
+                );
+
+            agent
+                .getAgentStatusFor(INTEGRATION_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(IntegrationAgent.Status.DISCONNECTED);
+        }
+
+        @Test
         void should_return_disconnected_when_no_channel_metrics_exist() {
-            when(controller.channelsMetric(INTEGRATION_ID)).thenReturn(Flowable.empty());
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(Flowable.empty());
 
             agent
                 .getAgentStatusFor(INTEGRATION_ID)
