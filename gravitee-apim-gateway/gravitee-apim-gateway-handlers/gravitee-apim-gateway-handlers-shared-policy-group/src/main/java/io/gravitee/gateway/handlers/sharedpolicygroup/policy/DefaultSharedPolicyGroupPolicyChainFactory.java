@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.policy;
+package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -31,31 +29,25 @@ import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
-import io.netty.util.internal.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * {@link PolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link PolicyChain} thanks to a cache.
- *
- * <b>WARNING</b>: this factory must absolutely be created per api to ensure proper cache destruction when deploying / un-deploying the api.
- *
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class DefaultPolicyChainFactory implements PolicyChainFactory {
+@Slf4j
+public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyGroupPolicyChainFactory {
 
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
-    private static final String ID_SEPARATOR = "-";
     protected final List<Hook> policyHooks = new ArrayList<>();
     protected final PolicyManager policyManager;
     protected final Cache<String, PolicyChain> policyChains;
 
-    public DefaultPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
+    public DefaultSharedPolicyGroupPolicyChainFactory(
+        final String id,
+        final PolicyManager policyManager,
+        final Configuration configuration
+    ) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration
@@ -76,23 +68,27 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     }
 
     @Override
-    public PolicyChain create(final String flowChainId, Flow flow, ExecutionPhase phase) {
-        final String key = getFlowKey(flow, phase);
+    public PolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
+        final String key = getSharedPolicyGroupKey(sharedPolicyGroupPolicyId, environmentId, steps, phase);
         PolicyChain policyChain = policyChains.get(key);
 
         if (policyChain == null) {
-            final List<Step> steps = getSteps(flow, phase);
-
             final List<Policy> policies = steps
                 .stream()
                 .filter(Step::isEnabled)
+                .filter(step -> {
+                    final boolean hasNestedSharedPolicyGroup = step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID);
+                    if (hasNestedSharedPolicyGroup) {
+                        log.warn("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored", step.getName());
+                    }
+                    return !hasNestedSharedPolicyGroup;
+                })
                 .map(this::buildPolicyMetadata)
                 .map(policyMetadata -> policyManager.create(phase, policyMetadata))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
 
-            String policyChainId = getFlowId(flowChainId, flow);
-            policyChain = new PolicyChain(policyChainId, policies, phase);
+            policyChain = new PolicyChain(sharedPolicyGroupPolicyId, policies, phase);
             policyChain.addHooks(policyHooks);
             policyChains.put(key, policyChain);
         }
@@ -107,44 +103,13 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         return policyMetadata;
     }
 
-    protected List<Step> getSteps(Flow flow, ExecutionPhase phase) {
-        final List<Step> steps;
-
-        switch (phase) {
-            case REQUEST:
-                steps = flow.getRequest();
-                break;
-            case RESPONSE:
-                steps = flow.getResponse();
-                break;
-            default:
-                steps = new ArrayList<>();
-        }
-
-        return steps != null ? steps : new ArrayList<>();
-    }
-
-    private String getFlowKey(Flow flow, ExecutionPhase phase) {
-        return flow.hashCode() + "-" + phase.name();
-    }
-
-    private String getFlowId(final String flowChainId, final Flow flow) {
-        StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
-        if (StringUtil.isNullOrEmpty(flow.getName())) {
-            flow
-                .selectorByType(SelectorType.HTTP)
-                .map(HttpSelector.class::cast)
-                .ifPresent(httpSelector -> {
-                    if (httpSelector.getMethods() == null || httpSelector.getMethods().isEmpty()) {
-                        flowNameBuilder.append("ALL").append(ID_SEPARATOR);
-                    } else {
-                        httpSelector.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
-                    }
-                    flowNameBuilder.append(httpSelector.getPath());
-                });
-        } else {
-            flowNameBuilder.append(flow.getName());
-        }
-        return flowNameBuilder.toString().toLowerCase(Locale.ROOT);
+    @VisibleForTesting
+    protected String getSharedPolicyGroupKey(
+        String sharedPolicyGroupPolicyId,
+        String environmentId,
+        List<Step> steps,
+        ExecutionPhase phase
+    ) {
+        return "shared-policy-group-" + sharedPolicyGroupPolicyId + "-" + environmentId + "-" + phase + "-" + steps.hashCode();
     }
 }
