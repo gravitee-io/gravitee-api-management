@@ -58,11 +58,6 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     }
 
     @Override
-    public Flowable<IntegrationApi> fetchAllApis(Integration integration) {
-        return Flowable.fromIterable(storage).filter(asset -> asset.integrationId().equals(integration.getId()));
-    }
-
-    @Override
     public Single<IntegrationSubscription> subscribe(
         String integrationId,
         FederatedApi api,

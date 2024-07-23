@@ -102,25 +102,6 @@ public class IntegrationAgentImpl implements IntegrationAgent {
     }
 
     @Override
-    public Flowable<IntegrationApi> fetchAllApis(Integration integration) {
-        var targetId = integration.getId();
-        var command = new IngestCommand(new IngestCommandPayload(List.of()));
-
-        log.debug("Fetch all assets for [integrationId={}]", targetId);
-        return sendIngestCommand(command, targetId)
-            .toFlowable()
-            .flatMap(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    log.debug("Received apis for [integrationId={}] [total={}]", targetId, reply.getPayload().apis().size());
-                    return Flowable
-                        .fromIterable(reply.getPayload().apis())
-                        .map(api -> IntegrationAdapter.INSTANCE.map(api, integration.getId()));
-                }
-                return Flowable.error(new IntegrationIngestionException(reply.getErrorDetails()));
-            });
-    }
-
-    @Override
     public Single<IntegrationSubscription> subscribe(
         String integrationId,
         FederatedApi api,
