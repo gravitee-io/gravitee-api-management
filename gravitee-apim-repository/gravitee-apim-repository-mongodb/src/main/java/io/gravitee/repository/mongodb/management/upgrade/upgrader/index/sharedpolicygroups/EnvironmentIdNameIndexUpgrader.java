@@ -22,15 +22,16 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("NameIndexUpgrader")
-public class NameIndexUpgrader extends IndexUpgrader {
+@Component("EnvironmentIdNameIndexUpgrader")
+public class EnvironmentIdNameIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
             .collection("sharedpolicygroups")
-            .name("n1")
+            .name("e1n1")
+            .key("environmentId", ascending())
             .key("name", ascending())
             .build();
     }
