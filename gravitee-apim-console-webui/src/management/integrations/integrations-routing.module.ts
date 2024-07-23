@@ -23,6 +23,7 @@ import { IntegrationsNavigationComponent } from './integrations-navigation/integ
 import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
+import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
 
 import { hasEnterpriseLicenseGuard } from '../../shared/components/gio-license/has-enterprise-license.guard';
 
@@ -49,6 +50,15 @@ const routes: Routes = [
       {
         path: '',
         component: IntegrationOverviewComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-integration-r'],
+          },
+        },
+      },
+      {
+        path: 'discover',
+        component: DiscoveryPreviewComponent,
         data: {
           permissions: {
             anyOf: ['environment-integration-r'],

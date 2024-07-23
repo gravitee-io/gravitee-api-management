@@ -16,7 +16,7 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -37,7 +37,9 @@ import {
   GioSubmenuModule,
   GioSaveBarModule,
   GioLicenseModule,
+  GioFormSlideToggleModule,
 } from '@gravitee/ui-particles-angular';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
@@ -48,6 +50,7 @@ import { IntegrationsNavigationComponent } from './integrations-navigation/integ
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
 import { IntegrationStatusComponent } from './integration-status/integration-status.component';
+import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -61,11 +64,13 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationConfigurationComponent,
     IntegrationAgentComponent,
     IntegrationStatusComponent,
+    DiscoveryPreviewComponent,
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     MatCard,
+    MatCardTitle,
     MatCardHeader,
     MatCardContent,
     MatIcon,
@@ -104,6 +109,8 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     CdkAccordionItem,
     MapProviderNamePipe,
     GioLicenseModule,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
