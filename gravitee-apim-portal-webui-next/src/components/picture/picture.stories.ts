@@ -15,13 +15,13 @@
  */
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
-import { ApiPictureComponent } from './api-picture.component';
+import { PictureComponent } from './picture.component';
 
 export default {
-  title: 'API Picture',
+  title: 'Picture',
   decorators: [
     moduleMetadata({
-      imports: [ApiPictureComponent],
+      imports: [PictureComponent],
     }),
   ],
   render: () => ({}),
@@ -32,11 +32,11 @@ export const ApiPicture: StoryObj = {
     template: `
         <div>
           <h3>Generated API Picture</h3>
-          <app-api-picture name="pic-does-not-exist" version="1.2" picture="pic-does-not-exist" size="100"></app-api-picture>
+          <app-picture hashValue="pic-does-not-exist 1.2" picture="pic-does-not-exist" size="100"></app-picture>
           <br />
           <br />
           <h3>Found API Picture</h3>
-          <app-api-picture name="name" version="1.2" picture="images/logo.png" size="100"></app-api-picture>
+          <app-picture hashValue="name 1.2" picture="images/logo.png" size="100"></app-picture>
         </div>
         `,
     styles: [
