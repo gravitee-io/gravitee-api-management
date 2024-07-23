@@ -72,7 +72,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
         Command updatedCommand = commandRepository.update(command);
 
         assertEquals("id", command.getId(), updatedCommand.getId());
-        assertEquals("environmment id.", command.getEnvironmentId(), updatedCommand.getEnvironmentId());
+        assertEquals("environment id.", command.getEnvironmentId(), updatedCommand.getEnvironmentId());
         assertEquals("organization id.", command.getOrganizationId(), updatedCommand.getOrganizationId());
         assertEquals("to", command.getTo(), updatedCommand.getTo());
         assertEquals("from", command.getFrom(), updatedCommand.getFrom());
