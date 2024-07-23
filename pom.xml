@@ -59,10 +59,10 @@
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>8.1.0</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
-        <gravitee-cockpit-api.version>3.0.45</gravitee-cockpit-api.version>
+        <gravitee-cockpit-api.version>3.0.46</gravitee-cockpit-api.version>
         <gravitee-common.version>4.4.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
-        <gravitee-exchange.version>1.7.4</gravitee-exchange.version>
+        <gravitee-exchange.version>1.7.5</gravitee-exchange.version>
         <gravitee-expression-language.version>3.2.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.5.0</gravitee-gateway-api.version>
@@ -236,7 +236,7 @@
         <gravitee-resource-content-provider-inline.version>1.0.0-alpha.5</gravitee-resource-content-provider-inline.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
         <!-- Management API Only -->
-        <gravitee-cockpit-connectors-ws.version>5.0.20</gravitee-cockpit-connectors-ws.version>
+        <gravitee-cockpit-connectors-ws.version>5.0.26</gravitee-cockpit-connectors-ws.version>
         <gravitee-fetcher-bitbucket.version>2.0.1</gravitee-fetcher-bitbucket.version>
         <gravitee-fetcher-git.version>2.0.0</gravitee-fetcher-git.version>
         <gravitee-fetcher-github.version>2.0.1</gravitee-fetcher-github.version>
