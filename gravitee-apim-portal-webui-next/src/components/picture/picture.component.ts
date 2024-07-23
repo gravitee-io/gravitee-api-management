@@ -17,7 +17,7 @@ import { Component, Input } from '@angular/core';
 import { toSvg } from 'jdenticon';
 
 @Component({
-  selector: 'app-api-picture',
+  selector: 'app-picture',
   standalone: true,
   imports: [],
   template: `
@@ -31,20 +31,18 @@ import { toSvg } from 'jdenticon';
       (error)="useGeneratedPicture()"
       placeholder="assets/images/logo.png" />
   `,
-  styleUrl: './api-picture.component.scss',
+  styleUrl: './picture.component.scss',
 })
-export class ApiPictureComponent {
-  @Input({ required: true })
-  name!: string;
-  @Input({ required: true })
-  version!: string;
+export class PictureComponent {
+  @Input()
+  hashValue!: string;
   @Input()
   picture: string | undefined = 'assets/images/logo.png';
   @Input()
   size: number = 40;
 
   useGeneratedPicture() {
-    const asSvg = toSvg(`${this.name} ${this.version}`, this.size, { backColor: '#FFF', padding: 0 });
+    const asSvg = toSvg(this.hashValue, this.size, { backColor: '#FFF', padding: 0 });
     const encodedToBase64 = window.btoa(asSvg);
     this.picture = `data:image/svg+xml;base64,${encodedToBase64}`;
   }
