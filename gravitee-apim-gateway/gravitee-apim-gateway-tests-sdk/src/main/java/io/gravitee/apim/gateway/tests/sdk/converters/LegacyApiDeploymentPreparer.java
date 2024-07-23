@@ -16,7 +16,6 @@
 package io.gravitee.apim.gateway.tests.sdk.converters;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -29,8 +28,10 @@ import java.util.Collections;
 public class LegacyApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
     @Override
-    public ReactableApi<Api> toReactable(Api definition) {
-        return new io.gravitee.gateway.handlers.api.definition.Api(definition);
+    public ReactableApi<Api> toReactable(Api definition, String environmentId) {
+        final io.gravitee.gateway.handlers.api.definition.Api api = new io.gravitee.gateway.handlers.api.definition.Api(definition);
+        api.setEnvironmentId(environmentId);
+        return api;
     }
 
     @Override

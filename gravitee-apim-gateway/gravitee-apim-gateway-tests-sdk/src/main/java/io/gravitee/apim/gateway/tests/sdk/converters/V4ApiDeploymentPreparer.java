@@ -32,8 +32,10 @@ import org.junit.platform.commons.PreconditionViolationException;
 public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
     @Override
-    public ReactableApi<Api> toReactable(Api definition) {
-        return new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
+    public ReactableApi<Api> toReactable(Api definition, String environmentId) {
+        final io.gravitee.gateway.reactive.handlers.api.v4.Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
+        api.setEnvironmentId(environmentId);
+        return api;
     }
 
     @Override
