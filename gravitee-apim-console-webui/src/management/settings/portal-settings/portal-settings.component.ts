@@ -174,6 +174,7 @@ export class PortalSettingsComponent implements OnInit {
   ];
   hasEnterpriseLicense$: Observable<boolean> = of(false);
   portalUrl: string = undefined;
+  environmentRootRouterLink: string;
 
   constructor(
     private readonly portalSettingsService: PortalSettingsService,
@@ -187,6 +188,7 @@ export class PortalSettingsComponent implements OnInit {
   public ngOnInit() {
     this.isLoadingData = true;
     this.hasEnterpriseLicense$ = this.licenseService.getLicense$().pipe(map((license) => license.tier !== 'oss'));
+    this.environmentRootRouterLink = '/' + this.constants.org.currentEnv.id;
 
     combineLatest([this.portalSettingsService.get()])
       .pipe(
