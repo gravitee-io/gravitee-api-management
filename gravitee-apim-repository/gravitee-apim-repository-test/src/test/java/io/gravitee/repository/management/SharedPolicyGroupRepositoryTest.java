@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
@@ -173,7 +174,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void should_search_with_no_criteria() throws TechnicalException {
         final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").build();
 
-        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat(page.getTotalElements()).isEqualTo(13);
@@ -183,7 +184,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void should_search_with_name_criteria() throws TechnicalException {
         final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("search_test").build();
 
-        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat(page.getTotalElements()).isEqualTo(10);
@@ -193,7 +194,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void should_search_page_2() throws TechnicalException {
         final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("search_test").build();
 
-        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(2).pageSize(2).build());
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(2).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 4");
@@ -205,7 +206,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void should_search_with_no_result() throws TechnicalException {
         final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("unknown").build();
 
-        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isEqualTo(0);
@@ -215,9 +216,25 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void should_search_with_unknown_environment() throws TechnicalException {
         final var criteria = SharedPolicyGroupCriteria.builder().environmentId("unknown").name("search_test").build();
 
-        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void should_search_with_sortable() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("search_test").build();
+
+        final var page = sharedPolicyGroupRepository.search(
+            criteria,
+            new PageableBuilder().pageNumber(0).pageSize(2).build(),
+            new SortableBuilder().field("name").setAsc(false).build()
+        );
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).hasSize(2);
+        assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 9");
+        assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 8");
+        assertThat(page.getTotalElements()).isEqualTo(10);
     }
 }

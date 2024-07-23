@@ -17,6 +17,7 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static java.lang.String.format;
 
 import io.gravitee.common.data.domain.Page;
@@ -24,8 +25,11 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.sql.Types;
@@ -101,14 +105,16 @@ public class JdbcSharedPolicyGroupRepository
     }
 
     @Override
-    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException {
+    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
         LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
-            var name = criteria.getName() == null ? "%" : "%" + criteria.getName() + "%";
+            final var name = criteria.getName() == null ? "%" : "%" + criteria.getName() + "%";
+
             var total = jdbcTemplate.queryForObject(
                 "select count(*) from " + this.tableName + " WHERE environment_id = ? AND lower(name) like ?",
                 Long.class,
@@ -120,9 +126,18 @@ public class JdbcSharedPolicyGroupRepository
                 return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
             }
 
+            sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
+            final var sortOrder = sortable.order() == Order.ASC ? "ASC" : "DESC";
+            final var sortField = toSnakeCase(sortable.field());
+
             var result = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " WHERE environment_id = ? AND lower(name) like ? ORDER BY created_at ASC " +
+                " WHERE environment_id = ? AND lower(name) like ? ORDER BY" +
+                " " +
+                sortField +
+                " " +
+                sortOrder +
+                " " +
                 createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
                 criteria.getEnvironmentId(),
