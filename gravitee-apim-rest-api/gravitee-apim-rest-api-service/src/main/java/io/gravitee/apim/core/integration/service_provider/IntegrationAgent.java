@@ -37,8 +37,6 @@ public interface IntegrationAgent {
 
     Single<IngestStarted> startIngest(String integrationId, String ingestJobId);
 
-    Flowable<IntegrationApi> fetchAllApis(Integration integration);
-
     /**
      * Send Subscription command to Agent.
      * @param integrationId The Integration id.
