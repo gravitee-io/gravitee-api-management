@@ -25,9 +25,9 @@ import { catchError, map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../../components/api-card/api-card.component';
-import { ApiPictureComponent } from '../../../components/api-picture/api-picture.component';
 import { BannerComponent } from '../../../components/banner/banner.component';
 import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
+import { PictureComponent } from '../../../components/picture/picture.component';
 import { Api } from '../../../entities/api/api';
 import { Plan } from '../../../entities/plan/plan';
 import { CurrentUserService } from '../../../services/current-user.service';
@@ -38,7 +38,7 @@ import { PlanService } from '../../../services/plan.service';
   standalone: true,
   imports: [
     ApiCardComponent,
-    ApiPictureComponent,
+    PictureComponent,
     MatButton,
     MatCardModule,
     BannerComponent,
