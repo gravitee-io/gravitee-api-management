@@ -6,6 +6,7 @@
   },
   "pages": [
     {
+      "id": "root-page",
       "type": "ROOT",
       "published": true,
       "visibility": "PUBLIC",
@@ -23,6 +24,14 @@
           "fetchCron": "*/5 * * * * *"
         }
       }
+    },
+    {
+      "id": "markdown-page",
+      "name": "simple-markdown",
+      "type": "MARKDOWN",
+      "published": true,
+      "visibility": "PUBLIC",
+      "content": "Simple markdown"
     }
   ]
 }

@@ -827,7 +827,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private void importKubernetesPages(ExecutionContext executionContext, String apiId, List<PageEntity> pages) {
         deleteRemovedPages(executionContext, apiId, pages);
         var rootPages = pages.stream().filter(PageEntity::isRoot).toList();
-        importKubernetesRootPages(executionContext, apiId, pages);
+        importKubernetesRootPages(executionContext, apiId, rootPages);
         pages.removeAll(rootPages);
         pageService.createOrUpdatePages(executionContext, pages, apiId);
     }
