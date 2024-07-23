@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Subscription, SubscriptionStatusEnum } from '../entities/subscription/subscription';
+import { CreateSubscription, Subscription, SubscriptionStatusEnum } from '../entities/subscription/subscription';
 import { SubscriptionsResponse } from '../entities/subscription/subscriptions-response';
 
 @Injectable({
@@ -49,5 +49,9 @@ export class SubscriptionService {
 
   get(subscriptionId: string): Observable<Subscription> {
     return this.http.get<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}?include=keys`);
+  }
+
+  subscribe(createSubscription: CreateSubscription): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.configService.baseURL}/subscriptions`, createSubscription);
   }
 }

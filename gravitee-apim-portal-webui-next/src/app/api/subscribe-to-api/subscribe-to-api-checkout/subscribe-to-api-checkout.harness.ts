@@ -13,42 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
-:host {
-  display: flex;
-  flex-flow: column;
-  gap: 24px;
-}
+export class SubscribeToApiCheckoutHarness extends ComponentHarness {
+  public static hostSelector = 'app-subscribe-to-api-checkout';
+  protected locateInput = this.locatorFor(MatInputHarness);
 
-.no-applications {
-  display: flex;
-  flex-flow: column;
-  align-items: center;
-  padding: 56px 0;
-  gap: 8px;
-}
-
-.applications {
-  display: grid;
-  margin-top: 30px;
-  gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  &__description {
-    display: -webkit-box;
-    overflow: hidden;
-    max-height: 98px;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
+  public async getMessageInput(): Promise<MatInputHarness> {
+    return await this.locateInput();
   }
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
 }
