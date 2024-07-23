@@ -18,7 +18,7 @@
 <mat-card class="api-card" appearance="outlined">
   <mat-card-content class="api-card__content">
     <div class="api-card__header">
-      <app-api-picture [picture]="picture" [name]="title" [version]="version" [size]="40" />
+      <app-picture [picture]="picture" [hashValue]="title + ' ' + version" [size]="40" />
       <div class="api-card__header__content">
         <div class="m3-title-medium">{{ title }}</div>
         <div class="m3-body-medium"><span i18n="@@apiVersion">Version: </span>{{ version }}</div>
