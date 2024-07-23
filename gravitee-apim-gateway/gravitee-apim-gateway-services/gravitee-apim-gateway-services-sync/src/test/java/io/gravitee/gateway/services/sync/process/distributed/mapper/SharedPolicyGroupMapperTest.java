@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.reactive.reactor.environmentflow.ReactableEnvironmentFlow;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -35,29 +35,29 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class EnvironmentFlowMapperTest {
+class SharedPolicyGroupMapperTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
-    private EnvironmentFlowMapper cut;
+    private SharedPolicyGroupMapper cut;
 
     @BeforeEach
     void setUp() {
-        cut = new EnvironmentFlowMapper(objectMapper);
+        cut = new SharedPolicyGroupMapper(objectMapper);
     }
 
     @SneakyThrows
     @Test
-    void should_return_distributed_environment_flow_event() {
-        ReactableEnvironmentFlow reactableEnvironmentFlow = new ReactableEnvironmentFlow();
-        reactableEnvironmentFlow.setId("env-flow-id");
-        reactableEnvironmentFlow.setName("env-flow-name");
+    void should_return_distributed_shared_policy_group_event() {
+        ReactableSharedPolicyGroup reactableSharedPolicyGroup = new ReactableSharedPolicyGroup();
+        reactableSharedPolicyGroup.setId("env-flow-id");
+        reactableSharedPolicyGroup.setName("env-flow-name");
         final DistributedEvent distributedEvent = DistributedEvent
             .builder()
             .id("env-flow-id")
-            .payload(objectMapper.writeValueAsString(reactableEnvironmentFlow))
+            .payload(objectMapper.writeValueAsString(reactableSharedPolicyGroup))
             .updatedAt(new Date())
-            .type(DistributedEventType.ENVIRONMENT_FLOW)
+            .type(DistributedEventType.SHARED_POLICY_GROUP)
             .syncAction(DistributedSyncAction.DEPLOY)
             .build();
 
@@ -65,8 +65,8 @@ class EnvironmentFlowMapperTest {
             .to(distributedEvent)
             .test()
             .assertValue(result -> {
-                assertThat(result.environmentFlowId()).isEqualTo("env-flow-id");
-                assertThat(result.reactableEnvironmentFlow())
+                assertThat(result.sharedPolicyGroupId()).isEqualTo("env-flow-id");
+                assertThat(result.reactableSharedPolicyGroup())
                     .satisfies(reactable -> {
                         assertThat(reactable.getId()).isEqualTo("env-flow-id");
                         assertThat(reactable.getName()).isEqualTo("env-flow-name");

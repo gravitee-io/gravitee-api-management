@@ -22,7 +22,7 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.handlers.environmentflow.manager.EnvironmentFlowManager;
+import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
@@ -62,7 +62,7 @@ public class DeployerFactory {
 
     private final AccessPointManager accessPointManager;
 
-    private final EnvironmentFlowManager environmentFlowManager;
+    private final SharedPolicyGroupManager sharedPolicyGroupManager;
 
     private final DistributedSyncService distributedSyncService;
 
@@ -105,7 +105,7 @@ public class DeployerFactory {
         return new AccessPointDeployer(accessPointManager, distributedSyncService);
     }
 
-    public EnvironmentFlowDeployer createEnvironmentFlowDeployer() {
-        return new EnvironmentFlowDeployer(environmentFlowManager, distributedSyncService);
+    public SharedPolicyGroupDeployer createSharedPolicyGroupDeployer() {
+        return new SharedPolicyGroupDeployer(sharedPolicyGroupManager, distributedSyncService);
     }
 }

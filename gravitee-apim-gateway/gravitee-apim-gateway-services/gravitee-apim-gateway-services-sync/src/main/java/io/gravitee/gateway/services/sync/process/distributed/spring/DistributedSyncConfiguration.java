@@ -24,18 +24,18 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
-import io.gravitee.gateway.services.sync.process.distributed.synchronizer.environmentflow.api.DistributedEnvironmentFlowSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization.DistributedOrganizationSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.sharedpolicygroup.DistributedSharedPolicyGroupSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription.DistributedSubscriptionSynchronizer;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -88,8 +88,8 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public EnvironmentFlowMapper distributedEnvironmentFlowMapper(ObjectMapper objectMapper) {
-        return new EnvironmentFlowMapper(objectMapper);
+    public SharedPolicyGroupMapper distributedDharedPolicyGroupMapper(ObjectMapper objectMapper) {
+        return new SharedPolicyGroupMapper(objectMapper);
     }
 
     @Bean
@@ -225,19 +225,19 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public DistributedEnvironmentFlowSynchronizer distributedEnvironmentFlowSynchronizer(
+    public DistributedSharedPolicyGroupSynchronizer distributedSharedPolicyGroupSynchronizer(
         DistributedEventFetcher distributedEventFetcher,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
         DeployerFactory deployerFactory,
-        EnvironmentFlowMapper environmentFlowMapper
+        SharedPolicyGroupMapper sharedPolicyGroupMapper
     ) {
-        return new DistributedEnvironmentFlowSynchronizer(
+        return new DistributedSharedPolicyGroupSynchronizer(
             distributedEventFetcher,
             syncFetcherExecutor,
             syncDeployerExecutor,
             deployerFactory,
-            environmentFlowMapper
+            sharedPolicyGroupMapper
         );
     }
 
@@ -255,7 +255,7 @@ public class DistributedSyncConfiguration {
         final DictionaryMapper dictionaryMapper,
         final LicenseMapper licenseMapper,
         final AccessPointMapper accessPointMapper,
-        final EnvironmentFlowMapper environmentFlowMapper
+        final SharedPolicyGroupMapper sharedPolicyGroupMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -270,7 +270,7 @@ public class DistributedSyncConfiguration {
             dictionaryMapper,
             licenseMapper,
             accessPointMapper,
-            environmentFlowMapper
+            sharedPolicyGroupMapper
         );
     }
 }

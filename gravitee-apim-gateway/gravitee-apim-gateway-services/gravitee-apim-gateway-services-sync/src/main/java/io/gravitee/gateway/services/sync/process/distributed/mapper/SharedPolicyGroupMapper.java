@@ -16,9 +16,9 @@
 package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.reactive.reactor.environmentflow.ReactableEnvironmentFlow;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Flowable;
@@ -33,50 +33,50 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor
 @Slf4j
-public class EnvironmentFlowMapper {
+public class SharedPolicyGroupMapper {
 
     private final ObjectMapper objectMapper;
 
-    public Maybe<EnvironmentFlowReactorDeployable> to(final DistributedEvent event) {
+    public Maybe<SharedPolicyGroupReactorDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
             try {
-                ReactableEnvironmentFlow reactableEnvironmentFlow = objectMapper.readValue(
+                ReactableSharedPolicyGroup reactableSharedPolicyGroup = objectMapper.readValue(
                     event.getPayload(),
-                    ReactableEnvironmentFlow.class
+                    ReactableSharedPolicyGroup.class
                 );
 
-                return EnvironmentFlowReactorDeployable
+                return SharedPolicyGroupReactorDeployable
                     .builder()
-                    .environmentFlowId(event.getId())
-                    .reactableEnvironmentFlow(reactableEnvironmentFlow)
+                    .sharedPolicyGroupId(event.getId())
+                    .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while determining environment flow into event payload", e);
+                log.warn("Error while determining shared policy group into event payload", e);
                 return null;
             }
         });
     }
 
-    public Flowable<DistributedEvent> to(final EnvironmentFlowReactorDeployable deployable) {
-        return Flowable.concatArray(toEnvironmentFlowDistributedEvent(deployable));
+    public Flowable<DistributedEvent> to(final SharedPolicyGroupReactorDeployable deployable) {
+        return Flowable.concatArray(toSharedPolicyGroupDistributedEvent(deployable));
     }
 
-    private Flowable<DistributedEvent> toEnvironmentFlowDistributedEvent(final EnvironmentFlowReactorDeployable deployable) {
+    private Flowable<DistributedEvent> toSharedPolicyGroupDistributedEvent(final SharedPolicyGroupReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
             try {
                 DistributedEvent.DistributedEventBuilder builder = DistributedEvent
                     .builder()
                     .id(deployable.id())
-                    .type(DistributedEventType.ENVIRONMENT_FLOW)
+                    .type(DistributedEventType.SHARED_POLICY_GROUP)
                     .syncAction(SyncActionMapper.to(deployable.syncAction()))
                     .updatedAt(new Date());
                 if (deployable.syncAction() == SyncAction.DEPLOY) {
-                    builder.payload(objectMapper.writeValueAsString(deployable.reactableEnvironmentFlow()));
+                    builder.payload(objectMapper.writeValueAsString(deployable.reactableSharedPolicyGroup()));
                 }
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from environment flow reactor", e);
+                log.warn("Error while building distributed event from shared policy group reactor", e);
                 return null;
             }
         });

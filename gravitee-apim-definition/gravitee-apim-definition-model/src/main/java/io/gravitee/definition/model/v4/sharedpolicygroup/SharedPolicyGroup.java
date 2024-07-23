@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.environmentflow;
+package io.gravitee.definition.model.v4.sharedpolicygroup;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
-import java.util.EnumSet;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,11 +42,15 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Builder(toBuilder = true)
-public class EnvironmentFlow implements Serializable {
+public class SharedPolicyGroup implements Serializable {
 
     @JsonProperty(required = true)
     @NotBlank
     private String id;
+
+    @JsonProperty(required = true)
+    @NotBlank
+    private String environmentId;
 
     @JsonProperty(required = true)
     @NotBlank
@@ -59,7 +62,7 @@ public class EnvironmentFlow implements Serializable {
 
     @JsonProperty(required = true)
     @NotBlank
-    private EnumSet<Phase> phase;
+    private Phase phase;
 
     @Valid
     private List<Step> policies;

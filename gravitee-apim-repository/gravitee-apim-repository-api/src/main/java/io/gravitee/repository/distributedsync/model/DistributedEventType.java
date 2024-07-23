@@ -23,5 +23,5 @@ public enum DistributedEventType {
     API_KEY,
     LICENSE,
     ACCESS_POINT,
-    ENVIRONMENT_FLOW,
+    SHARED_POLICY_GROUP,
 }
