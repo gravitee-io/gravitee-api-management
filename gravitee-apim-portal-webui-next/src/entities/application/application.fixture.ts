@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { Application } from './application';
+import { Application, ApplicationsResponse } from './application';
 
 export function fakeApplication(modifier?: Partial<Application> | ((baseApplication: Application) => Application)): Application {
   const base: Application = {
@@ -74,6 +74,33 @@ export function fakeApplication(modifier?: Partial<Application> | ((baseApplicat
       background:
         'https://apim-master-api.team-apim.gravitee.dev/portal/environments/DEFAULT/applications/b62f6e82-c39b-4edb-af6e-82c39b9edb46/background?1108291712',
     },
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+export function fakeApplicationsResponse(
+  modifier?: Partial<ApplicationsResponse> | ((baseApplication: ApplicationsResponse) => ApplicationsResponse),
+): ApplicationsResponse {
+  const base: ApplicationsResponse = {
+    data: [fakeApplication()],
+    metadata: {
+      pagination: {
+        current_page: 1,
+        first: 1,
+        last: 9,
+        size: 9,
+        total: 145,
+        total_pages: 17,
+      },
+    },
+    _links: {},
   };
 
   if (isFunction(modifier)) {

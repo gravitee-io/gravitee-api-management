@@ -26,5 +26,11 @@
     display: flex;
     justify-content: space-between;
     padding: 24px 16px;
+
+    &__next {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
   }
 }

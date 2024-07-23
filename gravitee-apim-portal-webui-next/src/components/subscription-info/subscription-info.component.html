@@ -57,10 +57,16 @@
       }
     </div>
 
-    @if (subscriptionStatus && planSecurity !== 'KEY_LESS') {
+    @if (planSecurity !== 'KEY_LESS') {
       <div class="subscription-info__content-row">
         <span class="m3-title-small" i18n="@@subscriptionDetailsSubscription">Subscription:</span>
-        <span class="m3-body-medium">{{ subscriptionStatus | capitalizeFirst }}</span>
+        @if (!!subscriptionStatus) {
+          <span class="m3-body-medium">{{ subscriptionStatus | capitalizeFirst }}</span>
+        } @else if (planValidation === 'MANUAL') {
+          <span class="m3-body-medium" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
+        } @else if (planValidation === 'AUTO') {
+          <span class="m3-body-medium" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
+        }
       </div>
     }
   </mat-card-content>

@@ -22,7 +22,7 @@
       [id]="plan.id"
       [plan]="plan"
       [selected]="selectedPlanId() === plan.id"
-      [disabled]="plan.security !== 'KEY_LESS'"
+      [disabled]="plan.security !== 'KEY_LESS' && plan.security !== 'API_KEY'"
       (selectPlan)="selectPlan.emit(plan)"></app-plan-card>
   }
 </div>
