@@ -56,6 +56,16 @@
           <button mat-raised-button color="basic" (click)="onRequestUpgrade()">Request upgrade</button>
         </div>
       </gio-banner-error>
+    } @else if (isFederationDisabled) {
+      <gio-banner-info class="module-disabled-banner">
+        <div>
+          Federation is disabled in this environment. To learn how to enable it, head to the
+          <a href="https://documentation.gravitee.io/apim/getting-started/install-and-upgrade-guides"
+            >Gravitee API Management installation guide</a
+          >
+          for the installation type you are using.
+        </div>
+      </gio-banner-info>
     }
   </div>
 

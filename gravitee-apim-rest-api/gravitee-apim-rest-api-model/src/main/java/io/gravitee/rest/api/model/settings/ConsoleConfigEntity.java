@@ -36,6 +36,7 @@ public class ConsoleConfigEntity {
     private AlertEngine alertEngine;
     private LicenseExpirationNotification licenseExpirationNotification;
     private TrialInstance trialInstance;
+    private Federation federation;
 
     public ConsoleConfigEntity() {
         super();
@@ -52,5 +53,6 @@ public class ConsoleConfigEntity {
         alertEngine = new AlertEngine();
         licenseExpirationNotification = new LicenseExpirationNotification();
         trialInstance = new TrialInstance();
+        federation = new Federation();
     }
 }

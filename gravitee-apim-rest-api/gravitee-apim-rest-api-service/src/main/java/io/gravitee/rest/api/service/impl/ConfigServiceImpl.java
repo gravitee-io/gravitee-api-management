@@ -484,6 +484,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getAlertEngine(),
             consoleConfigEntity.getLicenseExpirationNotification(),
             consoleConfigEntity.getTrialInstance(),
+            consoleConfigEntity.getFederation(),
         };
     }
 }
