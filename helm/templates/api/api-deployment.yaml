@@ -245,9 +245,11 @@ spec:
               readOnly: true
           {{- end }}
           {{- if .Values.cloud.enabled }}
+          {{ if or .Values.cloud.connector.ws.ssl.keystore.value .Values.cloud.connector.ws.ssl.truststore.value }}
             - name: gravitee-cloud-certificates
               mountPath: /opt/graviteeio-management-api/cloud
               readOnly: true
+          {{- end }}
           {{- end }}
           {{- with .Values.license }}
           {{- if .key }}
@@ -290,9 +292,11 @@ spec:
             secretName: {{ template "gravitee.api.fullname" . }}-cockpit-certificates
         {{- end }}
         {{- if .Values.cloud.enabled }}
+        {{ if or .Values.cloud.connector.ws.ssl.keystore.value .Values.cloud.connector.ws.ssl.truststore.value }}
         - name: gravitee-cloud-certificates
           secret:
             secretName: {{ template "gravitee.api.fullname" . }}-cloud-certificates
+        {{- end }}
         {{- end }}
         {{- with .Values.license }}
         {{- if .key }}
