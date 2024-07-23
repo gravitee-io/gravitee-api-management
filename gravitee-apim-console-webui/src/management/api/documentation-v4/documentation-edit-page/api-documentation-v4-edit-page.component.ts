@@ -181,6 +181,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
             .map((page) => page.name.toLowerCase().trim());
 
           this.groups = groupsResponse?.data ?? [];
+
+          if (this.isReadOnly) {
+            this.form.disable({ emitEvent: false });
+          }
         },
       });
 
