@@ -17,8 +17,11 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
+import io.gravitee.apim.core.theme.model.UpdateTheme;
 import io.gravitee.rest.api.management.v2.rest.model.ThemePortal;
 import io.gravitee.rest.api.management.v2.rest.model.ThemePortalNext;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateThemePortal;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateThemePortalNext;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -40,6 +43,14 @@ public interface ThemeMapper {
 
     List<io.gravitee.rest.api.management.v2.rest.model.Theme> map(List<Theme> themes);
 
+    @Mapping(source = "definition", target = "definitionPortal")
+    UpdateTheme map(UpdateThemePortal updateThemePortal);
+
+    @Mapping(target = "definitionPortalNext", source = "definition")
+    @Mapping(target = "definitionPortalNext.color.background.page", source = "definition.color.pageBackground")
+    @Mapping(target = "definitionPortalNext.color.background.card", source = "definition.color.cardBackground")
+    UpdateTheme map(UpdateThemePortalNext updateThemePortalNext);
+
     default io.gravitee.rest.api.management.v2.rest.model.Theme map(Theme theme) {
         if (ThemeType.PORTAL.equals(theme.getType())) {
             return new io.gravitee.rest.api.management.v2.rest.model.Theme(this.mapToThemePortal(theme));
@@ -47,6 +58,22 @@ public interface ThemeMapper {
         if (ThemeType.PORTAL_NEXT.equals(theme.getType())) {
             return new io.gravitee.rest.api.management.v2.rest.model.Theme(this.mapToThemePortalNext(theme));
         }
+        return null;
+    }
+
+    default UpdateTheme map(io.gravitee.rest.api.management.v2.rest.model.UpdateTheme updateTheme) {
+        try {
+            return this.map(updateTheme.getUpdateThemePortal());
+        } catch (ClassCastException e) {
+            // do nothing
+        }
+
+        try {
+            return this.map(updateTheme.getUpdateThemePortalNext());
+        } catch (ClassCastException e) {
+            // do nothing
+        }
+
         return null;
     }
 }
