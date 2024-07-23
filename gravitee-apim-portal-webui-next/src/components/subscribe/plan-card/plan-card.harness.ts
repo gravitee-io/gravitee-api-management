@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
-import { MatRadioButtonHarness } from '@angular/material/radio/testing';
+
+import { RadioCardHarness } from '../../radio-card/radio-card.harness';
 
 export class PlanCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-plan-card';
-  protected locateRadioBtn = this.locatorFor(MatRadioButtonHarness);
-  protected locateDisabledCard = this.locatorFor(MatCardHarness.with({ selector: '.disabled' }));
+  protected locateRadioCard = this.locatorFor(RadioCardHarness);
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<PlanCardHarness> {
     return new HarnessPredicate(PlanCardHarness, options);
   }
 
   public async isSelected(): Promise<boolean> {
-    return await this.locateRadioBtn().then(radioBtn => radioBtn.isChecked());
+    return await this.locateRadioCard().then(radioCard => radioCard.isSelected());
   }
 
   public async select(): Promise<void> {
-    return await this.locateRadioBtn().then(radioBtn => radioBtn.check());
+    return await this.locateRadioCard().then(radioCard => radioCard.select());
   }
 
   public async isDisabled(): Promise<boolean> {
-    return await this.locateDisabledCard()
-      .then(_ => true)
-      .catch(_ => false);
+    return await this.locateRadioCard().then(radioCard => radioCard.isDisabled());
   }
 }
