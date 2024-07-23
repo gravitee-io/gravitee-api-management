@@ -25,13 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
-import {
-  GioBannerModule,
-  GioFormTagsInputModule,
-  GioIconsModule,
-  GioFormSlideToggleModule,
-  GioFormJsonSchemaModule,
-} from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormTagsInputModule, GioIconsModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -42,6 +36,7 @@ import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit
 import { ApiPlanFormComponent } from './api-plan-form.component';
 
 import { GioSafePipeModule } from '../../../../shared/utils/safe.pipe.module';
+import { GioFormJsonSchemaExtendedModule } from '../../../../shared/components/form-json-schema-extended/form-json-schema-extended.module';
 
 @NgModule({
   declarations: [ApiPlanFormComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
@@ -62,11 +57,11 @@ import { GioSafePipeModule } from '../../../../shared/utils/safe.pipe.module';
     MatDividerModule,
     MatAutocompleteModule,
 
+    GioFormJsonSchemaExtendedModule,
     GioFormSlideToggleModule,
     GioFormTagsInputModule,
     GioIconsModule,
     GioBannerModule,
-    GioFormJsonSchemaModule,
     GioSafePipeModule,
   ],
 })

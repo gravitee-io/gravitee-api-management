@@ -21,9 +21,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { FormlyModule } from '@ngx-formly/core';
+import { FORMLY_CONFIG, FormlyModule } from '@ngx-formly/core';
 
 import { ResourceTypeComponent } from './resource-type.component';
 import { ResourceTypeService } from './resource-type.service';
@@ -32,7 +32,6 @@ import { GioSafePipeModule } from '../../utils/safe.pipe.module';
 
 @NgModule({
   declarations: [ResourceTypeComponent],
-  exports: [],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -43,18 +42,30 @@ import { GioSafePipeModule } from '../../utils/safe.pipe.module';
     MatInputModule,
     MatAutocompleteModule,
 
-    FormlyModule.forChild({
-      types: [
-        {
-          name: 'resource-type',
-          component: ResourceTypeComponent,
-        },
-      ],
-    }),
+    FormlyModule,
 
+    GioFormJsonSchemaModule,
     GioIconsModule,
     GioSafePipeModule,
   ],
-  providers: [ResourceTypeService],
+  exports: [GioFormJsonSchemaModule],
+  providers: [
+    ResourceTypeService,
+    {
+      provide: FORMLY_CONFIG,
+      useValue: {
+        types: [
+          {
+            name: 'resource-type',
+            component: ResourceTypeComponent,
+          },
+        ],
+      },
+      multi: true,
+    },
+  ],
 })
-export class SpecificJsonSchemaTypeModule {}
+/**
+ * Module to extend GioFormJsonSchemaModule with a custom formly types for APIM
+ */
+export class GioFormJsonSchemaExtendedModule {}

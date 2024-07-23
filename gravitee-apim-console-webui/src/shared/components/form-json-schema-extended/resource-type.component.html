@@ -36,7 +36,7 @@
     {{ hint }}
   </mat-hint>
 
-  <mat-hint *ngIf="resourceNotExist$ | async">
+  <mat-hint *ngIf="resourceNotExist$ | async" align="end">
     Resource does not exist. Please add it to the API for it to be taken into account.
   </mat-hint>
 </mat-form-field>

@@ -26,7 +26,7 @@ import { ResourceListItem } from '../../../../../entities/resource/resourceListI
 import { ApiFederated, ApiV2, ApiV4 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
-import { ResourceTypeService } from '../../../../../shared/components/specific-json-schema-type/resource-type.service';
+import { ResourceTypeService } from '../../../../../shared/components/form-json-schema-extended/resource-type.service';
 
 @Component({
   selector: 'plan-edit-secure-step',

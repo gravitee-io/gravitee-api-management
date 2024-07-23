@@ -22,7 +22,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
-import { GioFormJsonSchemaModule, GioMatConfigModule } from '@gravitee/ui-particles-angular';
+import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
@@ -34,7 +34,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
-import { SpecificJsonSchemaTypeModule } from './shared/components/specific-json-schema-type/specific-json-schema-type.module';
+import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-schema-extended/form-json-schema-extended.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -60,7 +60,7 @@ import { SpecificJsonSchemaTypeModule } from './shared/components/specific-json-
     AuthModule,
     GioSideNavModule,
     GioTopNavModule,
-    SpecificJsonSchemaTypeModule,
+    GioFormJsonSchemaExtendedModule,
   ],
   providers: [
     httpInterceptorProviders,
@@ -81,7 +81,7 @@ import { SpecificJsonSchemaTypeModule } from './shared/components/specific-json-
       useValue: true,
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
-    importProvidersFrom(GioFormJsonSchemaModule),
+    importProvidersFrom(GioFormJsonSchemaExtendedModule),
   ],
 })
 export class AppModule implements DoBootstrap {

@@ -22,7 +22,7 @@ import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material
 import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 
 import { Constants } from '../../entities/Constants';
-import { SpecificJsonSchemaTypeModule } from '../components/specific-json-schema-type/specific-json-schema-type.module';
+import { GioFormJsonSchemaExtendedModule } from '../components/form-json-schema-extended/form-json-schema-extended.module';
 
 export const CONSTANTS_TESTING: Constants = {
   org: {
@@ -60,7 +60,7 @@ export const CONSTANTS_TESTING: Constants = {
     RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
     MatIconTestingModule,
     MatMomentDateModule,
-    SpecificJsonSchemaTypeModule,
+    GioFormJsonSchemaExtendedModule,
   ],
   providers: [
     {
