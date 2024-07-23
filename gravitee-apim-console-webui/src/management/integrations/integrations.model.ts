@@ -92,9 +92,20 @@ export interface DeletedFederatedAPIsResponse {
   errors: number;
 }
 
+export enum IntegrationPreviewApisState {
+  NEW = 'NEW',
+  UPDATE = 'UPDATE',
+}
+
+export interface IntegrationPreviewApis {
+  id: string;
+  name: string;
+  state: IntegrationPreviewApisState;
+}
+
 export interface IntegrationPreview {
   totalCount: number;
   newCount: number;
   updateCount: number;
-  apis: { id: string; name: string; state: 'NEW' | 'UPDATE' }[];
+  apis: IntegrationPreviewApis[];
 }

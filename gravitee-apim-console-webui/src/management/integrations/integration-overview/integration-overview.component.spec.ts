@@ -22,7 +22,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 
@@ -117,103 +116,16 @@ describe('IntegrationOverviewComponent', () => {
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       expect(discoverBtn).toBeTruthy();
-      expect(discoverBtn.isDisabled()).toBeTruthy();
+      expect(await discoverBtn.isDisabled()).toBe(true);
     });
 
-    describe('when confirming', () => {
-      it('should handle a pending Ingestion Job', async () => {
-        expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
-        expectFederatedAPIsGetRequest();
-
-        const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-        await discoverBtn.click();
-        expectPreviewGetRequest();
-
-        const dialogHarness: GioConfirmDialogHarness =
-          await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-        await dialogHarness.confirm();
-
-        expectIngestPostRequest({
-          status: 'PENDING',
-        });
-        expect(fakeSnackBarService.success).toHaveBeenCalledWith('Federated APIs ingestion started');
-
-        const banner = await componentHarness.getPendingJobBanner().then((e) => e.text());
-        expect(banner).toContain('A discovery is in progress. The process should only take a few minutes to complete.');
-      });
-
-      it('should handle a completed Ingestion Job', async () => {
-        expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
-        expectFederatedAPIsGetRequest();
-
-        const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-        await discoverBtn.click();
-        expectPreviewGetRequest();
-
-        const dialogHarness: GioConfirmDialogHarness =
-          await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-        await dialogHarness.confirm();
-
-        expectIngestPostRequest({
-          status: 'SUCCESS',
-        });
-        expect(fakeSnackBarService.success).toHaveBeenCalledWith('Federated APIs ingestion completed');
-        expectFederatedAPIsGetRequest();
-      });
-
-      it('should handle a failed Ingestion Job', async () => {
-        expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
-        expectFederatedAPIsGetRequest();
-
-        const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-        await discoverBtn.click();
-        expectPreviewGetRequest();
-
-        const dialogHarness: GioConfirmDialogHarness =
-          await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-        await dialogHarness.confirm();
-
-        expectIngestPostRequest({
-          status: 'ERROR',
-          message: 'error message',
-        });
-        expect(fakeSnackBarService.error).toHaveBeenCalledWith('Federated APIs ingestion failed: error message');
-      });
-    });
-
-    it('should not call _ingest endpoint on cancel', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+    it('button should be active when agent "CONNECTED"', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
       expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-      await discoverBtn.click();
-      expectPreviewGetRequest();
-
-      const dialogHarness: GioConfirmDialogHarness =
-        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.cancel();
-
-      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
-    });
-
-    it('should handle error with message', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
-      expectFederatedAPIsGetRequest();
-
-      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-      await discoverBtn.click();
-      expectPreviewGetRequest();
-
-      const dialogHarness: GioConfirmDialogHarness =
-        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.confirm();
-
-      const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
-      req.flush({}, { status: 400, statusText: 'Bad Request' });
-
-      fixture.detectChanges();
-
-      expect(fakeSnackBarService.error).toHaveBeenCalledWith('Discovery error');
+      expect(discoverBtn).toBeTruthy();
+      expect(await discoverBtn.isDisabled()).toBe(false);
     });
   });
 
@@ -317,22 +229,10 @@ describe('IntegrationOverviewComponent', () => {
     });
   });
 
-  function expectPreviewGetRequest(totalCount = 10): void {
-    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_preview`);
-    req.flush({ totalCount });
-    expect(req.request.method).toEqual('GET');
-  }
-
   function expectIntegrationGetRequest(integrationMock: Integration = fakeIntegration()): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
     req.flush(integrationMock);
     expect(req.request.method).toEqual('GET');
-  }
-
-  function expectIngestPostRequest(res): void {
-    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
-    req.flush(res);
-    expect(req.request.method).toEqual('POST');
   }
 
   function expectFederatedAPIsGetRequest(

@@ -137,7 +137,7 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-        <!-- Row shown when there is no data -->
+        <!-- Row shown when loading -->
         <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
           <td *ngIf="isLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
             {{ 'Loading...' }}

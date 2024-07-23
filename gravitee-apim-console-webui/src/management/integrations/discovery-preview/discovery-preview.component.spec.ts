@@ -21,20 +21,27 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 
-import { IntegrationAgentComponent } from './integration-agent.component';
-import { IntegrationAgentHarness } from './integration-agent.harness';
+import { DiscoveryPreviewComponent } from './discovery-preview.component';
+import { DiscoveryPreviewHarness } from './discovery-preview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Integration } from '../integrations.model';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { fakeDiscoveryPreview } from '../../../entities/integrations/preview.fixture';
 
-describe('IntegrationAgentComponent', () => {
-  let fixture: ComponentFixture<IntegrationAgentComponent>;
-  let componentHarness: IntegrationAgentHarness;
+describe('DiscoveryPreviewComponent', () => {
+  let fixture: ComponentFixture<DiscoveryPreviewComponent>;
+  let componentHarness: DiscoveryPreviewHarness = null;
   let httpTestingController: HttpTestingController;
   const integrationId: string = 'TestTestTest123';
+
+  const fakeSnackBarService = {
+    error: jest.fn(),
+    success: jest.fn(),
+  };
 
   const init = async (
     permissions: GioTestingPermission = [
@@ -45,9 +52,13 @@ describe('IntegrationAgentComponent', () => {
     ],
   ): Promise<void> => {
     await TestBed.configureTestingModule({
-      declarations: [IntegrationAgentComponent],
+      declarations: [DiscoveryPreviewComponent],
       imports: [GioTestingModule, IntegrationsModule, BrowserAnimationsModule, NoopAnimationsModule],
       providers: [
+        {
+          provide: SnackBarService,
+          useValue: fakeSnackBarService,
+        },
         {
           provide: GioTestingPermissionProvider,
           useValue: permissions,
@@ -66,9 +77,9 @@ describe('IntegrationAgentComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(IntegrationAgentComponent);
+    fixture = TestBed.createComponent(DiscoveryPreviewComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationAgentHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DiscoveryPreviewHarness);
     fixture.detectChanges();
   };
 
@@ -76,24 +87,39 @@ describe('IntegrationAgentComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('refresh status', () => {
+  describe('DiscoveryPreviewComponent', () => {
     beforeEach(() => {
       init();
     });
 
-    it('should call backend for new status', async () => {
+    it('should display preview toggles with correct values', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectPreviewGetRequest(fakeDiscoveryPreview());
 
-      fixture.detectChanges();
+      const newItemsToggle = await componentHarness.getNewItemsToggle();
+      const updateItemsToggle = await componentHarness.getUpdateItemsToggle();
 
-      await componentHarness.refreshStatus();
+      expect(await newItemsToggle.isDisabled()).toBe(false);
+      expect(await updateItemsToggle.isDisabled()).toBe(true);
+    });
+
+    it('should display table with correct number of items', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectPreviewGetRequest(fakeDiscoveryPreview());
+
+      expect(await componentHarness.rowsNumber()).toEqual(3);
     });
   });
 
   function expectIntegrationGetRequest(integrationMock: Integration): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
     req.flush(integrationMock);
+    expect(req.request.method).toEqual('GET');
+  }
+
+  function expectPreviewGetRequest(preview = {}): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_preview`);
+    req.flush(preview);
     expect(req.request.method).toEqual('GET');
   }
 });

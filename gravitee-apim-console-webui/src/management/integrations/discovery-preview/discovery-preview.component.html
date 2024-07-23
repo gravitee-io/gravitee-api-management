@@ -1,0 +1,115 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-card>
+  <mat-card-content>
+    <div class="card-header">
+      <div class="card-header__title">
+        <h3>Discovery Preview</h3>
+      </div>
+
+      <div class="card-header__actions">
+        <button mat-raised-button data-testid="cancel-button" routerLink="..">Cancel</button>
+        <button
+          mat-raised-button
+          color="primary"
+          data-testid="proceed-button"
+          *gioPermission="{ anyOf: ['environment-integration-c'] }"
+          [disabled]="isLoadingPreview"
+          (click)="proceedIngest()"
+        >
+          Proceed
+        </button>
+      </div>
+    </div>
+
+    <div class="separator"></div>
+
+    @if (!isLoadingPreview && integrationPreview) {
+      <div class="preview">
+        <section>
+          <p class="preview-desc">The following assets were discovered. You can create or update them in Gravitee:</p>
+          <gio-form-slide-toggle>
+            <gio-form-label>Create {{ integrationPreview.newCount }} new Federated APIs</gio-form-label>
+            <mat-slide-toggle
+              data-testid="new-items-toggle"
+              gioFormSlideToggle
+              [checked]="true"
+              [disabled]="!integrationPreview.newCount"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+
+          <gio-form-slide-toggle>
+            <gio-form-label>Update {{ integrationPreview.updateCount }} existing Federated APIs</gio-form-label>
+            Some changes you've made to existing Federated APIs will be overridden when the APIs are updated
+            <mat-slide-toggle
+              data-testid="update-items-toggle"
+              gioFormSlideToggle
+              [checked]="true"
+              [disabled]="!integrationPreview.updateCount"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </section>
+        <table mat-table [dataSource]="integrationPreview.apis" aria-label="APIs preview table" class="preview-table">
+          <caption style="display: none">
+            Table with APIs preview.
+          </caption>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.name }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="state">
+            <th mat-header-cell *matHeaderCellDef id="state">Create or update</th>
+            <td mat-cell *matCellDef="let item">
+              @if (item.state === IntegrationPreviewApisState.NEW) {
+                <span class="gio-badge-success">
+                  <mat-icon></mat-icon>
+                  Create
+                </span>
+              } @else {
+                <span class="gio-badge-error">
+                  <mat-icon></mat-icon>
+                  Update
+                </span>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <!-- Row shown when there is no data -->
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td
+              *ngIf="!isLoadingPreview && !integrationPreview?.apis?.length"
+              class="mat-mdc-cell mdc-data-table__cell"
+              [attr.colspan]="displayedColumns.length"
+            >
+              {{ 'No data to display' }}
+            </td>
+          </tr>
+        </table>
+      </div>
+    } @else {
+      <gio-loader></gio-loader>
+    }
+  </mat-card-content>
+</mat-card>
