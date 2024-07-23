@@ -15,48 +15,32 @@
     limitations under the License.
 
 -->
-<mat-card
-  (click)="onSelectPlan()"
-  class="plan-card"
-  appearance="outlined"
-  [class.selected]="selected"
-  [class.disabled]="disabled"
-  [matTooltip]="disabled ? 'Plan not available yet' : ''">
-  <mat-card-header class="plan-card__header">
-    <div class="m3-title-medium plan-card__header-content">{{ plan.name }}</div>
-
-    <mat-radio-group>
-      <mat-radio-button
-        class="plan-card__header-button"
-        (change)="onSelectPlan()"
-        [value]="plan"
-        [checked]="selected"
-        [disabled]="disabled"></mat-radio-button>
-    </mat-radio-group>
-  </mat-card-header>
-  <mat-card-content>
-    <div class="m3-body-medium">Plan includes:</div>
-    <ul class="plan-card__content">
-      <li class="m3-body-medium">Authentication: {{ authentication }}</li>
-      @if (!!plan.usage_configuration?.quota?.limit) {
-        <li class="m3-body-medium">
-          Quota: up to {{ plan.usage_configuration?.quota?.limit ?? 0 }} hits /
-          {{ plan.usage_configuration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
-        </li>
-      }
-      @if (!!plan.usage_configuration?.rate_limit?.limit) {
-        <li class="m3-body-medium">
-          Rate-limit: up to {{ plan.usage_configuration?.rate_limit?.limit ?? 0 }} hits /
-          {{ plan.usage_configuration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
-        </li>
-      }
-    </ul>
-    @if (plan.security !== 'KEY_LESS') {
-      <mat-card-footer>
-        <div class="m3-body-medium">
-          {{ plan.validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
-        </div>
-      </mat-card-footer>
+<app-radio-card
+  [selected]="selected"
+  [disabled]="disabled"
+  [disabledMessage]="'Plan not available yet'"
+  [value]="plan"
+  [title]="plan.name"
+  (selectItem)="onSelectPlan()">
+  <div class="m3-body-medium">Plan includes:</div>
+  <ul class="plan-card__content">
+    <li class="m3-body-medium">Authentication: {{ authentication }}</li>
+    @if (!!plan.usage_configuration?.quota?.limit) {
+      <li class="m3-body-medium">
+        Quota: up to {{ plan.usage_configuration?.quota?.limit ?? 0 }} hits /
+        {{ plan.usage_configuration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+      </li>
     }
-  </mat-card-content>
-</mat-card>
+    @if (!!plan.usage_configuration?.rate_limit?.limit) {
+      <li class="m3-body-medium">
+        Rate-limit: up to {{ plan.usage_configuration?.rate_limit?.limit ?? 0 }} hits /
+        {{ plan.usage_configuration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+      </li>
+    }
+  </ul>
+  @if (plan.security !== 'KEY_LESS') {
+    <div class="m3-body-medium">
+      {{ plan.validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
+    </div>
+  }
+</app-radio-card>
