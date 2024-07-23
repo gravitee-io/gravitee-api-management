@@ -1,0 +1,24 @@
+{
+  "id": "spg-environment",
+  "name": "spg-env-dev",
+  "environmentId": "dev",
+  "version": "1",
+  "phase": "RESPONSE",
+  "policies": [
+    {
+      "name": "Transform headers Dev",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "configuration": {
+        "scope": "RESPONSE",
+        "addHeaders": [
+          {
+            "name": "X-Response-Header-Dev-0",
+            "value": "Header Dev 0"
+          }
+        ]
+      }
+    }
+  ]
+}

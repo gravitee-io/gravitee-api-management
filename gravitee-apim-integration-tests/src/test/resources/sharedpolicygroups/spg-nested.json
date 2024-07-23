@@ -1,0 +1,18 @@
+{
+  "id": "spg-nested",
+  "name": "spg-nested",
+  "environmentId": "DEFAULT",
+  "version": "1",
+  "phase": "RESPONSE",
+  "policies": [
+    {
+      "name": "my-shared-policy-group-policy",
+      "description": "",
+      "enabled": true,
+      "policy": "shared-policy-group-policy",
+      "configuration": {
+        "sharedPolicyGroupId": "spg-two-headers-on-response"
+      }
+    }
+  ]
+}
