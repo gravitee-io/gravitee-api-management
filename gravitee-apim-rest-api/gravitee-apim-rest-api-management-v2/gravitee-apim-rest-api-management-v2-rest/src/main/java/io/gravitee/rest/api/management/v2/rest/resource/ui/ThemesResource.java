@@ -38,12 +38,17 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ThemesResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private GetThemesUseCase getPortalThemesUseCase;
@@ -127,5 +132,10 @@ public class ThemesResource extends AbstractResource {
             )
             .result();
         return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
+    }
+
+    @Path("{themeId}")
+    public ThemeResource getThemeResource() {
+        return resourceContext.getResource(ThemeResource.class);
     }
 }
