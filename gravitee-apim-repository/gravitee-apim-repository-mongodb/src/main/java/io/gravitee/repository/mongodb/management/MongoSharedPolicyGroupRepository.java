@@ -18,12 +18,16 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
 import io.gravitee.repository.mongodb.management.internal.sharedpolicygroups.SharedPolicyGroupMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -104,7 +108,8 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
     }
 
     @Override
-    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException {
+    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
@@ -113,11 +118,15 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         try {
             String name = criteria.getName() == null || criteria.getName().isEmpty() ? ".*" : criteria.getName();
 
+            sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
+            final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
+            final var sortField = FieldUtils.toCamelCase(sortable.field());
+
             final var mongoResult =
                 this.internalSharedPolicyGroupMongoRepo.searchByEnvironment(
                         name,
                         criteria.getEnvironmentId(),
-                        PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.ASC, "createdAt")
+                        PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
                     );
 
             return new Page<>(
