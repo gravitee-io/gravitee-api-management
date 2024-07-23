@@ -332,7 +332,13 @@ public class ApiDuplicatorServiceImplTest {
                 ),
                 eq(API_ID)
             );
-        verify(pageService, atLeastOnce()).createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(), API_ID);
+
+        verify(pageService, atLeastOnce())
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pages -> pages.size() == 1 && pages.iterator().next().getId().equals("markdown-page")),
+                eq(API_ID)
+            );
     }
 
     @Test
