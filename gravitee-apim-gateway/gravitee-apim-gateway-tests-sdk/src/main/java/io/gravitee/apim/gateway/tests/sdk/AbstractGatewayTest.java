@@ -23,17 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.OrganizationConfigurer;
+import io.gravitee.apim.gateway.tests.sdk.runner.SharedPolicyGroupDeployer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -48,12 +47,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.mockito.Mockito;
 import org.springframework.aop.framework.Advised;
@@ -74,7 +73,7 @@ import org.springframework.util.StringUtils;
 @ExtendWith(VertxExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public abstract class AbstractGatewayTest
-    implements PluginRegister, ApiConfigurer, ApiDeployer, OrganizationConfigurer, ApplicationContextAware {
+    implements PluginRegister, ApiConfigurer, ApiDeployer, OrganizationConfigurer, ApplicationContextAware, SharedPolicyGroupDeployer {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
@@ -86,22 +85,26 @@ public abstract class AbstractGatewayTest
     private int wiremockPort;
 
     /**
-     * Map of deployed apis for the current test method thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi}
-     */
-    protected Map<String, ReactableApi<?>> deployedApis;
-    private int gatewayPort = -1;
-    private int technicalApiPort = -1;
-    private int tcpPort = -1;
-    private Map<String, ReactableApi<?>> deployedForTestClass;
-    private boolean areClassApisPrepared = false;
-    protected ApplicationContext applicationContext;
-
-    /**
      * The wiremock used by the deployed apis as a backend.
      */
     protected static WireMockServer wiremock;
+
+    protected ApplicationContext applicationContext;
+
+    private int gatewayPort = -1;
+    private int technicalApiPort = -1;
+    private int tcpPort = -1;
+
+    /**
+     * Map of deployed apis for the current test method thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi}
+     */
+    protected Map<String, ReactableApi<?>> deployedApis;
+    private Map<String, ReactableApi<?>> deployedForTestClass;
+
     private Consumer<ReactableApi<?>> apiDeployer;
     private Consumer<String> apiUndeployer;
+    private Consumer<ReactableSharedPolicyGroup> sharedPolicyGroupDeployer;
+    private BiConsumer<String, String> sharedPolicyGroupUndeployer;
 
     /**
      * Represent the symbol used for placeholder.
@@ -281,6 +284,32 @@ public abstract class AbstractGatewayTest
     }
 
     @Override
+    public void setDeploySharedPolicyGroupCallback(Consumer<ReactableSharedPolicyGroup> sharedPolicyGroupDeployer) {
+        this.sharedPolicyGroupDeployer = sharedPolicyGroupDeployer;
+    }
+
+    @Override
+    public void setUndeploySharedPolicyGroupCallback(BiConsumer<String, String> sharedPolicyGroupUndeployer) {
+        this.sharedPolicyGroupUndeployer = sharedPolicyGroupUndeployer;
+    }
+
+    @Override
+    public void deploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
+        sharedPolicyGroupDeployer.accept(reactableSharedPolicyGroup);
+    }
+
+    @Override
+    public void undeploySharedPolicyGroup(String sharedPolicyGroupId, String environmentId) {
+        sharedPolicyGroupUndeployer.accept(sharedPolicyGroupId, environmentId);
+    }
+
+    @Override
+    public void redeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
+        undeploySharedPolicyGroup(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
+        deploySharedPolicyGroup(reactableSharedPolicyGroup);
+    }
+
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
@@ -293,6 +322,17 @@ public abstract class AbstractGatewayTest
     public void ensureMinimalRequirementForOrganization(ReactableOrganization reactableOrganization) {
         if (!StringUtils.hasText(reactableOrganization.getId())) {
             reactableOrganization.getDefinition().setId("DEFAULT");
+        }
+    }
+
+    /**
+     * Ensures the shared policy group has the minimal requirement to be run properly.
+     * - add a default id ("environment-id") if not set
+     * @param reactableSharedPolicyGroup to deploy
+     */
+    public void ensureMinimalRequirementForOrganization(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
+        if (!StringUtils.hasText(reactableSharedPolicyGroup.getEnvironmentId())) {
+            reactableSharedPolicyGroup.getDefinition().setEnvironmentId("DEFAULT");
         }
     }
 

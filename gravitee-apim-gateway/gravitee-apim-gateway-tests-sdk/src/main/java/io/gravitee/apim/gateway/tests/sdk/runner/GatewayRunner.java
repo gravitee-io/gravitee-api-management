@@ -44,7 +44,10 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -106,9 +109,14 @@ public class GatewayRunner {
     public static final String DEFAULT_CONFIGURATION_FOLDER = "/gravitee-default";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(GatewayRunner.class);
-    public static final String ALREADY_DEPLOYED_MESSAGE = "An API has already been deployed with id {%s}";
+    public static final String API_ALREADY_DEPLOYED_MESSAGE = "An API has already been deployed with id {%s}";
+    public static final String SPG_ALREADY_DEPLOYED_MESSAGE = "A Shared Policy Group has already been deployed with id {%s}";
     public static final String ORGANIZATION_ALREADY_DEPLOYED_MESSAGE = "An organization has already been deployed with id {%s}";
+    public static final String SHARED_POLICY_GROUP_ALREADY_DEPLOYED_MESSAGE =
+        "A shared policy group has already been deployed with id {%s}";
     public static final String CANNOT_UNDEPPLOY_CLASS_API_MESSAGE = "An API deployed at class level cannot be undeployed (id {%s})";
+    public static final String CANNOT_UNDEPPLOY_CLASS_SPG_MESSAGE =
+        "A Shared Policy Group deployed at class level cannot be undeployed (id {%s})";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
     private final AbstractGatewayTest testInstance;
@@ -120,10 +128,14 @@ public class GatewayRunner {
     private final Properties configuredSystemProperties;
     private final Map<String, ReactableOrganization> deployedOrganizationsForTestClass;
     private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
+    private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTestClass;
+    private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTest;
     private GatewayTestContainer gatewayContainer;
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
     private boolean isRunning = false;
+
+    record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
@@ -135,6 +147,8 @@ public class GatewayRunner {
         this.configuredSystemProperties = new Properties();
         this.deployedOrganizationsForTestClass = new HashMap<>();
         this.deployedOrganizationsForTest = new HashMap<>();
+        this.deployedSharedPolicyGroupsForTestClass = new HashMap<>();
+        this.deployedSharedPolicyGroupsForTest = new HashMap<>();
 
         // Allow test instance to access api deployed at class level
         testInstance.setDeployedClassApis(this.deployedForTestClass);
@@ -185,6 +199,8 @@ public class GatewayRunner {
             testInstance.setApplicationContext(gatewayContainer.applicationContext());
             testInstance.setDeployCallback(this::deployFromTest);
             testInstance.setUndeployCallback(this::undeployFromTest);
+            testInstance.setDeploySharedPolicyGroupCallback(this::deploySharedPolicyGroupFromTest);
+            testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
 
             // register plugins
             registerReactors(gatewayContainer);
@@ -356,6 +372,65 @@ public class GatewayRunner {
         deployedOrganizations.put(reactableOrganization.getId(), reactableOrganization);
     }
 
+    public void deploySharedPolicyGroupForClass(String sharedPolicyGroupDefinitionPath) throws IOException {
+        final ReactableSharedPolicyGroup reactableSharedPolicyGroup = loadSharedPolicyGroupDefinition(sharedPolicyGroupDefinitionPath);
+        if (
+            deployedSharedPolicyGroupsForTestClass.containsKey(
+                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
+            )
+        ) {
+            throw new PreconditionViolationException(
+                String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableSharedPolicyGroup.getId())
+            );
+        }
+        deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTestClass);
+    }
+
+    public void deploySharedPolicyGroupForTest(String sharedPolicyGroupDefinitionPath) throws IOException {
+        final ReactableSharedPolicyGroup reactableSharedPolicyGroup = loadSharedPolicyGroupDefinition(sharedPolicyGroupDefinitionPath);
+        if (
+            deployedSharedPolicyGroupsForTestClass.containsKey(
+                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
+            ) ||
+            deployedSharedPolicyGroupsForTest.containsKey(
+                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
+            )
+        ) {
+            throw new PreconditionViolationException(
+                String.format(SHARED_POLICY_GROUP_ALREADY_DEPLOYED_MESSAGE, reactableSharedPolicyGroup.getId())
+            );
+        }
+        deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTest);
+    }
+
+    /**
+     * Deploy a Shared Policy Group and add it to the map belonging to its context (Class or Method).
+     * @param reactableSharedPolicyGroup the Shared Policy Group to deploy
+     * @param deployedSharedPolicyGroups the map containing deployed shared policy groups.
+     */
+    private void deploySharedPolicyGroup(
+        ReactableSharedPolicyGroup reactableSharedPolicyGroup,
+        Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroups
+    ) {
+        SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
+
+        testInstance.ensureMinimalRequirementForOrganization(reactableSharedPolicyGroup);
+        reactableSharedPolicyGroup.setDeployedAt(new Date());
+
+        try {
+            sharedPolicyGroupManager.register(reactableSharedPolicyGroup);
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                "An error occurred deploying the shared policy group %s".formatted(reactableSharedPolicyGroup.getId()),
+                e
+            );
+        }
+        deployedSharedPolicyGroups.put(
+            new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()),
+            reactableSharedPolicyGroup
+        );
+    }
+
     public void deployForClass(String apiDefinitionPath) throws IOException {
         deployForClass(apiDefinitionPath, null);
     }
@@ -368,7 +443,7 @@ public class GatewayRunner {
     public void deployForClass(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
-            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
+            throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
         deploy(reactableApi, deployedForTestClass, organizationId);
     }
@@ -391,7 +466,7 @@ public class GatewayRunner {
     public void deployForTest(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
         if (deployedForTestClass.containsKey(reactableApi.getId()) || deployedForTest.containsKey(reactableApi.getId())) {
-            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
+            throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
         deploy(reactableApi, deployedForTest, organizationId);
     }
@@ -403,7 +478,7 @@ public class GatewayRunner {
      */
     private void deployFromTest(ReactableApi<?> reactableApi) {
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
-            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE + " at class level", reactableApi.getId()));
+            throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE + " at class level", reactableApi.getId()));
         }
         if (deployedForTest.containsKey(reactableApi.getId())) {
             undeploy(reactableApi);
@@ -428,6 +503,41 @@ public class GatewayRunner {
     }
 
     /**
+     * Deploys a Shared Policy Group from a test. Throws if trying to deploy a shared policy group deployed at class level
+     * @param reactableSharedPolicyGroup is the shared policy group to deploy
+     * @throws Exception
+     */
+    private void deploySharedPolicyGroupFromTest(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
+        if (deployedSharedPolicyGroupsForTestClass.containsKey(reactableSharedPolicyGroup.getId())) {
+            throw new PreconditionViolationException(
+                String.format(SPG_ALREADY_DEPLOYED_MESSAGE + " at class level", reactableSharedPolicyGroup.getId())
+            );
+        }
+        if (deployedSharedPolicyGroupsForTest.containsKey(reactableSharedPolicyGroup.getId())) {
+            undeploySharedPolicyGroup(reactableSharedPolicyGroup);
+            deployedSharedPolicyGroupsForTest.remove(reactableSharedPolicyGroup.getId());
+        }
+        deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTest);
+    }
+
+    /**
+     * Undeploys a Shared Policy Group from a test. Throws if the shared policy group is deployed at class level
+     * @param sharedPolicyGroup
+     */
+    private void undeploySharedPolicyGroupFromTest(String sharedPolicyGroup, String environmentId) {
+        if (deployedSharedPolicyGroupsForTestClass.containsKey(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId))) {
+            throw new PreconditionViolationException(String.format(CANNOT_UNDEPPLOY_CLASS_SPG_MESSAGE, sharedPolicyGroup));
+        }
+        if (deployedSharedPolicyGroupsForTest.containsKey(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId))) {
+            SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer
+                .applicationContext()
+                .getBean(SharedPolicyGroupManager.class);
+            sharedPolicyGroupManager.unregister(sharedPolicyGroup);
+            deployedSharedPolicyGroupsForTest.remove(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId));
+        }
+    }
+
+    /**
      * Access the list of deployed API for the current test.
      * It allows to update an API directly for testing purpose, for example, the {@link io.gravitee.definition.model.Endpoint.Status}
      * @return the list of deployed API for the current test.
@@ -439,16 +549,18 @@ public class GatewayRunner {
     private ReactableApi<?> toReactableApi(String apiDefinitionPath) throws IOException {
         final JsonNode apiAsJson = loadResource(apiDefinitionPath, JsonNode.class);
         final DefinitionVersion definitionVersion = extractApiDefinitionVersion(apiAsJson);
+        // ⚠️ Workaround to be able to configure an environmentId for a given test. EnvironmentId field is normally not part of the Api Definition
+        final String environmentId = extractApiEnvironmentId(apiAsJson).orElse("DEFAULT");
         final ReactableApi<?> reactableApi;
         if (DefinitionVersion.V4.equals(definitionVersion)) {
             final io.gravitee.definition.model.v4.Api api = graviteeMapper.treeToValue(
                 apiAsJson,
                 io.gravitee.definition.model.v4.Api.class
             );
-            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api);
+            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api, environmentId);
         } else {
             final Api api = graviteeMapper.treeToValue(apiAsJson, Api.class);
-            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api);
+            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api, environmentId);
         }
         return reactableApi;
     }
@@ -506,6 +618,20 @@ public class GatewayRunner {
     public void undeployOrganization(ReactableOrganization reactableOrganization) {
         OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
         organizationManager.unregister(reactableOrganization.getId());
+    }
+
+    public void undeploySharedPolicyGroupForClass() {
+        deployedSharedPolicyGroupsForTestClass.forEach((key, value) -> undeploySharedPolicyGroup(value));
+    }
+
+    public void undeploySharedPolicyGroupForTest() {
+        deployedSharedPolicyGroupsForTest.forEach((key, value) -> undeploySharedPolicyGroup(value));
+        deployedSharedPolicyGroupsForTest.clear();
+    }
+
+    public void undeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
+        SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
+        sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId());
     }
 
     /**
@@ -708,6 +834,11 @@ public class GatewayRunner {
         return new ReactableOrganization(organization);
     }
 
+    private ReactableSharedPolicyGroup loadSharedPolicyGroupDefinition(String sharedPolicyGroupDefinitionPath) throws IOException {
+        final SharedPolicyGroup sharedPolicyGroup = loadResource(sharedPolicyGroupDefinitionPath, SharedPolicyGroup.class);
+        return new ReactableSharedPolicyGroup(sharedPolicyGroup);
+    }
+
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
         try {
             final URL jsonFile = loadURL(resourcePath);
@@ -817,6 +948,19 @@ public class GatewayRunner {
         } else {
             return DefinitionVersion.V2;
         }
+    }
+
+    /**
+     * Read the environment id from json.
+     * ⚠️ this attribute is not an official one from the definition. It is a workaround for the Test SDK as we do not go through Api Synchronizer process (and mapping which is filling environment information)
+     * @param apiAsJson
+     * @return the environmentId wrapped in an optional
+     */
+    private Optional<String> extractApiEnvironmentId(JsonNode apiAsJson) {
+        if (apiAsJson.has("environmentId")) {
+            return Optional.ofNullable(apiAsJson.get("environmentId").asText());
+        }
+        return Optional.empty();
     }
 
     /**
