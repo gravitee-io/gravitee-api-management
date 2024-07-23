@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow;
+package io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup;
 
-import io.gravitee.gateway.reactive.reactor.environmentflow.ReactableEnvironmentFlow;
-import io.gravitee.gateway.services.sync.process.common.model.EnvironmentFlowDeployable;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.services.sync.process.common.model.SharedPolicyGroupDeployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -35,23 +35,23 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
-public class EnvironmentFlowReactorDeployable implements EnvironmentFlowDeployable {
+public class SharedPolicyGroupReactorDeployable implements SharedPolicyGroupDeployable {
 
-    private String environmentFlowId;
+    private String sharedPolicyGroupId;
 
-    private ReactableEnvironmentFlow reactableEnvironmentFlow;
+    private ReactableSharedPolicyGroup reactableSharedPolicyGroup;
 
     private SyncAction syncAction;
 
     @Override
     public String id() {
-        return environmentFlowId;
+        return sharedPolicyGroupId;
     }
 
-    public String environmentFlowId() {
-        if (environmentFlowId == null) {
-            return reactableEnvironmentFlow.getId();
+    public String sharedPolicyGroupId() {
+        if (sharedPolicyGroupId == null) {
+            return reactableSharedPolicyGroup.getId();
         }
-        return environmentFlowId;
+        return sharedPolicyGroupId;
     }
 }

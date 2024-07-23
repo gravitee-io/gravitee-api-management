@@ -34,17 +34,17 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -113,7 +113,7 @@ class DefaultDistributedSyncServiceTest {
                 new DictionaryMapper(objectMapper),
                 new LicenseMapper(),
                 new AccessPointMapper(objectMapper),
-                new EnvironmentFlowMapper(objectMapper)
+                new SharedPolicyGroupMapper(objectMapper)
             );
     }
 
@@ -207,7 +207,7 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_distribute_environment_fow() {
-            cut.distributeIfNeeded(EnvironmentFlowReactorDeployable.builder().environmentFlowId("id").build()).test().assertComplete();
+            cut.distributeIfNeeded(SharedPolicyGroupReactorDeployable.builder().sharedPolicyGroupId("id").build()).test().assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
 

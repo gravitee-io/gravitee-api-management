@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.environmentflow.spring;
-
-import io.gravitee.common.event.EventManager;
-import io.gravitee.gateway.handlers.environmentflow.manager.EnvironmentFlowManager;
-import io.gravitee.gateway.handlers.environmentflow.manager.impl.EnvironmentFlowManagerImpl;
-import io.gravitee.node.api.license.LicenseManager;
-import org.springframework.context.annotation.Bean;
+package io.gravitee.gateway.services.sync.process.common.model;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EnvironmentFlowConfiguration {
-
-    @Bean
-    public EnvironmentFlowManager environmentFlowManager(EventManager eventManager, LicenseManager licenseManager) {
-        return new EnvironmentFlowManagerImpl(eventManager, licenseManager);
-    }
+public interface SharedPolicyGroupDeployable extends Deployable {
+    String sharedPolicyGroupId();
 }

@@ -22,18 +22,18 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointM
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -68,7 +68,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final DictionaryMapper dictionaryMapper;
     private final LicenseMapper licenseMapper;
     private final AccessPointMapper accessPointMapper;
-    private final EnvironmentFlowMapper environmentFlowMapper;
+    private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
 
     @Override
     public void validate() {
@@ -225,13 +225,13 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     }
 
     @Override
-    public Completable distributeIfNeeded(EnvironmentFlowReactorDeployable deployable) {
+    public Completable distributeIfNeeded(SharedPolicyGroupReactorDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
-                log.debug("Node is primary, distributing environment flow event for {}", deployable.id());
-                return environmentFlowMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                log.debug("Node is primary, distributing shared policy group event for {}", deployable.id());
+                return sharedPolicyGroupMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
-            log.debug("Not a primary node, skipping environment flow event distribution");
+            log.debug("Not a primary node, skipping shared policy group event distribution");
             return Completable.complete();
         });
     }

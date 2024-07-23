@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow;
+package io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.ENVIRONMENT_FLOW_ID;
 import static io.gravitee.repository.management.model.EventType.DEPLOY_ENVIRONMENT_FLOW;
 import static io.gravitee.repository.management.model.EventType.UNDEPLOY_ENVIRONMENT_FLOW;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -29,18 +28,17 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
-import io.gravitee.gateway.services.sync.process.common.deployer.EnvironmentFlowDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.SharedPolicyGroupDeployer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
-import io.gravitee.gateway.services.sync.process.repository.mapper.EnvironmentFlowMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class EnvironmentFlowSynchronizerTest {
+class SharedPolicyGroupSynchronizerTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
@@ -76,48 +74,48 @@ class EnvironmentFlowSynchronizerTest {
     private DeployerFactory deployerFactory;
 
     @Mock
-    private EnvironmentFlowDeployer environmentFlowDeployer;
+    private SharedPolicyGroupDeployer sharedPolicyGroupDeployer;
 
-    private EnvironmentFlowSynchronizer cut;
+    private SharedPolicyGroupSynchronizer cut;
 
     @BeforeEach
     void setUp() {
         cut =
-            new EnvironmentFlowSynchronizer(
+            new SharedPolicyGroupSynchronizer(
                 latestEventFetcher,
-                new EnvironmentFlowMapper(objectMapper, environmentService),
+                new SharedPolicyGroupMapper(objectMapper, environmentService),
                 deployerFactory,
                 new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
                 new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
             );
 
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
-        lenient().when(deployerFactory.createEnvironmentFlowDeployer()).thenReturn(environmentFlowDeployer);
-        lenient().when(environmentFlowDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(environmentFlowDeployer.undeploy(any())).thenReturn(Completable.complete());
-        lenient().when(environmentFlowDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
-        lenient().when(environmentFlowDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
+        lenient().when(deployerFactory.createSharedPolicyGroupDeployer()).thenReturn(sharedPolicyGroupDeployer);
+        lenient().when(sharedPolicyGroupDeployer.deploy(any())).thenReturn(Completable.complete());
+        lenient().when(sharedPolicyGroupDeployer.undeploy(any())).thenReturn(Completable.complete());
+        lenient().when(sharedPolicyGroupDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(sharedPolicyGroupDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
     }
 
     @Nested
     class NoEventTest {
 
         @Test
-        void should_not_synchronize_environment_flow_when_no_events() throws InterruptedException {
+        void should_not_synchronize_shared_policy_group_when_no_events() throws InterruptedException {
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verifyNoInteractions(environmentFlowDeployer);
+            verifyNoInteractions(sharedPolicyGroupDeployer);
         }
 
         @Test
-        void should_not_synchronize_environment_flow_when_events_with_unknown_type() throws InterruptedException {
+        void should_not_synchronize_shared_policy_group_when_events_with_unknown_type() throws InterruptedException {
             Event event = new Event();
             event.setId("event");
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verifyNoInteractions(environmentFlowDeployer);
+            verifyNoInteractions(sharedPolicyGroupDeployer);
         }
 
         @Test
@@ -150,29 +148,30 @@ class EnvironmentFlowSynchronizerTest {
         void should_register_api_when_fetching_publish_events() throws InterruptedException, JsonProcessingException {
             Event event = new Event();
             event.setId("id");
-            final SharedPolicyGroup environmentFlow = SharedPolicyGroup
-                .builder()
-                .id("id")
-                .definition(
-                    objectMapper.writeValueAsString(
-                        io.gravitee.definition.model.v4.environmentflow.EnvironmentFlow
-                            .builder()
-                            .phase(EnumSet.of(io.gravitee.definition.model.v4.environmentflow.EnvironmentFlow.Phase.REQUEST))
-                            .policies(List.of())
-                            .id("env_flow_id")
-                            .name("name")
-                            .build()
+            final io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup =
+                io.gravitee.repository.management.model.SharedPolicyGroup
+                    .builder()
+                    .id("id")
+                    .definition(
+                        objectMapper.writeValueAsString(
+                            SharedPolicyGroup
+                                .builder()
+                                .phase(SharedPolicyGroup.Phase.REQUEST)
+                                .policies(List.of())
+                                .id("spg_id")
+                                .name("name")
+                                .build()
+                        )
                     )
-                )
-                .build();
-            event.setPayload(objectMapper.writeValueAsString(environmentFlow));
+                    .build();
+            event.setPayload(objectMapper.writeValueAsString(sharedPolicyGroup));
             event.setType(DEPLOY_ENVIRONMENT_FLOW);
 
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verify(environmentFlowDeployer).deploy(any());
-            verify(environmentFlowDeployer).doAfterDeployment(any());
+            verify(sharedPolicyGroupDeployer).deploy(any());
+            verify(sharedPolicyGroupDeployer).doAfterDeployment(any());
         }
 
         @Test
@@ -185,7 +184,7 @@ class EnvironmentFlowSynchronizerTest {
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verify(environmentFlowDeployer).undeploy(any());
+            verify(sharedPolicyGroupDeployer).undeploy(any());
         }
     }
 }

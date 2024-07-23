@@ -20,16 +20,15 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
-import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
@@ -47,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class EnvironmentFlowMapperTest {
+class SharedPolicyGroupMapperTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
@@ -57,16 +56,16 @@ class EnvironmentFlowMapperTest {
     @Mock
     private OrganizationRepository organizationRepository;
 
-    private EnvironmentFlowMapper cut;
+    private SharedPolicyGroupMapper cut;
 
     @BeforeEach
     void setUp() {
-        cut = new EnvironmentFlowMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository));
+        cut = new SharedPolicyGroupMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository));
     }
 
     @SneakyThrows
     @Test
-    void should_map_environment_flow() {
+    void should_map_shared_policy_group() {
         Organization organization = new Organization();
         organization.setId("orga");
         organization.setHrids(List.of("orga-hrid"));
@@ -81,9 +80,9 @@ class EnvironmentFlowMapperTest {
         final Date date = new Date();
         event.setPayload(
             objectMapper.writeValueAsString(
-                SharedPolicyGroup
+                io.gravitee.repository.management.model.SharedPolicyGroup
                     .builder()
-                    .id("env_flow_id")
+                    .id("spg_id")
                     .environmentId("env")
                     .name("name")
                     .crossId("cross_id")
@@ -94,11 +93,11 @@ class EnvironmentFlowMapperTest {
                     .deployedAt(date)
                     .definition(
                         objectMapper.writeValueAsString(
-                            io.gravitee.definition.model.v4.environmentflow.EnvironmentFlow
+                            SharedPolicyGroup
                                 .builder()
-                                .phase(EnumSet.of(io.gravitee.definition.model.v4.environmentflow.EnvironmentFlow.Phase.REQUEST))
+                                .phase(SharedPolicyGroup.Phase.REQUEST)
                                 .policies(List.of())
-                                .id("env_flow_id")
+                                .id("spg_id")
                                 .name("name")
                                 .build()
                         )
@@ -109,22 +108,21 @@ class EnvironmentFlowMapperTest {
         cut
             .to(event)
             .test()
-            .assertValue(reactableEnvironmentFlow -> {
-                assertThat(reactableEnvironmentFlow.getId()).isEqualTo("env_flow_id");
-                assertThat(reactableEnvironmentFlow.getName()).isEqualTo("name");
-                assertThat(reactableEnvironmentFlow.getEnvironmentId()).isEqualTo("env");
-                assertThat(reactableEnvironmentFlow.getEnvironmentHrid()).isEqualTo("env-hrid");
-                assertThat(reactableEnvironmentFlow.getOrganizationId()).isEqualTo("orga");
-                assertThat(reactableEnvironmentFlow.getOrganizationHrid()).isEqualTo("orga-hrid");
-                assertThat(reactableEnvironmentFlow.getDeployedAt()).isEqualTo(date);
-                assertThat(reactableEnvironmentFlow.enabled()).isTrue();
-                assertThat(reactableEnvironmentFlow.getDefinition())
+            .assertValue(reactableSharedPolicyGroup -> {
+                assertThat(reactableSharedPolicyGroup.getId()).isEqualTo("spg_id");
+                assertThat(reactableSharedPolicyGroup.getName()).isEqualTo("name");
+                assertThat(reactableSharedPolicyGroup.getEnvironmentId()).isEqualTo("env");
+                assertThat(reactableSharedPolicyGroup.getEnvironmentHrid()).isEqualTo("env-hrid");
+                assertThat(reactableSharedPolicyGroup.getOrganizationId()).isEqualTo("orga");
+                assertThat(reactableSharedPolicyGroup.getOrganizationHrid()).isEqualTo("orga-hrid");
+                assertThat(reactableSharedPolicyGroup.getDeployedAt()).isEqualTo(date);
+                assertThat(reactableSharedPolicyGroup.enabled()).isTrue();
+                assertThat(reactableSharedPolicyGroup.getDefinition())
                     .satisfies(definition -> {
-                        assertThat(definition.getId()).isEqualTo("env_flow_id");
+                        assertThat(definition.getId()).isEqualTo("spg_id");
                         assertThat(definition.getName()).isEqualTo("name");
                         assertThat(definition.getPolicies()).isEmpty();
-                        assertThat(definition.getPhase())
-                            .containsExactly(io.gravitee.definition.model.v4.environmentflow.EnvironmentFlow.Phase.REQUEST);
+                        assertThat(definition.getPhase()).isEqualTo(SharedPolicyGroup.Phase.REQUEST);
                     });
 
                 return true;

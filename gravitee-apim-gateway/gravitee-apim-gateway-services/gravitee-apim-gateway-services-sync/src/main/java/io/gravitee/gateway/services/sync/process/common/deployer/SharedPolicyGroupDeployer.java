@@ -15,11 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
-import io.gravitee.gateway.handlers.environmentflow.manager.EnvironmentFlowManager;
-import io.gravitee.gateway.reactive.reactor.environmentflow.ReactableEnvironmentFlow;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,25 +30,25 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor
 @Slf4j
-public class EnvironmentFlowDeployer implements Deployer<EnvironmentFlowReactorDeployable> {
+public class SharedPolicyGroupDeployer implements Deployer<SharedPolicyGroupReactorDeployable> {
 
-    private final EnvironmentFlowManager environmentFlowManager;
+    private final SharedPolicyGroupManager sharedPolicyGroupManager;
     private final DistributedSyncService distributedSyncService;
 
     @Override
-    public Completable deploy(final EnvironmentFlowReactorDeployable deployable) {
+    public Completable deploy(final SharedPolicyGroupReactorDeployable deployable) {
         return Completable.fromRunnable(() -> {
-            ReactableEnvironmentFlow reactableEnvironmentFlow = deployable.reactableEnvironmentFlow();
+            ReactableSharedPolicyGroup reactableSharedPolicyGroup = deployable.reactableSharedPolicyGroup();
             try {
-                environmentFlowManager.register(reactableEnvironmentFlow);
-                log.debug("Environment Flow [{}] deployed ", deployable.environmentFlowId());
+                sharedPolicyGroupManager.register(reactableSharedPolicyGroup);
+                log.debug("Shared Policy Group [{}] deployed ", deployable.sharedPolicyGroupId());
             } catch (Exception e) {
                 throw new SyncException(
                     String.format(
-                        "An error occurred when trying to deploy environment flow %s [%s][%s].",
-                        reactableEnvironmentFlow.getName(),
-                        reactableEnvironmentFlow.getId(),
-                        deployable.reactableEnvironmentFlow().getDefinition().getVersion()
+                        "An error occurred when trying to deploy shared policy group %s [%s][%s].",
+                        reactableSharedPolicyGroup.getName(),
+                        reactableSharedPolicyGroup.getId(),
+                        deployable.reactableSharedPolicyGroup().getDefinition().getVersion()
                     ),
                     e
                 );
@@ -57,22 +57,22 @@ public class EnvironmentFlowDeployer implements Deployer<EnvironmentFlowReactorD
     }
 
     @Override
-    public Completable doAfterDeployment(final EnvironmentFlowReactorDeployable deployable) {
+    public Completable doAfterDeployment(final SharedPolicyGroupReactorDeployable deployable) {
         return distributedSyncService.distributeIfNeeded(deployable);
     }
 
     @Override
-    public Completable undeploy(final EnvironmentFlowReactorDeployable deployable) {
+    public Completable undeploy(final SharedPolicyGroupReactorDeployable deployable) {
         return Completable.fromRunnable(() -> {
             try {
-                environmentFlowManager.unregister(deployable.environmentFlowId());
-                log.debug("Environment flow [{}] undeployed ", deployable.environmentFlowId());
+                sharedPolicyGroupManager.unregister(deployable.sharedPolicyGroupId());
+                log.debug("Shared Policy Group [{}] undeployed ", deployable.sharedPolicyGroupId());
             } catch (Exception e) {
                 throw new SyncException(
                     String.format(
-                        "An error occurred when trying to undeploy environment flow [%s] [%s].",
-                        deployable.environmentFlowId(),
-                        deployable.reactableEnvironmentFlow().getDefinition().getVersion()
+                        "An error occurred when trying to undeploy shared policy group [%s] [%s].",
+                        deployable.sharedPolicyGroupId(),
+                        deployable.reactableSharedPolicyGroup().getDefinition().getVersion()
                     ),
                     e
                 );
@@ -81,7 +81,7 @@ public class EnvironmentFlowDeployer implements Deployer<EnvironmentFlowReactorD
     }
 
     @Override
-    public Completable doAfterUndeployment(final EnvironmentFlowReactorDeployable deployable) {
+    public Completable doAfterUndeployment(final SharedPolicyGroupReactorDeployable deployable) {
         return distributedSyncService.distributeIfNeeded(deployable);
     }
 }

@@ -37,8 +37,8 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
-import io.gravitee.gateway.services.sync.process.repository.mapper.EnvironmentFlowMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
+import io.gravitee.gateway.services.sync.process.repository.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
@@ -50,10 +50,10 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Sub
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.environmentflow.EnvironmentFlowSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.FlowAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SubscriptionSynchronizer;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.AccessPointRepository;
@@ -103,8 +103,8 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public EnvironmentFlowMapper environmentFlowMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
-        return new EnvironmentFlowMapper(objectMapper, environmentService);
+    public SharedPolicyGroupMapper sharedPolicyGroupMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
+        return new SharedPolicyGroupMapper(objectMapper, environmentService);
     }
 
     @Bean
@@ -284,16 +284,16 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public EnvironmentFlowSynchronizer environmentFlowSynchronizer(
+    public SharedPolicyGroupSynchronizer sharedPolicyGroupSynchronizer(
         LatestEventFetcher eventsFetcher,
-        EnvironmentFlowMapper environmentFlowMapper,
+        SharedPolicyGroupMapper sharedPolicyGroupMapper,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
-        return new EnvironmentFlowSynchronizer(
+        return new SharedPolicyGroupSynchronizer(
             eventsFetcher,
-            environmentFlowMapper,
+            sharedPolicyGroupMapper,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor
