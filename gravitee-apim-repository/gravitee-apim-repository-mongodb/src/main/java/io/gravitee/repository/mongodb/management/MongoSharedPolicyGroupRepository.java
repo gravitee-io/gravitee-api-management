@@ -107,14 +107,16 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
+        Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
         LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             String name = criteria.getName() == null || criteria.getName().isEmpty() ? ".*" : criteria.getName();
 
             final var mongoResult =
-                this.internalSharedPolicyGroupMongoRepo.search(
+                this.internalSharedPolicyGroupMongoRepo.searchByEnvironment(
                         name,
+                        criteria.getEnvironmentId(),
                         PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.ASC, "createdAt")
                     );
 

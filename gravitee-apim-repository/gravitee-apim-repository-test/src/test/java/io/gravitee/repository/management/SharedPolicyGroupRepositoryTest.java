@@ -171,7 +171,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_search_with_no_criteria() throws TechnicalException {
-        final var criteria = SharedPolicyGroupCriteria.builder().build();
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").build();
 
         final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
         assertThat(page).isNotNull();
@@ -181,7 +181,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_search_with_name_criteria() throws TechnicalException {
-        final var criteria = SharedPolicyGroupCriteria.builder().name("search_test").build();
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("search_test").build();
 
         final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
         assertThat(page).isNotNull();
@@ -191,7 +191,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_search_page_2() throws TechnicalException {
-        final var criteria = SharedPolicyGroupCriteria.builder().name("search_test").build();
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("search_test").build();
 
         final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(2).pageSize(2).build());
         assertThat(page).isNotNull();
@@ -199,5 +199,25 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 4");
         assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 5");
         assertThat(page.getTotalElements()).isEqualTo(10);
+    }
+
+    @Test
+    public void should_search_with_no_result() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("environmentId").name("unknown").build();
+
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void should_search_with_unknown_environment() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("unknown").name("search_test").build();
+
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isEqualTo(0);
     }
 }

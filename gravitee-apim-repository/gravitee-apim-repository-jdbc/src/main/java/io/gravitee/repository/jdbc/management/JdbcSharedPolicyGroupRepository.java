@@ -104,13 +104,15 @@ public class JdbcSharedPolicyGroupRepository
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
+        Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
         LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             var name = criteria.getName() == null ? "%" : "%" + criteria.getName() + "%";
             var total = jdbcTemplate.queryForObject(
-                "select count(*) from " + this.tableName + " WHERE lower(name) like ?",
+                "select count(*) from " + this.tableName + " WHERE environment_id = ? AND lower(name) like ?",
                 Long.class,
+                criteria.getEnvironmentId(),
                 name
             );
 
@@ -120,9 +122,10 @@ public class JdbcSharedPolicyGroupRepository
 
             var result = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " WHERE lower(name) like ? ORDER BY created_at ASC " +
+                " WHERE environment_id = ? AND lower(name) like ? ORDER BY created_at ASC " +
                 createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
+                criteria.getEnvironmentId(),
                 name
             );
 

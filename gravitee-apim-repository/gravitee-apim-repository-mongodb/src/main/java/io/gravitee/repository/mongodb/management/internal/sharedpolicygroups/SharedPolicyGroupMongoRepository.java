@@ -24,6 +24,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SharedPolicyGroupMongoRepository extends MongoRepository<SharedPolicyGroupMongo, String> {
-    @Query(value = "{'name':  {$regex: '?0', $options: 'i'}}")
-    Page<SharedPolicyGroupMongo> search(String name, Pageable pageable);
+    @Query(value = "{'name':  {$regex: '?0', $options: 'i'}, 'environmentId': ?1}")
+    Page<SharedPolicyGroupMongo> searchByEnvironment(String name, String environmentId, Pageable pageable);
 }
