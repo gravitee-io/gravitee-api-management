@@ -77,7 +77,7 @@ public class SharedPolicyGroup implements Serializable {
     public enum Phase {
         REQUEST,
         RESPONSE,
-        PUBLISH,
-        SUBSCRIBE,
+        MESSAGE_REQUEST,
+        MESSAGE_RESPONSE,
     }
 }
