@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.repository.management.api.search;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
-import io.gravitee.repository.management.model.SharedPolicyGroup;
+import lombok.Builder;
+import lombok.Data;
+import lombok.ToString;
 
-public interface SharedPolicyGroupRepository extends CrudRepository<SharedPolicyGroup, String> {
-    Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException;
+@Data
+@Builder
+@ToString
+public class SharedPolicyGroupCriteria {
+
+    private String name;
 }

@@ -15,15 +15,23 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static java.lang.String.format;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.sql.Types;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -56,9 +64,9 @@ public class JdbcSharedPolicyGroupRepository
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)
-            .addColumn("deployed_at", Types.TIMESTAMP, java.util.Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, java.util.Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, java.util.Date.class)
+            .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
     }
 
@@ -90,5 +98,38 @@ public class JdbcSharedPolicyGroupRepository
     @Override
     public Set<SharedPolicyGroup> findAll() throws TechnicalException {
         throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) throws TechnicalException {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+        Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
+        LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
+
+        try {
+            var name = criteria.getName() == null ? "%" : "%" + criteria.getName() + "%";
+            var total = jdbcTemplate.queryForObject(
+                "select count(*) from " + this.tableName + " WHERE lower(name) like ?",
+                Long.class,
+                name
+            );
+
+            if (total == null || total == 0) {
+                return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
+            }
+
+            var result = jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " WHERE lower(name) like ? ORDER BY created_at ASC " +
+                createPagingClause(pageable.pageSize(), pageable.from()),
+                getOrm().getRowMapper(),
+                name
+            );
+
+            return new Page<>(result, pageable.pageNumber(), result.size(), total);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to search for SharedPolicyGroups:", ex);
+            throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
+        }
     }
 }

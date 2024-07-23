@@ -15,12 +15,22 @@
  */
 package io.gravitee.repository.noop.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
+import java.util.List;
 
 /**
  * @author GraviteeSource Team
  */
 public class NoOpSharedPolicyGroupRepository
     extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupRepository {}
+    implements SharedPolicyGroupRepository {
+
+    @Override
+    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable) {
+        return new Page<>(List.of(), 0, 0, 0L);
+    }
+}
