@@ -133,6 +133,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
           this.existingNames = pagesResponse.pages
             .filter((page) => page.id !== this.page?.id && page.type === this.pageType)
             .map((page) => page.name.toLowerCase().trim());
+
+          if (this.isReadOnly) {
+            this.form.disable({ emitEvent: false });
+          }
         },
       });
 
