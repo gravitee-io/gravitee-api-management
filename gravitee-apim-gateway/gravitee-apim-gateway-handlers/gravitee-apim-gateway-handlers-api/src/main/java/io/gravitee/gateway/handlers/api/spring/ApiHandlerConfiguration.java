@@ -49,6 +49,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.TcpApiReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -57,6 +58,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -159,7 +161,7 @@ public class ApiHandlerConfiguration {
     @Bean
     public ReactorFactory<Api> apiReactorFactory(
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        PolicyFactory policyFactory,
+        PolicyFactoryManager policyFactoryManager,
         OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
@@ -174,7 +176,7 @@ public class ApiHandlerConfiguration {
             configuration,
             node,
             v3PolicyFactoryCreator,
-            policyFactory,
+            policyFactoryManager,
             organizationPolicyChainFactoryManager,
             organizationManager,
             policyChainProviderLoader,
@@ -204,8 +206,13 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
+    public PolicyFactoryManager policyFactoryManager(Set<PolicyFactory> policyFactories) {
+        return new PolicyFactoryManager(policyFactories);
+    }
+
+    @Bean
     public ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> asyncApiReactorFactory(
-        PolicyFactory policyFactory,
+        PolicyFactoryManager policyFactoryManager,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         ApiServicePluginManager apiServicePluginManager,
@@ -221,7 +228,7 @@ public class ApiHandlerConfiguration {
             applicationContext,
             configuration,
             node,
-            policyFactory,
+            policyFactoryManager,
             entrypointConnectorPluginManager,
             endpointConnectorPluginManager,
             apiServicePluginManager,

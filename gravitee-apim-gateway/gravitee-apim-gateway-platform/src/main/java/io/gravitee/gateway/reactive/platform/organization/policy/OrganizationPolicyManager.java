@@ -21,7 +21,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -37,14 +37,21 @@ public class OrganizationPolicyManager extends AbstractPolicyManager {
 
     public OrganizationPolicyManager(
         final DefaultClassLoader classLoader,
-        final PolicyFactory policyFactory,
+        final PolicyFactoryManager policyFactoryManager,
         final PolicyConfigurationFactory policyConfigurationFactory,
         final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         final PolicyClassLoaderFactory policyClassLoaderFactory,
         final ComponentProvider componentProvider,
         final ReactableOrganization reactableOrganization
     ) {
-        super(classLoader, policyFactory, policyConfigurationFactory, policyPluginManager, policyClassLoaderFactory, componentProvider);
+        super(
+            classLoader,
+            policyFactoryManager,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            componentProvider
+        );
         this.reactableOrganization = reactableOrganization;
     }
 

@@ -50,6 +50,12 @@ public class DefaultPolicyFactory implements PolicyFactory {
     }
 
     @Override
+    public boolean accept(PolicyManifest policyManifest) {
+        // DefaultPolicyFactory accept any kind of policy
+        return true;
+    }
+
+    @Override
     public Policy create(
         final ExecutionPhase executionPhase,
         final PolicyManifest policyManifest,
@@ -68,7 +74,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
         );
     }
 
-    private Policy createPolicy(
+    protected Policy createPolicy(
         final ExecutionPhase phase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,
