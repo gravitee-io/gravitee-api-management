@@ -17,6 +17,7 @@ package io.gravitee.apim.core.integration.use_case;
 
 import static fixtures.core.model.IntegrationJobFixture.aPendingIngestJob;
 import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
+import static io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -82,6 +83,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainServ
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -215,6 +217,11 @@ class IngestFederatedApisUseCaseTest {
             roleQueryService,
             userCrudService
         );
+        var apiMetadataDomainService = new ApiMetadataDomainService(
+            metadataCrudService,
+            apiMetadataQueryServiceInMemory,
+            auditDomainService
+        );
         var createApiDomainService = new CreateApiDomainService(
             apiCrudService,
             auditDomainService,
@@ -224,7 +231,7 @@ class IngestFederatedApisUseCaseTest {
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
-            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryServiceInMemory, auditDomainService),
+            apiMetadataDomainService,
             apiPrimaryOwnerDomainService,
             new FlowCrudServiceInMemory(),
             notificationConfigCrudService,
@@ -309,7 +316,8 @@ class IngestFederatedApisUseCaseTest {
                 updatePlanDomainService,
                 createApiDocumentationDomainService,
                 updateApiDocumentationDomainService,
-                triggerNotificationDomainService
+                triggerNotificationDomainService,
+                apiMetadataDomainService
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -594,6 +602,35 @@ class IngestFederatedApisUseCaseTest {
             assertThat(workflowCrudService.storage()).isEmpty();
         }
 
+        @Test
+        void should_create_api_metadata() {
+            //Given
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
+                        .build()
+                );
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(metadataCrudService.storage())
+                .hasSize(1)
+                .allMatch(newMetadata ->
+                    newMetadata.getName().equals("name1") &&
+                    newMetadata.getValue().equals("value1") &&
+                    newMetadata.getFormat().equals(STRING)
+                );
+        }
+
         private void enableApiReview() {
             parametersQueryService.define(
                 new Parameter(Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
@@ -743,6 +780,91 @@ class IngestFederatedApisUseCaseTest {
                         .event(ApiAuditEvent.API_UPDATED.name())
                         .createdAt(UPDATE_TIME.atZone(ZoneId.systemDefault()))
                         .build()
+                );
+        }
+
+        @Test
+        void should_update_already_ingested_api_metadata() {
+            //Given
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
+                        .build()
+                );
+            metadataCrudService.create(
+                io.gravitee.apim.core.metadata.model.Metadata
+                    .builder()
+                    .name("name1")
+                    .key("name1")
+                    .format(STRING)
+                    .value("oldValue")
+                    .referenceId("environment-idintegration-idasset-uid")
+                    .referenceType(Metadata.ReferenceType.API)
+                    .build()
+            );
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(metadataCrudService.storage())
+                .hasSize(1)
+                .allMatch(newMetadata ->
+                    newMetadata.getName().equals("name1") &&
+                    newMetadata.getValue().equals("value1") &&
+                    newMetadata.getFormat().equals(STRING)
+                );
+        }
+
+        @Test
+        void should_not_touch_any_other_metadata() {
+            //Given
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest =
+                (
+                    IntegrationApiFixtures
+                        .anIntegrationApiForIntegration(INTEGRATION_ID)
+                        .toBuilder()
+                        .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
+                        .build()
+                );
+            metadataCrudService.create(
+                io.gravitee.apim.core.metadata.model.Metadata
+                    .builder()
+                    .name("name2")
+                    .key("name2")
+                    .format(STRING)
+                    .referenceId("environment-idintegration-idasset-uid")
+                    .referenceType(Metadata.ReferenceType.API)
+                    .value("oldValue")
+                    .build()
+            );
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(metadataCrudService.storage())
+                .hasSize(2)
+                .anyMatch(newMetadata ->
+                    newMetadata.getName().equals("name1") &&
+                    newMetadata.getValue().equals("value1") &&
+                    newMetadata.getFormat().equals(STRING)
+                )
+                .anyMatch(newMetadata ->
+                    newMetadata.getName().equals("name2") &&
+                    newMetadata.getValue().equals("oldValue") &&
+                    newMetadata.getFormat().equals(STRING)
                 );
         }
     }
