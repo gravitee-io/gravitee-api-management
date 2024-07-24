@@ -1071,7 +1071,7 @@ class ImportCRDUseCaseTest {
 
         useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().metadata(metadata).build()));
 
-        verify(apiMetadataDomainService, times(1)).saveApiMetadata(API_ID, metadata, AUDIT_INFO);
+        verify(apiMetadataDomainService, times(1)).importApiMetadata(API_ID, metadata, AUDIT_INFO);
     }
 
     @Test

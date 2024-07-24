@@ -42,10 +42,6 @@ import io.gravitee.integration.api.command.discover.DiscoverCommand;
 import io.gravitee.integration.api.command.discover.DiscoverCommandPayload;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
 import io.gravitee.integration.api.command.discover.DiscoverReplyPayload;
-import io.gravitee.integration.api.command.ingest.IngestCommand;
-import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
-import io.gravitee.integration.api.command.ingest.IngestReply;
-import io.gravitee.integration.api.command.ingest.IngestReplyPayload;
 import io.gravitee.integration.api.command.ingest.StartIngestCommand;
 import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.StartIngestReply;
@@ -87,7 +83,6 @@ class IntegrationAgentImplTest {
 
     private static final String INTEGRATION_ID = "integration-id";
     private static final String JOB_ID = "job-id";
-    private static final Integration INTEGRATION = IntegrationFixture.anIntegration().withId(INTEGRATION_ID);
 
     @Mock
     ExchangeController controller;
@@ -523,7 +518,8 @@ class IntegrationAgentImplTest {
                         List.of(
                             new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY, List.of())
                         ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc")),
+                        null
                     ),
                     new IntegrationApi(
                         INTEGRATION_ID,
@@ -536,7 +532,8 @@ class IntegrationAgentImplTest {
                         List.of(
                             new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY, List.of())
                         ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc")),
+                        null
                     )
                 );
         }

@@ -37,7 +37,6 @@ import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
-import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -240,7 +239,7 @@ public class ImportCRDUseCase {
             createMembers(sanitizedInput, createdApi.getId());
             createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
 
-            apiMetadataDomainService.saveApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
+            apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
             if (sanitizedInput.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
                 if (createdApi.getLifecycleState() == Api.LifecycleState.STOPPED) {
@@ -340,7 +339,7 @@ public class ImportCRDUseCase {
             createOrUpdatePages(sanitizedInput.spec.getPages(), updatedApi.getId(), sanitizedInput.auditInfo);
             deleteRemovedPages(sanitizedInput.spec.getPages(), updatedApi.getId());
 
-            apiMetadataDomainService.saveApiMetadata(api.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
+            apiMetadataDomainService.importApiMetadata(api.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
             return ApiCRDStatus
                 .builder()

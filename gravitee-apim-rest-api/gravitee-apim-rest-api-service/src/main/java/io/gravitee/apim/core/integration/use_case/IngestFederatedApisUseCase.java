@@ -15,14 +15,16 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
-import static java.util.Optional.ofNullable;
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -34,6 +36,7 @@ import io.gravitee.apim.core.integration.crud_service.IntegrationJobCrudService;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.portal.FederatedApisIngestionCompleteHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -46,7 +49,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +75,7 @@ public class IngestFederatedApisUseCase {
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
+    private final ApiMetadataDomainService apiMetadataDomainService;
 
     public Completable execute(Input input) {
         log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
@@ -100,6 +103,8 @@ public class IngestFederatedApisUseCase {
                                     existingApi -> updateApi(federatedApi, existingApi, api, auditInfo, primaryOwner),
                                     () -> createApi(federatedApi, api, auditInfo, primaryOwner)
                                 );
+                            List<ApiMetadata> metadata = metadata(api, federatedApi);
+                            apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, auditInfo);
                         })
                     )
                     .doOnComplete(() -> {
@@ -118,15 +123,11 @@ public class IngestFederatedApisUseCase {
         try {
             createApiDomainService.create(federatedApi, primaryOwner, auditInfo, validateFederatedApi::validateAndSanitizeForCreation);
 
-            Stream
-                .ofNullable(integrationApi.plans())
-                .flatMap(Collection::stream)
+            stream(integrationApi.plans())
                 .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
                 .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, auditInfo));
 
-            Stream
-                .ofNullable(integrationApi.pages())
-                .flatMap(Collection::stream)
+            stream(integrationApi.pages())
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
                 .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
         } catch (Exception e) {
@@ -152,9 +153,7 @@ public class IngestFederatedApisUseCase {
             UnaryOperator<Api> updater = update(federatedApi);
             updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner);
 
-            ofNullable(integrationApi.plans())
-                .stream()
-                .flatMap(Collection::stream)
+            stream(integrationApi.plans())
                 .map(p -> PlanModelFactory.fromIntegration(p, federatedApi))
                 .forEach(p ->
                     planCrudService
@@ -165,9 +164,7 @@ public class IngestFederatedApisUseCase {
                         )
                 );
 
-            ofNullable(integrationApi.pages())
-                .stream()
-                .flatMap(Collection::stream)
+            stream(integrationApi.pages())
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
                 .forEach(page ->
                     pageQueryService
@@ -257,6 +254,30 @@ public class IngestFederatedApisUseCase {
                 .version(newOne.getVersion())
                 .federatedApiDefinition(newOne.getFederatedApiDefinition())
                 .build();
+    }
+
+    private static List<ApiMetadata> metadata(IntegrationApi api, Api federatedApi) {
+        return stream(api.metadata())
+            .map(md -> {
+                var format =
+                    switch (md.format()) {
+                        case STRING -> Metadata.MetadataFormat.STRING;
+                        case NUMERIC -> Metadata.MetadataFormat.NUMERIC;
+                        case MAIL -> Metadata.MetadataFormat.MAIL;
+                        case DATE -> Metadata.MetadataFormat.DATE;
+                        case URL -> Metadata.MetadataFormat.URL;
+                        case BOOLEAN -> Metadata.MetadataFormat.BOOLEAN;
+                    };
+                return ApiMetadata
+                    .builder()
+                    .apiId(federatedApi.getId())
+                    .name(md.name())
+                    .key(md.name())
+                    .value(md.value())
+                    .format(format)
+                    .build();
+            })
+            .toList();
     }
 
     public record Input(String organizationId, String ingestJobId, List<IntegrationApi> apisToIngest, boolean completed) {}

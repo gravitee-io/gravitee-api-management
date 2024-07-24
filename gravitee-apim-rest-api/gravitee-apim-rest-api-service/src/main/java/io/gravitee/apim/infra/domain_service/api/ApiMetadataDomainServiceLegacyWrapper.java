@@ -50,7 +50,7 @@ public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainServ
     }
 
     @Override
-    public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
+    public void importApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         metadata
             .stream()
