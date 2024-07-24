@@ -15,32 +15,19 @@
  */
 package io.gravitee.apim.core.audit.model;
 
-public enum AuditProperties {
-    PLAN,
-    PAGE,
-    API_KEY,
-    METADATA,
-    GROUP,
-    USER,
-    ROLE,
-    API,
-    APPLICATION,
-    TAG,
-    TENANT,
-    CATEGORY,
-    PARAMETER,
-    DICTIONARY,
-    API_HEADER,
-    IDENTITY_PROVIDER,
-    ENTRYPOINT,
-    REQUEST_ID,
-    CLIENT_REGISTRATION_PROVIDER,
-    QUALITY_RULE,
-    API_QUALITY_RULE,
-    DASHBOARD,
-    THEME,
-    TOKEN,
-    USER_FIELD,
-    NOTIFICATION_TEMPLATE,
-    SHARED_POLICY_GROUP,
-}
+import io.gravitee.apim.core.audit.model.event.AuditEvent;
+import java.time.ZonedDateTime;
+import java.util.Map;
+import lombok.Builder;
+
+@Builder
+public record EnvironmentAuditLogEntity(
+    String organizationId,
+    String environmentId,
+    AuditActor actor,
+    Map<AuditProperties, String> properties,
+    AuditEvent event,
+    ZonedDateTime createdAt,
+    Object oldValue,
+    Object newValue
+) {}

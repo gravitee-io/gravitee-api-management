@@ -23,7 +23,9 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -286,6 +288,43 @@ public class AuditDomainServiceTest {
                 .referenceType(AuditEntity.AuditReferenceType.APPLICATION)
                 .referenceId("application-id")
                 .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name())
+                .patch("[]")
+                .build();
+
+            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+        }
+    }
+
+    @Nested
+    class CreateEnvironmentAuditLog {
+
+        @Test
+        void should_create_an_environment_audit_log() {
+            var audit = EnvironmentAuditLogEntity
+                .builder()
+                .environmentId("environment-id")
+                .organizationId("organization-id")
+                .actor(AuditActor.builder().userId("system").build())
+                .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_CREATED)
+                .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, "shared-policy-group-id"))
+                .oldValue(null)
+                .newValue(null)
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .build();
+
+            service.createEnvironmentAuditLog(audit);
+
+            var expectedAudit = AuditEntity
+                .builder()
+                .id("audit-id")
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.of("UTC")))
+                .user("system")
+                .properties(Map.of("SHARED_POLICY_GROUP", "shared-policy-group-id"))
+                .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+                .referenceId("environment-id")
+                .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_CREATED.name())
                 .patch("[]")
                 .build();
 
