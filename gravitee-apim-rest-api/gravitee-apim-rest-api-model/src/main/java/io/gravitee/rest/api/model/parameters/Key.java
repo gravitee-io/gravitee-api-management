@@ -97,7 +97,7 @@ public enum Key {
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_THEME_FONT_FAMILY("portal.next.theme.font.family", "Roboto", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_FONT_FAMILY("portal.next.theme.font.family", "\"Roboto\", sans-serif", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
