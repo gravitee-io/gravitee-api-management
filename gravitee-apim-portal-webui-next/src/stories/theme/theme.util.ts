@@ -15,7 +15,7 @@
  */
 import { Args } from '@storybook/angular';
 
-import { addHexToDocument, addHslToDocument } from '../../services/theme.service';
+import { addPropertyToDocument, addHslToDocument } from '../../services/theme.service';
 
 const CUSTOMIZATION_ARGS = {
   primary: {
@@ -82,9 +82,9 @@ const computePalette = (config: CustomizationConfig) => {
 };
 
 const computeStyles = (theme: CustomizationConfig): void => {
-  addHexToDocument(CSS_VAR.background, theme.background);
-  addHexToDocument(CSS_VAR.bannerBackground, theme.bannerBackground);
-  addHexToDocument(CSS_VAR.bannerText, theme.bannerText);
+  addPropertyToDocument(CSS_VAR.background, theme.background);
+  addPropertyToDocument(CSS_VAR.bannerBackground, theme.bannerBackground);
+  addPropertyToDocument(CSS_VAR.bannerText, theme.bannerText);
 };
 
 const resetTheme = (): void => {
