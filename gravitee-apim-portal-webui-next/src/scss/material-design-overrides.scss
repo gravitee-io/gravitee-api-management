@@ -23,7 +23,7 @@
 
 mat-card {
   --mdc-elevated-card-container-elevation: 0;
-  --mdc-outlined-card-container-color: #fff;
+  --mdc-outlined-card-container-color: #{theme.$card-background-color};
 }
 
 mat-form-field {
