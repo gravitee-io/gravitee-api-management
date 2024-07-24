@@ -500,7 +500,7 @@ components:
             fontFamily:
               type: string
               description: Font-family used for Portal-Next
-              example: "Roboto"
+              example: "\"Roboto\", sans-serif"
 
         Theme:
           oneOf:
