@@ -298,4 +298,9 @@ public class EnvironmentResource extends AbstractResource {
     public RestrictedDomainsResource getRestrictedDomainsResource() {
         return resourceContext.getResource(RestrictedDomainsResource.class);
     }
+
+    @Path("flows")
+    public EnvironmentFlowsResource getEnvironmentFlowsResource() {
+        return resourceContext.getResource(EnvironmentFlowsResource.class);
+    }
 }
