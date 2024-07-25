@@ -82,7 +82,7 @@
               ng-class="{'log-error': log.status >= 400}"
             >
               <td md-cell nowrap>
-                <a ng-click="$ctrl.gotToLog(log)"> {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}} </a>
+                <a ng-href="{{$ctrl.goToLog(log)}}"> {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}} </a>
               </td>
               <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
               <td md-cell nowrap>{{$ctrl.getMetadata(log.application).name}}</td>
