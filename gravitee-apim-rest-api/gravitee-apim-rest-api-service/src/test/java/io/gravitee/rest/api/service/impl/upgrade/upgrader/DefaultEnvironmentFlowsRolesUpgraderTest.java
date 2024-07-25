@@ -50,11 +50,11 @@ public class DefaultEnvironmentFlowsRolesUpgraderTest {
     @Mock
     OrganizationRepository organizationRepository;
 
-    DefaultEnvironmentFlowsRolesUpgrader upgrader;
+    DefaultSharedPolicyGroupRolesUpgrader upgrader;
 
     @BeforeEach
     public void setUp() {
-        upgrader = new DefaultEnvironmentFlowsRolesUpgrader(roleService, organizationRepository);
+        upgrader = new DefaultSharedPolicyGroupRolesUpgrader(roleService, organizationRepository);
     }
 
     @Test
@@ -83,13 +83,13 @@ public class DefaultEnvironmentFlowsRolesUpgraderTest {
                 argThat(role -> {
                     if (
                         role.getName().equals(DEFAULT_ROLE_ENVIRONMENT_USER.getName()) &&
-                        role.getPermissions().containsKey(EnvironmentPermission.ENVIRONMENT_FLOWS.getName())
+                        role.getPermissions().containsKey(EnvironmentPermission.SHARED_POLICY_GROUP.getName())
                     ) {
                         return true;
                     }
                     return (
                         role.getName().equals(ROLE_ENVIRONMENT_API_PUBLISHER.getName()) &&
-                        role.getPermissions().containsKey(EnvironmentPermission.ENVIRONMENT_FLOWS.getName())
+                        role.getPermissions().containsKey(EnvironmentPermission.SHARED_POLICY_GROUP.getName())
                     );
                 })
             )
