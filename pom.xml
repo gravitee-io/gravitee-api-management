@@ -65,7 +65,7 @@
         <gravitee-exchange.version>1.7.5</gravitee-exchange.version>
         <gravitee-expression-language.version>3.2.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>3.5.0</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>3.5.1</gravitee-gateway-api.version>
         <gravitee-integration-api.version>2.1.0</gravitee-integration-api.version>
         <gravitee-node.version>5.21.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
@@ -284,7 +284,7 @@
         <gravitee-endpoint-azure-service-bus.version>0.1.0</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>3.0.0</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>3.0.1</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>5.0.2</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-policy-interops.version>1.0.0</gravitee-policy-interops.version>
