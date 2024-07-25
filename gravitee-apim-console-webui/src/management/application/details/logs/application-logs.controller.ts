@@ -115,18 +115,21 @@ class ApplicationLogsController {
   }
 
   goToLog(log: any) {
-    this.ngRouter.navigate([log.id], {
-      relativeTo: this.activatedRoute,
-      queryParams: {
-        logId: log.id,
-        timestamp: log.timestamp,
-        from: this.query.from,
-        to: this.query.to,
-        q: this.query.query,
-        page: this.query.page,
-        size: this.query.size,
-      },
-    });
+    return (
+      '/#!' +
+      this.ngRouter.createUrlTree(['.', log.id], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          logId: log.id,
+          timestamp: log.timestamp,
+          from: this.query.from,
+          to: this.query.to,
+          q: this.query.query,
+          page: this.query.page,
+          size: this.query.size,
+        },
+      })
+    );
   }
 }
 ApplicationLogsController.$inject = ['ApplicationService', '$scope', 'ngRouter'];
