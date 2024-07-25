@@ -141,6 +141,16 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         }
     }
 
+    @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
+
+        var res = internalSharedPolicyGroupMongoRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapSharedPolicyGroup);
+
+        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
+        return res;
+    }
+
     private SharedPolicyGroup mapSharedPolicyGroup(SharedPolicyGroupMongo item) {
         return item == null ? null : mapper.map(item);
     }

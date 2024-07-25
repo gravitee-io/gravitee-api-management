@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.sharedpolicygroups;
 
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -26,4 +27,7 @@ import org.springframework.stereotype.Repository;
 public interface SharedPolicyGroupMongoRepository extends MongoRepository<SharedPolicyGroupMongo, String> {
     @Query(value = "{'name':  {$regex: '?0', $options: 'i'}, 'environmentId': ?1}")
     Page<SharedPolicyGroupMongo> searchByEnvironment(String name, String environmentId, Pageable pageable);
+
+    @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }")
+    Optional<SharedPolicyGroupMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 }

@@ -16,12 +16,14 @@
 package io.gravitee.repository.noop.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -33,5 +35,10 @@ public class NoOpSharedPolicyGroupRepository
     @Override
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable) {
         return new Page<>(List.of(), 0, 0, 0L);
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        return Optional.empty();
     }
 }

@@ -46,7 +46,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
                 .name("name search_test " + i)
                 .version(1)
                 .description("description")
-                .crossId("crossId")
+                .crossId("crossId" + i)
                 .apiType(ApiType.PROXY)
                 .definition("definition")
                 .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
@@ -138,7 +138,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional.get().getName()).isEqualTo("name");
         assertThat(optional.get().getVersion()).isEqualTo(1);
         assertThat(optional.get().getDescription()).isEqualTo("description");
-        assertThat(optional.get().getCrossId()).isEqualTo("crossId");
+        assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
         assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
         assertThat(optional.get().getDefinition()).isEqualTo("definition");
         assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
@@ -236,5 +236,29 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 9");
         assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 8");
         assertThat(page.getTotalElements()).isEqualTo(10);
+    }
+
+    @Test
+    public void should_find_by_environment_id_and_cross_id() throws TechnicalException {
+        final var optional = sharedPolicyGroupRepository.findByEnvironmentIdAndCrossId("environmentId", "id_find-by-id_test_crossId");
+        assertThat(optional).isPresent();
+        assertThat(optional.get().getName()).isEqualTo("name");
+        assertThat(optional.get().getVersion()).isEqualTo(1);
+        assertThat(optional.get().getDescription()).isEqualTo("description");
+        assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
+        assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
+        assertThat(optional.get().getDefinition()).isEqualTo("definition");
+        assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
+        assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
+        assertThat(optional.get().getOrganizationId()).isEqualTo("organizationId");
+        assertThat(optional.get().getDeployedAt()).isNotNull();
+        assertThat(optional.get().getCreatedAt()).isNotNull();
+        assertThat(optional.get().getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    public void should_not_find_by_environment_id_and_cross_id_missing() throws TechnicalException {
+        final var optional = sharedPolicyGroupRepository.findByEnvironmentIdAndCrossId("environmentId", "crossId-does-not-exist");
+        assertThat(optional).isEmpty();
     }
 }

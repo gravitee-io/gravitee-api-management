@@ -28,11 +28,21 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}sharedpolicygroups
         - createIndex:
             tableName: ${gravitee_prefix}sharedpolicygroups
-            indexName: idx_${gravitee_prefix}sharedpolicygroups
+            indexName: idx_${gravitee_prefix}environment_id_name
             columns:
               - column:
-                  name: organization_id
+                  name: environment_id
                   type: nvarchar(64)
               - column:
+                  name: name
+                  type: nvarchar(512)
+        - createIndex:
+            tableName: ${gravitee_prefix}sharedpolicygroups
+            indexName: idx_${gravitee_prefix}environment_id_cross_id
+            columns:
+              - column:
                   name: environment_id
+                  type: nvarchar(64)
+              - column:
+                  name: cross_id
                   type: nvarchar(64)
