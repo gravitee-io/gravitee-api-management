@@ -16,9 +16,7 @@
 package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
-import static java.lang.String.format;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.ApiType;
@@ -148,6 +146,28 @@ public class JdbcSharedPolicyGroupRepository
         } catch (Exception ex) {
             LOGGER.error("Failed to search for SharedPolicyGroups:", ex);
             throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
+        }
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
+
+        try {
+            final var result = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND cross_id = ?",
+                getOrm().getRowMapper(),
+                environmentId,
+                crossId
+            );
+
+            final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
+
+            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
+            return Optional.ofNullable(sharedPolicyGroup);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
+            throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and cross ID", ex);
         }
     }
 }
