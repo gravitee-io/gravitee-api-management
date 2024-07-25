@@ -27,7 +27,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.InstanceQueryServiceInMemory;
-import inmemory.PolicyValidationDomainServiceInMemory;
+import fakes.FakePolicyValidationDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -86,7 +86,7 @@ class DebugApiUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private DebugApiUseCase cut;
     private final ApiPolicyValidatorDomainService apiPolicyValidatorDomainService = new ApiPolicyValidatorDomainService(
-        new PolicyValidationDomainServiceInMemory()
+        new FakePolicyValidationDomainService()
     );
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final InstanceQueryServiceInMemory instanceQueryService = new InstanceQueryServiceInMemory();

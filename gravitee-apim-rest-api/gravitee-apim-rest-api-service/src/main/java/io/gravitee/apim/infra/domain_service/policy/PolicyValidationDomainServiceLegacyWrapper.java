@@ -15,8 +15,17 @@
  */
 package io.gravitee.apim.infra.domain_service.policy;
 
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
+import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +33,41 @@ import org.springframework.stereotype.Service;
 @Service
 public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidationDomainService {
 
-    private final PolicyService policyService;
+    private final PolicyPluginService policyPluginService;
 
     @Override
     public String validateAndSanitizeConfiguration(String policyName, String configuration) {
-        return policyService.validatePolicyConfiguration(policyName, configuration);
+        return policyPluginService.validatePolicyConfiguration(policyName, configuration);
+    }
+
+    @Override
+    public void validatePoliciesExecutionPhase(List<String> policyIds, ApiType apiType, PolicyPlugin.ExecutionPhase phase)
+        throws UnexpectedPoliciesException {
+        Map<String, PolicyPluginEntity> policiesMap = policyPluginService
+            .findAll()
+            .stream()
+            .collect(Collectors.toMap(PolicyPluginEntity::getId, Function.identity()));
+
+        List<String> policyNamesUnexpected = new ArrayList<>();
+        policyIds.forEach(policyId -> {
+            if (policiesMap.containsKey(policyId)) {
+                PolicyPluginEntity policy = policiesMap.get(policyId);
+
+                if (apiType.equals(ApiType.PROXY)) {
+                    if (policy.getProxy() == null || policy.getProxy().stream().noneMatch(p -> p.name().equals(phase.name()))) {
+                        policyNamesUnexpected.add(policy.getName());
+                    }
+                }
+                if (apiType.equals(ApiType.MESSAGE)) {
+                    if (policy.getMessage() == null || policy.getMessage().stream().noneMatch(p -> p.name().equals(phase.name()))) {
+                        policyNamesUnexpected.add(policy.getName());
+                    }
+                }
+            }
+        });
+
+        if (!policyNamesUnexpected.isEmpty()) {
+            throw new UnexpectedPoliciesException(policyNamesUnexpected, apiType.name(), phase.name());
+        }
     }
 }

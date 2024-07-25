@@ -100,6 +100,12 @@ public class CreateSharedPolicyGroupUseCase {
                         policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
                     )
                 );
+
+            policyValidationDomainService.validatePoliciesExecutionPhase(
+                sharedPolicyGroupToCreate.getSteps().stream().map(Step::getPolicy).toList(),
+                sharedPolicyGroupToCreate.getApiType(),
+                sharedPolicyGroupToCreate.getPhase()
+            );
         }
     }
 
