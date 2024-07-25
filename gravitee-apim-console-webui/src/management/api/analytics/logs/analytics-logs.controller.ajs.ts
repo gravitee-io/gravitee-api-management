@@ -149,18 +149,21 @@ class ApiAnalyticsLogsControllerAjs {
     });
   }
 
-  gotToLog(log: any) {
-    this.ngRouter.navigate(['.', log.id], {
-      relativeTo: this.activatedRoute,
-      queryParams: {
-        timestamp: log.timestamp,
-        from: this.query.from,
-        to: this.query.to,
-        q: this.query.query,
-        page: this.query.page,
-        size: this.query.size,
-      },
-    });
+  goToLog(log: any) {
+    return (
+      '/#!' +
+      this.ngRouter.createUrlTree(['.', log.id], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          timestamp: log.timestamp,
+          from: this.query.from,
+          to: this.query.to,
+          q: this.query.query,
+          page: this.query.page,
+          size: this.query.size,
+        },
+      })
+    );
   }
 }
 ApiAnalyticsLogsControllerAjs.$inject = ['ApiService', '$scope', 'ngRouter', '$timeout', 'AnalyticsService', 'TenantService', '$q'];
