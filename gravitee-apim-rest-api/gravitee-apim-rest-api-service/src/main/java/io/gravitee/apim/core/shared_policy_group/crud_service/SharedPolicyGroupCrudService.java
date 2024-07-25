@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.shared_policy_group.crud_service;
 
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import java.util.Optional;
 
 public interface SharedPolicyGroupCrudService {
     SharedPolicyGroup create(SharedPolicyGroup sharedPolicyGroupEntity);
@@ -25,4 +26,6 @@ public interface SharedPolicyGroupCrudService {
     SharedPolicyGroup update(SharedPolicyGroup sharedPolicyGroupEntity);
 
     void delete(String sharedPolicyGroupId);
+
+    Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 }
