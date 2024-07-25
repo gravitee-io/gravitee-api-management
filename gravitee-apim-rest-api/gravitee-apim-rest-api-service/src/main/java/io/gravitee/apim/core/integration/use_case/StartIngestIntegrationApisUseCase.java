@@ -27,9 +27,8 @@ import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import java.util.Map;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,7 +61,7 @@ public class StartIngestIntegrationApisUseCase {
             )
             .flatMap(integration ->
                 integrationAgent
-                    .startIngest(integration.getId(), UuidString.generateRandom())
+                    .startIngest(integration.getId(), UuidString.generateRandom(), input.apiIds())
                     .map(ingestStarted -> {
                         log.info("Ingestion started for integration {}", integration.getId());
 
@@ -95,5 +94,5 @@ public class StartIngestIntegrationApisUseCase {
             .build();
     }
 
-    public record Input(String integrationId, AuditInfo auditInfo) {}
+    public record Input(String integrationId, List<String> apiIds, AuditInfo auditInfo) {}
 }

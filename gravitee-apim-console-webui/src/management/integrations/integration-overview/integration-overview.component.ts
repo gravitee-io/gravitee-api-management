@@ -66,7 +66,6 @@ export class IntegrationOverviewComponent implements OnInit {
   private ingest() {
     const { integrationId } = this.activatedRoute.snapshot.params;
     this.isIngesting = true;
-    this.integrationsService.setIsIngestToRun(false);
     this.snackBarService.success('API ingestion is in progress. The process should only take a few minute to complete. Come back shortly!');
 
     this.integrationsService

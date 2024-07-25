@@ -21,7 +21,6 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner.StateEnum.NEW;
 import static io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResourceTest.INTEGRATION_PROVIDER;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +40,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.v2.rest.model.ApisIngest;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
@@ -59,12 +59,12 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -106,8 +106,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         target = rootTarget();
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -240,6 +240,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             boolean environmentIntegrationRead,
             boolean environmentApiCreate
         ) {
+            //Given
+            Entity<ApisIngest> entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
@@ -259,15 +261,18 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(environmentApiCreate);
 
-            final Response response = target.request().post(null);
+            final Response response = target.request().post(entity);
 
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
         @Test
         public void should_throw_error_when_integration_not_found() {
+            //Given
+            Entity<ApisIngest> entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
+
             //When
-            Response response = target.request().post(null);
+            Response response = target.request().post(entity);
 
             //Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
@@ -276,11 +281,12 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_success_when_ingestion_has_started() {
             //Given
+            Entity<ApisIngest> entity = Entity.entity(new ApisIngest().apiIds(List.of()), MediaType.APPLICATION_JSON_TYPE);
             integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
             integrationAgentInMemory.configureApisNumberToIngest(INTEGRATION_ID, 10L);
 
             //When
-            Response response = target.request().post(null);
+            Response response = target.request().post(entity);
 
             //Then
             assertThat(response)

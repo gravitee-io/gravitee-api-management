@@ -19,10 +19,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup } from '@angular/forms';
+import { MatTableDataSource } from '@angular/material/table';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { IntegrationPreview, IntegrationPreviewApisState } from '../integrations.model';
+import { IntegrationPreview, IntegrationPreviewApis, IntegrationPreviewApisState } from '../integrations.model';
 
 @Component({
   selector: 'app-discovery-preview',
@@ -33,9 +35,17 @@ export class DiscoveryPreviewComponent implements OnInit {
   IntegrationPreviewApisState = IntegrationPreviewApisState;
   private destroyRef: DestroyRef = inject(DestroyRef);
 
+  private static readonly NEW_BITFIELD_VALUE = 0b0001;
+  private static readonly UPDATE_BITFIELD_VALUE = 0b0010;
+
   public displayedColumns = ['name', 'state'];
   public isLoadingPreview = true;
   public integrationPreview: IntegrationPreview = null;
+  public ingestParameters = new FormGroup({
+    ingestNewApis: new FormControl(false),
+    ingestUpdateApis: new FormControl(false),
+  });
+  public tableData = new MatTableDataSource<IntegrationPreviewApis>();
 
   constructor(
     public readonly integrationsService: IntegrationsService,
@@ -76,13 +86,37 @@ export class DiscoveryPreviewComponent implements OnInit {
       .subscribe({
         next: (integrationPreview) => {
           this.integrationPreview = integrationPreview;
+          this.tableData.data = this.integrationPreview.apis;
+          this.tableData.filterPredicate = (api, filter) => {
+            const filterValues = parseInt(filter, 10);
+            return (
+              (filterValues & DiscoveryPreviewComponent.NEW_BITFIELD_VALUE && api.state === IntegrationPreviewApisState.NEW) ||
+              (filterValues & DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE && api.state === IntegrationPreviewApisState.UPDATE)
+            );
+          };
+          this.setupForm('ingestNewApis', this.integrationPreview.newCount);
+          this.setupForm('ingestUpdateApis', this.integrationPreview.updateCount);
           this.isLoadingPreview = false;
         },
       });
   }
 
   public proceedIngest() {
-    this.integrationsService.setIsIngestToRun(true);
+    this.integrationsService.prepareRunIngest(this.tableData.filteredData.map((api) => api.id));
     this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
+
+  private setupForm(controlName: 'ingestUpdateApis' | 'ingestNewApis', value: number) {
+    if (value <= 0) {
+      this.ingestParameters.controls[controlName].disable({ onlySelf: true });
+    } else {
+      this.ingestParameters.controls[controlName].setValue(value > 0);
+    }
+    const state =
+      controlName === 'ingestNewApis' ? DiscoveryPreviewComponent.NEW_BITFIELD_VALUE : DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE;
+    this.ingestParameters.controls[controlName].valueChanges.subscribe((selected) => {
+      const previous = parseInt(this.tableData.filter, 10);
+      this.tableData.filter = (selected ? previous | state : previous & ~state).toString();
+    });
   }
 }

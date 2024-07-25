@@ -1255,13 +1255,18 @@ paths:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
-        get:
+        post:
             tags:
                 - Integrations
             summary: Ingest APIs for a specific Integration
             description: |-
                 Ingest all APIs for a specific Integration.
             operationId: ingestIntegration
+            requestBody:
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/ApisIngest"
             responses:
                 "200":
                     description: Ingestion successful
@@ -4391,6 +4396,15 @@ components:
                             ]
                         }
             required: [entrypointId]
+
+        ApisIngest:
+          type: object
+          properties:
+            apiIds:
+              type: array
+              items:
+                type: string
+              description: The list of ids of APIs to ingest. If null or empty, ingest all.
 
         CreateSubscription:
             type: object

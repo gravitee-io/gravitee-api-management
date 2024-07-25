@@ -21,7 +21,6 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.integration.api.command.IntegrationCommandType;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestReply;
-import io.gravitee.integration.api.command.ingest.IngestReplyPayload;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.reactivex.rxjava3.core.Single;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +54,7 @@ public class IngestCommandHandler implements CommandHandler<IngestCommand, Inges
                     payload.done()
                 )
             )
-            .andThen(Single.just(new IngestReply(command.getId(), IngestReplyPayload.builder().build())))
+            .andThen(Single.just(new IngestReply(command.getId())))
             .doOnError(throwable ->
                 log.error(
                     "Unable to process ingest command payload for integration [{}]",
@@ -63,6 +62,6 @@ public class IngestCommandHandler implements CommandHandler<IngestCommand, Inges
                     throwable
                 )
             )
-            .onErrorReturn(throwable -> new IngestReply(command.getId(), IngestReplyPayload.builder().build()));
+            .onErrorReturn(throwable -> new IngestReply(command.getId(), throwable.getMessage()));
     }
 }
