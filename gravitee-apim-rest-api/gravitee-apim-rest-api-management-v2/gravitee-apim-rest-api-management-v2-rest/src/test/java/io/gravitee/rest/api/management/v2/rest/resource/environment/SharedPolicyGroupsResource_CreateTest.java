@@ -175,7 +175,7 @@ public class SharedPolicyGroupsResource_CreateTest extends AbstractResourceTest 
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_FLOWS),
+                eq(RolePermission.SHARED_POLICY_GROUP),
                 eq(ENV_ID),
                 eq(RolePermissionAction.CREATE)
             )

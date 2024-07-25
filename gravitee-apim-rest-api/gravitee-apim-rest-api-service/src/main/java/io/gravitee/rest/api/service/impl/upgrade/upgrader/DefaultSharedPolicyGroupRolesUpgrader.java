@@ -37,20 +37,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 @Slf4j
-public class DefaultEnvironmentFlowsRolesUpgrader implements Upgrader {
+public class DefaultSharedPolicyGroupRolesUpgrader implements Upgrader {
 
     private final RoleService roleService;
 
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public DefaultEnvironmentFlowsRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public DefaultSharedPolicyGroupRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -84,7 +82,7 @@ public class DefaultEnvironmentFlowsRolesUpgrader implements Upgrader {
         }
         var roleToUpdate = convert(role.get());
 
-        roleToUpdate.getPermissions().put(EnvironmentPermission.ENVIRONMENT_FLOWS.getName(), permissions);
+        roleToUpdate.getPermissions().put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), permissions);
 
         log.info("Update default role {} for environment {}", roleName, executionContext.getOrganizationId());
         roleService.update(executionContext, roleToUpdate);
