@@ -27,10 +27,12 @@ function DialogGenerateTokenController($scope, $mdDialog, locals, TokenService, 
   };
 
   this.generate = function () {
-    TokenService.create({ name: this.name }).then((response) => {
-      NotificationService.show('Token "' + this.name + '" has been successfully generated.');
-      this.token = response.data;
-    });
+    TokenService.create({ name: this.name })
+      .then((response) => {
+        NotificationService.show('Token "' + this.name + '" has been successfully generated.');
+        this.token = response.data;
+      })
+      .catch((error) => NotificationService.showError(error.data.message));
   };
 
   this.onClipboardSuccess = function () {
