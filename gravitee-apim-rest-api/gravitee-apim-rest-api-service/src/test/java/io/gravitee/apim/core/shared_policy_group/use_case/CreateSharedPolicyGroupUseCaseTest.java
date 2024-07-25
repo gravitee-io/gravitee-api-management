@@ -16,6 +16,11 @@
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
@@ -26,10 +31,12 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
@@ -62,6 +69,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
     private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+    private final PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -80,7 +88,12 @@ public class CreateSharedPolicyGroupUseCaseTest {
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
-        createSharedPolicyGroupUseCase = new CreateSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, auditService);
+        lenient()
+            .when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+
+        createSharedPolicyGroupUseCase =
+            new CreateSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, policyValidationDomainService, auditService);
     }
 
     @Test
@@ -195,5 +208,37 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .assertThat(throwable)
             .isInstanceOf(InvalidDataException.class)
             .hasMessage("SharedPolicyGroup with crossId already exists.");
+    }
+
+    @Test
+    void should_validate_and_sanitize_configuration() {
+        // Given
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setSteps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"value\" }").build()));
+
+        // When
+        createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO));
+
+        // Then
+        verify(policyValidationDomainService).validateAndSanitizeConfiguration(eq("policy"), eq("{ \"key\": \"value\" }"));
+    }
+
+    @Test
+    void should_throw_exception_when_policy_validation_fails() {
+        // Given
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setSteps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"value\" }").build()));
+
+        lenient()
+            .when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+            .thenThrow(new InvalidDataException("Invalid configuration"));
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
+        );
+
+        // Then
+        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Invalid configuration");
     }
 }

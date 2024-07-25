@@ -20,29 +20,26 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @DomainService
 public class CreateSharedPolicyGroupUseCase {
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
+    private final PolicyValidationDomainService policyValidationDomainService;
     private final AuditDomainService auditService;
-
-    public CreateSharedPolicyGroupUseCase(
-        SharedPolicyGroupCrudService sharedPolicyGroupCrudService,
-        AuditDomainService auditDomainService
-    ) {
-        this.sharedPolicyGroupCrudService = sharedPolicyGroupCrudService;
-        this.auditService = auditDomainService;
-    }
 
     public Output execute(Input input) {
         validateCreateSharedPolicyGroup(input.sharedPolicyGroupToCreate(), input.auditInfo().environmentId());
@@ -91,6 +88,19 @@ public class CreateSharedPolicyGroupUseCase {
                     )
                 );
             });
+
+        // Validate and sanitize policies configuration
+        if (sharedPolicyGroupToCreate.getSteps() != null) {
+            sharedPolicyGroupToCreate
+                .getSteps()
+                .stream()
+                .filter(Step::isEnabled)
+                .forEach(step ->
+                    step.setConfiguration(
+                        policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
+                    )
+                );
+        }
     }
 
     private void createAuditLog(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
