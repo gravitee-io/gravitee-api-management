@@ -24,6 +24,7 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiQueryServiceInMemory;
@@ -136,6 +137,7 @@ class ApisResourceTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         apiQueryServiceInMemory.reset();
+        reset(createApiDomainService);
     }
 
     @Nested

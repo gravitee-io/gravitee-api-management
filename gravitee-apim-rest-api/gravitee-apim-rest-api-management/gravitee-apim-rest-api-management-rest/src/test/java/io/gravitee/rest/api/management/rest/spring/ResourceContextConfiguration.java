@@ -48,6 +48,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
@@ -633,5 +634,10 @@ public class ResourceContextConfiguration {
     @Bean
     public PageSourceDomainServiceInMemory pageSourceDomainService() {
         return new PageSourceDomainServiceInMemory();
+    }
+
+    @Bean
+    public CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase() {
+        return mock(CreateSharedPolicyGroupUseCase.class);
     }
 }
