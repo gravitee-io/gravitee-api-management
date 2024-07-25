@@ -122,19 +122,23 @@ class PlatformLogsController {
   }
 
   showLogDetails(log) {
-    this.ngRouter.navigate(['.', log.id], {
-      relativeTo: this.activatedRoute,
-      queryParams: {
-        timestamp: log.timestamp,
-        from: this.query.from,
-        to: this.query.to,
-        q: this.query.query,
-        page: this.query.page,
-        size: this.query.size,
-      },
-    });
+    return (
+      '/#!' +
+      this.ngRouter.createUrlTree(['.', log.id], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          timestamp: log.timestamp,
+          from: this.query.from,
+          to: this.query.to,
+          q: this.query.query,
+          page: this.query.page,
+          size: this.query.size,
+        },
+      })
+    );
   }
 }
+
 PlatformLogsController.$inject = ['ApiService', 'AnalyticsService', 'Constants', 'ApplicationService', 'ngRouter', '$scope'];
 
 export default PlatformLogsController;
