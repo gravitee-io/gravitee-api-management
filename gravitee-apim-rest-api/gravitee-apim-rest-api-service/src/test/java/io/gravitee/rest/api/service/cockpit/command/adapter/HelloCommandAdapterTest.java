@@ -31,7 +31,6 @@ import io.gravitee.cockpit.api.command.v1.installation.AdditionalInfoConstants;
 import io.gravitee.exchange.api.command.hello.HelloCommandPayload;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
-import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;

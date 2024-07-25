@@ -31,7 +31,6 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
 import io.gravitee.integration.api.command.IntegrationCommandType;
 import io.gravitee.integration.api.command.hello.HelloCommand;
-import io.gravitee.integration.api.command.hello.HelloCommandPayload;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.integration.controller.command.IntegrationControllerCommandHandlerFactory;
 import java.time.Clock;
@@ -60,7 +59,7 @@ class HelloCommandHandlerTest {
     private static final IntegrationCommandContext CONTEXT = new IntegrationCommandContext(true, ORGANIZATION_ID);
     private static final HelloCommand COMMAND = new HelloCommand(
         COMMAND_ID,
-        HelloCommandPayload.builder().targetId(INTEGRATION_ID).provider(INTEGRATION_PROVIDER).build()
+        new HelloCommand.Payload(INTEGRATION_ID, INTEGRATION_PROVIDER)
     );
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();

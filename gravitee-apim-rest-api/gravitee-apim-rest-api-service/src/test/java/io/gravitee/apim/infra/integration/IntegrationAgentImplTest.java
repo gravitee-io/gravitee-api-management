@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.IntegrationFixture;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.PlanFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -28,7 +27,6 @@ import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.IngestStarted;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
@@ -39,21 +37,13 @@ import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.exchange.api.controller.metrics.ChannelMetric;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
-import io.gravitee.integration.api.command.discover.DiscoverCommandPayload;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
-import io.gravitee.integration.api.command.discover.DiscoverReplyPayload;
 import io.gravitee.integration.api.command.ingest.StartIngestCommand;
-import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.StartIngestReply;
-import io.gravitee.integration.api.command.ingest.StartIngestReplyPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
-import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
-import io.gravitee.integration.api.command.subscribe.SubscribeReplyPayload;
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommand;
-import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommandPayload;
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReply;
-import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReplyPayload;
 import io.gravitee.integration.api.model.Page;
 import io.gravitee.integration.api.model.PageType;
 import io.gravitee.integration.api.model.Plan;
@@ -68,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -139,14 +130,12 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            lenient()
-                .when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new StartIngestReply("command-id", new StartIngestReplyPayload(JOB_ID, 10L))));
+            lenient().when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", JOB_ID, 10L)));
         }
 
         @Test
         void should_send_command_to_fetch_all_assets() {
-            agent.startIngest(INTEGRATION_ID, JOB_ID).test().awaitDone(10, TimeUnit.SECONDS);
+            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of()).test().awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
@@ -154,13 +143,26 @@ class IntegrationAgentImplTest {
             assertThat(captor.getValue())
                 .isInstanceOf(StartIngestCommand.class)
                 .extracting(Command::getPayload)
-                .isEqualTo(new StartIngestCommandPayload(JOB_ID, List.of()));
+                .isEqualTo(new StartIngestCommand.Payload(JOB_ID, List.of()));
+        }
+
+        @Test
+        void should_send_command_to_fetch_some_assets() {
+            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of("1", "2", "3")).test().awaitDone(10, TimeUnit.SECONDS);
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+
+            assertThat(captor.getValue())
+                .isInstanceOf(StartIngestCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(new StartIngestCommand.Payload(JOB_ID, List.of("1", "2", "3")));
         }
 
         @Test
         void should_return_ingest_started() {
             agent
-                .startIngest(INTEGRATION_ID, JOB_ID)
+                .startIngest(INTEGRATION_ID, JOB_ID, List.of())
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertValue(result -> {
@@ -174,7 +176,7 @@ class IntegrationAgentImplTest {
             when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", "Fail to start ingest")));
 
             agent
-                .startIngest(INTEGRATION_ID, JOB_ID)
+                .startIngest(INTEGRATION_ID, JOB_ID, List.of())
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertError(error -> {
@@ -187,7 +189,7 @@ class IntegrationAgentImplTest {
         void should_throw_when_no_controller() {
             agent = new IntegrationAgentImpl(Optional.empty());
             agent
-                .startIngest(INTEGRATION_ID, JOB_ID)
+                .startIngest(INTEGRATION_ID, JOB_ID, List.of())
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertError(error -> {
@@ -213,9 +215,7 @@ class IntegrationAgentImplTest {
                     Single.just(
                         new SubscribeReply(
                             "command-id",
-                            new SubscribeReplyPayload(
-                                SubscriptionResult.builder().apiKey("my-api-key").metadata(Map.of("key", "value")).build()
-                            )
+                            SubscriptionResult.builder().apiKey("my-api-key").metadata(Map.of("key", "value")).build()
                         )
                     )
                 );
@@ -243,7 +243,7 @@ class IntegrationAgentImplTest {
                 .isInstanceOf(SubscribeCommand.class)
                 .extracting(Command::getPayload)
                 .isEqualTo(
-                    new SubscribeCommandPayload(
+                    new SubscribeCommand.Payload(
                         "api-provider-id",
                         new Subscription(
                             SUBSCRIPTION_ID,
@@ -286,7 +286,7 @@ class IntegrationAgentImplTest {
                 .isInstanceOf(SubscribeCommand.class)
                 .extracting(Command::getPayload)
                 .isEqualTo(
-                    new SubscribeCommandPayload(
+                    new SubscribeCommand.Payload(
                         "api-provider-id",
                         new Subscription(
                             SUBSCRIPTION_ID,
@@ -365,9 +365,7 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            lenient()
-                .when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new UnsubscribeReply("command-id", new UnsubscribeReplyPayload())));
+            lenient().when(controller.sendCommand(any(), any())).thenReturn(Single.just(new UnsubscribeReply("command-id")));
         }
 
         @Test
@@ -388,7 +386,7 @@ class IntegrationAgentImplTest {
                 .isInstanceOf(UnsubscribeCommand.class)
                 .extracting(Command::getPayload)
                 .isEqualTo(
-                    new UnsubscribeCommandPayload(
+                    new UnsubscribeCommand.Payload(
                         "api-provider-id",
                         new Subscription("subscription-id", null, null, null, Map.of("aws-api-key-id", "apikey-123"))
                     )
@@ -431,7 +429,7 @@ class IntegrationAgentImplTest {
                 .isInstanceOf(UnsubscribeCommand.class)
                 .extracting(Command::getPayload)
                 .isEqualTo(
-                    new UnsubscribeCommandPayload("api-provider-id", new Subscription("subscription-id", null, null, null, Map.of()))
+                    new UnsubscribeCommand.Payload("api-provider-id", new Subscription("subscription-id", null, null, null, Map.of()))
                 );
         }
 
@@ -486,7 +484,7 @@ class IntegrationAgentImplTest {
         void setUp() {
             lenient()
                 .when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of(buildApi(1), buildApi(2))))));
+                .thenReturn(Single.just(new DiscoverReply("command-id", Stream.of(buildApi(1), buildApi(2)).toList())));
         }
 
         @Test
@@ -498,7 +496,7 @@ class IntegrationAgentImplTest {
             assertThat(captor.getValue())
                 .isInstanceOf(DiscoverCommand.class)
                 .extracting(Command::getPayload)
-                .isEqualTo(new DiscoverCommandPayload());
+                .isEqualTo(new DiscoverCommand.Payload());
         }
 
         @Test
@@ -540,8 +538,7 @@ class IntegrationAgentImplTest {
 
         @Test
         void should_return_empty_when_nothing_discovered() {
-            when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of()))));
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", List.of())));
 
             agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
         }

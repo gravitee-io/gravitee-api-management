@@ -38,6 +38,10 @@ export interface Integration {
   pendingJob?: IntegrationJob;
 }
 
+export interface IntegrationIngestionRequest {
+  apiIds: string[];
+}
+
 export interface IntegrationIngestionResponse {
   status: IngestionStatus;
   message?: string;

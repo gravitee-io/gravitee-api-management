@@ -35,16 +35,11 @@ import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.exchange.api.controller.metrics.ChannelMetric;
 import io.gravitee.integration.api.command.discover.DiscoverCommand;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
-import io.gravitee.integration.api.command.ingest.IngestCommand;
-import io.gravitee.integration.api.command.ingest.IngestReply;
 import io.gravitee.integration.api.command.ingest.StartIngestCommand;
-import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.StartIngestReply;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
-import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommand;
-import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommandPayload;
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReply;
 import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionType;
@@ -81,18 +76,19 @@ public class IntegrationAgentImpl implements IntegrationAgent {
     }
 
     @Override
-    public Single<IngestStarted> startIngest(String integrationId, String ingestJobId) {
-        var command = new StartIngestCommand(new StartIngestCommandPayload(ingestJobId, List.of()));
+    public Single<IngestStarted> startIngest(String integrationId, String ingestJobId, List<String> apiIds) {
+        var command = new StartIngestCommand(ingestJobId, apiIds);
 
         log.debug("Start ingestion for [integrationId={}]", integrationId);
         return sendStartIngestCommand(command, integrationId)
-            .flatMap(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    log.debug("APIs ingestion for [integrationId={}] has started [total={}]", integrationId, reply.getPayload().total());
-                    return Single.just(new IngestStarted(ingestJobId, reply.getPayload().total()));
-                }
-                return Single.error(new IntegrationIngestionException(reply.getErrorDetails()));
-            });
+            .flatMap(reply ->
+                reply.getCommandStatus() != CommandStatus.SUCCEEDED
+                    ? Single.error(new IntegrationIngestionException(reply.getErrorDetails()))
+                    : Single.just(new IngestStarted(ingestJobId, reply.getPayload().total()))
+            )
+            .doOnSuccess(started ->
+                log.debug("APIs ingestion for [integrationId={}] has started [total={}]", integrationId, started.total())
+            );
     }
 
     @Override
@@ -122,7 +118,7 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                 new IntegrationIngestionException("Unsupported subscription type: " + subscriptionParameter.plan().getSecurity().getType())
             );
         }
-        var payload = new SubscribeCommandPayload(
+        var payload = new SubscribeCommand.Payload(
             api.getProviderId(),
             Subscription
                 .builder()
@@ -159,7 +155,7 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         if (subscription.getClientId() != null) {
             metadata.put(Subscription.METADATA_CONSUMER_KEY, subscription.getClientId());
         }
-        var payload = new UnsubscribeCommandPayload(
+        var payload = new UnsubscribeCommand.Payload(
             api.getProviderId(),
             Subscription.builder().graviteeSubscriptionId(subscription.getId()).metadata(metadata).build()
         );
@@ -197,17 +193,6 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                     .sendCommand(startIngestCommand, integrationId)
                     .cast(StartIngestReply.class)
                     .onErrorReturn(throwable -> new StartIngestReply(startIngestCommand.getId(), throwable.getMessage()))
-            )
-            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
-    }
-
-    private Single<IngestReply> sendIngestCommand(IngestCommand fetchCommand, String integrationId) {
-        return exchangeController
-            .map(controller ->
-                controller
-                    .sendCommand(fetchCommand, integrationId)
-                    .cast(IngestReply.class)
-                    .onErrorReturn(throwable -> new IngestReply(fetchCommand.getId(), throwable.getMessage()))
             )
             .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }

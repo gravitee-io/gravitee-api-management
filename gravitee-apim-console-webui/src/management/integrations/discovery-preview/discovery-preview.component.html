@@ -30,7 +30,7 @@
           color="primary"
           data-testid="proceed-button"
           *gioPermission="{ anyOf: ['environment-integration-c'] }"
-          [disabled]="isLoadingPreview"
+          [disabled]="tableData.filteredData.length <= 0"
           (click)="proceedIngest()"
         >
           Proceed
@@ -41,31 +41,21 @@
     <div class="separator"></div>
 
     @if (!isLoadingPreview && integrationPreview) {
-      <div class="preview">
+      <div [formGroup]="ingestParameters" class="preview">
         <section>
           <p class="preview-desc">The following assets were discovered. You can create or update them in Gravitee:</p>
           <gio-form-slide-toggle>
             <gio-form-label>Create {{ integrationPreview.newCount }} new Federated APIs</gio-form-label>
-            <mat-slide-toggle
-              data-testid="new-items-toggle"
-              gioFormSlideToggle
-              [checked]="true"
-              [disabled]="!integrationPreview.newCount"
-            ></mat-slide-toggle>
+            <mat-slide-toggle data-testid="new-items-toggle" gioFormSlideToggle formControlName="ingestNewApis"></mat-slide-toggle>
           </gio-form-slide-toggle>
 
           <gio-form-slide-toggle>
             <gio-form-label>Update {{ integrationPreview.updateCount }} existing Federated APIs</gio-form-label>
             Some changes you've made to existing Federated APIs will be overridden when the APIs are updated
-            <mat-slide-toggle
-              data-testid="update-items-toggle"
-              gioFormSlideToggle
-              [checked]="true"
-              [disabled]="!integrationPreview.updateCount"
-            ></mat-slide-toggle>
+            <mat-slide-toggle data-testid="update-items-toggle" gioFormSlideToggle formControlName="ingestUpdateApis"></mat-slide-toggle>
           </gio-form-slide-toggle>
         </section>
-        <table mat-table [dataSource]="integrationPreview.apis" aria-label="APIs preview table" class="preview-table">
+        <table mat-table [dataSource]="tableData" aria-label="APIs preview table" class="preview-table">
           <caption style="display: none">
             Table with APIs preview.
           </caption>

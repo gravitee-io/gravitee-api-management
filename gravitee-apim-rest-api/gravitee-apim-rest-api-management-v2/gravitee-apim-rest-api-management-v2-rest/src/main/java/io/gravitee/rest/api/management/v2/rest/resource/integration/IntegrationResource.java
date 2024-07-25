@@ -26,6 +26,7 @@ import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApisIngest;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
@@ -125,7 +126,11 @@ public class IntegrationResource extends AbstractResource {
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }),
         }
     )
-    public void ingestApis(@PathParam("integrationId") String integrationId, @Suspended final AsyncResponse response) {
+    public void ingestApis(
+        @PathParam("integrationId") String integrationId,
+        @Valid @NotNull ApisIngest apisIngest,
+        @Suspended final AsyncResponse response
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(
@@ -147,7 +152,7 @@ public class IntegrationResource extends AbstractResource {
         AuditInfo audit = getAuditInfo();
 
         startIngestIntegrationApisUseCase
-            .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, audit))
+            .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, apisIngest.getApiIds(), audit))
             .subscribe(
                 status -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.PENDING).build()),
                 response::resume

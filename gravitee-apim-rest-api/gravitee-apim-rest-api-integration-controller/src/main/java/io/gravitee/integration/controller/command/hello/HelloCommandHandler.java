@@ -21,7 +21,6 @@ import io.gravitee.exchange.api.command.hello.HelloReply;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
 import io.gravitee.integration.api.command.IntegrationCommandType;
 import io.gravitee.integration.api.command.hello.HelloCommand;
-import io.gravitee.integration.api.command.hello.HelloCommandPayload;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.reactivex.rxjava3.core.Single;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,7 @@ public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloRe
     public Single<HelloReply> handle(HelloCommand command) {
         return Single
             .fromCallable(() -> {
-                HelloCommandPayload payload = command.getPayload();
+                var payload = command.getPayload();
                 var result = checkIntegrationUseCase.execute(
                     new CheckIntegrationUseCase.Input(
                         integrationCommandContext.getOrganizationId(),

@@ -17,7 +17,6 @@ package inmemory;
 
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.model.IngestStarted;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
@@ -48,13 +47,12 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     }
 
     @Override
-    public Single<IngestStarted> startIngest(String integrationId, String ingestJobId) {
-        var total = apisNumberToIngest.getOrDefault(integrationId, null);
+    public Single<IngestStarted> startIngest(String integrationId, String ingestJobId, List<String> apiIds) {
+        var total = apisNumberToIngest.get(integrationId);
 
-        if (total != null) {
-            return Single.just(new IngestStarted(ingestJobId, total));
-        }
-        return Single.error(new RuntimeException("job fail to start"));
+        return total != null
+            ? Single.just(new IngestStarted(ingestJobId, !apiIds.isEmpty() ? Math.min(apiIds.size(), total) : total))
+            : Single.error(new RuntimeException("job fail to start"));
     }
 
     @Override

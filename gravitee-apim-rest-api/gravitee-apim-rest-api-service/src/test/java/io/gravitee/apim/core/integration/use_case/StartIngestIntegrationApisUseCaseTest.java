@@ -106,7 +106,7 @@ class StartIngestIntegrationApisUseCaseTest {
 
         // When
         var result = useCase
-            .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
             .test()
             .awaitDone(10, TimeUnit.SECONDS)
             .values();
@@ -137,7 +137,7 @@ class StartIngestIntegrationApisUseCaseTest {
 
         // When
         var result = useCase
-            .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
             .test()
             .awaitDone(10, TimeUnit.SECONDS)
             .values();
@@ -152,7 +152,7 @@ class StartIngestIntegrationApisUseCaseTest {
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
 
         useCase
-            .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
             .test()
             .assertError(NotAllowedDomainException.class);
     }
@@ -160,7 +160,7 @@ class StartIngestIntegrationApisUseCaseTest {
     @Test
     void should_throw_when_no_integration_is_found() {
         // When
-        var obs = useCase.execute(new StartIngestIntegrationApisUseCase.Input("unknown", AUDIT_INFO)).test();
+        var obs = useCase.execute(new StartIngestIntegrationApisUseCase.Input("unknown", List.of(), AUDIT_INFO)).test();
 
         // Then
         obs.assertError(IntegrationNotFoundException.class);

@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.integration.service_provider;
 
 import io.gravitee.apim.core.integration.model.IngestStarted;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -26,6 +25,7 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 
 public interface IntegrationAgent {
     /**
@@ -35,7 +35,14 @@ public interface IntegrationAgent {
      */
     Single<Status> getAgentStatusFor(String integrationId);
 
-    Single<IngestStarted> startIngest(String integrationId, String ingestJobId);
+    /**
+     * Start a job of ingest
+     * @param integrationId The integration id
+     * @param ingestJobId The id of new job
+     * @param apiIds list of apis ids to ingest, null or empty to all apis
+     * @return number of apis that will be ingested
+     */
+    Single<IngestStarted> startIngest(String integrationId, String ingestJobId, List<String> apiIds);
 
     /**
      * Send Subscription command to Agent.
