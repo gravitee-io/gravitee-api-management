@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -171,5 +172,28 @@ public class CreateSharedPolicyGroupUseCaseTest {
 
         // Then
         Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Phase is required.");
+    }
+
+    @Test
+    void should_throw_exception_when_sharedPolicyGroup_with_crossId_already_exists() {
+        // Given
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        existingSharedPolicyGroup.setEnvironmentId(ENV_ID);
+
+        this.sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setCrossId(existingSharedPolicyGroup.getCrossId());
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
+        );
+
+        // Then
+        Assertions
+            .assertThat(throwable)
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessage("SharedPolicyGroup with crossId already exists.");
     }
 }
