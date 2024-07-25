@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.core.policy.exception;
 
-import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.List;
 
-public class PolicyValidationDomainServiceInMemory implements PolicyValidationDomainService {
+public class UnexpectedPoliciesException extends ValidationDomainException {
 
-    @Override
-    public String validateAndSanitizeConfiguration(String policyName, String configuration) {
-        return configuration;
+    public UnexpectedPoliciesException(List<String> policyNames, String apiType, String phase) {
+        super(String.format("Unexpected policies [%s] for API type %s and phase %s", String.join(", ", policyNames), apiType, phase));
     }
 }
