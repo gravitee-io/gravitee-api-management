@@ -244,6 +244,15 @@
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
 						</configuration>
 					</execution>
+                    <execution>
+                        <id>model-environments</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-environments.yaml</inputSpec>
+                        </configuration>
+                    </execution>
 					<execution>
 						<id>model-plugins</id>
 						<goals>

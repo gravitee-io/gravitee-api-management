@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io APIM - Management API - Environments
+    description: |-
+        This is the OpenAPI specification for our new version of APIM Management API.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 2.0.0
+
+security:
+    - BasicAuth: []
+    - CookieAuth: []
+
+servers:
+  - url: "{protocol}://{managementAPIHost}/management/v2/environments/{envId}"
+    description: APIM Management API v2 - Default base URL
+    variables:
+      protocol:
+        description: The protocol you want to use to communicate with the mAPI
+        default: https
+        enum:
+          - https
+          - http
+      managementAPIHost:
+        description: The domain of the server hosting your Management API
+        default: localhost:8083
+      envId:
+        description: The unique ID of your environment
+        default: DEFAULT
+  - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}/environments/{envId}"
+    description: APIM Management API v2 - Base URL to target specific organizations
+    variables:
+      protocol:
+        description: The protocol you want to use to communicate with the mAPI
+        default: https
+        enum:
+          - https
+          - http
+      managementAPIHost:
+        description: The domain of the server hosting your Management API
+        default: localhost:8083
+      orgId:
+        description: The unique ID of your organization
+        default: DEFAULT
+      envId:
+        description: The unique ID of your environment
+        default: DEFAULT
+
+tags:
+    - name: SharedPolicyGroups
+      description: Everything about shared policy groups
+
+paths:
+  # Shared policy group
+  /shared-policy-groups:
+    post:
+        tags:
+          - SharedPolicyGroups
+        summary: Create a shared policy group
+        operationId: createSharedPolicyGroup
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateSharedPolicyGroup"
+          required: true
+        responses:
+          "201":
+            description: Shared policy group created
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/SharedPolicyGroup"
+          default:
+            $ref: "#/components/responses/Error"
+
+components:
+    schemas:
+        # Shared policy group
+        CreateSharedPolicyGroup:
+          type: object
+          description: Create payload for a shared policy group
+          properties:
+            crossId:
+              type: string
+              description: The unique ID of the shared policy group
+              example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+            name:
+              type: string
+              description: The name of the shared policy group
+              example: My Shared Policy Group
+              maxLength: 512
+            description:
+              type: string
+              description: The description of the shared policy group
+              example: This is a shared policy group
+              maxLength: 1024
+            apiType:
+              $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+            phase:
+              $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+            steps:
+              type: array
+              description: The list of steps (policies) in the shared policy group
+              items:
+                $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+          required: ["name", "apiType","phase"]
+        SharedPolicyGroup:
+          type: object
+          description: A shared policy group
+          properties:
+            id:
+              type: string
+              description: The unique ID of the shared policy group
+            crossId:
+              type: string
+              description: The unique ID of the shared policy group
+              example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+            name:
+              type: string
+              description: The name of the shared policy group
+              example: My Shared Policy Group
+              maxLength: 512
+            description:
+              type: string
+              description: The description of the shared policy group
+              example: This is a shared policy group
+              maxLength: 1024
+            version:
+              type: number
+              description: The version of the shared policy group
+              example: 1
+            apiType:
+              $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+            steps:
+              type: array
+              description: The list of steps (policies) in the shared policy group
+              items:
+                $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+            phase:
+              $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+            deployedAt:
+              type: string
+              format: date-time
+              description: The date at which the shared policy group was deployed
+              example: 2020-01-01T00:00:00Z
+            createdAt:
+              type: string
+              format: date-time
+              description: The date at which the shared policy group was created
+              example: 2020-01-01T00:00:00Z
+            updatedAt:
+              type: string
+              format: date-time
+              description: The date at which the shared policy group was last updated
+              example: 2020-01-01T00:00:00Z
+            lifecycleState:
+              $ref: "#/components/schemas/SharedPolicyGroupLifecycleState"
+        SharedPolicyGroupLifecycleState:
+            type: string
+            description: The lifecycle state of a shared policy group
+            example: DEPLOYED
+            enum:
+                - DEPLOYED
+                - UNDEPLOYED
+        Error:
+            type: object
+            properties:
+                httpStatus:
+                    type: integer
+                    format: int32
+                    description: The error code
+                    example: 400
+                message:
+                    type: string
+                    description: The error message
+                    example: Bad request
+                technicalCode:
+                    type: string
+                    description: A technical code to identify the error
+                    example: invalid.import.definition
+                parameters:
+                    type: object
+                    description: A map of parameters to be used in the error message
+                    additionalProperties:
+                        type: string
+                details:
+                    type: array
+                    description: A list of details about the error
+                    items:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                description: The error message
+                                example: Bad request
+                            location:
+                                type: string
+                                description: The json path of the field in error.
+                                example: updateApi.properties[0].key
+                            invalidValue:
+                                description: The invalid value.
+    responses:
+        SchemaFormResponse:
+            description: Schema form of a plugin
+            content:
+                application/json:
+                    schema:
+                        type: object
+        Error:
+            description: Generic error response
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+
+    securitySchemes:
+        BasicAuth:
+            type: http
+            scheme: basic
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: Auth-Graviteeio-APIM
