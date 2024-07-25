@@ -21,6 +21,7 @@ import io.gravitee.rest.api.service.exceptions.SharedPolicyGroupNotFoundExceptio
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCrudService, InMemoryAlternative<SharedPolicyGroup> {
@@ -57,6 +58,16 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
     @Override
     public void delete(String sharedPolicyGroupId) {
         storage.removeIf(sharedPolicyGroup -> sharedPolicyGroupId.equals(sharedPolicyGroup.getId()));
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
+        return storage
+            .stream()
+            .filter(sharedPolicyGroup ->
+                environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && crossId.equals(sharedPolicyGroup.getCrossId())
+            )
+            .findFirst();
     }
 
     @Override

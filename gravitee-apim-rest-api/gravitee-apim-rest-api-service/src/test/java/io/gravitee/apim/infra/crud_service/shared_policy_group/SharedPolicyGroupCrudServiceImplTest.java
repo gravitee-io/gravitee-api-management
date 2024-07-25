@@ -237,6 +237,51 @@ public class SharedPolicyGroupCrudServiceImplTest {
         }
     }
 
+    @Nested
+    class FindByEnvironmentIdAndCrossId {
+
+        @Test
+        @SneakyThrows
+        void should_return_SharedPolicyGroup_and_adapt_it() {
+            // Given
+            var environmentId = "environment-id";
+            var crossId = "cross-id";
+            when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId))
+                .thenAnswer(invocation -> Optional.of(aSharedPolicyGroup().id("sharedPolicyGroup-id").build()));
+
+            // When
+            var optional = service.findByEnvironmentIdAndCrossId(environmentId, crossId);
+            assertThat(optional).isPresent();
+
+            var result = optional.get();
+
+            // Then
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getId()).isEqualTo("sharedPolicyGroup-id");
+                soft.assertThat(result.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(result.getOrganizationId()).isEqualTo("organization-id");
+                soft.assertThat(result.getEnvironmentId()).isEqualTo("environment-id");
+                soft.assertThat(result.getName()).isEqualTo("sharedPolicyGroup-name");
+                soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
+                soft.assertThat(result.getVersion()).isEqualTo(1);
+                soft.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
+                soft
+                    .assertThat(result.getSteps())
+                    .isEqualTo(
+                        List.of(
+                            Step.builder().policy("my-policy").name("my-step-1").build(),
+                            Step.builder().policy("my-policy").name("my-step-2").build()
+                        )
+                    );
+                soft.assertThat(result.getPhase()).isEqualTo(PolicyPlugin.ExecutionPhase.REQUEST);
+                soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
+            });
+        }
+    }
+
     private io.gravitee.repository.management.model.SharedPolicyGroup.SharedPolicyGroupBuilder aSharedPolicyGroup() {
         return io.gravitee.repository.management.model.SharedPolicyGroup
             .builder()

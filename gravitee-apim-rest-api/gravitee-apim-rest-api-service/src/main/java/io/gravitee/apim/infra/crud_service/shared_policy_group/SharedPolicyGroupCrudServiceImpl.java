@@ -23,6 +23,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.rest.api.service.exceptions.SharedPolicyGroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -88,6 +89,24 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
                 String.format("An error occurs while trying to delete the SharedPolicyGroup with id: %s", sharedPolicyGroupId),
+                e
+            );
+        }
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
+        try {
+            return sharedPolicyGroupRepository
+                .findByEnvironmentIdAndCrossId(environmentId, crossId)
+                .map(sharedPolicyGroupAdapter::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to find a SharedPolicyGroup with environmentId: %s and crossId: %s",
+                    environmentId,
+                    crossId
+                ),
                 e
             );
         }
