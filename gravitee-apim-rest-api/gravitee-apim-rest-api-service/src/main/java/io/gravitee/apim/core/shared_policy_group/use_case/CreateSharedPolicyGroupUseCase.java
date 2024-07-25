@@ -45,7 +45,7 @@ public class CreateSharedPolicyGroupUseCase {
     }
 
     public Output execute(Input input) {
-        validateCreateSharedPolicyGroup(input.sharedPolicyGroupToCreate());
+        validateCreateSharedPolicyGroup(input.sharedPolicyGroupToCreate(), input.auditInfo().environmentId());
 
         var cratedsharedPolicyGroup =
             this.sharedPolicyGroupCrudService.create(
@@ -66,7 +66,7 @@ public class CreateSharedPolicyGroupUseCase {
 
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}
 
-    private static void validateCreateSharedPolicyGroup(CreateSharedPolicyGroup sharedPolicyGroupToCreate) {
+    private void validateCreateSharedPolicyGroup(CreateSharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
         if (sharedPolicyGroupToCreate.getName() == null || sharedPolicyGroupToCreate.getName().isEmpty()) {
             throw new InvalidDataException("Name is required.");
         }
@@ -76,6 +76,21 @@ public class CreateSharedPolicyGroupUseCase {
         if (sharedPolicyGroupToCreate.getPhase() == null) {
             throw new InvalidDataException("Phase is required.");
         }
+
+        ensureSharedPolicyGroupDoesNotExist(sharedPolicyGroupToCreate, environmentId);
+    }
+
+    private void ensureSharedPolicyGroupDoesNotExist(CreateSharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
+        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId())
+            .ifPresent(sharedPolicyGroup -> {
+                throw new InvalidDataException(
+                    String.format(
+                        "SharedPolicyGroup with crossId [%s] already exists for environment [%s].",
+                        sharedPolicyGroupToCreate.getCrossId(),
+                        environmentId
+                    )
+                );
+            });
     }
 
     private void createAuditLog(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
