@@ -17,8 +17,8 @@
 -->
 
 <gio-banner-info>
-  Each API is monitored by routine interrogation of its health-check endpoint. After receiving a health-check request, the API backend
-  performs the necessary verifications via probes to return its status.
+  Each API is monitored by a periodic HTTP request to the health check endpoint. The API backend receives the request and responds, and the
+  health check service determines if the response is as expected.
 </gio-banner-info>
 
 <mat-card>
@@ -26,7 +26,9 @@
     <div>
       <gio-quick-time-range [formControl]="timeFrameControl" (onRefreshClicked)="onRefreshClicked()"></gio-quick-time-range>
       <!-- button to set filter-->
-      <button mat-stroked-button class="only-configured-button" (click)="onOnlyHCConfigured()">Filter by Heath-Check enabled only</button>
+      <button mat-stroked-button class="only-configured-button" (click)="onOnlyHCConfigured()">
+        Filter to APIs with Health Check enabled
+      </button>
     </div>
     <gio-banner
       *ngIf="allApisHCStatus"
@@ -39,11 +41,11 @@
           : 'info'
       "
     >
-      API health-check Report
+      API Health Check Report
       <span gioBannerBody>
         <ng-container *ngIf="allApisHCStatus.isLoading">Loading...</ng-container>
         <ng-container *ngIf="!allApisHCStatus.isLoading">
-          <ng-container *ngIf="allApisHCStatus.inError === 0 && allApisHCStatus.inWarning === 0">All APIs operational</ng-container>
+          <ng-container *ngIf="allApisHCStatus.inError === 0 && allApisHCStatus.inWarning === 0">All APIs are operational</ng-container>
           <ng-container *ngIf="allApisHCStatus.inError > 0"
             >{{ allApisHCStatus.inError == 1 ? '1 API is in error' : allApisHCStatus.inError + ' APIs are in error' }} (HealthCheck
             availability <= 80%)<br
@@ -153,7 +155,7 @@
               </div>
             </ng-container>
             <ng-container *ngIf="availability.type === 'no-data'"> No data to display </ng-container>
-            <ng-container *ngIf="availability.type === 'not-configured'"> Health-check has not been configured </ng-container>
+            <ng-container *ngIf="availability.type === 'not-configured'"> Health check has not been configured </ng-container>
           </div>
         </td>
       </ng-container>
