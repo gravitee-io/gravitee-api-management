@@ -131,7 +131,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private static final String SUBSCRIPTION_SYSTEM_VALIDATOR = "system";
     private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
-    private static final char separator = ';';
+    private static final String separator = ";";
     /**
      * Logger.
      */
@@ -1564,6 +1564,45 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata) {
         final StringBuilder sb = new StringBuilder();
+        prepareSubscriptionCsvHeaders(sb);
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            return sb.toString();
+        }
+        prepareSubscriptionCsvRows(subscriptions, metadata, sb);
+        return sb.toString();
+    }
+
+    private void prepareSubscriptionCsvRows(
+        Collection<SubscriptionEntity> subscriptions,
+        Map<String, Map<String, Object>> metadata,
+        StringBuilder sb
+    ) {
+        for (final SubscriptionEntity subscription : subscriptions) {
+            final Object plan = metadata.get(subscription.getPlan());
+            Collection<String> cells = new ArrayList<>();
+            cells.add(getName(plan));
+            final Object application = metadata.get(subscription.getApplication());
+            cells.add(getName(application));
+
+            prepareDateCell(subscription.getCreatedAt(), cells);
+            prepareDateCell(subscription.getProcessedAt(), cells);
+            prepareDateCell(subscription.getStartingAt(), cells);
+            prepareDateCell(subscription.getEndingAt(), cells);
+
+            cells.add(subscription.getStatus().name());
+            sb.append(String.join(separator, cells)).append(lineSeparator());
+        }
+    }
+
+    private void prepareDateCell(Date date, Collection<String> cells) {
+        if (date != null) {
+            cells.add(dateFormatter.format(date));
+        } else {
+            cells.add("");
+        }
+    }
+
+    private void prepareSubscriptionCsvHeaders(StringBuilder sb) {
         sb.append("Plan");
         sb.append(separator);
         sb.append("Application");
@@ -1578,44 +1617,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         sb.append(separator);
         sb.append("Status");
         sb.append(lineSeparator());
-
-        if (subscriptions == null || subscriptions.isEmpty()) {
-            return sb.toString();
-        }
-        for (final SubscriptionEntity subscription : subscriptions) {
-            final Object plan = metadata.get(subscription.getPlan());
-            sb.append(getName(plan));
-            sb.append(separator);
-
-            final Object application = metadata.get(subscription.getApplication());
-            sb.append(getName(application));
-            sb.append(separator);
-
-            if (subscription.getCreatedAt() != null) {
-                sb.append(dateFormatter.format(subscription.getCreatedAt()));
-                sb.append(separator);
-            }
-
-            if (subscription.getProcessedAt() != null) {
-                sb.append(dateFormatter.format(subscription.getProcessedAt()));
-                sb.append(separator);
-            }
-
-            if (subscription.getStartingAt() != null) {
-                sb.append(dateFormatter.format(subscription.getStartingAt()));
-                sb.append(separator);
-            }
-
-            if (subscription.getEndingAt() != null) {
-                sb.append(dateFormatter.format(subscription.getEndingAt()));
-                sb.append(separator);
-            }
-
-            sb.append(subscription.getStatus());
-
-            sb.append(lineSeparator());
-        }
-        return sb.toString();
     }
 
     @Override

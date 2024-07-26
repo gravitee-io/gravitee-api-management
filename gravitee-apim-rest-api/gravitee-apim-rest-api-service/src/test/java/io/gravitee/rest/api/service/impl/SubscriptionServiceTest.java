@@ -115,6 +115,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -148,7 +149,8 @@ public class SubscriptionServiceTest {
     private static final String PAGE_ID = "my-page-gcu";
     private static final String USER_ID = "user";
     private static final String SUBSCRIBER_ID = "subscriber";
-    private static final String ENVIRONMENT_ID = "DEFAULT";
+    private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
 
     @InjectMocks
     private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
@@ -158,9 +160,6 @@ public class SubscriptionServiceTest {
 
     @Mock
     private ApplicationService applicationService;
-
-    @Mock
-    private ApiService apiService;
 
     @Mock
     private ApiSearchService apiSearchService;
@@ -2323,6 +2322,71 @@ public class SubscriptionServiceTest {
         assertThat(result.size()).isEqualTo(1);
 
         verify(subscriptionRepository).search(argThat(criteria -> criteria.getExcludedApis().contains(API_ID)));
+    }
+
+    @Test
+    public void shouldBuildCorrectStringForCsvExport() {
+        Date date = new Date();
+        String formattedDate = dateFormatter.format(date);
+        List<SubscriptionEntity> subscriptions = List.of(
+            SubscriptionEntity
+                .builder()
+                .plan("plan")
+                .application("application")
+                .createdAt(date)
+                .processedAt(date)
+                .startingAt(date)
+                .endingAt(date)
+                .status(SubscriptionStatus.ACCEPTED)
+                .build()
+        );
+        String expectedResult = String.format(
+            """
+                Plan;Application;Creation date;Process date;Start date;End date date;Status
+                Example plan;Example application;%1$s;%1$s;%1$s;%1$s;ACCEPTED
+                """,
+            formattedDate
+        );
+        Map<String, Map<String, Object>> metadata = prepareMetadata();
+
+        String result = subscriptionService.exportAsCsv(subscriptions, metadata);
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void shouldBuildCorrectStringForCsvExportWhenEndingDateIsNull() {
+        Date date = new Date();
+        String formattedDate = dateFormatter.format(date);
+        List<SubscriptionEntity> subscriptions = List.of(
+            SubscriptionEntity
+                .builder()
+                .plan("plan")
+                .application("application")
+                .createdAt(date)
+                .processedAt(date)
+                .startingAt(date)
+                .endingAt(null)
+                .status(SubscriptionStatus.ACCEPTED)
+                .build()
+        );
+
+        String expectedResult = String.format(
+            """
+                Plan;Application;Creation date;Process date;Start date;End date date;Status
+                Example plan;Example application;%1$s;%1$s;%1$s;;ACCEPTED
+                """,
+            formattedDate
+        );
+        Map<String, Map<String, Object>> metadata = prepareMetadata();
+
+        String result = subscriptionService.exportAsCsv(subscriptions, metadata);
+
+        assertEquals(expectedResult, result);
+    }
+
+    private Map<String, Map<String, Object>> prepareMetadata() {
+        return Map.of("plan", Map.of("name", "Example plan"), "application", Map.of("name", "Example application"));
     }
 
     private void testUpdateSubscriptionDependingOnClientIdSituation(
