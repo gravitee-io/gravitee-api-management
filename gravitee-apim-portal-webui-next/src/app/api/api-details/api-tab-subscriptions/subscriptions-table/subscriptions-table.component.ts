@@ -56,7 +56,7 @@ export class SubscriptionsTableComponent implements OnInit {
 
   public displayedColumns: string[] = ['application', 'plan', 'status', 'expand'];
   public subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
-  public subscriptionsStatus = new FormControl();
+  public subscriptionsStatus: FormControl<SubscriptionStatusEnum[] | null> = new FormControl<SubscriptionStatusEnum[]>([]);
   public subscriptionsList$!: Observable<Subscription[]>;
 
   constructor(
@@ -74,9 +74,8 @@ export class SubscriptionsTableComponent implements OnInit {
 
   private loadSubscriptions$(): Observable<Subscription[]> {
     return this.subscriptionsStatus.valueChanges.pipe(
-      map(status => status.map((value: string) => value.toUpperCase())),
       startWith(this.subscriptionsStatus.value),
-      switchMap(status => this.subscriptionService.list(this.apiId, status)),
+      switchMap(status => this.subscriptionService.list({ apiId: this.apiId, statuses: status })),
       map(response => {
         return response.data
           ? response.data.map(sub => ({
