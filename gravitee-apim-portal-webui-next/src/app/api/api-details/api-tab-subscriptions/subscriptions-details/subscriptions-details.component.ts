@@ -104,7 +104,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
         return forkJoin({
           details: of(details),
           plans: this.planService.list(this.apiId),
-          list: this.subscriptionService.list(this.apiId, null),
+          list: this.subscriptionService.list({ apiId: this.apiId, statuses: null }),
           api: this.apiService.details(this.apiId),
           application: this.applicationService.get(details.application),
         });

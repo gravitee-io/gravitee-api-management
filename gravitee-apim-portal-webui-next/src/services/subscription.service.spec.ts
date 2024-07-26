@@ -17,6 +17,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { SubscriptionService } from './subscription.service';
+import { SubscriptionStatusEnum } from '../entities/subscription/subscription';
 import { fakeSubscriptionResponse } from '../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../entities/subscription/subscriptions-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
@@ -25,7 +26,7 @@ describe('SubscriptionService', () => {
   let service: SubscriptionService;
   let httpTestingController: HttpTestingController;
   const apiId = 'testId';
-  const status = 'PENDING';
+  const status: SubscriptionStatusEnum[] = ['PENDING'];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -41,7 +42,7 @@ describe('SubscriptionService', () => {
 
   it('should return subscription list', done => {
     const subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse();
-    service.list(apiId, status).subscribe(response => {
+    service.list({ apiId, statuses: status }).subscribe(response => {
       expect(response).toMatchObject(subscriptionResponse);
       done();
     });
