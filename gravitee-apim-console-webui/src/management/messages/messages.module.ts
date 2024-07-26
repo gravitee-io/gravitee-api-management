@@ -22,7 +22,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { GioFormHeadersModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { GioFormHeadersModule, GioFormSlideToggleModule, GioBannerModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -48,6 +48,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioFormHeadersModule,
     GioFormSlideToggleModule,
     GioPermissionModule,
+    GioBannerModule,
   ],
   declarations: [MessagesComponent],
 })

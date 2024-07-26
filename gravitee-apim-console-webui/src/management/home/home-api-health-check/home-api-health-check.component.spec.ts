@@ -96,7 +96,7 @@ describe('HomeApiHealthCheckComponent', () => {
         availability: 'API Availability',
       },
     ]);
-    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'Health-check has not been configured', '']]);
+    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'Health check has not been configured', '']]);
   });
 
   it('should display api with HeathCheck configured', async () => {
@@ -187,7 +187,7 @@ describe('HomeApiHealthCheckComponent', () => {
     });
 
     it("should filter by 'has_health_check:true'", async () => {
-      await loader.getHarness(MatButtonHarness.with({ text: 'Filter by Heath-Check enabled only' })).then((button) => button.click());
+      await loader.getHarness(MatButtonHarness.with({ text: 'Filter to APIs with Health Check enabled' })).then((button) => button.click());
 
       expectApisListRequest([api], 'has_health_check:true');
     });

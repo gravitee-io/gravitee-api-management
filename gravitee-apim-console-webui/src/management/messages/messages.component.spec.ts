@@ -32,7 +32,7 @@ import { HttpMessagePayload, TextMessagePayload } from '../../entities/message/m
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
-describe('MigratedMessagesComponent', () => {
+describe('MessagesComponent', () => {
   let fixture: ComponentFixture<MessagesComponent>;
   let harness: MessagesHarness;
   let httpTestingController: HttpTestingController;
@@ -78,12 +78,12 @@ describe('MigratedMessagesComponent', () => {
     it('should list available channels', async () => {
       const options = await harness.getAvailableChannel();
       expect(options.length).toEqual(3);
-      expect(options).toEqual(['Portal notifications', 'Email', 'POST HTTP message']);
+      expect(options).toEqual(['Portal Notifications', 'Email', 'POST HTTP Message']);
     });
 
     it('should init form with proper values', async () => {
       expect(fixture.componentInstance.form.controls['channel'].value).toEqual('PORTAL');
-      expect(await harness.getSelectedChannel()).toEqual('Portal notifications');
+      expect(await harness.getSelectedChannel()).toEqual('Portal Notifications');
 
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeTruthy();
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeTruthy();
@@ -95,7 +95,7 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should disable title and add controls for http notifications', async () => {
-      await harness.selectChannel('POST HTTP message');
+      await harness.selectChannel('POST HTTP Message');
 
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeFalsy();
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeFalsy();
@@ -121,15 +121,15 @@ describe('MigratedMessagesComponent', () => {
       expect(recipients.length).toEqual(4);
       expect(recipients).toEqual([
         'API subscribers',
-        'Members with the ADMIN role on subscribing applications',
-        'Members with the REVIEWER role on subscribing applications',
-        'Members with the USER role on subscribing applications',
+        'Members with the ADMIN role on applications subscribed to this API',
+        'Members with the REVIEWER role on applications subscribed to this API',
+        'Members with the USER role on applications subscribed to this API',
       ]);
     });
 
     it('should send MAIL message with selected options', async () => {
       await harness.selectChannel('Email');
-      await harness.selectRecipients(['API subscribers', 'Members with the USER role on subscribing applications']);
+      await harness.selectRecipients(['API subscribers', 'Members with the USER role on applications subscribed to this API']);
       await harness.setTitle('Title');
       await harness.setText('Text');
       await harness.clickOnSubmitButton();
@@ -147,8 +147,8 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send HTTP message with selected options', async () => {
-      await harness.selectChannel('POST HTTP message');
-      await harness.selectRecipients(['Members with the ADMIN role on subscribing applications']);
+      await harness.selectChannel('POST HTTP Message');
+      await harness.selectRecipients(['Members with the ADMIN role on applications subscribed to this API']);
       await harness.setUrl('http://alert.io');
       await harness.setText('Text');
       await harness.setHeaders('Accept', 'application/json');
@@ -181,15 +181,15 @@ describe('MigratedMessagesComponent', () => {
       const recipients = await harness.getAvailableRecipients();
       expect(recipients.length).toEqual(3);
       expect(recipients).toEqual([
-        'Members with the ADMIN role on ENVIRONMENT scope',
-        'Members with the REVIEWER role on ENVIRONMENT scope',
-        'Members with the USER role on ENVIRONMENT scope',
+        'Members with the ADMIN role on this environment',
+        'Members with the REVIEWER role on this environment',
+        'Members with the USER role on this environment',
       ]);
     });
 
     it('should send MAIL message with selected options', async () => {
-      await harness.selectChannel('Portal notifications');
-      await harness.selectRecipients(['Members with the USER role on ENVIRONMENT scope']);
+      await harness.selectChannel('Portal Notifications');
+      await harness.selectRecipients(['Members with the USER role on this environment']);
       await harness.setTitle('Title');
       await harness.setText('Text');
       expect(await harness.isSubmitButtonDisabled()).toBeFalsy();
@@ -208,10 +208,10 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send HTTP message with selected options', async () => {
-      await harness.selectChannel('POST HTTP message');
+      await harness.selectChannel('POST HTTP Message');
       await harness.selectRecipients([
-        'Members with the ADMIN role on ENVIRONMENT scope',
-        'Members with the REVIEWER role on ENVIRONMENT scope',
+        'Members with the ADMIN role on this environment',
+        'Members with the REVIEWER role on this environment',
       ]);
       await harness.setUrl('http://alert.io');
       await harness.setText('Text');
