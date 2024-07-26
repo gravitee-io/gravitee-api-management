@@ -46,7 +46,6 @@ const AlertHistoryComponent: ng.IComponentOptions = {
           size: this.query.limit,
         }).then((response) => {
           this.events = response.data;
-          this.$scope.eventsFetchData = false;
         });
       };
     },
