@@ -248,7 +248,7 @@
         <gravitee-reporter-elasticsearch.version>5.3.2</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>3.2.2</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>2.3.2</gravitee-reporter-tcp.version>
-        <gravitee-reporter-cloud.version>1.0.0</gravitee-reporter-cloud.version>
+        <gravitee-reporter-cloud.version>1.0.1</gravitee-reporter-cloud.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
