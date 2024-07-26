@@ -32,8 +32,6 @@ import assertions.MAPIAssertions;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
-import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.rest.api.management.v2.rest.model.AccessControl;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.ExecutionPhase;
