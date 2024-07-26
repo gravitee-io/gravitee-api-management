@@ -52,12 +52,13 @@ const AlertComponentAjs: ng.IComponentOptions = {
       router: Router,
       $mdDialog,
     ) {
+      this.tabs = ['_', 'general', 'notifications', 'history'];
+      this.selectedTab = 0;
+      this.currentTab = this.tabs[this.selectedTab];
+
       this.$onInit = () => {
-        this.tabs = ['general', 'notifications', 'history'];
         this.severities = ['INFO', 'WARNING', 'CRITICAL'];
         const indexOfTab = this.tabs.indexOf(this.activatedRoute.snapshot.queryParams.tab);
-        this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
-        this.currentTab = this.tabs[this.selectedTab];
 
         if (this.activatedRoute.snapshot.params.apiId) {
           this.referenceType = Scope.API;
@@ -90,6 +91,9 @@ const AlertComponentAjs: ng.IComponentOptions = {
         this.template = this.alert.template || false;
         this.apiByDefault = this.alert.event_rules && this.alert.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
         this.initialAlert = cloneDeep(this.alert);
+
+        this.selectedTab = indexOfTab > -1 ? indexOfTab : 1;
+        this.currentTab = this.tabs[this.selectedTab];
       };
 
       this.selectTab = (idx: number) => {
