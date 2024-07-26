@@ -51,15 +51,19 @@ public class SharedPolicyGroupFixtures {
         return BASE.get().build();
     }
 
+    private static final Supplier<CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder> CREATE_BASE = () ->
+        CreateSharedPolicyGroup.builder().name("name").apiType(ApiType.MESSAGE).phase(PolicyPlugin.ExecutionPhase.REQUEST);
+
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroup() {
-        return CreateSharedPolicyGroup
-            .builder()
-            .crossId("crossId")
-            .name("name")
+        return CREATE_BASE.get().build();
+    }
+
+    public static CreateSharedPolicyGroup aCreateSharedPolicyGroupWithAllFields() {
+        return CREATE_BASE
+            .get()
             .description("description")
-            .apiType(ApiType.MESSAGE)
-            .phase(PolicyPlugin.ExecutionPhase.REQUEST)
-            .steps(List.of())
+            .crossId("crossId")
+            .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
             .build();
     }
 }

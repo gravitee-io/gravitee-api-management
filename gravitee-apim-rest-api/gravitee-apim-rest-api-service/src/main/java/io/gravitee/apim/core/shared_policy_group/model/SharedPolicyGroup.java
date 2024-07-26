@@ -18,6 +18,7 @@ package io.gravitee.apim.core.shared_policy_group.model;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -97,7 +98,7 @@ public class SharedPolicyGroup {
     public static SharedPolicyGroup from(CreateSharedPolicyGroup createSharedPolicyGroup) {
         return SharedPolicyGroup
             .builder()
-            .crossId(createSharedPolicyGroup.getCrossId())
+            .crossId(createSharedPolicyGroup.getCrossId() == null ? UuidString.generateRandom() : createSharedPolicyGroup.getCrossId())
             .name(createSharedPolicyGroup.getName())
             .description(createSharedPolicyGroup.getDescription())
             .apiType(createSharedPolicyGroup.getApiType())

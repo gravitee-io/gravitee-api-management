@@ -21,9 +21,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.AuditCrudServiceInMemory;
-import fakes.FakePolicyValidationDomainService;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -107,6 +107,36 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .from(toCreate)
             .toBuilder()
             .id("generated-id")
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .crossId("generated-id")
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .build();
+        assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
+        assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void should_create_with_custom_crossId() {
+        // Given
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroupWithAllFields();
+
+        // When
+        var createdSharedPolicyGroup = createSharedPolicyGroupUseCase.execute(
+            new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)
+        );
+
+        // Then
+        var expected = SharedPolicyGroup
+            .from(toCreate)
+            .toBuilder()
+            .id("generated-id")
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .crossId(toCreate.getCrossId())
+            .description(toCreate.getDescription())
+            .steps(toCreate.getSteps())
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();

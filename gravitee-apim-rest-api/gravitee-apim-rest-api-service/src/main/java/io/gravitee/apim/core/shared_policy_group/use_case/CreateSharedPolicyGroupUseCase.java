@@ -50,8 +50,10 @@ public class CreateSharedPolicyGroupUseCase {
                         .from(input.sharedPolicyGroupToCreate())
                         .toBuilder()
                         .id(UuidString.generateRandom())
-                        .createdAt(TimeProvider.now())
+                        .environmentId(input.auditInfo().environmentId())
+                        .organizationId(input.auditInfo().organizationId())
                         .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                        .createdAt(TimeProvider.now())
                         .build()
                 );
         createAuditLog(cratedsharedPolicyGroup, input.auditInfo());

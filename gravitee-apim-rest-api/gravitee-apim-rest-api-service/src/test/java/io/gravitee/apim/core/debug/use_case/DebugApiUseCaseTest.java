@@ -21,13 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.InstanceQueryServiceInMemory;
-import fakes.FakePolicyValidationDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
