@@ -24,4 +24,15 @@
   .gv-trigger-timeframe_form-details {
     padding-bottom: 1rem;
   }
+
+  .md-tab.md-disabled {
+    display: none !important;
+  }
+  .form {
+    overflow: hidden;
+    max-width: 960px;
+  }
+  md-tabs {
+    display: inline;
+  }
 }
