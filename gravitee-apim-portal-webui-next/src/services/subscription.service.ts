@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Subscription } from '../entities/subscription/subscription';
+import { Subscription, SubscriptionStatusEnum } from '../entities/subscription/subscription';
 import { SubscriptionsResponse } from '../entities/subscription/subscriptions-response';
 
 @Injectable({
@@ -30,9 +30,20 @@ export class SubscriptionService {
     private configService: ConfigService,
   ) {}
 
-  list(apiId: string, statuses: string | null): Observable<SubscriptionsResponse> {
+  list(queryParams: {
+    apiId?: string;
+    applicationId?: string;
+    statuses: SubscriptionStatusEnum[] | null;
+    size?: number;
+  }): Observable<SubscriptionsResponse> {
+    const params = {
+      ...(queryParams.apiId ? { apiId: queryParams.apiId } : {}),
+      ...(queryParams.applicationId ? { applicationId: queryParams.applicationId } : {}),
+      ...(queryParams.statuses ? { statuses: queryParams.statuses } : { statuses: [] }),
+      ...(queryParams.size ? { size: queryParams.size } : {}),
+    };
     return this.http.get<SubscriptionsResponse>(`${this.configService.baseURL}/subscriptions`, {
-      params: { apiId: apiId, statuses: statuses ?? [] },
+      params,
     });
   }
 
