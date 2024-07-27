@@ -236,7 +236,7 @@
         <gravitee-resource-content-provider-inline.version>1.0.0-alpha.5</gravitee-resource-content-provider-inline.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
         <!-- Management API Only -->
-        <gravitee-cockpit-connectors-ws.version>5.0.27</gravitee-cockpit-connectors-ws.version>
+        <gravitee-cockpit-connectors-ws.version>5.0.28</gravitee-cockpit-connectors-ws.version>
         <gravitee-fetcher-bitbucket.version>2.0.1</gravitee-fetcher-bitbucket.version>
         <gravitee-fetcher-git.version>2.0.0</gravitee-fetcher-git.version>
         <gravitee-fetcher-github.version>2.0.1</gravitee-fetcher-github.version>
