@@ -68,6 +68,7 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
@@ -118,6 +119,7 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -151,6 +153,7 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -225,6 +228,7 @@ class ImportCRDUseCaseTest {
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
+    ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
 
     ImportCRDUseCase useCase;
 
@@ -376,7 +380,8 @@ class ImportCRDUseCaseTest {
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
             new ValidateCRDMembersDomainService(userDomainService),
-            new ValidateGroupsDomainService(groupQueryService)
+            new ValidateGroupsDomainService(groupQueryService),
+            validateResourceDomainService
         );
 
         categoryQueryService.reset();

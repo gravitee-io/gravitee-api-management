@@ -30,6 +30,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.model.Category;
@@ -81,6 +82,9 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Autowired
     private ApiQueryServiceInMemory apiQueryServiceInMemory;
+
+    @Autowired
+    private ValidateResourceDomainServiceInMemory validateResourceDomainServiceInMemory;
 
     @Override
     protected String contextPath() {

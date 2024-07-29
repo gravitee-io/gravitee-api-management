@@ -31,6 +31,7 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -114,6 +115,9 @@ class ApisResourceTest extends AbstractResourceTest {
 
     @Autowired
     private ValidateApiDomainService validateApiDomainService;
+
+    @Autowired
+    private ValidateResourceDomainServiceInMemory validateResourceDomainService;
 
     @Override
     protected String contextPath() {
@@ -567,6 +571,29 @@ class ApisResourceTest extends AbstractResourceTest {
                                     .severe(List.of())
                                     .build()
                             )
+                            .build()
+                    );
+
+                soft.assertThat(apiCrudService.storage()).isEmpty();
+            });
+        }
+
+        @Test
+        void should_return_resource_warning_in_status_without_saving_if_dry_run() {
+            var crdStatus = doImport("/crd/with-valid-resource.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        ApiCRDStatus
+                            .builder()
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                            .state("STARTED")
+                            .errors(ApiCRDStatus.Errors.builder().severe(List.of()).warning(List.of()).build())
                             .build()
                     );
 

@@ -79,7 +79,9 @@ import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
+import io.gravitee.rest.api.service.ResourceService;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -392,6 +394,11 @@ public class InMemoryConfiguration {
     @Bean
     public CategoryQueryServiceInMemory categoryQueryService() {
         return new CategoryQueryServiceInMemory();
+    }
+
+    @Bean
+    public ValidateResourceDomainServiceInMemory validateResourceDomainService() {
+        return new ValidateResourceDomainServiceInMemory();
     }
 
     @Bean
