@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -49,8 +48,6 @@ import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -74,7 +71,6 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -108,7 +104,6 @@ public class ImportCRDUseCase {
     private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
     private final MembershipCrudService membershipCrudService;
     private final MembershipQueryService membershipQueryService;
-    private final GroupQueryService groupQueryService;
     private final ApiMetadataDomainService apiMetadataDomainService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
@@ -134,7 +129,6 @@ public class ImportCRDUseCase {
         ApiPrimaryOwnerDomainService primaryOwnerDomainService,
         MembershipCrudService membershipCrudService,
         MembershipQueryService membershipQueryService,
-        GroupQueryService groupQueryService,
         ApiMetadataDomainService apiMetadataDomainService,
         PageQueryService pageQueryService,
         PageCrudService pageCrudService,
@@ -161,7 +155,6 @@ public class ImportCRDUseCase {
         this.primaryOwnerDomainService = primaryOwnerDomainService;
         this.membershipCrudService = membershipCrudService;
         this.membershipQueryService = membershipQueryService;
-        this.groupQueryService = groupQueryService;
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.pageQueryService = pageQueryService;
         this.pageCrudService = pageCrudService;
@@ -212,8 +205,6 @@ public class ImportCRDUseCase {
                 environmentId,
                 sanitizedInput.auditInfo.actor().userId()
             );
-
-            resolveGroups(sanitizedInput);
 
             var createdApi = createApiDomainService.create(
                 ApiModelFactory.fromCrd(sanitizedInput.spec, environmentId),
@@ -275,8 +266,6 @@ public class ImportCRDUseCase {
             var warnings = validationResult.warning().orElseGet(List::of);
 
             var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
-
-            resolveGroups(sanitizedInput);
 
             var updatedApi = updateApiDomainService.update(existingApi.getId(), sanitizedInput.spec, sanitizedInput.auditInfo);
 
@@ -403,34 +392,6 @@ public class ImportCRDUseCase {
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
             .build();
-    }
-
-    private void resolveGroups(Input input) {
-        if (isEmpty(input.spec().getGroups())) {
-            log.debug("no group found to resolve in api crd spec");
-            return;
-        }
-        log.debug("resolving api spec spec groups");
-
-        var crdGroups = new HashSet<>(input.spec.getGroups());
-        var envId = input.auditInfo.environmentId();
-
-        var groupsFromIds = groupQueryService.findByIds(crdGroups).stream().toList();
-        var groupsFromNames = groupQueryService.findByNames(envId, crdGroups).stream().toList();
-
-        var groupIds = new HashSet<>(groupsFromIds.stream().map(Group::getId).toList());
-        var groupNames = groupsFromNames.stream().map(Group::getName).collect(toSet());
-
-        groupIds.addAll(groupsFromNames.stream().map(Group::getId).toList());
-
-        crdGroups.removeAll(groupIds);
-        crdGroups.removeAll(groupNames);
-
-        for (var unknownGroup : crdGroups) {
-            log.warn("group '{}' found in spec will not be imported because it cannot found", unknownGroup);
-        }
-
-        input.spec.setGroups(groupIds);
     }
 
     private void createMembers(Input input, String apiId) {

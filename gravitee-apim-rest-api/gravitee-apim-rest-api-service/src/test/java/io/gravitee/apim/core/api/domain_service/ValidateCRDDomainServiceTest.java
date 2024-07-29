@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -43,7 +44,9 @@ class ValidateCRDDomainServiceTest {
 
     ValidateCRDMembersDomainService membersValidator = mock(ValidateCRDMembersDomainService.class);
 
-    ValidateCRDDomainService cut = new ValidateCRDDomainService(categoryIdsValidator, pathValidator, membersValidator);
+    ValidateGroupsDomainService groupsValidator = mock(ValidateGroupsDomainService.class);
+
+    ValidateCRDDomainService cut = new ValidateCRDDomainService(categoryIdsValidator, pathValidator, membersValidator, groupsValidator);
 
     @BeforeEach
     void setUp() {
@@ -60,6 +63,9 @@ class ValidateCRDDomainServiceTest {
             .thenReturn(Validator.Result.ofValue(new ValidateCategoryIdsDomainService.Input(ENV_ID, Set.of("id-1", "id-2"))));
 
         when(membersValidator.validateAndSanitize(new ValidateCRDMembersDomainService.Input(ORG_ID, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
