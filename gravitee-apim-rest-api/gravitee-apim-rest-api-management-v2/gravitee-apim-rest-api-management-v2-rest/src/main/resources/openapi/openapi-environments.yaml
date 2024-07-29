@@ -93,7 +93,28 @@ paths:
                   $ref: "#/components/schemas/SharedPolicyGroup"
           default:
             $ref: "#/components/responses/Error"
-
+    put:
+        tags:
+          - SharedPolicyGroups
+        summary: Update a shared policy group
+        operationId: updateSharedPolicyGroup
+        parameters:
+          - $ref: "#/components/parameters/sharedPolicyGroupId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateSharedPolicyGroup"
+          required: true
+        responses:
+          "200":
+            description: Shared policy group updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/SharedPolicyGroup"
+          default:
+            $ref: "#/components/responses/Error"
 components:
     schemas:
         # Shared policy group
@@ -125,6 +146,29 @@ components:
               items:
                 $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
           required: ["name", "apiType","phase"]
+        UpdateSharedPolicyGroup:
+          type: object
+          description: Update payload for a shared policy group
+          properties:
+            crossId:
+              type: string
+              description: The unique ID of the shared policy group
+              example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+            name:
+              type: string
+              description: The name of the shared policy group
+              example: My Shared Policy Group
+              maxLength: 512
+            description:
+              type: string
+              description: The description of the shared policy group
+              example: This is a shared policy group
+              maxLength: 1024
+            steps:
+              type: array
+              description: The list of steps (policies) in the shared policy group
+              items:
+                $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
         SharedPolicyGroup:
           type: object
           description: A shared policy group

@@ -19,6 +19,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -30,6 +31,8 @@ public interface SharedPolicyGroupMapper {
     io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(CreateSharedPolicyGroup sharedPolicyGroup);
 
     SharedPolicyGroup map(io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup sharedPolicyGroup);
+
+    io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup map(UpdateSharedPolicyGroup sharedPolicyGroup);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     StepV4 mapStep(Step step);
