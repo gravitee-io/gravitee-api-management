@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
+package io.gravitee.apim.core.shared_policy_group.exception;
 
 import static java.util.Collections.singletonMap;
 
+import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 import java.util.Map;
 
 /**

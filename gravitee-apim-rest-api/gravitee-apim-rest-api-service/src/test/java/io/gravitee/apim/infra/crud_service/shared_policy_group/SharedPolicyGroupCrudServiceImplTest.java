@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapterImpl;
@@ -35,7 +36,6 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
-import io.gravitee.rest.api.service.exceptions.SharedPolicyGroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -50,6 +50,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class SharedPolicyGroupCrudServiceImplTest {
+
+    private static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
     SharedPolicyGroupRepository repository;
     SharedPolicyGroupAdapter mapper;
@@ -102,14 +104,14 @@ public class SharedPolicyGroupCrudServiceImplTest {
                 .thenAnswer(invocation -> Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build()));
 
             // When
-            var result = service.get(sharedPolicyGroupId);
+            var result = service.getByEnvironmentId(ENV_ID, sharedPolicyGroupId);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result.getId()).isEqualTo(sharedPolicyGroupId);
                 soft.assertThat(result.getCrossId()).isEqualTo("cross-id");
-                soft.assertThat(result.getOrganizationId()).isEqualTo("organization-id");
-                soft.assertThat(result.getEnvironmentId()).isEqualTo("environment-id");
+                soft.assertThat(result.getOrganizationId()).isEqualTo("organizationId");
+                soft.assertThat(result.getEnvironmentId()).isEqualTo("environmentId");
                 soft.assertThat(result.getName()).isEqualTo("sharedPolicyGroup-name");
                 soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
                 soft.assertThat(result.getVersion()).isEqualTo(1);
@@ -138,7 +140,24 @@ public class SharedPolicyGroupCrudServiceImplTest {
             when(repository.findById(sharedPolicyGroupId)).thenReturn(Optional.empty());
 
             // When
-            Throwable throwable = catchThrowable(() -> service.get(sharedPolicyGroupId));
+            Throwable throwable = catchThrowable(() -> service.getByEnvironmentId(ENV_ID, sharedPolicyGroupId));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(SharedPolicyGroupNotFoundException.class)
+                .hasMessage("SharedPolicyGroup [" + sharedPolicyGroupId + "] cannot be found.");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_environmentId_not_match() {
+            // Given
+            var sharedPolicyGroupId = "sharedPolicyGroup-id";
+            when(repository.findById(sharedPolicyGroupId))
+                .thenAnswer(invocation -> Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build()));
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.getByEnvironmentId("otherEnvId", sharedPolicyGroupId));
 
             // Then
             assertThat(throwable)
@@ -154,7 +173,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
             when(repository.findById(sharedPolicyGroupId)).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.get(sharedPolicyGroupId));
+            Throwable throwable = catchThrowable(() -> service.getByEnvironmentId(ENV_ID, sharedPolicyGroupId));
 
             // Then
             assertThat(throwable)
@@ -259,8 +278,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result.getId()).isEqualTo("sharedPolicyGroup-id");
                 soft.assertThat(result.getCrossId()).isEqualTo("cross-id");
-                soft.assertThat(result.getOrganizationId()).isEqualTo("organization-id");
-                soft.assertThat(result.getEnvironmentId()).isEqualTo("environment-id");
+                soft.assertThat(result.getOrganizationId()).isEqualTo("organizationId");
+                soft.assertThat(result.getEnvironmentId()).isEqualTo("environmentId");
                 soft.assertThat(result.getName()).isEqualTo("sharedPolicyGroup-name");
                 soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
                 soft.assertThat(result.getVersion()).isEqualTo(1);
@@ -287,8 +306,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
             .builder()
             .id("sharedPolicyGroup-id")
             .crossId("cross-id")
-            .organizationId("organization-id")
-            .environmentId("environment-id")
+            .organizationId("organizationId")
+            .environmentId("environmentId")
             .name("sharedPolicyGroup-name")
             .description("sharedPolicyGroup-description")
             .version(1)
