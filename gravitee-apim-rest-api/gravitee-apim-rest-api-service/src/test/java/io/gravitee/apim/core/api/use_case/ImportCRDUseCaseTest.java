@@ -101,6 +101,7 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -374,7 +375,8 @@ class ImportCRDUseCaseTest {
         var crdValidator = new ValidateCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
-            new ValidateCRDMembersDomainService(userDomainService)
+            new ValidateCRDMembersDomainService(userDomainService),
+            new ValidateGroupsDomainService(groupQueryService)
         );
 
         categoryQueryService.reset();
@@ -399,7 +401,6 @@ class ImportCRDUseCaseTest {
                 mock(ApiPrimaryOwnerDomainService.class),
                 membershipCrudServiceInMemory,
                 membershipQueryServiceInMemory,
-                groupQueryService,
                 apiMetadataDomainService,
                 pageQueryService,
                 pageCrudService,
@@ -534,7 +535,13 @@ class ImportCRDUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .state("STARTED")
                         .plans(Map.of("keyless-key", "keyless-id"))
-                        .errors(ApiCRDStatus.Errors.EMPTY)
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -557,7 +564,12 @@ class ImportCRDUseCaseTest {
                             ApiCRDStatus.Errors
                                 .builder()
                                 .severe(List.of())
-                                .warning(List.of("category [unknown-category] is not defined in environment [environment-id]"))
+                                .warning(
+                                    List.of(
+                                        "Group [non-existing-group] could not be found in environment [environment-id]",
+                                        "category [unknown-category] is not defined in environment [environment-id]"
+                                    )
+                                )
                                 .build()
                         )
                         .build()
@@ -725,7 +737,13 @@ class ImportCRDUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .state("STARTED")
                         .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
-                        .errors(ApiCRDStatus.Errors.EMPTY)
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -785,7 +803,12 @@ class ImportCRDUseCaseTest {
                             ApiCRDStatus.Errors
                                 .builder()
                                 .severe(List.of())
-                                .warning(List.of("category [unknown-category] is not defined in environment [environment-id]"))
+                                .warning(
+                                    List.of(
+                                        "Group [non-existing-group] could not be found in environment [environment-id]",
+                                        "category [unknown-category] is not defined in environment [environment-id]"
+                                    )
+                                )
                                 .build()
                         )
                         .build()

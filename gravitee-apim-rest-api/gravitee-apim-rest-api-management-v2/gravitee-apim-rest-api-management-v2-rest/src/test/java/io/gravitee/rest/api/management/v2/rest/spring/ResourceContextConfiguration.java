@@ -21,6 +21,7 @@ import static org.mockito.Mockito.spy;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
@@ -44,6 +45,8 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -398,16 +401,23 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public GroupQueryServiceInMemory groupQueryService() {
+        return new GroupQueryServiceInMemory();
+    }
+
+    @Bean
     public ValidateCRDUseCase validateCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
         UserDomainServiceInMemory userDomainService,
-        VerifyApiPathDomainService verifyApiPathDomainService
+        VerifyApiPathDomainService verifyApiPathDomainService,
+        GroupQueryService groupQueryService
     ) {
         return new ValidateCRDUseCase(
             new ValidateCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
-                new ValidateCRDMembersDomainService(userDomainService)
+                new ValidateCRDMembersDomainService(userDomainService),
+                new ValidateGroupsDomainService(groupQueryService)
             )
         );
     }

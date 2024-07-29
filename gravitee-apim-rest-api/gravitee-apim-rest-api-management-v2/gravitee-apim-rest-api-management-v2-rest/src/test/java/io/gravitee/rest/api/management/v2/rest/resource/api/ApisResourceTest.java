@@ -545,6 +545,35 @@ class ApisResourceTest extends AbstractResourceTest {
             });
         }
 
+        @Test
+        void should_return_group_warning_in_status_without_saving_if_dry_run() {
+            var crdStatus = doImport("/crd/with-unknown-group.json", true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        ApiCRDStatus
+                            .builder()
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                            .state("STARTED")
+                            .errors(
+                                ApiCRDStatus.Errors
+                                    .builder()
+                                    .warning(List.of("Group [unknown-group] could not be found in environment [fake-env]"))
+                                    .severe(List.of())
+                                    .build()
+                            )
+                            .build()
+                    );
+
+                soft.assertThat(apiCrudService.storage()).isEmpty();
+            });
+        }
+
         private ApiCRDStatus doImport(String crdResource, boolean dryRun) {
             try (var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(crdResource)))) {
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
