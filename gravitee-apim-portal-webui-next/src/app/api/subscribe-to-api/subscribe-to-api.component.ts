@@ -18,10 +18,15 @@ import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatestWith, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import {
+  TermsAndConditionsDialogComponent,
+  TermsAndConditionsDialogData,
+} from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.component';
 import { SubscribeToApiCheckoutComponent } from './subscribe-to-api-checkout/subscribe-to-api-checkout.component';
 import {
   ApplicationsPagination,
@@ -31,11 +36,13 @@ import { SubscribeToApiChoosePlanComponent } from './subscribe-to-api-choose-pla
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
+import { Page } from '../../../entities/page/page';
 import { Plan } from '../../../entities/plan/plan';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
 import { ApiService } from '../../../services/api.service';
 import { ApplicationService } from '../../../services/application.service';
+import { PageService } from '../../../services/page.service';
 import { PlanService } from '../../../services/plan.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 
@@ -100,8 +107,10 @@ export class SubscribeToApiComponent implements OnInit {
     private apiService: ApiService,
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
+    private pageService: PageService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
+    private matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -160,9 +169,16 @@ export class SubscribeToApiComponent implements OnInit {
       ...(this.message() ? { request: this.message() } : {}),
     };
 
-    this.subscriptionService
-      .subscribe(createSubscription)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.handleTermsAndConditions$(createSubscription)
+      .pipe(
+        switchMap(result => {
+          if (!result.general_conditions_accepted && this.currentPlan()?.general_conditions) {
+            return EMPTY;
+          }
+          return this.subscriptionService.subscribe(result);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: ({ id }) => {
           this.router.navigate(['../', 'subscriptions', id], { relativeTo: this.activatedRoute });
@@ -192,6 +208,39 @@ export class SubscribeToApiComponent implements OnInit {
       }),
     );
   }
+
+  private handleTermsAndConditions$(createSubscription: CreateSubscription): Observable<CreateSubscription> {
+    const generalConditionsPageId = this.currentPlan()?.general_conditions;
+    if (generalConditionsPageId) {
+      return this.pageService
+        .getByApiIdAndId(this.apiId, generalConditionsPageId, true)
+        .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.apiId, page, createSubscription)));
+    }
+    return of(createSubscription);
+  }
+
+  private handleTermsAndConditionsDialog$(
+    apiId: string,
+    page: Page,
+    createSubscription: CreateSubscription,
+  ): Observable<CreateSubscription> {
+    return this.matDialog
+      .open<TermsAndConditionsDialogComponent, TermsAndConditionsDialogData, boolean>(TermsAndConditionsDialogComponent, {
+        data: {
+          page,
+          apiId,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        map(accepted => ({
+          ...createSubscription,
+          general_conditions_accepted: accepted === true,
+          general_conditions_content_revision: page.contentRevisionId,
+        })),
+      );
+  }
+
   private addApplicationDisabledState(applicationsResponse: ApplicationsResponse, subscriptions: SubscriptionsResponse): ApplicationVM[] {
     if (!applicationsResponse) {
       return [];
