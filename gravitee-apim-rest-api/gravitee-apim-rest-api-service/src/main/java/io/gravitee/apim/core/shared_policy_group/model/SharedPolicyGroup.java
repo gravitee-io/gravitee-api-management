@@ -106,4 +106,24 @@ public class SharedPolicyGroup {
             .steps(createSharedPolicyGroup.getSteps())
             .build();
     }
+
+    public static SharedPolicyGroup from(SharedPolicyGroup existingSharedPolicyGroup, UpdateSharedPolicyGroup updateSharedPolicyGroup) {
+        return existingSharedPolicyGroup
+            .toBuilder()
+            .crossId(
+                updateSharedPolicyGroup.getCrossId() == null ? existingSharedPolicyGroup.getCrossId() : updateSharedPolicyGroup.getCrossId()
+            )
+            .name(updateSharedPolicyGroup.getName() == null ? existingSharedPolicyGroup.getName() : updateSharedPolicyGroup.getName())
+            .description(
+                updateSharedPolicyGroup.getDescription() == null
+                    ? existingSharedPolicyGroup.getDescription()
+                    : updateSharedPolicyGroup.getDescription()
+            )
+            .steps(updateSharedPolicyGroup.getSteps() == null ? existingSharedPolicyGroup.getSteps() : updateSharedPolicyGroup.getSteps())
+            .build();
+    }
+
+    public boolean hasName() {
+        return this.name != null && !this.name.isEmpty();
+    }
 }

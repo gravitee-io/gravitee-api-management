@@ -28,6 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -228,7 +229,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         // Then
         Assertions
             .assertThat(throwable)
-            .isInstanceOf(InvalidDataException.class)
+            .isInstanceOf(SharedPolicyGroupDuplicateCrossIdException.class)
             .hasMessage("SharedPolicyGroup with crossId [crossId] already exists for environment [env-id].");
     }
 
