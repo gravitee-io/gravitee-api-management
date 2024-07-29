@@ -53,6 +53,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -425,5 +426,10 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase() {
         return mock(CreateSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public GetSharedPolicyGroupUseCase getSharedPolicyGroupUseCase() {
+        return mock(GetSharedPolicyGroupUseCase.class);
     }
 }

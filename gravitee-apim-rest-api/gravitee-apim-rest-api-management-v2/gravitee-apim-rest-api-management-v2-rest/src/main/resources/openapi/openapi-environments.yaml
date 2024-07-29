@@ -76,6 +76,23 @@ paths:
                   $ref: "#/components/schemas/SharedPolicyGroup"
           default:
             $ref: "#/components/responses/Error"
+  /shared-policy-groups/{sharedPolicyGroupId}:
+    get:
+        tags:
+          - SharedPolicyGroups
+        summary: Get a shared policy group
+        operationId: getSharedPolicyGroup
+        parameters:
+          - $ref: "#/components/parameters/sharedPolicyGroupId"
+        responses:
+          "200":
+            description: Shared policy group found
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/SharedPolicyGroup"
+          default:
+            $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -203,6 +220,15 @@ components:
                                 example: updateApi.properties[0].key
                             invalidValue:
                                 description: The invalid value.
+
+    parameters:
+        sharedPolicyGroupId:
+            name: sharedPolicyGroupId
+            in: path
+            description: The unique ID of the shared policy group
+            required: true
+            schema:
+                type: string
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
