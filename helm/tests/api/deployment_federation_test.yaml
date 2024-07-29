@@ -37,7 +37,7 @@ tests:
             - command:
                 - sh
                 - -c
-                - mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-node-cache-plugin-hazelcast-6.0.3.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-6.0.3.zip && ( rm  gravitee-node-cluster-plugin-hazelcast-6.0.3.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-6.0.3.zip
+                - mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-node-cache-plugin-hazelcast-6.0.4.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-6.0.4.zip && ( rm  gravitee-node-cluster-plugin-hazelcast-6.0.4.zip  2>/dev/null || true ) && wget https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-6.0.4.zip
               env: [ ]
               image: alpine:latest
               imagePullPolicy: Always
