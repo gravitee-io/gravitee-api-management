@@ -45,6 +45,7 @@ import {
   Plan,
   PlanMode,
   Subscription,
+  SubscriptionStatus,
   UpdateSubscription,
   VerifySubscription,
 } from '../../../../entities/management-api-v2';
@@ -53,16 +54,17 @@ import { ApiKey, fakeApiKey } from '../../../../entities/management-api-v2/api-k
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPortalSubscriptionValidateDialogHarness } from '../components/dialogs/validate/api-portal-subscription-validate-dialog.harness';
 import { Constants } from '../../../../entities/Constants';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 const SUBSCRIPTION_ID = 'my-nice-subscription';
 const API_ID = 'api_1';
 const APP_ID = 'my-application';
 const PLAN_ID = 'a-nice-plan-id';
-const BASIC_SUBSCRIPTION = (apiKeyMode: BaseApplication['apiKeyMode'] = 'UNSPECIFIED') =>
+const BASIC_SUBSCRIPTION = (apiKeyMode: BaseApplication['apiKeyMode'] = 'UNSPECIFIED', status: SubscriptionStatus = 'ACCEPTED') =>
   fakeSubscription({
     id: SUBSCRIPTION_ID,
     plan: fakeBasePlan({ id: PLAN_ID }),
-    status: 'ACCEPTED',
+    status: status,
     application: {
       id: APP_ID,
       name: 'My Application',
@@ -81,12 +83,18 @@ describe('ApiSubscriptionEditComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  const fakeSnackBarService = {
+    success: jest.fn(),
+    error: jest.fn(),
+  };
+
   const init = async () => {
     await TestBed.configureTestingModule({
       imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'] },
         { provide: Constants, useValue: CONSTANTS_TESTING },
+        { provide: SnackBarService, useValue: fakeSnackBarService },
         {
           provide: InteractivityChecker,
           useValue: {
@@ -640,6 +648,8 @@ describe('ApiSubscriptionEditComponent', () => {
 
       expectApiSubscriptionValidate(SUBSCRIPTION_ID, {}, BASIC_SUBSCRIPTION());
 
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Subscription validated');
+
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApiKeyListGet();
       expectApiGet();
@@ -740,6 +750,38 @@ describe('ApiSubscriptionEditComponent', () => {
       expectApiKeyListGet();
       await validateInformation(true);
     });
+
+    it.each(['PENDING', 'REJECTED', 'CLOSED', 'PAUSED', 'RESUMED'])(
+      'should display error snackbar if validation status is %s ',
+      async (status: SubscriptionStatus) => {
+        await initComponent({ subscription: pendingSubscription, api: fakeApiFederated({ id: API_ID }), canUseCustomApiKey: true });
+        expectApiKeyListGet();
+
+        const harness = await loader.getHarness(ApiSubscriptionEditHarness);
+        expect(await harness.validateBtnIsVisible()).toEqual(true);
+
+        await harness.openValidateDialog();
+
+        const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+          ApiPortalSubscriptionValidateDialogHarness,
+        );
+        const datePicker = await validateDialog.getHarnessOrNull(MatInputHarness.with({ selector: '[formControlName="dateTimeRange"]' }));
+        expect(datePicker).toBeNull(); // no validation period for federated subscription
+
+        expect(await validateDialog.isCustomApiKeyInputDisplayed()).toBeFalsy(); // no custom API Key for federated subscription
+
+        const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
+        await validateBtn.click();
+
+        expectApiSubscriptionValidate(SUBSCRIPTION_ID, {}, BASIC_SUBSCRIPTION('UNSPECIFIED', status));
+
+        expect(fakeSnackBarService.error).toHaveBeenCalledWith('Subscription ' + status.toLowerCase());
+
+        expectApiSubscriptionGet(BASIC_SUBSCRIPTION('UNSPECIFIED', status));
+        expectApiKeyListGet();
+        expectApiGet();
+      },
+    );
 
     const validateInformation = async (apiKeyInputIsPresent: boolean) => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
