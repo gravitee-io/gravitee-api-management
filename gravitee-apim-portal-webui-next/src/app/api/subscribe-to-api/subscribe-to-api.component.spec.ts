@@ -20,6 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { By } from '@angular/platform-browser';
 
+import { TermsAndConditionsDialogHarness } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.harness';
 import { SubscribeToApiCheckoutHarness } from './subscribe-to-api-checkout/subscribe-to-api-checkout.harness';
 import { SubscribeToApiChooseApplicationHarness } from './subscribe-to-api-choose-application/subscribe-to-api-choose-application.harness';
 import { SubscribeToApiChoosePlanHarness } from './subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.harness';
@@ -30,6 +31,8 @@ import { Api } from '../../../entities/api/api';
 import { fakeApi } from '../../../entities/api/api.fixtures';
 import { ApplicationsResponse } from '../../../entities/application/application';
 import { fakeApplication, fakeApplicationsResponse } from '../../../entities/application/application.fixture';
+import { Page } from '../../../entities/page/page';
+import { fakePage } from '../../../entities/page/page.fixtures';
 import { fakePlan } from '../../../entities/plan/plan.fixture';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { fakeSubscription, fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
@@ -41,6 +44,7 @@ describe('SubscribeToApiComponent', () => {
   let fixture: ComponentFixture<SubscribeToApiComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
+  let rootHarnessLoader: HarnessLoader;
 
   const API_ID = 'api-id';
   const ENTRYPOINT = 'http://my.entrypoint';
@@ -50,6 +54,7 @@ describe('SubscribeToApiComponent', () => {
   const API_KEY_PLAN_ID_GENERAL_CONDITIONS = 'api-key-plan-general-conditions';
   const OAUTH2_PLAN_ID = 'oauth2-plan';
   const JWT_PLAN_ID = 'jwt-plan';
+  const GENERAL_CONDITIONS_ID = 'page-id';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -59,6 +64,7 @@ describe('SubscribeToApiComponent', () => {
     fixture = TestBed.createComponent(SubscribeToApiComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     component = fixture.componentInstance;
     component.apiId = API_ID;
@@ -67,8 +73,9 @@ describe('SubscribeToApiComponent', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/plans?size=-1`).flush({
       data: [
         fakePlan({ id: KEYLESS_PLAN_ID, security: 'KEY_LESS' }),
-        fakePlan({ id: API_KEY_PLAN_ID, security: 'API_KEY', comment_required: false }),
-        fakePlan({ id: API_KEY_PLAN_ID_COMMENT_REQUIRED, security: 'API_KEY', comment_required: true }),
+        fakePlan({ id: API_KEY_PLAN_ID, security: 'API_KEY', comment_required: false, general_conditions: undefined }),
+        fakePlan({ id: API_KEY_PLAN_ID_COMMENT_REQUIRED, security: 'API_KEY', comment_required: true, general_conditions: undefined }),
+        fakePlan({ id: API_KEY_PLAN_ID_GENERAL_CONDITIONS, security: 'API_KEY', general_conditions: GENERAL_CONDITIONS_ID }),
         fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2' }),
         fakePlan({ id: JWT_PLAN_ID, security: 'JWT' }),
       ],
@@ -303,15 +310,9 @@ describe('SubscribeToApiComponent', () => {
     describe('Step 3 -- Checkout', () => {
       describe('When comment is required', () => {
         beforeEach(async () => {
-          const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
-          await step1.selectPlanByPlanId(API_KEY_PLAN_ID_COMMENT_REQUIRED);
-          await goToNextStep();
-          expectGetSubscriptions(API_ID);
-          expectGetApplications(1, fakeApplicationsResponse({ data: [fakeApplication({ id: 'app-id' })] }));
-          fixture.detectChanges();
-          const application = await harnessLoader.getHarness(RadioCardHarness);
-          await application.select();
-          await goToNextStep();
+          await selectPlan(API_KEY_PLAN_ID_COMMENT_REQUIRED);
+          await selectApplication();
+
           expectGetApi();
           fixture.detectChanges();
         });
@@ -334,17 +335,58 @@ describe('SubscribeToApiComponent', () => {
           expectPostCreateSubscription({ plan: API_KEY_PLAN_ID_COMMENT_REQUIRED, application: 'app-id', request: 'My new message' });
         });
       });
-      describe('When comment is NOT required', () => {
+      describe('When terms and conditions need to be accepted', () => {
+        const PAGE = fakePage({
+          id: GENERAL_CONDITIONS_ID,
+          content: 'cats rule',
+          type: 'MARKDOWN',
+          contentRevisionId: { revision: 2, pageId: GENERAL_CONDITIONS_ID },
+        });
         beforeEach(async () => {
-          const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
-          await step1.selectPlanByPlanId(API_KEY_PLAN_ID);
-          await goToNextStep();
-          expectGetSubscriptions(API_ID);
-          expectGetApplications(1, fakeApplicationsResponse({ data: [fakeApplication({ id: 'app-id' })] }));
+          await selectPlan(API_KEY_PLAN_ID_GENERAL_CONDITIONS);
+          await selectApplication();
+
+          expectGetApi();
           fixture.detectChanges();
-          const application = await harnessLoader.getHarness(RadioCardHarness);
-          await application.select();
-          await goToNextStep();
+        });
+        it('should not allow subscribe without accepting terms and conditions', async () => {
+          const subscribeButton = await getSubscribeButton();
+          expect(subscribeButton).toBeTruthy();
+          expect(await subscribeButton?.isDisabled()).toEqual(false);
+          await subscribeButton?.click();
+
+          expectGetPage(PAGE);
+
+          const termsAndConditionsDialog = await rootHarnessLoader.getHarness(TermsAndConditionsDialogHarness);
+          expect(termsAndConditionsDialog).toBeTruthy();
+
+          const pageContent = await termsAndConditionsDialog.getMarkdownTermsAndConditions();
+          expect(pageContent.getMarkdownHtml()).toContain(PAGE.content);
+
+          await termsAndConditionsDialog.close();
+        });
+        it('should subscribe after accepting terms and conditions', async () => {
+          const subscribeButton = await getSubscribeButton();
+          await subscribeButton?.click();
+
+          expectGetPage(PAGE);
+
+          const termsAndConditionsDialog = await rootHarnessLoader.getHarness(TermsAndConditionsDialogHarness);
+          await termsAndConditionsDialog.accept();
+
+          expectPostCreateSubscription({
+            plan: API_KEY_PLAN_ID_GENERAL_CONDITIONS,
+            application: 'app-id',
+            general_conditions_accepted: true,
+            general_conditions_content_revision: PAGE.contentRevisionId,
+          });
+        });
+      });
+      describe('When comment is NOT required + Terms and conditions NOT required', () => {
+        beforeEach(async () => {
+          await selectPlan(API_KEY_PLAN_ID);
+          await selectApplication();
+
           expectGetApi();
           fixture.detectChanges();
         });
@@ -419,6 +461,10 @@ describe('SubscribeToApiComponent', () => {
     req.flush(response);
   }
 
+  function expectGetPage(page: Page) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/pages/${page.id}?include=content`).flush(page);
+  }
+
   async function canGoToNextStep(): Promise<boolean> {
     return await getNextStepButton()
       .then(btn => btn.isDisabled())
@@ -443,5 +489,20 @@ describe('SubscribeToApiComponent', () => {
 
   function getTitle(): string {
     return fixture.debugElement.query(By.css('.m3-title-large')).nativeElement.textContent;
+  }
+
+  async function selectPlan(planId: string): Promise<void> {
+    const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+    await step1.selectPlanByPlanId(planId);
+    await goToNextStep();
+  }
+
+  async function selectApplication(): Promise<void> {
+    expectGetSubscriptions(API_ID);
+    expectGetApplications(1, fakeApplicationsResponse({ data: [fakeApplication({ id: 'app-id' })] }));
+    fixture.detectChanges();
+    const application = await harnessLoader.getHarness(RadioCardHarness);
+    await application.select();
+    await goToNextStep();
   }
 });
