@@ -17,13 +17,15 @@ package io.gravitee.apim.infra.crud_service.shared_policy_group;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
-import io.gravitee.rest.api.service.exceptions.SharedPolicyGroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
+import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -55,10 +57,11 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
     }
 
     @Override
-    public SharedPolicyGroup get(String sharedPolicyGroupId) {
+    public SharedPolicyGroup getByEnvironmentId(String environmentId, String sharedPolicyGroupId) {
         try {
             return sharedPolicyGroupRepository
                 .findById(sharedPolicyGroupId)
+                .filter(belongsToEnvironment(environmentId))
                 .map(sharedPolicyGroupAdapter::toEntity)
                 .orElseThrow(() -> new SharedPolicyGroupNotFoundException(sharedPolicyGroupId));
         } catch (TechnicalException e) {
@@ -67,6 +70,12 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
                 e
             );
         }
+    }
+
+    private static @NotNull Predicate<io.gravitee.repository.management.model.SharedPolicyGroup> belongsToEnvironment(
+        String environmentId
+    ) {
+        return sharedPolicyGroup -> environmentId.equals(sharedPolicyGroup.getEnvironmentId());
     }
 
     @Override

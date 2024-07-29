@@ -16,10 +16,6 @@
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.SharedPolicyGroupFixtures;
