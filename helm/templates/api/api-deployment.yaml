@@ -118,7 +118,7 @@ spec:
         {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
         - name: get-repository-jdbc-ext
           {{- toYaml .Values.initContainers | nindent 10 }}
-          command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  {{ .Values.jdbc.driver }}"]
+          command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  {{ .Values.jdbc.driver }}" ]
           volumeMounts:
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /tmp/plugins-ext
@@ -227,8 +227,11 @@ spec:
               subPath: gravitee.yml
           {{- if .Values.api.federation.enabled }}
             - name: config
-              mountPath: /opt/graviteeio-management-api/config/hazelcast.xml
-              subPath: hazelcast.xml
+              mountPath: /opt/graviteeio-management-api/config/hazelcast-cluster.xml
+              subPath: hazelcast-cluster.xml
+            - name: config
+              mountPath: /opt/graviteeio-management-api/config/hazelcast-cache.xml
+              subPath: hazelcast-cache.xml
           {{- end }}
           {{- if .Values.api.logging.debug }}
             - name: {{ $logbackVolumeName }}
@@ -284,7 +287,7 @@ spec:
         {{- end }}
         {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
         - name: graviteeio-apim-repository-jdbc-ext
-          emptyDir: {}
+          emptyDir: { }
         {{- end }}
         {{- if .Values.cockpit.enabled }}
         - name: gravitee-cockpit-certificates
