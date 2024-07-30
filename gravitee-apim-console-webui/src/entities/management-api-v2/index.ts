@@ -42,3 +42,4 @@ export * from './modelError';
 export * from './organization';
 export * from './pagedResult';
 export * from './pagination';
+export * from './portalCustomization';

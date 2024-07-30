@@ -13,9 +13,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 @use '../../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-content-container;
+}
+
+.portal-theme {
+  display: flex;
+  gap: 16px;
+
+  &__left {
+    flex-grow: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &__form {
+      &__header {
+        display: flex;
+        justify-content: space-between;
+        padding: 16px 24px 0 24px;
+
+        & .gio-badge-accent {
+          margin: 0;
+        }
+      }
+
+      &__content {
+        padding: 0;
+
+        &__panel {
+          &__pictures {
+            display: flex;
+            justify-content: space-evenly;
+            gap: 24px;
+          }
+          &__fonts {
+            display: flex;
+            flex-direction: column;
+          }
+          &__colors {
+            display: flex;
+            flex-direction: column;
+          }
+          &__editor {
+            display: flex;
+            flex-direction: column;
+          }
+        }
+      }
+    }
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+
+      & > button {
+        flex: 1;
+      }
+    }
+  }
+
+  &__preview {
+    flex-grow: 1;
+
+    &__content > img {
+      width: 100%;
+    }
+
+    &__title {
+      padding: 16px 16px 0 16px;
+    }
+  }
 }

@@ -14,32 +14,34 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
+
+import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
 
 export class PortalThemeHarness extends ComponentHarness {
-  static readonly hostSelector = 'portal-theme';
+  static readonly hostSelector = 'developer-portal-theme';
 
-  private getNameInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName=name]' }));
-  private getSaveBar = this.locatorFor(GioSaveBarHarness);
+  private getPrimaryColorInput = this.locatorFor(GioFormColorInputHarness.with({ selector: '[formControlName=primaryColor]' }));
+  private getPublishButton = this.locatorFor(MatButtonHarness.with({ selector: '[type=submit]' }));
+  private getDiscardButton = this.locatorFor(MatButtonHarness.with({ selector: '[type=button]' }));
 
-  public async setName(name: string) {
-    return this.getNameInput().then((input) => input.setValue(name));
+  public async setPrimaryColor(color: string) {
+    return this.getPrimaryColorInput().then((input) => input.setValue(color));
   }
 
-  public async getName() {
-    return this.getNameInput().then((input) => input.getValue());
+  public async getPrimaryColor() {
+    return this.getPrimaryColorInput().then((input) => input.getValue());
   }
 
   public async submit() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
+    return this.getPublishButton().then((publishButton) => publishButton.click());
   }
 
   public async isSubmitInvalid() {
-    return this.getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid());
+    return this.getPublishButton().then((publishButton) => publishButton.isDisabled());
   }
 
   public reset() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickReset());
+    return this.getDiscardButton().then((discardButton) => discardButton.click());
   }
 }
