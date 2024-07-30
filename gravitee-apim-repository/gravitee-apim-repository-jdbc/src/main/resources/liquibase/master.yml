@@ -190,6 +190,8 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v4_4_2/01_federated_api_keys.yml
   - include:
+      - file: liquibase/changelogs/v4_4_4/00_drop_not_null_constraint.yml
+  - include:
       - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
   - include:
       - file: liquibase/changelogs/v4_5_0/01_add_integration_jobs_table.yml

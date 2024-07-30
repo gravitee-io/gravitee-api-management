@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.4_dropNotNullConstraint-keys-environment_id
+      author: GraviteeSource Team
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: VARCHAR(64)
+            columnName: environment_id
+            tableName: ${gravitee_prefix}keys
