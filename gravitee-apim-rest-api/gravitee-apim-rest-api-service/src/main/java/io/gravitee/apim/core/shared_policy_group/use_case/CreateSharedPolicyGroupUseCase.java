@@ -55,6 +55,7 @@ public class CreateSharedPolicyGroupUseCase {
                         .organizationId(input.auditInfo().organizationId())
                         .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
                         .createdAt(TimeProvider.now())
+                        .updatedAt(TimeProvider.now())
                         .build()
                 );
         createAuditLog(cratedsharedPolicyGroup, input.auditInfo());

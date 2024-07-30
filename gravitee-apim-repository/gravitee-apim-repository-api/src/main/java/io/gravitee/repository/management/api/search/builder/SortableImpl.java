@@ -48,7 +48,7 @@ class SortableImpl implements Sortable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SortableImpl sortable = (SortableImpl) o;
-        return field.equals(sortable.field) && order == sortable.order;
+        return Objects.equals(field, sortable.field) && order == sortable.order;
     }
 
     @Override
