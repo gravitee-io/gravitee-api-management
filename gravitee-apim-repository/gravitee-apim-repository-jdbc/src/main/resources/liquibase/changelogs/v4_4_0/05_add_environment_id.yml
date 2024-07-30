@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 4.4.0_add_missing_environment_id
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addColumn:
             tableName: ${gravitee_prefix}subscriptions
@@ -34,7 +35,3 @@ databaseChangeLog:
         - sql:
             dbms: 'postgresql,mssql'
             sql: UPDATE ${gravitee_prefix}keys SET environment_id = s.environment_id FROM ${gravitee_prefix}keys k, ${gravitee_prefix}key_subscriptions ks, ${gravitee_prefix}subscriptions s WHERE k.id = ks.key_id AND ks.subscription_id = s.id;
-        - addNotNullConstraint:
-            tableName: ${gravitee_prefix}keys
-            columnName: environment_id
-            columnDataType: VARCHAR(64)
