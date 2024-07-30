@@ -20,3 +20,4 @@ annotations:
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
     - 'Fix cloud configuration: avoid empty volume mount'
+    - 'Split hazelcast config for cluster and cache'

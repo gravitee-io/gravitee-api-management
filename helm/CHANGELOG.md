@@ -6,6 +6,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.4.4
 
 - 'Fix cloud configuration: avoid empty volume mount'
+- Split hazelcast config for cluster and cache
 
 ### 4.4.3
 
