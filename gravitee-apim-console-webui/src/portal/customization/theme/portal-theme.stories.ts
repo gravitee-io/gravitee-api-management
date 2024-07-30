@@ -18,7 +18,7 @@ import { Meta, StoryObj } from '@storybook/angular';
 import { PortalThemeComponent } from './portal-theme.component';
 
 export default {
-  title: 'DeveloperPortalThemeComponent story',
+  title: 'PortalThemeComponent story',
   component: PortalThemeComponent,
   argTypes: {},
   render: (args) => ({
