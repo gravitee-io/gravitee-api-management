@@ -1,0 +1,42 @@
+{{- if and (.Values.api.enabled) (.Values.api.federation.enabled) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}-hz
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.api.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.api.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- range $key, $value := .Values.api.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  type: "ClusterIP"
+  ports:
+    - port: 5701
+      targetPort: 5701
+      protocol: TCP
+      name: {{ printf "%s-%s" (.Values.api.name | trunc 56 | trimSuffix "-") "hz-cluster" }}
+    - port: 5702
+      targetPort: 5702
+      protocol: TCP
+      name: {{ printf "%s-%s" (.Values.api.name | trunc 56 | trimSuffix "-") "hz-cache" }}
+  selector:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: "{{ .Values.api.name }}"
+{{- end -}}
