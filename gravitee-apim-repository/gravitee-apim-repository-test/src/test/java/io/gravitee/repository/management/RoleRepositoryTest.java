@@ -50,7 +50,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Role> roles = roleRepository.findAll();
 
         assertNotNull(roles);
-        assertEquals(4, roles.size());
+        assertEquals(6, roles.size());
     }
 
     @Test
@@ -205,5 +205,11 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
             roleRepository.findByIdAndReferenceIdAndReferenceType("API_find_by_id_and_org_id", REFERENCE_ID, RoleReferenceType.ENVIRONMENT)
         )
             .isEmpty();
+    }
+
+    @Test
+    public void shouldFindAllByIds() throws TechnicalException {
+        Set<Role> roles = roleRepository.findAllById(Set.of("find_all__role_1", "find_all__role_2"));
+        assertThat(roles).hasSize(2).extracting(Role::getId).containsExactlyInAnyOrder("find_all__role_1", "find_all__role_2");
     }
 }

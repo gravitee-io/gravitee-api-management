@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -98,6 +99,16 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                     }
                 }
             );
+    }
+
+    @Override
+    public Set<RoleEntity> findAllById(final Set<String> roleIds) {
+        try {
+            return roleRepository.findAllById(roleIds).stream().map(this::convert).collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find roles by ids", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find roles by ids", ex);
+        }
     }
 
     @Override

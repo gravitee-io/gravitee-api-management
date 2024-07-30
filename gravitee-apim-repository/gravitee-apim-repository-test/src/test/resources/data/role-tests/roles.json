@@ -35,5 +35,27 @@
     "defaultRole": false,
     "scope": "API",
     "permissions": [1]
+  },
+  {
+    "id": "find_all__role_1",
+    "name": "find all by ids 1",
+    "referenceId": "FIND_ALL",
+    "referenceType": "ORGANIZATION",
+    "description": "find all by ids 1",
+    "scope": "ORGANIZATION",
+    "defaultRole": true,
+    "system": true,
+    "permissions": [1]
+  },
+  {
+    "id": "find_all__role_2",
+    "name": "find all by ids 2",
+    "referenceId": "FIND_ALL",
+    "referenceType": "ORGANIZATION",
+    "description": "find all by ids 2",
+    "scope": "ORGANIZATION",
+    "defaultRole": true,
+    "system": true,
+    "permissions": [1]
   }
 ]

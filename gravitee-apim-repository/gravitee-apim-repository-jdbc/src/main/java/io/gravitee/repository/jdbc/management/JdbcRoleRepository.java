@@ -16,6 +16,8 @@
 package io.gravitee.repository.jdbc.management;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptySet;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -201,6 +203,33 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
         } catch (final Exception ex) {
             LOGGER.error("Failed to find role by id:", ex);
             throw new TechnicalException("Failed to find role by id", ex);
+        }
+    }
+
+    @Override
+    public Set<Role> findAllById(Set<String> ids) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findAllById({})", ids);
+        if (isEmpty(ids)) {
+            return emptySet();
+        }
+
+        try {
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            String query =
+                getOrm().getSelectAllSql() +
+                " r" +
+                " left join " +
+                ROLE_PERMISSIONS +
+                " rp on rp.role_id = r.id" +
+                " where r.id in ( " +
+                getOrm().buildInClause(ids) +
+                " ) order by r.reference_type, r.reference_id, r.scope,r.name";
+
+            jdbcTemplate.query(query, (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1), rowMapper);
+            return new HashSet<>(rowMapper.getRows());
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find roles by ids:", ex);
+            throw new TechnicalException("Failed to find roles by ids", ex);
         }
     }
 

@@ -30,6 +30,8 @@ import java.util.Set;
 public interface RoleRepository extends FindAllRepository<Role> {
     Optional<Role> findById(String roleId) throws TechnicalException;
 
+    Set<Role> findAllById(Set<String> ids) throws TechnicalException;
+
     Role create(Role role) throws TechnicalException;
 
     Role update(Role role) throws TechnicalException;

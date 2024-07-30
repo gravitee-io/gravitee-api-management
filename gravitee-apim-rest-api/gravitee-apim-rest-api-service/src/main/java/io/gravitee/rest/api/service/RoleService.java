@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -45,6 +44,7 @@ public interface RoleService {
     void delete(ExecutionContext executionContext, String roleId);
     List<RoleEntity> findAllByOrganization(String organizationId);
     RoleEntity findById(String roleId);
+    Set<RoleEntity> findAllById(Set<String> roleIds);
     Optional<RoleEntity> findByIdAndOrganizationId(String roleId, String organizationId);
     List<RoleEntity> findByScope(RoleScope scope, String organizationId);
     Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId);

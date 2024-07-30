@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -45,8 +46,10 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Defines the REST resources to manage Users.
@@ -244,6 +247,8 @@ public class UserResource extends AbstractResource {
     @Path("/roles")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
     public Response updateUserRoles(@NotNull UserReferenceRoleEntity userReferenceRoles) {
+        validateUserReferenceRoleEntity(userReferenceRoles);
+
         userService.updateUserRoles(
             GraviteeContext.getExecutionContext(),
             userId,
@@ -252,6 +257,36 @@ public class UserResource extends AbstractResource {
             userReferenceRoles.getRoles()
         );
         return Response.ok().build();
+    }
+
+    private void validateUserReferenceRoleEntity(UserReferenceRoleEntity userReferenceRoles) {
+        var authenticatedUserRoles = membershipService.getRoles(
+            userReferenceRoles.getReferenceType(),
+            userReferenceRoles.getReferenceId(),
+            MembershipMemberType.USER,
+            getAuthenticatedUser()
+        );
+
+        var targetUserCurrentRoles = membershipService.getRoles(
+            userReferenceRoles.getReferenceType(),
+            userReferenceRoles.getReferenceId(),
+            MembershipMemberType.USER,
+            userReferenceRoles.getUser()
+        );
+
+        var rolesToSave = roleService.findAllById(new HashSet<>(userReferenceRoles.getRoles()));
+
+        var targetUserNewRoles = rolesToSave
+            .stream()
+            .filter(role -> targetUserCurrentRoles.stream().noneMatch(r -> r.getId().equals(role.getId())))
+            .collect(Collectors.toSet());
+
+        if (
+            targetUserNewRoles.stream().anyMatch(role -> SystemRole.ADMIN.name().equalsIgnoreCase(role.getName())) &&
+            authenticatedUserRoles.stream().noneMatch(role -> SystemRole.ADMIN.name().equalsIgnoreCase(role.getName()))
+        ) {
+            throw new BadRequestException("User can not be assigned to ADMIN role. Please contact an ADMIN to assign this role.");
+        }
     }
 
     @POST
