@@ -109,6 +109,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .crossId("generated-id")
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
         assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
         assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
@@ -136,6 +137,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .steps(toCreate.getSteps())
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
         assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
         assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
