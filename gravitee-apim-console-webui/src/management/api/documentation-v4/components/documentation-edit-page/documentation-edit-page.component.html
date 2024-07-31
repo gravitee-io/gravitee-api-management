@@ -15,7 +15,6 @@
     limitations under the License.
 
 -->
-<api-documentation-page-title [api]="api"></api-documentation-page-title>
 <mat-card>
   <div class="header">
     <h3 class="header__title">
@@ -41,7 +40,7 @@
         </button>
       </ng-container>
 
-      <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="goBackToPageList()">
+      <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="onGoBackRouterLink()">
         {{ exitLabel }}
       </button>
     </div>
@@ -52,18 +51,18 @@
         <mat-step>
           <ng-template matStepLabel>Configure page</ng-template>
           <div class="stepper__content">
-            <form [formGroup]="stepOneForm">
+            <form [formGroup]="form.controls.stepOne">
               <mat-form-field>
                 <mat-label>Name</mat-label>
                 <input matInput formControlName="name" placeholder="Name" autofocus />
-                <mat-error *ngIf="stepOneForm.controls.name?.errors?.required">Name is required</mat-error>
-                <mat-error *ngIf="stepOneForm.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
+                <mat-error *ngIf="form.controls.stepOne.controls.name?.errors?.required">Name is required</mat-error>
+                <mat-error *ngIf="form.controls.stepOne.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
               </mat-form-field>
               <api-documentation-visibility formControlName="visibility"></api-documentation-visibility>
             </form>
           </div>
           <div class="stepper__actions">
-            <button mat-flat-button color="primary" matStepperNext [disabled]="stepOneForm.invalid">Next</button>
+            <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.stepOne.invalid">Next</button>
           </div>
         </mat-step>
         <mat-step *ngIf="mode === 'create'">
@@ -77,9 +76,10 @@
                   <gio-card-content-title>Fill in the content myself</gio-card-content-title>
                 </gio-form-selection-inline-card-content>
               </gio-form-selection-inline-card>
-              <gio-form-selection-inline-card value="IMPORT">
+              <gio-form-selection-inline-card value="IMPORT" [disabled]="true">
                 <gio-form-selection-inline-card-content icon="gio:down-circle">
                   <gio-card-content-title>Import from file</gio-card-content-title>
+                  <gio-card-content-subtitle><div class="gio-badge-primary">Coming soon</div></gio-card-content-subtitle>
                 </gio-form-selection-inline-card-content>
               </gio-form-selection-inline-card>
               <gio-form-selection-inline-card value="EXTERNAL" [disabled]="true">
@@ -110,7 +110,7 @@
               [disabled]="isReadOnly"
               *ngIf="form.value?.source === 'IMPORT'"
             ></api-documentation-file-upload>
-            <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
+            <mat-error *ngIf="form.controls.content?.errors?.required">Page content cannot be empty</mat-error>
           </div>
           <div class="stepper__actions">
             <ng-container *ngIf="mode === 'create'">

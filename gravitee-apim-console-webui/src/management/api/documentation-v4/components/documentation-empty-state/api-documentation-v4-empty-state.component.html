@@ -22,6 +22,7 @@
   <div class="mat-h2">{{ emptyPageTitle }}</div>
   <div class="mat-body-2">{{ emptyPageMessage }}</div>
   @if (showAddPageButton) {
-    <api-documentation-v4-add-page-button (addPage)="addPage.emit($event)" text="Add new page"> </api-documentation-v4-add-page-button>
+    <api-documentation-v4-add-page-button class="empty__add-page-button" (addPage)="addPage.emit($event)" text="Add new page">
+    </api-documentation-v4-add-page-button>
   }
 </div>
