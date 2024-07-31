@@ -60,7 +60,7 @@
         </div>
       }
     </mat-card-header>
-    <mat-card-content>
+    <mat-card-content class="subscribe-to-api__checkout">
       @if (currentPlan(); as plan) {
         @if (checkoutData$ | async; as checkoutData) {
           <app-subscribe-to-api-checkout
@@ -74,6 +74,12 @@
         } @else {
           <app-loader />
         }
+      }
+      @if (hasSubscriptionError) {
+        <div class="m3-title-medium error-message" i18n="@@subscribeToApiGeneralErrorMessage">
+          There was an error with your subscription and it could not be processed. Try again, and if the issue persists, contact your portal
+          administrator.
+        </div>
       }
     </mat-card-content>
   }
