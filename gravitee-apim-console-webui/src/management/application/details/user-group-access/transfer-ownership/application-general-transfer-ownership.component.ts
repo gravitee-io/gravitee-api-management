@@ -28,6 +28,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { Role } from '../../../../../entities/role/role';
 import { Member } from '../../../../../entities/members/members';
 import { ApplicationTransferOwnership } from '../../../../../entities/application/Application';
+import { ApplicationService } from '../../../../../services-ngx/application.service';
 
 @Component({
   selector: 'application-general-transfer-ownership',
@@ -40,10 +41,12 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
   form: UntypedFormGroup;
   applicationMembers: Member[];
   roles: Role[];
+  isReadonly = false;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
+    private readonly applicationService: ApplicationService,
     private readonly roleService: RoleService,
     private readonly applicationMembersService: ApplicationMembersService,
     private readonly matDialog: MatDialog,
@@ -52,11 +55,13 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
 
   ngOnInit(): void {
     combineLatest([
+      this.applicationService.getById(this.activatedRoute.snapshot.params.applicationId),
       this.applicationMembersService.get(this.activatedRoute.snapshot.params.applicationId),
       this.roleService.list('APPLICATION'),
     ])
       .pipe(
-        tap(([members, roles]) => {
+        tap(([app, members, roles]) => {
+          this.isReadonly = app.origin === 'KUBERNETES';
           this.applicationMembers = members.filter((member) => member.role !== 'PRIMARY_OWNER');
           this.roles = roles.filter((role) => role.name !== 'PRIMARY_OWNER');
         }),
@@ -153,5 +158,9 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
       .subscribe(() => {
         this.form.get('user').reset();
       });
+
+    if (this.isReadonly) {
+      this.form.disable({ emitEvent: false });
+    }
   }
 }

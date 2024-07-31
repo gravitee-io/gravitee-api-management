@@ -64,10 +64,24 @@ describe('ApplicationGeneralGroupsComponent', () => {
     it('should show all application groups', async () => {
       const applicationDetails = fakeApplication();
       const fakeGroups = [fakeGroup()];
-      expectListApplicationRequest(applicationDetails);
+      expectGetApplication(applicationDetails);
       expectGetGroupsListRequest(fakeGroups);
       const groupFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Groups' }));
       expect(groupFormField).toBeTruthy();
+    });
+
+    it('should disable form with kubernetes origin', async () => {
+      expectGetApplication(fakeApplication({ origin: 'KUBERNETES' }));
+      expectGetGroupsListRequest([fakeGroup()]);
+      const groupFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Groups' }));
+      expect(await groupFormField.isDisabled()).toBe(true);
+    });
+
+    it('should not disable form with non kubernetes origin', async () => {
+      expectGetApplication(fakeApplication({ origin: '' }));
+      expectGetGroupsListRequest([fakeGroup()]);
+      const groupFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Groups' }));
+      expect(await groupFormField.isDisabled()).toBe(false);
     });
   });
 
@@ -76,12 +90,12 @@ describe('ApplicationGeneralGroupsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectListApplicationRequest(applicationDetails: Application) {
+  function expectGetApplication(application: Application) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}`,
         method: 'GET',
       })
-      .flush(applicationDetails);
+      .flush(application);
   }
 });
