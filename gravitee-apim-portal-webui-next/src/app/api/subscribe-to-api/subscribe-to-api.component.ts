@@ -112,6 +112,8 @@ export class SubscribeToApiComponent implements OnInit {
   checkoutData$: Observable<CheckoutData> = of();
   currentApplication$ = toObservable(this.currentApplication);
 
+  hasSubscriptionError: boolean = false;
+
   private currentApplicationsPage: BehaviorSubject<number> = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
 
@@ -207,6 +209,7 @@ export class SubscribeToApiComponent implements OnInit {
           this.router.navigate(['../', 'subscriptions', id], { relativeTo: this.activatedRoute });
         },
         error: err => {
+          this.hasSubscriptionError = true;
           console.error(err);
           this.subscriptionInProgress.set(false);
         },
