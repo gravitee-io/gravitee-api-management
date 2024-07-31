@@ -4,10 +4,6 @@
 @use 'src/scss/gio-layout' as gio-layout;
 $typography: map.get(gio.$mat-theme, typography);
 
-:host {
-  @include gio-layout.gio-responsive-content-container;
-}
-
 .header {
   display: grid;
   grid-template-columns: 6fr 1.3fr;

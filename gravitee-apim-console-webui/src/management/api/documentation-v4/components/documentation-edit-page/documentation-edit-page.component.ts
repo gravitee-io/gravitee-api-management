@@ -13,35 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Input, Component, OnDestroy, OnInit } from '@angular/core';
+import { AsyncPipe, NgIf, NgOptimizedImage } from '@angular/common';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioFormJsonSchemaModule,
+  GioFormSelectionInlineModule,
+  GioFormSlideToggleModule,
+} from '@gravitee/ui-particles-angular';
+import { MatButton } from '@angular/material/button';
+import { MatCard } from '@angular/material/card';
+import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatOption } from '@angular/material/autocomplete';
+import { MatSelect } from '@angular/material/select';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatStep, MatStepLabel, MatStepper, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
+import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { FetcherService } from '../../../../../services-ngx/fetcher.service';
+import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import {
+  AccessControl,
+  Api,
   Breadcrumb,
-  getLogoForPageType,
-  Page,
   CreateDocumentation,
   CreateDocumentationType,
-  PageType,
-  Api,
-  getTooltipForPageType,
-  AccessControl,
-  Visibility,
-  Group,
   EditDocumentation,
+  getLogoForPageType,
+  getTooltipForPageType,
+  Group,
+  Page,
   PageSource,
-} from '../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
-import { FetcherService } from '../../../../services-ngx/fetcher.service';
+  PageType,
+  Visibility,
+} from '../../../../../entities/management-api-v2';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { ApiDocumentationV4BreadcrumbComponent } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
+import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
+import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
+import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 
 interface EditPageForm {
   stepOne: FormGroup<{
@@ -56,11 +77,52 @@ interface EditPageForm {
 }
 
 @Component({
-  selector: 'api-documentation-edit-page',
-  templateUrl: './api-documentation-v4-edit-page.component.html',
-  styleUrls: ['./api-documentation-v4-edit-page.component.scss'],
+  selector: 'documentation-edit-page',
+  standalone: true,
+  imports: [
+    AsyncPipe,
+    GioFormJsonSchemaModule,
+    GioFormSelectionInlineModule,
+    GioFormSlideToggleModule,
+    GioPermissionModule,
+    MatButton,
+    MatCard,
+    MatError,
+    MatFormField,
+    MatHint,
+    MatInput,
+    MatLabel,
+    MatOption,
+    MatSelect,
+    MatSlideToggle,
+    MatStep,
+    MatStepLabel,
+    MatStepper,
+    MatStepperNext,
+    MatStepperPrevious,
+    NgIf,
+    NgOptimizedImage,
+    ReactiveFormsModule,
+    ApiDocumentationV4VisibilityComponent,
+    MatTooltip,
+    ApiDocumentationV4BreadcrumbComponent,
+    ApiDocumentationV4ContentEditorComponent,
+    ApiDocumentationV4FileUploadComponent,
+    ApiDocumentationV4Module,
+  ],
+  templateUrl: './documentation-edit-page.component.html',
+  styleUrl: './documentation-edit-page.component.scss',
 })
-export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
+export class DocumentationEditPageComponent implements OnInit, OnDestroy {
+  @Input()
+  goBackRouterLink: string[];
+
+  @Input()
+  createHomepage: boolean;
+
+  @Input()
+  api: Api;
+
   form: FormGroup<EditPageForm>;
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
@@ -69,16 +131,14 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   step3Title: string;
   source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
-
-  api: Api;
   formUnchanged: boolean;
   page: Page;
   iconUrl: string;
   iconTooltip: string;
   isReadOnly: boolean = false;
   groups: Group[];
-  schema$: Observable<any>;
 
+  schema$: Observable<any>;
   private existingNames: string[] = [];
   private initialAccessControlGroups: string[] = [];
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -89,7 +149,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
     private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
@@ -156,22 +215,12 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       this.step3Title = this.source === 'IMPORT' ? 'Upload a file' : 'Add content';
       this.pageType = this.activatedRoute.snapshot.queryParams.pageType;
     }
-
-    this.apiV2Service
-      .get(this.activatedRoute.snapshot.params.apiId)
-      .pipe(
-        switchMap((api) => {
-          this.api = api;
-          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
-          return this.mode === 'edit' ? this.loadEditPage() : of({});
-        }),
-        switchMap((_) =>
-          combineLatest([this.apiDocumentationService.getApiPages(this.api.id, this.getParentId()), this.groupService.list(1, 999)]),
-        ),
-        takeUntil(this.unsubscribe$),
-      )
+    this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
+    const prepareMode$ = this.mode === 'edit' ? this.loadEditPage() : of({});
+    combineLatest([prepareMode$, this.apiDocumentationService.getApiPages(this.api.id, this.getParentId()), this.groupService.list(1, 999)])
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: ([pagesResponse, groupsResponse]) => {
+        next: ([_, pagesResponse, groupsResponse]) => {
           this.iconUrl = getLogoForPageType(this.pageType);
           this.iconTooltip = getTooltipForPageType(this.pageType);
 
@@ -205,6 +254,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  onGoBackRouterLink(): void {
+    this.router.navigate(this.goBackRouterLink, { relativeTo: this.activatedRoute });
+  }
+
   ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
@@ -214,6 +267,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     this.createPage()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => {
+        this.snackBarService.success('Page created successfully');
         this.goBackToPageList();
       });
   }
@@ -226,6 +280,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          this.snackBarService.success('Page created and published successfully');
           this.goBackToPageList();
         },
         error: (error) => {
@@ -239,6 +294,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: () => {
+          this.snackBarService.success('Page updated successfully');
           this.goBackToPageList();
         },
       });
@@ -252,6 +308,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          this.snackBarService.success('Page updated and published successfully');
+
           this.goBackToPageList();
         },
         error: (error) => {
@@ -304,7 +362,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   goBackToPageList() {
-    this.router.navigate(['../'], {
+    this.router.navigate(['../../'], {
       relativeTo: this.activatedRoute,
       queryParams: { parentId: this.getParentId() },
     });
@@ -347,7 +405,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       type: this.pageType as CreateDocumentationType,
       name: formValue.stepOne.name,
       visibility: formValue.stepOne.visibility,
-      homepage: this.activatedRoute.snapshot.queryParams.homepage === 'true',
+      homepage: this.createHomepage === true,
       content: formValue.content,
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
       accessControls: formValue.stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),

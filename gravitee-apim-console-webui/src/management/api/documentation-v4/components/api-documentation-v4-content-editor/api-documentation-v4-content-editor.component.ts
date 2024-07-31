@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 import { Component, forwardRef, Input } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
+import { MarkdownComponent } from 'ngx-markdown';
+import { CommonModule } from '@angular/common';
 
-import { PageType } from '../../../../../entities/management-api-v2/documentation/pageType';
+import { PageType } from '../../../../../entities/management-api-v2';
+import { GioSwaggerUiModule } from '../../../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
+import { GioAsyncApiModule } from '../../../../../components/documentation/gio-async-api/gio-async-api-module';
 
 @Component({
   selector: 'api-documentation-content',
@@ -29,6 +34,8 @@ import { PageType } from '../../../../../entities/management-api-v2/documentatio
       multi: true,
     },
   ],
+  standalone: true,
+  imports: [CommonModule, FormsModule, GioMonacoEditorModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule],
 })
 export class ApiDocumentationV4ContentEditorComponent implements ControlValueAccessor {
   @Input()
