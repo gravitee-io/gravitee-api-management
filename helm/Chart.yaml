@@ -21,3 +21,4 @@ annotations:
   artifacthub.io/changes: |
     - 'Fix cloud configuration: avoid empty secret generation and fix example in value.yaml'
     - 'Fix cloud configuration: avoid empty volume mount'
+    - 'Split hazelcast config for cluster and cache'

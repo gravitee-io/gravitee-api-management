@@ -109,9 +109,14 @@ describe('ApiFederatedMenuService', () => {
             routerLink: '',
             tabs: [
               {
-                displayName: 'Pages',
-                routerLink: 'v4/documentation',
-                routerLinkActiveOptions: { exact: true },
+                displayName: 'Default Pages',
+                routerLink: 'v4/documentation/default-pages',
+                routerLinkActiveOptions: { exact: false },
+              },
+              {
+                displayName: 'Custom Pages',
+                routerLink: 'v4/documentation/pages',
+                routerLinkActiveOptions: { exact: false },
               },
               {
                 displayName: 'Metadata',

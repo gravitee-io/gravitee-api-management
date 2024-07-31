@@ -21,7 +21,7 @@ import java.util.Optional;
 public interface SharedPolicyGroupCrudService {
     SharedPolicyGroup create(SharedPolicyGroup sharedPolicyGroupEntity);
 
-    SharedPolicyGroup get(String sharedPolicyGroupId);
+    SharedPolicyGroup getByEnvironmentId(String environmentId, String sharedPolicyGroupId);
 
     SharedPolicyGroup update(SharedPolicyGroup sharedPolicyGroupEntity);
 

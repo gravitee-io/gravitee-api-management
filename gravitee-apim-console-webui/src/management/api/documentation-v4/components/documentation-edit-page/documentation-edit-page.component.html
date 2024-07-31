@@ -15,7 +15,6 @@
     limitations under the License.
 
 -->
-<api-documentation-page-title [api]="api"></api-documentation-page-title>
 <mat-card>
   <div class="header">
     <h3 class="header__title">
@@ -41,7 +40,7 @@
         </button>
       </ng-container>
 
-      <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="goBackToPageList()">
+      <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="onGoBackRouterLink()">
         {{ exitLabel }}
       </button>
     </div>

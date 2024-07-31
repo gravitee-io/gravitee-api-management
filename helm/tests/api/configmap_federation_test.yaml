@@ -1,63 +1,100 @@
 suite: Test Management API configmap for Federation
 templates:
-  - "api/api-configmap.yaml"
+    - "api/api-configmap.yaml"
 tests:
-  - it: Check cluster mode is enabled
-    template: api/api-configmap.yaml
-    set:
-      api:
-        federation:
-          enabled: true
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            cluster:
-              type: hazelcast
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            cache:
-              type: hazelcast
-      - equal:
-          path: data["hazelcast.xml"]
-          value: |-
-            <?xml version="1.0" encoding="UTF-8"?>
-            <hazelcast xmlns="http://www.hazelcast.com/schema/config"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:schemaLocation="http://www.hazelcast.com/schema/config
-                       http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
-                <cluster-name>graviteeio-api-cluster</cluster-name>
-                <properties>
-                    <property name="hazelcast.discovery.enabled">true</property>
-                    <property name="hazelcast.max.wait.seconds.before.join">3</property>
-                    <property name="hazelcast.member.list.publish.interval.seconds">5</property>
-                    <property name="hazelcast.socket.client.bind.any">false</property>
-                    <property name="hazelcast.logging.type">slf4j</property>
-                </properties>
-    
-                <queue name="integration-cluster-command-*">
-                    <backup-count>0</backup-count>
-                    <async-backup-count>1</async-backup-count>
-                </queue>
-    
-                <map name="integration-controller-primary-channel-candidate">
-                    <backup-count>0</backup-count>
-                    <async-backup-count>1</async-backup-count>
-                </map>
-      
-                <cp-subsystem>
-                    <cp-member-count>0</cp-member-count>
-                </cp-subsystem>
-      
-                <network>
-                    <join>
-                        <multicast enabled="false"/>
-                        <tcp-ip enabled="false"/>
-                        <kubernetes enabled="true">
-                            <namespace>NAMESPACE</namespace>
-                            <service-name>RELEASE-NAME-apim-api</service-name>
-                        </kubernetes>
-                    </join>
-                </network>
-            </hazelcast>
+    - it: Check cluster mode is enabled
+      template: api/api-configmap.yaml
+      set:
+          api:
+              federation:
+                  enabled: true
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    cluster:
+                      type: hazelcast
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    cache:
+                      type: hazelcast
+          - equal:
+                path: data["hazelcast-cluster.xml"]
+                value: |-
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+                               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+                               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+                        <cluster-name>graviteeio-apim-cluster</cluster-name>
+                        <properties>
+                            <property name="hazelcast.discovery.enabled">true</property>
+                            <property name="hazelcast.max.wait.seconds.before.join">3</property>
+                            <property name="hazelcast.member.list.publish.interval.seconds">5</property>
+                            <property name="hazelcast.socket.client.bind.any">false</property>
+                            <property name="hazelcast.logging.type">slf4j</property>
+                        </properties>
+
+                        <queue name="integration-*">
+                            <backup-count>0</backup-count>
+                            <async-backup-count>1</async-backup-count>
+                            <empty-queue-ttl>300</empty-queue-ttl>
+                        </queue>
+
+                        <cp-subsystem>
+                            <cp-member-count>0</cp-member-count>
+                        </cp-subsystem>
+
+                        <network>
+                            <port>5701</port>
+                            <join>
+                                <multicast enabled="false"/>
+                                <tcp-ip enabled="false"/>
+                                <kubernetes enabled="true">
+                                    <namespace>NAMESPACE</namespace>
+                                    <service-name>RELEASE-NAME-apim-api-hz</service-name>
+                                    <service-port>5701</service-port>
+                                </kubernetes>
+                            </join>
+                        </network>
+                    </hazelcast>
+          - equal:
+                path: data["hazelcast-cache.xml"]
+                value: |-
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+                               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+                               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+                        <cluster-name>graviteeio-apim-cache</cluster-name>
+                        <properties>
+                            <property name="hazelcast.discovery.enabled">true</property>
+                            <property name="hazelcast.max.wait.seconds.before.join">3</property>
+                            <property name="hazelcast.member.list.publish.interval.seconds">5</property>
+                            <property name="hazelcast.socket.client.bind.any">false</property>
+                            <property name="hazelcast.logging.type">slf4j</property>
+                        </properties>
+
+                        <map name="integration-*">
+                            <backup-count>0</backup-count>
+                            <async-backup-count>1</async-backup-count>
+                        </map>
+
+                        <cp-subsystem>
+                            <cp-member-count>0</cp-member-count>
+                        </cp-subsystem>
+
+                        <network>
+                            <port>5702</port>
+                            <join>
+                                <multicast enabled="false"/>
+                                <tcp-ip enabled="false"/>
+                                <kubernetes enabled="true">
+                                    <namespace>NAMESPACE</namespace>
+                                    <service-name>RELEASE-NAME-apim-api-hz</service-name>
+                                    <service-port>5702</service-port>
+                                </kubernetes>
+                            </join>
+                        </network>
+                    </hazelcast>

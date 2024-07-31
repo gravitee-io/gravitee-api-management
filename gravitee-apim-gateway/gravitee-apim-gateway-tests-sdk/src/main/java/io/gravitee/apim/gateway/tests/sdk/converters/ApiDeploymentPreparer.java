@@ -28,7 +28,7 @@ public interface ApiDeploymentPreparer<D> {
      * @param definition the definition to transform
      * @return the ReactableApi>
      */
-    ReactableApi<D> toReactable(D definition);
+    ReactableApi<D> toReactable(D definition, String environmentId);
 
     /**
      * Ensure minimal requirements for the API.

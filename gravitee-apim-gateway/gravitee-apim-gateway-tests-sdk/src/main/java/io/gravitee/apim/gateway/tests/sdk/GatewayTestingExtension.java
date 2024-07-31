@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
@@ -58,7 +59,7 @@ public class GatewayTestingExtension
     private AbstractGatewayTest gatewayTest;
     private Exception exception;
 
-    private Set<GatewayTestParameterResolver> parameterResolvers = Set.of(
+    private final Set<GatewayTestParameterResolver> parameterResolvers = Set.of(
         new HttpClientParameterResolver(),
         new ApiParameterResolver(),
         new AllApisParameterResolver()
@@ -77,6 +78,7 @@ public class GatewayTestingExtension
         try {
             startGateway(context);
             deployOrganizationForClass(context);
+            deploySharedPolicyGroupsForClass(context);
             deployApisForClass(context);
         } catch (Exception e) {
             LOGGER.error("Before all error: ", e);
@@ -97,6 +99,7 @@ public class GatewayTestingExtension
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
         deployOrganizationForMethod(context);
+        deploySharedPolicyGroupsForMethod(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
             final DeployApi annotation = context.getRequiredTestMethod().getAnnotation(DeployApi.class);
@@ -143,6 +146,31 @@ public class GatewayTestingExtension
     }
 
     /**
+     * A Shared Policy Group can only be deployed once. If {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups} annotation is used both at method level and class level, method level one will take precedence over the class level one.
+     * @param context
+     * @throws IOException
+     */
+    private void deploySharedPolicyGroupsForMethod(ExtensionContext context) throws Exception {
+        List<String> deploySharedPolicyGroups = new ArrayList<>();
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeploySharedPolicyGroups.class)) {
+            final DeploySharedPolicyGroups annotation = context.getRequiredTestMethod().getAnnotation(DeploySharedPolicyGroups.class);
+            deploySharedPolicyGroups.addAll(Arrays.asList(annotation.value()));
+        }
+
+        if (!deploySharedPolicyGroups.isEmpty()) {
+            LOGGER.debug("Deploying shared policy groups for test {}", context.getRequiredTestMethod().getName());
+            for (String deploySharedPolicyGroup : deploySharedPolicyGroups) {
+                try {
+                    gatewayRunner.deploySharedPolicyGroupForTest(deploySharedPolicyGroup);
+                } catch (Exception e) {
+                    exception = e;
+                    throw e;
+                }
+            }
+        }
+    }
+
+    /**
      * Undeploy all the apis for the current test method
      * @param context the current extension context; never {@code null}
      */
@@ -151,6 +179,10 @@ public class GatewayTestingExtension
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Clear test method's apis");
             gatewayRunner.undeployForTest();
+        }
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeploySharedPolicyGroups.class)) {
+            LOGGER.debug("Clear test method's shared policy groups");
+            gatewayRunner.undeploySharedPolicyGroupForTest();
         }
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
             LOGGER.debug("Clear organization");
@@ -169,6 +201,9 @@ public class GatewayTestingExtension
         final Class<?> requiredTestClass = context.getRequiredTestClass();
         if (requiredTestClass.isAnnotationPresent(DeployApi.class)) {
             gatewayRunner.undeployForClass();
+        }
+        if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
+            gatewayRunner.undeploySharedPolicyGroupForClass();
         }
         if (requiredTestClass.isAnnotationPresent(DeployOrganization.class)) {
             gatewayRunner.undeployOrganizationForClass();
@@ -207,6 +242,15 @@ public class GatewayTestingExtension
         if (requiredTestClass.isAnnotationPresent(DeployApi.class)) {
             for (String apiDefinition : requiredTestClass.getAnnotation(DeployApi.class).value()) {
                 gatewayRunner.deployForClass(apiDefinition);
+            }
+        }
+    }
+
+    private void deploySharedPolicyGroupsForClass(final ExtensionContext context) throws IOException {
+        final Class<?> requiredTestClass = context.getRequiredTestClass();
+        if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
+            for (String sharedPolicyGroupDefinition : requiredTestClass.getAnnotation(DeploySharedPolicyGroups.class).value()) {
+                gatewayRunner.deploySharedPolicyGroupForClass(sharedPolicyGroupDefinition);
             }
         }
     }

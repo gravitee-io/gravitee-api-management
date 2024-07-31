@@ -32,7 +32,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +44,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class SharedPolicyGroupsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
@@ -75,5 +81,10 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             .created(this.getLocationHeader(output.sharedPolicyGroup().getId()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
             .build();
+    }
+
+    @Path("{sharedPolicyGroupId}")
+    public SharedPolicyGroupResource getSharedPolicyGroupResource() {
+        return resourceContext.getResource(SharedPolicyGroupResource.class);
     }
 }

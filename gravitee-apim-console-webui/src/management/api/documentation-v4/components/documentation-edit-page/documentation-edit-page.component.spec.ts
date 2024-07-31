@@ -25,14 +25,14 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
-import { set } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
-import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-page.harness';
-import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
+import { DocumentationEditPageHarness } from './documentation-edit-page.harness';
+import { DocumentationEditPageComponent } from './documentation-edit-page.component';
 
-import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import {
   Breadcrumb,
   Page,
@@ -42,13 +42,11 @@ import {
   Group,
   fakeGroupsResponse,
   fakeGroup,
-} from '../../../../entities/management-api-v2';
-import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
-import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
-import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiDocumentationV4FileUploadHarness } from '../components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
-import { Constants } from '../../../../entities/Constants';
+} from '../../../../../entities/management-api-v2';
+import { ApiDocumentationV4ContentEditorHarness } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
+import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+import { ApiDocumentationV4FileUploadHarness } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 interface InitInput {
   pages?: Page[];
@@ -57,8 +55,8 @@ interface InitInput {
   mode?: 'create' | 'edit';
 }
 
-describe('ApiDocumentationV4EditPageComponent', () => {
-  let fixture: ComponentFixture<ApiDocumentationV4EditPageComponent>;
+describe('DocumentationEditPageComponent', () => {
+  let fixture: ComponentFixture<DocumentationEditPageComponent>;
   let harnessLoader: HarnessLoader;
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
@@ -67,55 +65,45 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   const init = async (
     parentId: string,
     pageId: string,
-    portalUrl = 'portal.url',
     apiPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
   ) => {
     await TestBed.configureTestingModule({
-      declarations: [ApiDocumentationV4EditPageComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioTestingModule],
+      imports: [
+        NoopAnimationsModule,
+        ApiDocumentationV4Module,
+        MatIconTestingModule,
+        FormsModule,
+        GioTestingModule,
+        CommonModule,
+        DocumentationEditPageComponent,
+      ],
       providers: [
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId, pageType: 'MARKDOWN' } } },
         },
         { provide: GioTestingPermissionProvider, useValue: apiPermissions },
-        {
-          provide: Constants,
-          useFactory: () => {
-            const constants = CONSTANTS_TESTING;
-            set(constants, 'env.settings.portal', {
-              get url() {
-                return portalUrl;
-              },
-            });
-            return constants;
-          },
-        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isFocusable: () => true,
         },
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(ApiDocumentationV4EditPageComponent);
+    fixture = TestBed.createComponent(DocumentationEditPageComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
+
+    fixture.componentInstance.api = fakeApiV4({ id: API_ID, lifecycleState: 'PUBLISHED' });
+    fixture.componentInstance.goBackRouterLink = [];
     fixture.detectChanges();
   };
 
   const initPageServiceRequests = (input: InitInput, page: Page = {}) => {
-    httpTestingController
-      .expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
-      })
-      .flush(fakeApiV4({ id: API_ID, lifecycleState: 'PUBLISHED' }));
-
     if (input.mode === 'edit') {
       expectGetPage(page);
     }
@@ -150,15 +138,25 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
         await exitBtn.click();
 
-        expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
-          relativeTo: expect.anything(),
-          queryParams: { parentId: 'ROOT' },
+        expect(routerNavigateSpy).toHaveBeenCalledWith([], {
+          relativeTo: expect.objectContaining({
+            snapshot: expect.objectContaining({
+              params: {
+                apiId: 'api-id',
+                pageId: undefined,
+              },
+              queryParams: {
+                parentId: 'ROOT',
+                pageType: 'MARKDOWN',
+              },
+            }),
+          }),
         });
       });
 
       describe('step 1 - Configure page', () => {
         it('should set name and visibility', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
 
           expect(getPageTitle().includes('Add new page')).toBeTruthy();
 
@@ -189,13 +187,13 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should not allow duplicate name', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName(EXISTING_PAGE.name);
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
 
         it('should not show select groups + exclude groups if public', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
 
           await harness.setName('New page');
 
@@ -220,7 +218,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should select groups and set exclude groups if private', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
 
           await harness.setName('New page');
           await harness.checkVisibility('PRIVATE');
@@ -254,7 +252,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
       describe('step 2 - Determine source', () => {
         beforeEach(async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName('New page');
 
           await harness.getNextButton().then(async (btn) => {
@@ -265,7 +263,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should select source', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           const options = await harness.getSourceOptions();
 
           expect(options.length).toEqual(3);
@@ -281,7 +279,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
       describe('step 3 - Fill content ', () => {
         beforeEach(async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName('New page');
           await harness.checkVisibility('PRIVATE');
 
@@ -439,7 +437,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
       describe('step 3 - Import content ', () => {
         beforeEach(async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName('New page');
 
           await harness.getNextButton().then(async (btn) => {
@@ -468,14 +466,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       });
 
       describe('step 3 - Import from URL ', () => {
-        let harness: ApiDocumentationV4EditPageHarness;
+        let harness: DocumentationEditPageHarness;
         const openApiUrl = 'https://openapi.yml';
         const http = 'HTTP';
         const pageName = 'New page';
         const emptyUrlSaveErrorMessage = 'Cannot save without a url';
         const emptyUrlPublishErrorMessage = 'Cannot publish with empty URL';
         beforeEach(async () => {
-          harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName(pageName);
 
           let nextBtn = await harness.getNextButton();
@@ -634,7 +632,13 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             method: 'POST',
             url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
           });
-          publishReq.flush({ message: emptyUrlPublishErrorMessage }, { status: 400, statusText: emptyUrlPublishErrorMessage });
+          publishReq.flush(
+            { message: emptyUrlPublishErrorMessage },
+            {
+              status: 400,
+              statusText: emptyUrlPublishErrorMessage,
+            },
+          );
 
           fixture.detectChanges();
 
@@ -659,7 +663,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       });
 
       it('should save page in the correct folder', async () => {
-        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
         await harness.setName('New page');
 
         await harness.getNextButton().then(async (btn) => btn.click());
@@ -729,30 +733,30 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should load step one with existing name and visibility', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           expect(await harness.getName()).toEqual(PAGE.name);
           expect(await harness.getVisibility()).toEqual(PAGE.visibility);
         });
 
         it('should load step one and have Next button clickable without any changes', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(false);
         });
 
         it('should not have Next button clickable with name blank', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName('');
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
 
         it('should not have Next button clickable with duplicate name', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName(' Other-page-Name  ');
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
 
         it('should not show select groups + exclude groups if public', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName('another name');
 
           expect(await harness.getAccessControlGroups()).toBeFalsy();
@@ -776,7 +780,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should select groups and set exclude groups if private', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.checkVisibility('PRIVATE');
 
           const selectAccessControlGroups = await harness.getAccessControlGroups();
@@ -814,7 +818,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should not save content if no changes', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
 
           await harness.getNextButton().then(async (btn) => btn.click());
           await harness.getNextButton().then(async (btn) => btn.click());
@@ -824,7 +828,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should save content', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.setName('New name');
           await harness.checkVisibility('PRIVATE');
 
@@ -859,14 +863,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           });
           req.flush(PAGE);
 
-          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], {
             relativeTo: expect.anything(),
             queryParams: { parentId: 'ROOT' },
           });
         });
 
         it('should save new access control settings', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           await harness.checkVisibility('PRIVATE');
 
           const selectAccessControlGroups = await harness.getAccessControlGroups();
@@ -904,7 +908,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           });
           req.flush(PAGE);
 
-          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], {
             relativeTo: expect.anything(),
             queryParams: { parentId: 'ROOT' },
           });
@@ -920,7 +924,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
         describe('and no changes', () => {
           beforeEach(async () => {
-            const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+            const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
             await harness.getNextButton().then(async (btn) => btn.click());
             await harness.getNextButton().then(async (btn) => btn.click());
           });
@@ -937,7 +941,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
         describe('and with changes', () => {
           beforeEach(async () => {
-            const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+            const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
             await harness.setName('New name');
             await harness.getNextButton().then(async (btn) => btn.click());
             await harness.getNextButton().then(async (btn) => btn.click());
@@ -1000,7 +1004,12 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       });
     });
     describe('In parent folder', () => {
-      const PAGE = fakeMarkdown({ id: 'page-id', content: 'my content', visibility: 'PUBLIC', parentId: 'parent-folder-id' });
+      const PAGE = fakeMarkdown({
+        id: 'page-id',
+        content: 'my content',
+        visibility: 'PUBLIC',
+        parentId: 'parent-folder-id',
+      });
 
       beforeEach(async () => {
         await init('parent-folder-id', PAGE.id);
@@ -1023,23 +1032,40 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       it('should exit without saving', async () => {
         const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
         await exitBtn.click();
-        expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
-          relativeTo: expect.anything(),
-          queryParams: { parentId: PAGE.parentId },
+
+        expect(routerNavigateSpy).toHaveBeenCalledWith([], {
+          relativeTo: expect.objectContaining({
+            snapshot: expect.objectContaining({
+              params: {
+                apiId: 'api-id',
+                pageId: 'page-id',
+              },
+              queryParams: {
+                parentId: 'parent-folder-id',
+                pageType: 'MARKDOWN',
+              },
+            }),
+          }),
         });
       });
     });
     describe('In read-only mode', () => {
-      const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+      const PAGE = fakeMarkdown({
+        id: 'page-id',
+        name: 'page-name',
+        content: 'my content',
+        visibility: 'PUBLIC',
+        published: true,
+      });
 
       beforeEach(async () => {
-        await init(undefined, PAGE.id, 'portal.url', ['api-documentation-r']);
+        await init(undefined, PAGE.id, ['api-documentation-r']);
         initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
       });
 
       it('should not be able to delete page and form is disabled', async () => {
         // No delete button
-        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
         expect(await harness.getDeleteButton()).toBeUndefined();
 
         // All fields disabled
@@ -1059,7 +1085,13 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   describe('Delete page', () => {
     describe('In the root folder', () => {
       describe('with published page', () => {
-        const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+        const PAGE = fakeMarkdown({
+          id: 'page-id',
+          name: 'page-name',
+          content: 'my content',
+          visibility: 'PUBLIC',
+          published: true,
+        });
         const OTHER_PAGE = fakeMarkdown({
           id: 'other-page',
           name: 'other-page-name',
@@ -1084,7 +1116,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             GENERAL_CONDITION_PAGE,
           );
 
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           expect(await harness.getName()).toEqual(GENERAL_CONDITION_PAGE.name);
           expect(await harness.getVisibility()).toEqual(GENERAL_CONDITION_PAGE.visibility);
           const deleteButton = await harness.getDeleteButton();
@@ -1094,7 +1126,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         it('should delete page and navigate to root list', async () => {
           await init(undefined, PAGE.id);
           initPageServiceRequests({ pages: [PAGE, OTHER_PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           expect(await harness.getName()).toEqual(PAGE.name);
           expect(await harness.getVisibility()).toEqual(PAGE.visibility);
           const deleteButton = await harness.getDeleteButton();
@@ -1110,7 +1142,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             })
             .flush(null);
 
-          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], {
             relativeTo: expect.anything(),
             queryParams: { parentId: 'ROOT' },
           });
@@ -1135,7 +1167,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
 
         it('should delete page and navigate to parent folder', async () => {
-          await init(undefined, SUB_FOLDER_PAGE.id);
+          await init(FOLDER.id, SUB_FOLDER_PAGE.id);
           initPageServiceRequests(
             {
               pages: [FOLDER, SUB_FOLDER_PAGE],
@@ -1144,7 +1176,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             },
             SUB_FOLDER_PAGE,
           );
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
           expect(await harness.getName()).toEqual(SUB_FOLDER_PAGE.name);
           expect(await harness.getVisibility()).toEqual(SUB_FOLDER_PAGE.visibility);
           const deleteButton = await harness.getDeleteButton();
@@ -1160,34 +1192,12 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             })
             .flush(null);
 
-          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], {
             relativeTo: expect.anything(),
             queryParams: { parentId: FOLDER.id },
           });
         });
       });
-    });
-  });
-
-  describe('Header', () => {
-    const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
-
-    it('should display Open in Portal button', async () => {
-      await init(undefined, PAGE.id);
-      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
-
-      const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-      expect(header).toBeDefined();
-      const openInPortalBtn = await header.getOpenInPortalBtn();
-      expect(openInPortalBtn).toBeDefined();
-      expect(await openInPortalBtn.isDisabled()).toEqual(false);
-    });
-    it('should not display Open in Portal button if Portal url not defined', async () => {
-      await init(undefined, PAGE.id, null);
-      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
-
-      const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-      expect(await header.getOpenInPortalBtn()).toEqual(null);
     });
   });
 

@@ -13,35 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
+package io.gravitee.apim.integration.tests.fake;
 
-import static java.util.Collections.singletonMap;
-
-import java.util.Map;
+import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
+ * A policy that is just throwing a RuntimeException
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SharedPolicyGroupNotFoundException extends AbstractNotFoundException {
+public class ThrowingPolicy implements Policy {
 
-    private final String sharedPolicyGroupId;
-
-    public SharedPolicyGroupNotFoundException(String sharedPolicyGroupId) {
-        this.sharedPolicyGroupId = sharedPolicyGroupId;
+    @Override
+    public String id() {
+        return "throwing-policy";
     }
 
     @Override
-    public String getMessage() {
-        return "SharedPolicyGroup [" + sharedPolicyGroupId + "] cannot be found.";
+    public Completable onRequest(HttpExecutionContext ctx) {
+        return Completable.error(new RuntimeException());
     }
 
     @Override
-    public String getTechnicalCode() {
-        return "sharedPolicyGroup.notFound";
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return singletonMap("sharedPolicyGroupId", sharedPolicyGroupId);
+    public Completable onResponse(HttpExecutionContext ctx) {
+        return Completable.error(new RuntimeException());
     }
 }

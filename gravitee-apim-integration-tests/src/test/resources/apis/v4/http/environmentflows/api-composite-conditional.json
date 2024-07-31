@@ -1,0 +1,137 @@
+{
+  "id": "my-api-v4",
+  "name": "my-api-v4",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": [
+            "GET"
+          ]
+        }
+      ],
+      "response": [
+        {
+          "name": "Transform headers Outside 0",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Request-Header-Outside-0",
+                "value": "Header Outside 0"
+              }
+            ]
+          }
+        },
+        {
+          "name": "my-composite-policy",
+          "description": "",
+          "enabled": true,
+          "policy": "composite-policy",
+          "condition": "{#request.headers['execute-composite'][0] == 'yes'}",
+          "configuration": {
+            "steps": [
+              {
+                "name": "Transform headers Inside 0",
+                "description": "",
+                "enabled": true,
+                "policy": "transform-headers",
+                "condition": "{#request.headers['execute-composite-first-step'][0] == 'yes'}",
+                "configuration": {
+                  "scope": "RESPONSE",
+                  "addHeaders": [
+                    {
+                      "name": "X-Request-Header-Inside-0",
+                      "value": "Header Inside 0"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Transform headers Inside 1",
+                "description": "",
+                "enabled": true,
+                "policy": "transform-headers",
+                "configuration": {
+                  "scope": "RESPONSE",
+                  "addHeaders": [
+                    {
+                      "name": "X-Request-Header-Inside-1",
+                      "value": "Header Inside 1"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Transform headers Outside 1",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Request-Header-Outside-1",
+                "value": "Header Outside 1"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

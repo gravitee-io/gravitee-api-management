@@ -16,8 +16,8 @@
 package inmemory;
 
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
-import io.gravitee.rest.api.service.exceptions.SharedPolicyGroupNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,10 +35,12 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
     }
 
     @Override
-    public SharedPolicyGroup get(String sharedPolicyGroupId) {
+    public SharedPolicyGroup getByEnvironmentId(String environmentId, String sharedPolicyGroupId) {
         return storage
             .stream()
-            .filter(sharedPolicyGroup -> sharedPolicyGroupId.equals(sharedPolicyGroup.getId()))
+            .filter(sharedPolicyGroup ->
+                sharedPolicyGroupId.equals(sharedPolicyGroup.getId()) && environmentId.equals(sharedPolicyGroup.getEnvironmentId())
+            )
             .findFirst()
             .orElseThrow(() -> new SharedPolicyGroupNotFoundException(sharedPolicyGroupId));
     }

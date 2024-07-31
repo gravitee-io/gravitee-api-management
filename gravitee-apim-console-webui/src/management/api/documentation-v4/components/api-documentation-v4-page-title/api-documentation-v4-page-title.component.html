@@ -20,15 +20,17 @@
     <div><span class="mat-h2">Custom pages</span></div>
     <div class="header__subtitle">Define your documentation pages displayed on the Developer Portal</div>
   </div>
-  <div class="header__actions" *ngIf="api && apiPortalUrl">
-    <a
-      mat-raised-button
-      class="header__actions__open-in-portal"
-      [href]="apiPortalUrl"
-      target="_blank"
-      [disabled]="api.lifecycleState !== 'PUBLISHED'"
-      [matTooltip]="apiNotInPortalTooltip"
-      >Open API in Developer Portal</a
-    >
-  </div>
+  @if (api && apiPortalUrl) {
+    <div class="header__actions">
+      <a
+        mat-raised-button
+        class="header__actions__open-in-portal"
+        [href]="apiPortalUrl"
+        target="_blank"
+        [disabled]="api.lifecycleState !== 'PUBLISHED'"
+        [matTooltip]="apiNotInPortalTooltip"
+        >Open API in Developer Portal</a
+      >
+    </div>
+  }
 </div>

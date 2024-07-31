@@ -1,0 +1,39 @@
+{
+  "id": "spg-two-headers-on-request",
+  "name": "spg-two-headers-on-request",
+  "environmentId": "DEFAULT",
+  "version": "1",
+  "phase": "REQUEST",
+  "policies": [
+    {
+      "name": "Transform headers Inside 0",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "configuration": {
+        "scope": "REQUEST",
+        "addHeaders": [
+          {
+            "name": "X-Request-Header-Inside-0",
+            "value": "Header Inside 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Transform headers Inside 1",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "configuration": {
+        "scope": "REQUEST",
+        "addHeaders": [
+          {
+            "name": "X-Request-Header-Inside-1",
+            "value": "Header Inside 1"
+          }
+        ]
+      }
+    }
+  ]
+}

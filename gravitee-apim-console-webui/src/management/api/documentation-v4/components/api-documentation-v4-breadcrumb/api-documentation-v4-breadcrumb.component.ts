@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
-import { Breadcrumb } from '../../../../../entities/management-api-v2/documentation/page';
+import { Breadcrumb } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-breadcrumb',
   templateUrl: './api-documentation-v4-breadcrumb.component.html',
   styleUrls: ['./api-documentation-v4-breadcrumb.component.scss'],
+  standalone: true,
+  imports: [CommonModule, MatIcon],
 })
 export class ApiDocumentationV4BreadcrumbComponent {
   @Input()
