@@ -15,12 +15,19 @@
     limitations under the License.
 
 -->
-<app-banner>
-  <div class="welcome-banner-content">
-    <div class="m3-headline-large">{{ bannerTitle }}</div>
-    <div class="m3-title-small">{{ bannerSubtitle }}</div>
-  </div>
-</app-banner>
+@if (showBanner) {
+  <app-banner>
+    <div class="welcome-banner-content">
+      @if (bannerTitle) {
+        <div class="m3-headline-large">{{ bannerTitle }}</div>
+      }
+      @if (bannerSubtitle) {
+        <div class="m3-title-small">{{ bannerSubtitle }}</div>
+      }
+    </div>
+  </app-banner>
+}
+
 @if (filterList$ | async; as filterList) {
   <div class="catalog__filters">
     <app-api-filter
