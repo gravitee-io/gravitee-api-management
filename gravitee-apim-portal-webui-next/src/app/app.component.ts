@@ -22,6 +22,7 @@ import { FooterComponent } from '../components/footer/footer.component';
 import { NavBarComponent } from '../components/nav-bar/nav-bar.component';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,7 @@ import { CurrentUserService } from '../services/current-user.service';
 })
 export class AppComponent {
   currentUser = inject(CurrentUserService).user;
+  logo = inject(ThemeService).logo;
   siteTitle: string;
 
   constructor(
