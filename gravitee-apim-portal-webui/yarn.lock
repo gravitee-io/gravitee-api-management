@@ -3629,10 +3629,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/ibm-plex-sans@npm:4.5.5":
-  version: 4.5.5
-  resolution: "@fontsource/ibm-plex-sans@npm:4.5.5"
-  checksum: 10c0/1baf46cd312ce448d3df94ae4ecae4baa0ec56cb6a8cd443e0fd226656c138d674f2727d0b8ddb5038162211d9b7f825d9fbbda13f45f7c5f6af9342c886dd93
+"@fontsource/ibm-plex-sans@npm:4.5.13":
+  version: 4.5.13
+  resolution: "@fontsource/ibm-plex-sans@npm:4.5.13"
+  checksum: 10c0/c486a40179940b9d4445a1c129efa9a1f64256684e74a6c71bbde4e5b37769dfdbbce4051737f120a7848fe53c4f1232e95b47cb2c46a5a6e68b30dd0e1159d2
   languageName: node
   linkType: hard
 
@@ -3731,7 +3731,7 @@ __metadata:
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:1.2.23"
     "@babel/preset-env": "npm:7.16.11"
-    "@fontsource/ibm-plex-sans": "npm:4.5.5"
+    "@fontsource/ibm-plex-sans": "npm:4.5.13"
     "@gravitee/ui-components": "npm:4.2.3"
     "@highcharts/map-collection": "npm:2.0.0"
     "@messageformat/core": "npm:3.3.0"

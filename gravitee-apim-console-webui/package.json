@@ -20,7 +20,7 @@
     "@asyncapi/web-component": "1.2.26",
     "@danielmoncada/angular-datetime-picker": "17.0.0",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "4.0.0",
-    "@fontsource/libre-franklin": "4.4.5",
+    "@fontsource/libre-franklin": "4.5.11",
     "@gravitee/ui-analytics": "12.17.0",
     "@gravitee/ui-components": "4.2.4",
     "@gravitee/ui-particles-angular": "12.17.0",
