@@ -22,6 +22,8 @@ import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -99,6 +101,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -119,7 +122,6 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -153,7 +155,6 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
-import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -229,6 +230,7 @@ class ImportCRDUseCaseTest {
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
     ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
+    DocumentationValidationDomainService validationDomainService = mock(DocumentationValidationDomainService.class);
 
     ImportCRDUseCase useCase;
 
@@ -381,7 +383,8 @@ class ImportCRDUseCaseTest {
             verifyApiPathDomainService,
             new ValidateCRDMembersDomainService(userDomainService),
             new ValidateGroupsDomainService(groupQueryService),
-            validateResourceDomainService
+            validateResourceDomainService,
+            new ValidatePagesDomainService(validationDomainService)
         );
 
         categoryQueryService.reset();
@@ -614,6 +617,9 @@ class ImportCRDUseCaseTest {
 
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                .thenAnswer(call -> call.getArgument(0));
 
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
 
@@ -1062,6 +1068,9 @@ class ImportCRDUseCaseTest {
 
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                .thenAnswer(call -> call.getArgument(0));
 
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
 

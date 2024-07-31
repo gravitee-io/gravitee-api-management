@@ -22,6 +22,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
@@ -49,6 +50,18 @@ public interface ConfigurationSerializationMapper {
             }
         } else {
             return configuration.toString();
+        }
+    }
+
+    @Named("convertToMapConfiguration")
+    default Map<String, Object> convertToMapConfiguration(Object configuration) {
+        if (Objects.isNull(configuration)) {
+            return Map.of();
+        }
+        if (configuration instanceof LinkedHashMap) {
+            return (Map<String, Object>) configuration;
+        } else {
+            return Map.of();
         }
     }
 

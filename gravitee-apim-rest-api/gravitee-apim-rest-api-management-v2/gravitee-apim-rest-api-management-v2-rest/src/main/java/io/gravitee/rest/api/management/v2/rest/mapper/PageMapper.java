@@ -82,6 +82,7 @@ public interface PageMapper {
     io.gravitee.apim.core.documentation.model.Page toCorePage(Page page);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "configurationMap", source = "configuration", qualifiedByName = "convertToMapConfiguration")
     io.gravitee.apim.core.documentation.model.PageSource toCorePageSource(PageSource source);
 
     @Mapping(target = "mediaName", source = "name")

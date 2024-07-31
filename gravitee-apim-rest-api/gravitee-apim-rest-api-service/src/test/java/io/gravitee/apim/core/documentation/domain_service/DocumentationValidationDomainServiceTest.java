@@ -37,7 +37,9 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -332,6 +334,49 @@ public class DocumentationValidationDomainServiceTest {
                             .content("")
                             .referenceId("api-id")
                             .referenceType(Page.ReferenceType.API)
+                            .build(),
+                        ORGANIZATION_ID
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void should_not_throw_error_when_cron_fetcher_is_valid() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("fetchCron", "* */5 * * * *");
+
+            Page sanitized = cut.validateAndSanitizeForCreation(
+                Page
+                    .builder()
+                    .type(Page.Type.ROOT)
+                    .name("new fetcher page")
+                    .content("")
+                    .referenceId("api-id")
+                    .referenceType(Page.ReferenceType.API)
+                    .source(new PageSource("github-fetcher", null, config))
+                    .build(),
+                ORGANIZATION_ID
+            );
+
+            assertThat(sanitized.getType()).isEqualTo(Page.Type.ROOT);
+        }
+
+        @Test
+        void should_throw_error_when_cron_fetcher_is_invalid() {
+            Map<String, Object> config = new HashMap<>();
+            config.put("fetchCron", "*/2 * * * * * *");
+
+            assertThatThrownBy(() ->
+                    cut.validateAndSanitizeForCreation(
+                        Page
+                            .builder()
+                            .type(Page.Type.ROOT)
+                            .name("new page")
+                            .content("")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .source(new PageSource("github-fetcher", null, config))
                             .build(),
                         ORGANIZATION_ID
                     )

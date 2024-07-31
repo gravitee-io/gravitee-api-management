@@ -1,0 +1,106 @@
+{
+  "name": "api-v4-with-apikey",
+  "id": "63cb34e5-e5cb-40cf-94ca-4687e7813473",
+  "crossId": "f4feb2f7-ae13-47bc-800f-289592105119",
+  "definitionContext": {
+    "origin": "KUBERNETES",
+    "syncFrom": "KUBERNETES"
+  },
+  "description": "API v4 CRD spec with unknown categories",
+  "version": "1.0",
+  "type": "PROXY",
+  "pages": {
+    "docs-folder": {
+      "name": "specifications",
+      "type": "FOLDER",
+      "visibility": "PUBLIC"
+    },
+    "swagger": {
+      "name": "pet-store",
+      "type": "ROOT",
+      "parent": "docs-folder",
+      "visibility": "PUBLIC",
+      "source": {
+        "type": "github-fetcher",
+        "configuration": {
+          "githubUrl": "https://api.github.com",
+          "useSystemProxy": false,
+          "owner": "gravitee-io",
+          "repository": "gravitee-api-management",
+          "branchOrTag": "master",
+          "filepath": "/README.md",
+          "editLink": null,
+          "fetchCron": "*/3 * * *",
+          "autoFetch": true
+        }
+      }
+    }
+  },
+  "listeners": [
+    {
+      "type": "HTTP",
+      "paths": [
+        {
+          "path": "/invalid-resource-config"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy",
+          "qos": "AUTO"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "Default HTTP proxy group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "Default HTTP proxy",
+          "type": "http-proxy",
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "https://api.gravitee.io/echo"
+          },
+          "secondary": false
+        }
+      ]
+    }
+  ],
+  "flowExecution": {
+    "mode": "DEFAULT",
+    "matchRequired": false
+  },
+  "state": "STARTED",
+  "lifecycleState": "PUBLISHED",
+  "visibility": "PUBLIC",
+  "flows": [],
+  "plans": {
+    "API_KEY": {
+      "id": "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24",
+      "name": "API Key plan",
+      "description": "API key plan needs a key to authenticate",
+      "type": "API",
+      "status": "PUBLISHED",
+      "validation": "AUTO",
+      "mode": "STANDARD",
+      "security": {
+        "type": "API_KEY"
+      },
+      "flows": [
+        {
+          "enabled": true,
+          "selectors": [
+            {
+              "type": "HTTP",
+              "path": "/",
+              "pathOperator": "STARTS_WITH"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

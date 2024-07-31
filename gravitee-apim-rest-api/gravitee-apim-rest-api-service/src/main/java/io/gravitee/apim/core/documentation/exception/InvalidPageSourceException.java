@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.model;
+package io.gravitee.apim.core.documentation.exception;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class PageSource {
+public class InvalidPageSourceException extends ValidationDomainException {
 
-    private String type;
-    private String configuration;
-
-    // Exactly same as the above String configuration
-    private Map<String, Object> configurationMap;
+    public InvalidPageSourceException(String message) {
+        super(message);
+    }
 }

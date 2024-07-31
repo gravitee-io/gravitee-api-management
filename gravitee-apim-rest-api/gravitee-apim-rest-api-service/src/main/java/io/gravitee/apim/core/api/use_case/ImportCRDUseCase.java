@@ -44,7 +44,7 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -431,13 +431,13 @@ public class ImportCRDUseCase {
         }
     }
 
-    private void createOrUpdatePages(Map<String, PageCRD> pageCrds, String apiId, AuditInfo auditInfo) {
-        if (pageCrds == null || pageCrds.isEmpty()) {
+    private void createOrUpdatePages(Map<String, PageCRD> pageCRDs, String apiId, AuditInfo auditInfo) {
+        if (pageCRDs == null || pageCRDs.isEmpty()) {
             return;
         }
 
         var now = Date.from(TimeProvider.now().toInstant());
-        List<Page> pages = pageCrds.values().stream().map(this::initPageFromCRD).toList();
+        var pages = pageCRDs.values().stream().map(PageModelFactory::fromCRDSpec).toList();
 
         pages.forEach(page -> {
             page.setReferenceId(apiId);
@@ -486,29 +486,6 @@ public class ImportCRDUseCase {
                     throw new InvalidPageParentException(parent.getId());
                 }
             });
-    }
-
-    private Page initPageFromCRD(PageCRD pageCRD) {
-        Page page = Page
-            .builder()
-            .id(pageCRD.getId())
-            .name(pageCRD.getName())
-            .crossId(pageCRD.getCrossId())
-            .parentId(pageCRD.getParentId())
-            .type(Page.Type.valueOf(pageCRD.getType().name()))
-            .visibility(Page.Visibility.valueOf(pageCRD.getVisibility().name()))
-            .order(pageCRD.getOrder())
-            .published(pageCRD.isPublished())
-            .content(pageCRD.getContent())
-            .homepage(pageCRD.isHomepage())
-            .configuration(pageCRD.getConfiguration())
-            .build();
-
-        if (pageCRD.getSource() != null) {
-            page.setSource(new PageSource(pageCRD.getSource().getType(), pageCRD.getSource().getConfiguration()));
-        }
-
-        return page;
     }
 
     private ApiMember initApiMemberFromCRD(MemberCRD crd) {
