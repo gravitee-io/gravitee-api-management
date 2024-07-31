@@ -112,7 +112,7 @@ class SharedPolicyGroupQueryServiceImplTest {
             Pageable pageable = new PageableImpl(0, 3);
             Sortable sortable = new SortableImpl("createdAt", true);
 
-            Page<SharedPolicyGroup> result = service.searchByEnvironmentId( environmentId, q, pageable, sortable);
+            Page<SharedPolicyGroup> result = service.searchByEnvironmentId(environmentId, q, pageable, sortable);
             // Then
             assertThat(result).isNotNull();
             assertThat(result.getContent()).isNotEmpty();

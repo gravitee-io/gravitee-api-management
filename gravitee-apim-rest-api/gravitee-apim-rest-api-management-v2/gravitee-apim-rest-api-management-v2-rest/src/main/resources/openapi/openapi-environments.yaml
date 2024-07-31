@@ -76,6 +76,21 @@ paths:
                   $ref: "#/components/schemas/SharedPolicyGroup"
           default:
             $ref: "#/components/responses/Error"
+    get:
+          tags:
+            - SharedPolicyGroups
+          summary: Search shared policy groups
+          operationId: searchSharedPolicyGroups
+          parameters:
+            - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
+            - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+            - $ref: "#/components/parameters/sharedPolicyGroupSortByParam"
+            - $ref: "#/components/parameters/sharedPolicyGroupSearchParam"
+          responses:
+            "200":
+              $ref: "#/components/responses/SharedPolicyGroupsResponse"
+            default:
+              $ref: "#/components/responses/Error"
   /shared-policy-groups/{sharedPolicyGroupId}:
     get:
         tags:
@@ -220,6 +235,7 @@ components:
               example: 2020-01-01T00:00:00Z
             lifecycleState:
               $ref: "#/components/schemas/SharedPolicyGroupLifecycleState"
+
         SharedPolicyGroupLifecycleState:
             type: string
             description: The lifecycle state of a shared policy group
@@ -273,6 +289,34 @@ components:
             required: true
             schema:
                 type: string
+        sharedPolicyGroupSortByParam:
+          name: sortBy
+          in: query
+          required: false
+          description: |-
+            Possibility to sort APIs results by field.
+            Can be ascending or descending with minus '-' prefix.
+            By default, no sort is applied.
+          schema:
+            type: string
+            example: name
+            enum:
+              - name
+              - -name
+              - apiType
+              - -apiType
+              - updatedAt
+              - -updatedAt
+              - deployedAt
+              - -deployedAt
+        sharedPolicyGroupSearchParam:
+          name: q
+          in: query
+          description: |-
+            A search query to filter shared policy groups.
+          schema:
+            type: string
+            example: my shared policy group
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -280,6 +324,22 @@ components:
                 application/json:
                     schema:
                         type: object
+        SharedPolicyGroupsResponse:
+          description: Page of shared policy groups
+          content:
+            application/json:
+              schema:
+                title: "SharedPolicyGroupsResponse"
+                properties:
+                  data:
+                    description: List of SharedPolicyGroup.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SharedPolicyGroup"
+                  pagination:
+                    $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                  links:
+                    $ref: "./openapi-apis.yaml#/components/schemas/Links"
         Error:
             description: Generic error response
             content:
