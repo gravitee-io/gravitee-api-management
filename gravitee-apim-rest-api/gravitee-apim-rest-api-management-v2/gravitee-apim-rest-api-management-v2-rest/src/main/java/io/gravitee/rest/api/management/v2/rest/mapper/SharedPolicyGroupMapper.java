@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -29,6 +30,8 @@ public interface SharedPolicyGroupMapper {
     SharedPolicyGroupMapper INSTANCE = Mappers.getMapper(SharedPolicyGroupMapper.class);
 
     io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(CreateSharedPolicyGroup sharedPolicyGroup);
+
+    List<SharedPolicyGroup> map(List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup> sharedPolicyGroups);
 
     SharedPolicyGroup map(io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup sharedPolicyGroup);
 
