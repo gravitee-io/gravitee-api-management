@@ -55,6 +55,9 @@ describe('SubscribeToApiComponent', () => {
   const OAUTH2_PLAN_ID = 'oauth2-plan';
   const JWT_PLAN_ID = 'jwt-plan';
   const GENERAL_CONDITIONS_ID = 'page-id';
+  const APP_ID = 'app-id';
+  const APP_ID_NO_SUBSCRIPTIONS = 'app-id-no-subscriptions';
+  const APP_ID_ONE_API_KEY_SUBSCRIPTION = 'app-id-one-api-key-subscription';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -141,7 +144,7 @@ describe('SubscribeToApiComponent', () => {
 
         await goToNextStep();
 
-        expectGetSubscriptions(API_ID);
+        expectGetSubscriptionsForApi(API_ID);
         expectGetApplications();
         fixture.detectChanges();
 
@@ -157,7 +160,7 @@ describe('SubscribeToApiComponent', () => {
 
       describe('When user has no applications', () => {
         beforeEach(async () => {
-          expectGetSubscriptions(API_ID);
+          expectGetSubscriptionsForApi(API_ID);
           expectGetApplications(1, fakeApplicationsResponse({ data: [] }));
           fixture.detectChanges();
         });
@@ -175,7 +178,7 @@ describe('SubscribeToApiComponent', () => {
         const APP_ID_1 = 'app-id-1';
         const APP_ID_2 = 'app-id-2';
         beforeEach(async () => {
-          expectGetSubscriptions(
+          expectGetSubscriptionsForApi(
             API_ID,
             fakeSubscriptionResponse({
               data: [
@@ -382,6 +385,120 @@ describe('SubscribeToApiComponent', () => {
           });
         });
       });
+      describe('API Key Management', () => {
+        describe('When a chosen application has no existing subscriptions', () => {
+          beforeEach(async () => {
+            await selectPlan(API_KEY_PLAN_ID);
+            await selectApplication(APP_ID_NO_SUBSCRIPTIONS);
+
+            expectGetApi();
+            expectGetSubscriptionsForApplication(APP_ID_NO_SUBSCRIPTIONS, fakeSubscriptionResponse({ data: [], metadata: {} }));
+            fixture.detectChanges();
+          });
+          it('should NOT show api key mode choice', async () => {
+            const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+            expect(await step3.isChooseApiKeyModeVisible()).toBeFalsy();
+          });
+          it('should create subscription', async () => {
+            const subscribe = await getSubscribeButton();
+            await subscribe?.click();
+
+            expectPostCreateSubscription({
+              plan: API_KEY_PLAN_ID,
+              application: APP_ID_NO_SUBSCRIPTIONS,
+            });
+          });
+        });
+        describe('When a chosen application has one existing API Key subscription', () => {
+          describe('When the existing API Key subscription is with current API', () => {
+            beforeEach(async () => {
+              await selectPlan(API_KEY_PLAN_ID);
+              await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
+
+              expectGetApi();
+              expectGetSubscriptionsForApplication(
+                APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                fakeSubscriptionResponse({
+                  data: [fakeSubscription({ plan: 'plan-id', api: API_ID })],
+                  metadata: {
+                    'plan-id': { securityType: 'API_KEY' },
+                  },
+                }),
+              );
+              fixture.detectChanges();
+            });
+            it('should show api key mode choice + only allow exclusive', async () => {
+              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+              expect(await step3.isChooseApiKeyModeVisible()).toBeTruthy();
+
+              const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
+              expect(await sharedApiKeyOption.isDisabled()).toEqual(true);
+
+              const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
+              expect(await generatedApiKeyOption.isDisabled()).toEqual(false);
+            });
+            it('should create subscription', async () => {
+              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+              const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
+              await generatedApiKeyOption.select();
+
+              const subscribe = await getSubscribeButton();
+              await subscribe?.click();
+
+              expectPostCreateSubscription({
+                plan: API_KEY_PLAN_ID,
+                application: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                api_key_mode: 'EXCLUSIVE',
+              });
+            });
+          });
+          describe('When the existing API Key subscription is for a different API', () => {
+            beforeEach(async () => {
+              await selectPlan(API_KEY_PLAN_ID);
+              await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
+
+              expectGetApi();
+              expectGetSubscriptionsForApplication(
+                APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                fakeSubscriptionResponse({
+                  data: [fakeSubscription({ plan: 'plan-id', api: 'other-api' })],
+                  metadata: {
+                    'plan-id': { securityType: 'API_KEY' },
+                  },
+                }),
+              );
+              fixture.detectChanges();
+            });
+            it('should show api key mode choice', async () => {
+              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+              expect(await step3.isChooseApiKeyModeVisible()).toBeTruthy();
+
+              const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
+              expect(await sharedApiKeyOption.isDisabled()).toEqual(false);
+              expect(await sharedApiKeyOption.isSelected()).toEqual(false);
+
+              const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
+              expect(await generatedApiKeyOption.isDisabled()).toEqual(false);
+              expect(await generatedApiKeyOption.isSelected()).toEqual(false);
+            });
+            it('should create subscription', async () => {
+              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+              const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
+              await sharedApiKeyOption.select();
+
+              const subscribe = await getSubscribeButton();
+              await subscribe?.click();
+
+              expectPostCreateSubscription({
+                plan: API_KEY_PLAN_ID,
+                application: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                api_key_mode: 'SHARED',
+              });
+            });
+          });
+        });
+      });
+
       describe('When comment is NOT required + Terms and conditions NOT required', () => {
         beforeEach(async () => {
           await selectPlan(API_KEY_PLAN_ID);
@@ -442,9 +559,20 @@ describe('SubscribeToApiComponent', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}`).flush(api ?? fakeApi({ id: API_ID, entrypoints: [ENTRYPOINT] }));
   }
 
-  function expectGetSubscriptions(apiId: string, subscriptions: SubscriptionsResponse = fakeSubscriptionResponse({ data: [] })) {
+  function expectGetSubscriptionsForApi(apiId: string, subscriptions: SubscriptionsResponse = fakeSubscriptionResponse({ data: [] })) {
     httpTestingController
       .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}&statuses=PENDING&statuses=ACCEPTED&size=-1`)
+      .flush(subscriptions);
+  }
+
+  function expectGetSubscriptionsForApplication(
+    applicationId: string,
+    subscriptions: SubscriptionsResponse = fakeSubscriptionResponse({ data: [] }),
+  ) {
+    httpTestingController
+      .expectOne(
+        `${TESTING_BASE_URL}/subscriptions?applicationId=${applicationId}&statuses=PENDING&statuses=ACCEPTED&statuses=PAUSED&size=-1`,
+      )
       .flush(subscriptions);
   }
 
@@ -497,11 +625,20 @@ describe('SubscribeToApiComponent', () => {
     await goToNextStep();
   }
 
-  async function selectApplication(): Promise<void> {
-    expectGetSubscriptions(API_ID);
-    expectGetApplications(1, fakeApplicationsResponse({ data: [fakeApplication({ id: 'app-id' })] }));
+  async function selectApplication(appId: string = APP_ID): Promise<void> {
+    expectGetSubscriptionsForApi(API_ID);
+    expectGetApplications(
+      1,
+      fakeApplicationsResponse({
+        data: [
+          fakeApplication({ id: APP_ID, name: APP_ID }),
+          fakeApplication({ id: APP_ID_NO_SUBSCRIPTIONS, name: APP_ID_NO_SUBSCRIPTIONS, api_key_mode: 'UNSPECIFIED' }),
+          fakeApplication({ id: APP_ID_ONE_API_KEY_SUBSCRIPTION, name: APP_ID_ONE_API_KEY_SUBSCRIPTION, api_key_mode: 'UNSPECIFIED' }),
+        ],
+      }),
+    );
     fixture.detectChanges();
-    const application = await harnessLoader.getHarness(RadioCardHarness);
+    const application = await harnessLoader.getHarness(RadioCardHarness.with({ title: appId }));
     await application.select();
     await goToNextStep();
   }
