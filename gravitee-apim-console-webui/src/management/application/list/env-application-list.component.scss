@@ -41,6 +41,18 @@
   padding: 0 4px;
 }
 
+.matt-column-name__withOrigin {
+  display: flex;
+  align-items: center;
+}
+
+.matt-column-name__origin {
+  color: #326de6;
+  height: 30px;
+  width: 30px;
+  margin: 0 5px;
+}
+
 .applications-table-active {
   .mat-column-name {
     cursor: pointer;
@@ -50,4 +62,5 @@
 .table__centered-cell {
   display: flex;
   justify-content: center;
+  align-items: center;
 }

@@ -97,6 +97,28 @@ describe('ApplicationGeneralMembersComponent', () => {
 
       expect((await table.getRows()).length).toEqual(1);
     });
+
+    it('should disable form with kubernetes origin', async () => {
+      expectRequests(fakeApplication({ origin: 'KUBERNETES' }), [fakeMembers()]);
+      const addMemberBtn = await loader.getHarness(
+        MatButtonHarness.with({
+          text: 'Add members',
+        }),
+      );
+      const isDisabled = await addMemberBtn.isDisabled();
+      expect(isDisabled).toBe(true);
+    });
+
+    it('should not disable form with non kubernetes origin', async () => {
+      expectRequests(fakeApplication({ origin: '' }), [fakeMembers()]);
+      const addMemberBtn = await loader.getHarness(
+        MatButtonHarness.with({
+          text: 'Add members',
+        }),
+      );
+      const isDisabled = await addMemberBtn.isDisabled();
+      expect(isDisabled).toBe(false);
+    });
   });
 
   describe('Delete a member', () => {
@@ -152,10 +174,10 @@ describe('ApplicationGeneralMembersComponent', () => {
     });
   });
 
-  function expectRequests(applicationDetails: Application, membersList: Member[]) {
-    expectListApplicationRequest(applicationDetails);
+  function expectRequests(application: Application, membersList: Member[]) {
+    expectGetApplication(application);
     expectGetMembers(membersList);
-    expectGetGroupsListRequest(applicationDetails.groups);
+    expectGetGroupsListRequest(application.groups);
   }
 
   function expectGetMembers(members: Member[]) {
@@ -164,13 +186,13 @@ describe('ApplicationGeneralMembersComponent', () => {
       .flush(members);
   }
 
-  function expectListApplicationRequest(applicationDetails: Application) {
+  function expectGetApplication(application: Application) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}`,
         method: 'GET',
       })
-      .flush(applicationDetails);
+      .flush(application);
   }
 
   function expectGetGroupsListRequest(groups: string[]) {

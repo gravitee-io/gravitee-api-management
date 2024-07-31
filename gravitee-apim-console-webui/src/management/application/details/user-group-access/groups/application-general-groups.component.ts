@@ -36,6 +36,7 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
   public application: Application;
   public form: FormGroup;
   public initialFormValue: unknown;
+  public isReadonly = false;
 
   private unsubscribe$: Subject<void> = new Subject<void>();
 
@@ -52,6 +53,7 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
         tap(([application, groups]) => {
           this.groups = groups;
           this.application = application;
+          this.isReadonly = application.origin === 'KUBERNETES';
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -60,6 +62,10 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
         this.form = new FormGroup({
           selectedGroups: new FormControl(userGroupList.map((group) => group.id)),
         });
+
+        if (this.isReadonly) {
+          this.form.disable({ emitEvent: false });
+        }
 
         this.initialFormValue = this.form.getRawValue();
       });

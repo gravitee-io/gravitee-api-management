@@ -38,6 +38,8 @@ import { Member } from '../../../../../entities/management-api-v2';
 import { GioFormUserAutocompleteHarness } from '../../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.harness';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
+import { Application } from '../../../../../entities/application/Application';
+import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 
 describe('ApplicationGeneralTransferOwnershipComponent', () => {
   let fixture: ComponentFixture<ApplicationGeneralTransferOwnershipComponent>;
@@ -78,8 +80,35 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
     httpTestingController.verify();
   });
 
+  it('should disable transfer with kubernetes origin', async () => {
+    expectGetApplication(fakeApplication({ origin: 'KUBERNETES' }));
+    expectGetMembers([fakeMembers()]);
+    expectApplicationRoleGetRequest([
+      fakeRole({ name: 'TEST_ROLE1', default: false }),
+      fakeRole({ name: 'PRIMARY_OWNER' }),
+      fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+    ]);
+    const methodRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="method"' }));
+    const disabled = await methodRadio.isDisabled();
+    expect(disabled).toBe(true);
+  });
+
+  it('should no disable transfer with non kubernetes origin', async () => {
+    expectGetApplication(fakeApplication({ origin: '' }));
+    expectGetMembers([fakeMembers()]);
+    expectApplicationRoleGetRequest([
+      fakeRole({ name: 'TEST_ROLE1', default: false }),
+      fakeRole({ name: 'PRIMARY_OWNER' }),
+      fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+    ]);
+    const methodRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="method"' }));
+    const disabled = await methodRadio.isDisabled();
+    expect(disabled).toBe(false);
+  });
+
   it('should transfer ownership to user', async () => {
     const membersList = [fakeMembers()];
+    expectGetApplication(fakeApplication());
     expectGetMembers(membersList);
     expectApplicationRoleGetRequest([
       fakeRole({ name: 'TEST_ROLE1', default: false }),
@@ -126,6 +155,7 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
 
   it('should transfer ownership to application member', async () => {
     const membersList = [{ id: '1', displayName: 'TestName', role: 'USER' }];
+    expectGetApplication(fakeApplication());
     expectGetMembers(membersList);
     expectApplicationRoleGetRequest([
       fakeRole({ name: 'TEST_ROLE1', default: false }),
@@ -184,5 +214,14 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/APPLICATION/roles`, method: 'GET' })
       .flush(roles);
+  }
+
+  function expectGetApplication(application: Application) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}`,
+        method: 'GET',
+      })
+      .flush(application);
   }
 });
