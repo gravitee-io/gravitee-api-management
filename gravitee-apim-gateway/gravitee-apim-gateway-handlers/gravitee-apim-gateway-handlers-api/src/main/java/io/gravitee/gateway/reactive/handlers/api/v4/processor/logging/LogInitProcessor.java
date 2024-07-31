@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
 
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_API;
 
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -78,6 +79,7 @@ public class LogInitProcessor implements Processor {
             .requestId(request.id())
             .clientIdentifier(request.clientIdentifier())
             .apiId(ctx.getAttribute(ATTR_API))
+            .apiName(ctx.getAttribute(ContextAttributes.ATTR_API_NAME))
             .build();
         ctx.metrics().setLog(log);
 
