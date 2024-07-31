@@ -72,6 +72,7 @@ export class CatalogComponent {
   filterList$: Observable<Category[]> = of([]);
   loadingPage$ = new BehaviorSubject(true);
 
+  showBanner: boolean;
   bannerTitle: string;
   bannerSubtitle: string;
   selectedCategory: Category | undefined;
@@ -85,9 +86,9 @@ export class CatalogComponent {
     private router: Router,
     private configService: ConfigService,
   ) {
-    this.bannerTitle = this.configService.configuration?.portalNext?.bannerTitle ?? 'Welcome to Gravitee Developer Portal!';
-    this.bannerSubtitle =
-      this.configService.configuration?.portalNext?.bannerSubtitle ?? 'Discover powerful APIs to supercharge your projects.';
+    this.showBanner = this.configService.configuration?.portalNext?.banner?.enabled ?? false;
+    this.bannerTitle = this.configService.configuration?.portalNext?.banner?.title ?? '';
+    this.bannerSubtitle = this.configService.configuration?.portalNext?.banner?.subtitle ?? '';
     this.apiPaginator$ = this.loadApis$();
     this.filterList$ = this.loadCategories$();
   }
