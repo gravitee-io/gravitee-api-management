@@ -75,7 +75,7 @@ export class SubscriptionsTableComponent implements OnInit {
   private loadSubscriptions$(): Observable<Subscription[]> {
     return this.subscriptionsStatus.valueChanges.pipe(
       startWith(this.subscriptionsStatus.value),
-      switchMap(status => this.subscriptionService.list({ apiId: this.apiId, statuses: status })),
+      switchMap(status => this.subscriptionService.list({ apiId: this.apiId, statuses: status, size: -1 })),
       map(response => {
         return response.data
           ? response.data.map(sub => ({
