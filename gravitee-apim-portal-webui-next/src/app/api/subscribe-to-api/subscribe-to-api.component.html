@@ -62,8 +62,15 @@
     </mat-card-header>
     <mat-card-content>
       @if (currentPlan(); as plan) {
-        @if (api$ | async; as api) {
-          <app-subscribe-to-api-checkout [api]="api" [application]="currentApplication()" [plan]="plan" [message]="message" />
+        @if (checkoutData$ | async; as checkoutData) {
+          <app-subscribe-to-api-checkout
+            [api]="checkoutData.api"
+            [application]="currentApplication()"
+            [plan]="plan"
+            [message]="message"
+            [apiKeyMode]="applicationApiKeyMode"
+            [showApiKeyModeSelection]="showApiKeyModeSelection()"
+            [sharedApiKeyModeDisabled]="checkoutData.sharedApiKeyModeDisabled" />
         } @else {
           <app-loader />
         }
