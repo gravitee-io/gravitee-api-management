@@ -16,15 +16,18 @@
 package io.gravitee.apim.infra.domain_service.documentation;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
+import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,6 +82,34 @@ class PageSourceDomainServiceImplTest {
             }
         );
         assertThat(error).hasMessage("unable to build fetcher instance");
+    }
+
+    @Test
+    void should_throw_error_invalid_fetch_cron() {
+        var config = new HashMap<String, Object>();
+        config.put("fetchCron", "* * *");
+        var error = assertThrows(
+            InvalidPageSourceException.class,
+            () ->
+                cut.validatePageSource(
+                    Page.builder().name("test-page").source(PageSource.builder().configurationMap(config).build()).build()
+                )
+        );
+        assertThat(error).hasMessage("documentation page [test-page] contains a fetcher with an invalid cron expression");
+    }
+
+    @Test
+    void should_not_throw_error_valid_fetch_cron() {
+        var config = new HashMap<String, Object>();
+        config.put("fetchCron", "* * */3 * * *");
+        assertDoesNotThrow(() ->
+            cut.validatePageSource(Page.builder().name("test-page").source(PageSource.builder().configurationMap(config).build()).build())
+        );
+    }
+
+    @Test
+    void should_throw_error_with_null_configuration_map() {
+        assertDoesNotThrow(() -> cut.validatePageSource(Page.builder().name("test-page").source(PageSource.builder().build()).build()));
     }
 
     private static PageSource httpSource() {

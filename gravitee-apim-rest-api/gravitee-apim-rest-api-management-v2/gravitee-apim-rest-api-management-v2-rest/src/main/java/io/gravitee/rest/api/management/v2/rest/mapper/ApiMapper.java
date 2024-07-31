@@ -195,6 +195,7 @@ public interface ApiMapper {
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
 
     @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "source.configurationMap", source = "source.configuration", qualifiedByName = "convertToMapConfiguration")
     io.gravitee.apim.core.api.model.crd.PageCRD map(PageCRD crd);
 
     Page map(io.gravitee.apim.core.api.model.crd.PageCRD crd);

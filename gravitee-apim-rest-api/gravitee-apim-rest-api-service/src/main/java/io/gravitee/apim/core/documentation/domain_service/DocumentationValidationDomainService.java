@@ -15,12 +15,15 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
+import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -33,12 +36,12 @@ import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.support.CronExpression;
 
 @RequiredArgsConstructor
 @DomainService
@@ -124,6 +127,7 @@ public class DocumentationValidationDomainService {
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         validatePageContent(organizationId, sanitizedPage);
+        pageSourceDomainService.validatePageSource(sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);
@@ -140,6 +144,7 @@ public class DocumentationValidationDomainService {
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         validatePageContent(organizationId, sanitizedPage);
+        pageSourceDomainService.validatePageSource(sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);

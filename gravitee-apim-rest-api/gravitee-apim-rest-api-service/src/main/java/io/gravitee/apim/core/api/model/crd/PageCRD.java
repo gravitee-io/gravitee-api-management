@@ -73,7 +73,7 @@ public class PageCRD {
     public static class PageSource {
 
         private String type;
-
         private String configuration;
+        private Map<String, Object> configurationMap;
     }
 }
