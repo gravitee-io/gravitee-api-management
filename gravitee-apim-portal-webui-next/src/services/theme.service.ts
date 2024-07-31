@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -37,6 +37,9 @@ export interface Theme {
       fontFamily?: string;
     };
     customCss?: string;
+  };
+  _links?: {
+    logo?: string;
   };
 }
 
@@ -61,6 +64,8 @@ export const addPropertyToDocument = (propertyName: string, value?: string) => {
   providedIn: 'root',
 })
 export class ThemeService {
+  logo = signal('assets/images/logo.png');
+
   constructor(
     private readonly http: HttpClient,
     private configService: ConfigService,
@@ -83,6 +88,11 @@ export class ThemeService {
           style.innerText = definition.customCss;
           const body = document.body || document.getElementsByTagName('body')[0];
           body.append(style);
+        }
+      }),
+      tap(({ _links }) => {
+        if (_links?.logo) {
+          this.logo.set(_links.logo);
         }
       }),
       catchError(_ => of({})),
