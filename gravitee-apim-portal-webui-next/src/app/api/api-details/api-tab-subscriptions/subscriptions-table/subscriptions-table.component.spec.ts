@@ -81,7 +81,7 @@ describe('SubscriptionsTableComponent', () => {
 
   function expectSubscriptionList(subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse(), apiId: string, status: string) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}`)
+      .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}&size=-1`)
       .flush(subscriptionResponse);
   }
 });
