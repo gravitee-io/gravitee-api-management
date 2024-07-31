@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { Component, forwardRef, Input } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'api-documentation-visibility',
@@ -27,6 +29,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       multi: true,
     },
   ],
+  standalone: true,
+  imports: [CommonModule, GioFormSelectionInlineModule, FormsModule],
 })
 export class ApiDocumentationV4VisibilityComponent implements ControlValueAccessor {
   @Input()

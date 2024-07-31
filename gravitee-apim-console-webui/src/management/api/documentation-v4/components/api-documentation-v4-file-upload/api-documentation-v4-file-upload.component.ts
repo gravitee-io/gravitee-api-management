@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { NewFile } from '@gravitee/ui-particles-angular';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { GioFormFilePickerModule, NewFile } from '@gravitee/ui-particles-angular';
+import { MatIcon } from '@angular/material/icon';
+import { MarkdownComponent } from 'ngx-markdown';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PageType } from '../../../../../entities/management-api-v2/documentation/pageType';
+import { PageType } from '../../../../../entities/management-api-v2';
+import { GioSwaggerUiModule } from '../../../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
+import { GioAsyncApiModule } from '../../../../../components/documentation/gio-async-api/gio-async-api-module';
 
 const allowedFileExtensions = ['md', 'markdown', 'txt', 'json', 'yml', 'yaml'] as const;
 type FileExtension = (typeof allowedFileExtensions)[number];
@@ -34,6 +38,8 @@ type FileExtension = (typeof allowedFileExtensions)[number];
       multi: true,
     },
   ],
+  standalone: true,
+  imports: [GioFormFilePickerModule, MatIcon, FormsModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule],
 })
 export class ApiDocumentationV4FileUploadComponent implements OnInit, ControlValueAccessor {
   @Input()

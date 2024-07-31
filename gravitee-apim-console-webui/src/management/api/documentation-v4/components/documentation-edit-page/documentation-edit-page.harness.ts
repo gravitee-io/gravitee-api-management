@@ -18,10 +18,10 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 
-import { ApiDocumentationV4VisibilityHarness } from '../components/api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
+import { ApiDocumentationV4VisibilityHarness } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
 
-export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
-  public static hostSelector = 'api-documentation-edit-page';
+export class DocumentationEditPageHarness extends ComponentHarness {
+  public static hostSelector = 'documentation-edit-page';
 
   private nextButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Next' }));
   private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Delete page' }));

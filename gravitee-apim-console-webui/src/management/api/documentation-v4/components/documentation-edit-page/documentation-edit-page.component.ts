@@ -13,37 +13,108 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { AsyncPipe, NgIf, NgOptimizedImage } from '@angular/common';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioFormJsonSchemaModule,
+  GioFormSelectionInlineModule,
+  GioFormSlideToggleModule,
+} from '@gravitee/ui-particles-angular';
+import { MatButton } from '@angular/material/button';
+import { MatCard } from '@angular/material/card';
+import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatOption } from '@angular/material/autocomplete';
+import { MatSelect } from '@angular/material/select';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatStep, MatStepLabel, MatStepper, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { ApiDocumentationV4BreadcrumbComponent } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
+import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
+import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
+import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import {
+  Api,
   Breadcrumb,
-  getLogoForPageType,
-  Page,
   CreateDocumentation,
   CreateDocumentationType,
-  PageType,
-  Api,
+  getLogoForPageType,
   getTooltipForPageType,
-} from '../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+  Page,
+  PageType,
+  Visibility,
+} from '../../../../../entities/management-api-v2';
+
+interface EditPageForm {
+  stepOne: FormGroup<{
+    name: FormControl<string>;
+    visibility: FormControl<Visibility>;
+  }>;
+  content: FormControl<string>;
+  source: FormControl<string>;
+}
 
 @Component({
-  selector: 'api-documentation-edit-page',
-  templateUrl: './api-documentation-v4-edit-page.component.html',
-  styleUrls: ['./api-documentation-v4-edit-page.component.scss'],
+  selector: 'documentation-edit-page',
+  standalone: true,
+  imports: [
+    AsyncPipe,
+    GioFormJsonSchemaModule,
+    GioFormSelectionInlineModule,
+    GioFormSlideToggleModule,
+    GioPermissionModule,
+    MatButton,
+    MatCard,
+    MatError,
+    MatFormField,
+    MatHint,
+    MatInput,
+    MatLabel,
+    MatOption,
+    MatSelect,
+    MatSlideToggle,
+    MatStep,
+    MatStepLabel,
+    MatStepper,
+    MatStepperNext,
+    MatStepperPrevious,
+    NgIf,
+    NgOptimizedImage,
+    ReactiveFormsModule,
+    ApiDocumentationV4VisibilityComponent,
+    MatTooltip,
+    ApiDocumentationV4BreadcrumbComponent,
+    ApiDocumentationV4ContentEditorComponent,
+    ApiDocumentationV4FileUploadComponent,
+    ApiDocumentationV4Module,
+  ],
+  templateUrl: './documentation-edit-page.component.html',
+  styleUrl: './documentation-edit-page.component.scss',
 })
-export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
-  form: UntypedFormGroup;
-  stepOneForm: UntypedFormGroup;
+export class DocumentationEditPageComponent implements OnInit, OnDestroy {
+  @Input()
+  goBackRouterLink: string[];
+
+  @Input()
+  createHomepage: boolean;
+
+  @Input()
+  api: Api;
+
+  form: FormGroup<EditPageForm>;
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
   exitLabel = 'Exit without saving';
@@ -51,8 +122,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   step3Title: string;
   source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
   breadcrumbs: Breadcrumb[];
-
-  api: Api;
   formUnchanged: boolean;
   page: Page;
   iconUrl: string;
@@ -65,8 +134,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly formBuilder: UntypedFormBuilder,
-    private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
@@ -74,14 +141,13 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.stepOneForm = this.formBuilder.group({
-      name: this.formBuilder.control('', [Validators.required, this.pageNameUniqueValidator()]),
-      visibility: this.formBuilder.control('PUBLIC', [Validators.required]),
-    });
-    this.form = this.formBuilder.group({
-      stepOne: this.stepOneForm,
-      source: this.formBuilder.control(this.source, [Validators.required]),
-      content: this.formBuilder.control('', [Validators.required]),
+    this.form = new FormGroup<EditPageForm>({
+      stepOne: new FormGroup({
+        name: new FormControl<string>('', [Validators.required, this.pageNameUniqueValidator()]),
+        visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
+      }),
+      content: new FormControl<string>('', [Validators.required]),
+      source: new FormControl<string>(this.source, [Validators.required]),
     });
 
     if (this.activatedRoute.snapshot.params.pageId) {
@@ -100,6 +166,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
                 this.page.content === value.content;
             }
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
 
@@ -112,20 +179,12 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       this.step3Title = this.source === 'IMPORT' ? 'Upload a file' : 'Add content';
       this.pageType = this.activatedRoute.snapshot.queryParams.pageType;
     }
-
-    this.apiV2Service
-      .get(this.activatedRoute.snapshot.params.apiId)
-      .pipe(
-        switchMap((api) => {
-          this.api = api;
-          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
-          return this.mode === 'edit' ? this.loadEditPage() : of({});
-        }),
-        switchMap((_) => this.apiDocumentationService.getApiPages(this.api.id, this.getParentId())),
-        takeUntil(this.unsubscribe$),
-      )
+    this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
+    const prepareMode$ = this.mode === 'edit' ? this.loadEditPage() : of({});
+    combineLatest([prepareMode$, this.apiDocumentationService.getApiPages(this.api.id, this.getParentId())])
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (pagesResponse) => {
+        next: ([_, pagesResponse]) => {
           this.iconUrl = getLogoForPageType(this.pageType);
           this.iconTooltip = getTooltipForPageType(this.pageType);
 
@@ -140,7 +199,13 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         },
       });
 
-    this.stepOneForm.get('name').valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
+    this.form.controls.stepOne.controls.name.valueChanges
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => (this.pageTitle = value || 'Add new page'));
+  }
+
+  onGoBackRouterLink(): void {
+    this.router.navigate(this.goBackRouterLink, { relativeTo: this.activatedRoute });
   }
 
   ngOnDestroy() {
@@ -152,6 +217,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     this.createPage()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => {
+        this.snackBarService.success('Page created successfully');
         this.goBackToPageList();
       });
   }
@@ -164,6 +230,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          this.snackBarService.success('Page created and published successfully');
           this.goBackToPageList();
         },
         error: (error) => {
@@ -177,6 +244,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: () => {
+          this.snackBarService.success('Page updated successfully');
           this.goBackToPageList();
         },
       });
@@ -190,6 +258,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          this.snackBarService.success('Page updated and published successfully');
+
           this.goBackToPageList();
         },
         error: (error) => {
@@ -217,7 +287,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   goBackToPageList() {
-    this.router.navigate(['../'], {
+    this.router.navigate(['../../'], {
       relativeTo: this.activatedRoute,
       queryParams: { parentId: this.getParentId() },
     });
@@ -259,8 +329,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       type: this.pageType as CreateDocumentationType,
       name: this.form.getRawValue().stepOne.name,
       visibility: this.form.getRawValue().stepOne.visibility,
+      homepage: this.createHomepage === true,
       content: this.form.getRawValue().content,
-      homepage: this.activatedRoute.snapshot.queryParams.homepage === 'true',
       parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
@@ -278,10 +348,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         this.page = page;
         this.pageType = page.type;
 
-        this.stepOneForm.get('name').setValue(this.page.name);
-        this.stepOneForm.get('visibility').setValue(this.page.visibility);
+        this.form.controls.stepOne.controls.name.setValue(this.page.name);
+        this.form.controls.stepOne.controls.visibility.setValue(this.page.visibility);
 
-        this.form.get('content').setValue(this.page.content);
+        this.form.controls.content.setValue(this.page.content);
       }),
     );
   }
