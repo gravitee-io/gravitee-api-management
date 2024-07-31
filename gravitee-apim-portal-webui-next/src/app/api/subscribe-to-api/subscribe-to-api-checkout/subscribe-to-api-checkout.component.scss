@@ -23,16 +23,35 @@
     &__subscription-info {
       min-width: 38%;
     }
+
+    &__right-column {
+      display: flex;
+      flex: 1 1 100%;
+      flex-flow: column;
+      gap: 16px;
+    }
+
+    &__api-key-mode {
+      display: flex;
+      flex-flow: column;
+      gap: 16px;
+
+      &__radio-cards {
+        display: flex;
+        gap: 16px;
+      }
+    }
   }
 
   &__leave-a-comment {
     width: 100%;
+    height: 100%;
 
     &__container {
       display: flex;
       height: 100%;
       flex-flow: column;
-      gap: 14px;
+      gap: 16px;
     }
 
     &__field {

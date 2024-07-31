@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -56,6 +56,11 @@ interface ApplicationsData {
   pagination: ApplicationsPagination;
 }
 
+interface CheckoutData {
+  api: Api;
+  sharedApiKeyModeDisabled: boolean;
+}
+
 @Component({
   selector: 'app-subscribe-to-api',
   imports: [
@@ -81,8 +86,11 @@ export class SubscribeToApiComponent implements OnInit {
   currentStep = signal(1);
   currentPlan = signal<Plan | undefined>(undefined);
   currentApplication = signal<Application | undefined>(undefined);
+
   message = signal<string>('');
+  applicationApiKeyMode = signal<'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED' | null>(null);
   subscriptionInProgress = signal<boolean>(false);
+  showApiKeyModeSelection = signal<boolean>(false);
 
   stepIsInvalid: Signal<boolean> = computed(() => {
     if (this.currentStep() === 1) {
@@ -90,7 +98,10 @@ export class SubscribeToApiComponent implements OnInit {
     } else if (this.currentStep() === 2) {
       return this.currentApplication() === undefined;
     } else if (this.currentStep() === 3) {
-      return this.currentPlan()?.comment_required === true && !this.message();
+      return (
+        (this.currentPlan()?.comment_required === true && !this.message()) ||
+        (this.showApiKeyModeSelection() && !this.applicationApiKeyMode())
+      );
     }
     return false;
   });
@@ -98,6 +109,8 @@ export class SubscribeToApiComponent implements OnInit {
   api$: Observable<Api> = of();
   plans$: Observable<Plan[]> = of();
   applicationsData$: Observable<ApplicationsData> = of();
+  checkoutData$: Observable<CheckoutData> = of();
+  currentApplication$ = toObservable(this.currentApplication);
 
   private currentApplicationsPage: BehaviorSubject<number> = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
@@ -124,6 +137,13 @@ export class SubscribeToApiComponent implements OnInit {
       combineLatestWith(this.currentApplicationsPage),
       switchMap(([subscriptions, page]) => this.getApplicationsData$(page, subscriptions)),
       catchError(_ => of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, start: 0, end: 0 } })),
+    );
+
+    this.checkoutData$ = this.api$.pipe(
+      combineLatestWith(this.handleSharedApiKeyModeDisabled$()),
+      map(([api, sharedApiKeyModeDisabled]) => {
+        return { api, sharedApiKeyModeDisabled };
+      }),
     );
   }
 
@@ -163,10 +183,13 @@ export class SubscribeToApiComponent implements OnInit {
       return;
     }
 
+    const apiKeyMode = this.applicationApiKeyMode();
+
     const createSubscription: CreateSubscription = {
       application,
       plan,
       ...(this.message() ? { request: this.message() } : {}),
+      ...(apiKeyMode ? { api_key_mode: apiKeyMode } : {}),
     };
 
     this.handleTermsAndConditions$(createSubscription)
@@ -280,6 +303,33 @@ export class SubscribeToApiComponent implements OnInit {
         (s.status === 'ACCEPTED' || s.status === 'PENDING') &&
         allValidApiSubscriptionsResponse.metadata[s.plan]?.planMode === 'STANDARD' &&
         allValidApiSubscriptionsResponse.metadata[s.plan]?.securityType === 'API_KEY',
+    );
+  }
+
+  private handleSharedApiKeyModeDisabled$(): Observable<boolean> {
+    return this.currentApplication$.pipe(
+      switchMap(app => {
+        if (!!app?.id && this.currentPlan()?.security === 'API_KEY' && app.api_key_mode !== 'EXCLUSIVE' && app.api_key_mode !== 'SHARED') {
+          return this.subscriptionService.list({
+            applicationId: app.id,
+            statuses: ['PENDING', 'ACCEPTED', 'PAUSED'],
+            size: -1,
+          });
+        }
+
+        return of(undefined);
+      }),
+      map(response => {
+        if (!response) {
+          this.showApiKeyModeSelection.set(false);
+          return false;
+        }
+
+        const existingApiKeySubscriptions = response.data.filter(s => response.metadata[s.plan]?.securityType === 'API_KEY');
+        this.showApiKeyModeSelection.set(existingApiKeySubscriptions.length === 1);
+
+        return existingApiKeySubscriptions.length === 1 && existingApiKeySubscriptions[0].api === this.apiId;
+      }),
     );
   }
 }
