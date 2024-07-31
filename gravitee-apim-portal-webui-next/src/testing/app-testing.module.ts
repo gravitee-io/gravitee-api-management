@@ -20,7 +20,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ConfigurationPortalNext } from '../entities/configuration/configuration-portal-next';
+import { Configuration } from '../entities/configuration/configuration';
 import { ConfigService } from '../services/config.service';
 
 export const TESTING_BASE_URL = 'http://localhost:8083/portal/environments/DEFAULT';
@@ -35,8 +35,16 @@ export class ConfigServiceStub {
     return TESTING_BASE_URL;
   }
 
-  get portalNext(): ConfigurationPortalNext {
-    return {};
+  get configuration(): Configuration {
+    return {
+      portalNext: {
+        banner: {
+          enabled: true,
+          title: 'Welcome to Gravitee Developer Portal!',
+          subtitle: 'Great subtitle',
+        },
+      },
+    };
   }
 }
 

@@ -15,9 +15,12 @@
  */
 export class ConfigurationPortalNext {
   siteTitle?: string;
-  bannerTitle?: string;
-  bannerSubtitle?: string;
   access?: {
     enabled?: boolean;
+  };
+  banner?: {
+    enabled?: boolean;
+    title?: string;
+    subtitle?: string;
   };
 }
