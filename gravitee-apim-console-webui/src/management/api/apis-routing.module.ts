@@ -875,7 +875,7 @@ const apisRoutes: Routes = [
             component: ApiDocumentationV4MetadataComponent,
           },
           {
-            path: 'default-pages',
+            path: 'main-pages',
             data: {
               docs: null,
               permissions: {
@@ -885,7 +885,7 @@ const apisRoutes: Routes = [
             component: ApiDocumentationV4DefaultPageComponent,
           },
           {
-            path: 'default-pages/homepage/new',
+            path: 'main-pages/homepage/new',
             data: {
               docs: null,
               permissions: {
@@ -895,7 +895,7 @@ const apisRoutes: Routes = [
             component: DocumentationEditHomepageComponent,
           },
           {
-            path: 'default-pages/homepage/:pageId',
+            path: 'main-pages/homepage/:pageId',
             data: {
               docs: null,
               permissions: {
