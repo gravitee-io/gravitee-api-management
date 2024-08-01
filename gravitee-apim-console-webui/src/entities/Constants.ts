@@ -192,6 +192,11 @@ export interface EnvSettings {
     access: {
       enabled: boolean;
     };
+    banner: {
+      enabled: true;
+      title: 'testTitle';
+      subtitle: 'testSubtitle';
+    };
   };
   reCaptcha: {
     enabled: boolean;

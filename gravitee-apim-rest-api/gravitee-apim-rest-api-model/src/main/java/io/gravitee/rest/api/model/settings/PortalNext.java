@@ -18,7 +18,9 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
@@ -32,12 +34,28 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_SITE_TITLE)
     private String siteTitle;
 
-    @ParameterKey(Key.PORTAL_NEXT_HOMEPAGE_BANNER_TITLE)
-    private String bannerTitle;
-
-    @ParameterKey(Key.PORTAL_NEXT_HOMEPAGE_BANNER_SUBTITLE)
-    private String bannerSubtitle;
-
     @ParameterKey(Key.PORTAL_NEXT_ACCESS_ENABLED)
     private Enabled access;
+
+    private Banner banner;
+
+    public PortalNext() {
+        this.banner = new Banner();
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Banner {
+
+        @ParameterKey(Key.PORTAL_NEXT_BANNER_CONFIG_TITLE)
+        private String title;
+
+        @ParameterKey(Key.PORTAL_NEXT_BANNER_CONFIG_SUBTITLE)
+        private String subtitle;
+
+        @ParameterKey(Key.PORTAL_NEXT_BANNER_CONFIG_ENABLED)
+        private Boolean enabled;
+    }
 }

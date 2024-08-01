@@ -13,5 +13,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@use '../../../scss/gio-layout' as gio-layout;
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
 .developer-portal-banner {
+  .input_text {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    mat-form-field {
+      flex: 1;
+    }
+
+    input[matInput] {
+      width: 100%;
+    }
+  }
+
+  .header {
+    &__title {
+      flex: 1 1 100%;
+      margin: 0;
+    }
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h3 {
+      margin: 0;
+      flex: 1;
+    }
+
+    gio-form-slide-toggle {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      margin-left: auto;
+    }
+  }
+
+  .button-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .button {
+      flex: 1;
+      margin-right: 8px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  &__container {
+    display: flex;
+    flex-flow: column;
+    gap: 32px;
+  }
+
+  &__row-one {
+    display: flex;
+    gap: 40px;
+
+    &__radio-group {
+      display: flex;
+      flex-flow: column;
+      flex: 1;
+      gap: 24px;
+    }
+  }
+}
+
+.selected {
+  border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+  color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
 }
