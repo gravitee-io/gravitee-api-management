@@ -21,14 +21,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import inmemory.ThemeServiceLegacyWrapperInMemory;
 import io.gravitee.apim.core.theme.domain_service.DefaultThemeDomainService;
 import io.gravitee.apim.core.theme.domain_service.ThemeDomainService;
+import io.gravitee.apim.core.theme.domain_service.ThemePortalNextAssetsDomainService;
 import io.gravitee.apim.core.theme.exception.ThemeTypeNotSupportedException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
+import io.gravitee.apim.infra.domain_service.theme.ThemePortalNextAssetsDomainServiceImpl;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -65,6 +68,8 @@ public class GetCurrentThemeUseCaseTest {
     ParametersDomainServiceInMemory parametersDomainService = new ParametersDomainServiceInMemory();
     ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper = new ThemeServiceLegacyWrapperInMemory();
     ThemeQueryServiceInMemory themeQueryServiceInMemory = new ThemeQueryServiceInMemory(themeCrudService);
+    ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainService = new ThemePortalNextAssetsDomainServiceInMemory();
+
     DefaultThemeDomainService defaultThemeDomainService;
     GetCurrentThemeUseCase cut;
 
@@ -132,7 +137,12 @@ public class GetCurrentThemeUseCaseTest {
         );
 
         defaultThemeDomainService =
-            new DefaultThemeDomainService(parametersDomainService, new ThemeDomainService(themeCrudService), themeServiceLegacyWrapper);
+            new DefaultThemeDomainService(
+                parametersDomainService,
+                new ThemeDomainService(themeCrudService),
+                themeServiceLegacyWrapper,
+                themePortalNextAssetsDomainService
+            );
         cut = new GetCurrentThemeUseCase(themeQueryServiceInMemory, defaultThemeDomainService);
     }
 
