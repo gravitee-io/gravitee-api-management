@@ -24,6 +24,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.manager.impl.SharedPolicyG
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.SharedPolicyGroupPolicyFactory;
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.plugin.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactory;
+import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactoryManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.impl.DefaultSharedPolicyGroupReactorFactory;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -35,6 +36,7 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import jakarta.annotation.PostConstruct;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -92,8 +94,10 @@ public class SharedPolicyGroupConfiguration {
     }
 
     @Bean
-    public SharedPolicyGroupRegistry sharedPolicyGroupRegistry(SharedPolicyGroupReactorFactory sharedPolicyGroupReactorFactory) {
-        return new SharedPolicyGroupRegistry(sharedPolicyGroupReactorFactory);
+    public SharedPolicyGroupRegistry sharedPolicyGroupRegistry(
+        SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager
+    ) {
+        return new SharedPolicyGroupRegistry(sharedPolicyGroupReactorFactoryManager);
     }
 
     @Bean
@@ -104,5 +108,12 @@ public class SharedPolicyGroupConfiguration {
     @Bean
     public PolicyFactory sharedPolicyGroupPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
         return new SharedPolicyGroupPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+    }
+
+    @Bean
+    public SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager(
+        List<SharedPolicyGroupReactorFactory> reactorFactories
+    ) {
+        return new SharedPolicyGroupReactorFactoryManager(reactorFactories);
     }
 }

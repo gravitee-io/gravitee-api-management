@@ -22,5 +22,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup
  * @author GraviteeSource Team
  */
 public interface SharedPolicyGroupReactorFactory {
+    boolean canCreate(ReactableSharedPolicyGroup reactableSharedPolicyGroup);
+
     SharedPolicyGroupReactor create(ReactableSharedPolicyGroup reactableSharedPolicyGroup);
 }

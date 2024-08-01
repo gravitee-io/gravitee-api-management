@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
-import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactory;
+import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactoryManager;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -45,7 +45,7 @@ class SharedPolicyGroupRegistryTest {
     public static final String ENV_ID = "envId";
 
     @Mock
-    private SharedPolicyGroupReactorFactory sharedPolicyGroupReactorFactory;
+    private SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager;
 
     @Mock
     private SharedPolicyGroupReactor sharedPolicyGroupReactor;
@@ -54,13 +54,13 @@ class SharedPolicyGroupRegistryTest {
 
     @BeforeEach
     void setUp() {
-        cut = new SharedPolicyGroupRegistry(sharedPolicyGroupReactorFactory);
+        cut = new SharedPolicyGroupRegistry(sharedPolicyGroupReactorFactoryManager);
     }
 
     @SneakyThrows
     @Test
     void should_create_shared_policy_group_reactor() {
-        when(sharedPolicyGroupReactorFactory.create(any())).thenReturn(sharedPolicyGroupReactor);
+        when(sharedPolicyGroupReactorFactoryManager.create(any())).thenReturn(sharedPolicyGroupReactor);
         cut.create(ReactableSharedPolicyGroup.builder().id(ID).environmentId(ENV_ID).build());
         verify(sharedPolicyGroupReactor).start();
         assertThat(cut.get(ID, ENV_ID)).isSameAs(sharedPolicyGroupReactor);
@@ -69,7 +69,7 @@ class SharedPolicyGroupRegistryTest {
     @SneakyThrows
     @Test
     void should_create_shared_policy_group_reactor_and_stop_previous_one() {
-        when(sharedPolicyGroupReactorFactory.create(any())).thenReturn(sharedPolicyGroupReactor);
+        when(sharedPolicyGroupReactorFactoryManager.create(any())).thenReturn(sharedPolicyGroupReactor);
         final SharedPolicyGroupReactor previousReactor = mock(SharedPolicyGroupReactor.class);
         cut.registry.put(new SharedPolicyGroupRegistry.SharedPolicyGroupRegistryKey(ID, ENV_ID), previousReactor);
         cut.create(ReactableSharedPolicyGroup.builder().id(ID).environmentId(ENV_ID).build());

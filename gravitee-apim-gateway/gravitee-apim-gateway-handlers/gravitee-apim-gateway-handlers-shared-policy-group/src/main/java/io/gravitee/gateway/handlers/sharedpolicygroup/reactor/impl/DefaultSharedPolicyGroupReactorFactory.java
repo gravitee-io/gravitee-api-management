@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.sharedpolicygroup.reactor.impl;
 
+import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
@@ -46,6 +47,14 @@ public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroup
     private final PolicyClassLoaderFactory policyClassLoaderFactory;
     private final ComponentProvider componentProvider;
     private final io.gravitee.node.api.configuration.Configuration configuration;
+
+    @Override
+    public boolean canCreate(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
+        return (
+            SharedPolicyGroup.Phase.REQUEST.equals(reactableSharedPolicyGroup.getDefinition().getPhase()) ||
+            SharedPolicyGroup.Phase.RESPONSE.equals(reactableSharedPolicyGroup.getDefinition().getPhase())
+        );
+    }
 
     @Override
     public SharedPolicyGroupReactor create(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
