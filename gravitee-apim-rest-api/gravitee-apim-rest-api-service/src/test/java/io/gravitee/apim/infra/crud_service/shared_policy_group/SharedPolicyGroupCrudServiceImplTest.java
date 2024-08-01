@@ -204,7 +204,6 @@ public class SharedPolicyGroupCrudServiceImplTest {
             assertThat(captor.getValue().getId()).isEqualTo(sharedPolicyGroup.getId());
 
             // Expect the definition to be serialized
-            assertThat(captor.getValue().getDefinition()).containsSubsequence("\"phase\":\"REQUEST\"");
             assertThat(captor.getValue().getDefinition()).containsSubsequence("my-step-1");
             assertThat(captor.getValue().getDefinition()).containsSubsequence("my-step-2");
         }
@@ -312,6 +311,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
             .description("sharedPolicyGroup-description")
             .version(1)
             .apiType(ApiType.PROXY)
+            .phase(io.gravitee.repository.management.model.SharedPolicyGroup.ExecutionPhase.REQUEST)
             .definition(
                 """
                         {
