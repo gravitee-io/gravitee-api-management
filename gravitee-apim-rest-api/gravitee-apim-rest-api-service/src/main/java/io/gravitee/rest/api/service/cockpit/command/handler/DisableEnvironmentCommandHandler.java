@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.reactivex.rxjava3.core.Single;
@@ -44,19 +45,22 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
     private final ApiStateService apiStateService;
     private final AccessPointCrudService accessPointService;
     private final IdentityProviderActivationService identityProviderActivationService;
+    private final DictionaryService dictionaryService;
 
     public DisableEnvironmentCommandHandler(
         EnvironmentService environmentService,
         ApiStateService apiStateService,
         @Lazy ApiRepository apiRepository,
         AccessPointCrudService accessPointService,
-        IdentityProviderActivationService identityProviderActivationService
+        IdentityProviderActivationService identityProviderActivationService,
+        DictionaryService dictionaryService
     ) {
         this.environmentService = environmentService;
         this.apiStateService = apiStateService;
         this.apiRepository = apiRepository;
         this.accessPointService = accessPointService;
         this.identityProviderActivationService = identityProviderActivationService;
+        this.dictionaryService = dictionaryService;
     }
 
     @Override
@@ -82,6 +86,9 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());
+
+            this.dictionaryService.findAll(executionContext)
+                .forEach(dictionaryEntity -> dictionaryService.stop(executionContext, dictionaryEntity.getId()));
 
             // Deactivate all identity providers
             this.identityProviderActivationService.removeAllIdpsFromTarget(
