@@ -36,6 +36,7 @@ public class DefaultThemeDomainService {
     private final ParametersDomainService parametersDomainService;
     private final ThemeDomainService themeDomainService;
     private final ThemeServiceLegacyWrapper themeServiceLegacyWrapper;
+    private final ThemePortalNextAssetsDomainService themePortalNextAssetsDomainService;
 
     private static final List<Key> PORTAL_NEXT_THEME_KEYS = List.of(
         Key.PORTAL_NEXT_THEME_COLOR_PRIMARY,
@@ -68,6 +69,8 @@ public class DefaultThemeDomainService {
                         .definitionPortalNext(defaultTheme.getDefinitionPortalNext())
                         .type(ThemeType.PORTAL_NEXT)
                         .enabled(true)
+                        .logo(defaultTheme.getLogo())
+                        .favicon(defaultTheme.getFavicon())
                         .build()
                 );
         } else if (ThemeType.PORTAL.equals(themeType)) {
@@ -86,6 +89,8 @@ public class DefaultThemeDomainService {
             .name("Default Portal Next Theme")
             .referenceId(executionContext.getEnvironmentId())
             .referenceType(Theme.ReferenceType.ENVIRONMENT)
+            .logo(themePortalNextAssetsDomainService.getPortalNextLogo())
+            .favicon(themePortalNextAssetsDomainService.getPortalNextFavicon())
             .definitionPortalNext(
                 ThemeDefinition
                     .builder()

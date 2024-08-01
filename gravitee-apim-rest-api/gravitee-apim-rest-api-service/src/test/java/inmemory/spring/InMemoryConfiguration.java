@@ -313,4 +313,9 @@ public class InMemoryConfiguration {
     public ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper() {
         return new ThemeServiceLegacyWrapperInMemory();
     }
+
+    @Bean
+    public ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainServiceInMemory() {
+        return new ThemePortalNextAssetsDomainServiceInMemory();
+    }
 }

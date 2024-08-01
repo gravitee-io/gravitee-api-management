@@ -22,6 +22,7 @@ import inmemory.*;
 import io.gravitee.apim.core.theme.exception.ThemeTypeNotSupportedException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
+import io.gravitee.apim.infra.domain_service.theme.ThemePortalNextAssetsDomainServiceImpl;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -62,11 +63,14 @@ public class DefaultThemeDomainServiceTest {
         .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
         .name("Default Portal Next Theme")
         .definitionPortalNext(EXPECTED_PORTAL_NEXT_THEME_DEFINITION)
+        .logo("logo.png")
+        .favicon("favicon.png")
         .build();
 
     ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     ParametersDomainServiceInMemory parametersDomainService = new ParametersDomainServiceInMemory();
     ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper = new ThemeServiceLegacyWrapperInMemory();
+    ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainService = new ThemePortalNextAssetsDomainServiceInMemory();
     DefaultThemeDomainService cut;
 
     @BeforeEach
@@ -132,7 +136,13 @@ public class DefaultThemeDomainServiceTest {
             )
         );
 
-        cut = new DefaultThemeDomainService(parametersDomainService, new ThemeDomainService(themeCrudService), themeServiceLegacyWrapper);
+        cut =
+            new DefaultThemeDomainService(
+                parametersDomainService,
+                new ThemeDomainService(themeCrudService),
+                themeServiceLegacyWrapper,
+                themePortalNextAssetsDomainService
+            );
     }
 
     @AfterEach
