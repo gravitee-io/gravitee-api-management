@@ -497,6 +497,28 @@ describe('SubscribeToApiComponent', () => {
             });
           });
         });
+        describe('When the API is Federated', () => {
+          beforeEach(async () => {
+            await selectPlan(API_KEY_PLAN_ID);
+            await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
+
+            expectGetApi(fakeApi({ id: API_ID, definitionVersion: 'FEDERATED' }));
+            fixture.detectChanges();
+          });
+          it('should not show api key mode choice', async () => {
+            const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+            expect(await step3.isChooseApiKeyModeVisible()).toBeFalsy();
+          });
+          it('should create subscription', async () => {
+            const subscribe = await getSubscribeButton();
+            await subscribe?.click();
+
+            expectPostCreateSubscription({
+              plan: API_KEY_PLAN_ID,
+              application: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+            });
+          });
+        });
       });
 
       describe('When comment is NOT required + Terms and conditions NOT required', () => {

@@ -33,6 +33,8 @@ export interface Api {
    * Version of the API.
    */
   version: string;
+
+  definitionVersion: 'V1' | 'V2' | 'V4' | 'FEDERATED';
   /**
    * Description of the API.
    */
