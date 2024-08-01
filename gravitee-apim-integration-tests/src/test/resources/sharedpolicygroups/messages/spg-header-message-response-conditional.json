@@ -1,0 +1,38 @@
+{
+  "id": "spg-message-response",
+  "name": "spg-message-response",
+  "environmentId": "DEFAULT",
+  "version": "1",
+  "phase": "MESSAGE_RESPONSE",
+  "policies": [
+    {
+      "name": "Transform headers Dev",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "messageCondition": "{T(java.lang.Integer).parseInt(#message.id) % 2 == 0}",
+      "configuration": {
+        "addHeaders": [
+          {
+            "name": "X-Response-Header-Dev-0",
+            "value": "I'm an even message!"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Transform headers Dev",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "configuration": {
+        "addHeaders": [
+          {
+            "name": "X-Response-Header-Dev-1",
+            "value": "Header Dev 1"
+          }
+        ]
+      }
+    }
+  ]
+}
