@@ -305,6 +305,8 @@ components:
               - -name
               - apiType
               - -apiType
+              - phase
+              - -phase
               - updatedAt
               - -updatedAt
               - deployedAt

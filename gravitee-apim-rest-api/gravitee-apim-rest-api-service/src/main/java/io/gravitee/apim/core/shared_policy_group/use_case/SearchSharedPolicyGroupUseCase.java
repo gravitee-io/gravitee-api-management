@@ -38,6 +38,8 @@ public class SearchSharedPolicyGroupUseCase {
         "-name",
         "apiType",
         "-apiType",
+        "phase",
+        "-phase",
         "updatedAt",
         "-updatedAt",
         "deployedAt",
