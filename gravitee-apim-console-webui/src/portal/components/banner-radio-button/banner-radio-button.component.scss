@@ -1,0 +1,17 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.banner-radio-button {
+  &__container {
+    border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    padding: 14px;
+  }
+}
+
+.selected {
+  border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+  color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+}

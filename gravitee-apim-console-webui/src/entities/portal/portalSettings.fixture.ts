@@ -192,6 +192,11 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
       access: {
         enabled: true,
       },
+      banner: {
+        enabled: true,
+        title: 'testTitle',
+        subtitle: 'testSubtitle',
+      },
     },
   };
 
