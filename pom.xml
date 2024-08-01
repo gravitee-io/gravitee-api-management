@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>23.0.0</version>
+        <version>23.0.1</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -318,6 +318,53 @@
     </repositories>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <configuration>
+                        <properties>
+                            <owner>The Gravitee team</owner>
+                            <email>http://gravitee.io</email>
+                        </properties>
+                        <licenseSets>
+                            <licenseSet>
+                                <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+                                <excludes>
+                                    <exclude>LICENSE.txt</exclude>
+                                    <exclude>**/README</exclude>
+                                    <exclude>src/main/packaging/**</exclude>
+                                    <exclude>src/test/resources/**</exclude>
+                                    <exclude>src/main/resources/**</exclude>
+                                    <exclude>src/main/resources-filtered/**</exclude>
+                                    <exclude>src/main/webapp/**</exclude>
+                                    <exclude>integrationApis/**</exclude>
+                                    <exclude>**/dist/**</exclude>
+                                    <exclude>**/.tmp/**</exclude>
+                                    <exclude>**/node_modules/**</exclude>
+                                    <exclude>**/.*</exclude>
+                                    <exclude>**/.*/**</exclude>
+                                    <exclude>**/*.adoc</exclude>
+                                    <exclude>**/LICENSE_TEMPLATE.txt</exclude>
+                                    <exclude>**/sonar-project.properties</exclude>
+                                    <exclude>gravitee-apim-portal-webui/**</exclude>
+                                    <exclude>gravitee-apim-portal-webui-next/**</exclude>
+                                    <exclude>gravitee-apim-console-webui/**</exclude>
+                                    <exclude>gravitee-apim-e2e/**</exclude>
+                                    <exclude>gravitee-apim-perf/**</exclude>
+                                    <exclude>helm/**</exclude>
+                                </excludes>
+                            </licenseSet>
+                        </licenseSets>
+                        <mapping>
+                            <ts>SLASHSTAR_STYLE</ts>
+                            <js>SLASHSTAR_STYLE</js>
+                        </mapping>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
@@ -341,48 +388,15 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
-                    <properties>
-                        <owner>The Gravitee team</owner>
-                        <email>http://gravitee.io</email>
-                    </properties>
-                    <excludes>
-                        <exclude>LICENSE.txt</exclude>
-                        <exclude>**/README</exclude>
-                        <exclude>src/main/packaging/**</exclude>
-                        <exclude>src/test/resources/**</exclude>
-                        <exclude>src/main/resources/**</exclude>
-                        <exclude>src/main/resources-filtered/**</exclude>
-                        <exclude>src/main/webapp/**</exclude>
-                        <exclude>integrationApis/**</exclude>
-                        <exclude>**/dist/**</exclude>
-                        <exclude>**/.tmp/**</exclude>
-                        <exclude>**/node_modules/**</exclude>
-                        <exclude>**/.*</exclude>
-                        <exclude>**/.*/**</exclude>
-                        <exclude>**/*.adoc</exclude>
-                        <exclude>**/LICENSE_TEMPLATE.txt</exclude>
-                        <exclude>**/sonar-project.properties</exclude>
-                        <exclude>gravitee-apim-portal-webui/**</exclude>
-                        <exclude>gravitee-apim-portal-webui-next/**</exclude>
-                        <exclude>gravitee-apim-console-webui/**</exclude>
-                        <exclude>gravitee-apim-e2e/**</exclude>
-                        <exclude>gravitee-apim-perf/**</exclude>
-                        <exclude>helm/**</exclude>
-                    </excludes>
-                    <mapping>
-                        <ts>SLASHSTAR_STYLE</ts>
-                        <js>SLASHSTAR_STYLE</js>
-                    </mapping>
-                    <skip>${skip.validation}</skip>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>check</goal>
                         </goals>
                         <phase>validate</phase>
+                        <configuration>
+                            <skip>${skip.validation}</skip>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
