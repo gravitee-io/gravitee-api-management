@@ -17,18 +17,19 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { BehaviorSubject, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, map, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { isEqual } from 'lodash';
 
 import {
   SharedPolicyGroupsAddEditDialogComponent,
@@ -49,6 +50,8 @@ type PageTableVM = {
     id: string;
     name: string;
     description: string;
+    apiType: ApiV4['type'];
+    phase: string;
     updatedAt: Date;
     deployedAt: Date;
   }[];
@@ -78,7 +81,16 @@ type PageTableVM = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedPolicyGroupsComponent implements OnInit {
-  protected displayedColumns: string[] = ['name', 'phase', 'lastUpdate', 'lastDeploy', 'actions'];
+  private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly permissionService = inject(GioPermissionService);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
+
+  protected displayedColumns: string[] = ['name', 'apiType', 'phase', 'lastUpdate', 'lastDeploy', 'actions'];
   protected filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
@@ -90,21 +102,13 @@ export class SharedPolicyGroupsComponent implements OnInit {
     isLoading: true,
   });
 
-  protected isReadOnly = false;
-
-  private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly matDialog = inject(MatDialog);
-  private readonly snackBarService = inject(SnackBarService);
-  private readonly permissionService = inject(GioPermissionService);
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
+  protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']);
 
   ngOnInit(): void {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-r']);
     this.refreshPageTableVM$
       .pipe(
+        debounceTime(200),
         tap(() => this.pageTableVM$.next({ items: [], totalItems: 0, isLoading: true })),
         switchMap(() =>
           this.sharedPolicyGroupsService.list(
@@ -119,6 +123,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
             id: sharedPolicyGroup.id,
             name: sharedPolicyGroup.name,
             description: sharedPolicyGroup.description,
+            apiType: sharedPolicyGroup.apiType,
             phase: sharedPolicyGroup.phase,
             updatedAt: sharedPolicyGroup.updatedAt,
             deployedAt: sharedPolicyGroup.deployedAt,
@@ -126,7 +131,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
 
           this.pageTableVM$.next({
             items,
-            totalItems: pagedResult.pagination.totalCount,
+            totalItems: pagedResult.pagination.totalCount ?? 0,
             isLoading: false,
           });
         }),
@@ -136,6 +141,9 @@ export class SharedPolicyGroupsComponent implements OnInit {
   }
 
   protected onFiltersChanged($event: GioTableWrapperFilters) {
+    if (isEqual(this.filters, $event)) {
+      return;
+    }
     this.filters = $event;
     this.refreshPageTableVM$.next();
   }
@@ -164,17 +172,23 @@ export class SharedPolicyGroupsComponent implements OnInit {
       )
       .subscribe({
         next: (sharedPolicyGroup) => {
-          this.snackBarService.success('Shared policy group created');
+          this.snackBarService.success('Shared Policy Group created');
           this.router.navigate([sharedPolicyGroup.id, 'studio'], { relativeTo: this.activatedRoute });
         },
         error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Error during shared policy group creation!');
+          this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group creation!');
         },
       });
   }
 
   protected onEdit(sharedPolicyGroupId: string) {
     this.router.navigate([sharedPolicyGroupId, 'studio'], { relativeTo: this.activatedRoute });
+  }
+
+  protected onRemove(sharedPolicyGroupId: string) {
+    removeSharedPolicyGroup(this.matDialog, this.snackBarService, this.sharedPolicyGroupsService, sharedPolicyGroupId, () => {
+      this.refreshPageTableVM$.next();
+    });
   }
 }
 
@@ -183,4 +197,42 @@ export const toSharedPolicyGroupsSortByParam = (sort: Sort): SharedPolicyGroupsS
     return undefined;
   }
   return ('desc' === sort.direction ? `-${sort.active}` : sort.active) as SharedPolicyGroupsSortByParam;
+};
+
+export const removeSharedPolicyGroup = (
+  matDialog: MatDialog,
+  snackBarService: SnackBarService,
+  sharedPolicyGroupsService: SharedPolicyGroupsService,
+  sharedPolicyGroupId: string,
+  onSuccess: () => void = () => {},
+) => {
+  matDialog
+    .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+      data: {
+        title: 'Remove Shared Policy Group',
+        content: `Are you sure you want to remove this Shared Policy Group?<br>
+If this Shared Policy Group is used in API flows, be sure to inform API publishers before making this change.<br>
+If an API flow still uses this Shared Policy Group, the API flow will ignore it and continue to run.`,
+
+        confirmButton: 'Remove',
+      },
+      role: 'alertdialog',
+      id: 'remove-spg-dialog',
+      width: GIO_DIALOG_WIDTH.MEDIUM,
+    })
+    .afterClosed()
+    .pipe(
+      filter((result) => !!result),
+      switchMap(() => sharedPolicyGroupsService.delete(sharedPolicyGroupId)),
+    )
+    .subscribe({
+      next: () => {
+        snackBarService.success('Shared Policy Group removed');
+        onSuccess();
+      },
+      error: (e) => {
+        snackBarService.error(e.error?.message ?? 'An error occurred while removing the Shared Policy Group');
+        throw e;
+      },
+    });
 };

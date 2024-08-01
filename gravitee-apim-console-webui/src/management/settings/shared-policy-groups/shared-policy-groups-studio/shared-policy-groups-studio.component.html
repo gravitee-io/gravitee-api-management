@@ -48,6 +48,7 @@
         [executionPhase]="sharedPolicyGroup.phase"
         [policyDocumentationFetcher]="policyDocumentationFetcher"
         [policySchemaFetcher]="policySchemaFetcher"
+        [policyGroup]="sharedPolicyGroup.steps"
         (policyGroupChange)="onStudioChange($event)"
       ></gio-policy-group-studio>
     </div>
