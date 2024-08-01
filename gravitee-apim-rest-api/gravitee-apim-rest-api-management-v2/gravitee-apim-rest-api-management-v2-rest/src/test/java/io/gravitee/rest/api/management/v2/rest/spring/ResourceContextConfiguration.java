@@ -54,6 +54,7 @@ import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomain
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
@@ -446,5 +447,10 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchSharedPolicyGroupUseCase searchSharedPolicyGroupUseCase() {
         return mock(SearchSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase() {
+        return mock(DeleteSharedPolicyGroupUseCase.class);
     }
 }
