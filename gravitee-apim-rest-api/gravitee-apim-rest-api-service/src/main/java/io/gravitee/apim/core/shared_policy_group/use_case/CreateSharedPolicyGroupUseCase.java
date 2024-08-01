@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupInvalidPhaseException;
 import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
@@ -43,23 +44,24 @@ public class CreateSharedPolicyGroupUseCase {
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
-        validateCreateSharedPolicyGroup(input.sharedPolicyGroupToCreate(), input.auditInfo().environmentId());
+        var sharedPolicyGroupToCreate = SharedPolicyGroup
+            .from(input.sharedPolicyGroupToCreate())
+            .toBuilder()
+            .id(UuidString.generateRandom())
+            .environmentId(input.auditInfo().environmentId())
+            .organizationId(input.auditInfo().organizationId())
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .createdAt(TimeProvider.now())
+            .updatedAt(TimeProvider.now())
+            .build();
 
-        var cratedsharedPolicyGroup =
-            this.sharedPolicyGroupCrudService.create(
-                    SharedPolicyGroup
-                        .from(input.sharedPolicyGroupToCreate())
-                        .toBuilder()
-                        .id(UuidString.generateRandom())
-                        .environmentId(input.auditInfo().environmentId())
-                        .organizationId(input.auditInfo().organizationId())
-                        .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
-                        .createdAt(TimeProvider.now())
-                        .updatedAt(TimeProvider.now())
-                        .build()
-                );
-        createAuditLog(cratedsharedPolicyGroup, input.auditInfo());
-        return new Output(cratedsharedPolicyGroup);
+        validateCreateSharedPolicyGroup(sharedPolicyGroupToCreate, input.auditInfo().environmentId());
+
+        var cratedSharedPolicyGroup = this.sharedPolicyGroupCrudService.create(sharedPolicyGroupToCreate);
+
+        createAuditLog(cratedSharedPolicyGroup, input.auditInfo());
+
+        return new Output(cratedSharedPolicyGroup);
     }
 
     @Builder
@@ -67,8 +69,8 @@ public class CreateSharedPolicyGroupUseCase {
 
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}
 
-    private void validateCreateSharedPolicyGroup(CreateSharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
-        if (sharedPolicyGroupToCreate.getName() == null || sharedPolicyGroupToCreate.getName().isEmpty()) {
+    private void validateCreateSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
+        if (!sharedPolicyGroupToCreate.hasName()) {
             throw new InvalidDataException("Name is required.");
         }
         if (sharedPolicyGroupToCreate.getApiType() == null) {
@@ -77,11 +79,17 @@ public class CreateSharedPolicyGroupUseCase {
         if (sharedPolicyGroupToCreate.getPhase() == null) {
             throw new InvalidDataException("Phase is required.");
         }
+        if (!sharedPolicyGroupToCreate.hasValidPhase()) {
+            throw new SharedPolicyGroupInvalidPhaseException(
+                sharedPolicyGroupToCreate.getPhase().name(),
+                sharedPolicyGroupToCreate.getApiType().name()
+            );
+        }
 
         ensureSharedPolicyGroupDoesNotExist(sharedPolicyGroupToCreate, environmentId);
     }
 
-    private void ensureSharedPolicyGroupDoesNotExist(CreateSharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
+    private void ensureSharedPolicyGroupDoesNotExist(SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
         this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId())
             .ifPresent(sharedPolicyGroup -> {
                 throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroupToCreate.getCrossId(), environmentId);

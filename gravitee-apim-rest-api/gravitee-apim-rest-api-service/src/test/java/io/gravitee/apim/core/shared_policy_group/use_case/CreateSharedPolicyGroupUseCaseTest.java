@@ -27,12 +27,15 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupInvalidPhaseException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -283,5 +286,24 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .assertThat(throwable)
             .isInstanceOf(UnexpectedPoliciesException.class)
             .hasMessage("Unexpected policies [policy_throw_unexpected_policy_exception] for API type MESSAGE and phase REQUEST");
+    }
+
+    @Test
+    void should_throw_exception_when_phase_is_invalid() {
+        // Given
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
+        toCreate.setApiType(ApiType.PROXY);
+        toCreate.setPhase(PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE);
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
+        );
+
+        // Then
+        Assertions
+            .assertThat(throwable)
+            .isInstanceOf(SharedPolicyGroupInvalidPhaseException.class)
+            .hasMessage("Invalid phase MESSAGE_RESPONSE for API type PROXY");
     }
 }
