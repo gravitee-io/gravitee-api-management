@@ -198,6 +198,7 @@ export class SubscribeToApiComponent implements OnInit {
       .pipe(
         switchMap(result => {
           if (!result.general_conditions_accepted && this.currentPlan()?.general_conditions) {
+            this.subscriptionInProgress.set(false);
             return EMPTY;
           }
           return this.subscriptionService.subscribe(result);
