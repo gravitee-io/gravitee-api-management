@@ -48,6 +48,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
                 .description("description")
                 .crossId("crossId" + i)
                 .apiType(ApiType.PROXY)
+                .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
                 .definition("definition")
                 .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
                 .environmentId("environmentId")
@@ -71,6 +72,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .description("description")
             .crossId("crossId")
             .apiType(ApiType.PROXY)
+            .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
             .definition("definition")
             .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .environmentId("environmentId")
@@ -87,6 +89,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(create.getDescription()).isEqualTo(sharedPolicyGroup.getDescription());
         assertThat(create.getCrossId()).isEqualTo(sharedPolicyGroup.getCrossId());
         assertThat(create.getApiType()).isEqualTo(sharedPolicyGroup.getApiType());
+        assertThat(create.getPhase()).isEqualTo(sharedPolicyGroup.getPhase());
         assertThat(create.getDefinition()).isEqualTo(sharedPolicyGroup.getDefinition());
         assertThat(create.getLifecycleState()).isEqualTo(sharedPolicyGroup.getLifecycleState());
         assertThat(create.getEnvironmentId()).isEqualTo(sharedPolicyGroup.getEnvironmentId());
@@ -107,6 +110,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .description("new description")
             .crossId("new crossId")
             .apiType(ApiType.MESSAGE)
+            .phase(SharedPolicyGroup.ExecutionPhase.MESSAGE_REQUEST)
             .definition("new definition")
             .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
             .environmentId("new environmentId")
@@ -122,6 +126,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(update.getDescription()).isEqualTo(toUpdate.getDescription());
         assertThat(update.getCrossId()).isEqualTo(toUpdate.getCrossId());
         assertThat(update.getApiType()).isEqualTo(toUpdate.getApiType());
+        assertThat(update.getPhase()).isEqualTo(toUpdate.getPhase());
         assertThat(update.getDefinition()).isEqualTo(toUpdate.getDefinition());
         assertThat(update.getLifecycleState()).isEqualTo(toUpdate.getLifecycleState());
         assertThat(update.getEnvironmentId()).isEqualTo(toUpdate.getEnvironmentId());
@@ -140,6 +145,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional.get().getDescription()).isEqualTo("description");
         assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
         assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
+        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.ExecutionPhase.RESPONSE);
         assertThat(optional.get().getDefinition()).isEqualTo("definition");
         assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
         assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
@@ -247,6 +253,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional.get().getDescription()).isEqualTo("description");
         assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
         assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
+        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.ExecutionPhase.RESPONSE);
         assertThat(optional.get().getDefinition()).isEqualTo("definition");
         assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
         assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");

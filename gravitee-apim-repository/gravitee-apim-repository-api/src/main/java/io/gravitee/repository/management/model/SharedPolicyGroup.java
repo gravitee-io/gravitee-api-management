@@ -73,6 +73,10 @@ public class SharedPolicyGroup {
      */
     private ApiType apiType;
     /**
+     * The shared policy group phase
+     */
+    private ExecutionPhase phase;
+    /**
      * The shared policy group JSON definition
      */
     private String definition;
@@ -124,5 +128,12 @@ public class SharedPolicyGroup {
         SHARED_POLICY_GROUP_CREATED,
         SHARED_POLICY_GROUP_UPDATED,
         SHARED_POLICY_GROUP_DELETED,
+    }
+
+    public enum ExecutionPhase {
+        REQUEST,
+        RESPONSE,
+        MESSAGE_REQUEST,
+        MESSAGE_RESPONSE,
     }
 }

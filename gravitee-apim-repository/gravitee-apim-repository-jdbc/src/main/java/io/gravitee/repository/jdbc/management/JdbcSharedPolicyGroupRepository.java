@@ -64,6 +64,7 @@ public class JdbcSharedPolicyGroupRepository
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("version", Types.INTEGER, Integer.class)
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+            .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.ExecutionPhase.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
