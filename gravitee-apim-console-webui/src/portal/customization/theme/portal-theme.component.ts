@@ -238,7 +238,7 @@ function getBase64(file?: NewFile | string): string | undefined | null {
   }
   if (!(file instanceof NewFile)) {
     // If file not changed, return undefined to keep it
-    return undefined;
+    return file;
   }
 
   return file.dataUrl;
