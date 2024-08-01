@@ -26,7 +26,6 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEnti
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
-import io.gravitee.rest.api.services.sync.DictionaryManager;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -64,8 +63,7 @@ public class DictionaryManagerTest {
 
     @Test
     public void shouldStart() {
-        final DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setId(DICTIONARY_ID);
+        final DictionaryEntity dictionary = DictionaryEntity.builder().id(DICTIONARY_ID).build();
 
         when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary);
         cut.start(DICTIONARY_ID);
@@ -78,10 +76,7 @@ public class DictionaryManagerTest {
         final DictionaryProviderEntity provider = new DictionaryProviderEntity();
         provider.setConfiguration(JsonNodeFactory.instance.nullNode());
 
-        final DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setUpdatedAt(new Date());
-        dictionary.setProvider(provider);
-        dictionary.setId(DICTIONARY_ID);
+        final DictionaryEntity dictionary = DictionaryEntity.builder().updatedAt(new Date()).provider(provider).id(DICTIONARY_ID).build();
 
         when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary);
 
@@ -101,21 +96,25 @@ public class DictionaryManagerTest {
         trigger.setRate(1);
         trigger.setUnit(TimeUnit.SECONDS);
 
-        final DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setUpdatedAt(new Date());
-        dictionary.setProvider(provider);
-        dictionary.setId(DICTIONARY_ID);
-        dictionary.setTrigger(trigger);
+        final DictionaryEntity dictionary = DictionaryEntity
+            .builder()
+            .updatedAt(new Date())
+            .provider(provider)
+            .id(DICTIONARY_ID)
+            .trigger(trigger)
+            .build();
 
         final DictionaryTriggerEntity triggerUpdated = new DictionaryTriggerEntity();
         triggerUpdated.setRate(1);
         triggerUpdated.setUnit(TimeUnit.MINUTES);
 
-        final DictionaryEntity dictionaryUpdated = new DictionaryEntity();
-        dictionaryUpdated.setUpdatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()));
-        dictionaryUpdated.setProvider(provider);
-        dictionaryUpdated.setId(DICTIONARY_ID);
-        dictionaryUpdated.setTrigger(triggerUpdated);
+        final DictionaryEntity dictionaryUpdated = DictionaryEntity
+            .builder()
+            .updatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
+            .provider(provider)
+            .id(DICTIONARY_ID)
+            .trigger(triggerUpdated)
+            .build();
 
         when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
 
@@ -136,20 +135,24 @@ public class DictionaryManagerTest {
         trigger.setRate(1);
         trigger.setUnit(TimeUnit.SECONDS);
 
-        final DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setUpdatedAt(new Date());
-        dictionary.setProvider(provider);
-        dictionary.setId(DICTIONARY_ID);
-        dictionary.setTrigger(trigger);
+        final DictionaryEntity dictionary = DictionaryEntity
+            .builder()
+            .updatedAt(new Date())
+            .provider(provider)
+            .id(DICTIONARY_ID)
+            .trigger(trigger)
+            .build();
 
         final DictionaryProviderEntity providerUpdated = new DictionaryProviderEntity();
         providerUpdated.setConfiguration(JsonNodeFactory.instance.arrayNode());
 
-        final DictionaryEntity dictionaryUpdated = new DictionaryEntity();
-        dictionaryUpdated.setUpdatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()));
-        dictionaryUpdated.setProvider(providerUpdated);
-        dictionaryUpdated.setId(DICTIONARY_ID);
-        dictionaryUpdated.setTrigger(trigger);
+        final DictionaryEntity dictionaryUpdated = DictionaryEntity
+            .builder()
+            .updatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
+            .provider(providerUpdated)
+            .id(DICTIONARY_ID)
+            .trigger(trigger)
+            .build();
 
         when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
 
