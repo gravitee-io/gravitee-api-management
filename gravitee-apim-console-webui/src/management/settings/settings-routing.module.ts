@@ -39,6 +39,7 @@ import { IdentityProvidersComponent } from './identity-providers/identity-provid
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
 import { EnvironmentFlowsComponent } from './environment-flows/environment-flows.component';
 import { EnvironmentFlowsStudioComponent } from './environment-flows/environment-flows-studio/environment-flows-studio.component';
+import { CustomUserFieldsMigratedComponent } from './custom-user-fields/migrated/custom-user-fields-migrated.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -383,6 +384,16 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-custom-user-fields',
           },
+          permissions: {
+            anyOf: ['organization-custom_user_fields-r'],
+            unauthorizedFallbackTo: '../groups',
+          },
+        },
+      },
+      {
+        path: 'custom-user-fields-migrated',
+        component: CustomUserFieldsMigratedComponent,
+        data: {
           permissions: {
             anyOf: ['organization-custom_user_fields-r'],
             unauthorizedFallbackTo: '../groups',

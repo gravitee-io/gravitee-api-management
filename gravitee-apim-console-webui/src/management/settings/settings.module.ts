@@ -38,6 +38,7 @@ import { IdentityProvidersModule } from './identity-providers/identity-providers
 import { PortalSettingsModule } from './portal-settings/portal-settings.module';
 import { TopApisModule } from './top-apis/top-apis.module';
 import { CategoriesModule } from './categories/categories.module';
+import { CustomUserFieldsModule } from './custom-user-fields/migrated/custom-user-fields-migrated.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
@@ -58,6 +59,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     EnvironmentNotificationModule,
     PortalSettingsModule,
     ApiPortalHeaderModule,
+    CustomUserFieldsModule,
     CategoriesModule,
   ],
   declarations: [

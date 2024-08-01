@@ -82,7 +82,8 @@ export class DiscoveryPreviewComponent implements OnInit {
   }
 
   public proceedIngest() {
-    this.integrationsService.setIsIngestToRun(true);
+    this.integrationsService.setIsIngestToRun(true, ['it to ingest1 ...', 'it to ingest2 ...']);
+
     this.router.navigate(['..'], { relativeTo: this.activatedRoute });
   }
 }

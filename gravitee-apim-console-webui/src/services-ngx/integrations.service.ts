@@ -38,6 +38,7 @@ export class IntegrationsService {
   private url: string = `${this.constants.env.v2BaseURL}/integrations`;
   private currentIntegration$: BehaviorSubject<Integration> = new BehaviorSubject<Integration>(null);
   private IS_INGEST_TO_RUN = false;
+  apisIdsToIngest = [];
 
   public readonly bannerMessages = {
     techPreview: `This tech preview feature is new! We're gathering feedback on it to make it even better, so it may change as we make improvements.`,
@@ -49,8 +50,9 @@ export class IntegrationsService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public setIsIngestToRun(value: boolean): void {
+  public setIsIngestToRun(value: boolean, apisIds: string[]): void {
     this.IS_INGEST_TO_RUN = value;
+    this.apisIdsToIngest = apisIds;
   }
 
   public isIngestToRun(): boolean {

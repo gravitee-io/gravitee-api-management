@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface CustomUserField {
-  key: string;
-  label: string;
-  required?: boolean;
-  values?: string[];
-}
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 
-export type CustomUserFields = CustomUserField[];
+export class CustomUserFieldsMigratedHarness extends ComponentHarness {
+  public static readonly hostSelector = 'app-custom-user-fields-migrated';
+
+  private tableLocator = this.locatorForOptional(MatTableHarness);
+
+  public getTable = async () => this.tableLocator();
+
+  public rowsNumber = async (): Promise<number> => {
+    return this.tableLocator()
+      .then((table: MatTableHarness) => table.getRows())
+      .then((rows: MatRowHarness[]) => rows.length);
+  };
+}
