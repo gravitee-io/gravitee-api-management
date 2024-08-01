@@ -37,8 +37,8 @@ import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
-import { EnvironmentFlowsComponent } from './environment-flows/environment-flows.component';
-import { EnvironmentFlowsStudioComponent } from './environment-flows/environment-flows-studio/environment-flows-studio.component';
+import { SharedPolicyGroupsComponent } from './shared-policy-groups/shared-policy-groups.component';
+import { SharedPolicyGroupsStudioComponent } from './shared-policy-groups/shared-policy-groups-studio/shared-policy-groups-studio.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -255,20 +255,20 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'environment-flows',
-        component: EnvironmentFlowsComponent,
+        component: SharedPolicyGroupsComponent,
         data: {
           permissions: {
-            anyOf: ['environment-environment_flows-r'],
+            anyOf: ['environment-shared_policy_group-r'],
             unauthorizedFallbackTo: '../metadata',
           },
         },
       },
       {
         path: 'environment-flows/:environmentFlowId/studio',
-        component: EnvironmentFlowsStudioComponent,
+        component: SharedPolicyGroupsStudioComponent,
         data: {
           permissions: {
-            anyOf: ['environment-environment_flows-r'],
+            anyOf: ['environment-shared_policy_group-r'],
             unauthorizedFallbackTo: '../metadata',
           },
         },

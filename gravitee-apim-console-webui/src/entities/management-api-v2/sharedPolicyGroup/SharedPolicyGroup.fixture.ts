@@ -14,14 +14,29 @@
  * limitations under the License.
  */
 
-// TODO: complete the EnvironmentFlow interface when the OpenAPI is available
-import { ExecutionPhase } from '../plugin';
-import { ApiType, StepV4 } from '../api';
+import { isFunction } from 'lodash';
 
-export interface CreateEnvironmentFlow {
-  name: string;
-  description?: string;
-  apiType: ApiType;
-  phase: ExecutionPhase;
-  policies?: StepV4[];
+import { SharedPolicyGroup } from './SharedPolicyGroup';
+
+export function fakeSharedPolicyGroup(
+  modifier?: Partial<SharedPolicyGroup> | ((base: SharedPolicyGroup) => SharedPolicyGroup),
+): SharedPolicyGroup {
+  const base: SharedPolicyGroup = {
+    id: '1',
+    crossId: '1',
+    name: 'Shared policy group',
+    phase: 'REQUEST',
+    apiType: 'PROXY',
+    updatedAt: new Date('2024-04-04T00:00:00Z'),
+    deployedAt: new Date('2024-04-04T00:00:00Z'),
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
 }

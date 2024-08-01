@@ -19,7 +19,7 @@ export * from './audit';
 export * from './plugin';
 export * from './createApi';
 export * from './documentation';
-export * from './environment-flows';
+export * from './sharedPolicyGroup';
 export * from './event';
 export * from './group';
 export * from './log';

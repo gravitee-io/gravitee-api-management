@@ -111,9 +111,9 @@ export class SettingsNavigationService {
             permissions: ['environment-dictionary-r'],
           },
           {
-            displayName: 'Environment Flows',
-            routerLink: './environment-flows',
-            permissions: ['environment-environment_flows-r'],
+            displayName: 'Shared Policy Groups',
+            routerLink: './shared-policy-groups',
+            permissions: ['environment-shared_policy_group-r'],
           },
         ],
       },

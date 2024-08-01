@@ -25,17 +25,17 @@ import { GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ApiV4, EnvironmentFlow, ExecutionPhase } from '../../../../entities/management-api-v2';
+import { ApiV4, SharedPolicyGroup, ExecutionPhase } from '../../../../entities/management-api-v2';
 
-export type EnvironmentFlowsAddEditDialogData =
+export type SharedPolicyGroupAddEditDialogData =
   | {
       apiType: ApiV4['type'];
     }
   | {
-      environmentFlow: EnvironmentFlow;
+      sharedPolicyGroup: SharedPolicyGroup;
     };
 
-export type EnvironmentFlowsAddEditDialogResult = undefined | { name: string; description?: string; phase: ExecutionPhase };
+export type SharedPolicyGroupAddEditDialogResult = undefined | { name: string; description?: string; phase: ExecutionPhase };
 
 const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
   PROXY: ['REQUEST', 'RESPONSE'],
@@ -43,9 +43,9 @@ const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
 };
 
 @Component({
-  selector: 'environment-flows-add-edit-dialog',
-  templateUrl: './environment-flows-add-edit-dialog.component.html',
-  styleUrls: ['./environment-flows-add-edit-dialog.component.scss'],
+  selector: 'shared-policy-groups-add-edit-dialog',
+  templateUrl: './shared-policy-groups-add-edit-dialog.component.html',
+  styleUrls: ['./shared-policy-groups-add-edit-dialog.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -59,7 +59,7 @@ const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
     GioFormFocusInvalidModule,
   ],
 })
-export class EnvironmentFlowsAddEditDialogComponent {
+export class SharedPolicyGroupsAddEditDialogComponent {
   protected apiTypeLabel: string;
 
   protected formGroup: FormGroup<{ name: FormControl<string>; description: FormControl<string>; phase: FormControl<ExecutionPhase> }>;
@@ -69,18 +69,18 @@ export class EnvironmentFlowsAddEditDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: EnvironmentFlowsAddEditDialogData,
-    public dialogRef: MatDialogRef<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogResult>,
+    public data: SharedPolicyGroupAddEditDialogData,
+    public dialogRef: MatDialogRef<SharedPolicyGroupsAddEditDialogComponent, SharedPolicyGroupAddEditDialogResult>,
   ) {
-    const apiType = isEdit(data) ? data.environmentFlow.apiType : data.apiType;
+    const apiType = isEdit(data) ? data.sharedPolicyGroup.apiType : data.apiType;
 
     this.apiTypeLabel = apiType === 'MESSAGE' ? 'Message' : 'Proxy';
     this.phases = PHASE_BY_API_TYPE[apiType];
 
     this.formGroup = new FormGroup({
-      name: new FormControl(isEdit(data) ? data.environmentFlow.name : '', Validators.required),
-      description: new FormControl(isEdit(data) ? data.environmentFlow.description : ''),
-      phase: new FormControl(isEdit(data) ? { disabled: true, value: data.environmentFlow.phase } : this.phases[0], Validators.required),
+      name: new FormControl(isEdit(data) ? data.sharedPolicyGroup.name : '', Validators.required),
+      description: new FormControl(isEdit(data) ? data.sharedPolicyGroup.description : ''),
+      phase: new FormControl(isEdit(data) ? { disabled: true, value: data.sharedPolicyGroup.phase } : this.phases[0], Validators.required),
     });
 
     this.isValid$ = this.formGroup.statusChanges.pipe(
@@ -101,4 +101,4 @@ export class EnvironmentFlowsAddEditDialogComponent {
   }
 }
 
-const isEdit = (data: EnvironmentFlowsAddEditDialogData): data is { environmentFlow: EnvironmentFlow } => 'environmentFlow' in data;
+const isEdit = (data: SharedPolicyGroupAddEditDialogData): data is { sharedPolicyGroup: SharedPolicyGroup } => 'sharedPolicyGroup' in data;

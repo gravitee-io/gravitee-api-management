@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-import { isFunction } from 'lodash';
+import { ApiType, StepV4 } from '../api';
+import { ExecutionPhase } from '../plugin';
 
-import { CreateEnvironmentFlow } from './CreateEnvironmentFlow';
-
-export function fakeCreateEnvironmentFlow(
-  modifier?: Partial<CreateEnvironmentFlow> | ((base: CreateEnvironmentFlow) => CreateEnvironmentFlow),
-): CreateEnvironmentFlow {
-  const base: CreateEnvironmentFlow = {
-    name: 'Environment flow',
-    description: 'Environment flow description',
-    apiType: 'PROXY',
-    phase: 'REQUEST',
-  };
-
-  if (isFunction(modifier)) {
-    return modifier(base);
-  }
-
-  return {
-    ...base,
-    ...modifier,
-  };
+export interface SharedPolicyGroup {
+  id: string;
+  crossId: string;
+  name: string;
+  description?: string;
+  lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED';
+  version?: string;
+  apiType: ApiType;
+  phase: ExecutionPhase;
+  steps?: StepV4[];
+  deployedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

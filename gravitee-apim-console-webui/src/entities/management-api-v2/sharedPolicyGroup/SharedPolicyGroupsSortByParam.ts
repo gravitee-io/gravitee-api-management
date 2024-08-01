@@ -13,4 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type EnvironmentFlowsSortByParam = 'name' | '-name' | 'phase' | '-phase' | 'updatedAt' | '-updatedAt' | 'deployedAt' | '-deployedAt';
+export type SharedPolicyGroupsSortByParam =
+  | 'name'
+  | '-name'
+  | 'phase'
+  | '-phase'
+  | 'updatedAt'
+  | '-updatedAt'
+  | 'deployedAt'
+  | '-deployedAt';

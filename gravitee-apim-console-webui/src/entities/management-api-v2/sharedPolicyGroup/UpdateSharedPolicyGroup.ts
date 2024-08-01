@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
-import { GioPolicyGroupStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class EnvironmentFlowsStudioHarness extends ComponentHarness {
-  static readonly hostSelector = 'environment-flows-studio';
+import { StepV4 } from '../api';
 
-  public getEditButton = this.locatorFor(MatButtonHarness.with({ text: /edit/ }));
-
-  public getPolicyGroupStudio = this.locatorFor(GioPolicyGroupStudioHarness);
-
-  public async clickEditButton() {
-    const editButton = await this.getEditButton();
-    await editButton.click();
-  }
+export interface UpdateSharedPolicyGroup {
+  crossId?: string;
+  name?: string;
+  description?: string;
+  steps?: StepV4[];
 }

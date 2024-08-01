@@ -16,14 +16,14 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { EnvironmentFlowsService } from './environment-flows.service';
+import { SharedPolicyGroupsService } from './shared-policy-groups.service';
 
 import { GioTestingModule } from '../shared/testing';
-import { fakeCreateEnvironmentFlow, fakeUpdateEnvironmentFlow } from '../entities/management-api-v2';
+import { fakeCreateSharedPolicyGroup, fakeUpdateSharedPolicyGroup } from '../entities/management-api-v2';
 
-describe('EnvironmentFlowsService', () => {
+describe('SharedPolicyGroupsService', () => {
   let httpTestingController: HttpTestingController;
-  let service: EnvironmentFlowsService;
+  let service: SharedPolicyGroupsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,7 +31,7 @@ describe('EnvironmentFlowsService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject<EnvironmentFlowsService>(EnvironmentFlowsService);
+    service = TestBed.inject<SharedPolicyGroupsService>(SharedPolicyGroupsService);
   });
 
   afterEach(() => {
@@ -40,8 +40,8 @@ describe('EnvironmentFlowsService', () => {
 
   describe('list', () => {
     it('should call the API', (done) => {
-      service.list().subscribe((flows) => {
-        expect(flows.data.length).toEqual(1);
+      service.list().subscribe((SPGs) => {
+        expect(SPGs.data.length).toEqual(1);
         done();
       });
     });
@@ -49,8 +49,8 @@ describe('EnvironmentFlowsService', () => {
 
   describe('create', () => {
     it('should call the API', (done) => {
-      service.create(fakeCreateEnvironmentFlow()).subscribe((flow) => {
-        expect(flow).toBeTruthy();
+      service.create(fakeCreateSharedPolicyGroup()).subscribe((spg) => {
+        expect(spg).toBeTruthy();
         done();
       });
     });
@@ -58,8 +58,8 @@ describe('EnvironmentFlowsService', () => {
 
   describe('get', () => {
     it('should call the API', (done) => {
-      service.get('SEARCH_ENV_FLOW').subscribe((flow) => {
-        expect(flow).toBeTruthy();
+      service.get('SEARCH_SPG').subscribe((spg) => {
+        expect(spg).toBeTruthy();
         done();
       });
     });
@@ -67,8 +67,8 @@ describe('EnvironmentFlowsService', () => {
 
   describe('update', () => {
     it('should call the API', (done) => {
-      service.update('SEARCH_ENV_FLOW', fakeUpdateEnvironmentFlow()).subscribe((flow) => {
-        expect(flow).toBeTruthy();
+      service.update('SEARCH_SPG', fakeUpdateSharedPolicyGroup()).subscribe((spg) => {
+        expect(spg).toBeTruthy();
         done();
       });
     });

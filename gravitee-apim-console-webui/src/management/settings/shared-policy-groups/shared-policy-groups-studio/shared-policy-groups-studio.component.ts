@@ -32,20 +32,20 @@ import { MatDialog } from '@angular/material/dialog';
 
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
-import { EnvironmentFlowsService } from '../../../../services-ngx/environment-flows.service';
+import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { IconService } from '../../../../services-ngx/icon.service';
 import {
-  EnvironmentFlowsAddEditDialogComponent,
-  EnvironmentFlowsAddEditDialogData,
-  EnvironmentFlowsAddEditDialogResult,
-} from '../environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.component';
+  SharedPolicyGroupsAddEditDialogComponent,
+  SharedPolicyGroupAddEditDialogData,
+  SharedPolicyGroupAddEditDialogResult,
+} from '../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.component';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @Component({
-  selector: 'environment-flows-studio',
-  templateUrl: './environment-flows-studio.component.html',
-  styleUrls: ['./environment-flows-studio.component.scss'],
+  selector: 'shared-policy-groups-studio',
+  templateUrl: './shared-policy-groups-studio.component.html',
+  styleUrls: ['./shared-policy-groups-studio.component.scss'],
   imports: [
     CommonModule,
     MatCardModule,
@@ -60,9 +60,9 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EnvironmentFlowsStudioComponent {
+export class SharedPolicyGroupsStudioComponent {
   private readonly destroyRef = inject(DestroyRef);
-  private readonly environmentFlowsService = inject(EnvironmentFlowsService);
+  private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly permissionService = inject(GioPermissionService);
   private readonly policyV2Service = inject(PolicyV2Service);
@@ -72,8 +72,8 @@ export class EnvironmentFlowsStudioComponent {
   private refresh$ = new BehaviorSubject<void>(undefined);
 
   protected isReadOnly = false;
-  protected environmentFlow = toSignal(
-    this.refresh$.pipe(switchMap(() => this.environmentFlowsService.get(this.activatedRoute.snapshot.params.environmentFlowId))),
+  protected sharedPolicyGroup = toSignal(
+    this.refresh$.pipe(switchMap(() => this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId))),
   );
   protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
   protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
@@ -84,16 +84,16 @@ export class EnvironmentFlowsStudioComponent {
   protected enableDeployButton = false;
 
   constructor() {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-environment_flows-r']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-r']);
   }
 
   public onEdit(): void {
-    const environmentFlow = this.environmentFlow();
+    const sharedPolicyGroup = this.sharedPolicyGroup();
     this.matDialog
-      .open<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogData, EnvironmentFlowsAddEditDialogResult>(
-        EnvironmentFlowsAddEditDialogComponent,
+      .open<SharedPolicyGroupsAddEditDialogComponent, SharedPolicyGroupAddEditDialogData, SharedPolicyGroupAddEditDialogResult>(
+        SharedPolicyGroupsAddEditDialogComponent,
         {
-          data: { environmentFlow },
+          data: { sharedPolicyGroup },
           role: 'dialog',
           id: 'test-story-dialog',
         },
@@ -102,7 +102,7 @@ export class EnvironmentFlowsStudioComponent {
       .pipe(
         filter((result) => !!result),
         switchMap((payload) =>
-          this.environmentFlowsService.update(environmentFlow.id, {
+          this.sharedPolicyGroupsService.update(sharedPolicyGroup.id, {
             name: payload.name,
             description: payload.description,
           }),
@@ -111,11 +111,11 @@ export class EnvironmentFlowsStudioComponent {
       )
       .subscribe({
         next: () => {
-          this.snackBarService.success('Environment flow updated');
+          this.snackBarService.success('Shared policy group updated');
           this.refresh$.next();
         },
         error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Error during environment flow update!');
+          this.snackBarService.error(error?.error?.message ?? 'Error during shared policy group update!');
         },
       });
   }
@@ -130,31 +130,31 @@ export class EnvironmentFlowsStudioComponent {
   }
 
   public onSave(): void {
-    const environmentFlow = this.environmentFlow();
+    const sharedPolicyGroup = this.sharedPolicyGroup();
     this.enableSaveButton = false;
 
-    this.environmentFlowsService
-      .update(environmentFlow.id, {
-        name: environmentFlow.name,
-        description: environmentFlow.description,
-        policies: environmentFlow.policies,
+    this.sharedPolicyGroupsService
+      .update(sharedPolicyGroup.id, {
+        name: sharedPolicyGroup.name,
+        description: sharedPolicyGroup.description,
+        steps: sharedPolicyGroup.steps,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.snackBarService.success('Environment flow updated');
+          this.snackBarService.success('Shared policy group updated');
           this.refresh$.next();
           this.enableDeployButton = true;
         },
         error: (error) => {
           this.enableSaveButton = true;
-          this.snackBarService.error(error?.error?.message ?? 'Error during environment flow update!');
+          this.snackBarService.error(error?.error?.message ?? 'Error during shared policy group update!');
         },
       });
   }
 
   public onStudioChange(steps: any): void {
-    this.environmentFlow().policies = steps;
+    this.sharedPolicyGroup().steps = steps;
     this.enableSaveButton = true;
   }
 }
