@@ -28,7 +28,6 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
               "src/assets",
               {
                 "glob": "oauth2-redirect.html",

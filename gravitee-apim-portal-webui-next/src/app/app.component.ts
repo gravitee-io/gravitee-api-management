@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { BreadcrumbService } from 'xng-breadcrumb';
@@ -34,6 +34,7 @@ import { ThemeService } from '../services/theme.service';
 export class AppComponent {
   currentUser = inject(CurrentUserService).user;
   logo = inject(ThemeService).logo;
+  favicon = inject(ThemeService).favicon;
   siteTitle: string;
 
   constructor(
@@ -44,5 +45,20 @@ export class AppComponent {
   ) {
     this.siteTitle = configService.configuration?.portalNext?.siteTitle ?? 'Developer Portal';
     this.title.setTitle(this.siteTitle);
+    effect(() => {
+      if (this.favicon()) {
+        this.updateFavicon();
+      }
+    });
+  }
+
+  private updateFavicon() {
+    let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.getElementsByTagName('head')[0].appendChild(link);
+    }
+    link.href = this.favicon();
   }
 }
