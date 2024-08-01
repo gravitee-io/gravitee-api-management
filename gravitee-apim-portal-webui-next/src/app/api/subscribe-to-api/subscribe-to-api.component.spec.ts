@@ -37,6 +37,7 @@ import { fakePlan } from '../../../entities/plan/plan.fixture';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { fakeSubscription, fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
+import { ConfigService } from '../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
 describe('SubscribeToApiComponent', () => {
@@ -59,9 +60,26 @@ describe('SubscribeToApiComponent', () => {
   const APP_ID_NO_SUBSCRIPTIONS = 'app-id-no-subscriptions';
   const APP_ID_ONE_API_KEY_SUBSCRIPTION = 'app-id-one-api-key-subscription';
 
-  beforeEach(async () => {
+  const init = async (sharedApiKeyModeEnabled: boolean) => {
     await TestBed.configureTestingModule({
       imports: [SubscribeToApiComponent, AppTestingModule],
+      providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            baseURL: TESTING_BASE_URL,
+            configuration: {
+              plan: {
+                security: {
+                  sharedApiKey: {
+                    enabled: sharedApiKeyModeEnabled,
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SubscribeToApiComponent);
@@ -84,13 +102,16 @@ describe('SubscribeToApiComponent', () => {
       ],
     });
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   describe('User subscribes to Keyless plan', () => {
+    beforeEach(async () => {
+      await init(true);
+    });
     describe('Step 1 -- Choose a plan', () => {
       it('should be able to go to step 3 once plan chosen', async () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
@@ -132,6 +153,10 @@ describe('SubscribeToApiComponent', () => {
 
   describe('User subscribes to API Key plan', () => {
     describe('Step 1 -- Choose a plan', () => {
+      beforeEach(async () => {
+        await init(true);
+      });
+
       it('should choose API Key plan and go to step 2', async () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
         expect(step1).toBeTruthy();
@@ -153,6 +178,8 @@ describe('SubscribeToApiComponent', () => {
     });
     describe('Step 2 -- Choose an application', () => {
       beforeEach(async () => {
+        await init(true);
+
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
         await step1.selectPlanByPlanId(API_KEY_PLAN_ID);
         await goToNextStep();
@@ -313,6 +340,7 @@ describe('SubscribeToApiComponent', () => {
     describe('Step 3 -- Checkout', () => {
       describe('When comment is required', () => {
         beforeEach(async () => {
+          await init(true);
           await selectPlan(API_KEY_PLAN_ID_COMMENT_REQUIRED);
           await selectApplication();
 
@@ -346,6 +374,7 @@ describe('SubscribeToApiComponent', () => {
           contentRevisionId: { revision: 2, pageId: GENERAL_CONDITIONS_ID },
         });
         beforeEach(async () => {
+          await init(true);
           await selectPlan(API_KEY_PLAN_ID_GENERAL_CONDITIONS);
           await selectApplication();
 
@@ -388,6 +417,7 @@ describe('SubscribeToApiComponent', () => {
       describe('API Key Management', () => {
         describe('When a chosen application has no existing subscriptions', () => {
           beforeEach(async () => {
+            await init(true);
             await selectPlan(API_KEY_PLAN_ID);
             await selectApplication(APP_ID_NO_SUBSCRIPTIONS);
 
@@ -411,49 +441,86 @@ describe('SubscribeToApiComponent', () => {
         });
         describe('When a chosen application has one existing API Key subscription', () => {
           describe('When the existing API Key subscription is with current API', () => {
-            beforeEach(async () => {
-              await selectPlan(API_KEY_PLAN_ID);
-              await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
+            describe('When Shared API Key mode is enabled', () => {
+              beforeEach(async () => {
+                await init(true);
+                await selectPlan(API_KEY_PLAN_ID);
+                await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
-              expectGetApi();
-              expectGetSubscriptionsForApplication(
-                APP_ID_ONE_API_KEY_SUBSCRIPTION,
-                fakeSubscriptionResponse({
-                  data: [fakeSubscription({ plan: 'plan-id', api: API_ID })],
-                  metadata: {
-                    'plan-id': { securityType: 'API_KEY' },
-                  },
-                }),
-              );
-              fixture.detectChanges();
+                expectGetApi();
+                expectGetSubscriptionsForApplication(
+                  APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                  fakeSubscriptionResponse({
+                    data: [fakeSubscription({ plan: 'plan-id', api: API_ID })],
+                    metadata: {
+                      'plan-id': { securityType: 'API_KEY' },
+                    },
+                  }),
+                );
+                fixture.detectChanges();
+              });
+              it('should show api key mode choice + only allow exclusive', async () => {
+                const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+                expect(await step3.isChooseApiKeyModeVisible()).toBeTruthy();
+
+                const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
+                expect(await sharedApiKeyOption.isDisabled()).toEqual(true);
+
+                const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
+                expect(await generatedApiKeyOption.isDisabled()).toEqual(false);
+              });
+              it('should create subscription', async () => {
+                const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+                const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
+                await generatedApiKeyOption.select();
+
+                const subscribe = await getSubscribeButton();
+                await subscribe?.click();
+
+                expectPostCreateSubscription({
+                  plan: API_KEY_PLAN_ID,
+                  application: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                  api_key_mode: 'EXCLUSIVE',
+                });
+              });
             });
-            it('should show api key mode choice + only allow exclusive', async () => {
-              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
-              expect(await step3.isChooseApiKeyModeVisible()).toBeTruthy();
+            describe('When Shared API Key mode is disabled', () => {
+              beforeEach(async () => {
+                await init(false);
+                await selectPlan(API_KEY_PLAN_ID);
+                await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
-              const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
-              expect(await sharedApiKeyOption.isDisabled()).toEqual(true);
+                expectGetApi();
+                expectGetSubscriptionsForApplication(
+                  APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                  fakeSubscriptionResponse({
+                    data: [fakeSubscription({ plan: 'plan-id', api: API_ID })],
+                    metadata: {
+                      'plan-id': { securityType: 'API_KEY' },
+                    },
+                  }),
+                );
+                fixture.detectChanges();
+              });
 
-              const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
-              expect(await generatedApiKeyOption.isDisabled()).toEqual(false);
-            });
-            it('should create subscription', async () => {
-              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
-              const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
-              await generatedApiKeyOption.select();
+              it('should not show api key mode selection', async () => {
+                const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+                expect(await step3.isChooseApiKeyModeVisible()).toBeFalsy();
+              });
+              it('should create subscription', async () => {
+                const subscribe = await getSubscribeButton();
+                await subscribe?.click();
 
-              const subscribe = await getSubscribeButton();
-              await subscribe?.click();
-
-              expectPostCreateSubscription({
-                plan: API_KEY_PLAN_ID,
-                application: APP_ID_ONE_API_KEY_SUBSCRIPTION,
-                api_key_mode: 'EXCLUSIVE',
+                expectPostCreateSubscription({
+                  plan: API_KEY_PLAN_ID,
+                  application: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+                });
               });
             });
           });
           describe('When the existing API Key subscription is for a different API', () => {
             beforeEach(async () => {
+              await init(true);
               await selectPlan(API_KEY_PLAN_ID);
               await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
@@ -499,6 +566,7 @@ describe('SubscribeToApiComponent', () => {
         });
         describe('When the API is Federated', () => {
           beforeEach(async () => {
+            await init(true);
             await selectPlan(API_KEY_PLAN_ID);
             await selectApplication(APP_ID_ONE_API_KEY_SUBSCRIPTION);
 
@@ -523,6 +591,7 @@ describe('SubscribeToApiComponent', () => {
 
       describe('When comment is NOT required + Terms and conditions NOT required', () => {
         beforeEach(async () => {
+          await init(true);
           await selectPlan(API_KEY_PLAN_ID);
           await selectApplication();
 
@@ -552,6 +621,9 @@ describe('SubscribeToApiComponent', () => {
   });
 
   describe('User subscribes to OAuth2 plan', () => {
+    beforeEach(async () => {
+      await init(true);
+    });
     describe('Step 1 -- Choose a plan', () => {
       it('should be disabled', async () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
@@ -565,6 +637,9 @@ describe('SubscribeToApiComponent', () => {
   });
 
   describe('User subscribes to JWT plan', () => {
+    beforeEach(async () => {
+      await init(true);
+    });
     describe('Step 1 -- Choose a plan', () => {
       it('should be disabled', async () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
