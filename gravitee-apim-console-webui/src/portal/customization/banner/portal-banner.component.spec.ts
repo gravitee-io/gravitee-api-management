@@ -16,39 +16,129 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { PortalBannerComponent } from './portal-banner.component';
 import { PortalBannerHarness } from './portal-banner.harness';
 
+import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+
 describe('DeveloperPortalBannerComponent', () => {
-  // let component: DeveloperPortalBannerComponent;
   let fixture: ComponentFixture<PortalBannerComponent>;
   let componentHarness: PortalBannerHarness;
+  let httpTestingController: HttpTestingController;
+  let harnessLoader: HarnessLoader;
+
+  const PORTAL_SETTINGS = fakePortalSettings();
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PortalBannerComponent],
+      imports: [GioTestingModule, NoopAnimationsModule, PortalBannerComponent],
     }).compileComponents();
 
+    httpTestingController = TestBed.inject(HttpTestingController);
+
     fixture = TestBed.createComponent(PortalBannerComponent);
-    // component = fixture.componentInstance;
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PortalBannerHarness);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
   });
 
-  it('should fill form and submit', async () => {
-    await componentHarness.setName('name');
-    await componentHarness.reset();
-    expect(await componentHarness.getName()).toStrictEqual('');
-
-    await componentHarness.setName('name');
-    await componentHarness.submit();
-    expect(await componentHarness.getName()).toStrictEqual('name');
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
-  it('should not be able to save', async () => {
-    await componentHarness.setName('name');
-    await componentHarness.setName(null);
-    expect(await componentHarness.isSubmitInvalid()).toBeTruthy();
+  const getSettings = () => {
+    const requests = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+    });
+
+    requests.flush(PORTAL_SETTINGS);
+    fixture.detectChanges();
+  };
+
+  it('should render None radio button selected and not render featured banner elements', async () => {
+    getSettings();
+    await componentHarness.disableBanner();
+    fixture.detectChanges();
+
+    const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    const request = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+    });
+
+    request.flush({});
+    expect(request.request.body).toEqual({
+      ...PORTAL_SETTINGS,
+      portalNext: {
+        ...PORTAL_SETTINGS.portalNext,
+        banner: {
+          ...PORTAL_SETTINGS.portalNext.banner,
+          enabled: false,
+        },
+      },
+    });
+    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush({});
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+      })
+      .flush(PORTAL_SETTINGS);
+  });
+
+  it('should render Featured banner radio button selected and render featured banner elements', async () => {
+    const testTitle = 'Test Title';
+    const testSubtitle = 'Test Subtitle';
+
+    getSettings();
+    await componentHarness.enableBanner();
+    fixture.detectChanges();
+
+    await componentHarness.setTitle(testTitle);
+    await componentHarness.setSubtitle(testSubtitle);
+
+    const title = await componentHarness.getTitle();
+    const subtitle = await componentHarness.getSubtitle();
+
+    expect(title).toBe(testTitle);
+    expect(subtitle).toBe(testSubtitle);
+
+    const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    const request = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+    });
+
+    request.flush({});
+    expect(request.request.body).toEqual({
+      ...PORTAL_SETTINGS,
+      portalNext: {
+        ...PORTAL_SETTINGS.portalNext,
+        banner: {
+          enabled: true,
+          title: testTitle,
+          subtitle: testSubtitle,
+        },
+      },
+    });
+    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush({});
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+      })
+      .flush(PORTAL_SETTINGS);
   });
 });

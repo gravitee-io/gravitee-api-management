@@ -17,26 +17,46 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
+import { BannerRadioButtonHarness } from '../../components/banner-radio-button/banner-radio-button.harness';
+
 export class PortalBannerHarness extends ComponentHarness {
   static readonly hostSelector = 'portal-banner';
 
-  private getNameInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName=name]' }));
+  private getTitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName=titleText]' }));
+  private getSubtitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName=subTitleText]' }));
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
+  private locateBannerRadio = (title: string) => this.locatorFor(BannerRadioButtonHarness.with({ title }))();
 
-  public async setName(name: string) {
-    return this.getNameInput().then((input) => input.setValue(name));
+  public async setTitle(title: string) {
+    return this.getTitleInput().then((input) => input.setValue(title));
   }
 
-  public async getName() {
-    return this.getNameInput().then((input) => input.getValue());
+  public async getTitle() {
+    return this.getTitleInput().then((input) => input.getValue());
+  }
+
+  public async setSubtitle(subtitle: string) {
+    return this.getSubtitleInput().then((input) => input.setValue(subtitle));
+  }
+
+  public async getSubtitle() {
+    return this.getSubtitleInput().then((input) => input.getValue());
+  }
+
+  public async enableBanner(): Promise<void> {
+    return await this.locateBannerRadio('Featured banner')
+      .then((bannerRadio) => bannerRadio.getRadioButton())
+      .then((radio) => radio.check());
+  }
+
+  public async disableBanner(): Promise<void> {
+    return await this.locateBannerRadio('None')
+      .then((bannerRadio) => bannerRadio.getRadioButton())
+      .then((radio) => radio.check());
   }
 
   public async submit() {
     return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
-  }
-
-  public async isSubmitInvalid() {
-    return this.getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid());
   }
 
   public reset() {

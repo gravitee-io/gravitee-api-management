@@ -4750,14 +4750,24 @@ components:
         siteTitle:
           description: Title to display in the navigation menu
           type: string
-        bannerTitle:
-          description: Title to display on the homepage banner.
-          type: string
-        bannerSubtitle:
-          description: Subtitle to display on the homepage banner.
-          type: string
+        banner:
+          $ref: '#/components/schemas/ConfigurationPortalNextBanner'
+
         access:
           $ref: '#/components/schemas/Enabled'
+    ConfigurationPortalNextBanner:
+      type: object
+      description: Configuration of the banner for Portal Next
+      properties:
+        enabled:
+          description: Portal next is enabled
+          type: boolean
+        title:
+          description: Title to display on the homepage banner.
+          type: string
+        subtitle:
+          description: Subtitle to display on the homepage banner.
+          type: string
     ConfigurationPortalApis:
       properties:
         tilesMode:
