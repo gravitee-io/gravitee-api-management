@@ -126,4 +126,18 @@ public class SharedPolicyGroup {
     public boolean hasName() {
         return this.name != null && !this.name.isEmpty();
     }
+
+    public boolean hasValidPhase() {
+        if (this.apiType == ApiType.PROXY) {
+            return this.phase == PolicyPlugin.ExecutionPhase.REQUEST || this.phase == PolicyPlugin.ExecutionPhase.RESPONSE;
+        } else if (this.apiType == ApiType.MESSAGE) {
+            return (
+                this.phase == PolicyPlugin.ExecutionPhase.REQUEST ||
+                this.phase == PolicyPlugin.ExecutionPhase.RESPONSE ||
+                this.phase == PolicyPlugin.ExecutionPhase.MESSAGE_REQUEST ||
+                this.phase == PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE
+            );
+        }
+        return false;
+    }
 }
