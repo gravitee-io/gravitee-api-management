@@ -23,6 +23,7 @@ export function fakeApi(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api 
     id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
     name: '\uD83E\uDE90 Planets',
     version: '1.0',
+    definitionVersion: 'V4',
     description: 'The whole universe in your hand.',
     _public: true,
     running: true,
