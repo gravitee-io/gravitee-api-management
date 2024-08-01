@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactory;
+import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactoryManager;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SharedPolicyGroupRegistry {
 
-    private final SharedPolicyGroupReactorFactory sharedPolicyGroupReactorFactory;
+    private final SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager;
 
     @VisibleForTesting
     protected final Map<SharedPolicyGroupRegistryKey, SharedPolicyGroupReactor> registry = new HashMap<>();
@@ -39,7 +40,7 @@ public class SharedPolicyGroupRegistry {
 
     public void create(ReactableSharedPolicyGroup reactable) {
         try {
-            final SharedPolicyGroupReactor sharedPolicyGroupReactor = sharedPolicyGroupReactorFactory.create(reactable);
+            final SharedPolicyGroupReactor sharedPolicyGroupReactor = sharedPolicyGroupReactorFactoryManager.create(reactable);
             sharedPolicyGroupReactor.start();
             final SharedPolicyGroupReactor previousReactor = registry.put(
                 new SharedPolicyGroupRegistryKey(reactable.getId(), reactable.getEnvironmentId()),
