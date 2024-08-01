@@ -40,6 +40,7 @@ export interface Theme {
   };
   _links?: {
     logo?: string;
+    favicon?: string;
   };
 }
 
@@ -65,6 +66,7 @@ export const addPropertyToDocument = (propertyName: string, value?: string) => {
 })
 export class ThemeService {
   logo = signal('assets/images/logo.png');
+  favicon = signal('assets/images/favicon.png');
 
   constructor(
     private readonly http: HttpClient,
@@ -93,6 +95,9 @@ export class ThemeService {
       tap(({ _links }) => {
         if (_links?.logo) {
           this.logo.set(_links.logo);
+        }
+        if (_links?.favicon) {
+          this.favicon.set(_links.favicon);
         }
       }),
       catchError(_ => of({})),
