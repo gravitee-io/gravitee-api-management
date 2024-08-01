@@ -27,7 +27,7 @@
     <app-api-access [planSecurity]="plan.security" [entrypointUrl]="api.entrypoints[0]" />
   } @else {
     <div class="subscribe-to-api-checkout__container__right-column">
-      @if (showApiKeyModeSelection) {
+      @if (showApiKeyModeSelection()) {
         <mat-card appearance="outlined">
           <mat-card-content class="subscribe-to-api-checkout__container__api-key-mode">
             <div>
