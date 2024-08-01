@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.common.http.MediaType;
@@ -32,6 +33,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
@@ -53,6 +55,9 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @Inject
     private UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase;
+
+    @Inject
+    private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,5 +108,30 @@ public class SharedPolicyGroupResource extends AbstractResource {
             .ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
             .build();
+    }
+
+    @DELETE
+    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
+    public Response deleteSharedPolicyGroup() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroupId, audit));
+
+        return Response.noContent().build();
     }
 }
