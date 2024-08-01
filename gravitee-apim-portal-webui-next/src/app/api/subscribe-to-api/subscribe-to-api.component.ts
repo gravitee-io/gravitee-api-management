@@ -42,6 +42,7 @@ import { CreateSubscription, Subscription } from '../../../entities/subscription
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
 import { ApiService } from '../../../services/api.service';
 import { ApplicationService } from '../../../services/application.service';
+import { ConfigService } from '../../../services/config.service';
 import { PageService } from '../../../services/page.service';
 import { PlanService } from '../../../services/plan.service';
 import { SubscriptionService } from '../../../services/subscription.service';
@@ -116,6 +117,7 @@ export class SubscribeToApiComponent implements OnInit {
 
   private currentApplicationsPage: BehaviorSubject<number> = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
+  private configuration = inject(ConfigService).configuration;
 
   constructor(
     private planService: PlanService,
@@ -144,7 +146,11 @@ export class SubscribeToApiComponent implements OnInit {
     this.checkoutData$ = this.api$.pipe(
       switchMap(api => this.handleCheckoutData$(api)),
       tap(({ api, applicationApiKeySubscriptions }) => {
-        this.showApiKeyModeSelection.set(api.definitionVersion !== 'FEDERATED' && applicationApiKeySubscriptions.length === 1);
+        this.showApiKeyModeSelection.set(
+          this.configuration.plan?.security?.sharedApiKey?.enabled === true &&
+            api.definitionVersion !== 'FEDERATED' &&
+            applicationApiKeySubscriptions.length === 1,
+        );
       }),
     );
   }
