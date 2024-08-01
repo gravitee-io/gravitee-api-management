@@ -413,25 +413,23 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {
-        DictionaryEntity dictionaryEntity = new DictionaryEntity();
-
-        dictionaryEntity.setId(dictionary.getId());
-        dictionaryEntity.setName(dictionary.getName());
-        dictionaryEntity.setDescription((dictionary.getDescription()));
-        dictionaryEntity.setCreatedAt(dictionary.getCreatedAt());
-        dictionaryEntity.setUpdatedAt(dictionary.getUpdatedAt());
-        dictionaryEntity.setDeployedAt(dictionary.getDeployedAt());
-        dictionaryEntity.setType(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.valueOf(dictionary.getType().name()));
-        dictionaryEntity.setProperties(dictionary.getProperties());
+        DictionaryEntity.DictionaryEntityBuilder dictionaryEntityBuilder = DictionaryEntity
+            .builder()
+            .id(dictionary.getId())
+            .name(dictionary.getName())
+            .description(dictionary.getDescription())
+            .createdAt(dictionary.getCreatedAt())
+            .updatedAt(dictionary.getUpdatedAt())
+            .deployedAt(dictionary.getDeployedAt())
+            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.valueOf(dictionary.getType().name()))
+            .properties(dictionary.getProperties())
+            .state(Lifecycle.State.valueOf(dictionary.getState().name()));
 
         if (dictionary.getType() == DictionaryType.DYNAMIC) {
-            dictionaryEntity.setProvider(convert(dictionary.getProvider()));
-            dictionaryEntity.setTrigger(convert(dictionary.getTrigger()));
+            dictionaryEntityBuilder.provider(convert(dictionary.getProvider())).trigger(convert(dictionary.getTrigger()));
         }
 
-        dictionaryEntity.setState(Lifecycle.State.valueOf(dictionary.getState().name()));
-
-        return dictionaryEntity;
+        return dictionaryEntityBuilder.build();
     }
 
     private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity) {
