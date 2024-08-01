@@ -1,0 +1,23 @@
+{
+  "id": "spg-message-request",
+  "name": "spg-message-request",
+  "environmentId": "DEFAULT",
+  "version": "1",
+  "phase": "MESSAGE_REQUEST",
+  "policies": [
+    {
+      "name": "Transform headers Dev",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "configuration": {
+        "addHeaders": [
+          {
+            "name": "X-Request-Header-Dev-0",
+            "value": "Header Dev 0"
+          }
+        ]
+      }
+    }
+  ]
+}
