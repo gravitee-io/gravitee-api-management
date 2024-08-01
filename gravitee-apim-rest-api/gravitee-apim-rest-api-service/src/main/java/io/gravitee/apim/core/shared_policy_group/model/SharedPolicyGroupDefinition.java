@@ -33,8 +33,4 @@ public class SharedPolicyGroupDefinition {
      * The shared policy group steps
      */
     private List<Step> steps;
-    /**
-     * The shared policy group phase
-     */
-    private PolicyPlugin.ExecutionPhase phase;
 }

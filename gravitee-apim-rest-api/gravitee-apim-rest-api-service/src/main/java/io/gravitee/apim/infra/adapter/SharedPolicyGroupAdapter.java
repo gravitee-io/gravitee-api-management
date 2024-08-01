@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.json.JsonDeserializer;
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupDefinition;
 import java.io.IOException;
@@ -57,7 +58,6 @@ public abstract class SharedPolicyGroupAdapter {
         try {
             var sharedPolicyGroupDefinition = GraviteeJacksonMapper.getInstance().readValue(definition, SharedPolicyGroupDefinition.class);
             result.setSteps(sharedPolicyGroupDefinition.getSteps());
-            result.setPhase(sharedPolicyGroupDefinition.getPhase());
         } catch (IOException ioe) {
             LOGGER.error("Unexpected error while deserializing SharedPolicyGroup definition with id:" + result.getId(), ioe);
         }
@@ -70,11 +70,7 @@ public abstract class SharedPolicyGroupAdapter {
         }
 
         try {
-            var sharedPolicyGroupDefinition = SharedPolicyGroupDefinition
-                .builder()
-                .steps(sharedPolicyGroupEntity.getSteps())
-                .phase(sharedPolicyGroupEntity.getPhase())
-                .build();
+            var sharedPolicyGroupDefinition = SharedPolicyGroupDefinition.builder().steps(sharedPolicyGroupEntity.getSteps()).build();
 
             return GraviteeJacksonMapper.getInstance().writeValueAsString(sharedPolicyGroupDefinition);
         } catch (IOException ioe) {
