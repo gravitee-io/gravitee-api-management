@@ -58,7 +58,7 @@ interface ApplicationsData {
 
 interface CheckoutData {
   api: Api;
-  sharedApiKeyModeDisabled: boolean;
+  applicationApiKeySubscriptions: Subscription[];
 }
 
 @Component({
@@ -142,9 +142,9 @@ export class SubscribeToApiComponent implements OnInit {
     );
 
     this.checkoutData$ = this.api$.pipe(
-      combineLatestWith(this.handleSharedApiKeyModeDisabled$()),
-      map(([api, sharedApiKeyModeDisabled]) => {
-        return { api, sharedApiKeyModeDisabled };
+      switchMap(api => this.handleCheckoutData$(api)),
+      tap(({ api, applicationApiKeySubscriptions }) => {
+        this.showApiKeyModeSelection.set(api.definitionVersion !== 'FEDERATED' && applicationApiKeySubscriptions.length === 1);
       }),
     );
   }
@@ -309,7 +309,10 @@ export class SubscribeToApiComponent implements OnInit {
     );
   }
 
-  private handleSharedApiKeyModeDisabled$(): Observable<boolean> {
+  private handleCheckoutData$(api: Api): Observable<CheckoutData> {
+    if (api.definitionVersion === 'FEDERATED') {
+      return of({ api, applicationApiKeySubscriptions: [] });
+    }
     return this.currentApplication$.pipe(
       switchMap(app => {
         if (!!app?.id && this.currentPlan()?.security === 'API_KEY' && app.api_key_mode !== 'EXCLUSIVE' && app.api_key_mode !== 'SHARED') {
@@ -324,14 +327,11 @@ export class SubscribeToApiComponent implements OnInit {
       }),
       map(response => {
         if (!response) {
-          this.showApiKeyModeSelection.set(false);
-          return false;
+          return { api, applicationApiKeySubscriptions: [] };
         }
 
-        const existingApiKeySubscriptions = response.data.filter(s => response.metadata[s.plan]?.securityType === 'API_KEY');
-        this.showApiKeyModeSelection.set(existingApiKeySubscriptions.length === 1);
-
-        return existingApiKeySubscriptions.length === 1 && existingApiKeySubscriptions[0].api === this.apiId;
+        const applicationApiKeySubscriptions = response.data.filter(s => response.metadata[s.plan]?.securityType === 'API_KEY');
+        return { api, applicationApiKeySubscriptions };
       }),
     );
   }
