@@ -24,7 +24,7 @@ export class SharedPolicyGroupsHarness extends ComponentHarness {
   static readonly hostSelector = 'shared-policy-groups';
 
   public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add Shared Policy Group/ }));
-  public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Shared policy group"]' }));
+  public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Shared Policy Group"]' }));
   public getTableWrapper = this.locatorFor(GioTableWrapperHarness);
 
   public async getDeleteButton(index: number) {

@@ -23,8 +23,13 @@ import { SharedPolicyGroupsComponent } from './shared-policy-groups.component';
 import { SharedPolicyGroupsHarness } from './shared-policy-groups.harness';
 import { SharedPolicyGroupsAddEditDialogHarness } from './shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.harness';
 
-import { GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import {
+  expectCreateSharedPolicyGroupRequest,
+  expectListSharedPolicyGroupsRequest,
+} from '../../../services-ngx/shared-policy-groups.service.spec';
+import { fakeCreateSharedPolicyGroup } from '../../../entities/management-api-v2';
 
 describe('SharedPolicyGroupsComponent', () => {
   let fixture: ComponentFixture<SharedPolicyGroupsComponent>;
@@ -62,12 +67,11 @@ describe('SharedPolicyGroupsComponent', () => {
   it('should display resources table', async () => {
     const table = await componentHarness.getTable();
 
-    // TODO: When the API is available
-    // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
-    // expectListSharedPolicyGroupsGetRequest();
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    expectListSharedPolicyGroupsRequest(httpTestingController);
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Search env flowSearch query: , sortBy: undefined, page: 1, perPage: 25', 'REQUEST', expect.any(String), expect.any(String), ''],
+      ['Shared policy group', 'PROXY', 'REQUEST', expect.any(String), expect.any(String), ''],
     ]);
   });
 
@@ -75,18 +79,18 @@ describe('SharedPolicyGroupsComponent', () => {
     const table = await componentHarness.getTable();
     const getTableWrapper = await componentHarness.getTableWrapper();
 
-    // TODO: When the API is available
-    // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
-    // expectListSharedPolicyGroupsGetRequest();
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    expectListSharedPolicyGroupsRequest(httpTestingController);
 
     await getTableWrapper.setSearchValue('test');
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
 
-    // TODO: When the API is available
-    // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
-    // expectListSharedPolicyGroupsGetRequest();
+    // ExpectOne canceled before only when testing
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups?page=1&perPage=25`);
+    expectListSharedPolicyGroupsRequest(httpTestingController, undefined, '?page=1&perPage=25&q=test');
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Search env flowSearch query: test, sortBy: undefined, page: 1, perPage: 25', 'REQUEST', expect.any(String), expect.any(String), ''],
+      ['Shared policy group', 'PROXY', 'REQUEST', expect.any(String), expect.any(String), ''],
     ]);
   });
 
@@ -98,10 +102,13 @@ describe('SharedPolicyGroupsComponent', () => {
 
     await addDialog.setName('test');
     await addDialog.setDescription('test');
-    await addDialog.setPhase('test');
+    await addDialog.setPhase('RESPONSE');
     await addDialog.save();
 
-    // TODO: When the API is available
-    // expectCreateSharedPolicyGroupPostRequest();
+    expectCreateSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeCreateSharedPolicyGroup({ name: 'test', description: 'test', phase: 'RESPONSE' }),
+    );
+    expectListSharedPolicyGroupsRequest(httpTestingController);
   });
 });

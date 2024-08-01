@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { uniqueId } from 'lodash';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -24,8 +23,6 @@ import {
   UpdateSharedPolicyGroup,
   SharedPolicyGroup,
   SharedPolicyGroupsSortByParam,
-  fakeSharedPolicyGroup,
-  fakePagedResult,
   PagedResult,
 } from '../entities/management-api-v2';
 
@@ -33,66 +30,40 @@ import {
   providedIn: 'root',
 })
 export class SharedPolicyGroupsService {
-  public sharedPolicyGroups$ = new BehaviorSubject<PagedResult<SharedPolicyGroup>>(
-    fakePagedResult([
-      fakeSharedPolicyGroup({
-        id: 'SEARCH_SPG',
-        name: 'Search env flow',
-        phase: 'REQUEST',
-      }),
-    ]),
-  );
-
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  list(searchQuery?: string, sortBy?: SharedPolicyGroupsSortByParam, page = 1, perPage = 10): Observable<PagedResult<SharedPolicyGroup>> {
-    // TODO: implement this method when endpoint is available
+  list(searchQuery?: string, sortBy?: SharedPolicyGroupsSortByParam, page = 1, perPage = 25): Observable<PagedResult<SharedPolicyGroup>> {
+    let params = new HttpParams();
+    params = params.append('page', page);
+    params = params.append('perPage', perPage);
+    if (searchQuery) {
+      params = params.append('q', searchQuery);
+    }
+    if (sortBy) {
+      params = params.append('sortBy', sortBy);
+    }
 
-    this.sharedPolicyGroups$.next(
-      fakePagedResult(
-        this.sharedPolicyGroups$.value.data.map((flow) => {
-          if (flow.id === 'SEARCH_SPG') {
-            return {
-              ...flow,
-              description: `Search query: ${searchQuery}, sortBy: ${sortBy}, page: ${page}, perPage: ${perPage}`,
-            };
-          }
-          return flow;
-        }),
-      ),
-    );
-
-    return this.sharedPolicyGroups$;
+    return this.http.get<PagedResult<SharedPolicyGroup>>(`${this.constants.env.v2BaseURL}/shared-policy-groups`, {
+      params,
+    });
   }
 
   get(id: string): Observable<SharedPolicyGroup> {
-    return of(this.sharedPolicyGroups$.value.data.find((flow) => flow.id === id));
+    return this.http.get<SharedPolicyGroup>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}`);
   }
 
   create(createSharedPolicyGroup: CreateSharedPolicyGroup): Observable<SharedPolicyGroup> {
-    const sharedPolicyGroupToCreate = fakeSharedPolicyGroup({
-      id: uniqueId(),
-      name: createSharedPolicyGroup.name,
-      description: createSharedPolicyGroup.description,
-      phase: createSharedPolicyGroup.phase,
-    });
-    this.sharedPolicyGroups$.next(fakePagedResult([...this.sharedPolicyGroups$.value.data, sharedPolicyGroupToCreate]));
-    return of(sharedPolicyGroupToCreate);
+    return this.http.post<SharedPolicyGroup>(`${this.constants.env.v2BaseURL}/shared-policy-groups`, createSharedPolicyGroup);
   }
 
   update(id: string, updateSharedPolicyGroup: UpdateSharedPolicyGroup): Observable<SharedPolicyGroup> {
-    const sharedPolicyGroupToUpdate = this.sharedPolicyGroups$.value.data.find((spg) => spg.id === id);
-    const updatedSharedPolicyGroup = {
-      ...sharedPolicyGroupToUpdate,
-      name: updateSharedPolicyGroup.name,
-      description: updateSharedPolicyGroup.description,
-    };
-    this.sharedPolicyGroups$.next(
-      fakePagedResult(this.sharedPolicyGroups$.value.data.map((spg) => (spg.id === id ? updatedSharedPolicyGroup : spg))),
-    );
-    return of(updatedSharedPolicyGroup);
+    return this.http.put<SharedPolicyGroup>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}`, updateSharedPolicyGroup);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}`);
   }
 }

@@ -29,13 +29,15 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import {
   fakeSharedPolicyGroup,
-  fakePagedResult,
   fakePoliciesPlugin,
   fakePolicyPlugin,
-  UpdateSharedPolicyGroup,
+  fakeUpdateSharedPolicyGroup,
 } from '../../../../entities/management-api-v2';
-import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { SharedPolicyGroupsAddEditDialogHarness } from '../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.harness';
+import {
+  expectGetSharedPolicyGroupRequest,
+  expectUpdateSharedPolicyGroupRequest,
+} from '../../../../services-ngx/shared-policy-groups.service.spec';
 
 describe('SharedPolicyGroupsStudioComponent', () => {
   const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
@@ -66,21 +68,21 @@ describe('SharedPolicyGroupsStudioComponent', () => {
       ],
     }).compileComponents();
 
-    // TODO: Remove when the API is available
-    const sharedPolicyGroupsService = TestBed.inject(SharedPolicyGroupsService);
-    sharedPolicyGroupsService.sharedPolicyGroups$.next(
-      fakePagedResult([
-        fakeSharedPolicyGroup({
-          id: SHARED_POLICY_GROUP_ID,
-          phase: 'REQUEST',
-        }),
-      ]),
-    );
-
     fixture = TestBed.createComponent(SharedPolicyGroupsStudioComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupsStudioHarness);
+    fixture.detectChanges();
+    expectGetSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeSharedPolicyGroup({
+        id: SHARED_POLICY_GROUP_ID,
+        name: 'Shared Policy Group',
+        description: '',
+        steps: [],
+      }),
+    );
     fixture.detectChanges();
     expectGetPolicies();
   });
@@ -111,7 +113,7 @@ describe('SharedPolicyGroupsStudioComponent', () => {
     fixture.detectChanges();
     const addDialog = await rootLoader.getHarness(SharedPolicyGroupsAddEditDialogHarness);
 
-    expect(await addDialog.getName()).toEqual('Shared policy group');
+    expect(await addDialog.getName()).toEqual('Shared Policy Group');
     expect(await addDialog.getDescription()).toEqual('');
     expect(await addDialog.getPhase()).toEqual('REQUEST');
 
@@ -119,10 +121,24 @@ describe('SharedPolicyGroupsStudioComponent', () => {
     await addDialog.setDescription('New description');
     await addDialog.save();
 
-    expectUpdateSharedPolicyGroupPostRequest(SHARED_POLICY_GROUP_ID, {
-      name: 'New name',
-      description: 'New description',
-    });
+    expectUpdateSharedPolicyGroupRequest(
+      httpTestingController,
+      SHARED_POLICY_GROUP_ID,
+      fakeUpdateSharedPolicyGroup({
+        name: 'New name',
+        description: 'New description',
+      }),
+    );
+
+    expectGetSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeSharedPolicyGroup({
+        id: SHARED_POLICY_GROUP_ID,
+        name: 'Shared Policy Group',
+        description: '',
+        steps: [],
+      }),
+    );
   });
 
   it('should add policy to phase', async () => {
@@ -141,19 +157,36 @@ describe('SharedPolicyGroupsStudioComponent', () => {
       },
     });
 
-    expectUpdateSharedPolicyGroupPostRequest(SHARED_POLICY_GROUP_ID, {
-      name: 'Shared policy group',
-      steps: [
-        {
-          policy: 'test-policy',
-          name: 'Test policy',
-          description: 'What does the 🦊 say?',
-          condition: undefined,
-          configuration: undefined,
-          enabled: true,
-        },
-      ],
-    });
+    await componentHarness.save();
+
+    expectUpdateSharedPolicyGroupRequest(
+      httpTestingController,
+      SHARED_POLICY_GROUP_ID,
+      fakeUpdateSharedPolicyGroup({
+        name: 'Shared Policy Group',
+        description: '',
+        steps: [
+          {
+            policy: 'test-policy',
+            name: 'Test policy',
+            description: 'What does the 🦊 say?',
+            condition: undefined,
+            configuration: undefined,
+            enabled: true,
+          },
+        ],
+      }),
+    );
+
+    expectGetSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeSharedPolicyGroup({
+        id: SHARED_POLICY_GROUP_ID,
+        name: 'Shared Policy Group',
+        description: '',
+        steps: [],
+      }),
+    );
   });
 
   function expectGetPolicies() {
@@ -163,13 +196,5 @@ describe('SharedPolicyGroupsStudioComponent', () => {
         method: 'GET',
       })
       .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
-  }
-
-  function expectUpdateSharedPolicyGroupPostRequest(id: string, updateEnvironmentFlow: UpdateSharedPolicyGroup) {
-    // TODO: When the API is available
-    const sharedPolicyGroupsService = TestBed.inject(SharedPolicyGroupsService);
-    const sharedPolicyGroup = sharedPolicyGroupsService.sharedPolicyGroups$.value.data.find((spg) => spg.id === id);
-
-    expect(sharedPolicyGroup).toStrictEqual(expect.objectContaining(updateEnvironmentFlow));
   }
 });

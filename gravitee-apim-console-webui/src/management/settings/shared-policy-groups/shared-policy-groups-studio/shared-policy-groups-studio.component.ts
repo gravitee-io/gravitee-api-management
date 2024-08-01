@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, switchMap } from 'rxjs';
@@ -41,6 +41,7 @@ import {
 } from '../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.component';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { removeSharedPolicyGroup } from '../shared-policy-groups.component';
 
 @Component({
   selector: 'shared-policy-groups-studio',
@@ -64,6 +65,7 @@ export class SharedPolicyGroupsStudioComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly permissionService = inject(GioPermissionService);
   private readonly policyV2Service = inject(PolicyV2Service);
   private readonly iconService = inject(IconService);
@@ -111,17 +113,13 @@ export class SharedPolicyGroupsStudioComponent {
       )
       .subscribe({
         next: () => {
-          this.snackBarService.success('Shared policy group updated');
+          this.snackBarService.success('Shared Policy Group updated');
           this.refresh$.next();
         },
         error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Error during shared policy group update!');
+          this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group update!');
         },
       });
-  }
-
-  public onDelete(): void {
-    // TODO
   }
 
   public onDeploy(): void {
@@ -142,13 +140,13 @@ export class SharedPolicyGroupsStudioComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.snackBarService.success('Shared policy group updated');
+          this.snackBarService.success('Shared Policy Group updated');
           this.refresh$.next();
           this.enableDeployButton = true;
         },
         error: (error) => {
           this.enableSaveButton = true;
-          this.snackBarService.error(error?.error?.message ?? 'Error during shared policy group update!');
+          this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group update!');
         },
       });
   }
@@ -156,5 +154,17 @@ export class SharedPolicyGroupsStudioComponent {
   public onStudioChange(steps: any): void {
     this.sharedPolicyGroup().steps = steps;
     this.enableSaveButton = true;
+  }
+
+  protected onDelete() {
+    removeSharedPolicyGroup(
+      this.matDialog,
+      this.snackBarService,
+      this.sharedPolicyGroupsService,
+      this.activatedRoute.snapshot.params.sharedPolicyGroupId,
+      () => {
+        this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
+      },
+    );
   }
 }

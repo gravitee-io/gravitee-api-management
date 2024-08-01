@@ -18,8 +18,17 @@ import { TestBed } from '@angular/core/testing';
 
 import { SharedPolicyGroupsService } from './shared-policy-groups.service';
 
-import { GioTestingModule } from '../shared/testing';
-import { fakeCreateSharedPolicyGroup, fakeUpdateSharedPolicyGroup } from '../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
+import {
+  CreateSharedPolicyGroup,
+  fakeCreateSharedPolicyGroup,
+  fakePagedResult,
+  fakeSharedPolicyGroup,
+  fakeUpdateSharedPolicyGroup,
+  PagedResult,
+  SharedPolicyGroup,
+  UpdateSharedPolicyGroup,
+} from '../entities/management-api-v2';
 
 describe('SharedPolicyGroupsService', () => {
   let httpTestingController: HttpTestingController;
@@ -44,6 +53,8 @@ describe('SharedPolicyGroupsService', () => {
         expect(SPGs.data.length).toEqual(1);
         done();
       });
+
+      expectListSharedPolicyGroupsRequest(httpTestingController, fakePagedResult([fakeSharedPolicyGroup()]));
     });
   });
 
@@ -53,24 +64,87 @@ describe('SharedPolicyGroupsService', () => {
         expect(spg).toBeTruthy();
         done();
       });
+
+      expectCreateSharedPolicyGroupRequest(httpTestingController, fakeCreateSharedPolicyGroup());
     });
   });
 
   describe('get', () => {
     it('should call the API', (done) => {
-      service.get('SEARCH_SPG').subscribe((spg) => {
+      service.get(fakeSharedPolicyGroup().id).subscribe((spg) => {
         expect(spg).toBeTruthy();
         done();
       });
+
+      expectGetSharedPolicyGroupRequest(httpTestingController, fakeSharedPolicyGroup());
     });
   });
 
   describe('update', () => {
     it('should call the API', (done) => {
-      service.update('SEARCH_SPG', fakeUpdateSharedPolicyGroup()).subscribe((spg) => {
+      service.update('spgId', fakeUpdateSharedPolicyGroup()).subscribe((spg) => {
         expect(spg).toBeTruthy();
         done();
       });
+
+      expectUpdateSharedPolicyGroupRequest(httpTestingController, 'spgId', fakeUpdateSharedPolicyGroup());
+    });
+  });
+
+  describe('delete', () => {
+    it('should call the API', (done) => {
+      service.delete('spgId').subscribe(() => {
+        done();
+      });
+      expectDeleteSharedPolicyGroupRequest(httpTestingController, 'spgId');
     });
   });
 });
+
+export const expectListSharedPolicyGroupsRequest = (
+  httpTestingController: HttpTestingController,
+  sharedPolicyGroups: PagedResult<SharedPolicyGroup> = fakePagedResult([fakeSharedPolicyGroup()]),
+  queryParams: string = '?page=1&perPage=25',
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups${queryParams}`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(sharedPolicyGroups);
+};
+
+export const expectGetSharedPolicyGroupRequest = (
+  httpTestingController: HttpTestingController,
+  sharedPolicyGroup: SharedPolicyGroup = fakeSharedPolicyGroup(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/${sharedPolicyGroup.id}`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(sharedPolicyGroup);
+};
+
+export const expectCreateSharedPolicyGroupRequest = (
+  httpTestingController: HttpTestingController,
+  expectedCreateSharedPolicyGroup: CreateSharedPolicyGroup,
+  sharedPolicyGroupCreated: SharedPolicyGroup = fakeSharedPolicyGroup(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups`);
+  expect(req.request.method).toEqual('POST');
+  expect(req.request.body).toStrictEqual(expectedCreateSharedPolicyGroup);
+  req.flush(sharedPolicyGroupCreated);
+};
+
+export const expectUpdateSharedPolicyGroupRequest = (
+  httpTestingController: HttpTestingController,
+  sharedPolicyGroupId: string,
+  expectedUpdateSharedPolicyGroup: UpdateSharedPolicyGroup,
+  sharedPolicyGroupUpdated: SharedPolicyGroup = fakeSharedPolicyGroup(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/${sharedPolicyGroupId}`);
+  expect(req.request.method).toEqual('PUT');
+  expect(req.request.body).toStrictEqual(expectedUpdateSharedPolicyGroup);
+  req.flush(sharedPolicyGroupUpdated);
+};
+
+export const expectDeleteSharedPolicyGroupRequest = (httpTestingController: HttpTestingController, sharedPolicyGroupId: string) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/${sharedPolicyGroupId}`);
+  expect(req.request.method).toEqual('DELETE');
+  req.flush({});
+};

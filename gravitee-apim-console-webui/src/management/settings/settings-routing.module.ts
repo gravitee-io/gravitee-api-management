@@ -249,12 +249,12 @@ export const settingsRoutes: Routes = [
           },
           permissions: {
             anyOf: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
-            unauthorizedFallbackTo: '../environment-flows',
+            unauthorizedFallbackTo: '../shared-policy-groups',
           },
         },
       },
       {
-        path: 'environment-flows',
+        path: 'shared-policy-groups',
         component: SharedPolicyGroupsComponent,
         data: {
           permissions: {
@@ -264,7 +264,7 @@ export const settingsRoutes: Routes = [
         },
       },
       {
-        path: 'environment-flows/:environmentFlowId/studio',
+        path: 'shared-policy-groups/:sharedPolicyGroupId/studio',
         component: SharedPolicyGroupsStudioComponent,
         data: {
           permissions: {

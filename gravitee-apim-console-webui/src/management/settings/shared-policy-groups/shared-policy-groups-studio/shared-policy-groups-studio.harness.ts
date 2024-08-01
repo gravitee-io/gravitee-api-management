@@ -22,10 +22,17 @@ export class SharedPolicyGroupsStudioHarness extends ComponentHarness {
 
   public getEditButton = this.locatorFor(MatButtonHarness.with({ text: /edit/ }));
 
+  public getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/ }));
+
   public getPolicyGroupStudio = this.locatorFor(GioPolicyGroupStudioHarness);
 
   public async clickEditButton() {
     const editButton = await this.getEditButton();
     await editButton.click();
+  }
+
+  public async save() {
+    const saveButton = await this.getSaveButton();
+    await saveButton.click();
   }
 }
