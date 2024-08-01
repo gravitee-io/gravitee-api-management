@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.settings.PortalApplicationSettings;
 import io.gravitee.rest.api.model.settings.PortalNext;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,9 +50,18 @@ public class ConfigurationMapper {
     ConfigurationPortalNext convert(PortalNext portalNext) {
         ConfigurationPortalNext configuration = new ConfigurationPortalNext();
         configuration.setSiteTitle(portalNext.getSiteTitle());
-        configuration.setBannerTitle(portalNext.getBannerTitle());
-        configuration.setBannerSubtitle(portalNext.getBannerSubtitle());
         configuration.setAccess(convert(portalNext.getAccess()));
+        configuration.setBanner(convert(portalNext.getBanner()));
+        return configuration;
+    }
+
+    private ConfigurationPortalNextBanner convert(PortalNext.Banner banner) {
+        ConfigurationPortalNextBanner configuration = new ConfigurationPortalNextBanner();
+        if (!Objects.isNull(banner)) {
+            configuration.setEnabled(banner.getEnabled());
+            configuration.setTitle(banner.getTitle());
+            configuration.setSubtitle(banner.getSubtitle());
+        }
         return configuration;
     }
 

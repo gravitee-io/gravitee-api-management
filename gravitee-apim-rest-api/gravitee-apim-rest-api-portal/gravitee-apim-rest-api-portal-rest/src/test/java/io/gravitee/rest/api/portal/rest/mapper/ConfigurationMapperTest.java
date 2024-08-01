@@ -53,6 +53,7 @@ public class ConfigurationMapperTest {
     @MethodSource("provideParameters")
     public void convertPortalNextShouldReturnConfigurationPortalNextWithCorrectValues(
         String siteTitle,
+        Boolean bannerEnabled,
         String bannerTitle,
         String bannerSubtitle,
         Boolean inputEnabled,
@@ -60,23 +61,28 @@ public class ConfigurationMapperTest {
     ) {
         PortalNext portalNext = new PortalNext();
         portalNext.setSiteTitle(siteTitle);
-        portalNext.setBannerTitle(bannerTitle);
-        portalNext.setBannerSubtitle(bannerSubtitle);
+        var banner = new PortalNext.Banner();
+        banner.setEnabled(bannerEnabled);
+        banner.setTitle(bannerTitle);
+        banner.setSubtitle(bannerSubtitle);
+        portalNext.setBanner(banner);
         portalNext.setAccess(new Enabled(inputEnabled));
 
         ConfigurationPortalNext configurationPortalNext = configurationMapper.convert(portalNext);
 
         Assertions.assertEquals(siteTitle, configurationPortalNext.getSiteTitle());
-        Assertions.assertEquals(bannerTitle, configurationPortalNext.getBannerTitle());
-        Assertions.assertEquals(bannerSubtitle, configurationPortalNext.getBannerSubtitle());
+        Assertions.assertNotNull(configurationPortalNext.getBanner());
+        Assertions.assertEquals(bannerTitle, configurationPortalNext.getBanner().getTitle());
+        Assertions.assertEquals(bannerSubtitle, configurationPortalNext.getBanner().getSubtitle());
+        Assertions.assertEquals(bannerEnabled, configurationPortalNext.getBanner().getEnabled());
         Assertions.assertNotNull(configurationPortalNext.getAccess());
         Assertions.assertEquals(expectedEnabled, configurationPortalNext.getAccess().getEnabled());
     }
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("Test Site Title", "Test Banner Title", "Test Banner Subtitle", true, true),
-            Arguments.of("Test Site Title", "Test Banner Title", "Test Banner Subtitle", false, false)
+            Arguments.of("Test Site Title", true, "Test Banner Title", "Test Banner Subtitle", true, true),
+            Arguments.of("Test Site Title", false, "Test Banner Title", "Test Banner Subtitle", false, false)
         );
     }
 

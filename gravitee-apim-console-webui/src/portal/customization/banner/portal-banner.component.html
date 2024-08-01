@@ -15,21 +15,88 @@
     limitations under the License.
 
 -->
-<mat-card class="developer-portal-banner">
-  <mat-card-header>
-    <mat-card-title>Hello developer-portal-banner !</mat-card-title>
-    <mat-card-subtitle>Add a description here</mat-card-subtitle>
-  </mat-card-header>
-  <mat-card-content>
-    @if (developerPortalBannerForm) {
-      <form [formGroup]="developerPortalBannerForm">
-        <mat-form-field>
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" required />
-          <mat-error *ngIf="developerPortalBannerForm.controls.name.hasError('required')">Name is required.</mat-error>
-        </mat-form-field>
-      </form>
-    }
-  </mat-card-content>
-</mat-card>
-<gio-save-bar [form]="developerPortalBannerForm" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
+<portal-header title="Banner" subtitle="Customize the banner shown on the Developer Portal" />
+
+@if (form) {
+  <form [formGroup]="form" class="developer-portal-banner__container">
+    <mat-card class="developer-portal-banner">
+      <mat-card-content>
+        <h3>Choose feature banner</h3>
+        <div class="developer-portal-banner__row-one">
+          <mat-radio-group class="developer-portal-banner__row-one__radio-group" aria-label="Select a status" formControlName="enabled">
+            <banner-radio-button
+              title="None"
+              subtitle="No banner will be shown on the catalog page"
+              [value]="false"
+              [selected]="form.controls.enabled.value === false"
+              [disabled]="false"
+            >
+            </banner-radio-button>
+
+            <banner-radio-button
+              title="Featured banner"
+              subtitle="Feature your own message and actions in the catalog page"
+              [value]="true"
+              [selected]="form.controls.enabled.value === true"
+              [disabled]="false"
+            >
+            </banner-radio-button>
+          </mat-radio-group>
+          @if (form.controls.enabled.value) {
+            <img
+              class="developer-portal-banner__row-one__image"
+              ngSrc="/assets/banner-featured.svg"
+              alt="Gravitee.io"
+              height="305"
+              width="400"
+            />
+          } @else {
+            <img
+              class="developer-portal-banner__row-one__image"
+              ngSrc="/assets/banner-none.svg"
+              alt="Gravitee.io"
+              height="305"
+              width="400"
+            />
+          }
+        </div>
+        @if (form.controls.enabled.value) {
+          <div class="developer-portal-banner__row-two">
+            <div>
+              <div class="header-row">
+                <h3 class="header__title">Information</h3>
+              </div>
+              <div>
+                <mat-form-field class="input_text">
+                  <mat-label>Title Text</mat-label>
+                  <input type="text" maxlength="150" matInput aria-label="Logging configuration condition" formControlName="titleText" />
+                  @if (form.controls.titleText?.errors?.required) {
+                    <mat-error>Title is required</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+              <div>
+                <mat-form-field class="input_text">
+                  <mat-label>Subtitle Text</mat-label>
+                  <input
+                    type="text"
+                    #input
+                    maxlength="250"
+                    matInput
+                    aria-label="Logging configuration condition"
+                    formControlName="subTitleText"
+                  />
+                  <mat-hint>{{ input.value.length }}/250</mat-hint>
+                  @if (form.controls.subTitleText?.errors?.required) {
+                    <mat-error>Subtitle is required</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+    <gio-save-bar [form]="form" [formInitialValues]="form" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
+  </form>
+}
