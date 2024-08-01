@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/m3-adapter';
+
 .copy-code {
   &__copy-block {
     display: flex;
@@ -29,7 +31,7 @@
     border-style: solid;
     border-color: var(--mdc-outlined-text-field-outline-color);
     border-radius: var(--mdc-outlined-card-container-shape);
-    background-color: var(--mdc-filled-text-field-container-color);
+    background-color: m3-adapter.$surface-variant;
     gap: 4px;
 
     &__code {

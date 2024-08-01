@@ -19,6 +19,8 @@ These classes are to override current fonts to match Material 3 typography.
 After migrating to Material 3, these classes can be deleted.
  */
 
+@use './theme';
+
 // Typography
 
 .m3-display-large {
@@ -123,3 +125,7 @@ After migrating to Material 3, these classes can be deleted.
 .on-surface-variant {
   color: var(--mdc-outlined-text-field-label-text-color);
 }
+
+// Surface colors
+
+$surface-variant: color-mix(in srgb, theme.$secondary-main-color 30%, transparent);

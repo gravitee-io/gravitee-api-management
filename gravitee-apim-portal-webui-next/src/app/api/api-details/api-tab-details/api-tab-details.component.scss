@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../../scss/m3-adapter';
+
 .api-details {
   &__tab {
     display: flex;
@@ -26,7 +28,7 @@
 
   &__tab-details-info {
     &__card {
-      --mdc-elevated-card-container-color: var(--mdc-filled-text-field-container-color);
+      --mdc-elevated-card-container-color: #{m3-adapter.$surface-variant};
 
       display: flex;
       width: 324px;
