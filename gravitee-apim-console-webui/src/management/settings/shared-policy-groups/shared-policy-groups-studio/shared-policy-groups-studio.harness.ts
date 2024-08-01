@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { GioPolicyGroupStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-// TODO: complete the EnvironmentFlow interface when the OpenAPI is available
+export class SharedPolicyGroupsStudioHarness extends ComponentHarness {
+  static readonly hostSelector = 'shared-policy-groups-studio';
 
-import { StepV4 } from '../api';
+  public getEditButton = this.locatorFor(MatButtonHarness.with({ text: /edit/ }));
 
-export interface UpdateEnvironmentFlow {
-  name: string;
-  description?: string;
-  policies?: StepV4[];
+  public getPolicyGroupStudio = this.locatorFor(GioPolicyGroupStudioHarness);
+
+  public async clickEditButton() {
+    const editButton = await this.getEditButton();
+    await editButton.click();
+  }
 }

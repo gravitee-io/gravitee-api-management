@@ -61,7 +61,7 @@ describe('SettingsNavigationService', () => {
           'Top APIs',
           'API Logging',
           'Dictionaries',
-          'Environment Flows',
+          'Shared Policy Groups',
           'User Fields',
           'Groups',
           'Notification settings',

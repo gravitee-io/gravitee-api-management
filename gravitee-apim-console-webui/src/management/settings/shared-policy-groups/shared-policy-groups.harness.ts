@@ -20,11 +20,11 @@ import { MatMenuItemHarness } from '@angular/material/menu/testing';
 
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
-export class EnvironmentFlowsHarness extends ComponentHarness {
-  static readonly hostSelector = 'environment-flows';
+export class SharedPolicyGroupsHarness extends ComponentHarness {
+  static readonly hostSelector = 'shared-policy-groups';
 
-  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add Environment Flow/ }));
-  public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Environment flows"]' }));
+  public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add Shared Policy Group/ }));
+  public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Shared policy group"]' }));
   public getTableWrapper = this.locatorFor(GioTableWrapperHarness);
 
   public async getDeleteButton(index: number) {

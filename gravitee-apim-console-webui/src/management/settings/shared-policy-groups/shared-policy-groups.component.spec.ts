@@ -19,40 +19,40 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { EnvironmentFlowsComponent } from './environment-flows.component';
-import { EnvironmentFlowsHarness } from './environment-flows.harness';
-import { EnvironmentFlowsAddEditDialogHarness } from './environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.harness';
+import { SharedPolicyGroupsComponent } from './shared-policy-groups.component';
+import { SharedPolicyGroupsHarness } from './shared-policy-groups.harness';
+import { SharedPolicyGroupsAddEditDialogHarness } from './shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
-describe('EnvironmentFlowsComponent', () => {
-  let fixture: ComponentFixture<EnvironmentFlowsComponent>;
-  let componentHarness: EnvironmentFlowsHarness;
+describe('SharedPolicyGroupsComponent', () => {
+  let fixture: ComponentFixture<SharedPolicyGroupsComponent>;
+  let componentHarness: SharedPolicyGroupsHarness;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EnvironmentFlowsComponent, NoopAnimationsModule, GioTestingModule],
+      imports: [SharedPolicyGroupsComponent, NoopAnimationsModule, GioTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
           useValue: [
-            'environment-environment_flows-c',
-            'environment-environment_flows-r',
-            'environment-environment_flows-u',
-            'environment-environment_flows-d',
+            'environment-shared_policy_group-c',
+            'environment-shared_policy_group-r',
+            'environment-shared_policy_group-u',
+            'environment-shared_policy_group-d',
           ],
         },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EnvironmentFlowsComponent);
+    fixture = TestBed.createComponent(SharedPolicyGroupsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.autoDetectChanges();
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EnvironmentFlowsHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupsHarness);
   });
 
   afterEach(() => {
@@ -64,7 +64,7 @@ describe('EnvironmentFlowsComponent', () => {
 
     // TODO: When the API is available
     // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
-    // expectListEnvironmentFlowsGetRequest();
+    // expectListSharedPolicyGroupsGetRequest();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['Search env flowSearch query: , sortBy: undefined, page: 1, perPage: 25', 'REQUEST', expect.any(String), expect.any(String), ''],
@@ -77,24 +77,24 @@ describe('EnvironmentFlowsComponent', () => {
 
     // TODO: When the API is available
     // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
-    // expectListEnvironmentFlowsGetRequest();
+    // expectListSharedPolicyGroupsGetRequest();
 
     await getTableWrapper.setSearchValue('test');
 
     // TODO: When the API is available
     // expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
-    // expectListEnvironmentFlowsGetRequest();
+    // expectListSharedPolicyGroupsGetRequest();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['Search env flowSearch query: test, sortBy: undefined, page: 1, perPage: 25', 'REQUEST', expect.any(String), expect.any(String), ''],
     ]);
   });
 
-  it('should add a new environment flow', async () => {
+  it('should add a new shared policy group', async () => {
     await componentHarness.clickAddButton('MESSAGE');
 
     fixture.detectChanges();
-    const addDialog = await rootLoader.getHarness(EnvironmentFlowsAddEditDialogHarness);
+    const addDialog = await rootLoader.getHarness(SharedPolicyGroupsAddEditDialogHarness);
 
     await addDialog.setName('test');
     await addDialog.setDescription('test');
@@ -102,6 +102,6 @@ describe('EnvironmentFlowsComponent', () => {
     await addDialog.save();
 
     // TODO: When the API is available
-    // expectCreateEnvironmentFlowsPostRequest();
+    // expectCreateSharedPolicyGroupPostRequest();
   });
 });

@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-// TODO: complete the EnvironmentFlow interface when the OpenAPI is available
-import { ApiType, StepV4 } from '../api';
 import { ExecutionPhase } from '../plugin';
+import { ApiType, StepV4 } from '../api';
 
-export interface EnvironmentFlow {
-  id: string;
+export interface CreateSharedPolicyGroup {
   name: string;
-  apiType: ApiType;
+  crossId?: string;
   description?: string;
+  apiType: ApiType;
   phase: ExecutionPhase;
   policies?: StepV4[];
-  updatedAt?: Date;
-  deployedAt?: Date;
 }

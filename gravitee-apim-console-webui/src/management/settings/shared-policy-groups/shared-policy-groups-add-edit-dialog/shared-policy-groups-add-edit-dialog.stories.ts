@@ -20,24 +20,24 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { action } from '@storybook/addon-actions';
 
 import {
-  EnvironmentFlowsAddEditDialogComponent,
-  EnvironmentFlowsAddEditDialogData,
-  EnvironmentFlowsAddEditDialogResult,
-} from './environment-flows-add-edit-dialog.component';
+  SharedPolicyGroupsAddEditDialogComponent,
+  SharedPolicyGroupAddEditDialogData,
+  SharedPolicyGroupAddEditDialogResult,
+} from './shared-policy-groups-add-edit-dialog.component';
 
 @Component({
   selector: 'story-component',
   template: `<button id="open-dialog" (click)="open()">Open dialog</button>`,
-  imports: [EnvironmentFlowsAddEditDialogComponent, MatDialogModule, MatIconTestingModule],
+  imports: [SharedPolicyGroupsAddEditDialogComponent, MatDialogModule, MatIconTestingModule],
   standalone: true,
 })
 class StoryDialogComponent {
   constructor(private readonly matDialog: MatDialog) {}
 
-  public open(data?: EnvironmentFlowsAddEditDialogData) {
+  public open(data?: SharedPolicyGroupAddEditDialogData) {
     return this.matDialog
-      .open<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogData, EnvironmentFlowsAddEditDialogResult>(
-        EnvironmentFlowsAddEditDialogComponent,
+      .open<SharedPolicyGroupsAddEditDialogComponent, SharedPolicyGroupAddEditDialogData, SharedPolicyGroupAddEditDialogResult>(
+        SharedPolicyGroupsAddEditDialogComponent,
         {
           data,
           role: 'dialog',
@@ -52,7 +52,7 @@ class StoryDialogComponent {
 }
 
 export default {
-  title: 'EnvironmentFlowsAddEditDialogComponent story',
+  title: 'SharedPolicyGroupsAddEditDialogComponent story',
   component: StoryDialogComponent,
 } as Meta;
 

@@ -15,16 +15,16 @@
  */
 import { Meta, StoryObj } from '@storybook/angular';
 
-import { EnvironmentFlowsComponent } from './environment-flows.component';
+import { SharedPolicyGroupsComponent } from './shared-policy-groups.component';
 
 export default {
-  title: 'EnvironmentFlowsComponent story',
-  component: EnvironmentFlowsComponent,
+  title: 'SharedPolicyGroupsComponent story',
+  component: SharedPolicyGroupsComponent,
   argTypes: {},
   render: (args) => ({
     template: `
       <div style="width: 800px">
-        <environment-flows></environment-flows>
+        <shared-policy-groups></shared-policy-groups>
       </div>
     `,
     props: args,

@@ -21,18 +21,18 @@
 </div>
 
 <mat-card class="card">
-  @if (environmentFlow(); as environmentFlow) {
+  @if (sharedPolicyGroup(); as sharedPolicyGroup) {
     <mat-card-header>
       <mat-card-title
-        >{{ environmentFlow.name }} <span class="gio-badge-success">{{ environmentFlow.phase }}</span></mat-card-title
+        >{{ sharedPolicyGroup.name }} <span class="gio-badge-success">{{ sharedPolicyGroup.phase }}</span></mat-card-title
       >
-      <mat-card-subtitle>{{ environmentFlow.description }}</mat-card-subtitle>
-      <div class="environment-flows-studio__headerRightBtn">
+      <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
+      <div class="shared-policy-groups-studio__headerRightBtn">
         @if (!isReadOnly) {
           <button mat-stroked-button (click)="onEdit()">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
           </button>
-          <button *gioPermission="{ anyOf: ['environment-environment_flows-d'] }" mat-stroked-button (click)="onDelete()">
+          <button *gioPermission="{ anyOf: ['environment-shared_policy_group-d'] }" mat-stroked-button (click)="onDelete()">
             <mat-icon svgIcon="gio:trash">delete</mat-icon>
           </button>
           <button [disabled]="!enableSaveButton" color="primary" mat-flat-button (click)="onSave()">Save</button>
@@ -44,8 +44,8 @@
     <div class="card__content">
       <gio-policy-group-studio
         [policies]="policies$ | async"
-        [apiType]="environmentFlow.apiType"
-        [executionPhase]="environmentFlow.phase"
+        [apiType]="sharedPolicyGroup.apiType"
+        [executionPhase]="sharedPolicyGroup.phase"
         [policyDocumentationFetcher]="policyDocumentationFetcher"
         [policySchemaFetcher]="policySchemaFetcher"
         (policyGroupChange)="onStudioChange($event)"

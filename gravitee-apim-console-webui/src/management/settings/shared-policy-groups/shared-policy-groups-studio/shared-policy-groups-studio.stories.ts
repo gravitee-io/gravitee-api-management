@@ -13,10 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './EnvironmentFlow';
-export * from './EnvironmentFlow.fixture';
-export * from './EnvironmentFlowsSortByParam';
-export * from './CreateEnvironmentFlow';
-export * from './CreateEnvironmentFlow.fixture';
-export * from './UpdateEnvironmentFlow';
-export * from './UpdateEnvironmentFlow.fixture';
+import { Meta, StoryObj } from '@storybook/angular';
+
+import { SharedPolicyGroupsStudioComponent } from './shared-policy-groups-studio.component';
+
+export default {
+  title: 'SharedPolicyGroupsStudioComponent story',
+  component: SharedPolicyGroupsStudioComponent,
+  argTypes: {},
+  render: (args) => ({
+    template: `
+      <div style="width: 800px">
+        <shared-policy-groups-studio></shared-policy-groups-studio>
+      </div>
+    `,
+    props: args,
+  }),
+} as Meta;
+
+export const Default: StoryObj = {};
+Default.args = {};

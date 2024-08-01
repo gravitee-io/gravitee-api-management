@@ -31,16 +31,16 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
-  EnvironmentFlowsAddEditDialogComponent,
-  EnvironmentFlowsAddEditDialogData,
-  EnvironmentFlowsAddEditDialogResult,
-} from './environment-flows-add-edit-dialog/environment-flows-add-edit-dialog.component';
+  SharedPolicyGroupsAddEditDialogComponent,
+  SharedPolicyGroupAddEditDialogData,
+  SharedPolicyGroupAddEditDialogResult,
+} from './shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.component';
 
-import { EnvironmentFlowsService } from '../../../services-ngx/environment-flows.service';
+import { SharedPolicyGroupsService } from '../../../services-ngx/shared-policy-groups.service';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { ApiV4, EnvironmentFlowsSortByParam } from '../../../entities/management-api-v2';
+import { ApiV4, SharedPolicyGroupsSortByParam } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -57,9 +57,9 @@ type PageTableVM = {
 };
 
 @Component({
-  selector: 'environment-flows',
-  templateUrl: './environment-flows.component.html',
-  styleUrls: ['./environment-flows.component.scss'],
+  selector: 'shared-policy-groups',
+  templateUrl: './shared-policy-groups.component.html',
+  styleUrls: ['./shared-policy-groups.component.scss'],
   imports: [
     CommonModule,
     MatCardModule,
@@ -77,7 +77,7 @@ type PageTableVM = {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EnvironmentFlowsComponent implements OnInit {
+export class SharedPolicyGroupsComponent implements OnInit {
   protected displayedColumns: string[] = ['name', 'phase', 'lastUpdate', 'lastDeploy', 'actions'];
   protected filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
@@ -92,7 +92,7 @@ export class EnvironmentFlowsComponent implements OnInit {
 
   protected isReadOnly = false;
 
-  private readonly environmentFlowsService = inject(EnvironmentFlowsService);
+  private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
@@ -102,26 +102,26 @@ export class EnvironmentFlowsComponent implements OnInit {
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
   ngOnInit(): void {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-environment_flows-r']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-r']);
     this.refreshPageTableVM$
       .pipe(
         tap(() => this.pageTableVM$.next({ items: [], totalItems: 0, isLoading: true })),
         switchMap(() =>
-          this.environmentFlowsService.list(
+          this.sharedPolicyGroupsService.list(
             this.filters.searchTerm,
-            toEnvironmentFlowsSortByParam(this.filters.sort),
+            toSharedPolicyGroupsSortByParam(this.filters.sort),
             this.filters.pagination.index,
             this.filters.pagination.size,
           ),
         ),
         map((pagedResult) => {
-          const items = pagedResult.data.map((environmentFlow) => ({
-            id: environmentFlow.id,
-            name: environmentFlow.name,
-            description: environmentFlow.description,
-            phase: environmentFlow.phase,
-            updatedAt: environmentFlow.updatedAt,
-            deployedAt: environmentFlow.deployedAt,
+          const items = pagedResult.data.map((sharedPolicyGroup) => ({
+            id: sharedPolicyGroup.id,
+            name: sharedPolicyGroup.name,
+            description: sharedPolicyGroup.description,
+            phase: sharedPolicyGroup.phase,
+            updatedAt: sharedPolicyGroup.updatedAt,
+            deployedAt: sharedPolicyGroup.deployedAt,
           }));
 
           this.pageTableVM$.next({
@@ -142,8 +142,8 @@ export class EnvironmentFlowsComponent implements OnInit {
 
   protected onAddEnvironmentFlow(apiType: ApiV4['type']) {
     return this.matDialog
-      .open<EnvironmentFlowsAddEditDialogComponent, EnvironmentFlowsAddEditDialogData, EnvironmentFlowsAddEditDialogResult>(
-        EnvironmentFlowsAddEditDialogComponent,
+      .open<SharedPolicyGroupsAddEditDialogComponent, SharedPolicyGroupAddEditDialogData, SharedPolicyGroupAddEditDialogResult>(
+        SharedPolicyGroupsAddEditDialogComponent,
         {
           data: { apiType },
           role: 'dialog',
@@ -154,7 +154,7 @@ export class EnvironmentFlowsComponent implements OnInit {
       .pipe(
         filter((result) => !!result),
         switchMap((payload) =>
-          this.environmentFlowsService.create({
+          this.sharedPolicyGroupsService.create({
             name: payload.name,
             description: payload.description,
             apiType,
@@ -163,24 +163,24 @@ export class EnvironmentFlowsComponent implements OnInit {
         ),
       )
       .subscribe({
-        next: (environmentFlow) => {
-          this.snackBarService.success('Environment flow created');
-          this.router.navigate([environmentFlow.id, 'studio'], { relativeTo: this.activatedRoute });
+        next: (sharedPolicyGroup) => {
+          this.snackBarService.success('Shared policy group created');
+          this.router.navigate([sharedPolicyGroup.id, 'studio'], { relativeTo: this.activatedRoute });
         },
         error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Error during environment flow creation!');
+          this.snackBarService.error(error?.error?.message ?? 'Error during shared policy group creation!');
         },
       });
   }
 
-  protected onEdit(environmentFlowId: string) {
-    this.router.navigate([environmentFlowId, 'studio'], { relativeTo: this.activatedRoute });
+  protected onEdit(sharedPolicyGroupId: string) {
+    this.router.navigate([sharedPolicyGroupId, 'studio'], { relativeTo: this.activatedRoute });
   }
 }
 
-export const toEnvironmentFlowsSortByParam = (sort: Sort): EnvironmentFlowsSortByParam => {
+export const toSharedPolicyGroupsSortByParam = (sort: Sort): SharedPolicyGroupsSortByParam => {
   if (sort == null) {
     return undefined;
   }
-  return ('desc' === sort.direction ? `-${sort.active}` : sort.active) as EnvironmentFlowsSortByParam;
+  return ('desc' === sort.direction ? `-${sort.active}` : sort.active) as SharedPolicyGroupsSortByParam;
 };

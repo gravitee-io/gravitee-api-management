@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
-@use '../../../../scss/gio-layout' as gio-layout;
+@use '../../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.back-button {
-  margin-bottom: 24px;
-}
-.environment-flows-studio {
+.shared-policy-groups {
   &__headerRightBtn {
     margin: auto 0 auto auto;
-    display: flex;
-    gap: 8px;
   }
 }
-.card {
-  overflow: hidden;
-  &__content {
-    margin-top: 16px;
-    padding: 16px;
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+
+.mat-column-actions {
+  .actions_btn {
+    display: flex;
   }
 }

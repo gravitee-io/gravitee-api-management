@@ -16,16 +16,14 @@
 
 import { isFunction } from 'lodash';
 
-import { EnvironmentFlow } from './EnvironmentFlow';
+import { UpdateSharedPolicyGroup } from './UpdateSharedPolicyGroup';
 
-export function fakeEnvironmentFlow(modifier?: Partial<EnvironmentFlow> | ((base: EnvironmentFlow) => EnvironmentFlow)): EnvironmentFlow {
-  const base: EnvironmentFlow = {
-    id: '1',
-    name: 'Environment flow',
-    phase: 'REQUEST',
-    apiType: 'PROXY',
-    updatedAt: new Date('2024-04-04T00:00:00Z'),
-    deployedAt: new Date('2024-04-04T00:00:00Z'),
+export function fakeUpdateSharedPolicyGroup(
+  modifier?: Partial<UpdateSharedPolicyGroup> | ((base: UpdateSharedPolicyGroup) => UpdateSharedPolicyGroup),
+): UpdateSharedPolicyGroup {
+  const base: UpdateSharedPolicyGroup = {
+    name: 'Shared policy group',
+    description: 'Description of the shared policy group',
   };
 
   if (isFunction(modifier)) {

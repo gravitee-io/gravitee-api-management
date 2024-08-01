@@ -19,13 +19,13 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 
-export interface EnvironmentFlowsAddEditDialogHarnessOptions extends BaseHarnessFilters {}
+export interface SharedPolicyGroupAddEditDialogHarnessOptions extends BaseHarnessFilters {}
 
-export class EnvironmentFlowsAddEditDialogHarness extends ComponentHarness {
-  public static readonly hostSelector = `environment-flows-add-edit-dialog`;
+export class SharedPolicyGroupsAddEditDialogHarness extends ComponentHarness {
+  public static readonly hostSelector = `shared-policy-groups-add-edit-dialog`;
 
-  public static with(options: EnvironmentFlowsAddEditDialogHarnessOptions): HarnessPredicate<EnvironmentFlowsAddEditDialogHarness> {
-    return new HarnessPredicate(EnvironmentFlowsAddEditDialogHarness, options);
+  public static with(options: SharedPolicyGroupAddEditDialogHarnessOptions): HarnessPredicate<SharedPolicyGroupsAddEditDialogHarness> {
+    return new HarnessPredicate(SharedPolicyGroupsAddEditDialogHarness, options);
   }
 
   protected _title = this.locatorForOptional(MatDialogSection.TITLE);
