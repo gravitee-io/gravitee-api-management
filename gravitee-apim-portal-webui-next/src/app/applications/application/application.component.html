@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<app-breadcrumb-navigation />
+<mat-card class="application" appearance="outlined">
+  <mat-card-content>
+    <div class="application__header">
+      <app-picture [picture]="application._links?.picture" [hashValue]="application.name" [size]="40" />
+      <div class="application__header__content">
+        <div class="m3-headline-small">{{ application.name }}</div>
+        <div class="m3-body-medium"><span i18n="@@applicationOwner">Owner: </span>{{ application.owner?.display_name }}</div>
+      </div>
+    </div>
+    @if (application.description) {
+      <app-banner class="application__banner">
+        <div class="application__banner-content">
+          <mat-icon class="application__banner-content__icon" aria-hidden="false" aria-label="Light-bulb icon">lightbulb</mat-icon>
+          <div class="m3-body-large">{{ application.description }}</div>
+        </div>
+      </app-banner>
+    }
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel">
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'logs']"
+        routerLinkActive
+        #logsActive="routerLinkActive"
+        [active]="logsActive.isActive"
+        i18n="@@appAnalyticsAndLogs"
+        >Analytics & Logs</a
+      >
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'subscriptions']"
+        routerLinkActive
+        #subscriptionsActive="routerLinkActive"
+        [active]="subscriptionsActive.isActive"
+        i18n="@@appSubscriptions"
+        >Subscriptions</a
+      >
+
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'settings']"
+        routerLinkActive
+        #settingsActive="routerLinkActive"
+        [active]="settingsActive.isActive"
+        i18n="@@appSettings"
+        >Settings</a
+      >
+    </nav>
+    <mat-tab-nav-panel #tabPanel>
+      <div class="application__content">
+        <router-outlet />
+      </div>
+    </mat-tab-nav-panel>
+  </mat-card-content>
+</mat-card>
