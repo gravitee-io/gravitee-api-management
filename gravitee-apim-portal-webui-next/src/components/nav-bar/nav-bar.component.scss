@@ -40,11 +40,17 @@
 }
 
 .menu-title,
-.actions {
+.unauthenticated-actions {
   display: flex;
   flex: 1;
   flex-flow: row;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+}
+
+.authenticated-actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
 }
