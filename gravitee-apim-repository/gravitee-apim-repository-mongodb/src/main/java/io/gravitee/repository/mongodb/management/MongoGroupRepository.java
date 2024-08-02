@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.mongodb.management.internal.group.GroupMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -127,6 +128,19 @@ public class MongoGroupRepository implements GroupRepository {
         Set<Group> all = internalRepository.findByEnvironmentId(environmentId).stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find all groups by environment - Found {}", all);
         return all;
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        logger.debug("Delete groups by environmentId: {}", environmentId);
+        try {
+            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(GroupMongo::getId).toList();
+            logger.debug("Delete groups by environment - Done {}", all);
+            return all;
+        } catch (Exception ex) {
+            logger.error("Failed to delete groups by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete groups by environmentId");
+        }
     }
 
     @Override

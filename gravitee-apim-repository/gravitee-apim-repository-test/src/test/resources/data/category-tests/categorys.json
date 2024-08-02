@@ -45,5 +45,27 @@
       "order": 3,
       "createdAt": 1000000000000,
       "updatedAt": 1111111111111
+   },
+   {
+     "id":"to-deleted-1",
+     "key":"to-deleted-1",
+     "name":"to-deleted-1",
+     "environmentId": "ToBeDeleted",
+     "description": "Description for my category",
+     "hidden": false,
+     "order": 3,
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111
+   },
+   {
+     "id":"to-deleted-2",
+     "key":"to-deleted-2",
+     "name":"to-deleted-2",
+     "environmentId": "ToBeDeleted",
+     "description": "Description for my category",
+     "hidden": false,
+     "order": 3,
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111
    }
 ]

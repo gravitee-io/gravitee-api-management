@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.NoArgsConstructor;
 import org.junit.Test;
 
 public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest {
@@ -324,5 +323,22 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
         List<Event> eventsDelete = eventLatestRepository.search(eventCriteria, null, null, null);
         assertEquals("Invalid found event", 0, eventsDelete.size());
+    }
+
+    @Test
+    public void should_find_by_environment_id() {
+        List<Event> events = eventLatestRepository.findByEnvironmentId("DEFAULT");
+
+        assertEquals(7L, events.size());
+        assertThat(events.stream().map(Event::getId)).containsOnly("api-1", "api-2", "api-3", "dictionary-1", "api-4", "api-5", "api-8");
+    }
+
+    @Test
+    public void should_find_by_organization_id() {
+        List<Event> events = eventLatestRepository.findByOrganizationId("DEFAULT");
+
+        assertEquals(8L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsOnly("api-1", "api-2", "api-3", "dictionary-1", "api-4", "api-5", "api-7", "api-8");
     }
 }

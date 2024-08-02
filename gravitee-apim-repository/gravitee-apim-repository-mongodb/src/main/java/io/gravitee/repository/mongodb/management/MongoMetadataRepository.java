@@ -124,6 +124,24 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete metadata by refId: {}/{}", referenceId, referenceType);
+        try {
+            final var metadata = internalMetadataRepository
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
+                .stream()
+                .map(metadataMongo -> metadataMongo.getId().getKey())
+                .toList();
+            LOGGER.debug("Delete metadata by refId: {}/{} - Done", referenceId, referenceType);
+            return metadata;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete metadata by refId: {}/{}", referenceId, referenceId, ex);
+            throw new TechnicalException("Failed to delete metadata by reference");
+        }
+    }
+
+    @Override
     public List<Metadata> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
         LOGGER.debug("Find metadata by key '{}' and ref type '{}'", key, referenceType);
 

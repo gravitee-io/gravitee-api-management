@@ -317,4 +317,36 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     public Set<Audit> findAll() throws TechnicalException {
         throw new IllegalStateException("not implemented cause of high amount of data. Use pageable search instead");
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcAuditRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
+        try {
+            final var auditIds = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!auditIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + AUDIT_PROPERTIES + " where audit_id IN (" + getOrm().buildInClause(auditIds) + ")",
+                    auditIds.toArray()
+                );
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+
+            LOGGER.debug("JdbcAuditRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            return auditIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete audit for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete audit by reference", ex);
+        }
+    }
 }

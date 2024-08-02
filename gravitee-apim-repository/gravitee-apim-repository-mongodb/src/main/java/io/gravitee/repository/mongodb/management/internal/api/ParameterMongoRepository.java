@@ -31,4 +31,7 @@ import org.springframework.stereotype.Repository;
 public interface ParameterMongoRepository extends MongoRepository<ParameterMongo, ParameterPkMongo> {
     @Query("{ '_id.referenceId': ?0, '_id.referenceType': ?1 }")
     List<ParameterMongo> findAll(String referenceId, String referenceType);
+
+    @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<ParameterMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

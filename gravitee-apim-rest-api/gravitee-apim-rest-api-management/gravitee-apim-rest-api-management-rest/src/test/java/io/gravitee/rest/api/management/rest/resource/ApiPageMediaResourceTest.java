@@ -131,7 +131,7 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
         final String mediaHash = "#MEDIA_HASH";
-        when(mediaService.saveApiMedia(eq(API), any())).thenReturn(mediaHash);
+        when(mediaService.saveApiMedia(eq(GraviteeContext.getExecutionContext()), eq(API), any())).thenReturn(mediaHash);
 
         final Date attachedAt = new Date();
         PageEntity pageEntity = new PageEntity();

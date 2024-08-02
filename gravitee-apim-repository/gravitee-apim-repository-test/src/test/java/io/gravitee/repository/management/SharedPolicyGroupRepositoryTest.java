@@ -297,4 +297,18 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         final var optional = sharedPolicyGroupRepository.findByEnvironmentIdAndCrossId("environmentId", "crossId-does-not-exist");
         assertThat(optional).isEmpty();
     }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria.builder().environmentId("ToBeDeleted").build();
+        final var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        final var nbBeforeDeletion = sharedPolicyGroupRepository.search(criteria, pageable, null).getTotalElements();
+        final var deleted = sharedPolicyGroupRepository.deleteByEnvironmentId("ToBeDeleted").size();
+        final var nbAfterDeletion = sharedPolicyGroupRepository.search(criteria, pageable, null).getTotalElements();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+        assertThat(deleted).isEqualTo(2);
+        assertThat(nbAfterDeletion).isEqualTo(0);
+    }
 }

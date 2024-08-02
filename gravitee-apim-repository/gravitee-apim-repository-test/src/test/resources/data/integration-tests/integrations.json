@@ -30,5 +30,27 @@
         "createdAt": 1470157767000,
         "updatedAt": 1470157767000,
         "groups": ["group-1", "group-2"]
-    }
+    },
+    {
+        "id": "459a022c-e79c-4411-9a02-2ce79c141123",
+        "description": "test-description",
+        "environmentId": "ToBeDeleted",
+        "name": "my-yet-another-integration",
+        "provider": "sample-provider",
+        "agentStatus": "DISCONNECTED",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000,
+        "groups": ["group-1", "group-2"]
+    },
+    {
+        "id": "459a022c-e79c-4411-9a02-2ce79c141321",
+        "description": "test-description",
+        "environmentId": "ToBeDeleted",
+        "name": "my-yet-another-integration",
+        "provider": "sample-provider",
+        "agentStatus": "DISCONNECTED",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000,
+        "groups": ["group-1", "group-2"]
+      }
 ]

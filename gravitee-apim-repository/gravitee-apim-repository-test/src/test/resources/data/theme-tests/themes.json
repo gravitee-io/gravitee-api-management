@@ -56,5 +56,35 @@
       "backgroundImage": "backgroundImage",
       "optionalLogo": "optionalLogo",
       "favicon": "favicon"
+   },
+   {
+     "id":"id_to_be_deleted_1",
+     "referenceType": "ENVIRONMENT",
+     "referenceId": "ToBeDeleted",
+     "name":"Portal next theme",
+     "type": "PORTAL_NEXT",
+     "enabled": true,
+     "definition": "{\"def\": \"value\"}",
+     "createdAt": 1000002222222,
+     "updatedAt": 1111111111111,
+     "logo": "logo",
+     "backgroundImage": "backgroundImage",
+     "optionalLogo": "optionalLogo",
+     "favicon": "favicon"
+   },
+   {
+     "id":"id_to_be_deleted_2",
+     "referenceType": "ENVIRONMENT",
+     "referenceId": "ToBeDeleted",
+     "name":"Portal next theme",
+     "type": "PORTAL_NEXT",
+     "enabled": true,
+     "definition": "{\"def\": \"value\"}",
+     "createdAt": 1000002222222,
+     "updatedAt": 1111111111111,
+     "logo": "logo",
+     "backgroundImage": "backgroundImage",
+     "optionalLogo": "optionalLogo",
+     "favicon": "favicon"
    }
 ]

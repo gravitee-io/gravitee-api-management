@@ -127,7 +127,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
-        assertEquals(5, groups.size());
+        assertEquals(7, groups.size());
     }
 
     @Test
@@ -155,6 +155,18 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(group);
         assertFalse(group.isPresent());
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        Set<Group> beforeDeleted = groupRepository.findAllByEnvironment("ToBeDeleted");
+
+        List<String> deleted = groupRepository.deleteByEnvironmentId("ToBeDeleted");
+
+        Set<Group> afterDeleted = groupRepository.findAllByEnvironment("ToBeDeleted");
+        assertEquals(2, beforeDeleted.size());
+        assertEquals(2, deleted.size());
+        assertEquals(0, afterDeleted.size());
     }
 
     @Test

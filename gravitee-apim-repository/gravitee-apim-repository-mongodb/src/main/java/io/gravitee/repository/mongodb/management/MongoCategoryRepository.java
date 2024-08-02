@@ -140,4 +140,22 @@ public class MongoCategoryRepository implements CategoryRepository {
         final List<CategoryMongo> categories = internalCategoryRepo.findByEnvironmentId(environmentId);
         return categories.stream().map(categoryMongo -> mapper.map(categoryMongo)).collect(Collectors.toSet());
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete category by environmentId [{}]", environmentId);
+        try {
+            final List<String> categories = internalCategoryRepo
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(CategoryMongo::getId)
+                .toList();
+
+            LOGGER.debug("Delete category by environmentId [{}] - Done", environmentId);
+            return categories;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete categories by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete categories by environmentId");
+        }
+    }
 }

@@ -100,5 +100,35 @@
     "createdAt": 1439022010883,
     "updatedAt": 1439032010883,
     "lastConnectionAt": 1439042010883
+  },
+  {
+    "id": "user3delete",
+    "organizationId": "ToBeDeleted",
+    "source": "SourceToBeDeleted",
+    "sourceId": "SourceIdToBeDeleted",
+    "password": "passwordSpecialChar",
+    "email": "emailSpecialChar",
+    "status": "ACTIVE",
+    "firstname": "user3delete",
+    "lastname": "user3delete",
+    "picture": "pictureSpecialChar",
+    "createdAt": 1439022010884,
+    "updatedAt": 1439032010884,
+    "lastConnectionAt": 1439042010884
+  },
+  {
+    "id": "user4delete",
+    "organizationId": "ToBeDeleted",
+    "source": "SourceToBeDeleted",
+    "sourceId": "SourceIdToBeDeleted",
+    "password": "passwordSpecialChar",
+    "email": "emailSpecialChar",
+    "status": "ACTIVE",
+    "firstname": "user4delete",
+    "lastname": "user4delete",
+    "picture": "pictureSpecialChar",
+    "createdAt": 1439022010885,
+    "updatedAt": 1439032010885,
+    "lastConnectionAt": 1439042010885
   }
 ]

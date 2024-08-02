@@ -36,4 +36,7 @@ public interface ApiCategoryOrderMongoRepository extends MongoRepository<ApiCate
 
     @Query("{ '_id.categoryId': ?0 }")
     Set<ApiCategoryOrderMongo> findAllByCategoryId(String categoryId);
+
+    @Query(value = "{ '_id.apiId': ?0 }", delete = true)
+    Set<ApiCategoryOrderMongo> deleteByApiId(String apiId);
 }

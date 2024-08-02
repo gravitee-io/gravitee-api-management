@@ -113,7 +113,7 @@ public class FlowServiceImplTest {
         assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
         assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow2");
 
-        verify(flowRepository, never()).deleteByReference(FlowReferenceType.API, "apiId");
+        verify(flowRepository, never()).deleteByReferenceIdAndReferenceType("apiId", FlowReferenceType.API);
         verify(flowRepository, times(2)).create(any());
     }
 }

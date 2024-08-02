@@ -267,6 +267,50 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         return commands;
     }
 
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcCommandRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcCommandRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete commands by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete commands by environment", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
+        LOGGER.debug("JdbcCommandRepository.deleteByOrganizationId({})", organizationId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where organization_id = ?",
+                String.class,
+                organizationId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where organization_id = ?", organizationId);
+            }
+
+            LOGGER.debug("JdbcCommandRepository.deleteByOrganizationId({}) - Done", organizationId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete commands by organizationId: {}", organizationId, ex);
+            throw new TechnicalException("Failed to delete commands by organization", ex);
+        }
+    }
+
     private void storeAcknowledgments(Command command, boolean deleteFirst) {
         LOGGER.debug("JdbcCommandRepository.storeAcknowledgments({}, {})", command, deleteFirst);
         if (deleteFirst) {

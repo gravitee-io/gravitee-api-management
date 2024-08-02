@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
+import java.util.List;
 import java.util.Optional;
 
 public interface SharedPolicyGroupHistoryRepository extends CrudRepository<SharedPolicyGroup, String> {
@@ -30,4 +31,12 @@ public interface SharedPolicyGroupHistoryRepository extends CrudRepository<Share
     Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException;
 
     Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) throws TechnicalException;
+
+    /**
+     * Delete shared policy group history by environment ID
+     * @param environmentId
+     * @return List of IDs for deleted shared policy group history
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

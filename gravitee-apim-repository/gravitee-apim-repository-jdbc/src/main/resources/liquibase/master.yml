@@ -203,6 +203,7 @@ databaseChangeLog:
           - file: liquibase/changelogs/v4_5_0/04_add_portal_menu_links_table.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/05_add_integration_groups_table.yml
-
     - include:
           - file: liquibase/changelogs/v4_5_0/06_add_scoring_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/07_add_media_org_env.yml

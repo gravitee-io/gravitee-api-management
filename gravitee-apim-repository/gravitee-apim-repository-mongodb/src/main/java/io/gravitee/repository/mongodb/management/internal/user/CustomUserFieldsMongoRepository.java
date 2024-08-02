@@ -30,4 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface CustomUserFieldsMongoRepository extends MongoRepository<CustomUserFieldMongo, CustomUserFieldPkMongo> {
     @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1  }")
     List<CustomUserFieldMongo> findByReference(String refId, String refType);
+
+    @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1  }", fields = "{ _id : 1 }", delete = true)
+    List<CustomUserFieldMongo> deleteByReferenceIdAndReferenceType(String refId, String refType);
 }

@@ -116,7 +116,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     @Override
     public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
         try {
-            portalNotificationConfigRepository.deleteReference(referenceType, referenceId);
+            portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
         } catch (TechnicalException te) {
             LOGGER.error(
                 "An error occurs while trying to delete notification settings for reference {} / {}",

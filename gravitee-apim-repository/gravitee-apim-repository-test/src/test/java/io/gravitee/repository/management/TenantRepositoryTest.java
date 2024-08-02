@@ -15,10 +15,12 @@
  */
 package io.gravitee.repository.management;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
@@ -118,5 +120,15 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(tenant.isPresent());
         assertEquals("US", tenant.get().getName());
         assertEquals("Description for other US tenant", tenant.get().getDescription());
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION)).isNotEmpty();
+
+        List<String> deleted = tenantRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", TenantReferenceType.ORGANIZATION);
+
+        assertEquals(2, deleted.size());
+        assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION)).isEmpty();
     }
 }

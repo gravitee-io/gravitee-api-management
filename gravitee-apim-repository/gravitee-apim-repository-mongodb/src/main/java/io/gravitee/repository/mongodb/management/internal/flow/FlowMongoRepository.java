@@ -32,4 +32,7 @@ public interface FlowMongoRepository extends MongoRepository<FlowMongo, String> 
 
     @Query(value = "{ 'referenceType': ?0}", sort = "{referenceId: -1, order: -1}")
     List<FlowMongo> findAll(String referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1}", fields = "{ _id : 1 }", delete = true)
+    List<FlowMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceTYpe);
 }

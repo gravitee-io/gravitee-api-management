@@ -247,8 +247,8 @@ public class JdbcPortalNotificationConfigRepository
     }
 
     @Override
-    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcPortalNotificationConfigRepository.deleteReference({} / {})", referenceType, referenceId);
+    public void deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcPortalNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
             jdbcTemplate.update(
                 "delete from " + this.tableName + " where reference_type = ?" + " and reference_id = ? ",
@@ -261,9 +261,14 @@ public class JdbcPortalNotificationConfigRepository
                 referenceType.name(),
                 referenceId
             );
+            LOGGER.debug(
+                "JdbcPortalNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                referenceType,
+                referenceId
+            );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to deleteReference PortalNotificationConfig", ex);
-            throw new TechnicalException("Failed to deleteReference PortalNotificationConfig", ex);
+            LOGGER.error("Failed to delete portal notification config for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete portal notification config by reference", ex);
         }
     }
 

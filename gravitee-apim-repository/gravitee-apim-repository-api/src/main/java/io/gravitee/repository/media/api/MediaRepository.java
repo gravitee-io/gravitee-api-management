@@ -16,6 +16,7 @@
 package io.gravitee.repository.media.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.MediaCriteria;
 import io.gravitee.repository.media.model.Media;
 import java.util.List;
 import java.util.Optional;
@@ -25,19 +26,15 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface MediaRepository {
-    Optional<Media> findByHash(String hash) throws TechnicalException;
+    default Optional<Media> findByHash(String hash) throws TechnicalException {
+        return this.findByHash(hash, null, true);
+    }
 
-    Optional<Media> findByHash(String hash, boolean withContent) throws TechnicalException;
+    default Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria) throws TechnicalException {
+        return this.findByHash(hash, mediaCriteria, true);
+    }
 
-    Optional<Media> findByHashAndApi(String hash, String api) throws TechnicalException;
-
-    Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) throws TechnicalException;
-
-    Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException;
-
-    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException;
-
-    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) throws TechnicalException;
+    Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException;
 
     List<Media> findAllByApi(String api) throws TechnicalException;
 
@@ -46,4 +43,20 @@ public interface MediaRepository {
     void deleteAllByApi(String api) throws TechnicalException;
 
     void deleteByHashAndApi(String hash, String api) throws TechnicalException;
+
+    /**
+     * Delete by environment
+     * @param environment
+     * @return List of IDs for deleted media
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironment(String environment) throws TechnicalException;
+
+    /**
+     * Delete by organization
+     * @param organization
+     * @return List of IDs for deleted media
+     * @throws TechnicalException
+     */
+    List<String> deleteByOrganization(String organization) throws TechnicalException;
 }

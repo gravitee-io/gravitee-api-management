@@ -22,6 +22,7 @@ import io.gravitee.repository.mongodb.management.internal.api.ApiCategoryOrderMo
 import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderPkMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -133,6 +134,23 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
         LOGGER.debug("Find all ApiCategoryOrder by api id [{}] -- Done", apiId);
 
         return mapper.map(allByApiId);
+    }
+
+    @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        LOGGER.debug("Delete all by api id [{}]", apiId);
+        try {
+            final var allByApiId = internalApiCategoryOrderRepo
+                .deleteByApiId(apiId)
+                .stream()
+                .map(apiCategoryOrderMongo -> apiCategoryOrderMongo.getId().getCategoryId())
+                .toList();
+            LOGGER.debug("Delete all by api id [{}] -- Done", apiId);
+            return allByApiId;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete api category order by apiId: {}", apiId, ex);
+            throw new TechnicalException("Failed to delete api category order by apiId");
+        }
     }
 
     @Override

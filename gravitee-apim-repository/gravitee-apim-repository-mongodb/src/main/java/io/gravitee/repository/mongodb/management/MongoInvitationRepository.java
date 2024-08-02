@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
+import io.gravitee.repository.management.model.InvitationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.InvitationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.InvitationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -116,13 +117,35 @@ public class MongoInvitationRepository implements InvitationRepository {
     }
 
     @Override
-    public List<Invitation> findByReference(String referenceType, String referenceId) {
-        LOGGER.debug("Find invitation by reference '{}' / '{}'", referenceType, referenceId);
+    public List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) {
+        LOGGER.debug("Find invitation by reference '{}' / '{}'", referenceId, referenceType);
 
-        final List<InvitationMongo> invitations = internalInvitationRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
+        final List<InvitationMongo> invitations = internalInvitationRepo.findByReferenceIdAndReferenceType(
+            referenceId,
+            referenceType.name()
+        );
 
-        LOGGER.debug("Find invitation by reference '{}' / '{}' done", referenceType, referenceId);
+        LOGGER.debug("Find invitation by reference '{}' / '{}' done", referenceId, referenceType);
         return invitations.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete invitation by refId: {}/{}", referenceId, referenceType);
+        try {
+            final var invitations = internalInvitationRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(InvitationMongo::getId)
+                .toList();
+
+            LOGGER.debug("Delete invitation by refId {}/{} - Done", referenceId, referenceType);
+            return invitations;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete invitation by refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete invitation by reference");
+        }
     }
 
     private Invitation map(final InvitationMongo invitationMongo) {

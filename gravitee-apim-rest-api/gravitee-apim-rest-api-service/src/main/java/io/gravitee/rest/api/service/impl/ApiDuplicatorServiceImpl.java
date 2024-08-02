@@ -43,7 +43,6 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SystemFolderType;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
-import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.DuplicateApiEntity;
@@ -391,7 +390,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode)
         throws JsonProcessingException {
         for (ImportJsonNode media : apiJsonNode.getMedia()) {
-            mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
+            mediaService.createWithDefinition(executionContext, createdApiEntity.getId(), media.toString());
         }
 
         List<PageEntity> search = pageService.search(

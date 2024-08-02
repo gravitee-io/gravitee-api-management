@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Invitation;
+import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.util.List;
 
 /**
@@ -24,5 +25,14 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface InvitationRepository extends CrudRepository<Invitation, String> {
-    List<Invitation> findByReference(String referenceType, String referenceId) throws TechnicalException;
+    List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) throws TechnicalException;
+
+    /**
+     * Delete invitation by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted invitations
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) throws TechnicalException;
 }

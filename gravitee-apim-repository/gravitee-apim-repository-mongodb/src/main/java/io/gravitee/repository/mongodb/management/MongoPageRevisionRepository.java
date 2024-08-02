@@ -111,4 +111,20 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
             .map(pageRevisionMongo -> mapper.map(pageRevisionMongo))
             .collect(Collectors.toSet());
     }
+
+    @Override
+    public List<String> deleteByPageId(String pageId) throws TechnicalException {
+        try {
+            logger.debug("Delete revision for pageId [{}]", pageId);
+            return internalPageRevisionRepo
+                .deleteByPageId(pageId)
+                .stream()
+                .map(PageRevisionMongo::getId)
+                .map(id -> id.getPageId() + ":" + id.getRevision())
+                .toList();
+        } catch (Exception e) {
+            logger.error("An error occurred when deleting page revision [{}]", pageId, e);
+            throw new TechnicalException("An error occurred when deleting page revision");
+        }
+    }
 }

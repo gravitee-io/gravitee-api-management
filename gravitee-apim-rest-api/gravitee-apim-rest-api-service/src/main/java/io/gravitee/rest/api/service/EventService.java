@@ -101,4 +101,8 @@ public interface EventService {
     Collection<EventEntity> search(ExecutionContext executionContext, EventQuery query);
 
     void createOrPatchLatestEvent(String latestEventId, String organizationId, EventEntity event);
+
+    void deleteOrUpdateEventsByEnvironment(String environmentId);
+
+    void deleteOrUpdateEventsByOrganization(String organizationId);
 }
