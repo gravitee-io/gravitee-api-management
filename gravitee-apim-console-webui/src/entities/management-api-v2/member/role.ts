@@ -19,5 +19,5 @@ export interface Role {
    * Role's name.
    */
   name?: string;
-  scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
+  scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM' | 'INTEGRATION';
 }

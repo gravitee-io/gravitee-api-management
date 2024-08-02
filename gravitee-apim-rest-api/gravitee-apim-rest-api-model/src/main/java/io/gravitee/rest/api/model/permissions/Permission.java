@@ -40,6 +40,8 @@ public interface Permission {
                 return EnvironmentPermission.values();
             case ORGANIZATION:
                 return OrganizationPermission.values();
+            case INTEGRATION:
+                return IntegrationPermission.values();
             default:
                 throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
         }

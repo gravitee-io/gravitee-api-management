@@ -65,14 +65,16 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       this.roleService.list('ENVIRONMENT'),
       this.roleService.list('API'),
       this.roleService.list('APPLICATION'),
+      this.roleService.list('INTEGRATION'),
     ])
       .pipe(
-        tap(([orgRoles, envRoles, apiRoles, appRoles]) => {
+        tap(([orgRoles, envRoles, apiRoles, appRoles, integrationRoles]) => {
           this.rolesByScope = [
             { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
             { scope: 'Environment', scopeId: 'ENVIRONMENT', roles: this.convertToRoleVMs(envRoles) },
             { scope: 'API', scopeId: 'API', roles: this.convertToRoleVMs(apiRoles) },
             { scope: 'Application', scopeId: 'APPLICATION', roles: this.convertToRoleVMs(appRoles) },
+            { scope: 'Integration', scopeId: 'INTEGRATION', roles: this.convertToRoleVMs(integrationRoles) },
           ];
           this.loading = false;
         }),
@@ -146,6 +148,8 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
         return 'dns';
       case 'ORGANIZATION':
         return 'corporate_fare';
+      case 'INTEGRATION':
+        return 'list';
       default:
         return '';
     }

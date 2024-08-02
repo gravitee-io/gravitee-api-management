@@ -47,5 +47,6 @@ public class Role {
         ENVIRONMENT,
         ORGANIZATION,
         PLATFORM,
+        INTEGRATION,
     }
 }

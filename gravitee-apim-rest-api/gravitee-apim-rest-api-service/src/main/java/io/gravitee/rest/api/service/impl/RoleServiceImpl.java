@@ -500,6 +500,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
         LOGGER.info("     - <APPLICATION> OWNER");
         this.create(executionContext, ROLE_APPLICATION_OWNER);
+
+        LOGGER.info("     - <INTEGRATION> OWNER");
+        this.create(executionContext, ROLE_INTEGRATION_OWNER);
+
+        LOGGER.info("     - <INTEGRATION> USER");
+        this.create(executionContext, ROLE_INTEGRATION_USER);
     }
 
     @Override
@@ -537,6 +543,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 ApplicationPermission.values(),
                 organizationId
             );
+            //INTEGRATION - PRIMARY_OWNER
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.INTEGRATION,
+                IntegrationPermission.values(),
+                organizationId
+            );
             //GROUP - ADMINISTRATOR
             createOrUpdateSystemRole(executionContext, SystemRole.ADMIN, RoleScope.GROUP, GroupPermission.values(), organizationId);
         } catch (TechnicalManagementException ex) {
@@ -560,6 +574,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 return RoleScope.ORGANIZATION;
             case PLATFORM:
                 return RoleScope.PLATFORM;
+            case INTEGRATION:
+                return RoleScope.INTEGRATION;
         }
         return null;
     }

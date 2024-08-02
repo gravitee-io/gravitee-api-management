@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 
 public interface DefaultRoleEntityDefinition {
@@ -174,6 +175,30 @@ public interface DefaultRoleEntityDefinition {
             .put(ApplicationPermission.NOTIFICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApplicationPermission.ALERT.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApplicationPermission.METADATA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_INTEGRATION_OWNER = new NewRoleEntity(
+        "OWNER",
+        "Integration Role. Created by Gravitee.io.",
+        INTEGRATION,
+        false,
+        Maps
+            .<String, char[]>builder()
+            .put(IntegrationPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(IntegrationPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_INTEGRATION_USER = new NewRoleEntity(
+        "USER",
+        "Default Integration Role. Created by Gravitee.io.",
+        INTEGRATION,
+        true,
+        Maps
+            .<String, char[]>builder()
+            .put(IntegrationPermission.DEFINITION.getName(), new char[] { READ.getId() })
+            .put(IntegrationPermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()
     );
 }
