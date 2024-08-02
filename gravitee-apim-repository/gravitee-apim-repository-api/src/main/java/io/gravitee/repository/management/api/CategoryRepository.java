@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Category;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,4 +43,12 @@ public interface CategoryRepository extends FindAllRepository<Category> {
     Set<Category> findByPage(String page) throws TechnicalException;
 
     Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException;
+
+    /**
+     * Delete categories by environment ID
+     * @param environmentId
+     * @return List of IDs for deleted categories
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

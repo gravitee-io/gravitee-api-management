@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
+import io.gravitee.repository.management.model.DashboardReferenceType;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
@@ -123,6 +124,34 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
             final String error = "Failed to find dashboards by id";
             LOGGER.error(error, ex);
             throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcDashboardRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType.name(),
+                referenceId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                    referenceType.name(),
+                    referenceId
+                );
+            }
+
+            LOGGER.debug("JdbcDashboardRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete dashboards for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete dashboards by reference", ex);
         }
     }
 }

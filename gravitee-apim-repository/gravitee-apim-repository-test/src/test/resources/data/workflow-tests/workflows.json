@@ -33,5 +33,21 @@
       "type": "REVIEW",
       "state": "DRAFT",
       "createdAt": 1439022010885
+   },
+   {
+     "id":"to_be_deleted_1",
+     "referenceType": "APPLICATION",
+     "referenceId": "ToBeDeleted",
+     "type": "REVIEW",
+     "state": "DRAFT",
+     "createdAt": 1439022010885
+   },
+   {
+     "id":"to_be_deleted_2",
+     "referenceType": "APPLICATION",
+     "referenceId": "ToBeDeleted",
+     "type": "REVIEW",
+     "state": "DRAFT",
+     "createdAt": 1439022010885
    }
 ]

@@ -112,7 +112,7 @@ public class PortalPageMediaResource extends AbstractResource {
         mediaEntity.setData(IOUtils.toByteArray(uploadedInputStream));
         mediaEntity.setFileName(originalFileName);
 
-        mediaId = mediaService.savePortalMedia(mediaEntity);
+        mediaId = mediaService.savePortalMedia(GraviteeContext.getExecutionContext(), mediaEntity);
         pageService
             .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
             .ifPresent(pageEntity ->
@@ -149,7 +149,10 @@ public class PortalPageMediaResource extends AbstractResource {
             throw new PageNotFoundException(page);
         }
 
-        List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(currentPage.getAttachedMedia());
+        List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(
+            GraviteeContext.getExecutionContext(),
+            currentPage.getAttachedMedia()
+        );
 
         if (pageMedia != null && !pageMedia.isEmpty()) {
             return Response.ok(pageMedia).build();

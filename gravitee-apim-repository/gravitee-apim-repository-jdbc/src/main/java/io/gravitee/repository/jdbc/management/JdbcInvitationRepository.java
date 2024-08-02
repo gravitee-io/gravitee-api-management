@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
+import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
@@ -61,19 +62,47 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     }
 
     @Override
-    public List<Invitation> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcInvitationRepository.findByReference({}, {})", referenceType, referenceId);
+    public List<Invitation> findByReferenceIdAndReferenceType(final String referenceId, final InvitationReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcInvitationRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
                 getOrm().getRowMapper(),
-                referenceType,
+                referenceType.name(),
                 referenceId
             );
         } catch (final Exception ex) {
-            final String message = "Failed to find invitations by reference";
-            LOGGER.error(message, ex);
-            throw new TechnicalException(message, ex);
+            LOGGER.error("Failed to find invitation for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to find invitation by reference", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
+        try {
+            final var invitationIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!invitationIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+
+            LOGGER.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            return invitationIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete invitation for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete invitation by reference", ex);
         }
     }
 }

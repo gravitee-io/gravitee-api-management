@@ -35,5 +35,27 @@
     "defaultRole": false,
     "scope": "API",
     "permissions": [1]
+  },
+  {
+    "id": "an_api_organisation_role_to_be_deleted",
+    "name": "role to be deleted",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "ORGANIZATION",
+    "description": "role description",
+    "scope": "API",
+    "defaultRole": true,
+    "system": true,
+    "permissions": [1]
+  },
+  {
+    "id": "an_organisation_role_to_be_deleted",
+    "name": "role to be deleted",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "ORGANIZATION",
+    "description": "role description",
+    "scope": "API",
+    "defaultRole": true,
+    "system": true,
+    "permissions": [1]
   }
 ]

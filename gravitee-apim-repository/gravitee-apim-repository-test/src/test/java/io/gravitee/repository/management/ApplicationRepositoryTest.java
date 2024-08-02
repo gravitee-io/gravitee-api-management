@@ -21,6 +21,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -401,5 +402,26 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(2, apps.size());
         assertEquals("grouped-app1", apps.get(0).getName());
         assertEquals("grouped-app2", apps.get(1).getName());
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        final var beforeDeletion = applicationRepository
+            .findAll()
+            .stream()
+            .filter(app -> "DEFAULT".equals(app.getEnvironmentId()))
+            .map(Application::getId)
+            .toList();
+
+        final var deleted = applicationRepository.deleteByEnvironmentId("DEFAULT");
+        final var nbAfterDeletion = applicationRepository
+            .findAll()
+            .stream()
+            .filter(app -> "DEFAULT".equals(app.getEnvironmentId()))
+            .count();
+
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
+        assertEquals(0, nbAfterDeletion);
     }
 }

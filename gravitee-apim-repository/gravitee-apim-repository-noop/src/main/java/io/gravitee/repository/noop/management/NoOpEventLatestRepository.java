@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,4 +40,14 @@ public class NoOpEventLatestRepository implements EventLatestRepository {
 
     @Override
     public void delete(String eventId) throws TechnicalException {}
+
+    @Override
+    public List<Event> findByEnvironmentId(String environmentId) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Event> findByOrganizationId(String organizationId) {
+        return Collections.emptyList();
+    }
 }

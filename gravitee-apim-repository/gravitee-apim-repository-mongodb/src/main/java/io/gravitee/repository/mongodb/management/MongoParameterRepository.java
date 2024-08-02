@@ -117,6 +117,25 @@ public class MongoParameterRepository implements ParameterRepository {
         return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
     }
 
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ParameterReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete parameter by refId: {}/{}", referenceId, referenceType);
+        try {
+            final var parameterMongos = internalParameterRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(parameterMongo -> parameterMongo.getId().getKey())
+                .toList();
+            LOGGER.debug("Delete parameter by refId {}/{} - Done", referenceId, referenceType);
+
+            return parameterMongos;
+        } catch (Exception e) {
+            LOGGER.error("Failed to delete parameter by refId: {}/{}", referenceId, referenceType, e);
+            throw new TechnicalException("Failed to delete parameter by reference");
+        }
+    }
+
     private Parameter map(final ParameterMongo parameterMongo) {
         if (parameterMongo == null) {
             return null;

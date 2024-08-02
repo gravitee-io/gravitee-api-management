@@ -47,4 +47,13 @@ public interface RatingRepository extends FindAllRepository<Rating> {
         throws TechnicalException;
 
     Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException;
+
+    /**
+     * Delete by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted ratings
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException;
 }

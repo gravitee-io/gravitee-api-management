@@ -256,4 +256,29 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             throw new TechnicalException("Failed to find all groups by environment : " + environmentId, ex);
         }
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcGroupRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var groupIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+            if (!groupIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + GROUP_EVENT_RULES + " where group_id  IN ( " + getOrm().buildInClause(groupIds) + " )",
+                    groupIds.toArray()
+                );
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcGroupRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return groupIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete groups by environment : {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete groups by environment : " + environmentId, ex);
+        }
+    }
 }

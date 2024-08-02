@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.mongodb.management.internal.audit.AuditMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -49,6 +50,21 @@ public class MongoAuditRepository implements AuditRepository {
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
         return internalAuditRepo.search(filter, pageable).map(mapper::map);
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete audit by reference [{}/{}]", referenceId, referenceType);
+
+        final var audits = internalAuditRepo
+            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+            .stream()
+            .map(AuditMongo::getId)
+            .toList();
+
+        LOGGER.debug("Delete audit by reference [{}/{}] - Done", referenceId, referenceType);
+        return audits;
     }
 
     @Override

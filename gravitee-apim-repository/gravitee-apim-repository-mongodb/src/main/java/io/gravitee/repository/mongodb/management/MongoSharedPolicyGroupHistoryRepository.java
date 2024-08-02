@@ -29,6 +29,7 @@ import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGrou
 import io.gravitee.repository.mongodb.management.internal.sharedpolicygrouphistory.SharedPolicyGroupHistoryMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -155,6 +156,25 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     @Override
     public Set<SharedPolicyGroup> findAll() throws TechnicalException {
         throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete shared policy group history by environmentId [{}]", environmentId);
+
+        try {
+            final var res = internalSharedPolicyGroupHistoryMongoRepo
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(SharedPolicyGroupHistoryMongo::get_id)
+                .toList();
+
+            LOGGER.debug("Delete shared policy group history by environmentId [{}] - Done", environmentId);
+            return res;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete shared policy group history by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete shared policy group history by environmentId");
+        }
     }
 
     private SharedPolicyGroup mapSharedPolicyGroupHistory(SharedPolicyGroupHistoryMongo item) {

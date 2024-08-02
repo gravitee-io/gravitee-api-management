@@ -15,12 +15,18 @@
  */
 package io.gravitee.repository.media.model;
 
-import java.io.InputStream;
 import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Guillaume Gillon
  */
+
+@Getter
+@Setter
+@ToString
 public class Media {
 
     private String id;
@@ -28,13 +34,13 @@ public class Media {
     private String subType;
     private String fileName;
     private Date createdAt;
-
     private String hash;
-
     private Long size;
     private byte[] data;
 
     private String api;
+    private String environment;
+    private String organization;
 
     public Media() {}
 
@@ -43,81 +49,5 @@ public class Media {
         this.subType = subType;
         this.fileName = fileName;
         this.size = size;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getSubType() {
-        return subType;
-    }
-
-    public void setSubType(String subType) {
-        this.subType = subType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public void setSize(Long size) {
-        this.size = size;
-    }
-
-    public String getMimeType() {
-        return this.type + '/' + this.subType;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
     }
 }

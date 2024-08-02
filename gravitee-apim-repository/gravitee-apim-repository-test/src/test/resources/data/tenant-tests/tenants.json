@@ -26,5 +26,20 @@
       "description": "Description for other US tenant",
       "referenceId": "OTHER",
       "referenceType": "ORGANIZATION"
+   },
+   {
+     "id":"deleted-by-ref-1",
+     "name":"deleted-by-ref-1",
+     "description": "Description",
+     "referenceId": "ToBeDeleted",
+     "referenceType": "ORGANIZATION"
+   },
+   {
+     "id":"deleted-by-ref-2",
+     "name":"deleted-by-ref-2",
+     "description": "Description",
+     "referenceId": "ToBeDeleted",
+     "referenceType": "ORGANIZATION"
    }
+
 ]

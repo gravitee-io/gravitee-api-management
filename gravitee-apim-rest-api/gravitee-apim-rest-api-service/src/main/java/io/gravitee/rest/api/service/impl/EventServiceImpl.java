@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -510,6 +511,92 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying create or patch " + latestEvent, ex);
         }
+    }
+
+    @Override
+    public void deleteOrUpdateEventsByEnvironment(String environmentId) {
+        eventRepository
+            .findByEnvironmentId(environmentId)
+            .forEach(event -> {
+                event.setEnvironments(event.getEnvironments().stream().filter(env -> !env.equals(environmentId)).collect(toSet()));
+                if (event.getEnvironments().isEmpty()) {
+                    try {
+                        eventRepository.delete(event.getId());
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying delete event " + event, e);
+                    }
+                } else {
+                    try {
+                        eventRepository.update(event);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying update event " + event, e);
+                    }
+                }
+            });
+
+        eventLatestRepository
+            .findByEnvironmentId(environmentId)
+            .forEach(eventLatest -> {
+                eventLatest.setEnvironments(
+                    eventLatest.getEnvironments().stream().filter(env -> !env.equals(environmentId)).collect(toSet())
+                );
+                if (eventLatest.getEnvironments().isEmpty()) {
+                    try {
+                        eventLatestRepository.delete(eventLatest.getId());
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying delete eventLatest " + eventLatest, e);
+                    }
+                } else {
+                    try {
+                        eventLatestRepository.createOrUpdate(eventLatest);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying update eventLatest" + eventLatest, e);
+                    }
+                }
+            });
+    }
+
+    @Override
+    public void deleteOrUpdateEventsByOrganization(String organizationId) {
+        eventRepository
+            .findByOrganizationId(organizationId)
+            .forEach(event -> {
+                event.setOrganizations(event.getOrganizations().stream().filter(org -> !org.equals(organizationId)).collect(toSet()));
+                if (event.getOrganizations().isEmpty()) {
+                    try {
+                        eventRepository.delete(event.getId());
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying delete event " + event, e);
+                    }
+                } else {
+                    try {
+                        eventRepository.update(event);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying update event " + event, e);
+                    }
+                }
+            });
+
+        eventLatestRepository
+            .findByOrganizationId(organizationId)
+            .forEach(eventLatest -> {
+                eventLatest.setOrganizations(
+                    eventLatest.getOrganizations().stream().filter(org -> !org.equals(organizationId)).collect(toSet())
+                );
+                if (eventLatest.getOrganizations().isEmpty()) {
+                    try {
+                        eventLatestRepository.delete(eventLatest.getId());
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying delete eventLatest " + eventLatest, e);
+                    }
+                } else {
+                    try {
+                        eventLatestRepository.createOrUpdate(eventLatest);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException("An error occurs while trying update eventLatest" + eventLatest, e);
+                    }
+                }
+            });
     }
 
     private Event convert(EventEntity eventEntity) {

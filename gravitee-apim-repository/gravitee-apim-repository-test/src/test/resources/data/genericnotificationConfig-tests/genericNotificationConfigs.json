@@ -76,5 +76,27 @@
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883
+  },
+  {
+    "id": "to-be-deleted-1",
+    "name": "to-be-deleted-1",
+    "notifier": "email",
+    "referenceType": "PORTAL",
+    "referenceId": "ToBeDeleted",
+    "config": "test@gravitee.io",
+    "hooks": ["A", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "to-be-deleted-2",
+    "name": "to-be-deleted-2",
+    "notifier": "email",
+    "referenceType": "PORTAL",
+    "referenceId": "ToBeDeleted",
+    "config": "test@gravitee.io",
+    "hooks": ["A", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
   }
 ]

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import java.util.List;
@@ -25,4 +26,18 @@ import java.util.List;
  */
 public interface CommandRepository extends CrudRepository<Command, String> {
     List<Command> search(CommandCriteria criteria);
+
+    /**
+     * Delete commands by environment
+     * @param environmentId
+     * @return List of IDs for deleted commands
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    /**
+     * Delete commands by organization
+     * @param organizationId
+     * @return List of IDs for deleted commands
+     */
+    List<String> deleteByOrganizationId(String organizationId) throws TechnicalException;
 }

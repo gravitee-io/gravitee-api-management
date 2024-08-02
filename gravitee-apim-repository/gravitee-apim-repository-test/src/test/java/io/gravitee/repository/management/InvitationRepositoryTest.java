@@ -19,6 +19,7 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.Invitation;
+import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +39,7 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Invitation> invitations = invitationRepository.findAll();
 
         assertNotNull(invitations);
-        assertEquals(3, invitations.size());
+        assertEquals(5, invitations.size());
         final Optional<Invitation> optionalInvitation = invitations
             .stream()
             .filter(invitation -> "e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce".equals(invitation.getId()))
@@ -126,8 +127,8 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByReference() throws Exception {
-        final List<Invitation> invitations = invitationRepository.findByReference("API", "api-id");
+    public void shouldFindByReferenceIdAndReferenceType() throws Exception {
+        final List<Invitation> invitations = invitationRepository.findByReferenceIdAndReferenceType("api-id", InvitationReferenceType.API);
         assertNotNull(invitations);
         assertEquals(1, invitations.size());
     }
@@ -144,5 +145,28 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         invitationRepository.update(null);
         fail("A null invitation should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final List<Invitation> beforeDelete = invitationRepository.findByReferenceIdAndReferenceType(
+            "ToBeDeleted",
+            InvitationReferenceType.APPLICATION
+        );
+
+        final List<String> deleted = invitationRepository.deleteByReferenceIdAndReferenceType(
+            "ToBeDeleted",
+            InvitationReferenceType.APPLICATION
+        );
+
+        final List<Invitation> afterDelete = invitationRepository.findByReferenceIdAndReferenceType(
+            "ToBeDeleted",
+            InvitationReferenceType.APPLICATION
+        );
+
+        assertNotNull(beforeDelete);
+        assertEquals(2, beforeDelete.size());
+        assertEquals(2, deleted.size());
+        assertEquals(0, afterDelete.size());
     }
 }

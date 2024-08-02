@@ -163,28 +163,24 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_delete_from_reference() throws Exception {
-        AccessPoint accessPoint = AccessPoint
-            .builder()
-            .id("id2")
-            .host("host2")
-            .target(AccessPointTarget.GATEWAY)
-            .secured(true)
-            .referenceId("referenceId2")
-            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .overriding(true)
-            .status(AccessPointStatus.CREATED)
-            .updatedAt(new Date(1486771200000L))
-            .build();
+        List<AccessPoint> beforeDeletion = accessPointRepository
+            .findAll()
+            .stream()
+            .filter(accessPoint -> accessPoint.getReferenceId().equals("env_id_to_be_deleted"))
+            .toList();
+        List<String> deleted = accessPointRepository.deleteByReferenceIdAndReferenceType(
+            "env_id_to_be_deleted",
+            AccessPointReferenceType.ENVIRONMENT
+        );
+        List<AccessPoint> afterDeletion = accessPointRepository
+            .findAll()
+            .stream()
+            .filter(accessPoint -> accessPoint.getReferenceId().equals("env_id_to_be_deleted"))
+            .toList();
 
-        accessPointRepository.create(accessPoint);
-
-        Optional<AccessPoint> optionalCreated = accessPointRepository.findById("id2");
-        assertTrue("AccessPoint not found", optionalCreated.isPresent());
-
-        accessPointRepository.deleteByReference(AccessPointReferenceType.ENVIRONMENT, "referenceId2");
-
-        Optional<AccessPoint> optionalDeleted = accessPointRepository.findById("id2");
-        assertFalse("AccessPoint not deleted", optionalDeleted.isPresent());
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.stream().map(AccessPoint::getId).toList().containsAll(deleted));
+        assertEquals(0, afterDeletion.size());
     }
 
     @Test

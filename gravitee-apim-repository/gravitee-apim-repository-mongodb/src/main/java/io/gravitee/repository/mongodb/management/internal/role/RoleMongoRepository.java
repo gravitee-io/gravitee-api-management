@@ -42,4 +42,7 @@ public interface RoleMongoRepository extends MongoRepository<RoleMongo, String> 
 
     @Query("{ '_id' : { $in : ?0 } }")
     Set<RoleMongo> findAllByIdIn(Set<String> ids);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<RoleMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

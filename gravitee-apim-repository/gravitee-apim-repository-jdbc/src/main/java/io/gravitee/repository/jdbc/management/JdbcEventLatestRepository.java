@@ -21,6 +21,7 @@ import static io.gravitee.repository.jdbc.management.JdbcEventRepository.appendC
 import static io.gravitee.repository.jdbc.management.JdbcEventRepository.criteriaToString;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addStringsWhereClause;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,19 +73,7 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         log.debug("JdbcEventLatestRepository.search({})", criteriaToString(criteria));
 
         final List<Object> args = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder(
-            "select evt.*, evp.*, ev.*, evo.* from " +
-            this.tableName +
-            " evt inner join " +
-            EVENT_PROPERTIES +
-            " evp on evt.id = evp.event_id " +
-            "left join " +
-            EVENT_ENVIRONMENTS +
-            " ev on evt.id = ev.event_id " +
-            "left join " +
-            EVENT_ORGANIZATIONS +
-            " evo on evt.id = evo.event_id "
-        );
+        final StringBuilder builder = createSearchQueryBuilder();
 
         appendCriteria(builder, criteria, args, "evt", "ev", "evo", EVENT_PROPERTIES);
         if (group != null) {
@@ -97,6 +87,22 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             builder.append(createPagingClause(limit, (page.intValue() * limit)));
         }
         return queryEvents(builder.toString(), args);
+    }
+
+    private StringBuilder createSearchQueryBuilder() {
+        return new StringBuilder(
+            "select evt.*, evp.*, ev.*, evo.* from " +
+            this.tableName +
+            " evt inner join " +
+            EVENT_PROPERTIES +
+            " evp on evt.id = evp.event_id " +
+            "left join " +
+            EVENT_ENVIRONMENTS +
+            " ev on evt.id = ev.event_id " +
+            "left join " +
+            EVENT_ORGANIZATIONS +
+            " evo on evt.id = evo.event_id "
+        );
     }
 
     @Override
@@ -226,6 +232,24 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             log.error("Failed to delete event by id [{}]", id);
             throw new TechnicalException("Failed to delete event", ex);
         }
+    }
+
+    @Override
+    public List<Event> findByEnvironmentId(String environmentId) {
+        log.debug("JdbcEventLatestRepository.findByEnvironmentId({})", environmentId);
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = createSearchQueryBuilder();
+        addStringsWhereClause(Set.of(environmentId), "ev.environment_id", args, builder, false);
+        return queryEvents(builder.toString(), args);
+    }
+
+    @Override
+    public List<Event> findByOrganizationId(String organizationId) {
+        log.debug("JdbcEventLatestRepository.findByOrganizationId({})", organizationId);
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = createSearchQueryBuilder();
+        addStringsWhereClause(Set.of(organizationId), "evo.organization_id", args, builder, false);
+        return queryEvents(builder.toString(), args);
     }
 
     @Override

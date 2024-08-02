@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -112,6 +111,19 @@ public class MongoIntegrationRepository implements IntegrationRepository {
 
         logger.debug("Search by environment ID [{}] and groups [{}] - Done", environmentId, groups);
         return new Page<>(content, integrations.getPageNumber(), (int) integrations.getPageElements(), integrations.getTotalElements());
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        logger.debug("Delete integration by environmentId: {}", environmentId);
+        try {
+            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(IntegrationMongo::getId).toList();
+            logger.debug("Delete integration by environment - Done {}", all);
+            return all;
+        } catch (Exception ex) {
+            logger.error("Failed to delete integration by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete integration by environmentId");
+        }
     }
 
     private Integration map(IntegrationMongo integrationMongo) {

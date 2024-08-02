@@ -72,17 +72,29 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     }
 
     @Override
-    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcMembershipRepository.deleteMembers({}, {})", referenceType, referenceId);
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcMembershipRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            jdbcTemplate.update(
-                "delete from " + this.tableName + " where reference_type = ?" + " and reference_id = ?",
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where reference_type = ?" + " and reference_id = ?",
+                String.class,
                 referenceType.name(),
                 referenceId
             );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + this.tableName + " where reference_type = ?" + " and reference_id = ?",
+                    referenceType.name(),
+                    referenceId
+                );
+            }
+
+            return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete JdbcMembershipRepository", ex);
-            throw new TechnicalException("Failed to delete JdbcMembershipRepository", ex);
+            LOGGER.error("Failed to delete memberships for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete memberships by reference", ex);
         }
     }
 

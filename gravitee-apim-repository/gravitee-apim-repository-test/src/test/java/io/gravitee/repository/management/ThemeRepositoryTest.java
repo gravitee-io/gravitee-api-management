@@ -16,11 +16,13 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.ThemeType;
 import java.util.*;
 import org.junit.Test;
@@ -37,7 +39,7 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Theme> themes = themeRepository.findAll();
 
         assertNotNull(themes);
-        assertEquals(4, themes.size());
+        assertEquals(6, themes.size());
         final Theme themeSimple = themes.stream().filter(theme -> "simple".equals(theme.getId())).findAny().get();
         assertEquals("Theme simple", themeSimple.getName());
         assertEquals("PORTAL", themeSimple.getType().name());
@@ -83,7 +85,7 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldSearchAndReturnAll() throws TechnicalException {
         var results = themeRepository.search(ThemeCriteria.builder().build(), null);
         assertNotNull(results);
-        assertEquals(4, results.getContent().size());
+        assertEquals(6, results.getContent().size());
     }
 
     @Test
@@ -190,5 +192,24 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         themeRepository.update(null);
         fail("A null theme should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws TechnicalException {
+        final var nbBeforeDeletion = themeRepository
+            .findAll()
+            .stream()
+            .filter(t -> "ToBeDeleted".equals(t.getReferenceId()) && ThemeReferenceType.ENVIRONMENT.name().equals(t.getReferenceType()))
+            .count();
+        final var deleted = themeRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", ThemeReferenceType.ENVIRONMENT).size();
+        final var nbAfterDeletion = themeRepository
+            .findAll()
+            .stream()
+            .filter(t -> "ToBeDeleted".equals(t.getReferenceId()) && ThemeReferenceType.ENVIRONMENT.name().equals(t.getReferenceType()))
+            .count();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+        assertThat(deleted).isEqualTo(2);
+        assertThat(nbAfterDeletion).isEqualTo(0);
     }
 }

@@ -17,8 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.theme;
 
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
+import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -28,4 +30,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ThemeMongoRepository extends MongoRepository<ThemeMongo, String>, ThemeMongoRepositoryCustom {
     Set<ThemeMongo> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<ThemeMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

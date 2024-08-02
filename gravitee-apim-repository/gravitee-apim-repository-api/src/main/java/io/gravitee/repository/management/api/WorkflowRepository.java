@@ -25,4 +25,13 @@ import java.util.List;
  */
 public interface WorkflowRepository extends CrudRepository<Workflow, String> {
     List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException;
+
+    /**
+     * Delete workflows by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted workflows
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException;
 }

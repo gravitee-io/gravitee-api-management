@@ -83,4 +83,31 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
             throw new TechnicalException(message, ex);
         }
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcWorkflowRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType,
+                referenceId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                    referenceType,
+                    referenceId
+                );
+            }
+
+            LOGGER.debug("JdbcWorkflowRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete workflow for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete workflow by reference", ex);
+        }
+    }
 }

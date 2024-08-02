@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.UriBuilder;
 import java.time.ZoneOffset;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -77,12 +80,7 @@ public class PageMapper {
 
         if (page.getAttachedMedia() != null && !page.getAttachedMedia().isEmpty() && baseUriBuilder != null) {
             final String mediaUrl = PortalApiLinkHelper.mediaURL(baseUriBuilder, apiId);
-            final List<PageMedia> pageMedia = mediaService
-                .findAllWithoutContent(page.getAttachedMedia(), apiId)
-                .stream()
-                .map(media -> new PageMedia().name(media.getFileName()).link(mediaUrl + "/" + media.getHash()).type(media.getType()))
-                .collect(Collectors.toList());
-            pageItem.setMedia(pageMedia);
+            pageItem.setMedia(getPageMediaList(apiId, page, mediaUrl));
         }
 
         if (page.getContentRevisionId() != null) {
@@ -93,6 +91,18 @@ public class PageMapper {
         }
 
         return pageItem;
+    }
+
+    @NotNull
+    private List<PageMedia> getPageMediaList(String apiId, PageEntity page, String mediaUrl) {
+        List<MediaEntity> allWithoutContent = apiId == null
+            ? mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), page.getAttachedMedia())
+            : mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId);
+
+        return allWithoutContent
+            .stream()
+            .map(media -> new PageMedia().name(media.getFileName()).link(mediaUrl + "/" + media.getHash()).type(media.getType()))
+            .toList();
     }
 
     private PageConfiguration convertPageConfiguration(Map<String, String> configuration) {

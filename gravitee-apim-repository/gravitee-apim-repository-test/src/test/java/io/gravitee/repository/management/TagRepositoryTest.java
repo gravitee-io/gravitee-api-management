@@ -139,4 +139,15 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(tags).hasSize(2).anyMatch(tag -> tag.getId().equals("international") && tag.getName().equals("International"));
     }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final var nbBeforeDeletion = tagRepository.findByReference("ToBeDeleted", TagReferenceType.ORGANIZATION).size();
+        final var deleted = tagRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", TagReferenceType.ORGANIZATION).size();
+        final var nbAfterDeletion = tagRepository.findByReference("ToBeDeleted", TagReferenceType.ORGANIZATION).size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted);
+        assertEquals(0, nbAfterDeletion);
+    }
 }

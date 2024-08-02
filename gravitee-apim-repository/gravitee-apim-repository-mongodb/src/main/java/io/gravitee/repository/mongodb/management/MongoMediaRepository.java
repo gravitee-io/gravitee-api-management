@@ -17,13 +17,13 @@ package io.gravitee.repository.mongodb.management;
 
 import static com.mongodb.client.model.Filters.*;
 
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.MediaCriteria;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import java.io.ByteArrayInputStream;
@@ -31,9 +31,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -61,7 +61,9 @@ public class MongoMediaRepository implements MediaRepository {
             .append("type", media.getType())
             .append("subType", media.getSubType())
             .append("size", media.getSize())
-            .append("hash", media.getHash());
+            .append("hash", media.getHash())
+            .append("environment", media.getEnvironment())
+            .append("organization", media.getOrganization());
 
         if (media.getApi() != null) {
             doc.append("api", media.getApi());
@@ -76,39 +78,8 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     @Override
-    public Optional<Media> findByHash(String hash) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, null, null, true);
-    }
-
-    @Override
-    public Optional<Media> findByHash(String hash, boolean withContent) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, null, null, withContent);
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApi(String hash, String api) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, api, null, true);
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, api, null, withContent);
-    }
-
-    @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, null, mediaType, true);
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, api, mediaType, true);
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent)
-        throws TechnicalException {
-        return this.findFirst(this.getQueryFindMedia(hash, api, mediaType), withContent);
+    public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException {
+        return this.findFirst(this.getQueryFindMedia(hash, mediaCriteria), withContent);
     }
 
     @Override
@@ -124,14 +95,12 @@ public class MongoMediaRepository implements MediaRepository {
     private List<Media> findAll(Bson query) {
         GridFSFindIterable files = getGridFs().find(query);
         ArrayList<Media> all = new ArrayList<>();
-        files.forEach(
-            (Consumer<GridFSFile>) file -> {
-                Media convert = convert(file, true);
-                if (convert != null) {
-                    all.add(convert);
-                }
+        files.forEach(file -> {
+            Media convert = convert(file, true);
+            if (convert != null) {
+                all.add(convert);
             }
-        );
+        });
         return all;
     }
 
@@ -148,7 +117,6 @@ public class MongoMediaRepository implements MediaRepository {
     private Media convert(GridFSFile file, boolean withContent) {
         Media imageData = null;
         if (file != null) {
-            InputStream inputStream = getGridFs().openDownloadStream(file.getId());
             Document metadata = file.getMetadata();
 
             imageData = new Media();
@@ -159,8 +127,12 @@ public class MongoMediaRepository implements MediaRepository {
             imageData.setSize((Long) metadata.get("size"));
             imageData.setFileName(file.getFilename());
             imageData.setHash((String) metadata.get("hash"));
+            imageData.setApi((String) metadata.get("api"));
+            imageData.setEnvironment((String) metadata.get("environment"));
+            imageData.setOrganization((String) metadata.get("organization"));
 
             if (withContent) {
+                InputStream inputStream = getGridFs().openDownloadStream(file.getId());
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 byte[] result = null;
                 try {
@@ -182,46 +154,91 @@ public class MongoMediaRepository implements MediaRepository {
         return imageData;
     }
 
-    private Bson getQueryFindMedia(String hash, String api, String mediaType) {
-        Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
-        if (mediaType == null) {
-            return and(eq("metadata.hash", hash), addQuery);
+    private Bson getQueryFindMedia(String hash, MediaCriteria mediaCriteria) {
+        final var baseQuery = (mediaCriteria == null || mediaCriteria.getApi() == null)
+            ? not(exists("metadata.api"))
+            : eq("metadata.api", mediaCriteria.getApi());
+
+        final List<Bson> filters = new ArrayList<>();
+        filters.add(baseQuery);
+        filters.add(eq("metadata.hash", hash));
+
+        Bson contextQuery = getContextQuery(mediaCriteria);
+
+        if (contextQuery != null) {
+            filters.add(contextQuery);
         }
-        return and(eq("metadata.type", mediaType), eq("metadata.hash", hash), addQuery);
+
+        if (mediaCriteria != null && mediaCriteria.getMediaType() != null) {
+            filters.add(eq("metadata.type", mediaCriteria.getMediaType()));
+        }
+
+        return and(filters);
+    }
+
+    private static Bson getContextQuery(MediaCriteria mediaCriteria) {
+        if (mediaCriteria != null) {
+            if (mediaCriteria.getEnvironment() != null && mediaCriteria.getOrganization() != null) {
+                return and(
+                    eq("metadata.environment", mediaCriteria.getEnvironment()),
+                    eq("metadata.organization", mediaCriteria.getOrganization())
+                );
+            } else if (mediaCriteria.getEnvironment() != null) {
+                return eq("metadata.environment", mediaCriteria.getEnvironment());
+            } else if (mediaCriteria.getOrganization() != null) {
+                return eq("metadata.organization", mediaCriteria.getOrganization());
+            }
+        }
     }
 
     private GridFSBucket getGridFs() {
-        MongoDatabase db = mongoFactory.getMongoDatabase();
-        String bucketName = "media";
-        return GridFSBuckets.create(db, bucketName);
+        return GridFSBuckets.create(mongoFactory.getMongoDatabase(), "media");
     }
 
     @Override
     public void deleteAllByApi(String api) throws TechnicalException {
-        if (api == null) {
-            LOGGER.warn("Skipping media deletion because the API identifier given as an argument is null");
-        } else {
-            doDeleteAllByApi(api);
-        }
-    }
-
-    private void doDeleteAllByApi(String api) throws TechnicalException {
-        try {
-            Bson apiQuery = eq("metadata.api", api);
-            GridFSBucket gridFs = getGridFs();
-            GridFSFindIterable files = gridFs.find(apiQuery);
-            files.forEach((Consumer<GridFSFile>) gridFSFile -> gridFs.delete(gridFSFile.getId()));
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
+        deleteWithMetadata("metadata.api", api);
     }
 
     @Override
     public void deleteByHashAndApi(String hash, String api) throws TechnicalException {
+        if (hash == null || api == null) {
+            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", hash, api);
+        } else {
+            deleteWithQuery(and(eq("metadata.api", api), eq("metadata.hash", hash)));
+        }
+    }
+
+    @Override
+    public List<String> deleteByEnvironment(String environment) throws TechnicalException {
+        return deleteWithMetadata("metadata.environment", environment);
+    }
+
+    @Override
+    public List<String> deleteByOrganization(String organization) throws TechnicalException {
+        return deleteWithMetadata("metadata.organization", organization);
+    }
+
+    private List<String> deleteWithMetadata(String metadata, String value) throws TechnicalException {
+        if (metadata == null || value == null) {
+            LOGGER.warn("Skipping media deletion because the [{}] given as an argument is null", metadata);
+        } else {
+            return deleteWithQuery(eq(metadata, value));
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> deleteWithQuery(Bson query) throws TechnicalException {
         try {
-            Bson query = and(eq("metadata.api", api), eq("metadata.hash", hash));
             GridFSBucket gridFs = getGridFs();
-            gridFs.find(query).forEach(gridFSFile -> gridFs.delete(gridFSFile.getId()));
+            List<String> deleted = new ArrayList<>();
+            gridFs
+                .find(query)
+                .forEach(file -> {
+                    deleted.add(file.getId().asString().getValue());
+                    gridFs.delete(file.getId());
+                });
+            return deleted;
         } catch (Exception e) {
             throw new TechnicalException(e);
         }

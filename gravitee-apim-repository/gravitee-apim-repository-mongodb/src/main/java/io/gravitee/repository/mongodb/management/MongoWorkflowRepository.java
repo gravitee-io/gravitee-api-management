@@ -130,6 +130,20 @@ public class MongoWorkflowRepository implements WorkflowRepository {
         return workflows.stream().map(this::map).collect(toList());
     }
 
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+        LOGGER.debug("Delete workflow by reference {}/{}", referenceId, referenceType);
+
+        final var workflows = internalWorkflowRepo
+            .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
+            .stream()
+            .map(WorkflowMongo::getId)
+            .toList();
+
+        LOGGER.debug("Delete workflow by reference and type {}/{} - Done", referenceType, referenceId);
+        return workflows;
+    }
+
     private Workflow map(final WorkflowMongo workflowMongo) {
         if (workflowMongo == null) {
             return null;

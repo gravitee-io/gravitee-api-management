@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,5 +41,10 @@ public class NoOpSharedPolicyGroupRepository
     @Override
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         return Optional.empty();
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        return Collections.emptyList();
     }
 }

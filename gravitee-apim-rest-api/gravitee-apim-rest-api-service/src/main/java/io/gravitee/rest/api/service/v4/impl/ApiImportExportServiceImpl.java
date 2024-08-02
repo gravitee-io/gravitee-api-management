@@ -273,7 +273,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     public void createPageAndMedia(final ExecutionContext executionContext, String apiId, List<MediaEntity> mediaEntities) {
         mediaEntities.forEach(mediaEntity -> {
             try {
-                mediaService.saveApiMedia(apiId, mediaEntity);
+                mediaService.saveApiMedia(executionContext, apiId, mediaEntity);
             } catch (Exception e) {
                 log.warn(
                     "Unable to create api media {} for imported API {}' due to : {}",

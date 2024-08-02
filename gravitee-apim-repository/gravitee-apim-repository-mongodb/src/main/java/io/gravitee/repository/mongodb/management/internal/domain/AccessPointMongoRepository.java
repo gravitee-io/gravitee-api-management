@@ -42,6 +42,6 @@ public interface AccessPointMongoRepository extends MongoRepository<AccessPointM
         AccessPointStatus status
     );
 
-    @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1}", delete = true)
-    List<AccessPointMongo> deleteAllByReference(final String referenceType, final String referenceIds);
+    @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1}", fields = "{ _id: 1 }", delete = true)
+    List<AccessPointMongo> deleteAllByReference(final String referenceType, final String referenceId);
 }

@@ -81,6 +81,28 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcCategoryRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete categories by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete categories by environment", ex);
+        }
+    }
+
+    @Override
     public Optional<Category> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcCategoryRepository.findById({})", id);
         try {
