@@ -58,7 +58,7 @@ public class DefaultSharedPolicyGroupRolesUpgraderTest {
     }
 
     @Test
-    public void upgrade_add_default_environment_flows_roles() throws TechnicalException {
+    public void upgrade_add_default_shared_policy_groups_roles() throws TechnicalException {
         when(organizationRepository.findAll()).thenReturn(Set.of(Organization.builder().id("DEFAULT").build()));
 
         when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT")))

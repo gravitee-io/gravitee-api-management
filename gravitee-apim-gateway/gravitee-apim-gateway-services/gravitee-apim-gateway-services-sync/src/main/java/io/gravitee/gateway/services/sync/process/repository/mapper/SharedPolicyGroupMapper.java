@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.ENVIRONMENT_FLOW_ID;
+import static io.gravitee.repository.management.model.Event.EventProperties.SHARED_POLICY_GROUP_ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
@@ -37,7 +37,7 @@ public class SharedPolicyGroupMapper {
         return Maybe.fromCallable(() -> {
             String sharedPolicyGroupId = null;
             if (sharedPolicyGroupEvent.getProperties() != null) {
-                sharedPolicyGroupId = sharedPolicyGroupEvent.getProperties().get(ENVIRONMENT_FLOW_ID.getValue());
+                sharedPolicyGroupId = sharedPolicyGroupEvent.getProperties().get(SHARED_POLICY_GROUP_ID.getValue());
             }
             if (sharedPolicyGroupId == null) {
                 log.warn("Unable to extract shared policy group info from event [{}].", sharedPolicyGroupEvent.getId());

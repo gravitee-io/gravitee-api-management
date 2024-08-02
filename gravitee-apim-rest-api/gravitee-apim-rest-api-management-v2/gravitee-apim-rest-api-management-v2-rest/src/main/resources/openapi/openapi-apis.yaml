@@ -6039,8 +6039,8 @@ components:
                 - UNPUBLISH_API
                 - UNPUBLISH_API_RESULT
                 - UNPUBLISH_DICTIONARY
-                - DEPLOY_ENVIRONMENT_FLOW
-                - UNDEPLOY_ENVIRONMENT_FLOW
+                - DEPLOY_SHARED_POLICY_GROUP
+                - UNDEPLOY_SHARED_POLICY_GROUP
 
         # Documentation pages
         AccessControl:

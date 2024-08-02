@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.ENVIRONMENT_FLOW_ID;
-import static io.gravitee.repository.management.model.EventType.DEPLOY_ENVIRONMENT_FLOW;
-import static io.gravitee.repository.management.model.EventType.UNDEPLOY_ENVIRONMENT_FLOW;
+import static io.gravitee.repository.management.model.Event.EventProperties.SHARED_POLICY_GROUP_ID;
+import static io.gravitee.repository.management.model.EventType.DEPLOY_SHARED_POLICY_GROUP;
+import static io.gravitee.repository.management.model.EventType.UNDEPLOY_SHARED_POLICY_GROUP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -123,7 +123,7 @@ class SharedPolicyGroupSynchronizerTest {
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
             verify(latestEventFetcher)
-                .fetchLatest(eq(-1L), any(), eq(ENVIRONMENT_FLOW_ID), eq(Set.of("event")), eq(Set.of(DEPLOY_ENVIRONMENT_FLOW)));
+                .fetchLatest(eq(-1L), any(), eq(SHARED_POLICY_GROUP_ID), eq(Set.of("event")), eq(Set.of(DEPLOY_SHARED_POLICY_GROUP)));
         }
 
         @Test
@@ -134,9 +134,9 @@ class SharedPolicyGroupSynchronizerTest {
                 .fetchLatest(
                     any(),
                     any(),
-                    eq(ENVIRONMENT_FLOW_ID),
+                    eq(SHARED_POLICY_GROUP_ID),
                     eq(Set.of("event")),
-                    eq(Set.of(DEPLOY_ENVIRONMENT_FLOW, EventType.UNDEPLOY_ENVIRONMENT_FLOW))
+                    eq(Set.of(DEPLOY_SHARED_POLICY_GROUP, EventType.UNDEPLOY_SHARED_POLICY_GROUP))
                 );
         }
     }
@@ -165,7 +165,7 @@ class SharedPolicyGroupSynchronizerTest {
                     )
                     .build();
             event.setPayload(objectMapper.writeValueAsString(sharedPolicyGroup));
-            event.setType(DEPLOY_ENVIRONMENT_FLOW);
+            event.setType(DEPLOY_SHARED_POLICY_GROUP);
 
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
@@ -178,8 +178,8 @@ class SharedPolicyGroupSynchronizerTest {
         void should_unregister_api_when_fetching_close_events() throws InterruptedException {
             Event event = new Event();
             event.setId("id");
-            event.setProperties(Map.of(ENVIRONMENT_FLOW_ID.getValue(), "id"));
-            event.setType(UNDEPLOY_ENVIRONMENT_FLOW);
+            event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "id"));
+            event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
 
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
