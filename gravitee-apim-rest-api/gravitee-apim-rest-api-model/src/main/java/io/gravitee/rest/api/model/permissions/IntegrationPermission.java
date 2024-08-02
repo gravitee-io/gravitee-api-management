@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.rest.api.model.permissions;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
 @Schema(enumAsRef = true)
-public enum MembershipReferenceType {
-    APPLICATION,
-    API,
-    GROUP,
-    ENVIRONMENT,
-    ORGANIZATION,
-    PLATFORM,
-    INTEGRATION,
+public enum IntegrationPermission implements Permission {
+    DEFINITION("DEFINITION", 1000),
+    MEMBER("MEMBER", 1100);
+
+    final String name;
+    final int mask;
+
+    IntegrationPermission(String name, int mask) {
+        this.name = name;
+        this.mask = mask;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getMask() {
+        return mask;
+    }
 }

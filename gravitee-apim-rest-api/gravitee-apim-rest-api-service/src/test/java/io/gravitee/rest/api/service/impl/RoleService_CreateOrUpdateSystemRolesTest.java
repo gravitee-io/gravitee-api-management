@@ -66,10 +66,10 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(5))
+        verify(mockRoleRepository, times(6))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(5)).create(any());
+        verify(mockRoleRepository, times(6)).create(any());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(5))
+        verify(mockRoleRepository, times(6))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, times(1))
             .update(
@@ -127,14 +127,15 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                     Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
                 )
             );
-        verify(mockRoleRepository, times(4))
+        verify(mockRoleRepository, times(5))
             .create(
                 argThat(o ->
                     o.getScope().equals(RoleScope.API) ||
                     o.getScope().equals(RoleScope.APPLICATION) ||
                     o.getScope().equals(RoleScope.ORGANIZATION) ||
                     o.getScope().equals(RoleScope.PLATFORM) ||
-                    o.getScope().equals(RoleScope.GROUP)
+                    o.getScope().equals(RoleScope.GROUP) ||
+                    o.getScope().equals(RoleScope.INTEGRATION)
                 )
             );
     }
@@ -175,17 +176,18 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(5))
+        verify(mockRoleRepository, times(6))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(4))
+        verify(mockRoleRepository, times(5))
             .create(
                 argThat(o ->
                     o.getScope().equals(RoleScope.API) ||
                     o.getScope().equals(RoleScope.APPLICATION) ||
                     o.getScope().equals(RoleScope.ORGANIZATION) ||
                     o.getScope().equals(RoleScope.PLATFORM) ||
-                    o.getScope().equals(RoleScope.GROUP)
+                    o.getScope().equals(RoleScope.GROUP) ||
+                    o.getScope().equals(RoleScope.INTEGRATION)
                 )
             );
     }

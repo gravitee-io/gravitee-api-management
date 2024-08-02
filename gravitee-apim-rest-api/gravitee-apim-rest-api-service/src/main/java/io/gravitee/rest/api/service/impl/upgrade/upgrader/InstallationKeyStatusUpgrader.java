@@ -46,6 +46,7 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
     static String COMMAND_ORGANIZATION_UPGRADER = "COMMAND_ORGANIZATION_UPGRADER";
     static String PLANS_FLOWS_UPGRADER_STATUS = "PLANS_FLOWS_UPGRADER_STATUS";
     static String EVENTS_LATEST_UPGRADER_STATUS = "EVENTS_LATEST_UPGRADER_STATUS";
+    static String INTEGRATION_ROLES_UPGRADER_STATUS = "EVENTS_LATEST_UPGRADER_STATUS";
 
     @Autowired
     private InstallationService installationService;
@@ -71,6 +72,7 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
         INSTALLATION_KEY_STATUS.put(PLANS_FLOWS_UPGRADER_STATUS, PlansFlowsDefinitionUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(API_LOGGING_CONDITION_UPGRADER, ApiLoggingConditionUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(EVENTS_LATEST_UPGRADER_STATUS, EventsLatestUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(INTEGRATION_ROLES_UPGRADER_STATUS, IntegrationRolesUpgrader.class.getName());
     }
 
     @Override

@@ -29,4 +29,5 @@ public enum RoleScope {
     ENVIRONMENT,
     ORGANIZATION,
     PLATFORM,
+    INTEGRATION,
 }

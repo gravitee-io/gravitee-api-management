@@ -20,6 +20,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
@@ -63,6 +65,22 @@ public class DefaultOrganizationAdminRoleInitializerTest {
                 RoleScope.ORGANIZATION,
                 OrganizationPermission.values(),
                 organization.getId()
+            );
+        verify(roleService, times(1))
+            .createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.ADMIN,
+                RoleScope.ENVIRONMENT,
+                EnvironmentPermission.values(),
+                executionContext.getOrganizationId()
+            );
+        verify(roleService, times(1))
+            .createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.INTEGRATION,
+                IntegrationPermission.values(),
+                executionContext.getOrganizationId()
             );
     }
 

@@ -1170,7 +1170,7 @@ paths:
             summary: Create an Integration
             description: |-
                 Create a new Integration.
-                
+
                 The response body will not contain Agent Status. To get it you should use getIntegration operation.
                 User must have the ENVIRONMENT_INTEGRATION[CREATE] permission.
             operationId: createIntegration
@@ -1217,7 +1217,7 @@ paths:
             summary: Update Integration
             description: |-
                 Update specific Integration.
-              
+
                 The response body will not contain Agent Status. To get it you should use getIntegration operation.
                 User must have ENVIRONMENT_INTEGRATION[UPDATE] permission to access it.
             operationId: updateIntegration
@@ -1942,23 +1942,23 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/response-statuses:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      get:
-        tags:
-          - API Analytics
-        summary: Get API Analytics response status counts
-        description: |-
-          Get API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getResponseStatusCodes
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Analytics
+            summary: Get API Analytics response status counts
+            description: |-
+                Get API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getResponseStatusCodes
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -2280,48 +2280,48 @@ paths:
     # Categories
 
     /environments/{envId}/categories/{categoryIdOrKey}/apis:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/categoryIdOrKeyParam"
-      get:
-        tags:
-          - Categories
         parameters:
-          - $ref: "#/components/parameters/pageParam"
-          - $ref: "#/components/parameters/perPageParam"
-        description: Page of APIs within a Category
-        operationId: getCategoryApisPage
-        responses:
-          200:
-            $ref: "#/components/responses/CategoryApisResponse"
-          default:
-            $ref: "#/components/responses/Error"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/categoryIdOrKeyParam"
+        get:
+            tags:
+                - Categories
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            description: Page of APIs within a Category
+            operationId: getCategoryApisPage
+            responses:
+                200:
+                    $ref: "#/components/responses/CategoryApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     /environments/{envId}/categories/{categoryIdOrKey}/apis/{apiId}:
-          parameters:
+        parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/categoryIdOrKeyParam"
             - $ref: "#/components/parameters/apiIdParam"
-          post:
+        post:
             tags:
-              - Categories
+                - Categories
             description: Update a specified API within a Category
             operationId: updateCategoryApi
             requestBody:
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/UpdateCategoryApi"
-              required: true
-            responses:
-              "200":
-                description: The updated CategoryApi
                 content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/CategoryApi"
-              default:
-                $ref: "#/components/responses/Error"
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateCategoryApi"
+                required: true
+            responses:
+                "200":
+                    description: The updated CategoryApi
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CategoryApi"
+                default:
+                    $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -2807,15 +2807,15 @@ components:
                         $ref: "#/components/schemas/Media"
 
         ImportSwaggerDescriptor:
-          type: object
-          properties:
-            payload:
-              type: string
-              description: The Swagger/OpenAPI content.
-            withDocumentation:
-              type: boolean
-              description: Create documentation based on Swagger/OpenAPI specification.
-              default: true
+            type: object
+            properties:
+                payload:
+                    type: string
+                    description: The Swagger/OpenAPI content.
+                withDocumentation:
+                    type: boolean
+                    description: Create documentation based on Swagger/OpenAPI specification.
+                    default: true
 
         UpdateApi:
             oneOf:
@@ -2977,43 +2977,43 @@ components:
                 - $ref: "#/components/schemas/UpdateGenericApi"
 
         CategoryApi:
-          type: object
-          description: API in a category
-          required:
-            - id
-            - name
-            - apiVersion
-            - definitionVersion
-            - order
-          allOf:
-            - $ref: "#/components/schemas/BaseApi"
-            - type: object
-              properties:
-                apiVersion:
-                  type: string
-                  description: API's version. It's a simple string only used in the portal.
-                  example: v1.0
-                definitionVersion:
-                  $ref: "#/components/schemas/DefinitionVersion"
-                order:
-                  type: number
-                  description: Order of the API in the Category list
-                accessPaths:
-                  type: array
-                  description: List of paths for accessing the API
-                  items:
-                    type: string
-                  example: [/context-path, /context-path-2]
+            type: object
+            description: API in a category
+            required:
+                - id
+                - name
+                - apiVersion
+                - definitionVersion
+                - order
+            allOf:
+                - $ref: "#/components/schemas/BaseApi"
+                - type: object
+                  properties:
+                      apiVersion:
+                          type: string
+                          description: API's version. It's a simple string only used in the portal.
+                          example: v1.0
+                      definitionVersion:
+                          $ref: "#/components/schemas/DefinitionVersion"
+                      order:
+                          type: number
+                          description: Order of the API in the Category list
+                      accessPaths:
+                          type: array
+                          description: List of paths for accessing the API
+                          items:
+                              type: string
+                          example: [/context-path, /context-path-2]
 
         UpdateCategoryApi:
-          type: object
-          description: Update an API within a Category
-          required:
-            - order
-          properties:
-            order:
-              type: number
-              description: New order for the specified API
+            type: object
+            description: Update an API within a Category
+            required:
+                - order
+            properties:
+                order:
+                    type: number
+                    description: New order for the specified API
 
         ApiDeployment:
             type: object
@@ -3252,13 +3252,13 @@ components:
                               The id of the integration that created the API.
                           example: b300b445-8bbb-4034-865c-d2113ba5b768
                       provider:
-                        type: string
-                        description: Provider of this Federated API.
-                        example: solace
+                          type: string
+                          description: Provider of this Federated API.
+                          example: solace
                       integrationName:
-                        type: string
-                        description: Name of integration of this Federated API.
-                        example: My Solace env
+                          type: string
+                          description: Name of integration of this Federated API.
+                          example: My Solace env
 
         DefinitionContext:
             deprecated: true
@@ -3591,18 +3591,18 @@ components:
                     $ref: "#/components/schemas/IngestionJob"
 
         IngestionJob:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Id of the ingestion job
-            startedAt:
-              type: string
-              format: date-time
-              description: The last datetime when the job was started.
-              example: 2023-05-25T12:40:46.184Z
-            status:
-              $ref: "#/components/schemas/IngestionStatus"
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the ingestion job
+                startedAt:
+                    type: string
+                    format: date-time
+                    description: The last datetime when the job was started.
+                    example: 2023-05-25T12:40:46.184Z
+                status:
+                    $ref: "#/components/schemas/IngestionStatus"
 
         IngestionPreviewResponse:
             type: object
@@ -3612,31 +3612,31 @@ components:
                     description: number of APIs found to ingest
                     example: 12
                 newCount:
-                  type: number
-                  description: number of new APIs found to ingest
-                  example: 8
+                    type: number
+                    description: number of new APIs found to ingest
+                    example: 8
                 updateCount:
-                  type: number
-                  description: number of update APIs found to ingest
-                  example: 4
+                    type: number
+                    description: number of update APIs found to ingest
+                    example: 4
                 apis:
-                  type: array
-                  description: number of new APIs found to ingest
-                  items:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        description: the id of API
-                      name:
-                        type: string
-                        description: the name of API
-                      state:
-                        type: string
-                        description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
-                        enum:
-                          - NEW
-                          - UPDATE
+                    type: array
+                    description: number of new APIs found to ingest
+                    items:
+                        type: object
+                        properties:
+                            id:
+                                type: string
+                                description: the id of API
+                            name:
+                                type: string
+                                description: the name of API
+                            state:
+                                type: string
+                                description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
+                                enum:
+                                    - NEW
+                                    - UPDATE
 
         IntegrationIngestionResponse:
             type: object
@@ -4719,6 +4719,7 @@ components:
                 - ENVIRONMENT
                 - ORGANIZATION
                 - PLATFORM
+                - INTEGRATION
         AddApiMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
@@ -6297,13 +6298,13 @@ components:
                     description: Page's parent id.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                 excludedAccessControls:
-                  type: boolean
-                  description: Flag to restrict access to user matching the restrictions.
+                    type: boolean
+                    description: Flag to restrict access to user matching the restrictions.
                 accessControls:
-                  type: array
-                  description: List of access controls.
-                  items:
-                    $ref: "#/components/schemas/AccessControl"
+                    type: array
+                    description: List of access controls.
+                    items:
+                        $ref: "#/components/schemas/AccessControl"
             required:
                 - name
                 - type
@@ -6341,7 +6342,7 @@ components:
                           description: Page's homepage status.
                           example: true
                       source:
-                        $ref: '#/components/schemas/SourceConfiguration'
+                          $ref: "#/components/schemas/SourceConfiguration"
             required:
                 - name
                 - type
@@ -6362,7 +6363,7 @@ components:
                           description: Page's homepage status.
                           example: true
                       source:
-                        $ref: '#/components/schemas/SourceConfiguration'
+                          $ref: "#/components/schemas/SourceConfiguration"
             required:
                 - name
                 - type
@@ -6383,22 +6384,22 @@ components:
                           description: Page's homepage status.
                           example: true
                       source:
-                        $ref: '#/components/schemas/SourceConfiguration'
+                          $ref: "#/components/schemas/SourceConfiguration"
             required:
                 - name
                 - type
 
         SourceConfiguration:
-          type: object
-          description: Source configuration for fetching documentation content.
-          properties:
-            type:
-              type: string
-              description: Type of the source.
-              example: http-fetcher
-            configuration:
-              type: object
-              description: Configuration for the source.
+            type: object
+            description: Source configuration for fetching documentation content.
+            properties:
+                type:
+                    type: string
+                    description: Type of the source.
+                    example: http-fetcher
+                configuration:
+                    type: object
+                    description: Configuration for the source.
 
         UpdateDocumentation:
             type: object
@@ -6425,13 +6426,13 @@ components:
                 visibility:
                     $ref: "#/components/schemas/Visibility"
                 excludedAccessControls:
-                  type: boolean
-                  description: Flag to restrict access to user matching the restrictions.
+                    type: boolean
+                    description: Flag to restrict access to user matching the restrictions.
                 accessControls:
-                  type: array
-                  description: List of access controls.
-                  items:
-                    $ref: "#/components/schemas/AccessControl"
+                    type: array
+                    description: List of access controls.
+                    items:
+                        $ref: "#/components/schemas/AccessControl"
             required:
                 - type
                 - name
@@ -6652,12 +6653,12 @@ components:
             schema:
                 type: string
         categoryIdOrKeyParam:
-          name: categoryIdOrKey
-          in: path
-          required: true
-          description: Id or Key of a category.
-          schema:
-            type: string
+            name: categoryIdOrKey
+            in: path
+            required: true
+            description: Id or Key of a category.
+            schema:
+                type: string
         groupIdParam:
             name: groupId
             in: path
@@ -6798,16 +6799,16 @@ components:
                     enum:
                         - deploymentState
         apisGetExpandsParam:
-          name: expands
-          in: query
-          description: Expansion of data to return in APIs.
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - deploymentState
-                - primaryOwner
+            name: expands
+            in: query
+            description: Expansion of data to return in APIs.
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - deploymentState
+                        - primaryOwner
         apiManageOnlyParam:
             name: manageOnly
             in: query
@@ -7211,31 +7212,30 @@ components:
                                     description: A map of rounded average connection duration by entrypoint
                                     type: number
         ApiAnalyticsResponseStatusRangesResponse:
-          description: Analytics for status codes by entrypoint
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsResponseStatusRangesResponse"
-                description: API Analytics for status codes by entrypoint.
-                properties:
-                  ranges:
-                    type: object
-                    description: Global status ranges
-                    additionalProperties:
-                      description: A map of response status range and counts
-                      type: number
-                  rangesByEntrypoint:
-                    type: object
-                    description: Status ranges by entrypoint
-                    additionalProperties:
-                      description: A map of response status range and counts
-                      type: object
-                      additionalProperties:
-                        description: Count of status code
-                        type: number
+            description: Analytics for status codes by entrypoint
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsResponseStatusRangesResponse"
+                        description: API Analytics for status codes by entrypoint.
+                        properties:
+                            ranges:
+                                type: object
+                                description: Global status ranges
+                                additionalProperties:
+                                    description: A map of response status range and counts
+                                    type: number
+                            rangesByEntrypoint:
+                                type: object
+                                description: Status ranges by entrypoint
+                                additionalProperties:
+                                    description: A map of response status range and counts
+                                    type: object
+                                    additionalProperties:
+                                        description: Count of status code
+                                        type: number
 
-
-      # Analytics - Logs
+        # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
             content:
@@ -7384,21 +7384,21 @@ components:
 
         # Category
         CategoryApisResponse:
-          description: Page of APIs within a Category
-          content:
-            application/json:
-              schema:
-                title: "CategoryApisResponse"
-                properties:
-                  data:
-                    description: List of APIs within a Category.
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/CategoryApi"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
-                  links:
-                    $ref: "#/components/schemas/Links"
+            description: Page of APIs within a Category
+            content:
+                application/json:
+                    schema:
+                        title: "CategoryApisResponse"
+                        properties:
+                            data:
+                                description: List of APIs within a Category.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/CategoryApi"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
 
     securitySchemes:
         BasicAuth:

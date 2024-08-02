@@ -98,6 +98,14 @@ describe('OrgSettingsRolesComponent', () => {
           scope: 'APPLICATION',
         }),
       ],
+      [
+        fakeRole({
+          id: 'role-6',
+          name: 'Role 6',
+          description: 'Role 6 description',
+          scope: 'INTEGRATION',
+        }),
+      ],
     );
 
     expect(component.rolesByScope).toStrictEqual([
@@ -175,6 +183,22 @@ describe('OrgSettingsRolesComponent', () => {
           },
         ],
       },
+      {
+        scope: 'Integration',
+        scopeId: 'INTEGRATION',
+        roles: [
+          {
+            canBeDeleted: false,
+            description: 'Role 6 description',
+            hasUserRoleManagement: false,
+            icon: 'list',
+            isDefault: true,
+            isReadOnly: false,
+            isSystem: false,
+            name: 'Role 6',
+          },
+        ],
+      },
     ]);
   });
 
@@ -199,6 +223,7 @@ describe('OrgSettingsRolesComponent', () => {
         [],
         [],
         [],
+        [],
       );
 
       fixture.detectChanges();
@@ -216,7 +241,7 @@ describe('OrgSettingsRolesComponent', () => {
         })
         .flush(null);
 
-      respondToGetRolesRequests([], [], [], []);
+      respondToGetRolesRequests([], [], [], [], []);
     });
   });
 
@@ -224,10 +249,11 @@ describe('OrgSettingsRolesComponent', () => {
     httpTestingController.verify();
   });
 
-  function respondToGetRolesRequests(orgRoles: Role[], envRoles: Role[], apiRoles: Role[], appRoles: Role[]) {
+  function respondToGetRolesRequests(orgRoles: Role[], envRoles: Role[], apiRoles: Role[], appRoles: Role[], integrationRoles: Role[]) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`).flush(orgRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ENVIRONMENT/roles`).flush(envRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`).flush(apiRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/APPLICATION/roles`).flush(appRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/INTEGRATION/roles`).flush(integrationRoles);
   }
 });
