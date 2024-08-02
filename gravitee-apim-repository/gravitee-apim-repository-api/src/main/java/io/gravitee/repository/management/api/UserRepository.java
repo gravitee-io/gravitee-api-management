@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,4 +65,12 @@ public interface UserRepository extends CrudRepository<User, String> {
      * @return Users found
      */
     Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException;
+
+    /**
+     * Delete user by organization ID
+     * @param organizationId
+     * @return List of IDs for deleted user
+     * @throws TechnicalException
+     */
+    List<String> deleteByOrganizationId(String organizationId) throws TechnicalException;
 }

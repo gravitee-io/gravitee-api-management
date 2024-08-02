@@ -20,7 +20,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.ThemeType;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,4 +32,13 @@ import java.util.Set;
 public interface ThemeRepository extends CrudRepository<Theme, String> {
     Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type) throws TechnicalException;
     Page<Theme> search(ThemeCriteria criteria, Pageable pageable) throws TechnicalException;
+
+    /**
+     * Delete themes by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted themes
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType) throws TechnicalException;
 }

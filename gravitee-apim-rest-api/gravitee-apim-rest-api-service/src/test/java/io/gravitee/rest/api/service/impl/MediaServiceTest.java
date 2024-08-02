@@ -21,12 +21,14 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.MediaCriteria;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.InputStream;
@@ -74,9 +76,21 @@ public class MediaServiceTest extends TestCase {
 
     @Test
     public void shouldCreateMediaWhenHashIsNotFound() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.empty());
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .api(API_ID)
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenReturn(Optional.empty());
 
-        String hash = mediaService.saveApiMedia(API_ID, newMediaEntity());
+        String hash = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), API_ID, newMediaEntity());
 
         assertThat(hash).isEqualTo(MEDIA_HASH);
 
@@ -94,15 +108,39 @@ public class MediaServiceTest extends TestCase {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnCreateMedia() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenThrow(TechnicalException.class);
-        mediaService.saveApiMedia(API_ID, newMediaEntity());
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .api(API_ID)
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenThrow(TechnicalException.class);
+        mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), API_ID, newMediaEntity());
     }
 
     @Test
     public void shouldNotCreateMediaWhenHashIsFound() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.of(newMedia()));
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .api(API_ID)
+                    .mediaType(MEDIA_TYPE)
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .build()
+            )
+        )
+            .thenReturn(Optional.of(newMedia()));
 
-        String hash = mediaService.saveApiMedia(API_ID, newMediaEntity());
+        String hash = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), API_ID, newMediaEntity());
 
         assertThat(hash).isEqualTo(MEDIA_HASH);
 
@@ -111,9 +149,21 @@ public class MediaServiceTest extends TestCase {
 
     @Test
     public void shouldCreateMediaFromDefinitionWhenHashIsNotFound() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.empty());
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .api(API_ID)
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenReturn(Optional.empty());
 
-        String hash = mediaService.createWithDefinition(API_ID, newMediaDefinition());
+        String hash = mediaService.createWithDefinition(GraviteeContext.getExecutionContext(), API_ID, newMediaDefinition());
 
         assertThat(hash).isEqualTo(MEDIA_HASH);
 
@@ -131,16 +181,40 @@ public class MediaServiceTest extends TestCase {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnCreateMediaFromDefinition() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenThrow(TechnicalException.class);
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .api(API_ID)
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenThrow(TechnicalException.class);
 
-        mediaService.createWithDefinition(API_ID, newMediaDefinition());
+        mediaService.createWithDefinition(GraviteeContext.getExecutionContext(), API_ID, newMediaDefinition());
     }
 
     @Test
     public void shouldNotCreateMediaFromDefinitionWhenHashIsFound() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.of(newMedia()));
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .api(API_ID)
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenReturn(Optional.of(newMedia()));
 
-        String hash = mediaService.createWithDefinition(API_ID, newMediaDefinition());
+        String hash = mediaService.createWithDefinition(GraviteeContext.getExecutionContext(), API_ID, newMediaDefinition());
 
         assertThat(hash).isEqualTo(MEDIA_HASH);
 
@@ -149,31 +223,65 @@ public class MediaServiceTest extends TestCase {
 
     @Test
     public void findByHashShouldReturnNullIfNotFound() throws Exception {
-        when(mediaRepository.findByHashAndType(MEDIA_HASH, MEDIA_TYPE)).thenReturn(Optional.empty());
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenReturn(Optional.empty());
 
-        MediaEntity mediaEntity = mediaService.findByHash(MEDIA_HASH);
+        MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH);
 
         assertThat(mediaEntity).isNull();
     }
 
     @Test
     public void findByHashShouldConvertIfFound() throws Exception {
-        when(mediaRepository.findByHashAndType(MEDIA_HASH, MEDIA_TYPE)).thenReturn(Optional.of(newMedia()));
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .mediaType(MEDIA_TYPE)
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .build()
+            )
+        )
+            .thenReturn(Optional.of(newMedia()));
 
-        MediaEntity mediaEntity = mediaService.findByHash(MEDIA_HASH);
+        MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH);
 
         assertThat(mediaEntity).usingRecursiveComparison().isEqualTo(newMediaEntity());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnFindByHashAndType() throws Exception {
-        when(mediaRepository.findByHashAndType(MEDIA_HASH, MEDIA_TYPE)).thenThrow(TechnicalException.class);
-        mediaService.findByHash(MEDIA_HASH);
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenThrow(TechnicalException.class);
+        mediaService.findByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH);
     }
 
     @Test
     public void findByHashAndApiIdShouldReturnNullIfNotFound() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.empty());
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).mediaType(MEDIA_TYPE).build()))
+            .thenReturn(Optional.empty());
 
         MediaEntity mediaEntity = mediaService.findByHashAndApiId(MEDIA_HASH, API_ID);
 
@@ -182,7 +290,8 @@ public class MediaServiceTest extends TestCase {
 
     @Test
     public void findByHashAndApiIdShouldConvertIfFound() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.of(newMedia()));
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).mediaType(MEDIA_TYPE).build()))
+            .thenReturn(Optional.of(newMedia()));
 
         MediaEntity mediaEntity = mediaService.findByHashAndApiId(MEDIA_HASH, API_ID);
 
@@ -191,38 +300,70 @@ public class MediaServiceTest extends TestCase {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnFindByHashAndApiId() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenThrow(TechnicalException.class);
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).mediaType(MEDIA_TYPE).build()))
+            .thenThrow(TechnicalException.class);
         mediaService.findByHashAndApiId(MEDIA_HASH, API_ID);
     }
 
     @Test
     public void findByHashShouldReturnNullIfNotFoundIgnoringType() throws Exception {
-        when(mediaRepository.findByHash(MEDIA_HASH)).thenReturn(Optional.empty());
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .build()
+            )
+        )
+            .thenReturn(Optional.empty());
 
-        MediaEntity mediaEntity = mediaService.findByHash(MEDIA_HASH, true);
+        MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH, true);
 
         assertThat(mediaEntity).isNull();
     }
 
     @Test
     public void findByHashShouldConvertIfFoundWithType() throws Exception {
-        when(mediaRepository.findByHashAndType(MEDIA_HASH, MEDIA_TYPE)).thenReturn(Optional.of(newMedia()));
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .mediaType(MEDIA_TYPE)
+                    .build()
+            )
+        )
+            .thenReturn(Optional.of(newMedia()));
 
-        MediaEntity mediaEntity = mediaService.findByHash(MEDIA_HASH, false);
+        MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH, false);
 
         assertThat(mediaEntity).usingRecursiveComparison().isEqualTo(newMediaEntity());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnFindByHashIgnoringType() throws Exception {
-        when(mediaRepository.findByHash(MEDIA_HASH)).thenThrow(TechnicalException.class);
+        when(
+            mediaRepository.findByHash(
+                MEDIA_HASH,
+                MediaCriteria
+                    .builder()
+                    .environment(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .organization(GraviteeContext.getExecutionContext().getOrganizationId())
+                    .build()
+            )
+        )
+            .thenThrow(TechnicalException.class);
 
-        mediaService.findByHash(MEDIA_HASH, true);
+        mediaService.findByHash(GraviteeContext.getExecutionContext(), MEDIA_HASH, true);
     }
 
     @Test
     public void findByHashAndApiShouldReturnNullIfNotFoundIgnoringType() throws Exception {
-        when(mediaRepository.findByHashAndApi(MEDIA_HASH, API_ID)).thenReturn(Optional.empty());
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build())).thenReturn(Optional.empty());
 
         MediaEntity mediaEntity = mediaService.findByHashAndApi(MEDIA_HASH, API_ID, true);
 
@@ -231,7 +372,8 @@ public class MediaServiceTest extends TestCase {
 
     @Test
     public void findByHashAndApiShouldConvertIFoundWithType() throws Exception {
-        when(mediaRepository.findByHashAndApiAndType(MEDIA_HASH, API_ID, MEDIA_TYPE)).thenReturn(Optional.of(newMedia()));
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).mediaType(MEDIA_TYPE).build()))
+            .thenReturn(Optional.of(newMedia()));
 
         MediaEntity mediaEntity = mediaService.findByHashAndApi(MEDIA_HASH, API_ID, false);
 
@@ -240,14 +382,15 @@ public class MediaServiceTest extends TestCase {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnFindByHashAndApiIgnoringType() throws Exception {
-        when(mediaRepository.findByHashAndApi(MEDIA_HASH, API_ID)).thenThrow(TechnicalException.class);
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build())).thenThrow(TechnicalException.class);
 
         mediaService.findByHashAndApi(MEDIA_HASH, API_ID, true);
     }
 
     @Test
     public void findAllWithoutContentShouldConvertListIfFound() throws Exception {
-        when(mediaRepository.findByHashAndApi(MEDIA_HASH, API_ID, false)).thenReturn(Optional.of(newMedia(false)));
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build(), false))
+            .thenReturn(Optional.of(newMedia(false)));
 
         List<MediaEntity> mediaEntities = mediaService.findAllWithoutContent(List.of(newPageMediaEntity()), API_ID);
 
@@ -270,7 +413,7 @@ public class MediaServiceTest extends TestCase {
 
     @Test
     public void findAllWithoutContentShouldReturnEmptyListIfNotFound() throws Exception {
-        when(mediaRepository.findByHashAndApi(MEDIA_HASH, API_ID, false)).thenReturn(Optional.empty());
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build(), false)).thenReturn(Optional.empty());
 
         List<MediaEntity> mediaEntities = mediaService.findAllWithoutContent(List.of(newPageMediaEntity()), API_ID);
 
@@ -279,7 +422,8 @@ public class MediaServiceTest extends TestCase {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnFindAllWithoutContent() throws Exception {
-        when(mediaRepository.findByHashAndApi(MEDIA_HASH, API_ID, false)).thenThrow(TechnicalException.class);
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build(), false))
+            .thenThrow(TechnicalException.class);
 
         mediaService.findAllWithoutContent(List.of(newPageMediaEntity()), API_ID);
     }
@@ -302,14 +446,14 @@ public class MediaServiceTest extends TestCase {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementExceptionOnDeleteByHashAndApi() throws Exception {
-        doThrow(TechnicalException.class).when(mediaRepository).findByHashAndApi(MEDIA_HASH, API_ID);
+        doThrow(TechnicalException.class).when(mediaRepository).findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build());
 
         mediaService.deleteByHashAndApi(MEDIA_HASH, API_ID);
     }
 
     @Test(expected = ApiMediaNotFoundException.class)
     public void shouldThrowApiMediaNotFoundExceptionOnDeleteByHashAndApi() throws Exception {
-        when(mediaRepository.findByHashAndApi(MEDIA_HASH, API_ID)).thenReturn(Optional.empty());
+        when(mediaRepository.findByHash(MEDIA_HASH, MediaCriteria.builder().api(API_ID).build())).thenReturn(Optional.empty());
 
         mediaService.deleteByHashAndApi(MEDIA_HASH, API_ID);
     }

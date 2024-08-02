@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
+import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -190,5 +191,23 @@ public class MongoRatingRepository implements RatingRepository {
     @Override
     public Set<Rating> findAll() throws TechnicalException {
         return internalRatingRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete rating by ref type '{}' and ref id '{}'", referenceType, referenceId);
+        try {
+            final var ratings = internalRatingRepository
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(RatingMongo::getId)
+                .toList();
+            LOGGER.debug("Delete rating by ref type '{}' and ref id '{}' done", referenceId, referenceType);
+            return ratings;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete rating by reference", ex);
+        }
     }
 }

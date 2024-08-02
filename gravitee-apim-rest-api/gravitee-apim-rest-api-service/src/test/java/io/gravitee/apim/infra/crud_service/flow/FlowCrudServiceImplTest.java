@@ -33,7 +33,6 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -89,7 +88,7 @@ class FlowCrudServiceImplTest {
             service.saveApiFlows(API_ID, List.of());
 
             // Then
-            verify(flowRepository).deleteByReference(FlowReferenceType.API, API_ID);
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
         }
 
         @Test
@@ -165,7 +164,7 @@ class FlowCrudServiceImplTest {
             service.savePlanFlows(PLAN_ID, List.of());
 
             // Then
-            verify(flowRepository).deleteByReference(FlowReferenceType.PLAN, PLAN_ID);
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(PLAN_ID, FlowReferenceType.PLAN);
             verify(flowRepository, never()).delete(any());
             verify(flowRepository, never()).create(any());
         }
@@ -253,7 +252,7 @@ class FlowCrudServiceImplTest {
             assertThat(flowServiceByReference.size()).isEqualTo(1);
             assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow2");
 
-            verify(flowRepository, never()).deleteByReference(FlowReferenceType.API, API_ID);
+            verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
             verify(flowRepository, times(1)).deleteAllById(Set.of(flow1.getId()));
             verify(flowRepository, times(1)).create(any());
         }
@@ -283,7 +282,7 @@ class FlowCrudServiceImplTest {
             assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
             assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow2");
 
-            verify(flowRepository, never()).deleteByReference(FlowReferenceType.API, API_ID);
+            verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
             verify(flowRepository, never()).deleteAllById(anySet());
             verify(flowRepository, times(1)).create(any());
             verify(flowRepository, times(1)).update(any());

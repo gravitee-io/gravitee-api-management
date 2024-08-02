@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Token;
 import java.util.Date;
 import java.util.List;
@@ -36,7 +37,7 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindAll() throws Exception {
         final Set<Token> tokens = tokenRepository.findAll();
         assertNotNull(tokens);
-        assertEquals(4, tokens.size());
+        assertEquals(6, tokens.size());
         final Token token123 = tokens.stream().filter(token -> "token123".equals(token.getId())).findAny().get();
         assertToken(token123);
     }
@@ -145,5 +146,16 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         tokenRepository.update(null);
         fail("A null token should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final var nbBeforeDeletion = tokenRepository.findByReference("USER", "ToBeDeleted").size();
+        final var deleted = tokenRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", "USER").size();
+        final var nbAfterDeletion = tokenRepository.findByReference("USER", "ToBeDeleted").size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted);
+        assertEquals(0, nbAfterDeletion);
     }
 }

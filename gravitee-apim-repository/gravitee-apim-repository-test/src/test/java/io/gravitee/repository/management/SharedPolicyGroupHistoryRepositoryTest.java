@@ -20,16 +20,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
+@Slf4j
 public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRepositoryTest {
+
+    private static final String ENV_ID_TO_BE_DELETED = "env_to_be_deleted";
 
     @Override
     protected String getTestCasesPath() {
@@ -60,6 +65,18 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
             .name("Yet another SPG 3")
             .build();
         sharedPolicyGroupHistoryRepository.create(sharedPolicyGroup3);
+        sharedPolicyGroupHistoryRepository.create(
+            getDefaultSharedPolicyGroupBuilder("id_to_be_deleted_1")
+                .updatedAt(new Date(new Date(172323739410L).getTime()))
+                .environmentId(ENV_ID_TO_BE_DELETED)
+                .build()
+        );
+        sharedPolicyGroupHistoryRepository.create(
+            getDefaultSharedPolicyGroupBuilder("id_to_be_deleted_1")
+                .updatedAt(new Date(new Date(172324839410L).getTime()))
+                .environmentId(ENV_ID_TO_BE_DELETED)
+                .build()
+        );
     }
 
     @Test
@@ -277,6 +294,20 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
             "sharedPolicyGroupId_1"
         );
         assertThat(sharedPolicyGroupAfterDelete).isEmpty();
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder().environmentId(ENV_ID_TO_BE_DELETED).build();
+        final var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        final var nbBeforeDeletion = sharedPolicyGroupHistoryRepository.search(criteria, pageable, null).getTotalElements();
+        final var deleted = sharedPolicyGroupHistoryRepository.deleteByEnvironmentId(ENV_ID_TO_BE_DELETED);
+        final var nbAfterDeletion = sharedPolicyGroupHistoryRepository.search(criteria, pageable, null).getTotalElements();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+        assertThat(deleted.size()).isEqualTo(2);
+        assertThat(nbAfterDeletion).isEqualTo(0);
     }
 
     private static SharedPolicyGroup.SharedPolicyGroupBuilder getDefaultSharedPolicyGroupBuilder(String id) {

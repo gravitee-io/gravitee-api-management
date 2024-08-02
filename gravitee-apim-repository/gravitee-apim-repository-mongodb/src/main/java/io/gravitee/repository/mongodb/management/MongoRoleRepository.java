@@ -174,6 +174,23 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Delete roles by refId: {}/{}", referenceId, referenceType);
+        try {
+            final var roles = internalRoleRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(RoleMongo::getId)
+                .toList();
+            LOGGER.debug("Delete roles by refId: {}/{} - Done", referenceId, referenceType);
+            return roles;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete roles by refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete role by reference");
+        }
+    }
+
+    @Override
     public Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType) {
         return Optional.ofNullable(map(internalRoleRepo.findByIdAndReferenceIdAndReferenceType(roleId, referenceId, referenceType.name())));
     }

@@ -108,6 +108,32 @@ public class MongoCommandRepository implements CommandRepository {
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        logger.debug("Delete by environmentId [{}]", environmentId);
+        try {
+            final var rows = internalMessageRepo.deleteByEnvironmentId(environmentId).stream().map(CommandMongo::getId).toList();
+            logger.debug("Delete by environmentId [{}] - Done", environmentId);
+            return rows;
+        } catch (Exception ex) {
+            logger.error("Failed to delete commands by envId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete commands by envId");
+        }
+    }
+
+    @Override
+    public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
+        logger.debug("Delete by organizationId [{}]", organizationId);
+        try {
+            final var rows = internalMessageRepo.deleteByOrganizationId(organizationId).stream().map(CommandMongo::getId).toList();
+            logger.debug("Delete by organizationId [{}] - Done", organizationId);
+            return rows;
+        } catch (Exception ex) {
+            logger.error("Failed to delete commands by organizationId: {}", organizationId, ex);
+            throw new TechnicalException("Failed to delete commands by organizationId");
+        }
+    }
+
+    @Override
     public Set<Command> findAll() throws TechnicalException {
         return internalMessageRepo.findAll().stream().map(commandMongo -> mapper.map(commandMongo)).collect(Collectors.toSet());
     }

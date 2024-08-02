@@ -93,6 +93,32 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcIntegrationRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + INTEGRATION_GROUPS + " where integration_id IN ( " + getOrm().buildInClause(rows) + ")",
+                    rows.toArray()
+                );
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            return rows;
+        } catch (final Exception ex) {
+            final String message = "Failed to find integrations of environment: " + environmentId;
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
+    @Override
     public Optional<Integration> findById(String id) throws TechnicalException {
         var integration = super.findById(id);
         integration.ifPresent(this::addGroups);

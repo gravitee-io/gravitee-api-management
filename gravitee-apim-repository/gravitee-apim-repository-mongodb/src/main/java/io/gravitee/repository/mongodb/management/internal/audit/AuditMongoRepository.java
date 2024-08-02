@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.audit;
 
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,4 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface AuditMongoRepository extends MongoRepository<AuditMongo, String>, AuditMongoRepositoryCustom {}
+public interface AuditMongoRepository extends MongoRepository<AuditMongo, String>, AuditMongoRepositoryCustom {
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<AuditMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
+}

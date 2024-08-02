@@ -90,4 +90,13 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) throws TechnicalException;
 
     Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException;
+
+    /**
+     * Delete application by environment ID
+     *
+     * @param environmentId The environment ID
+     * @return List of deleted IDs for application
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

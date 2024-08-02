@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
+import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.repository.mongodb.management.internal.DashboardMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.DashboardMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -46,10 +47,10 @@ public class MongoDashboardRepository implements DashboardRepository {
 
     @Override
     public Set<Dashboard> findAll() {
-        LOGGER.debug("Find all dictionaries");
+        LOGGER.debug("Find all dashboards");
         final List<DashboardMongo> dictionaries = internalDashboardRepo.findAll();
         final Set<Dashboard> res = mapper.mapDashboards(dictionaries);
-        LOGGER.debug("Find all dictionaries - Done");
+        LOGGER.debug("Find all dashboards - Done");
         return res;
     }
 
@@ -146,5 +147,25 @@ public class MongoDashboardRepository implements DashboardRepository {
 
         LOGGER.debug("Find dashboard by ID [{}-{}-{}] - Done", referenceType, referenceId, id);
         return Optional.ofNullable(mapper.map(dashboard));
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete dashboard by ref [{}/{}]", referenceId, referenceType);
+
+        try {
+            final var dashboardIds = internalDashboardRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(DashboardMongo::getId)
+                .toList();
+
+            LOGGER.debug("Delete dashboard by ref [{}/{}] - Done", referenceId, referenceType);
+            return dashboardIds;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete dashboards by ref: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete dashboards by reference");
+        }
     }
 }

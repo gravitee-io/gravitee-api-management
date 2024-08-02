@@ -38,7 +38,7 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Workflow> workflows = workflowRepository.findAll();
 
         assertNotNull(workflows);
-        assertEquals(4, workflows.size());
+        assertEquals(6, workflows.size());
         final Optional<Workflow> optionalWorkflow = workflows
             .stream()
             .filter(workflow -> "old-workflow".equals(workflow.getId()))
@@ -127,6 +127,17 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(workflows);
         assertEquals(3, workflows.size());
         assertEquals("workflow", workflows.get(0).getId());
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final var nbBeforeDeletion = workflowRepository.findByReferenceAndType("APPLICATION", "ToBeDeleted", "REVIEW").size();
+        final var deleted = workflowRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", "APPLICATION").size();
+        final var nbAfterDeletion = workflowRepository.findByReferenceAndType("APPLICATION", "ToBeDeleted", "REVIEW").size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted);
+        assertEquals(0, nbAfterDeletion);
     }
 
     @Test(expected = IllegalStateException.class)

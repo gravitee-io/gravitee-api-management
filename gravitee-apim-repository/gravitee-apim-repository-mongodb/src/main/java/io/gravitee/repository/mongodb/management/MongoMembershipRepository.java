@@ -100,10 +100,21 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) {
-        logger.debug("Delete memberships [{}, {}]", referenceType, referenceId);
-        internalMembershipRepo.deleteByRef(referenceType.name(), referenceId);
-        logger.debug("Delete memberships [{}, {}] - Done", referenceType, referenceId);
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
+        throws TechnicalException {
+        logger.debug("Delete memberships by reference [{}/{}]", referenceId, referenceType);
+        try {
+            final var fields = internalMembershipRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(MembershipMongo::getId)
+                .toList();
+            logger.debug("Delete memberships by reference [{}/{}] - Done", referenceId, referenceType);
+            return fields;
+        } catch (Exception ex) {
+            logger.error("Failed to delete memberships by ref: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete memberships by ref");
+        }
     }
 
     @Override

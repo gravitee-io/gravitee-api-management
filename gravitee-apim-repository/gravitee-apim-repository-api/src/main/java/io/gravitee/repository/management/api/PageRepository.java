@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -44,4 +45,15 @@ public interface PageRepository extends FindAllRepository<Page> {
     io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException;
 
     long countByParentIdAndIsPublished(String parentId) throws TechnicalException;
+
+    /**
+     * Delete pages by reference
+     *
+     * @param referenceId   Page reference id
+     * @param referenceType Page reference Type
+     * @return List of IDs for deleted pages
+     * @throws TechnicalException
+     */
+    Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
+        throws TechnicalException;
 }

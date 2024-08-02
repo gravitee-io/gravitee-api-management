@@ -38,5 +38,15 @@
     "id": "group_env_org_2",
     "environmentId": "ENV_ORG_2",
     "name": "group env org 1"
+  },
+  {
+    "id": "group_env_to_delete_1",
+    "environmentId": "ToBeDeleted",
+    "name": "group env to delete 1"
+  },
+  {
+    "id": "group_env_to_delete_2",
+    "environmentId": "ToBeDeleted",
+    "name": "group env to delete 2"
   }
 ]

@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.sharedpolicygroups;
 
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -26,4 +27,7 @@ public interface SharedPolicyGroupMongoRepository
     extends MongoRepository<SharedPolicyGroupMongo, String>, SharedPolicyGroupMongoRepositoryCustom {
     @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }")
     Optional<SharedPolicyGroupMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+
+    @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<SharedPolicyGroupMongo> deleteByEnvironmentId(String environmentId);
 }

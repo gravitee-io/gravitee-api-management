@@ -40,7 +40,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,7 +141,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
         try {
             LOGGER.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
             if (flows == null || flows.isEmpty()) {
-                flowRepository.deleteByReference(flowReferenceType, referenceId);
+                flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return List.of();
             }
             Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById = flowRepository

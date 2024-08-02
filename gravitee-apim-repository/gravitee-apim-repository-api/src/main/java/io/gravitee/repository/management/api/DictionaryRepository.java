@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Dictionary;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -31,4 +32,12 @@ public interface DictionaryRepository extends CrudRepository<Dictionary, String>
      * @throws TechnicalException
      */
     Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException;
+
+    /**
+     * Delete dictionaries by environment ID
+     * @param environmentId
+     * @return List of IDs for deleted dictionaries
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

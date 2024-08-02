@@ -20,6 +20,7 @@ import io.gravitee.repository.mongodb.management.internal.model.MetadataMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataPkMongo;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -33,4 +34,7 @@ public interface MetadataMongoRepository extends MongoRepository<MetadataMongo, 
     List<MetadataMongo> findByIdReferenceType(MetadataReferenceType referenceType);
 
     List<MetadataMongo> findByIdReferenceTypeAndIdReferenceId(MetadataReferenceType referenceType, String referenceId);
+
+    @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<MetadataMongo> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType);
 }

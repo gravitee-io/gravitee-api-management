@@ -289,6 +289,37 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
+        try {
+            final var roleIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!roleIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + ROLE_PERMISSIONS + " where role_id IN (" + getOrm().buildInClause(roleIds) + ")",
+                    roleIds.toArray()
+                );
+
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+            LOGGER.debug("JdbcRoleRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            return roleIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete roles for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete roles by reference", ex);
+        }
+    }
+
+    @Override
     public Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
         throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})", roleId, referenceId, referenceType);

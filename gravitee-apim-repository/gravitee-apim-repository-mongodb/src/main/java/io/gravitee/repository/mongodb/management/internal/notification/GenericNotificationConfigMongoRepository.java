@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.notification;
 
 import io.gravitee.repository.mongodb.management.internal.model.GenericNotificationConfigMongo;
+import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -35,4 +36,7 @@ public interface GenericNotificationConfigMongoRepository extends MongoRepositor
 
     @Query(value = "{ 'config': ?0 }", delete = true)
     void deleteByConfig(String config);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<GenericNotificationConfigMongo> deleteByReferenceIdAndReferenceType(String referenceId, String name);
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.management.model.Category;
 import io.gravitee.repository.mongodb.management.internal.model.CategoryMongo;
 import java.util.List;
 import java.util.Optional;
@@ -41,4 +40,7 @@ public interface CategoryMongoRepository extends MongoRepository<CategoryMongo, 
 
     @Query("{ 'page': ?0 }")
     List<CategoryMongo> findByPage(String page);
+
+    @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<CategoryMongo> deleteByEnvironmentId(String environmentId);
 }

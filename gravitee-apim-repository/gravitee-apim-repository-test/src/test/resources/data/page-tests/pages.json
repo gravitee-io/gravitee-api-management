@@ -192,5 +192,44 @@
       "order": 2,
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
-   }
+   },
+  {
+    "id":"page-to-be-removed-1",
+    "referenceType":"API",
+    "referenceId":"api-deleted",
+    "name":"parentId should be removed",
+    "homepage": false,
+    "visibility": "PRIVATE",
+    "content": "lorem ipsum",
+    "type": "MARKDOWN",
+    "order": 1,
+    "parentId": "page-to-be-removed-parentId",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id":"page-to-be-removed-2",
+    "referenceType":"API",
+    "referenceId":"api-deleted",
+    "name":"should be deleted",
+    "homepage": false,
+    "visibility": "PRIVATE",
+    "content": "lorem ipsum",
+    "type": "MARKDOWN",
+    "order": 2,
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "attachedMedia": [
+      {
+        "mediaHash": "media_id_1",
+        "mediaName": "media_name_1",
+        "attachedAt": 1586771200000
+      },
+      {
+        "mediaHash": "media_id_2",
+        "mediaName": "media_name_2",
+        "attachedAt": 1587771200000
+      }
+    ]
+  }
 ]

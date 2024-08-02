@@ -30,4 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface DictionaryMongoRepository extends MongoRepository<DictionaryMongo, String> {
     @Query("{ environmentId: {$in: ?0} }")
     List<DictionaryMongo> findByEnvironments(Set<String> environments);
+
+    @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<DictionaryMongo> deleteByEnvironmentId(String environmentId);
 }

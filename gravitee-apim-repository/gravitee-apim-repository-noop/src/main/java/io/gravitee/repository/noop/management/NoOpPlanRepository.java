@@ -42,4 +42,9 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     public Set<Plan> findByIdIn(final Collection<String> ids) throws TechnicalException {
         return Set.of();
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        return List.of();
+    }
 }

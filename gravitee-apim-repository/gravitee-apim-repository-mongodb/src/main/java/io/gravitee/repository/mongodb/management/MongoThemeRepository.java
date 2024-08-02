@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
 import io.gravitee.repository.mongodb.management.internal.theme.ThemeMongoRepository;
@@ -134,5 +135,24 @@ public class MongoThemeRepository implements ThemeRepository {
     @Override
     public Page<Theme> search(ThemeCriteria criteria, Pageable pageable) {
         return internalThemeRepo.search(criteria, pageable).map(themeMongo -> mapper.map(themeMongo));
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete themes by reference {}/{}", referenceId, referenceType);
+        try {
+            final var res = internalThemeRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(ThemeMongo::getId)
+                .toList();
+
+            LOGGER.debug("Delete themes by reference {}/{} - Done", referenceId, referenceType);
+            return res;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete themes by reference {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete themes by reference");
+        }
     }
 }

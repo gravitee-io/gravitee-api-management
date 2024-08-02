@@ -677,6 +677,40 @@ public class EventServiceTest {
         assertEquals(Set.of(ORGANIZATION_ID), eventCaptured.getOrganizations());
     }
 
+    @Test
+    public void should_delete_events_by_environment_id() throws TechnicalException {
+        Event deletedEvent = Event.builder().id("deleted-event").environments(Set.of(ENVIRONMENT_ID)).build();
+        Event updatedEvent = Event.builder().id("updated-event").environments(Set.of(ENVIRONMENT_ID, "ANOTHER_ENV_ID")).build();
+        when(eventRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
+        when(eventLatestRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
+
+        eventService.deleteOrUpdateEventsByEnvironment(ENVIRONMENT_ID);
+
+        verify(eventRepository).delete(deletedEvent.getId());
+        updatedEvent.setEnvironments(Set.of(ENVIRONMENT_ID));
+        verify(eventRepository).update(updatedEvent);
+        verify(eventLatestRepository).delete(deletedEvent.getId());
+        updatedEvent.setEnvironments(Set.of(ENVIRONMENT_ID));
+        verify(eventLatestRepository).createOrUpdate(updatedEvent);
+    }
+
+    @Test
+    public void should_delete_events_by_organization_id() throws TechnicalException {
+        Event deletedEvent = Event.builder().id("deleted-event").organizations(Set.of(ORGANIZATION_ID)).build();
+        Event updatedEvent = Event.builder().id("updated-event").organizations(Set.of(ORGANIZATION_ID, "ANOTHER_ORG_ID")).build();
+        when(eventRepository.findByOrganizationId(ORGANIZATION_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
+        when(eventLatestRepository.findByOrganizationId(ORGANIZATION_ID)).thenReturn(List.of(deletedEvent, updatedEvent));
+
+        eventService.deleteOrUpdateEventsByOrganization(ORGANIZATION_ID);
+
+        verify(eventRepository).delete(deletedEvent.getId());
+        updatedEvent.setOrganizations(Set.of(ORGANIZATION_ID));
+        verify(eventRepository).update(updatedEvent);
+        verify(eventLatestRepository).delete(deletedEvent.getId());
+        updatedEvent.setOrganizations(Set.of(ORGANIZATION_ID));
+        verify(eventLatestRepository).createOrUpdate(updatedEvent);
+    }
+
     private PlanEntity buildPlanEntity(String id, PlanStatus status) {
         PlanEntity plan = new PlanEntity();
         plan.setId(id);

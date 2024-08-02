@@ -149,4 +149,16 @@ public class MongoEventRepository implements EventRepository {
     public Set<Event> findAll() throws TechnicalException {
         throw new IllegalStateException("not implemented cause of high amount of data. Use pageable search instead");
     }
+
+    @Override
+    public List<Event> findByEnvironmentId(String environmentId) {
+        List<EventMongo> eventsMongo = internalEventRepo.findByEnvironmentsIn(Set.of(environmentId));
+        return mapper.mapEvents(eventsMongo);
+    }
+
+    @Override
+    public List<Event> findByOrganizationId(String organizationId) {
+        List<EventMongo> eventsMongo = internalEventRepo.findByOrganizationsIn(Set.of(organizationId));
+        return mapper.mapEvents(eventsMongo);
+    }
 }

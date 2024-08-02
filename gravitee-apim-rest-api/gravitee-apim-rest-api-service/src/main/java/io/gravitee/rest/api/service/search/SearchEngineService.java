@@ -32,7 +32,11 @@ public interface SearchEngineService {
 
     void index(ExecutionContext executionContext, Indexable source, boolean locally, boolean commit);
 
-    void delete(ExecutionContext executionContext, Indexable source);
+    default void delete(ExecutionContext executionContext, Indexable source) {
+        delete(executionContext, source, false);
+    }
+
+    void delete(ExecutionContext executionContext, Indexable source, boolean locally);
 
     void commit();
 

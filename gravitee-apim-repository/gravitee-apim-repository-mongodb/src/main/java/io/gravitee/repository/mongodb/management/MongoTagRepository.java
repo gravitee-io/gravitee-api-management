@@ -78,6 +78,20 @@ public class MongoTagRepository implements TagRepository {
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Delete tags by reference {}/{}", referenceId, referenceType);
+
+        final var tags = internalTagRepo
+            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+            .stream()
+            .map(TagMongo::getId)
+            .toList();
+
+        LOGGER.debug("Delete tag by reference {}/{} - Done", referenceId, referenceType);
+        return tags;
+    }
+
+    @Override
     public Tag create(Tag tag) throws TechnicalException {
         LOGGER.debug("Create tag [{}]", tag.getName());
 

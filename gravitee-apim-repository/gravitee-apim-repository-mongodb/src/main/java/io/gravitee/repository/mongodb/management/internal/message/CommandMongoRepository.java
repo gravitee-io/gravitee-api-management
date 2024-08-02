@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.message;
 
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,4 +26,10 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface CommandMongoRepository extends MongoRepository<CommandMongo, String>, CommandMongoRepositoryCustom {}
+public interface CommandMongoRepository extends MongoRepository<CommandMongo, String>, CommandMongoRepositoryCustom {
+    @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<CommandMongo> deleteByEnvironmentId(String environmentId);
+
+    @Query(value = "{ 'organizationId': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<CommandMongo> deleteByOrganizationId(String organizationId);
+}

@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.plan;
 
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,4 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface SubscriptionMongoRepository extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {}
+public interface SubscriptionMongoRepository extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {
+    @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<SubscriptionMongo> deleteByEnvironmentId(String environmentId);
+}

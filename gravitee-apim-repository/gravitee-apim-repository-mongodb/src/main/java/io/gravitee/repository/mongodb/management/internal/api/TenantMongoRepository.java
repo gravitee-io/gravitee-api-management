@@ -20,7 +20,7 @@ import io.gravitee.repository.mongodb.management.internal.model.TenantMongo;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.util.Lazy;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -32,4 +32,7 @@ public interface TenantMongoRepository extends MongoRepository<TenantMongo, Stri
     Optional<TenantMongo> findByIdAndReferenceIdAndReferenceType(String tenantId, String referenceId, TenantReferenceType referenceType);
 
     List<TenantMongo> findByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<TenantMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

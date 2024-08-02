@@ -124,12 +124,12 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 3, auditPage.getTotalElements());
-        assertEquals("page elements", 3, auditPage.getPageElements());
+        assertEquals("total elements", 5, auditPage.getTotalElements());
+        assertEquals("page elements", 5, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
-        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(1).getId());
-        assertEquals("find audit with id 'searchable1'", "searchable1", auditPage.getContent().get(2).getId());
+        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(2).getId());
+        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(3).getId());
+        assertEquals("find audit with id 'searchable1'", "searchable1", auditPage.getContent().get(4).getId());
     }
 
     @Test
@@ -150,18 +150,18 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldSearchFrom() throws TechnicalException {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1000000000000L).build();
 
-        Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(3).build());
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 3, auditPage.getTotalElements());
-        assertEquals("page elements", 2, auditPage.getPageElements());
+        assertEquals("total elements", 5, auditPage.getTotalElements());
+        assertEquals("page elements", 3, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
 
         auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 3, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
+        assertEquals("total elements", 5, auditPage.getTotalElements());
+        assertEquals("page elements", 2, auditPage.getPageElements());
         assertEquals("page number", 1, auditPage.getPageNumber());
     }
 
@@ -214,8 +214,21 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 3, auditPage.getTotalElements());
-        assertEquals("page elements", 3, auditPage.getPageElements());
+        assertEquals("total elements", 5, auditPage.getTotalElements());
+        assertEquals("page elements", 5, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
+    }
+
+    @Test
+    public void shouldDeleteByReferenceIdAndReferenceType() throws Exception {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, List.of("ToBeDeleted")).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+        assertEquals(2, auditPage.getTotalElements());
+
+        List<String> deleted = auditRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", Audit.AuditReferenceType.API);
+
+        assertEquals(2, deleted.size());
+        assertEquals(0, auditRepository.search(auditCriteria, page).getTotalElements());
     }
 }

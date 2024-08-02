@@ -99,11 +99,6 @@ public class JdbcSharedPolicyGroupHistoryRepository
     }
 
     @Override
-    public void delete(String id) throws TechnicalException {
-        super.delete(id);
-    }
-
-    @Override
     public Optional<SharedPolicyGroup> findById(String id) throws TechnicalException {
         throw new IllegalStateException("Not implemented");
     }
@@ -250,6 +245,29 @@ public class JdbcSharedPolicyGroupHistoryRepository
         } catch (Exception ex) {
             LOGGER.error("Failed to search for SharedPolicyGroupHistory:", ex);
             throw new TechnicalException("Failed to search for SharedPolicyGroupHistory", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete shared policy group history by environment ID [{}]", environmentId);
+
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " WHERE environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("Delete shared policy group history by environment ID [{}] - Done", environmentId);
+            return rows;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete SharedPolicyGroupHistory by environment ID:", ex);
+            throw new TechnicalException("Failed to delete SharedPolicyGroupHistory by environment ID", ex);
         }
     }
 }

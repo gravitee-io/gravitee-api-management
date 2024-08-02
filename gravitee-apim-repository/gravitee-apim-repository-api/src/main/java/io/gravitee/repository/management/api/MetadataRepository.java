@@ -39,4 +39,14 @@ public interface MetadataRepository extends FindAllRepository<Metadata> {
     List<Metadata> findByReferenceType(MetadataReferenceType referenceType) throws TechnicalException;
 
     List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    /**
+     * Delete Metadata by reference
+     *
+     * @param referenceId   the ref id
+     * @param referenceType The ref type
+     * @return List of deleted IDs for metadata
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType) throws TechnicalException;
 }

@@ -69,5 +69,31 @@
       "definition": "{\"def\": \"value\"}",
       "createdAt": 1000000000000,
       "updatedAt": 1111111111111
+   },
+   {
+     "id": "to-be-deleted-1",
+     "type": "API",
+     "referenceType": "ENVIRONMENT",
+     "referenceId": "ToBeDeleted",
+     "name": "Geo dashboard - the only one of OTHER_ENV",
+     "queryFilter": "api:b741b061-5377-43ea-81b0-61537793ea91",
+     "order": 1,
+     "enabled": true,
+     "definition": "{\"def\": \"value\"}",
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111
+   },
+   {
+     "id": "to-be-deleted-2",
+     "type": "API",
+     "referenceType": "ENVIRONMENT",
+     "referenceId": "ToBeDeleted",
+     "name": "Geo dashboard - the only one of OTHER_ENV",
+     "queryFilter": "api:b741b061-5377-43ea-81b0-61537793ea91",
+     "order": 1,
+     "enabled": true,
+     "definition": "{\"def\": \"value\"}",
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111
    }
 ]
