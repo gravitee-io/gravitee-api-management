@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../scss/theme';
+
 .subscribe-to-api {
   margin-top: 34px;
 
@@ -22,9 +24,26 @@
     gap: 8px;
   }
 
+  &__checkout {
+    display: flex;
+    flex-flow: column;
+    gap: 32px;
+  }
+
   &__actions {
     display: flex;
     justify-content: space-between;
     padding: 24px 16px;
+
+    &__next {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
   }
+}
+
+.error-message {
+  padding: 0 16px;
+  color: theme.$error-main-color;
 }

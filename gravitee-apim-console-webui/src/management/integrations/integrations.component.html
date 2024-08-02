@@ -56,6 +56,16 @@
           <button mat-raised-button color="basic" (click)="onRequestUpgrade()">Request upgrade</button>
         </div>
       </gio-banner-error>
+    } @else if (isFederationDisabled) {
+      <gio-banner-info class="module-disabled-banner">
+        <div>
+          Federation is disabled in this environment. To learn how to enable it, head to the
+          <a href="https://documentation.gravitee.io/apim/getting-started/install-and-upgrade-guides"
+            >Gravitee API Management installation guide</a
+          >
+          for the installation type you are using.
+        </div>
+      </gio-banner-info>
     }
   </div>
 
@@ -127,7 +137,7 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-        <!-- Row shown when there is no data -->
+        <!-- Row shown when loading -->
         <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
           <td *ngIf="isLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
             {{ 'Loading...' }}

@@ -190,6 +190,11 @@ public interface GraviteeMapper {
 
     InvitationMongo map(Invitation toMap);
 
+    // IntegrationJob mapping
+    IntegrationJob map(IntegrationJobMongo source);
+
+    IntegrationJobMongo map(IntegrationJob source);
+
     // License mapping
     @Mapping(target = "referenceId", source = "id.referenceId")
     @Mapping(target = "referenceType", source = "id.referenceType")
@@ -316,4 +321,8 @@ public interface GraviteeMapper {
     WorkflowMongo map(Workflow toMap);
 
     List<Integration> mapIntegrationsList(Collection<IntegrationMongo> toMap);
+
+    // SharedPolicyGroup mapping
+    SharedPolicyGroupMongo map(SharedPolicyGroup item);
+    SharedPolicyGroup map(SharedPolicyGroupMongo item);
 }

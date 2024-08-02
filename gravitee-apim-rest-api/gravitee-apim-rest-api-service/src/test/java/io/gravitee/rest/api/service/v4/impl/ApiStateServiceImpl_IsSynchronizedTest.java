@@ -36,7 +36,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;

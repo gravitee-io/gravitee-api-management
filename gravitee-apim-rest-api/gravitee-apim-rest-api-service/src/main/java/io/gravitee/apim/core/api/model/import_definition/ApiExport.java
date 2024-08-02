@@ -17,7 +17,6 @@ package io.gravitee.apim.core.api.model.import_definition;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.Api.ApiBuilder;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -34,10 +33,8 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -95,7 +92,7 @@ public class ApiExport {
     private List<String> labels;
 
     @Builder.Default
-    private OriginContext originContext = new ManagementContext();
+    private OriginContext originContext = new OriginContext.Management();
 
     private ApiLifecycleState lifecycleState;
     private WorkflowState workflowState;

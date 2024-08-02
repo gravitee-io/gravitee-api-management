@@ -127,6 +127,169 @@ paths:
             $ref: "#/components/responses/ThemesResponse"
           default:
             $ref: "#/components/responses/Error"
+
+    /environments/{envId}/ui/themes/_default:
+      servers:
+        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+          description: APIM Management API v2 - Base URL to target specific organizations
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+            orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+        - url: "{protocol}://{managementAPIHost}/management/v2"
+          description: APIM Management API v2 - Default base URL
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      get:
+        tags:
+          - Management UI
+        parameters:
+          - $ref: "#/components/parameters/themeTypeParam"
+        summary: Get default theme
+        description: |
+          Get default theme for a given environment.
+          Only PORTAL_NEXT is currently supported.
+          
+          User must have the ENVIRONMENT_THEME[READ] permission.
+        operationId: getDefaultTheme
+        responses:
+          "200":
+            description: The default theme.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Theme"
+          default:
+            $ref: "#/components/responses/Error"
+
+    /environments/{envId}/ui/themes/_current:
+      servers:
+        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+          description: APIM Management API v2 - Base URL to target specific organizations
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+            orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+        - url: "{protocol}://{managementAPIHost}/management/v2"
+          description: APIM Management API v2 - Default base URL
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      get:
+        tags:
+          - Management UI
+        parameters:
+          - $ref: "#/components/parameters/themeTypeParam"
+        summary: Get current theme
+        description: |
+          Get default theme for a given environment for either Portal or Portal Next.
+          
+          User must have the ENVIRONMENT_THEME[READ] permission.
+        operationId: getCurrentTheme
+        responses:
+          "200":
+            description: The current theme.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Theme"
+          default:
+            $ref: "#/components/responses/Error"
+
+    /environments/{envId}/ui/themes/{themeId}:
+      servers:
+        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+          description: APIM Management API v2 - Base URL to target specific organizations
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+            orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+        - url: "{protocol}://{managementAPIHost}/management/v2"
+          description: APIM Management API v2 - Default base URL
+          variables:
+            protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                - https
+                - http
+            managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      put:
+        tags:
+          - Management UI
+        parameters:
+          - $ref: "#/components/parameters/themeIdParam"
+        summary: Update theme by ID
+        description: |
+          Update either Portal or Portal Next theme.
+          
+          User must have the ENVIRONMENT_THEME[UPDATE] permission.
+        operationId: updateTheme
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateTheme"
+          required: true
+        responses:
+          "200":
+            description: The updated theme.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Theme"
+          default:
+            $ref: "#/components/responses/Error"
 components:
     schemas:
         ConsoleCustomization:
@@ -257,6 +420,39 @@ components:
               PORTAL: ThemePortal
               PORTAL_NEXT: ThemePortalNext
 
+        GenericUpdateTheme:
+          type: object
+          title: "GenericUpdateTheme"
+          properties:
+            id:
+              type: string
+              description: Theme ID
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            name:
+              type: string
+              description: Theme ID
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            type:
+              $ref: "#/components/schemas/ThemeType"
+            enabled:
+              type: boolean
+              description: If the theme is active
+              example: true
+            logo:
+              type: string
+              description: Theme logo
+            optionalLogo:
+              type: string
+              description: Optional Theme logo
+            favicon:
+              type: string
+              description: Theme favicon
+          discriminator:
+            propertyName: type
+            mapping:
+              PORTAL: UpdateThemePortal
+              PORTAL_NEXT: UpdateThemePortalNext
+
         Links:
           description: List of links for pagination
           properties:
@@ -351,6 +547,18 @@ components:
           type: object
           description: Theme definition used for Portal-Next
           properties:
+            color:
+              $ref: "#/components/schemas/PortalNextDefinitionColor"
+            font:
+              $ref: "#/components/schemas/PortalNextDefinitionFont"
+            customCss:
+              type: string
+              description: Custom CSS for Portal-Next
+
+        PortalNextDefinitionColor:
+          type: object
+          description: Theme definition used for Portal-Next
+          properties:
             primary:
               type: string
               description: Primary hex code color seed for Theme palette
@@ -367,22 +575,24 @@ components:
               type: string
               description: Error hex code color seed for Theme palette
               example: #e1f200
-            background:
+            pageBackground:
               type: string
               description: Background hex code color
               example: #e1f200
-            banner:
-              type: object
-              description: Banner customization
-              properties:
-                text:
-                  type: string
-                  description: Banner text hex code color
-                  example: #e1f200
-                background:
-                  type: string
-                  description: Banner background hex code color
-                  example: #e1f200
+            cardBackground:
+              type: string
+              description: Background hex code color
+              example: #e1f200
+
+        PortalNextDefinitionFont:
+          type: object
+          description: Theme definition used for Portal-Next
+          properties:
+            fontFamily:
+              type: string
+              description: Font-family used for Portal-Next
+              example: "\"Roboto\", sans-serif"
+
         Theme:
           oneOf:
             - $ref: "#/components/schemas/ThemePortal"
@@ -392,6 +602,16 @@ components:
             mapping:
               PORTAL: ThemePortal
               PORTAL_NEXT: ThemePortalNext
+
+        UpdateTheme:
+          oneOf:
+            - $ref: "#/components/schemas/UpdateThemePortal"
+            - $ref: "#/components/schemas/UpdateThemePortalNext"
+          discriminator:
+            propertyName: type
+            mapping:
+              PORTAL: UpdateThemePortal
+              PORTAL_NEXT: UpdateThemePortalNext
 
         ThemePortal:
           title: "ThemePortal"
@@ -410,6 +630,27 @@ components:
           description: Theme used in Portal-Next
           allOf:
             - $ref: "#/components/schemas/GenericTheme"
+            - properties:
+                definition:
+                  $ref: "#/components/schemas/PortalNextDefinition"
+
+        UpdateThemePortal:
+          title: "UpdateThemePortal"
+          description: Theme used on the Portal
+          allOf:
+            - $ref: "#/components/schemas/GenericUpdateTheme"
+            - properties:
+                definition:
+                  $ref: "#/components/schemas/PortalDefinition"
+                backgroundImage:
+                  type: string
+                  description: Background image used in header
+
+        UpdateThemePortalNext:
+          title: "UpdateThemePortalNext"
+          description: Theme used in Portal-Next
+          allOf:
+            - $ref: "#/components/schemas/GenericUpdateTheme"
             - properties:
                 definition:
                   $ref: "#/components/schemas/PortalNextDefinition"
@@ -464,6 +705,13 @@ components:
           schema:
             type: integer
             default: 10
+        themeIdParam:
+          name: themeId
+          in: path
+          required: true
+          description: ID of a theme
+          schema:
+            type: string
         themeTypeParam:
           name: type
           in: query

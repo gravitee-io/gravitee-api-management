@@ -446,6 +446,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             portalConfigEntity.getPortal().getUploadMedia(),
             portalConfigEntity.getPortal().getUserCreation(),
             portalConfigEntity.getPortalNext(),
+            portalConfigEntity.getPortalNext().getBanner(),
             portalConfigEntity.getReCaptcha(),
             portalConfigEntity.getScheduler(),
             portalConfigEntity.getDashboards(),
@@ -484,6 +485,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getAlertEngine(),
             consoleConfigEntity.getLicenseExpirationNotification(),
             consoleConfigEntity.getTrialInstance(),
+            consoleConfigEntity.getFederation(),
         };
     }
 }

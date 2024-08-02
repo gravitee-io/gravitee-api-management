@@ -52,7 +52,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -360,11 +360,7 @@ class AcceptSubscriptionDomainServiceTest {
             );
             userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
             apiCrudService.create(
-                Api
-                    .builder()
-                    .id(subscription.getApiId())
-                    .originContext(IntegrationContext.builder().integrationId("integration-id").build())
-                    .build()
+                Api.builder().id(subscription.getApiId()).originContext(new OriginContext.Integration("integration-id")).build()
             );
 
             // When

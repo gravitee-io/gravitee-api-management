@@ -91,15 +91,17 @@ public class ResourceServiceImplTest {
     }
 
     @Test
-    public void shouldFindById() {
+    public void shouldFindById() throws IOException {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
+        when(pluginManager.getIcon(PLUGIN_ID, true)).thenReturn("icon");
 
         PlatformPluginEntity result = resourceService.findById(PLUGIN_ID);
 
         assertNotNull(result);
         assertEquals(PLUGIN_ID, result.getId());
+        assertEquals("icon", result.getIcon());
     }
 
     @Test(expected = PluginNotFoundException.class)
@@ -110,15 +112,17 @@ public class ResourceServiceImplTest {
     }
 
     @Test
-    public void shouldFindAll() {
+    public void shouldFindAll() throws IOException {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+        when(pluginManager.getIcon(PLUGIN_ID, true)).thenReturn("icon");
 
         Set<PlatformPluginEntity> result = resourceService.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(PLUGIN_ID, result.iterator().next().getId());
+        assertEquals("icon", result.iterator().next().getIcon());
     }
 }

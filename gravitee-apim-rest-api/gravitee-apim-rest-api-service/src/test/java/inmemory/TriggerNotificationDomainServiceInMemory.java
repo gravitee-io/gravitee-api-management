@@ -19,6 +19,7 @@ import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDoma
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,7 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
 
     private final List<ApiHookContext> apiNotifications = new ArrayList<>();
     private final List<ApplicationNotification> applicationNotifications = new ArrayList<>();
+    private final List<PortalHookContext> portalNotifications = new ArrayList<>();
 
     @Override
     public void triggerApiNotification(String organizationId, ApiHookContext hookContext) {
@@ -54,6 +56,11 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
         additionalRecipients.forEach(recipient -> applicationNotifications.add(new ApplicationNotification(recipient, context)));
     }
 
+    @Override
+    public void triggerPortalNotification(String organizationId, PortalHookContext hookContext) {
+        portalNotifications.add(hookContext);
+    }
+
     public List<ApiHookContext> getApiNotifications() {
         return Collections.unmodifiableList(apiNotifications);
     }
@@ -62,8 +69,13 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
         return Collections.unmodifiableList(applicationNotifications);
     }
 
+    public List<PortalHookContext> getPortalNotifications() {
+        return Collections.unmodifiableList(portalNotifications);
+    }
+
     public void reset() {
         apiNotifications.clear();
         applicationNotifications.clear();
+        portalNotifications.clear();
     }
 }

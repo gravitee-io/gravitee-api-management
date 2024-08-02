@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.parameters.domain_service;
 
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 
 public interface ParametersDomainService {
     Map<Key, String> getSystemParameters(List<Key> keys);
+    Map<Key, String> getEnvironmentParameters(ExecutionContext executionContext, List<Key> keys);
 }

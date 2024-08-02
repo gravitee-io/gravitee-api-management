@@ -431,7 +431,8 @@ cloud:
   url: https://cloud.gravitee.io
   connector:
     ws:
-      endpoints: https://cloud-controller.gravitee.io
+      endpoints:
+        - https://cloud-controller.gravitee.io
       ssl:
         verifyHost: true
         keystore:
@@ -453,8 +454,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-5.18.1.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-5.18.1.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-6.0.4.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-6.0.4.zip
 
 api:
   enabled: true

@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Lazy;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractReferenceMetadataService {
+public abstract class AbstractReferenceMetadataService extends AbstractService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(io.gravitee.rest.api.service.impl.AbstractReferenceMetadataService.class);
 

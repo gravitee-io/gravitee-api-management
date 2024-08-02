@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Subscription } from '../subscription/subscription';
+
 export interface Application {
   api_key_mode?: string;
   applicationType?: string;
@@ -75,4 +77,24 @@ export interface ApplicationLinks {
   notifications: string;
   picture: string;
   self: string;
+}
+
+export interface ApplicationsResponse {
+  data: Application[];
+  metadata?: {
+    pagination?: {
+      current_page?: number;
+      first?: number;
+      last?: number;
+      size?: number;
+      total?: number;
+      total_pages?: number;
+    };
+    subscriptions?: ApplicationsMetadataSubscriptions;
+  };
+  _links?: unknown;
+}
+
+export interface ApplicationsMetadataSubscriptions {
+  [applicationId: string]: Subscription[];
 }

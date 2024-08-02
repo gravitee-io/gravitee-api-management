@@ -4,7 +4,7 @@ Here is a docker-compose to run APIM with a Keycloak container available as an I
 
 ---
 > For more information, please read :
-> https://documentation.gravitee.io/apim/getting-started/configuration/authentication-and-sso#keycloak-authentication
+> https://documentation.gravitee.io/apim/getting-started/configuration/authentication/custom-oauth2-openid-authorization-server#keycloak-authentication
 ---
 
 Keycloak UI is accessible here http://localhost:8081/auth
@@ -13,11 +13,11 @@ Keycloak UI is accessible here http://localhost:8081/auth
 
 ⚠️ You need a license file to be able to run Enterprise Edition of APIM. Do not forget to add your license file into `./.license`.
 
-In the Keycloak UI (https://documentation.gravitee.io/apim/getting-started/configuration/authentication-and-sso#create-a-keycloak-client):
+In the Keycloak UI ([create a Keycloak client](https://documentation.gravitee.io/apim/getting-started/configuration/authentication/custom-oauth2-openid-authorization-server#create-a-keycloak-client)):
 - Read how to create a new client for your application. (Already imported with `realm/realm-gio.json`)
 - Create a user in the "GIO" realm.
 
-You can read how to [configure the Identity provider following documentation](https://documentation.gravitee.io/apim/getting-started/configuration/authentication-and-sso#configure-keycloak-authentication-in-gravitee) but it's already configured with docker environment.
+You can read how to [configure the Identity provider following documentation](https://documentation.gravitee.io/apim/getting-started/configuration/authentication/custom-oauth2-openid-authorization-server#configure-keycloak-authentication-in-gravitee) but it's already configured with docker environment.
 
 ### How to test an api with `gravitee-resource-oauth2-provider-keycloak`
 

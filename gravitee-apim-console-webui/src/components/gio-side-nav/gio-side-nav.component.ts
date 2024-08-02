@@ -24,6 +24,7 @@ import { Constants } from '../../entities/Constants';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
 import { Environment } from '../../entities/environment/environment';
 import { cleanRouterLink } from '../../util/router-link.util';
+import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
 
 interface MenuItem {
   icon: string;
@@ -62,6 +63,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly gioMenuSearchService: GioMenuSearchService,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -88,6 +90,10 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     }
 
     this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
+
+    this.environmentSettingsService.get().subscribe((_) => {
+      this.mainMenuItems = this.buildMainMenuItems();
+    });
   }
 
   ngOnDestroy(): void {
@@ -146,6 +152,9 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-instance-r'],
         category: 'Gateways',
       },
+    ];
+
+    mainMenuItems.push(
       {
         icon: 'gio:verified',
         displayName: 'Audit',
@@ -169,7 +178,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-platform-r'],
         category: 'Analytics',
       },
-    ];
+    );
 
     if (!this.constants.isOEM && this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
       mainMenuItems.push({

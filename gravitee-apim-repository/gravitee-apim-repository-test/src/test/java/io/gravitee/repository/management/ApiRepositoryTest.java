@@ -274,6 +274,27 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
+    @Test
+    public void shouldFindByDefinitionVersion() {
+        List<Api> v2Apis = apiRepository.search(
+            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(v2Apis).hasSize(10);
+
+        List<Api> v4Apis = apiRepository.search(
+            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(v4Apis).hasSize(1);
+
+        List<Api> federatedApis = apiRepository.search(
+            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.FEDERATED)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(federatedApis).hasSize(1);
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownApi() throws TechnicalException {
         Api unknownApi = new Api();

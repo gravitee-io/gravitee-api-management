@@ -22,7 +22,6 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageRevision;
 import io.gravitee.rest.api.model.PageRevisionEntity;
 import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.security.MessageDigest;
@@ -53,21 +52,11 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
     @Autowired
     private PageRevisionRepository pageRevisionRepository;
 
-    @Autowired
-    private AuditService auditService;
-
     @Override
     public io.gravitee.common.data.domain.Page<PageRevisionEntity> findAll(Pageable pageable) {
         logger.debug("get all page revisions with pageable {}", pageable);
         try {
-            io.gravitee.common.data.domain.Page<PageRevision> revisions = pageRevisionRepository.findAll(pageable);
-            List<PageRevisionEntity> revisionEntities = revisions.getContent().stream().map(this::convert).collect(Collectors.toList());
-            return new io.gravitee.common.data.domain.Page<PageRevisionEntity>(
-                revisionEntities,
-                revisions.getPageNumber(),
-                revisionEntities.size(),
-                revisions.getTotalElements()
-            );
+            return pageRevisionRepository.findAll(pageable).map(this::convert);
         } catch (TechnicalException e) {
             logger.warn("An error occurs while trying to get the page revisions {}", pageable, e);
             throw new TechnicalManagementException("An error occurs while trying to get all page revisions", e);

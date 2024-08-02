@@ -202,6 +202,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final Metrics metrics = ctx.metrics();
 
         metrics.setApiId(api.getId());
+        metrics.setApiName(api.getName());
         metrics.setPathInfo(request.pathInfo());
     }
 

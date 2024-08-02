@@ -47,6 +47,8 @@ import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.IntegrationJobCrudServiceInMemory;
+import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
@@ -64,16 +66,23 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.PolicyPluginQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.ResourcePluginCrudServiceInMemory;
+import inmemory.ResourcePluginQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
+import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
+import inmemory.ThemeServiceLegacyWrapperInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
+import io.gravitee.rest.api.service.ResourceService;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -232,6 +241,16 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ResourcePluginQueryServiceInMemory resourcePluginQueryService() {
+        return new ResourcePluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public ResourcePluginCrudServiceInMemory resourcePluginCrudService() {
+        return new ResourcePluginCrudServiceInMemory();
+    }
+
+    @Bean
     public FlowCrudServiceInMemory flowCrudService() {
         return new FlowCrudServiceInMemory();
     }
@@ -302,8 +321,20 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public IntegrationJobCrudServiceInMemory integrationJobCrudService() {
+        return new IntegrationJobCrudServiceInMemory();
+    }
+
+    @Bean
     public IntegrationQueryServiceInMemory integrationQueryService(IntegrationCrudServiceInMemory integrationCrudServiceInMemory) {
         return new IntegrationQueryServiceInMemory(integrationCrudServiceInMemory);
+    }
+
+    @Bean
+    public IntegrationJobQueryServiceInMemory integrationJobQueryService(
+        IntegrationJobCrudServiceInMemory integrationJobCrudServiceInMemory
+    ) {
+        return new IntegrationJobQueryServiceInMemory(integrationJobCrudServiceInMemory);
     }
 
     @Bean
@@ -367,6 +398,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ValidateResourceDomainServiceInMemory validateResourceDomainService() {
+        return new ValidateResourceDomainServiceInMemory();
+    }
+
+    @Bean
     public CategoryApiCrudServiceInMemory categoryApiCrudService() {
         return new CategoryApiCrudServiceInMemory();
     }
@@ -374,5 +410,20 @@ public class InMemoryConfiguration {
     @Bean
     public UpdateCategoryApiDomainServiceInMemory updateCategoryApiDomainService() {
         return new UpdateCategoryApiDomainServiceInMemory();
+    }
+
+    @Bean
+    public ThemeCrudServiceInMemory themeCrudService() {
+        return new ThemeCrudServiceInMemory();
+    }
+
+    @Bean
+    public ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper() {
+        return new ThemeServiceLegacyWrapperInMemory();
+    }
+
+    @Bean
+    public ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainServiceInMemory() {
+        return new ThemePortalNextAssetsDomainServiceInMemory();
     }
 }

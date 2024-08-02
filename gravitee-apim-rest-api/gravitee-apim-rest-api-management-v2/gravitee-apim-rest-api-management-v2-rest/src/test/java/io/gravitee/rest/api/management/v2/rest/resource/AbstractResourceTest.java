@@ -22,6 +22,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -196,6 +197,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected CategoryDomainService categoryDomainService;
+
+    @Autowired
+    protected CategoryQueryServiceInMemory categoryQueryService;
 
     @BeforeEach
     public void setUp() {

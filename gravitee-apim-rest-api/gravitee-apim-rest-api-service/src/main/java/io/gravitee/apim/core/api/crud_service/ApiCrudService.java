@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.api.crud_service;
 
 import io.gravitee.apim.core.api.model.Api;
+import java.util.Optional;
 
 public interface ApiCrudService {
     Api get(String id);
+    Optional<Api> findById(String id);
     boolean existsById(String id);
     Api create(Api api);
     Api update(Api api);

@@ -29,6 +29,12 @@ import io.gravitee.policy.api.PolicyConfiguration;
  * @author GraviteeSource Team
  */
 public interface PolicyFactory {
+    /**
+     * Verify if a policy can be built by the current implementation of PolicyFactory
+     * @return true if the factory can build a policy depending on its manifest
+     */
+    boolean accept(PolicyManifest policyManifest);
+
     Policy create(
         final ExecutionPhase phase,
         final PolicyManifest policyManifest,

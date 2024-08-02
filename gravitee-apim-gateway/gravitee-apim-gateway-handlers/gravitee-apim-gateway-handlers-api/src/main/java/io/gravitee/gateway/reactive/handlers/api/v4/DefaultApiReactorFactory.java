@@ -44,6 +44,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
@@ -70,7 +71,9 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -87,7 +90,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final ApplicationContext applicationContext;
     protected final Configuration configuration;
     protected final Node node;
-    protected final PolicyFactory policyFactory;
+    protected final PolicyFactoryManager policyFactoryManager;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
     protected final ApiServicePluginManager apiServicePluginManager;
@@ -102,6 +105,41 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final ReporterService reporterService;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
+    public DefaultApiReactorFactory(
+        final ApplicationContext applicationContext,
+        final Configuration configuration,
+        final Node node,
+        final PolicyFactoryManager policyFactoryManager,
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        final EndpointConnectorPluginManager endpointConnectorPluginManager,
+        final ApiServicePluginManager apiServicePluginManager,
+        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+        final OrganizationManager organizationManager,
+        final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final ReporterService reporterService,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager
+    ) {
+        this.applicationContext = applicationContext;
+        this.configuration = configuration;
+        this.node = node;
+        this.policyFactoryManager = policyFactoryManager;
+        this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
+        this.endpointConnectorPluginManager = endpointConnectorPluginManager;
+        this.apiServicePluginManager = apiServicePluginManager;
+        this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
+        this.organizationManager = organizationManager;
+        this.accessPointManager = accessPointManager;
+        this.eventManager = eventManager;
+        this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
+        this.flowResolverFactory = flowResolverFactory;
+        this.v4FlowResolverFactory = flowResolverFactory();
+        this.requestTimeoutConfiguration = requestTimeoutConfiguration;
+        this.reporterService = reporterService;
+    }
+
+    // FIXME: this constructor is here to keep compatibility with Message Reactor plugin. it will be deleted when Message Reactor has been updated
     public DefaultApiReactorFactory(
         final ApplicationContext applicationContext,
         final Configuration configuration,
@@ -121,7 +159,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.node = node;
-        this.policyFactory = policyFactory;
+        this.policyFactoryManager = new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory)));
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
         this.apiServicePluginManager = apiServicePluginManager;
@@ -189,7 +227,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
                 final PolicyManager policyManager = policyManager(
                     api,
-                    policyFactory,
+                    policyFactoryManager,
                     new CachedPolicyConfigurationFactory(),
                     applicationContext.getBean(PolicyClassLoaderFactory.class),
                     componentProvider
@@ -329,7 +367,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     @SuppressWarnings("unchecked")
     public PolicyManager policyManager(
         Api api,
-        PolicyFactory factory,
+        PolicyFactoryManager factoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
@@ -345,7 +383,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         return new ApiPolicyManager(
             applicationContext.getBean(DefaultClassLoader.class),
             api,
-            factory,
+            factoryManager,
             policyConfigurationFactory,
             ppm,
             policyClassLoaderFactory,

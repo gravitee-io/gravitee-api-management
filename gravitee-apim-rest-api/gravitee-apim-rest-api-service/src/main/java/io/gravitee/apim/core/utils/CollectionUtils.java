@@ -16,12 +16,22 @@
 package io.gravitee.apim.core.utils;
 
 import java.util.Collection;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class CollectionUtils {
-
-    private CollectionUtils() {}
 
     public static boolean isEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();
+    }
+
+    public static boolean isNotEmpty(Collection<?> collection) {
+        return !isEmpty(collection);
+    }
+
+    public static <T> Stream<T> stream(Iterable<T> iterable) {
+        return iterable == null ? Stream.empty() : StreamSupport.stream(iterable.spliterator(), false);
     }
 }

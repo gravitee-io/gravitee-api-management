@@ -27,6 +27,8 @@
 
 html {
   @include mat.all-component-themes(theme.$light-theme);
+
+  --mat-app-background-color: #{theme.$background-color};
 }
 
 body {

@@ -16,26 +16,13 @@
 
 -->
 <div class="empty">
-  <div class="empty__icon"><mat-icon svgIcon="gio:search"></mat-icon></div>
-  <div class="mat-h2">No pages available yet</div>
-  <div class="mat-body-2" *gioPermission="{ anyOf: ['api-documentation-c'] }">Start creating pages to fill up your folder.</div>
-  <div class="">
-    <button
-      class="empty__action"
-      mat-flat-button
-      color="primary"
-      *gioPermission="{ anyOf: ['api-documentation-c'] }"
-      [matMenuTriggerFor]="menu"
-      [disabled]="isReadOnly"
-    >
-      Add new page
-    </button>
-
-    <mat-menu #menu="matMenu">
-      <button *ngFor="let pageType of pageTypes" (click)="onAddPage.emit(pageType)" mat-menu-item>
-        {{ getTitleForPageType(pageType) }}
-        <img [ngSrc]="getLogoForPageType(pageType)" height="24" width="24" [alt]="getTitleForPageType(pageType).toLowerCase() + ' logo'" />
-      </button>
-    </mat-menu>
+  <div class="empty__icon">
+    <mat-icon svgIcon="gio:search"></mat-icon>
   </div>
+  <div class="mat-h2">{{ emptyPageTitle }}</div>
+  <div class="mat-body-2">{{ emptyPageMessage }}</div>
+  @if (showAddPageButton) {
+    <api-documentation-v4-add-page-button class="empty__add-page-button" (addPage)="addPage.emit($event)" text="Add new page">
+    </api-documentation-v4-add-page-button>
+  }
 </div>

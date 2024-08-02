@@ -29,8 +29,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -357,7 +356,7 @@ class ApiIdsCalculatorDomainServiceTest {
                 .filter(page -> page.getId() != null && !page.getId().isEmpty())
                 .collect(Collectors.toMap(Page::getName, Page::getId));
 
-            toRecalculate.getApiExport().setOriginContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
+            toRecalculate.getApiExport().setOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED));
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
             // Verify ids has properly been recalculated when empty

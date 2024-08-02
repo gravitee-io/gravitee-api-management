@@ -33,6 +33,10 @@
   width: 15%;
 }
 
+.mat-column-definitionVersion {
+  min-width: 160px;
+}
+
 .mat-column-picture,
 .mat-column-actions {
   width: 1%;
@@ -123,4 +127,9 @@
 .actions__edit {
   display: flex;
   justify-content: center;
+}
+
+.provider {
+  display: block;
+  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
 }

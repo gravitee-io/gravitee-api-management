@@ -22,3 +22,5 @@ export * from './moreInformation';
 export * from './platformPlugin';
 export * from './policyPlugin';
 export * from './policyPlugin.fixture';
+export * from './resourcePlugin';
+export * from './resourcePlugin.fixture';

@@ -146,6 +146,11 @@
   "portalNext": {
     "access": {
       "enabled": true
+    },
+    "banner": {
+      "enabled": true,
+      "title": "banner title",
+      "subtitle": "banner subtitle"
     }
   },
   "reCaptcha": {

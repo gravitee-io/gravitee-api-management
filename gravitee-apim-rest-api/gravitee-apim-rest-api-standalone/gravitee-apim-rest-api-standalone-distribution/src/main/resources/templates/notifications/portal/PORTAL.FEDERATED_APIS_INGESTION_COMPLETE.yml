@@ -1,0 +1,3 @@
+title: Federated APIs ingestion complete
+message: |
+  Ingestion for ${integration.name} completed ✅

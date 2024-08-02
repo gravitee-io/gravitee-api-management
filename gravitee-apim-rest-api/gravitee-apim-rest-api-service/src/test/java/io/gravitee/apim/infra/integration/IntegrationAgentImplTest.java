@@ -27,6 +27,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
+import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -41,10 +42,10 @@ import io.gravitee.integration.api.command.discover.DiscoverCommand;
 import io.gravitee.integration.api.command.discover.DiscoverCommandPayload;
 import io.gravitee.integration.api.command.discover.DiscoverReply;
 import io.gravitee.integration.api.command.discover.DiscoverReplyPayload;
-import io.gravitee.integration.api.command.ingest.IngestCommand;
-import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
-import io.gravitee.integration.api.command.ingest.IngestReply;
-import io.gravitee.integration.api.command.ingest.IngestReplyPayload;
+import io.gravitee.integration.api.command.ingest.StartIngestCommand;
+import io.gravitee.integration.api.command.ingest.StartIngestCommandPayload;
+import io.gravitee.integration.api.command.ingest.StartIngestReply;
+import io.gravitee.integration.api.command.ingest.StartIngestReplyPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
@@ -81,7 +82,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class IntegrationAgentImplTest {
 
     private static final String INTEGRATION_ID = "integration-id";
-    private static final Integration INTEGRATION = IntegrationFixture.anIntegration().withId(INTEGRATION_ID);
+    private static final String JOB_ID = "job-id";
 
     @Mock
     ExchangeController controller;
@@ -97,15 +98,33 @@ class IntegrationAgentImplTest {
     class GetAgentStatus {
 
         @Test
-        void should_return_connected_when_channel_metrics_exist() {
-            when(controller.channelsMetric(INTEGRATION_ID)).thenReturn(Flowable.just(new ChannelMetric("c1", true, false, true)));
+        void should_return_connected_when_an_active_channel_exist() {
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
+                .thenReturn(Flowable.just(ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(true).primary(true).build()));
 
             agent.getAgentStatusFor(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertValue(IntegrationAgent.Status.CONNECTED);
         }
 
         @Test
+        void should_return_disconnected_when_no_active_channel_exist() {
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
+                .thenReturn(
+                    Flowable.just(
+                        ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(false).primary(false).build(),
+                        ChannelMetric.builder().id("c2").targetId(INTEGRATION_ID).active(false).primary(false).build()
+                    )
+                );
+
+            agent
+                .getAgentStatusFor(INTEGRATION_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(IntegrationAgent.Status.DISCONNECTED);
+        }
+
+        @Test
         void should_return_disconnected_when_no_channel_metrics_exist() {
-            when(controller.channelsMetric(INTEGRATION_ID)).thenReturn(Flowable.empty());
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(Flowable.empty());
 
             agent
                 .getAgentStatusFor(INTEGRATION_ID)
@@ -116,79 +135,50 @@ class IntegrationAgentImplTest {
     }
 
     @Nested
-    class FetchAllAssets {
+    class StartIngest {
 
         @BeforeEach
         void setUp() {
             lenient()
                 .when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new IngestReply("command-id", new IngestReplyPayload(List.of(buildApi(1), buildApi(2))))));
+                .thenReturn(Single.just(new StartIngestReply("command-id", new StartIngestReplyPayload(JOB_ID, 10L))));
         }
 
         @Test
         void should_send_command_to_fetch_all_assets() {
-            agent.fetchAllApis(INTEGRATION).test().awaitDone(10, TimeUnit.SECONDS);
+            agent.startIngest(INTEGRATION_ID, JOB_ID).test().awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
 
             assertThat(captor.getValue())
-                .isInstanceOf(IngestCommand.class)
+                .isInstanceOf(StartIngestCommand.class)
                 .extracting(Command::getPayload)
-                .isEqualTo(new IngestCommandPayload(List.of()));
+                .isEqualTo(new StartIngestCommandPayload(JOB_ID, List.of()));
         }
 
         @Test
-        void should_return_all_assets() {
-            var result = agent.fetchAllApis(INTEGRATION).test().awaitDone(10, TimeUnit.SECONDS).values();
-
-            assertThat(result)
-                .containsExactly(
-                    new IntegrationApi(
-                        INTEGRATION_ID,
-                        "asset-uid-1",
-                        "asset-1",
-                        "asset-name-1",
-                        "asset-description-1",
-                        "asset-version-1",
-                        Map.of("url", "https://example.com/1"),
-                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY)),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
-                    ),
-                    new IntegrationApi(
-                        INTEGRATION_ID,
-                        "asset-uid-2",
-                        "asset-2",
-                        "asset-name-2",
-                        "asset-description-2",
-                        "asset-version-2",
-                        Map.of("url", "https://example.com/2"),
-                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY)),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
-                    )
-                );
-        }
-
-        @Test
-        void should_return_empty_when_not_asset() {
-            when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new IngestReply("command-id", new IngestReplyPayload(List.of()))));
-
-            agent.fetchAllApis(INTEGRATION).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
+        void should_return_ingest_started() {
+            agent
+                .startIngest(INTEGRATION_ID, JOB_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(result -> {
+                    assertThat(result).isEqualTo(new IngestStarted(JOB_ID, 10L));
+                    return true;
+                });
         }
 
         @Test
         void should_throw_when_command_fails() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new IngestReply("command-id", "Fail to fetch assets")));
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", "Fail to start ingest")));
 
             agent
-                .fetchAllApis(INTEGRATION)
-                .doOnNext(asset -> System.out.println("OK: " + asset))
-                .doOnError(th -> System.err.println("ERROR: " + th))
+                .startIngest(INTEGRATION_ID, JOB_ID)
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertError(error -> {
-                    assertThat(error).isInstanceOf(IntegrationIngestionException.class).hasMessage("Fail to fetch assets");
+                    assertThat(error).isInstanceOf(IntegrationIngestionException.class).hasMessage("Fail to start ingest");
                     return true;
                 });
         }
@@ -197,7 +187,7 @@ class IntegrationAgentImplTest {
         void should_throw_when_no_controller() {
             agent = new IntegrationAgentImpl(Optional.empty());
             agent
-                .fetchAllApis(INTEGRATION)
+                .startIngest(INTEGRATION_ID, JOB_ID)
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertError(error -> {
@@ -481,6 +471,7 @@ class IntegrationAgentImplTest {
                         .name("Gold " + index)
                         .description("Gold description " + index)
                         .planSecurityType(PlanSecurityType.API_KEY)
+                        .characteristics(List.of())
                         .build()
                 )
             )
@@ -524,8 +515,11 @@ class IntegrationAgentImplTest {
                         "asset-description-1",
                         "asset-version-1",
                         Map.of("url", "https://example.com/1"),
-                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY)),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
+                        List.of(
+                            new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY, List.of())
+                        ),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc")),
+                        null
                     ),
                     new IntegrationApi(
                         INTEGRATION_ID,
@@ -535,8 +529,11 @@ class IntegrationAgentImplTest {
                         "asset-description-2",
                         "asset-version-2",
                         Map.of("url", "https://example.com/2"),
-                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY)),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
+                        List.of(
+                            new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY, List.of())
+                        ),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc")),
+                        null
                     )
                 );
         }
@@ -546,7 +543,7 @@ class IntegrationAgentImplTest {
             when(controller.sendCommand(any(), any()))
                 .thenReturn(Single.just(new DiscoverReply("command-id", new DiscoverReplyPayload(List.of()))));
 
-            agent.fetchAllApis(INTEGRATION).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
+            agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
         }
 
         @Test

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
-import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -100,6 +99,8 @@ public class ApiCRDSpec {
     private Set<String> categories;
 
     private Set<MemberCRD> members;
+
+    private boolean notifyMembers;
 
     private Map<String, PageCRD> pages;
 

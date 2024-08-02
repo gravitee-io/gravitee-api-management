@@ -27,7 +27,7 @@ export class MapProviderNamePipe implements PipeTransform {
     solace: 'Solace',
     apigee: 'Apigee',
     confluent: 'Confluent',
-    azure: 'Azure',
+    'azure-api-management': 'Azure API Management',
     kong: 'Kong',
     'ibm-api-connect': 'IBM API Connect',
     mulesoft: 'Mulesoft',

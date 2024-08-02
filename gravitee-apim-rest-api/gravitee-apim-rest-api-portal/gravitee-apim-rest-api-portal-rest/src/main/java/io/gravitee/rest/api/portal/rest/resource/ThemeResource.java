@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.theme.use_case.GetCurrentThemeUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
@@ -25,13 +26,17 @@ import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ThemeTypeNotSupportedException;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ThemeResource extends AbstractResource {
@@ -42,12 +47,27 @@ public class ThemeResource extends AbstractResource {
     @Autowired
     ThemeMapper themeMapper;
 
+    @Inject
+    GetCurrentThemeUseCase getCurrentThemeUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPortalTheme() {
-        ThemeEntity theme = themeService.findEnabledPortalTheme(GraviteeContext.getExecutionContext());
-        String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
-        return Response.ok(themeMapper.convert(theme, themeURL)).build();
+    public Response getPortalTheme(@QueryParam("type") ThemeType themeType) {
+        if (Objects.isNull(themeType)) {
+            throw new ThemeTypeNotSupportedException();
+        }
+        var result = getCurrentThemeUseCase
+            .execute(
+                GetCurrentThemeUseCase.Input
+                    .builder()
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(themeType.name()))
+                    .executionContext(GraviteeContext.getExecutionContext())
+                    .build()
+            )
+            .result();
+
+        String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), result.getId());
+        return Response.ok(themeMapper.convert(result, themeURL)).build();
     }
 
     @GET

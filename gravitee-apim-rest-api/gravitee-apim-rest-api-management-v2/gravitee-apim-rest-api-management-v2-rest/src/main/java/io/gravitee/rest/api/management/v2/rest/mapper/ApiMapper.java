@@ -28,10 +28,14 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
+import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
@@ -39,6 +43,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -139,6 +144,7 @@ public interface ApiMapper {
         return result;
     }
 
+    @Mapping(target = "originContext", expression = "java(computeOriginContext(apiEntity))")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiFederated mapToFederated(FederatedApiEntity apiEntity, UriInfo uriInfo);
 
@@ -249,6 +255,37 @@ public interface ApiMapper {
                 return Map.entry(key, PlanMapper.INSTANCE.fromPlanCRD(plan));
             })
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    @Named("computeOriginContext")
+    default BaseOriginContext computeOriginContext(GenericApiEntity api) {
+        if (api.getOriginContext() == null) {
+            return null;
+        }
+        if (api.getOriginContext() instanceof OriginContext.Kubernetes kube) {
+            var ctx = new KubernetesOriginContext();
+            ctx.origin(BaseOriginContext.OriginEnum.KUBERNETES);
+            if (kube.mode() == OriginContext.Kubernetes.Mode.FULLY_MANAGED) {
+                ctx.mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED);
+            }
+            switch (kube.syncFrom().toUpperCase()) {
+                case "KUBERNETES" -> ctx.setSyncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES);
+                case "MANAGEMENT" -> ctx.setSyncFrom(KubernetesOriginContext.SyncFromEnum.MANAGEMENT);
+            }
+            return ctx;
+        } else if (api.getOriginContext() instanceof OriginContext.Management) {
+            return new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT);
+        } else if (api.getOriginContext() instanceof OriginContext.Integration inte) {
+            var ctx = new IntegrationOriginContext();
+            ctx.origin(BaseOriginContext.OriginEnum.INTEGRATION);
+            ctx.integrationId(inte.integrationId());
+            if (inte instanceof FederatedApiEntity.OriginContextView view) {
+                ctx.provider(view.provider());
+                ctx.integrationName(view.integrationName());
+            }
+            return ctx;
+        }
+        return null;
     }
 
     BaseApi map(GenericApiEntity apiEntity);

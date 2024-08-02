@@ -57,7 +57,7 @@ import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-ite
 import { Step4Security1PlansAddComponent } from './steps/step-4-security/step-4-security-1-plans-add.component';
 import { Step4Security1PlansComponent } from './steps/step-4-security/step-4-security-1-plans.component';
 
-import { GioConnectorListModule } from '../../../shared/components/gio-connector-list-option/gio-connector-list.module';
+import { GioSelectionListModule } from '../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-selection-list/gio-entrypoints-selection-list.module';
@@ -87,7 +87,7 @@ import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/
 
     GioConfirmDialogModule,
     GioIconsModule,
-    GioConnectorListModule,
+    GioSelectionListModule,
     GioConfirmDialogModule,
     GioFormJsonSchemaModule,
     ApiCreationStepperMenuModule,

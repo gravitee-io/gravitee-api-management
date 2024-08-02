@@ -17,14 +17,12 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatDialog } from '@angular/material/dialog';
-import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY } from 'rxjs';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { AgentStatus, FederatedAPIsResponse, Integration } from '../integrations.model';
+import { AgentStatus, FederatedAPIsResponse, IngestionStatus, Integration } from '../integrations.model';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
@@ -36,14 +34,13 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 export class IntegrationOverviewComponent implements OnInit {
   protected readonly AgentStatus = AgentStatus;
   private destroyRef: DestroyRef = inject(DestroyRef);
+
   public integration: Integration;
   public isLoadingIntegration = true;
   public isLoadingFederatedAPI = true;
-  public isLoadingPreview = false;
   public isIngesting = false;
   public federatedAPIs = [];
   public displayedColumns: string[] = ['name', 'actions'];
-
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
@@ -56,12 +53,51 @@ export class IntegrationOverviewComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly snackBarService: SnackBarService,
-    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
+    if (this.integrationsService.isIngestToRun()) {
+      this.ingest();
+    }
     this.getIntegration();
     this.initFederatedAPIsList();
+  }
+
+  private ingest() {
+    const { integrationId } = this.activatedRoute.snapshot.params;
+    this.isIngesting = true;
+    this.integrationsService.setIsIngestToRun(false);
+    this.snackBarService.success('API ingestion is in progress. The process should only take a few minute to complete. Come back shortly!');
+
+    this.integrationsService
+      .ingestIntegration(integrationId)
+      .pipe(
+        tap((response) => {
+          switch (response.status) {
+            case 'SUCCESS':
+              this.isIngesting = false;
+              this.snackBarService.success('Ingestion complete! Your integration is now updated.');
+              this.initFederatedAPIsList();
+              break;
+            case 'PENDING':
+              this.integration = {
+                ...this.integration,
+                pendingJob: {
+                  id: '',
+                  startedAt: new Date().toISOString(),
+                  status: IngestionStatus.PENDING,
+                },
+              };
+              break;
+            case 'ERROR':
+              this.isIngesting = false;
+              this.snackBarService.error(`Ingestion failed. Please check your settings and try again.: ${response.message}`);
+              break;
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   private initFederatedAPIsList(): void {
@@ -110,57 +146,6 @@ export class IntegrationOverviewComponent implements OnInit {
         this.integration = integration;
         this.isLoadingIntegration = false;
       });
-  }
-
-  public ingest(): void {
-    this.isLoadingPreview = true;
-    this.snackBarService.success('Preparing discovery...');
-
-    this.integrationsService
-      .previewIntegration(this.activatedRoute.snapshot.paramMap.get('integrationId'))
-      .pipe(
-        switchMap(({ totalCount }) => {
-          this.isLoadingPreview = false;
-          return this.matDialog
-            .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-              width: GIO_DIALOG_WIDTH.SMALL,
-              data: {
-                title: 'Discover',
-                content: `By proceeding, you'll initiate the creation of ${totalCount} new Federated APIs in Gravitee, one for each API discovered at the provider. Are you ready to continue?`,
-                confirmButton: 'Proceed',
-              },
-              role: 'alertdialog',
-              id: 'ingestIntegrationConfirmDialog',
-            })
-            .afterClosed();
-        }),
-        filter((confirm) => !!confirm),
-        switchMap(() => {
-          this.isIngesting = true;
-          this.snackBarService.success('We’re discovering assets from the provider...');
-          return this.integrationsService.ingestIntegration(this.integration.id);
-        }),
-        tap(() => {
-          this.isIngesting = false;
-          this.snackBarService.success('APIs successfully created and ready for use!');
-          this.initFederatedAPIsList();
-        }),
-        catchError(({ error }) => {
-          this.isIngesting = false;
-          this.isLoadingPreview = false;
-          let message = 'Discovery error';
-
-          if (error.httpStatus === 500) {
-            message = 'Internal agent error: ' + error.message;
-            this.getIntegration();
-          }
-
-          this.snackBarService.error(message);
-          return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters): void {

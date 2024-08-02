@@ -36,7 +36,7 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
-import { ResourceTypeService } from '../../../../shared/components/specific-json-schema-type/resource-type.service';
+import { ResourceTypeService } from '../../../../shared/components/form-json-schema-extended/resource-type.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 
 @Component({

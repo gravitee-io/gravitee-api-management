@@ -30,9 +30,13 @@
         <br />
       </div>
 
-      <form name="$ctrl.formAlert" ng-submit="$ctrl.save($ctrl.alert)" novalidate>
-        <md-tabs md-dynamic-height="$ctrl.resize" md-selected="$ctrl.selectedTab" md-stretch-tabs="always">
-          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(0)">
+      <form name="$ctrl.formAlert" ng-submit="$ctrl.save($ctrl.alert)" novalidate class="form">
+        <md-tabs md-dynamic-height md-border-bottom flex md-selected="$ctrl.selectedTab" md-stretch-tabs="always">
+          <md-tab ng-disabled="true">
+            <md-tab-label><!-- Add empty tabs to fix scrolling issue https://github.com/angular/material/issues/4281--></md-tab-label>
+            <md-tab-body></md-tab-body>
+          </md-tab>
+          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(1)">
             <md-tab-label>Alert</md-tab-label>
             <md-tab-body>
               <div class="gv-form">
@@ -242,7 +246,7 @@
             </md-tab-body>
           </md-tab>
 
-          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(1)">
+          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(2)">
             <md-tab-label>Notifications</md-tab-label>
             <md-tab-body>
               <!-- Dampening -->
@@ -252,7 +256,7 @@
             </md-tab-body>
           </md-tab>
 
-          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(2)" ng-disabled="!$ctrl.updateMode || $ctrl.alert.template">
+          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(3)" ng-disabled="!$ctrl.updateMode || $ctrl.alert.template">
             <md-tab-label>History</md-tab-label>
             <md-tab-body>
               <gv-alert-history alert="$ctrl.alert"></gv-alert-history>

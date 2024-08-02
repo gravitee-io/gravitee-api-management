@@ -20,10 +20,11 @@ import static org.mockito.Mockito.spy;
 
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -33,20 +34,30 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
-import io.gravitee.apim.core.api.use_case.ExportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api.use_case.ValidateCRDUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
-import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
+import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
+import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -392,5 +403,54 @@ public class ResourceContextConfiguration {
     @Bean
     public PageSourceDomainServiceInMemory pageSourceDomainService() {
         return new PageSourceDomainServiceInMemory();
+    }
+
+    @Bean
+    public GroupQueryServiceInMemory groupQueryService() {
+        return new GroupQueryServiceInMemory();
+    }
+
+    @Bean
+    public ValidateCRDUseCase validateCRDUseCase(
+        CategoryQueryServiceInMemory categoryQueryService,
+        UserDomainServiceInMemory userDomainService,
+        VerifyApiPathDomainService verifyApiPathDomainService,
+        GroupQueryService groupQueryService,
+        ValidateResourceDomainService validateResourceDomainService
+    ) {
+        return new ValidateCRDUseCase(
+            new ValidateCRDDomainService(
+                new ValidateCategoryIdsDomainService(categoryQueryService),
+                verifyApiPathDomainService,
+                new ValidateCRDMembersDomainService(userDomainService),
+                new ValidateGroupsDomainService(groupQueryService),
+                validateResourceDomainService
+            )
+        );
+    }
+
+    @Bean
+    public CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase() {
+        return mock(CreateSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public GetSharedPolicyGroupUseCase getSharedPolicyGroupUseCase() {
+        return mock(GetSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase() {
+        return mock(UpdateSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public SearchSharedPolicyGroupUseCase searchSharedPolicyGroupUseCase() {
+        return mock(SearchSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase() {
+        return mock(DeleteSharedPolicyGroupUseCase.class);
     }
 }

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "id_update_test",
+    "environmentId": "environmentId",
+    "organizationId": "organizationId",
+    "crossId": "id_update_test_crossId",
+    "name": "name",
+    "description": "description",
+    "version": 1,
+    "apiType": "proxy",
+    "phase": "REQUEST",
+    "definition": "definition",
+    "deployedAt": "null",
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED"
+  },
+  {
+    "id": "id_find-by-id_test",
+    "environmentId": "environmentId",
+    "organizationId": "organizationId",
+    "crossId": "id_find-by-id_test_crossId",
+    "name": "name",
+    "description": "description",
+    "version": 1,
+    "apiType": "proxy",
+    "phase": "RESPONSE",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED"
+  },
+  {
+    "id": "id_delete_test",
+    "environmentId": "environmentId",
+    "organizationId": "organizationId",
+    "crossId": "id_delete_test_crossId",
+    "name": "name",
+    "description": "description",
+    "version": 1,
+    "apiType": "proxy",
+    "phase": "RESPONSE",
+    "definition": "definition",
+    "deployedAt": 1507032062000,
+    "createdAt": 1439022010883,
+    "updatedAt": 1507032062000,
+    "lifecycleState": "UNDEPLOYED"
+  }
+]

@@ -95,6 +95,7 @@ export class ApplicationGeneralMembersComponent {
     ])
       .pipe(
         tap(([application, members, groups, roles]) => {
+          this.isReadOnly = application.origin === 'KUBERNETES';
           this.members = members;
           this.application = application;
           this.roles = roles.map((r) => r.name) ?? [];
@@ -132,6 +133,10 @@ export class ApplicationGeneralMembersComponent {
           ),
         });
         this.isLoadingData = false;
+
+        if (this.isReadOnly) {
+          this.form.disable({ emitEvent: false });
+        }
       });
   }
 

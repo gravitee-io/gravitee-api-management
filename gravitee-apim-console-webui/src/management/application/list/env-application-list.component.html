@@ -61,15 +61,22 @@
     <ng-container matColumnDef="applicationPicture">
       <th mat-header-cell *matHeaderCellDef id="applicationPicture" width="1%"></th>
       <td mat-cell *matCellDef="let element">
-        <gio-avatar [src]="element.applicationPicture" [name]="element.name" [size]="32" [roundedBorder]="true"></gio-avatar>
-      </td>
-    </ng-container>
+        <gio-avatar [src]="element.applicationPicture" [name]="element.name" [size]="32" [roundedBorder]="true"></gio-avatar></td
+    ></ng-container>
 
     <!-- Display name Column -->
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [routerLink]="[element.applicationId]">{{ element.name }}</a>
+        <div class="matt-column-name__withOrigin">
+          <mat-icon
+            *ngIf="element.origin === 'KUBERNETES'"
+            matTooltip="Kubernetes Origin"
+            class="matt-column-name__origin"
+            svgIcon="gio:kubernetes"
+          ></mat-icon>
+          <a [routerLink]="[element.applicationId]">{{ element.name }}</a>
+        </div>
       </td>
     </ng-container>
 

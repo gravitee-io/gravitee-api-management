@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import { Json } from '../../../util';
+
 export interface Resource {
   name: string;
   type: string;
-  configuration: string;
+  configuration: Json;
   enabled?: boolean;
 }

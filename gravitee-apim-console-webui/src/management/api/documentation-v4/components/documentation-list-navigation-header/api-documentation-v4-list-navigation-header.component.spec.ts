@@ -59,7 +59,7 @@ describe('ApiDocumentationV4NavigationHeaderComponent', () => {
 
   it('should emit event when clicking on add button', async () => {
     await init();
-    const spy = jest.spyOn(component.onAddFolder, 'emit');
+    const spy = jest.spyOn(component.addFolder, 'emit');
     const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add new folder' }));
     await button.click();
 

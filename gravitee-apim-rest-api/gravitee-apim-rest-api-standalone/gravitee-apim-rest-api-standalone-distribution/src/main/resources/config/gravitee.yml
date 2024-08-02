@@ -634,6 +634,14 @@ notifiers:
 #  api:
 #    # Specify the URLs of Management API, mandatory if you want to connect it to Cockpit with a standalone installation
 #    url: http://localhost:8083
+#
+#    Specify the Management API management url of your installation, fallback on installation_api_url if not defined
+#    console:
+#      url: ${installation.api.url}
+#    Specify the Management API portal url of your installation, fallback on installation_api_url if not defined
+#    portal:
+#      url: ${installation.api.url}
+#
 #    proxyPath:
 #      management: ${http.api.management.entrypoint}
 #      portal: ${http.api.portal.entrypoint}

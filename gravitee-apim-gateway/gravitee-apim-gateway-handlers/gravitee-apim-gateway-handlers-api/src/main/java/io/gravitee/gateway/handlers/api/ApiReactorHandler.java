@@ -120,6 +120,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
         // Prepare request metrics
         request.metrics().setApi(reactable.getId());
+        request.metrics().setApiName(reactable.getName());
         request.metrics().setPath(request.pathInfo());
 
         // keep track of executing request to avoid 500 errors

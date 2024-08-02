@@ -228,8 +228,12 @@ export class ApiSubscriptionEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
-          this.snackBarService.success(`Subscription validated`);
+        (subscription) => {
+          if (subscription.status === 'ACCEPTED') {
+            this.snackBarService.success('Subscription validated');
+          } else {
+            this.snackBarService.error(`Subscription ${subscription.status.toLowerCase()}`);
+          }
           this.ngOnInit();
         },
         (err) => this.snackBarService.error(err.message),

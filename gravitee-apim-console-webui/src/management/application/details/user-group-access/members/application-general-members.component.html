@@ -31,6 +31,7 @@
             aria-label="Add member"
             (click)="addMember()"
             color="primary"
+            [disabled]="isReadOnly"
           >
             <mat-icon svgIcon="gio:plus"></mat-icon> Add members
           </button>

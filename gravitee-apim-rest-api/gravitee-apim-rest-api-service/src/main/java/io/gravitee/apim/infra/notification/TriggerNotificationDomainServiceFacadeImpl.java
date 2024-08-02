@@ -19,6 +19,7 @@ import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDoma
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -67,5 +68,11 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
             notificationParameters,
             additionalRecipients
         );
+    }
+
+    @Override
+    public void triggerPortalNotification(String organizationId, PortalHookContext context) {
+        var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
+        notifierService.trigger(new ExecutionContext(organizationId, null), context.getHook(), notificationParameters);
     }
 }

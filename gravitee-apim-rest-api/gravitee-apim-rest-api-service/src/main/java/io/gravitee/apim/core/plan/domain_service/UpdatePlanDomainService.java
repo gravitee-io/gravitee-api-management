@@ -68,11 +68,18 @@ public class UpdatePlanDomainService {
         this.reorderPlanDomainService = reorderPlanDomainService;
     }
 
-    public Plan update(Plan planToUpdate, List<Flow> flows, Api api, AuditInfo auditInfo) {
-        List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
-        Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
-
-        return update(planToUpdate, flows, existingPlanStatuses, api, auditInfo);
+    public Plan update(Plan planToUpdate, List<Flow> flows, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+        return switch (planToUpdate.getDefinitionVersion()) {
+            case V4 -> {
+                if (existingPlanStatuses == null) {
+                    List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
+                    existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+                }
+                yield updateV4ApiPlan(planToUpdate, flows, existingPlanStatuses, api, auditInfo);
+            }
+            case FEDERATED -> updateFederatedApiPlan(planToUpdate, auditInfo);
+            default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+        };
     }
 
     /**
@@ -83,7 +90,13 @@ public class UpdatePlanDomainService {
      * @param auditInfo The audit information
      * @return The updated plan
      */
-    public Plan update(Plan planToUpdate, List<Flow> flows, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+    private Plan updateV4ApiPlan(
+        Plan planToUpdate,
+        List<Flow> flows,
+        Map<String, PlanStatus> existingPlanStatuses,
+        Api api,
+        AuditInfo auditInfo
+    ) {
         if (
             existingPlanStatuses.containsKey(planToUpdate.getId()) &&
             existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
@@ -103,7 +116,7 @@ public class UpdatePlanDomainService {
             sanitizedFlows.stream()
         );
 
-        var existingPlan = planCrudService.findById(planToUpdate.getId());
+        var existingPlan = planCrudService.getById(planToUpdate.getId());
         var toUpdate = existingPlan.update(planToUpdate);
         if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), toUpdate, sanitizedFlows)) {
             toUpdate.setNeedRedeployAt(Date.from(toUpdate.getUpdatedAt().toInstant()));
@@ -117,6 +130,35 @@ public class UpdatePlanDomainService {
         }
 
         flowCrudService.savePlanFlows(updated.getId(), sanitizedFlows);
+        createAuditLog(existingPlan, updated, auditInfo);
+
+        return updated;
+    }
+
+    /**
+     * Update plans of Federated API.
+     *
+     * @param planToUpdate The plan to update
+     * @param auditInfo The audit information
+     * @return The updated plan
+     */
+    private Plan updateFederatedApiPlan(Plan planToUpdate, AuditInfo auditInfo) {
+        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
+
+        var existingPlan = planCrudService.getById(planToUpdate.getId());
+        if (existingPlan.getPlanStatus() == PlanStatus.CLOSED && existingPlan.getPlanStatus() != planToUpdate.getPlanStatus()) {
+            throw new ValidationDomainException("Invalid status for planToUpdate '" + planToUpdate.getName() + "'");
+        }
+
+        var toUpdate = existingPlan.update(planToUpdate);
+
+        Plan updated;
+        if (toUpdate.getOrder() != existingPlan.getOrder()) {
+            updated = reorderPlanDomainService.reorderAfterUpdate(toUpdate);
+        } else {
+            updated = planCrudService.update(toUpdate);
+        }
+
         createAuditLog(existingPlan, updated, auditInfo);
 
         return updated;

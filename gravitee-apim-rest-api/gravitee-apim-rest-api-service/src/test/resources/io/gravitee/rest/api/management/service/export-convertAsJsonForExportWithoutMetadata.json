@@ -197,5 +197,6 @@
         "body": "{\"bad\":\"news\"}"
       }
     }
-  }
+  },
+  "disable_membership_notifications" : false
 }

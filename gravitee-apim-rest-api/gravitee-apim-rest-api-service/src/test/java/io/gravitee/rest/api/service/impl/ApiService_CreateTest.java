@@ -24,6 +24,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
@@ -214,7 +215,8 @@ public class ApiService_CreateTest {
         //            .thenReturn("toDecode=decoded-value");
         //        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
         //            .thenReturn("USER");
-        when(verifyApiPathDomainService.checkAndSanitizeApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);

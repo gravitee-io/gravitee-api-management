@@ -1,0 +1,46 @@
+@use 'sass:map';
+@use '@gravitee/ui-particles-angular' as gio;
+
+:host {
+  display: grid;
+  grid-template-rows: 70px calc(100vh - 70px);
+  grid-template-columns: min-content auto;
+  grid-template-areas:
+    'header  header  '
+    'sidebar content ';
+  height: 100vh;
+}
+
+.header {
+  grid-area: header;
+  border-bottom: 1px solid map.get(gio.$mat-space-palette, lighter40);
+
+  &__custom-logo {
+    max-height: 36px;
+    max-width: 36px;
+  }
+}
+
+.sidebar {
+  grid-area: sidebar;
+}
+
+.content {
+  grid-area: content;
+  overflow: auto;
+}
+
+.side-menu {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+
+  &__container {
+    flex: 1 1 auto;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}

@@ -15,10 +15,13 @@
  */
 package io.gravitee.apim.core.api.model.crd;
 
+import io.gravitee.apim.core.validation.Validator;
+import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -26,7 +29,22 @@ import lombok.Singular;
  */
 @Data
 @Builder
+@Jacksonized
 public class ApiCRDStatus {
+
+    @Builder
+    public record Errors(List<String> severe, List<String> warning) {
+        public static final Errors EMPTY = new Errors(List.of(), List.of());
+
+        public static Errors fromErrorList(List<Validator.Error> errors) {
+            return errors == null
+                ? null
+                : new Errors(
+                    errors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).sorted().toList(),
+                    errors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).sorted().toList()
+                );
+        }
+    }
 
     private String organizationId;
 
@@ -48,4 +66,6 @@ public class ApiCRDStatus {
     private Map<String, String> plans;
 
     private String state;
+
+    private Errors errors;
 }

@@ -22,6 +22,6 @@ import lombok.Data;
 @Builder
 public class ThemeSearchCriteria {
 
-    private Theme.ThemeType type;
+    private ThemeType type;
     private Boolean enabled;
 }

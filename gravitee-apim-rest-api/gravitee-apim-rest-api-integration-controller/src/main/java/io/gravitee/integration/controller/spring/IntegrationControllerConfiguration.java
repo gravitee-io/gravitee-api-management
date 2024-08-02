@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.apim.core.integration.use_case.CheckIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.IngestFederatedApisUseCase;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
@@ -38,6 +39,7 @@ import io.gravitee.node.api.certificate.KeyStoreLoaderFactoryRegistry;
 import io.gravitee.node.api.certificate.KeyStoreLoaderOptions;
 import io.gravitee.node.api.certificate.TrustStoreLoaderOptions;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.management.http.endpoint.ManagementEndpointManager;
 import io.gravitee.rest.api.service.TokenService;
 import io.vertx.rxjava3.core.Vertx;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,15 +74,17 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationControllerCommandHandlerFactory")
     public IntegrationControllerCommandHandlerFactory integrationControllerCommandHandlerFactory(
-        final CheckIntegrationUseCase checkIntegrationUseCase
+        final CheckIntegrationUseCase checkIntegrationUseCase,
+        final IngestFederatedApisUseCase ingestFederatedApisUseCase
     ) {
-        return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase);
+        return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase, ingestFederatedApisUseCase);
     }
 
     @Bean("integrationExchangeController")
     public ExchangeController integrationExchangeController(
         final @Lazy ClusterManager clusterManager,
         final @Lazy CacheManager cacheManager,
+        final @Lazy ManagementEndpointManager managementEndpointManager,
         final Vertx vertx,
         final KeyStoreLoaderFactoryRegistry<KeyStoreLoaderOptions> keyStoreLoaderFactoryRegistry,
         final KeyStoreLoaderFactoryRegistry<TrustStoreLoaderOptions> trustStoreLoaderFactoryRegistry,
@@ -97,6 +101,7 @@ public class IntegrationControllerConfiguration {
             identifyConfiguration,
             clusterManager,
             cacheManager,
+            managementEndpointManager,
             vertx,
             keyStoreLoaderFactoryRegistry,
             trustStoreLoaderFactoryRegistry,

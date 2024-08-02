@@ -43,6 +43,7 @@ import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Date;
+import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -233,11 +234,7 @@ public class RatingServiceTest {
         final Pageable pageable = mock(Pageable.class);
         when(pageable.getPageNumber()).thenReturn(1);
         when(pageable.getPageSize()).thenReturn(1);
-        final Page<Rating> pageRating = mock(Page.class);
-        when(pageRating.getPageNumber()).thenReturn(1);
-        when(pageRating.getPageElements()).thenReturn(10L);
-        when(pageRating.getTotalElements()).thenReturn(100L);
-        when(pageRating.getContent()).thenReturn(singletonList(rating));
+        final Page<Rating> pageRating = new Page<>(List.of(rating), 1, 10, 100);
 
         when(
             ratingRepository.findByReferenceIdAndReferenceTypePageable(

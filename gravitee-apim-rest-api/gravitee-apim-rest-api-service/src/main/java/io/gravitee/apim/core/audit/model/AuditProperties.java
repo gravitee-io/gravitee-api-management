@@ -42,4 +42,5 @@ public enum AuditProperties {
     TOKEN,
     USER_FIELD,
     NOTIFICATION_TEMPLATE,
+    SHARED_POLICY_GROUP,
 }

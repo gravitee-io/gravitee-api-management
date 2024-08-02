@@ -22,6 +22,7 @@ import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
+import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import lombok.Builder;
@@ -34,15 +35,18 @@ import lombok.Builder;
 public class GetIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
+    private final IntegrationJobQueryService integrationJobQueryService;
     private final LicenseDomainService licenseDomainService;
     private final IntegrationAgent integrationAgent;
 
     public GetIntegrationUseCase(
         IntegrationCrudService integrationCrudService,
+        IntegrationJobQueryService integrationJobQueryService,
         LicenseDomainService licenseDomainService,
         IntegrationAgent integrationAgent
     ) {
         this.integrationCrudService = integrationCrudService;
+        this.integrationJobQueryService = integrationJobQueryService;
         this.licenseDomainService = licenseDomainService;
         this.integrationAgent = integrationAgent;
     }
@@ -63,7 +67,9 @@ public class GetIntegrationUseCase {
             .map(status -> IntegrationView.AgentStatus.valueOf(status.name()))
             .blockingGet();
 
-        return new GetIntegrationUseCase.Output(new IntegrationView(integration, agentStatus));
+        var pendingJob = integrationJobQueryService.findPendingJobFor(integrationId);
+
+        return new GetIntegrationUseCase.Output(new IntegrationView(integration, agentStatus, pendingJob.orElse(null)));
     }
 
     @Builder

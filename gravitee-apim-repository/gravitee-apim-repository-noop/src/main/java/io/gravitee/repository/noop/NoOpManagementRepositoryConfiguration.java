@@ -81,4 +81,9 @@ public class NoOpManagementRepositoryConfiguration {
     public AccessPointRepository accessPointRepository() {
         return new NoOpAccessPointRepository();
     }
+
+    @Bean
+    public SharedPolicyGroupRepository sharedPolicyGroupRepository() {
+        return new NoOpSharedPolicyGroupRepository();
+    }
 }

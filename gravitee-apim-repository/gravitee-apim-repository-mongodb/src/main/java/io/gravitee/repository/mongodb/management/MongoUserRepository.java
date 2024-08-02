@@ -25,7 +25,6 @@ import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -88,11 +87,10 @@ public class MongoUserRepository implements UserRepository {
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
         logger.debug("search users");
 
-        Page<UserMongo> users = internalUserRepo.search(criteria, pageable);
-        List<User> content = mapper.mapUserList(users.getContent());
+        var users = internalUserRepo.search(criteria, pageable).map(mapper::map);
 
         logger.debug("search users - Done");
-        return new Page<>(content, users.getPageNumber(), (int) users.getPageElements(), users.getTotalElements());
+        return users;
     }
 
     @Override

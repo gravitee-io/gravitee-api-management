@@ -22,7 +22,7 @@ import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +38,12 @@ public class DebugOrganizationReactorFactory extends DefaultOrganizationReactorF
     public DebugOrganizationReactorFactory(
         final DefaultClassLoader defaultClassLoader,
         final ApplicationContext applicationContext,
-        final PolicyFactory policyFactory,
+        final PolicyFactoryManager policyFactoryManager,
         final PolicyClassLoaderFactory policyClassLoaderFactory,
         final ComponentProvider componentProvider,
         final Configuration configuration
     ) {
-        super(defaultClassLoader, applicationContext, policyFactory, policyClassLoaderFactory, componentProvider, configuration);
+        super(defaultClassLoader, applicationContext, policyFactoryManager, policyClassLoaderFactory, componentProvider, configuration);
     }
 
     protected DefaultPolicyChainFactory policyChainFactory(

@@ -17,19 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
-import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
@@ -44,7 +38,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -492,7 +486,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
             .builder()
             .id("api-id")
             .name("api-name")
-            .originContext(new IntegrationContext("integration-id"))
+            .originContext(new OriginContext.Integration("integration-id"))
             .build();
 
         ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);

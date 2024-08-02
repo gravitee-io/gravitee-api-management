@@ -27,7 +27,8 @@ import { ApiSubscriptionEditComponent } from './subscriptions/edit/api-subscript
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
-import { ApiResourcesComponent } from './resources-ng/api-resources.component';
+import { ApiResourcesComponent as ApiResourcesOldComponent } from './resources-ng/api-resources.component';
+import { ApiResourcesComponent } from './resources/api-resources.component';
 import { ApiPortalDocumentationMetadataComponent } from './documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
@@ -59,7 +60,6 @@ import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component'
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
-import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { ApisGuard } from './apis.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
@@ -83,6 +83,9 @@ import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 import { ApiImportV4Component } from './import-v4/api-import-v4.component';
 import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
+import { ApiDocumentationV4DefaultPageComponent } from './documentation-v4/documentation-default-page/api-documentation-v4-default-page.component';
+import { DocumentationEditCustomPageComponent } from './documentation-v4/documentation-edit-custom-page/documentation-edit-custom-page.component';
+import { DocumentationEditHomepageComponent } from './documentation-v4/documentation-edit-homepage/documentation-edit-homepage.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -802,14 +805,23 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'resources',
-        component: ApiResourcesComponent,
+        path: 'resources-old',
+        component: ApiResourcesOldComponent,
         data: {
           permissions: {
             anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-policy-studio-resources',
+          },
+        },
+      },
+      {
+        path: 'resources',
+        component: ApiResourcesComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
         },
       },
@@ -840,7 +852,7 @@ const apisRoutes: Routes = [
                 anyOf: ['api-documentation-c'],
               },
             },
-            component: ApiDocumentationV4EditPageComponent,
+            component: DocumentationEditCustomPageComponent,
           },
           {
             path: 'pages/:pageId',
@@ -850,7 +862,7 @@ const apisRoutes: Routes = [
                 anyOf: ['api-documentation-u', 'api-documentation-r'],
               },
             },
-            component: ApiDocumentationV4EditPageComponent,
+            component: DocumentationEditCustomPageComponent,
           },
           {
             path: 'metadata',
@@ -861,6 +873,36 @@ const apisRoutes: Routes = [
               },
             },
             component: ApiDocumentationV4MetadataComponent,
+          },
+          {
+            path: 'main-pages',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-u'],
+              },
+            },
+            component: ApiDocumentationV4DefaultPageComponent,
+          },
+          {
+            path: 'main-pages/homepage/new',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-c', 'api-documentation-u', 'api-documentation-r'],
+              },
+            },
+            component: DocumentationEditHomepageComponent,
+          },
+          {
+            path: 'main-pages/homepage/:pageId',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-c', 'api-documentation-u', 'api-documentation-r'],
+              },
+            },
+            component: DocumentationEditHomepageComponent,
           },
         ],
       },

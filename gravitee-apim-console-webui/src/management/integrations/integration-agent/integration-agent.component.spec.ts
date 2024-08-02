@@ -73,7 +73,6 @@ describe('IntegrationAgentComponent', () => {
   };
 
   afterEach(() => {
-    init();
     httpTestingController.verify();
   });
 

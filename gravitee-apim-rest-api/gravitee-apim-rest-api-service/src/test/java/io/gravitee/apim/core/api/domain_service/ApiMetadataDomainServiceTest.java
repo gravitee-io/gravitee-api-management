@@ -199,6 +199,67 @@ class ApiMetadataDomainServiceTest {
 
             assertThat(metadataCrudService.storage()).contains(updatedMetadata);
         }
+
+        @Test
+        void should_not_remove_previous_metadata() {
+            metadataCrudService.initWith(
+                List.of(
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
+            );
+
+            service.saveApiMetadata(
+                API_ID,
+                List.of(
+                    ApiMetadata
+                        .builder()
+                        .key("new-metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("another-name")
+                        .value("another-value")
+                        .apiId(API_ID)
+                        .build()
+                ),
+                AUDIT_INFO
+            );
+
+            assertThat(metadataCrudService.storage())
+                .isNotNull()
+                .hasSize(2)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                .contains(
+                    Metadata
+                        .builder()
+                        .key("new-metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("another-name")
+                        .value("another-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .build(),
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
     }
 
     @Nested
@@ -265,7 +326,7 @@ class ApiMetadataDomainServiceTest {
                 )
             );
 
-            service.saveApiMetadata(API_ID, List.of(), AUDIT_INFO);
+            service.importApiMetadata(API_ID, List.of(), AUDIT_INFO);
 
             assertThat(metadataCrudService.storage())
                 .isNotNull()
@@ -303,7 +364,7 @@ class ApiMetadataDomainServiceTest {
                 )
             );
 
-            service.saveApiMetadata(
+            service.importApiMetadata(
                 API_ID,
                 List.of(
                     ApiMetadata
@@ -353,7 +414,7 @@ class ApiMetadataDomainServiceTest {
                 )
             );
 
-            service.saveApiMetadata(
+            service.importApiMetadata(
                 API_ID,
                 List.of(
                     ApiMetadata

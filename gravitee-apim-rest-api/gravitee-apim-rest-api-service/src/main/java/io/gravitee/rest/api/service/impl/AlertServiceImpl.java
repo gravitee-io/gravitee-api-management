@@ -367,26 +367,15 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         );
 
         if (alertEventsRepo.getPageElements() == 0) {
-            return new Page<>(Collections.emptyList(), 1, 0, 0);
+            return new Page<>(List.of(), 1, 0, 0);
         }
 
-        List<AlertEventEntity> alertEvents = alertEventsRepo
-            .getContent()
-            .stream()
-            .map(alertEventRepo -> {
-                AlertEventEntity alertEvent = new AlertEventEntity();
-                alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
-                alertEvent.setMessage(alertEventRepo.getMessage());
-                return alertEvent;
-            })
-            .collect(toList());
-
-        return new Page<>(
-            alertEvents,
-            alertEventsRepo.getPageNumber(),
-            (int) alertEventsRepo.getPageElements(),
-            alertEventsRepo.getTotalElements()
-        );
+        return alertEventsRepo.map(alertEventRepo -> {
+            AlertEventEntity alertEvent = new AlertEventEntity();
+            alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
+            alertEvent.setMessage(alertEventRepo.getMessage());
+            return alertEvent;
+        });
     }
 
     private Set<AlertTriggerEntity> findByEvent(AlertEventType event) {

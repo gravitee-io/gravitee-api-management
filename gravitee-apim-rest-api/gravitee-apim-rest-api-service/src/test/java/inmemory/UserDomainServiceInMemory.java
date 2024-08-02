@@ -17,15 +17,17 @@ package inmemory;
 
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UserDomainServiceInMemory implements UserDomainService {
 
     private final List<BaseUserEntity> storage = new ArrayList<>();
 
     @Override
-    public BaseUserEntity findBySource(String organizationId, String source, String sourceId) {
+    public Optional<BaseUserEntity> findBySource(String organizationId, String source, String sourceId) {
         return storage
             .stream()
             .filter(userEntity ->
@@ -33,8 +35,7 @@ public class UserDomainServiceInMemory implements UserDomainService {
                 userEntity.getSource().equals(source) &&
                 userEntity.getSourceId().equals(sourceId)
             )
-            .findFirst()
-            .orElse(null);
+            .findFirst();
     }
 
     public void initWith(List<BaseUserEntity> users) {

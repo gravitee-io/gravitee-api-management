@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { NgModule, NgZone } from '@angular/core';
+import { importProvidersFrom, NgModule, NgZone } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { Router } from '@angular/router';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
+import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 
 import { Constants } from '../../entities/Constants';
+import { GioFormJsonSchemaExtendedModule } from '../components/form-json-schema-extended/form-json-schema-extended.module';
 
 export const CONSTANTS_TESTING: Constants = {
   org: {
@@ -58,6 +60,7 @@ export const CONSTANTS_TESTING: Constants = {
     RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
     MatIconTestingModule,
     MatMomentDateModule,
+    GioFormJsonSchemaExtendedModule,
   ],
   providers: [
     {
@@ -65,6 +68,7 @@ export const CONSTANTS_TESTING: Constants = {
       useValue: CONSTANTS_TESTING,
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
+    importProvidersFrom(GioFormJsonSchemaModule),
   ],
 })
 export class GioTestingModule {

@@ -13,13 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+
+import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
+import { Application } from '../../../../entities/application/application';
+import { ApplicationVM } from '../subscribe-to-api.component';
+
+export interface ApplicationsPagination {
+  currentPage: number;
+  totalApplications: number;
+  start: number;
+  end: number;
+}
 
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
-  imports: [],
+  imports: [RadioCardComponent, MatIcon, MatIconButton, MatButton],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
   standalone: true,
 })
-export class SubscribeToApiChooseApplicationComponent {}
+export class SubscribeToApiChooseApplicationComponent {
+  @Input()
+  applications: ApplicationVM[] = [];
+
+  @Input()
+  selectedApplication?: Application;
+
+  @Input()
+  pagination: ApplicationsPagination = { currentPage: 0, totalApplications: 0, start: 0, end: 0 };
+
+  @Output()
+  selectApplication = new EventEmitter<ApplicationVM>();
+
+  @Output()
+  previousPage = new EventEmitter();
+
+  @Output()
+  nextPage = new EventEmitter();
+}

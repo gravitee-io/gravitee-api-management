@@ -24,7 +24,6 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.mongodb.management.internal.audit.AuditMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -49,10 +48,7 @@ public class MongoAuditRepository implements AuditRepository {
 
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
-        Page<AuditMongo> auditsMongo = internalAuditRepo.search(filter, pageable);
-
-        List<Audit> content = mapper.mapAudits(auditsMongo.getContent());
-        return new Page<>(content, auditsMongo.getPageNumber(), (int) auditsMongo.getPageElements(), auditsMongo.getTotalElements());
+        return internalAuditRepo.search(filter, pageable).map(mapper::map);
     }
 
     @Override

@@ -1,0 +1,35 @@
+{
+  "id": "spg-header-on-response-error-case",
+  "name": "spg-header-on-response-then-interrupt",
+  "environmentId": "DEFAULT",
+  "version": "1",
+  "phase": "RESPONSE",
+  "policies": [
+    {
+      "name": "Transform headers Inside 0",
+      "description": "",
+      "enabled": true,
+      "policy": "transform-headers",
+      "configuration": {
+        "scope": "RESPONSE",
+        "addHeaders": [
+          {
+            "name": "X-Response-Header-Inside-0",
+            "value": "Header Inside 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Interrupt policy with 500",
+      "description": "",
+      "enabled": true,
+      "policy": "policy-interrupt",
+      "configuration": {
+        "scope": "RESPONSE",
+        "errorKey": "error_key",
+        "message": "interruption from inner policy"
+      }
+    }
+  ]
+}

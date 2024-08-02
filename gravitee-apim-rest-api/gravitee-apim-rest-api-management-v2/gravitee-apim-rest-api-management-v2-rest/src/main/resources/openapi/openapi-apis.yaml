@@ -3251,6 +3251,14 @@ components:
                           description: |-
                               The id of the integration that created the API.
                           example: b300b445-8bbb-4034-865c-d2113ba5b768
+                      provider:
+                        type: string
+                        description: Provider of this Federated API.
+                        example: solace
+                      integrationName:
+                        type: string
+                        description: Name of integration of this Federated API.
+                        example: My Solace env
 
         DefinitionContext:
             deprecated: true
@@ -3579,14 +3587,56 @@ components:
                     enum:
                         - CONNECTED
                         - DISCONNECTED
+                pendingJob:
+                    $ref: "#/components/schemas/IngestionJob"
+
+        IngestionJob:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Id of the ingestion job
+            startedAt:
+              type: string
+              format: date-time
+              description: The last datetime when the job was started.
+              example: 2023-05-25T12:40:46.184Z
+            status:
+              $ref: "#/components/schemas/IngestionStatus"
 
         IngestionPreviewResponse:
             type: object
             properties:
                 totalCount:
                     type: number
-                    description: number of new APIs found to ingest
+                    description: number of APIs found to ingest
                     example: 12
+                newCount:
+                  type: number
+                  description: number of new APIs found to ingest
+                  example: 8
+                updateCount:
+                  type: number
+                  description: number of update APIs found to ingest
+                  example: 4
+                apis:
+                  type: array
+                  description: number of new APIs found to ingest
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: the id of API
+                      name:
+                        type: string
+                        description: the name of API
+                      state:
+                        type: string
+                        description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
+                        enum:
+                          - NEW
+                          - UPDATE
 
         IntegrationIngestionResponse:
             type: object
@@ -3604,6 +3654,8 @@ components:
             example: SUCCESS
             enum:
                 - SUCCESS
+                - PENDING
+                - ERROR
 
         Links:
             description: List of links for pagination
@@ -5987,8 +6039,8 @@ components:
                 - UNPUBLISH_API
                 - UNPUBLISH_API_RESULT
                 - UNPUBLISH_DICTIONARY
-                - DEPLOY_ENVIRONMENT_FLOW
-                - UNDEPLOY_ENVIRONMENT_FLOW
+                - DEPLOY_SHARED_POLICY_GROUP
+                - UNDEPLOY_SHARED_POLICY_GROUP
 
         # Documentation pages
         AccessControl:

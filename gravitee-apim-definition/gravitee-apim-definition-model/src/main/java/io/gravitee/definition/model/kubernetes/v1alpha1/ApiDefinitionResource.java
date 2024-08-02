@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.kubernetes.mapper.CustomResource;
 import io.gravitee.kubernetes.mapper.ObjectMeta;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -33,7 +34,6 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final List<String> UNSUPPORTED_API_FIELDS = List.of(
         "definition_context",
-        "execution_mode",
         "primaryOwner",
         "createdAt",
         "updatedAt",
@@ -65,6 +65,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     private static final String PAGES_FIELD = "pages";
     private static final String MEMBERS_FIELD = "members";
 
+    private static final String ID_FIELD = "id";
     private static final String NAME_FIELD = "name";
 
     private static final String METADATA_FIELD = "metadata";
@@ -173,7 +174,8 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     private JsonNode mapPages(ArrayNode pages) {
         var pagesMap = JsonNodeFactory.instance.objectNode();
         for (var page : pages) {
-            pagesMap.set(page.get(NAME_FIELD).asText(), ((ObjectNode) page).remove(UNSUPPORTED_PAGE_FIELDS));
+            var key = Optional.ofNullable(page.get(NAME_FIELD)).orElse(page.get(ID_FIELD));
+            pagesMap.set(key.asText(), ((ObjectNode) page).remove(UNSUPPORTED_PAGE_FIELDS));
         }
         return pagesMap;
     }

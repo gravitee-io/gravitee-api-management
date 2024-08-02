@@ -23,6 +23,11 @@ import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscri
 import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
 import { ApiComponent } from './api/api.component';
 import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api.component';
+import { ApplicationTabLogsComponent } from './applications/application/application-tab-logs/application-tab-logs.component';
+import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
+import { ApplicationTabSubscriptionsComponent } from './applications/application/application-tab-subscriptions/application-tab-subscriptions.component';
+import { ApplicationComponent } from './applications/application/application.component';
+import { ApplicationsComponent } from './applications/applications.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
@@ -31,14 +36,16 @@ import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
+import { applicationResolver } from '../resolvers/application.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'catalog', pathMatch: 'full' },
   {
     path: 'catalog',
+    canActivateChild: [redirectGuard],
     children: [
-      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' }, canActivate: [redirectGuard] },
+      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' } },
       {
         path: 'api/:apiId',
         component: ApiComponent,
@@ -93,8 +100,43 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: 'log-in', component: LogInComponent, canActivate: [anonymousGuard] },
-  { path: 'log-out', component: LogOutComponent, canActivate: [authGuard] },
+  {
+    path: 'applications',
+    canActivateChild: [authGuard, redirectGuard],
+    children: [
+      { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
+      {
+        path: ':applicationId',
+        component: ApplicationComponent,
+        resolve: { application: applicationResolver },
+        data: { breadcrumb: { alias: 'appName' } },
+        children: [
+          {
+            path: '',
+            redirectTo: 'logs',
+            pathMatch: 'full',
+          },
+          {
+            path: 'logs',
+            component: ApplicationTabLogsComponent,
+            data: { breadcrumb: { skip: true } },
+          },
+          {
+            path: 'settings',
+            component: ApplicationTabSettingsComponent,
+            data: { breadcrumb: { skip: true } },
+          },
+          {
+            path: 'subscriptions',
+            component: ApplicationTabSubscriptionsComponent,
+            data: { breadcrumb: { skip: true } },
+          },
+        ],
+      },
+    ],
+  },
+  { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
+  { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
   { path: '404', component: NotFoundComponent },
   {
     path: '**',

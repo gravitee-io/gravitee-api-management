@@ -3,7 +3,7 @@ templates:
   - "api/api-deployment.yaml"
   - "api/api-configmap.yaml"
 tests:
-  - it: Check Gravitee Cloud deployment
+  - it: Should mount gravitee-cloud-certificates volume
     template: api/api-deployment.yaml
     set:
       cloud:
@@ -12,8 +12,8 @@ tests:
           ws:
             ssl:
               keystore:
-                password:
-                  value: my_password
+                password: my_password
+                value: my_value
     asserts:
       - hasDocuments:
           count: 1
@@ -27,3 +27,4 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].volumeMounts[1].mountPath
           value: /opt/graviteeio-management-api/cloud
+

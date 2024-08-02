@@ -82,9 +82,9 @@
           <button
             mat-raised-button
             color="primary"
-            [disabled]="integration.agentStatus !== AgentStatus.CONNECTED || isIngesting || isLoadingFederatedAPI || isLoadingPreview"
+            [disabled]="integration.agentStatus !== AgentStatus.CONNECTED || isIngesting || isLoadingFederatedAPI"
             data-testid="discover-button"
-            (click)="ingest()"
+            routerLink="discover"
             *gioPermission="{ anyOf: ['environment-integration-c'] }"
           >
             Discover
@@ -92,6 +92,10 @@
         </div>
       </div>
     </mat-card-header>
+
+    <gio-banner-warning *ngIf="isIngesting" class="pending-job-banner">
+      APIs are currently being ingested and will appear below once completed. This may take some time depending on volume.
+    </gio-banner-warning>
 
     @if (federatedAPIs.length || isLoadingFederatedAPI) {
       <div class="card-table">
@@ -152,11 +156,11 @@
               </div>
             </div>
             <div class="no-integrations__message">
-              <h2 class="header">{{ isIngesting ? 'Discovery in progress' : 'No APIs created' }}</h2>
+              <h2 class="header">{{ isIngesting ? 'APIs are being ingested' : 'No APIs created' }}</h2>
               <p class="description">
                 {{
                   isIngesting
-                    ? 'The process should only take a few minutes to complete. Come back shortly!'
+                    ? 'APIs will appear below once completed. This may take some time depending on volume.'
                     : 'Create Federated APIs in Gravitee based on APIs or event streams from the external provider.'
                 }}
               </p>

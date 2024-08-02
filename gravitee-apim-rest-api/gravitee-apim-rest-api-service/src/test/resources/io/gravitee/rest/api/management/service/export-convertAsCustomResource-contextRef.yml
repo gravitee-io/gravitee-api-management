@@ -8,6 +8,7 @@ metadata:
 spec:
   name: "Export Test API"
   crossId: "test-api-cross-id"
+  execution_mode: "v3"
   description: "Gravitee.io"
   gravitee: "1.0.0"
   flow_mode: "DEFAULT"
@@ -81,3 +82,4 @@ spec:
   contextRef:
     name: "apim-dev-ctx"
     namespace: "default"
+  notifyMembers: true

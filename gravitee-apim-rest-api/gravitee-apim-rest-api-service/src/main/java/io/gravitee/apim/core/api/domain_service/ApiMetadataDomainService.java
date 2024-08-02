@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
@@ -29,14 +31,20 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.common.utils.TimeProvider;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
 @DomainService
 @Slf4j
 public class ApiMetadataDomainService {
@@ -46,16 +54,6 @@ public class ApiMetadataDomainService {
     private final MetadataCrudService metadataCrudService;
     private final ApiMetadataQueryService apiMetadataQueryService;
     private final AuditDomainService auditService;
-
-    public ApiMetadataDomainService(
-        MetadataCrudService metadataCrudService,
-        ApiMetadataQueryService apiMetadataQueryService,
-        AuditDomainService auditService
-    ) {
-        this.metadataCrudService = metadataCrudService;
-        this.apiMetadataQueryService = apiMetadataQueryService;
-        this.auditService = auditService;
-    }
 
     /**
      * Create all default metadata for an API that has been created
@@ -84,23 +82,39 @@ public class ApiMetadataDomainService {
         createAuditLog(emailSupportMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
     }
 
-    public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
+    /**
+     * Import the metadata. This method will remove all metadata existed before and not imported here.
+     */
+    public void importApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
         var previousMetadata = apiMetadataQueryService.findApiMetadata(apiId);
+        importOrSave(apiId, metadata, auditInfo, previousMetadata.keySet());
+    }
 
-        if (metadata != null) {
-            for (var metadataEntry : metadata) {
+    /**
+     * Save the metadata. This method will save or update the metadata without remove anything.
+     */
+    public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
+        importOrSave(apiId, metadata, auditInfo, Set.of());
+    }
+
+    private void importOrSave(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo, Collection<String> previousMetadataKeys) {
+        var updated = stream(metadata)
+            .map(metadataEntry -> {
                 metadataEntry.setApiId(apiId);
                 createOrUpdateApiMetadataEntry(apiId, metadataEntry, auditInfo);
-                previousMetadata.remove(metadataEntry.getKey());
-            }
-        }
+                return metadataEntry.getKey();
+            })
+            .collect(Collectors.toSet());
 
-        previousMetadata.remove(EMAIL_SUPPORT_NAME);
+        Set<String> toRemove = new HashSet<>(previousMetadataKeys);
 
-        for (var metadataEntry : previousMetadata.values()) {
-            var id = MetadataId.builder().key(metadataEntry.getKey()).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build();
-            metadataCrudService.delete(id);
-        }
+        toRemove.removeAll(updated);
+        toRemove.remove(EMAIL_SUPPORT_NAME);
+
+        toRemove
+            .stream()
+            .map(old -> MetadataId.builder().key(old).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build())
+            .forEach(metadataCrudService::delete);
     }
 
     private void createOrUpdateApiMetadataEntry(String apiId, ApiMetadata metadataEntry, AuditInfo auditInfo) {

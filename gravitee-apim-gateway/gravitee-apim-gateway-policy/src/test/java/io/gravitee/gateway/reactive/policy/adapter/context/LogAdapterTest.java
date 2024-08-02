@@ -56,12 +56,30 @@ class LogAdapterTest {
     }
 
     @Test
+    void should_delegate_getApiName_to_log_v4() {
+        // When
+        logAdapter.getApiName();
+
+        // Then
+        verify(logV4).getApiName();
+    }
+
+    @Test
     void should_delegate_setApi_to_log_v4() {
         // When
         logAdapter.setApi(null);
 
         // Then
         verify(logV4).setApiId(any());
+    }
+
+    @Test
+    void should_delegate_setApiName_to_log_v4() {
+        // When
+        logAdapter.setApiName(null);
+
+        // Then
+        verify(logV4).setApiName(any());
     }
 
     @Test

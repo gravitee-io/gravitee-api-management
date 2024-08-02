@@ -21,6 +21,7 @@ import io.gravitee.apim.core.metadata.model.MetadataId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -39,9 +40,9 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
         return storage
             .stream()
             .filter(m ->
-                m.getKey().equals(id.getKey()) &&
-                m.getReferenceId().equals(id.getReferenceId()) &&
-                m.getReferenceType().equals(id.getReferenceType())
+                Objects.equals(m.getKey(), id.getKey()) &&
+                Objects.equals(m.getReferenceId(), id.getReferenceId()) &&
+                Objects.equals(m.getReferenceType(), id.getReferenceType())
             )
             .findFirst();
     }

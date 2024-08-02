@@ -58,7 +58,7 @@ class CategoryQueryServiceLegacyWrapperTest {
             when(categoryService.findById(CAT_ID, ENVIRONMENT_ID))
                 .thenReturn(CategoryEntity.builder().id(CAT_ID).key(CAT_KEY).name(CAT_NAME).build());
 
-            var optional = service.findById(CAT_ID, ENVIRONMENT_ID);
+            var optional = service.findByIdOrKey(CAT_ID, ENVIRONMENT_ID);
 
             verify(categoryService, times(1)).findById(CAT_ID, ENVIRONMENT_ID);
             Assertions.assertThat(optional).hasValue(Category.builder().id(CAT_ID).key(CAT_KEY).name(CAT_NAME).build());
@@ -68,7 +68,7 @@ class CategoryQueryServiceLegacyWrapperTest {
         void should_not_find_category() {
             when(categoryService.findById(CAT_ID, ENVIRONMENT_ID)).thenThrow(new CategoryNotFoundException(CAT_ID));
 
-            var optional = service.findById(CAT_ID, ENVIRONMENT_ID);
+            var optional = service.findByIdOrKey(CAT_ID, ENVIRONMENT_ID);
 
             verify(categoryService, times(1)).findById(CAT_ID, ENVIRONMENT_ID);
             Assertions.assertThat(optional).isEmpty();
@@ -78,7 +78,7 @@ class CategoryQueryServiceLegacyWrapperTest {
         void should_throw_when_other_error_occurs() {
             when(categoryService.findById(any(), any())).thenThrow(new TechnicalManagementException(CAT_ID));
 
-            var throwable = Assertions.catchThrowable(() -> service.findById(CAT_ID, ENVIRONMENT_ID));
+            var throwable = Assertions.catchThrowable(() -> service.findByIdOrKey(CAT_ID, ENVIRONMENT_ID));
 
             Assertions.assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }

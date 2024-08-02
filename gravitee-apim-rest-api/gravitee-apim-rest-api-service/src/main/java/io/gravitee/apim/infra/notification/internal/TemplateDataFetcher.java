@@ -22,6 +22,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainServ
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.IntegrationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
@@ -30,6 +31,7 @@ import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -48,6 +50,7 @@ public class TemplateDataFetcher {
     private final ApplicationRepository applicationRepository;
     private final PlanRepository planRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final IntegrationRepository integrationRepository;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
@@ -57,6 +60,7 @@ public class TemplateDataFetcher {
         @Lazy ApplicationRepository applicationRepository,
         @Lazy PlanRepository planRepository,
         @Lazy SubscriptionRepository subscriptionRepository,
+        @Lazy IntegrationRepository integrationRepository,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService,
         ApiMetadataDecoderDomainService apiMetadataDecoderDomainService
@@ -65,6 +69,7 @@ public class TemplateDataFetcher {
         this.applicationRepository = applicationRepository;
         this.planRepository = planRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.integrationRepository = integrationRepository;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
@@ -83,6 +88,7 @@ public class TemplateDataFetcher {
                         case APPLICATION_ID -> buildApplicationNotificationTemplateData(organizationId, entry.getValue());
                         case PLAN_ID -> buildPlanNotificationTemplateData(entry.getValue());
                         case SUBSCRIPTION_ID -> buildSubscriptionNotificationTemplateData(entry.getValue());
+                        case INTEGRATION_ID -> buildIntegrationNotificationTemplateData(entry.getValue());
                         case API_KEY -> Optional.of(entry.getValue());
                     }
                 )
@@ -98,6 +104,7 @@ public class TemplateDataFetcher {
             case APPLICATION_ID -> "application";
             case PLAN_ID -> "plan";
             case SUBSCRIPTION_ID -> "subscription";
+            case INTEGRATION_ID -> "integration";
             case API_KEY -> "apiKey";
         };
     }
@@ -207,6 +214,23 @@ public class TemplateDataFetcher {
                         .id(subscription.getId())
                         .reason(subscription.getReason())
                         .request(subscription.getRequest())
+                        .build()
+                );
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    private Optional<IntegrationNotificationTemplateData> buildIntegrationNotificationTemplateData(String integrationId) {
+        try {
+            return integrationRepository
+                .findById(integrationId)
+                .map(subscription ->
+                    IntegrationNotificationTemplateData
+                        .builder()
+                        .id(subscription.getId())
+                        .name(subscription.getName())
+                        .provider(subscription.getProvider())
                         .build()
                 );
         } catch (TechnicalException e) {

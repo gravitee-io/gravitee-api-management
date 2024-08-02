@@ -15,15 +15,8 @@
  */
 package io.gravitee.apim.infra.sanitizer;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.gravitee.apim.core.json.JsonSerializer;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
-import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
-import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
-import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import javax.inject.Singleton;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

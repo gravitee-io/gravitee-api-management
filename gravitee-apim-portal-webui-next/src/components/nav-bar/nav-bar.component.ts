@@ -34,5 +34,6 @@ export class NavBarComponent {
   @Input()
   siteTitle!: string;
   currentUser: InputSignal<User> = input({});
+  logo: InputSignal<string> = input('');
   protected readonly isEmpty = isEmpty;
 }

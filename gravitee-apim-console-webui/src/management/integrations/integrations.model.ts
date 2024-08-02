@@ -35,6 +35,24 @@ export interface Integration {
   provider: string;
   description: string;
   owner?: string;
+  pendingJob?: IntegrationJob;
+}
+
+export interface IntegrationIngestionResponse {
+  status: IngestionStatus;
+  message?: string;
+}
+
+export interface IntegrationJob {
+  id: string;
+  status: IngestionStatus;
+  startedAt: string;
+}
+
+export enum IngestionStatus {
+  SUCCESS = 'SUCCESS',
+  PENDING = 'PENDING',
+  ERROR = 'ERROR',
 }
 
 export enum AgentStatus {
@@ -74,6 +92,20 @@ export interface DeletedFederatedAPIsResponse {
   errors: number;
 }
 
+export enum IntegrationPreviewApisState {
+  NEW = 'NEW',
+  UPDATE = 'UPDATE',
+}
+
+export interface IntegrationPreviewApis {
+  id: string;
+  name: string;
+  state: IntegrationPreviewApisState;
+}
+
 export interface IntegrationPreview {
   totalCount: number;
+  newCount: number;
+  updateCount: number;
+  apis: IntegrationPreviewApis[];
 }

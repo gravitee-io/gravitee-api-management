@@ -32,6 +32,7 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -40,20 +41,20 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
     protected final Map<String, PolicyManifest> manifests;
-    protected final PolicyFactory policyFactory;
+    protected final PolicyFactoryManager policyFactoryManager;
     protected final PolicyConfigurationFactory policyConfigurationFactory;
     protected final PolicyLoader policyLoader;
 
     protected AbstractPolicyManager(
         DefaultClassLoader classLoader,
-        PolicyFactory policyFactory,
+        PolicyFactoryManager policyFactoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
     ) {
         this.manifests = new ConcurrentHashMap<>();
-        this.policyFactory = policyFactory;
+        this.policyFactoryManager = policyFactoryManager;
         this.policyConfigurationFactory = policyConfigurationFactory;
         this.policyLoader = new PolicyLoader(classLoader, policyPluginManager, policyClassLoaderFactory, componentProvider);
     }
@@ -70,7 +71,7 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
     @Override
     protected void doStop() throws Exception {
         // Deactivate policy context
-        policyLoader.disablePolicyContext(manifests, policyFactory::cleanup);
+        policyLoader.disablePolicyContext(manifests, policyFactoryManager::cleanup);
 
         // Be sure to remove all references to policies.
         manifests.clear();
@@ -88,7 +89,7 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
                 policyMetadata.getConfiguration()
             );
 
-            return policyFactory.create(executionPhase, manifest, policyConfiguration, policyMetadata);
+            return policyFactoryManager.get(manifest).create(executionPhase, manifest, policyConfiguration, policyMetadata);
         }
         return null;
     }

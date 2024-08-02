@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
@@ -175,6 +176,8 @@ public class ApiService_CreateWithDefinitionTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(new UserDetails(USERNAME, "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
     }
 
     @Test

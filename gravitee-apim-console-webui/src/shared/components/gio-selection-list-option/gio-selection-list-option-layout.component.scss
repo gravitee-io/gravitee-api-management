@@ -1,0 +1,101 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+::ng-deep {
+  // ⚠️ Complete mat-selection-list & mat-radio-group styles to have custom style
+  mat-selection-list.gio-selection-list,
+  mat-radio-group.gio-selection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .gio-selection-list-option,
+
+    .mat-mdc-list-item.mat-mdc-list-option,
+    mat-radio-button.mat-mdc-radio-button,
+    // mat legacy
+    mat-radio-button.mat-radio-button {
+      padding: 0 16px;
+      height: auto;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+      border-radius: 4px;
+    }
+
+    .gio-selection-list-option {
+      padding: 0 16px;
+    }
+
+    .gio-selection__selected {
+      border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+    }
+
+    /**
+    mat-selection-list
+     */
+    .mdc-list-item__start.mat-mdc-list-option-checkbox-before {
+      margin: 0;
+    }
+
+    /**
+    mat-radio-group
+     */
+
+    .mdc-list-item__content,
+    .mdc-list-item__content > span {
+      overflow: unset;
+    }
+    mat-radio-button > .mdc-form-field {
+      width: 100%;
+    }
+
+    label {
+      cursor: pointer;
+      width: 100%;
+    }
+  }
+}
+
+:host {
+  display: flex;
+  flex-direction: row;
+  margin: 16px 0 16px 8px;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+}
+.gio-connector {
+  &__description {
+    flex: 1 1 auto;
+
+    &__title {
+      @include mat.typography-level($typography, body-1);
+      display: flex;
+      margin-bottom: 8px;
+      text-transform: capitalize;
+
+      &__icon {
+        margin-right: 8px;
+        width: 32px;
+        height: 32px;
+
+        &:empty {
+          display: none;
+        }
+      }
+    }
+
+    &__body {
+      @include mat.typography-level($typography, body-2);
+      // TODO: make available to module components + integrate in step 1, stepper html
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      margin: 0;
+      white-space: pre-line;
+    }
+  }
+}

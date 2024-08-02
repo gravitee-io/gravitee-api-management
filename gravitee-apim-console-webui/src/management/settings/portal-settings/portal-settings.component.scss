@@ -54,8 +54,10 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
-.open-new-portal-button {
+.new-developer-portal-actions {
   width: fit-content;
+  display: flex;
+  gap: 12px;
   &__content {
     display: flex;
     align-items: center;

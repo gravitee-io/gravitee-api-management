@@ -42,6 +42,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CategoryQueryServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -67,6 +68,7 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
@@ -76,6 +78,9 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -88,6 +93,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
@@ -96,6 +102,7 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -112,11 +119,13 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -140,11 +149,11 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -205,6 +214,7 @@ class ImportCRDUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    CategoryQueryServiceInMemory categoryQueryService = new CategoryQueryServiceInMemory();
     ApiImportDomainService apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
     MembershipCrudService membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
     MembershipQueryService membershipQueryServiceInMemory = new MembershipQueryServiceInMemory();
@@ -217,6 +227,8 @@ class ImportCRDUseCaseTest {
     ApiMetadataDomainService apiMetadataDomainService = mock(ApiMetadataDomainService.class);
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
+    VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
+    ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
 
     ImportCRDUseCase useCase;
 
@@ -307,7 +319,7 @@ class ImportCRDUseCaseTest {
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
                 apiPrimaryOwnerDomainService,
-                new ApiCategoryQueryServiceInMemory(),
+                apiCategoryQueryService,
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
@@ -364,6 +376,16 @@ class ImportCRDUseCaseTest {
             )
         );
 
+        var crdValidator = new ValidateCRDDomainService(
+            new ValidateCategoryIdsDomainService(categoryQueryService),
+            verifyApiPathDomainService,
+            new ValidateCRDMembersDomainService(userDomainService),
+            new ValidateGroupsDomainService(groupQueryService),
+            validateResourceDomainService
+        );
+
+        categoryQueryService.reset();
+
         useCase =
             new ImportCRDUseCase(
                 apiCrudService,
@@ -375,7 +397,6 @@ class ImportCRDUseCaseTest {
                 apiStateDomainService,
                 updateApiDomainService,
                 planQueryService,
-                userDomainService,
                 updatePlanDomainService,
                 deletePlanDomainService,
                 subscriptionQueryService,
@@ -385,14 +406,13 @@ class ImportCRDUseCaseTest {
                 mock(ApiPrimaryOwnerDomainService.class),
                 membershipCrudServiceInMemory,
                 membershipQueryServiceInMemory,
-                groupQueryService,
                 apiMetadataDomainService,
-                apiCategoryQueryService,
                 pageQueryService,
                 pageCrudService,
                 documentationValidationDomainService,
                 createApiDocumentationDomainService,
-                updateApiDocumentationDomainService
+                updateApiDocumentationDomainService,
+                crdValidator
             );
 
         enableApiPrimaryOwnerMode();
@@ -430,6 +450,8 @@ class ImportCRDUseCaseTest {
                 Group.builder().id(GROUP_ID_2).environmentId(ENVIRONMENT_ID).name(GROUP_NAME).build()
             )
         );
+
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
     }
 
     @AfterEach
@@ -518,6 +540,43 @@ class ImportCRDUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .state("STARTED")
                         .plans(Map.of("keyless-key", "keyless-id"))
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
+                                .build()
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_CRD_status_with_warnings() {
+            var result = useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().categories(Set.of("unknown-category")).build()));
+
+            assertThat(result.status())
+                .isEqualTo(
+                    ApiCRDStatus
+                        .builder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .organizationId(ORGANIZATION_ID)
+                        .state("STARTED")
+                        .plans(Map.of("keyless-key", "keyless-id"))
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(
+                                    List.of(
+                                        "Group [non-existing-group] could not be found in environment [environment-id]",
+                                        "category [unknown-category] is not defined in environment [environment-id]"
+                                    )
+                                )
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -683,6 +742,80 @@ class ImportCRDUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .state("STARTED")
                         .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
+                                .build()
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_CRD_status_with_warnings() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+
+            var result = useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .categories(Set.of("unknown-category"))
+                        .plans(
+                            Map.of(
+                                "keyless-key",
+                                PlanCRD
+                                    .builder()
+                                    .id(KEYLESS.getId())
+                                    .name(KEYLESS.getName())
+                                    .security(KEYLESS.getPlanSecurity())
+                                    .mode(KEYLESS.getPlanMode())
+                                    .validation(KEYLESS.getValidation())
+                                    .status(KEYLESS.getPlanStatus())
+                                    .type(KEYLESS.getType())
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
+                                    .build(),
+                                "apikey-key",
+                                PlanCRD
+                                    .builder()
+                                    .name("API Key")
+                                    .security(PlanSecurity.builder().type("API_KEY").build())
+                                    .mode(PlanMode.STANDARD)
+                                    .validation(Plan.PlanValidationType.AUTO)
+                                    .status(PlanStatus.STAGING)
+                                    .type(Plan.PlanType.API)
+                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("apikey-flow")))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            );
+
+            assertThat(result.status())
+                .isEqualTo(
+                    ApiCRDStatus
+                        .builder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .organizationId(ORGANIZATION_ID)
+                        .state("STARTED")
+                        .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                        .errors(
+                            ApiCRDStatus.Errors
+                                .builder()
+                                .severe(List.of())
+                                .warning(
+                                    List.of(
+                                        "Group [non-existing-group] could not be found in environment [environment-id]",
+                                        "category [unknown-category] is not defined in environment [environment-id]"
+                                    )
+                                )
+                                .build()
+                        )
                         .build()
                 );
         }
@@ -966,12 +1099,13 @@ class ImportCRDUseCaseTest {
 
         useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().metadata(metadata).build()));
 
-        verify(apiMetadataDomainService, times(1)).saveApiMetadata(API_ID, metadata, AUDIT_INFO);
+        verify(apiMetadataDomainService, times(1)).importApiMetadata(API_ID, metadata, AUDIT_INFO);
     }
 
     @Test
     void should_clean_categories_and_keep_existing_categories() {
-        apiCategoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+        categoryQueryService.reset();
+        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
 
         var categories = Set.of("existing", "unknown");
 
@@ -1129,11 +1263,7 @@ class ImportCRDUseCaseTest {
         return aProxyApiV4()
             .toBuilder()
             .originContext(
-                KubernetesContext
-                    .builder()
-                    .syncFrom(OriginContext.Origin.KUBERNETES.name())
-                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
-                    .build()
+                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
             )
             .id(API_ID)
             .environmentId(ENVIRONMENT_ID)
@@ -1142,8 +1272,8 @@ class ImportCRDUseCaseTest {
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .deployedAt(null)
-            .disableMembershipNotifications(false)
-            .categories(null)
+            .disableMembershipNotifications(true)
+            .categories(Set.of())
             .picture(null)
             .background(null)
             .groups(null)

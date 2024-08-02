@@ -56,7 +56,6 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
-import java.util.Objects;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
@@ -153,8 +152,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
                 });
         }
 
-        if (api.getOriginContext() != null && api.getOriginContext().getOrigin() != null) {
-            doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().getOrigin().name().toLowerCase(), Field.Store.NO));
+        if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
+            doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), Field.Store.NO));
         }
 
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {

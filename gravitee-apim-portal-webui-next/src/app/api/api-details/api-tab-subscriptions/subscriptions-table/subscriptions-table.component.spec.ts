@@ -62,7 +62,7 @@ describe('SubscriptionsTableComponent', () => {
       const subscriptionTable = await harnessLoader.getHarness(MatTableHarness.with({ selector: '.api-tab-subscriptions__table' }));
       expect(subscriptionTable).toBeTruthy();
       expect(await subscriptionTable.getRows().then(value => value[0].getCellTextByColumnName())).toEqual({
-        application: 'Testapplication',
+        application: 'testApplication',
         expand: 'arrow_right',
         plan: '-',
         status: 'Rejected',
@@ -81,7 +81,7 @@ describe('SubscriptionsTableComponent', () => {
 
   function expectSubscriptionList(subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse(), apiId: string, status: string) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}`)
+      .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}&size=-1`)
       .flush(subscriptionResponse);
   }
 });

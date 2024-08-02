@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.*;
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 
-import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MediaEntity;
@@ -52,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -212,14 +212,22 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 .stream()
                 .filter(role -> !role.getName().equals(poRoleName))
                 .map(role -> {
-                    Optional<RoleEntity> roleEntity = roleService.findByScopeAndName(
-                        RoleScope.API,
-                        role.getName(),
-                        executionContext.getOrganizationId()
-                    );
+                    try {
+                        UUID id = UUID.fromString(role.getName());
+                        RoleEntity roleEntity = roleService.findById(id.toString());
+                        if (roleEntity != null) {
+                            return roleEntity;
+                        }
+                    } catch (IllegalArgumentException exception) {
+                        Optional<RoleEntity> roleEntity = roleService.findByScopeAndName(
+                            RoleScope.API,
+                            role.getName(),
+                            executionContext.getOrganizationId()
+                        );
 
-                    if (roleEntity.isPresent()) {
-                        return roleEntity.get();
+                        if (roleEntity.isPresent()) {
+                            return roleEntity.get();
+                        }
                     }
 
                     log.warn("Unable to find role '{}' to import", role.getName());

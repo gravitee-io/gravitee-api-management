@@ -63,8 +63,11 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private final OrganizationService organizationService;
     private final EnvironmentService environmentService;
 
-    @Value("${installation.api.url:#{null}}")
-    private String apiURL;
+    @Value("${installation.api.console.url:${installation.api.url:#{null}}}")
+    private String consoleApiUrl;
+
+    @Value("${installation.api.portal.url:${installation.api.url:#{null}}}")
+    private String portalApiUrl;
 
     @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
@@ -101,15 +104,20 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             handleEnvironmentUrls();
 
             // Validate api url
-            if (apiURL != null) {
-                try {
-                    URL url = URI.create(apiURL).toURL();
-                    if (!isValidDomainName(url.getHost())) {
-                        throw new InvalidInstallationUrlException("API url '%s' is malformed.".formatted(apiURL));
-                    }
-                } catch (Exception e) {
-                    throw new InvalidInstallationUrlException("API url '%s' must be a valid URL.".formatted(apiURL));
+            validateApiUrl(consoleApiUrl);
+            validateApiUrl(portalApiUrl);
+        }
+    }
+
+    private void validateApiUrl(String apiURL) {
+        if (apiURL != null) {
+            try {
+                URL url = URI.create(apiURL).toURL();
+                if (!isValidDomainName(url.getHost())) {
+                    throw new InvalidInstallationUrlException("API url '%s' is malformed.".formatted(apiURL));
                 }
+            } catch (Exception e) {
+                throw new InvalidInstallationUrlException("API url '%s' must be a valid URL.".formatted(apiURL));
             }
         }
     }
@@ -139,13 +147,15 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             }
         }
 
-        if (apiURL == null) {
+        if (consoleApiUrl == null) {
             try {
                 String legacyApiUrl = environment.getProperty("console.api.url");
                 if (legacyApiUrl != null) {
                     URI legacyApiURI = URI.create(legacyApiUrl);
                     this.managementProxyPath = legacyApiURI.getPath();
-                    this.apiURL = legacyApiURI.resolve("/").toString();
+                    String url = legacyApiURI.resolve("/").toString();
+                    this.consoleApiUrl = url;
+                    this.portalApiUrl = url;
                 }
             } catch (Exception e) {
                 log.warn("Unable to parse legacy url configuration [console.api.url]", e);
@@ -280,7 +290,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             AccessPoint consoleAccessPoint = accessPointQueryService.getConsoleApiAccessPoint(organizationId);
             consoleAPIBaseUrl = buildHttpUrl(consoleAccessPoint);
         } else {
-            consoleAPIBaseUrl = apiURL;
+            consoleAPIBaseUrl = consoleApiUrl;
         }
         if (consoleAPIBaseUrl != null) {
             URI fullUrl = URI.create(consoleAPIBaseUrl).resolve(managementProxyPath);
@@ -348,7 +358,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             AccessPoint consoleAccessPoint = accessPointQueryService.getPortalApiAccessPoint(environmentId);
             portalAPIBaseUrl = buildHttpUrl(consoleAccessPoint);
         } else {
-            portalAPIBaseUrl = apiURL;
+            portalAPIBaseUrl = portalApiUrl;
         }
         if (portalAPIBaseUrl != null) {
             URI fullUrl = URI.create(portalAPIBaseUrl).resolve(portalProxyPath);

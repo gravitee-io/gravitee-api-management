@@ -1,0 +1,79 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "API v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount":  12,
+            "messagesLimitDurationMs": 500,
+            "headersInPayload": true
+          }
+        },
+        {
+          "type": "http-post"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "message",
+            "messageCount": 1000
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Flow",
+      "enabled": true,
+      "publish": [
+        {
+          "name": "Shared Policy Group Message Request",
+          "enabled": true,
+          "policy": "shared-policy-group-policy",
+          "configuration": {
+            "sharedPolicyGroupId": "spg-message-request"
+          }
+        }
+      ],
+      "subscribe": [
+        {
+          "name": "Shared Policy Group Message Response",
+          "enabled": true,
+          "policy": "shared-policy-group-policy",
+          "configuration": {
+            "sharedPolicyGroupId": "spg-message-response"
+          }
+        }
+      ]
+    }
+  ],
+  "analytics": {
+     "enabled" : true
+  }
+}

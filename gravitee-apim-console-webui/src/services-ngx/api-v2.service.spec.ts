@@ -442,8 +442,7 @@ describe('ApiV2Service', () => {
       const done: string[] = [];
       // First call
       apiV2Service.getLastApiFetch(fakeApi.id).subscribe((api) => {
-        expect(api.name).toEqual(fakeApi.name);
-        done.push('first');
+        done.push(`first getLastApiFetch: last api "${api.name}" fetch`);
       });
 
       // Only one call as the second one should be cached
@@ -453,13 +452,51 @@ describe('ApiV2Service', () => {
           method: 'GET',
         })
         .flush(fakeApi);
+      expect(done).toEqual(['first getLastApiFetch: last api "🪐 Planets" fetch']);
 
-      apiV2Service.getLastApiFetch('my-api-id').subscribe((api) => {
-        expect(api.name).toEqual(fakeApi.name);
-        done.push('second');
+      apiV2Service.getLastApiFetch(fakeApi.id).subscribe((api) => {
+        done.push(`second getLastApiFetch: last api "${api.name}" fetch`);
       });
+      expect(done).toEqual(['first getLastApiFetch: last api "🪐 Planets" fetch', 'second getLastApiFetch: last api "🪐 Planets" fetch']);
 
-      expect(done).toEqual(['first', 'second']);
+      // On new get with unmodified api, no new event
+      apiV2Service.get(fakeApi.id).subscribe((api) => {
+        done.push(`get done: with unmodified api "${api.name}"`);
+      });
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
+          method: 'GET',
+        })
+        .flush(fakeApi);
+      expect(done).toEqual([
+        'first getLastApiFetch: last api "🪐 Planets" fetch',
+        'second getLastApiFetch: last api "🪐 Planets" fetch',
+        'get done: with unmodified api "🪐 Planets"',
+      ]);
+
+      // On new get with modified api, new event
+      apiV2Service.get(fakeApi.id).subscribe((api) => {
+        done.push(`get done: with modified api "${api.name}"`);
+      });
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
+          method: 'GET',
+        })
+        .flush({
+          ...fakeApi,
+          name: 'Name updated',
+        });
+
+      expect(done).toEqual([
+        'first getLastApiFetch: last api "🪐 Planets" fetch',
+        'second getLastApiFetch: last api "🪐 Planets" fetch',
+        'get done: with unmodified api "🪐 Planets"',
+        'first getLastApiFetch: last api "Name updated" fetch',
+        'second getLastApiFetch: last api "Name updated" fetch',
+        'get done: with modified api "Name updated"',
+      ]);
     });
 
     it('should not use cache if apiId is different', () => {
@@ -553,8 +590,7 @@ describe('ApiV2Service', () => {
       const done: string[] = [];
       // First call
       apiV2Service.getLastApiFetch(fakeApi.id).subscribe((api) => {
-        expect(api.name).toEqual(fakeApi.name);
-        done.push('last api fetch');
+        done.push(`getLastApiFetch: last api "${api.name}" fetch`);
       });
 
       // Only one call as the second one should be cached
@@ -567,7 +603,7 @@ describe('ApiV2Service', () => {
 
       apiV2Service.refreshLastApiFetch().subscribe({
         complete: () => {
-          done.push('api refreshed');
+          done.push('refreshLastApiFetch: api refreshed');
         },
       });
 
@@ -576,9 +612,16 @@ describe('ApiV2Service', () => {
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
           method: 'GET',
         })
-        .flush(fakeApi);
+        .flush({
+          ...fakeApi,
+          name: 'Name updated',
+        });
 
-      expect(done).toEqual(['last api fetch', 'last api fetch', 'api refreshed']);
+      expect(done).toEqual([
+        'getLastApiFetch: last api "🪐 Planets" fetch',
+        'getLastApiFetch: last api "Name updated" fetch',
+        'refreshLastApiFetch: api refreshed',
+      ]);
     });
 
     it('should not call the api', (done) => {

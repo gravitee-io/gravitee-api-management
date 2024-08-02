@@ -69,6 +69,7 @@ public class ReporterProcessor implements Processor {
                             reporterService.report(metricsV2);
                             if (metricsV2.getLog() != null) {
                                 metricsV2.getLog().setApi(metricsV2.getApi());
+                                metricsV2.getLog().setApiName(metricsV2.getApiName());
                                 reporterService.report(metricsV2.getLog());
                             }
                         } else if (definitionVersion == DefinitionVersion.V4) {
@@ -76,6 +77,7 @@ public class ReporterProcessor implements Processor {
                             Log log = metrics.getLog();
                             if (log != null) {
                                 log.setApiId(metrics.getApiId());
+                                log.setApiName(metrics.getApiName());
                                 log.setRequestEnded(metrics.isRequestEnded());
                                 reporterService.report(log);
                             }

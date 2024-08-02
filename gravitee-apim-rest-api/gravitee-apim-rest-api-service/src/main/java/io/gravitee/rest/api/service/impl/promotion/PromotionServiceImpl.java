@@ -255,13 +255,13 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             PromotionCriteria criteria = queryToCriteriaBuilder(query).build();
 
-            Page<Promotion> promotions = promotionRepository.search(criteria, convert(sortable), convert(pageable));
+            Page<PromotionEntity> promotions = promotionRepository
+                .search(criteria, convert(sortable), convert(pageable))
+                .map(this::convert);
 
-            List<PromotionEntity> entities = promotions.getContent().stream().map(this::convert).collect(Collectors.toList());
+            LOGGER.debug("Searching promotions - Done with {} elements", promotions.getPageElements());
 
-            LOGGER.debug("Searching promotions - Done with {} elements", entities.size());
-
-            return new Page<>(entities, promotions.getPageNumber() + 1, (int) promotions.getPageElements(), promotions.getTotalElements());
+            return promotions;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search promotions", ex);
             throw new TechnicalManagementException("An error occurs while trying to search promotions", ex);

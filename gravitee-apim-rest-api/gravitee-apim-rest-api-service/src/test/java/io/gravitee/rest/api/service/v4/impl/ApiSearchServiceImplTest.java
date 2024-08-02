@@ -15,18 +15,13 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,46 +29,44 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.search.query.Query;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -85,10 +78,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -102,8 +92,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiSearchServiceImplTest {
 
     private static final String API_ID = "id-api";
-    private static final String API_NAME = "myAPI";
-    private static final String USER_NAME = "myUser";
 
     @Mock
     private ApiRepository apiRepository;
@@ -140,6 +128,9 @@ public class ApiSearchServiceImplTest {
 
     @Mock
     private ApiAuthorizationService apiAuthorizationService;
+
+    @Mock
+    private IntegrationRepository integrationRepository;
 
     private ApiSearchService apiSearchService;
     private Api api;
@@ -181,7 +172,8 @@ public class ApiSearchServiceImplTest {
                 primaryOwnerService,
                 categoryService,
                 searchEngineService,
-                apiAuthorizationService
+                apiAuthorizationService,
+                integrationRepository
             );
 
         reset(searchEngineService);

@@ -24,6 +24,7 @@ import {
   DeletedFederatedAPIsResponse,
   FederatedAPIsResponse,
   Integration,
+  IntegrationIngestionResponse,
   IntegrationPreview,
   IntegrationResponse,
   UpdateIntegrationPayload,
@@ -36,6 +37,7 @@ import { Constants } from '../entities/Constants';
 export class IntegrationsService {
   private url: string = `${this.constants.env.v2BaseURL}/integrations`;
   private currentIntegration$: BehaviorSubject<Integration> = new BehaviorSubject<Integration>(null);
+  private IS_INGEST_TO_RUN = false;
 
   public readonly bannerMessages = {
     techPreview: `This tech preview feature is new! We're gathering feedback on it to make it even better, so it may change as we make improvements.`,
@@ -46,6 +48,14 @@ export class IntegrationsService {
     private readonly httpClient: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
+
+  public setIsIngestToRun(value: boolean): void {
+    this.IS_INGEST_TO_RUN = value;
+  }
+
+  public isIngestToRun(): boolean {
+    return this.IS_INGEST_TO_RUN;
+  }
 
   public currentIntegration(): Observable<Integration> {
     return this.currentIntegration$.asObservable();
@@ -75,8 +85,8 @@ export class IntegrationsService {
     return this.httpClient.delete<Integration>(`${this.url}/${id}`);
   }
 
-  public ingestIntegration(id: string) {
-    return this.httpClient.post(`${this.url}/${id}/_ingest`, null);
+  public ingestIntegration(id: string): Observable<IntegrationIngestionResponse> {
+    return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${id}/_ingest`, null);
   }
 
   public previewIntegration(id: string): Observable<IntegrationPreview> {

@@ -21,27 +21,14 @@
     <button
       class="header__action__button"
       mat-stroked-button
-      (click)="onAddFolder.emit()"
+      (click)="addFolder.emit()"
       *gioPermission="{ anyOf: ['api-documentation-u'] }"
       [disabled]="isReadOnly"
     >
       Add new folder
     </button>
-    <button
-      *ngIf="hasPages"
-      [disabled]="isReadOnly"
-      class="header__action__button"
-      mat-flat-button
-      color="primary"
-      [matMenuTriggerFor]="menu"
-    >
-      Add new page
-    </button>
-    <mat-menu #menu="matMenu">
-      <button *ngFor="let pageType of pageTypes" (click)="onAddPage.emit(pageType)" mat-menu-item>
-        {{ getTitleForPageType(pageType) }}
-        <img [ngSrc]="getLogoForPageType(pageType)" height="24" width="24" [alt]="getTitleForPageType(pageType).toLowerCase() + ' logo'" />
-      </button>
-    </mat-menu>
+    @if (hasPages) {
+      <api-documentation-v4-add-page-button (addPage)="addPage.emit($event)" text="Add new page"></api-documentation-v4-add-page-button>
+    }
   </div>
 </div>

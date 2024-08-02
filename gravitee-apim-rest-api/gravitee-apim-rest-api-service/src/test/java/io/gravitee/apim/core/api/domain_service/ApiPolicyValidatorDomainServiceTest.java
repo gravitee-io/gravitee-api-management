@@ -30,7 +30,9 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -290,12 +292,7 @@ class ApiPolicyValidatorDomainServiceTest {
         return Stream.of(Arguments.of(new Api(), null), Arguments.of(new Api(), Set.of()));
     }
 
-    private static class SimpleValidationOnlyPolicyService implements PolicyService {
-
-        @Override
-        public void validatePolicyConfiguration(Policy policy) {
-            throw new IllegalStateException("should not be called");
-        }
+    private static class SimpleValidationOnlyPolicyService implements PolicyPluginService {
 
         @Override
         public String validatePolicyConfiguration(String policyName, String configuration) {
@@ -303,12 +300,7 @@ class ApiPolicyValidatorDomainServiceTest {
         }
 
         @Override
-        public void validatePolicyConfiguration(Step step) {
-            throw new IllegalStateException("should not be called");
-        }
-
-        @Override
-        public Set<PolicyEntity> findAll(Boolean withResource) {
+        public String validatePolicyConfiguration(PolicyPluginEntity policyPluginEntity, String configuration) {
             throw new IllegalStateException("should not be called");
         }
 
@@ -318,12 +310,12 @@ class ApiPolicyValidatorDomainServiceTest {
         }
 
         @Override
-        public Set<PolicyEntity> findAll() {
+        public Set<PolicyPluginEntity> findAll() {
             throw new IllegalStateException("should not be called");
         }
 
         @Override
-        public PolicyEntity findById(String plugin) {
+        public PolicyPluginEntity findById(String plugin) {
             throw new IllegalStateException("should not be called");
         }
 

@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -68,7 +69,7 @@ public class PlanCrudServiceImplTest {
     }
 
     @Nested
-    class FindById {
+    class GetById {
 
         @Test
         void should_return_v4_plan_and_adapt_it() throws TechnicalException {
@@ -83,7 +84,7 @@ public class PlanCrudServiceImplTest {
                 );
 
             // When
-            var plan = service.findById(planId);
+            var plan = service.getById(planId);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
@@ -129,7 +130,7 @@ public class PlanCrudServiceImplTest {
                 );
 
             // When
-            var plan = service.findById(planId);
+            var plan = service.getById(planId);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
@@ -170,10 +171,84 @@ public class PlanCrudServiceImplTest {
             when(planRepository.findById(planId)).thenReturn(Optional.empty());
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findById(planId));
+            Throwable throwable = catchThrowable(() -> service.getById(planId));
 
             // Then
             assertThat(throwable).isInstanceOf(PlanNotFoundException.class).hasMessage("Plan [" + planId + "] cannot be found.");
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            String planId = "my-plan";
+            when(planRepository.findById(planId)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.getById(planId));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to get a plan by id: " + planId);
+        }
+    }
+
+    @Nested
+    class FindById {
+
+        @Test
+        void should_return_plan_when_found() throws TechnicalException {
+            var planId = "plan-id";
+            var apiId = "api-id";
+
+            when(planRepository.findById(planId))
+                .thenAnswer(invocation -> Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build()));
+            var foundPlan = service.findById(planId);
+
+            // Then
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(foundPlan).isNotNull();
+                soft.assertThat(foundPlan).isPresent();
+                var plan = foundPlan.get();
+
+                soft.assertThat(plan.getApiId()).isEqualTo(apiId);
+                soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
+                soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
+                soft.assertThat(plan.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(plan.getDescription()).isEqualTo("plan-description");
+                soft.assertThat(plan.getExcludedGroups()).containsExactly("excluded-group-1");
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions");
+                soft.assertThat(plan.getId()).isEqualTo(planId);
+                soft.assertThat(plan.getName()).isEqualTo("plan-name");
+                soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
+                soft.assertThat(plan.getOrder()).isOne();
+                soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
+                soft
+                    .assertThat(plan.getPlanSecurity())
+                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
+                soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
+                soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
+                soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.isCommentRequired()).isTrue();
+                soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
+            });
+        }
+
+        @Test
+        void should_return_empty_when_plan_not_found() throws TechnicalException {
+            var planId = "plan-id";
+
+            when(planRepository.findById(planId)).thenAnswer(invocation -> Optional.empty());
+
+            var foundPlan = service.findById(planId);
+
+            Assertions.assertThat(foundPlan).isNotNull().isEmpty();
         }
 
         @Test

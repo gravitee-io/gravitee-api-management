@@ -20,8 +20,10 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.reactive.policy.AbstractPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -41,13 +43,20 @@ public class ApiPolicyManager extends AbstractPolicyManager {
     public ApiPolicyManager(
         DefaultClassLoader classLoader,
         ReactableApi<?> reactableApi,
-        PolicyFactory policyFactory,
+        PolicyFactoryManager policyFactoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
     ) {
-        super(classLoader, policyFactory, policyConfigurationFactory, policyPluginManager, policyClassLoaderFactory, componentProvider);
+        super(
+            classLoader,
+            policyFactoryManager,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            componentProvider
+        );
         this.reactableApi = reactableApi;
     }
 

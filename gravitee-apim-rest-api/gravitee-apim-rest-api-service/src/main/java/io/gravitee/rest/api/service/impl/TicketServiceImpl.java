@@ -49,9 +49,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import jakarta.inject.Inject;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,22 +194,23 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
 
             TicketCriteria criteria = queryToCriteriaBuilder(query).build();
 
-            Page<Ticket> tickets = ticketRepository.search(
-                criteria,
-                buildSortable(sortable),
-                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-            );
-
-            List<TicketEntity> entities = tickets
-                .getContent()
-                .stream()
+            var tickets = ticketRepository
+                .search(
+                    criteria,
+                    buildSortable(sortable),
+                    new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+                )
                 .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
-                .map(this::convert)
-                .collect(Collectors.toList());
+                .map(this::convert);
 
-            LOGGER.debug("search tickets - Done with {} elements", entities.size());
+            LOGGER.debug("search tickets - Done with {} elements", tickets.getContent().size());
 
-            return new Page<>(entities, tickets.getPageNumber() + 1, (int) tickets.getPageElements(), tickets.getTotalElements());
+            return new Page<>(
+                tickets.getContent(),
+                tickets.getPageNumber() + 1,
+                (int) tickets.getPageElements(),
+                tickets.getTotalElements()
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search tickets", ex);
             throw new TechnicalManagementException("An error occurs while trying to search tickets", ex);

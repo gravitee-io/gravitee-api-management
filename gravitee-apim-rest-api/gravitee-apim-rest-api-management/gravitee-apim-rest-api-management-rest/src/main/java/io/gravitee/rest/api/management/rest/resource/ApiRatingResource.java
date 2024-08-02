@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
-import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -54,7 +53,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -86,17 +84,7 @@ public class ApiRatingResource extends AbstractResource {
                 api,
                 new PageableImpl(pageNumber, pageSize)
             );
-            final List<RatingEntity> filteredRatings = ratingEntityPage
-                .getContent()
-                .stream()
-                .map(ratingEntity -> filterPermission(executionContext, api, ratingEntity))
-                .collect(toList());
-            return new Page<>(
-                filteredRatings,
-                ratingEntityPage.getPageNumber(),
-                (int) ratingEntityPage.getPageElements(),
-                ratingEntityPage.getTotalElements()
-            );
+            return ratingEntityPage.map(ratingEntity -> filterPermission(executionContext, api, ratingEntity));
         } else {
             throw new UnauthorizedAccessException();
         }

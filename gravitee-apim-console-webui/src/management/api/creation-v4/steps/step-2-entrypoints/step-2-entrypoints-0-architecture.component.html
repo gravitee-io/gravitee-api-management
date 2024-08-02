@@ -26,16 +26,16 @@
     </div>
 
     <form *ngIf="form" [formGroup]="form">
-      <mat-radio-group class="gio-connector-list" formControlName="type">
+      <mat-radio-group class="gio-selection-list" formControlName="type">
         <mat-radio-button
           data-testid="api_creation_proxy_checkbox"
           value="PROXY"
-          [class.gio-connector__selected]="form.controls['type'].value === 'PROXY'"
+          [class.gio-selection__selected]="form.controls['type'].value === 'PROXY'"
         >
-          <gio-connector-list-option-layout>
-            <gio-connector-list-option-layout-title> Proxy upstream Protocol </gio-connector-list-option-layout-title>
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title> Proxy upstream Protocol </gio-selection-list-option-layout-title>
 
-            <gio-connector-list-option-layout-body>
+            <gio-selection-list-option-layout-body>
               <p>
                 This mode puts a proxy in front of upstream services. It passes the response through the gateway with policies on request
                 and response phases.
@@ -50,17 +50,17 @@
                 <span class="gio-badge-neutral gio-caption-2"> HTTP </span>
                 <span class="gio-badge-neutral gio-caption-2"> TCP </span>
               </div>
-            </gio-connector-list-option-layout-body>
-          </gio-connector-list-option-layout>
+            </gio-selection-list-option-layout-body>
+          </gio-selection-list-option-layout>
         </mat-radio-button>
 
-        <mat-radio-button value="MESSAGE" [class.gio-connector__selected]="form.controls['type'].value === 'MESSAGE'">
-          <gio-connector-list-option-layout>
-            <gio-connector-list-option-layout-title>
-              <div class="option__badges">Introspect Messages from Event-Driven Backend <span class="gio-badge-primary">NEW</span></div>
-            </gio-connector-list-option-layout-title>
+        <mat-radio-button value="MESSAGE" [class.gio-selection__selected]="form.controls['type'].value === 'MESSAGE'">
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title>
+              <div class="option__badges">Introspect Messages from Event-Driven Backend</div>
+            </gio-selection-list-option-layout-title>
 
-            <gio-connector-list-option-layout-body>
+            <gio-selection-list-option-layout-body>
               <p>
                 This mode produces and consumes messages to event-driven services and allows for message transformation in between via
                 message policies and multiple entrypoints.
@@ -72,8 +72,8 @@
                 <span class="gio-badge-neutral gio-caption-2">RabbitMQ</span>
                 <span class="gio-badge-neutral gio-caption-2">Solace</span>
               </div>
-            </gio-connector-list-option-layout-body>
-          </gio-connector-list-option-layout>
+            </gio-selection-list-option-layout-body>
+          </gio-selection-list-option-layout>
           <div *ngIf="shouldUpgrade$ | async">
             <gio-license-banner
               [license]="license$ | async"

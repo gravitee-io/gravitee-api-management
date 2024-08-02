@@ -55,6 +55,7 @@ import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -255,7 +256,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         repositoryApi.setUpdatedAt(repositoryApi.getCreatedAt());
 
         repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-        if (apiEntity.getOriginContext().isOriginManagement()) {
+        if (apiEntity.getOriginContext() instanceof OriginContext.Management) {
             repositoryApi.setLifecycleState(LifecycleState.STOPPED);
         } else {
             repositoryApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));

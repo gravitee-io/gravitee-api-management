@@ -1,4 +1,5 @@
 {{- if .Values.cloud.enabled -}}
+{{ if or .Values.cloud.connector.ws.ssl.keystore.value .Values.cloud.connector.ws.ssl.truststore.value }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -8,4 +9,5 @@ data:
   {{- if .Values.cloud.connector.ws.ssl.truststore }}
   truststore.p12: {{ .Values.cloud.connector.ws.ssl.truststore.value }}
   {{- end -}}  
+{{- end -}}
 {{- end -}}

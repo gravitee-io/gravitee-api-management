@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
+import io.gravitee.apim.core.api.use_case.ValidateCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -122,6 +123,9 @@ public class ApisResource extends AbstractResource {
     private ImportCRDUseCase importCRDUseCase;
 
     @Inject
+    private ValidateCRDUseCase validateCRDUseCase;
+
+    @Inject
     private ImportApiDefinitionUseCase importApiDefinitionUseCase;
 
     @Inject
@@ -193,33 +197,30 @@ public class ApisResource extends AbstractResource {
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
-    public Response createApiWithCRD(@Valid ApiCRDSpec crd) {
+    public Response createApiWithCRD(@Valid ApiCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        return Response
-            .ok(
-                importCRDUseCase
-                    .execute(
-                        new ImportCRDUseCase.Input(
-                            AuditInfo
-                                .builder()
-                                .organizationId(executionContext.getOrganizationId())
-                                .environmentId(executionContext.getEnvironmentId())
-                                .actor(
-                                    AuditActor
-                                        .builder()
-                                        .userId(userDetails.getUsername())
-                                        .userSource(userDetails.getSource())
-                                        .userSourceId(userDetails.getSourceId())
-                                        .build()
-                                )
-                                .build(),
-                            ApiMapper.INSTANCE.map(crd)
-                        )
-                    )
-                    .status()
-            )
-            .build();
+
+        var input = new ImportCRDUseCase.Input(
+            AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build(),
+            ApiMapper.INSTANCE.map(crd)
+        );
+
+        return dryRun
+            ? Response.ok(validateCRDUseCase.execute(input).status()).build()
+            : Response.ok(importCRDUseCase.execute(input).status()).build();
     }
 
     @POST

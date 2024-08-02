@@ -34,7 +34,7 @@
         <h3>Create Integration</h3>
       </div>
       <div class="card-header__actions">
-        <button mat-raised-button [disabled]="false" data-testid="exit-create-integration-button" routerLink="..">
+        <button mat-raised-button data-testid="exit-create-integration-button" routerLink="..">
           <mat-icon svgIcon="gio:cancel"></mat-icon>
           Exit without saving
         </button>
@@ -82,7 +82,7 @@
                 class="gio-radio-button"
                 [disabled]="true"
               >
-                <img class="gio-radio-button__logo" [src]="'assets/logos/' + provider.value + '_gray.svg'" alt="Google Logo" />
+                <img class="gio-radio-button__logo" [src]="'assets/logos/' + provider.value + '_gray.svg'" alt="provider.value + ' logo'" />
                 <gio-form-selection-inline-card-content>
                   <gio-card-content-title>
                     {{ provider.value | mapProviderName }}

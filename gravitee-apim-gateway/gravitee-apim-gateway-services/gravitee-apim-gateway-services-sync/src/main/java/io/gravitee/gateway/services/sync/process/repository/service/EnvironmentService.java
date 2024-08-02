@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.service;
 
-import io.gravitee.gateway.reactive.reactor.environmentflow.ReactableEnvironmentFlow;
+import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -58,23 +58,23 @@ public class EnvironmentService {
         }
     }
 
-    public void fill(final String environmentId, final ReactableEnvironmentFlow reactableEnvironmentFlow) {
+    public void fill(final String environmentId, final ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         if (environmentId != null) {
-            Environment environmentFlowEnv = loadEnvironment(environmentId);
-            if (environmentFlowEnv != null) {
-                reactableEnvironmentFlow.setEnvironmentId(environmentFlowEnv.getId());
-                reactableEnvironmentFlow.setEnvironmentHrid(
-                    environmentFlowEnv.getHrids() != null ? environmentFlowEnv.getHrids().stream().findFirst().orElse(null) : null
+            Environment sharedPolicyGroupEnv = loadEnvironment(environmentId);
+            if (sharedPolicyGroupEnv != null) {
+                reactableSharedPolicyGroup.setEnvironmentId(sharedPolicyGroupEnv.getId());
+                reactableSharedPolicyGroup.setEnvironmentHrid(
+                    sharedPolicyGroupEnv.getHrids() != null ? sharedPolicyGroupEnv.getHrids().stream().findFirst().orElse(null) : null
                 );
 
-                final io.gravitee.repository.management.model.Organization environmentFlowOrg = organizations.get(
-                    environmentFlowEnv.getOrganizationId()
+                final io.gravitee.repository.management.model.Organization sharedPolicyGroupOrg = organizations.get(
+                    sharedPolicyGroupEnv.getOrganizationId()
                 );
 
-                if (environmentFlowOrg != null) {
-                    reactableEnvironmentFlow.setOrganizationId(environmentFlowOrg.getId());
-                    reactableEnvironmentFlow.setOrganizationHrid(
-                        environmentFlowOrg.getHrids() != null ? environmentFlowOrg.getHrids().stream().findFirst().orElse(null) : null
+                if (sharedPolicyGroupOrg != null) {
+                    reactableSharedPolicyGroup.setOrganizationId(sharedPolicyGroupOrg.getId());
+                    reactableSharedPolicyGroup.setOrganizationHrid(
+                        sharedPolicyGroupOrg.getHrids() != null ? sharedPolicyGroupOrg.getHrids().stream().findFirst().orElse(null) : null
                     );
                 }
             }

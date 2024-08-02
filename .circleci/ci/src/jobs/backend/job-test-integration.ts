@@ -18,12 +18,13 @@ import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestIntegrationJob {
   private static jobName = 'job-test-integration';
 
-  public static create(dynamicConfig: Config) {
-    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
+    const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
@@ -56,7 +57,7 @@ sed -i 's/$/*/' /tmp/ignore_list
 echo "Following test files will run on this executor:"
 cat tests-to-run
 
-# Run tests with rerunFailingTestsCount=2 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI             
+# Run tests with rerunFailingTestsCount=2 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
 mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=2`,
       }),
       new commands.Run({

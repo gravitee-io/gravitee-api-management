@@ -150,9 +150,8 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v9-<< parameters.jobName >>
+            - gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}
     description: Restore Maven cache for a dedicated job
   cmd-prepare-gpg:
     steps:
@@ -177,7 +176,7 @@ commands:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
       - save_cache:
-          key: gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v10-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always

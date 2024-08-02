@@ -56,7 +56,7 @@ export class ConfigurationService {
             this.config = {};
             this.config.baseURL = environmentBaseUrl;
             this.http
-              .get(`${this.config.baseURL}/theme`)
+              .get(`${this.config.baseURL}/theme?type=PORTAL`)
               .toPromise()
               .then(theme => {
                 applyTheme(theme);

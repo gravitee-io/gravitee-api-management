@@ -76,6 +76,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.gateway.handlers</groupId>
+            <artifactId>gravitee-apim-gateway-handlers-shared-policy-group</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-platform</artifactId>
             <version>${project.version}</version>
@@ -246,7 +252,7 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- Mapstruct + Lombok -->
+        <!-- Mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -367,27 +373,6 @@
             <artifactId>javax.inject</artifactId>
         </dependency>
 
-        <!-- Netty native transport -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
-            <classifier>linux-x86_64</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-tcnative-boringssl-static</artifactId>
-            <classifier>${os.detected.classifier}</classifier>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-kqueue</artifactId>
-            <classifier>osx-x86_64</classifier>
-            <scope>runtime</scope>
-        </dependency>
-
         <!-- wiremock is late on jetty have to use its internal version to avoid classloading issues-->
         <dependency>
             <groupId>org.wiremock</groupId>
@@ -403,14 +388,6 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-            </extension>
-        </extensions>
-
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>

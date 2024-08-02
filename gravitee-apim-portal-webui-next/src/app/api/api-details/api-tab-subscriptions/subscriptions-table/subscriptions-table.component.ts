@@ -56,7 +56,7 @@ export class SubscriptionsTableComponent implements OnInit {
 
   public displayedColumns: string[] = ['application', 'plan', 'status', 'expand'];
   public subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
-  public subscriptionsStatus = new FormControl();
+  public subscriptionsStatus: FormControl<SubscriptionStatusEnum[] | null> = new FormControl<SubscriptionStatusEnum[]>([]);
   public subscriptionsList$!: Observable<Subscription[]>;
 
   constructor(
@@ -69,18 +69,13 @@ export class SubscriptionsTableComponent implements OnInit {
   }
 
   retrieveMetadataName(id: string, metadata: SubscriptionMetadata) {
-    if (Object.hasOwn(metadata, id)) {
-      return this.capitalizeFirstPipe.transform(<string>metadata[id]['name']);
-    } else {
-      return '-';
-    }
+    return Object.hasOwn(metadata, id) ? <string>metadata[id]['name'] : '-';
   }
 
   private loadSubscriptions$(): Observable<Subscription[]> {
     return this.subscriptionsStatus.valueChanges.pipe(
-      map(status => status.map((value: string) => value.toUpperCase())),
       startWith(this.subscriptionsStatus.value),
-      switchMap(status => this.subscriptionService.list(this.apiId, status)),
+      switchMap(status => this.subscriptionService.list({ apiId: this.apiId, statuses: status, size: -1 })),
       map(response => {
         return response.data
           ? response.data.map(sub => ({

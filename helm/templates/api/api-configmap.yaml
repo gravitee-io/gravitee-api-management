@@ -104,6 +104,18 @@ data:
       {{ else }}
         url: {{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}
       {{- end }}
+      {{- if .Values.installation.api.console }}
+        console:
+        {{- if .Values.installation.api.console.url }}
+          url: {{ .Values.installation.api.console.url }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.installation.api.portal }}
+        portal:
+        {{- if .Values.installation.api.portal.url }}
+          url: {{ .Values.installation.api.portal.url }}
+        {{- end }}
+      {{- end }}
         proxyPath:
           management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.management.path }}
           portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.portal.path }}
@@ -297,15 +309,15 @@ data:
             url: {{ .Values.ldap.context.url | quote }}
             base: {{ .Values.ldap.context.base | quote }}
           authentication:
-            user: 
+            user:
               base: {{ .Values.ldap.authentication.user.base | quote }}
               filter: {{ .Values.ldap.authentication.user.filter | quote }}
               {{- if .Values.ldap.authentication.user.photo }}
               photo-attribute: {{ .Values.ldap.authentication.user.photo | quote }}
               {{- end }}
             group:
-              base: {{ .Values.ldap.authentication.group.base | quote }} 
-              filter: {{ .Values.ldap.authentication.group.filter | quote }} 
+              base: {{ .Values.ldap.authentication.group.base | quote }}
+              filter: {{ .Values.ldap.authentication.group.filter | quote }}
               role:
                 attribute: {{ .Values.ldap.authentication.group.role.attribute | quote }}
                 mapper: {
@@ -317,8 +329,8 @@ data:
           lookup:
             allow-email-in-search-results: {{ .Values.ldap.lookup.allowEmailInSearchResults }}
             user:
-              base: {{ .Values.ldap.lookup.user.base | quote }} 
-              filter: {{ .Values.ldap.lookup.user.filter | quote }} 
+              base: {{ .Values.ldap.lookup.user.base | quote }}
+              filter: {{ .Values.ldap.lookup.user.filter | quote }}
         {{- end }}
         {{- if .Values.oidcAuth.enabled }}
         - type: oidc
@@ -381,13 +393,13 @@ data:
             {{- end }}
           {{- end }}
         {{- end }}
-    
+
     {{- if .Values.smtp }}
     # SMTP configuration used to send mails
     email:
       {{- .Values.smtp | toYaml | nindent 6 }}
     {{- end }}
-    
+
     # SMTP configuration used to send notifications / alerts
     notifiers:
       email:
@@ -456,7 +468,7 @@ data:
         # Allows to register new users from portal (default false)
         #enabled: true
         token:
-          #expire-after: 86400
+        #expire-after: 86400
         anonymize-on-delete:
           enabled: {{ .Values.api.user.anynomizeOnDelete }}
     # The portal URL used in emails
@@ -471,13 +483,13 @@ data:
       enabled: {{ .Values.api.supportEnabled }}
 
     # Allows to rate an API (default value: false)
-    rating :
+    rating:
       enabled: {{ .Values.api.ratingEnabled }}
 
     # Set the Subscribe to newsletter feature (default value: true)
-    newsletter :
+    newsletter:
       enabled: {{ .Values.api.newsletterEnabled }}
-    
+
     gateway:
       unknown-expire-after: {{ .Values.api.gateway.unknownExpireAfter }}
 
@@ -537,22 +549,22 @@ data:
     cluster:
       type: hazelcast
       hazelcast:
-        config-path: ${gravitee.home}/config/hazelcast.xml
+        config-path: "${gravitee.home}/config/hazelcast-cluster.xml"
     cache:
       type: hazelcast
       hazelcast:
-        config-path: "${gravitee.home}/config/hazelcast.xml"
+        config-path: "${gravitee.home}/config/hazelcast-cache.xml"
     {{- end }}
     {{- end }}
 
     {{- if .Values.api.federation.enabled }}
-  hazelcast.xml: |-
+  hazelcast-cluster.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
     <hazelcast xmlns="http://www.hazelcast.com/schema/config"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://www.hazelcast.com/schema/config
                http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
-        <cluster-name>graviteeio-api-cluster</cluster-name>
+        <cluster-name>graviteeio-apim-cluster</cluster-name>
         <properties>
             <property name="hazelcast.discovery.enabled">true</property>
             <property name="hazelcast.max.wait.seconds.before.join">3</property>
@@ -561,12 +573,45 @@ data:
             <property name="hazelcast.logging.type">slf4j</property>
         </properties>
 
-        <queue name="integration-cluster-command-*">
+        <queue name="integration-*">
             <backup-count>0</backup-count>
             <async-backup-count>1</async-backup-count>
+            <empty-queue-ttl>300</empty-queue-ttl>
         </queue>
 
-        <map name="integration-controller-primary-channel-candidate">
+        <cp-subsystem>
+            <cp-member-count>0</cp-member-count>
+        </cp-subsystem>
+
+        <network>
+            <port>5701</port>
+            <join>
+                <multicast enabled="false"/>
+                <tcp-ip enabled="false"/>
+                <kubernetes enabled="true">
+                    <namespace>{{ .Release.Namespace }}</namespace>
+                    <service-name>{{ template "gravitee.api.fullname" . }}-hz</service-name>
+                    <service-port>5701</service-port>
+                </kubernetes>
+            </join>
+        </network>
+    </hazelcast>
+  hazelcast-cache.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+        <cluster-name>graviteeio-apim-cache</cluster-name>
+        <properties>
+            <property name="hazelcast.discovery.enabled">true</property>
+            <property name="hazelcast.max.wait.seconds.before.join">3</property>
+            <property name="hazelcast.member.list.publish.interval.seconds">5</property>
+            <property name="hazelcast.socket.client.bind.any">false</property>
+            <property name="hazelcast.logging.type">slf4j</property>
+        </properties>
+
+        <map name="integration-*">
             <backup-count>0</backup-count>
             <async-backup-count>1</async-backup-count>
         </map>
@@ -576,12 +621,14 @@ data:
         </cp-subsystem>
 
         <network>
+            <port>5702</port>
             <join>
                 <multicast enabled="false"/>
                 <tcp-ip enabled="false"/>
                 <kubernetes enabled="true">
                     <namespace>{{ .Release.Namespace }}</namespace>
-                    <service-name>{{ template "gravitee.api.fullname" . }}</service-name>
+                    <service-name>{{ template "gravitee.api.fullname" . }}-hz</service-name>
+                    <service-port>5702</service-port>
                 </kubernetes>
             </join>
         </network>

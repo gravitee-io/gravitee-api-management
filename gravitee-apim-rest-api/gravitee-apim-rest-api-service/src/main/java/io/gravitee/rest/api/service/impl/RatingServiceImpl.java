@@ -206,22 +206,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Page<Rating> pageRating = ratingRepository.findByReferenceIdAndReferenceTypePageable(
-                api,
-                RatingReferenceType.API,
-                convert(pageable)
-            );
-            final List<RatingEntity> ratingEntities = pageRating
-                .getContent()
-                .stream()
-                .map(rating -> convert(executionContext, rating))
-                .collect(toList());
-            return new Page<>(
-                ratingEntities,
-                pageRating.getPageNumber(),
-                (int) pageRating.getPageElements(),
-                pageRating.getTotalElements()
-            );
+            return ratingRepository
+                .findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API, convert(pageable))
+                .map(rating -> convert(executionContext, rating));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
@@ -235,8 +222,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
         try {
             final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
-            final List<RatingEntity> ratingEntities = ratings.stream().map(rating -> convert(executionContext, rating)).collect(toList());
-            return ratingEntities;
+            return ratings.stream().map(rating -> convert(executionContext, rating)).collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.integration.model;
 
 import io.gravitee.definition.model.federation.FederatedApi;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -30,9 +31,10 @@ public record IntegrationApi(
     String version,
     Map<String, String> connectionDetails,
     List<Plan> plans,
-    List<Page> pages
+    List<Page> pages,
+    Collection<Metadata> metadata
 ) {
-    public record Plan(String id, String name, String description, PlanType type) {}
+    public record Plan(String id, String name, String description, PlanType type, List<String> characteristics) {}
     public enum PlanType {
         API_KEY,
         OAUTH2,
@@ -46,6 +48,8 @@ public record IntegrationApi(
         MARKDOWN_TEMPLATE,
         SWAGGER,
     }
+
+    public record Metadata(String name, String value, io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat format) {}
 
     public FederatedApi.FederatedApiBuilder toFederatedApiDefinitionBuilder() {
         return FederatedApi.builder().providerId(id).apiVersion(version).name(name).server(connectionDetails);

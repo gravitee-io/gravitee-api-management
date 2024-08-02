@@ -110,6 +110,11 @@ export class SettingsNavigationService {
             routerLink: './dictionaries',
             permissions: ['environment-dictionary-r'],
           },
+          {
+            displayName: 'Shared Policy Groups',
+            routerLink: './shared-policy-groups',
+            permissions: ['environment-shared_policy_group-r'],
+          },
         ],
       },
       {

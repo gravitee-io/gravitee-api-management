@@ -52,8 +52,8 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
     private static final String ID_SEPARATOR = "-";
     protected final List<Hook> policyHooks = new ArrayList<>();
-    private final PolicyManager policyManager;
-    private final Cache<String, PolicyChain> policyChains;
+    protected final PolicyManager policyManager;
+    protected final Cache<String, PolicyChain> policyChains;
 
     public DefaultPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
         this.policyManager = policyManager;

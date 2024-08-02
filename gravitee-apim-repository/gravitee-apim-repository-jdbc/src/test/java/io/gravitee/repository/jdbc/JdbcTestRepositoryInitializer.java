@@ -139,7 +139,9 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flow_tags",
         "upgraders",
         "integrations",
-        "api_category_orders"
+        "integrationjobs",
+        "api_category_orders",
+        "sharedpolicygroups"
     );
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate, List.of("databasechangelog", "databasechangeloglock"));
     private final DataSource dataSource;

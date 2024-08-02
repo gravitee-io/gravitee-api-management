@@ -14,32 +14,28 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
-import { Subject } from 'rxjs';
+import { booleanAttribute, Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { getLogoForPageType, PageType, getTitleForPageType } from '../../../../../entities/management-api-v2';
+import { PageType } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-empty-state',
   templateUrl: './api-documentation-v4-empty-state.component.html',
   styleUrls: ['./api-documentation-v4-empty-state.component.scss'],
 })
-export class ApiDocumentationV4EmptyStateComponent implements OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-
+export class ApiDocumentationV4EmptyStateComponent {
   @Output()
-  onAddPage = new EventEmitter<PageType>();
+  addPage = new EventEmitter<PageType>();
 
   @Input()
-  public isReadOnly = false;
+  isReadOnly = false;
 
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
-  }
+  @Input({ transform: booleanAttribute })
+  showAddPageButton: boolean = false;
 
-  // expose constants
-  readonly getLogoForPageType = getLogoForPageType;
-  readonly getTitleForPageType = getTitleForPageType;
-  pageTypes: PageType[] = ['MARKDOWN', 'SWAGGER', 'ASYNCAPI'];
+  @Input()
+  emptyPageTitle!: string;
+
+  @Input()
+  emptyPageMessage!: string;
 }

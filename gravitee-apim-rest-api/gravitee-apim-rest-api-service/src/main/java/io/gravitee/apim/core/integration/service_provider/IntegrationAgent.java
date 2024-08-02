@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.integration.service_provider;
 
+import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -34,7 +35,7 @@ public interface IntegrationAgent {
      */
     Single<Status> getAgentStatusFor(String integrationId);
 
-    Flowable<IntegrationApi> fetchAllApis(Integration integration);
+    Single<IngestStarted> startIngest(String integrationId, String ingestJobId);
 
     /**
      * Send Subscription command to Agent.

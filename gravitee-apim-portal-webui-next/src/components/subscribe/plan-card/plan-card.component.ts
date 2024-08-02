@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { MatCard, MatCardContent, MatCardFooter, MatCardHeader } from '@angular/material/card';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import { MatTooltip } from '@angular/material/tooltip';
 
 import { getPlanSecurityTypeLabel, Plan } from '../../../entities/plan/plan';
 import { ToPeriodTimeUnitLabelPipe } from '../../../pipe/time-unit.pipe';
+import { RadioCardComponent } from '../../radio-card/radio-card.component';
 
 @Component({
   selector: 'app-plan-card',
   standalone: true,
-  imports: [MatCard, MatCardHeader, MatRadioButton, MatRadioGroup, MatCardContent, MatCardFooter, MatTooltip, ToPeriodTimeUnitLabelPipe],
+  imports: [ToPeriodTimeUnitLabelPipe, RadioCardComponent],
   templateUrl: './plan-card.component.html',
   providers: [ToPeriodTimeUnitLabelPipe],
   styleUrl: './plan-card.component.scss',

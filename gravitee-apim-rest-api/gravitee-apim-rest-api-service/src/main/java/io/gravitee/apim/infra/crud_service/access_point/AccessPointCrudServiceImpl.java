@@ -144,6 +144,6 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         accessPointToDelete.setStatus(AccessPointStatus.DELETED);
         accessPointToDelete.setUpdatedAt(new Date());
         var updatedAccessPoint = accessPointRepository.update(accessPointToDelete);
-        eventManager.publishEvent(AccessPointEvent.DELETED, updatedAccessPoint);
+        eventManager.publishEvent(AccessPointEvent.DELETED, AccessPointAdapter.INSTANCE.toEntity(updatedAccessPoint));
     }
 }

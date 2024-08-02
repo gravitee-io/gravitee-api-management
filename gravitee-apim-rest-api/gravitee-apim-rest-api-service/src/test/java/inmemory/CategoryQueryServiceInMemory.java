@@ -43,7 +43,7 @@ public class CategoryQueryServiceInMemory implements CategoryQueryService, InMem
     }
 
     @Override
-    public Optional<Category> findById(String idOrKey, String environmentId) {
+    public Optional<Category> findByIdOrKey(String idOrKey, String environmentId) {
         return storage
             .stream()
             .filter(category -> Objects.equals(idOrKey, category.getId()) || (Objects.equals(idOrKey, category.getKey())))

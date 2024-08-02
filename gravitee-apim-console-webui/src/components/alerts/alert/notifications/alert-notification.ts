@@ -44,25 +44,26 @@ const AlertNotificationComponent: ng.IComponentOptions = {
       };
 
       this.reloadNotifierSchema = () => {
-        NotifierService.getSchema(this.notification.type).then(
-          ({ data }) => {
-            this.notifierJsonSchema = { ...data, readonly: this.isReadonly };
-            return {
-              schema: data,
-            };
-          },
-          (response) => {
-            if (response.status === 404) {
-              this.notifierJsonSchema = {};
-              return {
-                schema: {},
-              };
-            } else {
-              // todo manage errors
-              NotificationService.showError('Unexpected error while loading notifier schema for ' + this.notifier.type);
-            }
-          },
-        );
+        NotifierService.getSchema(this.notification.type)
+          .then(
+            ({ data }) => {
+              return { ...data, readonly: this.isReadonly };
+            },
+            (response) => {
+              if (response.status === 404) {
+                this.notifierJsonSchema = {};
+                return {
+                  schema: {},
+                };
+              } else {
+                // todo manage errors
+                NotificationService.showError('Unexpected error while loading notifier schema for ' + this.notifier.type);
+              }
+            },
+          )
+          .then((notifierJsonSchema) => {
+            this.notifierJsonSchema = notifierJsonSchema;
+          });
       };
 
       this.remove = () => {

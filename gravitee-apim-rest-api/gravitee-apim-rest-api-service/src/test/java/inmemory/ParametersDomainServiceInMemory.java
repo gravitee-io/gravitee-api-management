@@ -17,11 +17,14 @@ package inmemory;
 
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ParametersDomainServiceInMemory implements ParametersDomainService, InMemoryAlternative<Parameter> {
@@ -37,6 +40,22 @@ public class ParametersDomainServiceInMemory implements ParametersDomainService,
         return parameters
             .stream()
             .filter(parameter -> keys.contains(Key.findByKey(parameter.getKey())))
+            .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
+    }
+
+    @Override
+    public Map<Key, String> getEnvironmentParameters(ExecutionContext executionContext, List<Key> keys) {
+        if (keys.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return parameters
+            .stream()
+            .filter(parameter ->
+                keys.contains(Key.findByKey(parameter.getKey())) &&
+                Objects.equals(executionContext.getEnvironmentId(), parameter.getReferenceId()) &&
+                ParameterReferenceType.ENVIRONMENT.equals(parameter.getReferenceType())
+            )
             .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
     }
 

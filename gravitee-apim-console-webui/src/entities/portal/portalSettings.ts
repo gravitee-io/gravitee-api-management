@@ -222,4 +222,9 @@ export interface PortalSettingsPortalNext {
   access: {
     enabled: boolean;
   };
+  banner?: {
+    title?: string;
+    subtitle?: string;
+    enabled?: boolean;
+  };
 }

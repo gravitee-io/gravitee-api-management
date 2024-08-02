@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,6 +44,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFa
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -88,6 +90,9 @@ public class DefaultApiReactorFactoryTest {
 
     @Mock
     Node node;
+
+    @Mock
+    PolicyFactoryManager policyFactoryManager;
 
     @Mock
     PolicyFactory policyFactory;
@@ -136,12 +141,13 @@ public class DefaultApiReactorFactoryTest {
     @BeforeEach
     public void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
+        lenient().when(policyFactoryManager.get(any())).thenReturn(policyFactory);
         cut =
             new DefaultApiReactorFactory(
                 applicationContext,
                 configuration,
                 node,
-                policyFactory,
+                policyFactoryManager,
                 entrypointConnectorPluginManager,
                 endpointConnectorPluginManager,
                 apiServicePluginManager,

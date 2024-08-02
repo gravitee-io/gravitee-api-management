@@ -21,9 +21,10 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
 
 public class ApiModelFactory {
@@ -55,6 +56,7 @@ public class ApiModelFactory {
             .updatedAt(now)
             .visibility(Api.Visibility.valueOf(crd.getVisibility()))
             .apiDefinitionV4(crd.toApiDefinitionBuilder().id(id).build())
+            .disableMembershipNotifications(!crd.isNotifyMembers())
             .build();
     }
 
@@ -90,7 +92,28 @@ public class ApiModelFactory {
             .updatedAt(now)
             .environmentId(integration.getEnvironmentId())
             .lifecycleState(null)
-            .originContext(new IntegrationContext(integration.getId()))
+            .originContext(new OriginContext.Integration(integration.getId()))
+            .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
+            .build();
+    }
+
+    public static Api fromIngestionJob(IntegrationApi integrationApi, IntegrationJob job) {
+        var id = generateFederatedApiId(integrationApi, job);
+        var now = TimeProvider.now();
+        var defaultVersion = "0.0.0";
+        var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
+        return Api
+            .builder()
+            .id(id)
+            .version(version)
+            .definitionVersion(DefinitionVersion.FEDERATED)
+            .name(integrationApi.name())
+            .description(integrationApi.description())
+            .createdAt(now)
+            .updatedAt(now)
+            .environmentId(job.getEnvironmentId())
+            .lifecycleState(null)
+            .originContext(new OriginContext.Integration(job.getSourceId()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }
@@ -115,6 +138,33 @@ public class ApiModelFactory {
      * @return The generated id
      */
     public static String generateFederatedApiId(IntegrationApi integrationApi, Integration integration) {
-        return UuidString.generateForEnvironment(integration.getEnvironmentId(), integration.getId(), integrationApi.uniqueId());
+        return generateFederatedApiId(integration.getEnvironmentId(), integration.getId(), integrationApi);
+    }
+
+    public static String generateFederatedApiId(String environmentId, String integrationId, IntegrationApi integrationApi) {
+        return UuidString.generateForEnvironment(environmentId, integrationId, integrationApi.uniqueId());
+    }
+
+    /**
+     * Generate the Federated API identifier.
+     *
+     * <p>
+     *     The id is not randomly generated it is based on
+     *     <ul>
+     *         <li>environment id</li>
+     *         <li>integration id</li>
+     *         <li>external API unique id</li>
+     *     </ul>
+     * </p>
+     * <p>
+     *     The combination should produce a unique id that can be recreated to check if a specific API has been already
+     *     ingested so we can ignore it.
+     * </p>
+     * @param integrationApi The external API
+     * @param job The job that ingested the API
+     * @return The generated id
+     */
+    public static String generateFederatedApiId(IntegrationApi integrationApi, IntegrationJob job) {
+        return UuidString.generateForEnvironment(job.getEnvironmentId(), job.getSourceId(), integrationApi.uniqueId());
     }
 }

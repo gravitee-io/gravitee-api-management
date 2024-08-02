@@ -39,7 +39,7 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -85,7 +85,7 @@ public class AcceptSubscriptionDomainService {
         log.debug("Auto accepting subscription {}", subscriptionId);
 
         var subscription = subscriptionCrudService.get(subscriptionId);
-        var plan = planCrudService.findById(subscription.getPlanId());
+        var plan = planCrudService.getById(subscription.getPlanId());
         return accept(subscription, plan, startingAt, endingAt, reason, customKey, auditInfo);
     }
 
@@ -116,7 +116,7 @@ public class AcceptSubscriptionDomainService {
         if (plan.isFederated()) {
             var api = apiCrudService.get(subscription.getApiId());
             var application = applicationCrudService.findById(subscription.getApplicationId(), api.getEnvironmentId());
-            var integrationId = ((IntegrationContext) api.getOriginContext()).getIntegrationId();
+            var integrationId = api.getOriginContext() instanceof OriginContext.Integration inte ? inte.integrationId() : null;
 
             SubscriptionParameter subscriptionParams;
             if (plan.isApiKey()) {

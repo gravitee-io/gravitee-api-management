@@ -98,8 +98,11 @@ describe('ConfigService', () => {
       it('should load portal next configuration', done => {
         const portalNext: ConfigurationPortalNext = {
           siteTitle: 'a site title',
-          bannerTitle: 'a title',
-          bannerSubtitle: 'a subtitle',
+          banner: {
+            enabled: true,
+            title: 'a title',
+            subtitle: 'a subtitle',
+          },
         };
         service.loadConfiguration().subscribe(() => {
           expect(service.configuration.portalNext).toEqual(portalNext);

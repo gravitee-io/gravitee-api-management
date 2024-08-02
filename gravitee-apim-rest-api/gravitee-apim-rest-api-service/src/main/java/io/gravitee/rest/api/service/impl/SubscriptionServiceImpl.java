@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CREATED;
@@ -76,8 +75,6 @@ import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.ApiModel;
@@ -92,12 +89,10 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.ApplicationArchivedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadySubscribedException;
@@ -128,6 +123,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -157,7 +153,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private static final String SUBSCRIPTION_SYSTEM_VALIDATOR = "system";
     private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
-    private static final char separator = ';';
+    private static final String separator = ";";
     /**
      * Logger.
      */
@@ -1265,13 +1261,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             } else {
                 final SubscriptionCriteria.SubscriptionCriteriaBuilder builder = toSubscriptionCriteriaBuilder(query);
 
-                Page<Subscription> pageSubscription = subscriptionRepository.search(
-                    builder.build(),
-                    null,
-                    new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-                );
+                var pageSubscription = subscriptionRepository
+                    .search(
+                        builder.build(),
+                        null,
+                        new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+                    )
+                    .map(this::convert);
 
-                List<SubscriptionEntity> subscriptions = pageSubscription.getContent().stream().map(this::convert).collect(toList());
+                List<SubscriptionEntity> subscriptions = pageSubscription.getContent();
 
                 if (fillPlanSecurityType) {
                     fillPlanSecurityType(executionContext, subscriptions);
@@ -1420,6 +1418,45 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Override
     public String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata) {
         final StringBuilder sb = new StringBuilder();
+        prepareSubscriptionCsvHeaders(sb);
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            return sb.toString();
+        }
+        prepareSubscriptionCsvRows(subscriptions, metadata, sb);
+        return sb.toString();
+    }
+
+    private void prepareSubscriptionCsvRows(
+        Collection<SubscriptionEntity> subscriptions,
+        Map<String, Map<String, Object>> metadata,
+        StringBuilder sb
+    ) {
+        for (final SubscriptionEntity subscription : subscriptions) {
+            final Object plan = metadata.get(subscription.getPlan());
+            Collection<String> cells = new ArrayList<>();
+            cells.add(getName(plan));
+            final Object application = metadata.get(subscription.getApplication());
+            cells.add(getName(application));
+
+            prepareDateCell(subscription.getCreatedAt(), cells);
+            prepareDateCell(subscription.getProcessedAt(), cells);
+            prepareDateCell(subscription.getStartingAt(), cells);
+            prepareDateCell(subscription.getEndingAt(), cells);
+
+            cells.add(subscription.getStatus().name());
+            sb.append(String.join(separator, cells)).append(lineSeparator());
+        }
+    }
+
+    private void prepareDateCell(Date date, Collection<String> cells) {
+        if (date != null) {
+            cells.add(dateFormatter.format(date));
+        } else {
+            cells.add("");
+        }
+    }
+
+    private void prepareSubscriptionCsvHeaders(StringBuilder sb) {
         sb.append("Plan");
         sb.append(separator);
         sb.append("Application");
@@ -1434,44 +1471,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         sb.append(separator);
         sb.append("Status");
         sb.append(lineSeparator());
-
-        if (subscriptions == null || subscriptions.isEmpty()) {
-            return sb.toString();
-        }
-        for (final SubscriptionEntity subscription : subscriptions) {
-            final Object plan = metadata.get(subscription.getPlan());
-            sb.append(getName(plan));
-            sb.append(separator);
-
-            final Object application = metadata.get(subscription.getApplication());
-            sb.append(getName(application));
-            sb.append(separator);
-
-            if (subscription.getCreatedAt() != null) {
-                sb.append(dateFormatter.format(subscription.getCreatedAt()));
-                sb.append(separator);
-            }
-
-            if (subscription.getProcessedAt() != null) {
-                sb.append(dateFormatter.format(subscription.getProcessedAt()));
-                sb.append(separator);
-            }
-
-            if (subscription.getStartingAt() != null) {
-                sb.append(dateFormatter.format(subscription.getStartingAt()));
-                sb.append(separator);
-            }
-
-            if (subscription.getEndingAt() != null) {
-                sb.append(dateFormatter.format(subscription.getEndingAt()));
-                sb.append(separator);
-            }
-
-            sb.append(subscription.getStatus());
-
-            sb.append(lineSeparator());
-        }
-        return sb.toString();
     }
 
     @Override

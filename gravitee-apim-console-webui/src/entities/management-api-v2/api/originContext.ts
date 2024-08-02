@@ -35,6 +35,8 @@ export class KubernetesContext implements OriginContext {
 export class IntegrationContext implements OriginContext {
   public origin: Origin = 'INTEGRATION';
   public integrationId: string;
+  public integrationName: string;
+  public provider: string;
 }
 
 export type Origin = 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';

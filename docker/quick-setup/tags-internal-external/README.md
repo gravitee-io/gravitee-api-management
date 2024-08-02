@@ -5,7 +5,8 @@ Here is a docker-compose to run APIM with two gateways:
  - One configured with sharding tag `external`. It will only sync APIs configured for this tag. To use this gateway, call your API with `http://localhost:8081/myapi`.
 
 ---
-> For more information, please read this doc: https://documentation.gravitee.io/apim/getting-started/configuration/the-gravitee-api-gateway/configure-sharding-tags-for-your-gravitee-api-gateways
+> For more information, please read this doc: 
+> https://documentation.gravitee.io/apim/getting-started/configuration/apim-gateway/sharding-tags#configure-sharding-tags-for-your-gravitee-api-gateways
 ---
 
 ## How to use ?

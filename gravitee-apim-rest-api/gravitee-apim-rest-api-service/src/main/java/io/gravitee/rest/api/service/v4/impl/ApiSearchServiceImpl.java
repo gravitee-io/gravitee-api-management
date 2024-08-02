@@ -24,13 +24,18 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
@@ -49,7 +54,17 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +86,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final CategoryService categoryService;
     private final SearchEngineService searchEngineService;
     private final ApiAuthorizationService apiAuthorizationService;
+    private final IntegrationRepository integrationRepository;
 
     public ApiSearchServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -79,7 +95,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         @Lazy final PrimaryOwnerService primaryOwnerService,
         @Lazy final CategoryService categoryService,
         final SearchEngineService searchEngineService,
-        @Lazy final ApiAuthorizationService apiAuthorizationService
+        @Lazy final ApiAuthorizationService apiAuthorizationService,
+        @Lazy final IntegrationRepository integrationRepository
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -88,6 +105,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         this.categoryService = categoryService;
         this.searchEngineService = searchEngineService;
         this.apiAuthorizationService = apiAuthorizationService;
+        this.integrationRepository = integrationRepository;
     }
 
     @Override
@@ -101,7 +119,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findRepositoryApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
-        return genericApiMapper.toGenericApi(executionContext, api, primaryOwner);
+        GenericApiEntity genericApi = genericApiMapper.toGenericApi(executionContext, api, primaryOwner);
+        return enrichFederatedApi(genericApi);
     }
 
     @Override
@@ -269,7 +288,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
             executionContext,
-            apis.stream().map(Api::getId).collect(toList())
+            apis.stream().map(Api::getId).toList()
         );
 
         Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
@@ -278,10 +297,13 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         Stream<GenericApiEntity> apisStream;
 
         if (mapToFullGenericApiEntity) {
-            apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId())));
+            apisStream =
+                apis
+                    .stream()
+                    .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()))));
         } else {
             // Map to simple GenericApiEntity
-            apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())));
+            apisStream = apis.stream().map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))));
         }
 
         // Step 6: Sort by subset order and add Page information
@@ -443,5 +465,21 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         return streamApis
             .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId())))
             .collect(Collectors.toSet());
+    }
+
+    private GenericApiEntity enrichFederatedApi(GenericApiEntity genericApi) {
+        try {
+            if (genericApi instanceof FederatedApiEntity fede) {
+                integrationRepository
+                    .findById(fede.getOriginContext().integrationId())
+                    .map(integration ->
+                        new FederatedApiEntity.OriginContextView(fede.getOriginContext(), integration.getProvider(), integration.getName())
+                    )
+                    .ifPresent(fede::setOriginContext);
+            }
+        } catch (TechnicalException e) {
+            log.error("Impossible to find integrations", e);
+        }
+        return genericApi;
     }
 }

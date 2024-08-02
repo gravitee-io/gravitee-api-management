@@ -18,14 +18,14 @@
 <mat-card class="api-details" appearance="outlined">
   <mat-card-content>
     <div class="api-details__header">
-      <app-api-picture [picture]="api._links?.picture" [name]="api.name" [version]="api.version" [size]="40" />
+      <app-picture [picture]="api._links?.picture" [hashValue]="api.name + ' ' + api.version" [size]="40" />
       <div class="api-details__header__content">
         <div class="m3-headline-small">{{ api.name }}</div>
         <div class="m3-body-medium">{{ api.version }}</div>
       </div>
       @if (plans$ | async; as plans) {
         <div class="api-details__header-button">
-          @if (!plans.length) {
+          @if (!plans.length && isAuthenticated()) {
             <div class="m3-body-medium on-surface-variant" i18n="@@apiDetailsNoPlans">No plans available</div>
           }
           <button

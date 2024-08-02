@@ -403,6 +403,78 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+  # Plugins - Resources
+    /plugins/resources:
+      get:
+        tags:
+          - Plugins - Resources
+        summary: Get available resources by organization
+        description: |
+          Get available resources by organization.
+          
+          User must be authenticated.
+        operationId: getResources
+        responses:
+          "200":
+            description: List of Resources.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ResourcePlugin"
+          default:
+            $ref: "#/components/responses/Error"
+    /plugins/resources/{resrouceId}:
+      parameters:
+        - $ref: "#/components/parameters/policyIdParam"
+      get:
+        tags:
+          - Plugins - Resources
+        summary: Get a resource
+        description: |
+          Get a resource.
+          
+          User must be authenticated.
+        operationId: getResource
+        responses:
+          "200":
+            description: Resource
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ResourcePlugin"
+          default:
+            $ref: "#/components/responses/Error"
+    /plugins/resources/{policyId}/schema:
+      parameters:
+        - $ref: "#/components/parameters/policyIdParam"
+      get:
+        parameters:
+          - name: display
+            in: query
+            description: Display the schema in a specific format..
+            required: false
+            schema:
+              type: string
+              default: gio-form-json-schema
+              enum:
+                - gv-schema-form
+                - gio-form-json-schema
+        tags:
+          - Plugins - Resources
+        summary: Get a resource schema
+        description: |
+          Get the JSON schema that describes the configuration of a resource.
+          
+          User must be authenticated.
+        operationId: getResourceSchema
+        responses:
+          "200":
+            $ref: "#/components/responses/SchemaFormResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
 components:
     schemas:
         ConnectorPlugin:
@@ -452,6 +524,10 @@ components:
                           uniqueItems: true
                           items:
                               $ref: "#/components/schemas/ExecutionPhase"
+        ResourcePlugin:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/PlatformPlugin"
         PlatformPlugin:
             type: object
             properties:

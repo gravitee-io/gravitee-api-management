@@ -16,9 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
-import io.gravitee.rest.api.model.context.IntegrationContext;
-import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -32,16 +29,17 @@ public interface DefinitionContextMapper {
             return null;
         }
 
-        return switch (originContext.getOrigin()) {
-            case MANAGEMENT -> new DefinitionContext()
+        if (originContext instanceof OriginContext.Management) {
+            return new DefinitionContext()
                 .origin(DefinitionContext.OriginEnum.MANAGEMENT)
                 .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
                 .syncFrom(DefinitionContext.SyncFromEnum.MANAGEMENT);
-            case KUBERNETES -> new DefinitionContext()
+        } else if (originContext instanceof OriginContext.Kubernetes) {
+            return new DefinitionContext()
                 .origin(DefinitionContext.OriginEnum.KUBERNETES)
                 .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
                 .syncFrom(DefinitionContext.SyncFromEnum.KUBERNETES);
-            case INTEGRATION -> null;
-        };
+        }
+        return null;
     }
 }

@@ -57,6 +57,7 @@ import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationRe
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
@@ -79,6 +80,7 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.repository.management.api.EventRepository;
 import io.vertx.core.Vertx;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -232,7 +234,7 @@ public class DebugConfiguration {
     @Bean
     public DefaultOrganizationReactorFactory debugOrganizationReactorFactory(
         DefaultClassLoader classLoader,
-        PolicyFactory policyFactory,
+        PolicyFactoryManager policyFactoryManager,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider,
         io.gravitee.node.api.configuration.Configuration configuration
@@ -240,7 +242,7 @@ public class DebugConfiguration {
         return new DebugOrganizationReactorFactory(
             classLoader,
             applicationContext.getParent(),
-            policyFactory,
+            policyFactoryManager,
             policyClassLoaderFactory,
             componentProvider,
             configuration
@@ -280,6 +282,11 @@ public class DebugConfiguration {
             reactorHandlerRegistry,
             accessPointManager
         );
+    }
+
+    @Bean
+    public PolicyFactoryManager debugPolicyFactoryManager(Set<PolicyFactory> policyFactories) {
+        return new PolicyFactoryManager(policyFactories);
     }
 
     @Bean
@@ -364,7 +371,7 @@ public class DebugConfiguration {
     @Bean
     public ReactorFactory<Api> debugReactorHandlerFactory(
         @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        @Qualifier("debugPolicyFactory") PolicyFactory policyFactory,
+        @Qualifier("debugPolicyFactoryManager") PolicyFactoryManager policyFactoryManager,
         @Qualifier(
             "debugOrganizationPolicyChainFactoryManager"
         ) io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager debugOrganizationPolicyChainFactoryManager,
@@ -381,7 +388,7 @@ public class DebugConfiguration {
             configuration,
             node,
             v3PolicyFactoryCreator,
-            policyFactory,
+            policyFactoryManager,
             debugOrganizationPolicyChainFactoryManager,
             organizationManager,
             policyChainProviderLoader,

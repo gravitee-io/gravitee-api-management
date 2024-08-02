@@ -118,7 +118,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandlerFactory.class);
     private final Configuration configuration;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
-    private final io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory;
+    private final io.gravitee.gateway.reactive.policy.PolicyFactoryManager policyFactoryManager;
     private final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
@@ -134,7 +134,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         Configuration configuration,
         Node node,
         PolicyFactoryCreator v3PolicyFactoryCreator,
-        io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory,
+        io.gravitee.gateway.reactive.policy.PolicyFactoryManager policyFactoryManager,
         OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
@@ -148,7 +148,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.configuration = configuration;
         this.node = node;
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
-        this.policyFactory = policyFactory;
+        this.policyFactoryManager = policyFactoryManager;
         this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.organizationManager = organizationManager;
         this.policyChainProviderLoader = policyChainProviderLoader;
@@ -273,7 +273,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                 } else {
                     final io.gravitee.gateway.reactive.policy.PolicyManager policyManager = policyManager(
                         api,
-                        policyFactory,
+                        policyFactoryManager,
                         policyConfigurationFactory(),
                         applicationContext.getBean(PolicyClassLoaderFactory.class),
                         apiComponentProvider
@@ -453,7 +453,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
 
     public io.gravitee.gateway.reactive.policy.PolicyManager policyManager(
         Api api,
-        io.gravitee.gateway.reactive.policy.PolicyFactory factory,
+        io.gravitee.gateway.reactive.policy.PolicyFactoryManager factoryManager,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
@@ -469,7 +469,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         return new io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager(
             applicationContext.getBean(DefaultClassLoader.class),
             api,
-            factory,
+            factoryManager,
             policyConfigurationFactory,
             ppm,
             policyClassLoaderFactory,

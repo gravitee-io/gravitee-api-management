@@ -21,15 +21,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.IntegrationJobFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.integration.model.IntegrationView;
+import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase.Input;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
@@ -56,6 +60,7 @@ class GetIntegrationUseCaseTest {
     private static final String ENV_ID = "my-env";
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
+    IntegrationJobQueryServiceInMemory integrationJobQueryService = new IntegrationJobQueryServiceInMemory();
     LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
@@ -67,6 +72,7 @@ class GetIntegrationUseCaseTest {
         usecase =
             new GetIntegrationUseCase(
                 integrationCrudServiceInMemory,
+                integrationJobQueryService,
                 new LicenseDomainService(licenseCrudService, licenseManager),
                 integrationAgent
             );
@@ -78,7 +84,7 @@ class GetIntegrationUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(integrationCrudServiceInMemory, licenseCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(integrationCrudServiceInMemory, integrationJobQueryService, licenseCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -107,6 +113,19 @@ class GetIntegrationUseCaseTest {
     }
 
     @Test
+    void should_return_integration_with_a_pending_job() {
+        // Given
+        integrationAgent.configureAgentFor(INTEGRATION_ID, IntegrationAgent.Status.DISCONNECTED);
+        var job = givenIntegrationJob(IntegrationJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
+
+        // When
+        var output = usecase.execute(new Input(INTEGRATION_ID, ORGANIZATION_ID));
+
+        // Then
+        assertThat(output.integration().getPendingJob()).isEqualTo(job);
+    }
+
+    @Test
     void should_throw_error_when_integration_not_found() {
         var input = new Input("not-existing-integration-id", ORGANIZATION_ID);
 
@@ -125,5 +144,10 @@ class GetIntegrationUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
+    }
+
+    private IntegrationJob givenIntegrationJob(IntegrationJob job) {
+        integrationJobQueryService.initWith(List.of(job));
+        return job;
     }
 }

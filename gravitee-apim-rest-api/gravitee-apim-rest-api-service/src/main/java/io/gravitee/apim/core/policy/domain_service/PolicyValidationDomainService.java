@@ -15,6 +15,14 @@
  */
 package io.gravitee.apim.core.policy.domain_service;
 
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
+import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
+import io.gravitee.definition.model.v4.ApiType;
+import java.util.List;
+
 public interface PolicyValidationDomainService {
     String validateAndSanitizeConfiguration(String policyName, String configuration);
+
+    void validatePoliciesExecutionPhase(List<String> policyIds, ApiType apiType, PolicyPlugin.ExecutionPhase phase)
+        throws UnexpectedPoliciesException;
 }

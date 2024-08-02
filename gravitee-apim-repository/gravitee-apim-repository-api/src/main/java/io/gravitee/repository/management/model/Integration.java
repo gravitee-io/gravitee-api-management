@@ -33,6 +33,7 @@ import lombok.With;
 @Data
 public class Integration {
 
+    @With
     private String id;
 
     private String name;

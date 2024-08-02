@@ -80,7 +80,8 @@ class HelloCommandHandlerTest {
     @BeforeEach
     void setUp() {
         var factory = new IntegrationControllerCommandHandlerFactory(
-            new CheckIntegrationUseCase(integrationCrudServiceInMemory, environmentCrudService)
+            new CheckIntegrationUseCase(integrationCrudServiceInMemory, environmentCrudService),
+            null
         );
 
         commandHandler =

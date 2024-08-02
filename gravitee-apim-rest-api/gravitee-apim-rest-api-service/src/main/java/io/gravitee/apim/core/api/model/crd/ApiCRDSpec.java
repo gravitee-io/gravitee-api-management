@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model.crd;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -27,9 +28,9 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +99,8 @@ public class ApiCRDSpec {
 
     private Set<MemberCRD> members;
 
+    private boolean notifyMembers;
+
     private FlowExecution flowExecution;
 
     private Set<String> categories;
@@ -127,15 +130,12 @@ public class ApiCRDSpec {
             .lifecycleState(Api.LifecycleState.valueOf(state))
             .categories(categories)
             .originContext(
-                KubernetesContext
-                    .builder()
-                    .syncFrom(
-                        definitionContext.isSyncFromManagement()
-                            ? OriginContext.Origin.MANAGEMENT.name()
-                            : OriginContext.Origin.KUBERNETES.name()
-                    )
-                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
-                    .build()
+                new OriginContext.Kubernetes(
+                    OriginContext.Kubernetes.Mode.FULLY_MANAGED,
+                    definitionContext.isSyncFromManagement()
+                        ? OriginContext.Origin.MANAGEMENT.name()
+                        : OriginContext.Origin.KUBERNETES.name()
+                )
             )
             .groups(groups);
     }
@@ -161,5 +161,47 @@ public class ApiCRDSpec {
             .responseTemplates(responseTemplates)
             .tags(tags)
             .type(ApiType.valueOf(type));
+    }
+
+    public List<Path> getPaths() {
+        return getListeners()
+            .stream()
+            .filter(HttpListener.class::isInstance)
+            .map(HttpListener.class::cast)
+            .flatMap(httpListener ->
+                httpListener
+                    .getPaths()
+                    .stream()
+                    .map(path ->
+                        Path.builder().host(path.getHost()).path(path.getPath()).overrideAccess(path.isOverrideAccess()).build().sanitize()
+                    )
+            )
+            .toList();
+    }
+
+    public static class ApiCRDSpecBuilder {
+
+        public ApiCRDSpecBuilder paths(List<Path> paths) {
+            this.listeners.stream()
+                .filter(HttpListener.class::isInstance)
+                .map(HttpListener.class::cast)
+                .findFirst()
+                .ifPresent(listener ->
+                    listener.setPaths(
+                        paths
+                            .stream()
+                            .map(path ->
+                                io.gravitee.definition.model.v4.listener.http.Path
+                                    .builder()
+                                    .host(path.getHost())
+                                    .path(path.getPath())
+                                    .overrideAccess(path.isOverrideAccess())
+                                    .build()
+                            )
+                            .toList()
+                    )
+                );
+            return this;
+        }
     }
 }

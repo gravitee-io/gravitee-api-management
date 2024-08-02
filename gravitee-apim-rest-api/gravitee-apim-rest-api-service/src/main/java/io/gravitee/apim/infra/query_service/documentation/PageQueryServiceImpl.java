@@ -110,6 +110,22 @@ public class PageQueryServiceImpl implements PageQueryService {
         }
     }
 
+    @Override
+    public Optional<Page> findByNameAndReferenceId(String name, String referenceId) {
+        List<io.gravitee.repository.management.model.Page> result;
+        try {
+            result = pageRepository.search(new PageCriteria.Builder().name(name).referenceId(referenceId).build());
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while finding Page by name {}", name, e);
+            throw new TechnicalDomainException("Error when updating Page", e);
+        }
+        return switch (result.size()) {
+            case 0 -> Optional.empty();
+            case 1 -> Optional.of(PageAdapter.INSTANCE.toEntity(result.get(0)));
+            default -> throw new IllegalStateException("Found more than one page with name " + name);
+        };
+    }
+
     private List<Page> search(PageCriteria.Builder pageCriteriaBuilder, String apiId) {
         try {
             return PageAdapter.INSTANCE.toEntityList(pageRepository.search(pageCriteriaBuilder.build()));

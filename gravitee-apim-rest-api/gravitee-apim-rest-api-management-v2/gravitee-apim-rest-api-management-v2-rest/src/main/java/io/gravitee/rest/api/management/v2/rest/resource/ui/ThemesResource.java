@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
-import io.gravitee.apim.core.theme.use_case.GetPortalThemesUseCase;
+import io.gravitee.apim.core.theme.use_case.GetCurrentThemeUseCase;
+import io.gravitee.apim.core.theme.use_case.GetDefaultThemeUseCase;
+import io.gravitee.apim.core.theme.use_case.GetThemesUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ThemeType;
@@ -27,20 +29,35 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ThemeTypeNotSupportedException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ThemesResource extends AbstractResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
-    private GetPortalThemesUseCase getPortalThemesUseCase;
+    private GetThemesUseCase getPortalThemesUseCase;
+
+    @Inject
+    private GetDefaultThemeUseCase getDefaultThemeUseCase;
+
+    @Inject
+    private GetCurrentThemeUseCase getCurrentThemeUseCase;
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
@@ -52,7 +69,7 @@ public class ThemesResource extends AbstractResource {
     ) {
         var result = getPortalThemesUseCase
             .execute(
-                GetPortalThemesUseCase.Input
+                GetThemesUseCase.Input
                     .builder()
                     .type(ThemeMapper.INSTANCE.map(type))
                     .enabled(enabled)
@@ -73,5 +90,52 @@ public class ThemesResource extends AbstractResource {
                     .build()
             )
             .build();
+    }
+
+    @GET
+    @Path("_default")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDefaultTheme(@QueryParam("type") ThemeType type) {
+        if (Objects.isNull(type)) {
+            throw new ThemeTypeNotSupportedException();
+        }
+
+        var result = getDefaultThemeUseCase
+            .execute(
+                GetDefaultThemeUseCase.Input
+                    .builder()
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
+                    .executionContext(GraviteeContext.getExecutionContext())
+                    .build()
+            )
+            .result();
+        return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
+    }
+
+    @GET
+    @Path("_current")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCurrentTheme(@QueryParam("type") ThemeType type) {
+        if (Objects.isNull(type)) {
+            throw new ThemeTypeNotSupportedException();
+        }
+
+        var result = getCurrentThemeUseCase
+            .execute(
+                GetCurrentThemeUseCase.Input
+                    .builder()
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
+                    .executionContext(GraviteeContext.getExecutionContext())
+                    .build()
+            )
+            .result();
+        return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
+    }
+
+    @Path("{themeId}")
+    public ThemeResource getThemeResource() {
+        return resourceContext.getResource(ThemeResource.class);
     }
 }

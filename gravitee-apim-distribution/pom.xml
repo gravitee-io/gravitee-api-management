@@ -1368,6 +1368,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-oas-validation</artifactId>
+                    <version>${gravitee-policy-oas-validation.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reactors -->
                 <dependency>
@@ -1419,6 +1432,12 @@
                     <version>${gravitee-secretprovider-hc-vault.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>io.gravitee.secretprovider</groupId>
@@ -1426,6 +1445,12 @@
                     <version>${gravitee-secretprovider-kubernetes.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>

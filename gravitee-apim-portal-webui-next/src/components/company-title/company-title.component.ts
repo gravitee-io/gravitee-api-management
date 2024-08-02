@@ -27,4 +27,10 @@ import { RouterLink } from '@angular/router';
 export class CompanyTitleComponent {
   @Input()
   title: string = 'Developer Portal';
+  @Input()
+  logo!: string;
+
+  updateLogo() {
+    this.logo = 'assets/images/logo.png';
+  }
 }

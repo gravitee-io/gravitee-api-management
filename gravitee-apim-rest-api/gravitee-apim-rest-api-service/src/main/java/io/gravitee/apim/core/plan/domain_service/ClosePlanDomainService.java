@@ -26,8 +26,6 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import java.util.Date;
 import java.util.Map;
 
 @DomainService
@@ -52,7 +50,7 @@ public class ClosePlanDomainService {
             throw new ValidationDomainException("Impossible to close a plan with active subscriptions");
         }
 
-        var planToClose = planCrudService.findById(planId);
+        var planToClose = planCrudService.getById(planId);
 
         final Plan closedPlan = planToClose.close();
 

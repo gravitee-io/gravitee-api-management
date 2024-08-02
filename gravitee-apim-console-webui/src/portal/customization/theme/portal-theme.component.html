@@ -1,0 +1,133 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<portal-header title="Theme" subtitle="Customize the look and feel of the new Developer Portal." />
+<div class="portal-theme">
+  <div class="portal-theme__left">
+    <div class="portal-theme__left__actions">
+      <button mat-raised-button color="primary" type="submit" (click)="submit()" [disabled]="this.formUnchanged">Publish</button>
+      <button mat-raised-button color="basic" type="button" (click)="reset()" [disabled]="this.formUnchanged">Discard Changes</button>
+    </div>
+    <mat-card class="portal-theme__left__form">
+      <div class="portal-theme__left__form__header">
+        <span class="gio-badge-accent"><mat-icon svgIcon="gio:chat-lines"></mat-icon>&nbsp;Applies to new portal only</span>
+        <button mat-stroked-button type="button" (click)="restoreDefaultValues()" matTooltip="Restore default values">
+          <mat-icon svgIcon="gio:refresh-ccw"></mat-icon>
+        </button>
+      </div>
+      <mat-card-content class="portal-theme__left__form__content">
+        <form *ngIf="portalThemeForm" [formGroup]="portalThemeForm">
+          <mat-accordion multi>
+            <mat-expansion-panel class="portal-theme__left__form__content__panel mat-elevation-z0" expanded>
+              <mat-expansion-panel-header>
+                <mat-panel-title>Logos</mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="portal-theme__left__form__content__panel__pictures">
+                <div class="portal-theme__left__form__content__panel__pictures__picture">
+                  <p>Logo</p>
+                  <gio-form-file-picker formControlName="logo" accept=".jpg, .jpeg, .png">
+                    <gio-form-file-picker-label>PNG, JPG up to 5MB</gio-form-file-picker-label>
+                  </gio-form-file-picker>
+                </div>
+                <div class="portal-theme__left__form__content__panel__pictures__picture">
+                  <p>Favicon</p>
+                  <gio-form-file-picker formControlName="favicon" accept=".jpg, .jpeg, .png">
+                    <gio-form-file-picker-label>PNG, JPG up to 5MB</gio-form-file-picker-label>
+                  </gio-form-file-picker>
+                </div>
+              </div>
+            </mat-expansion-panel>
+            <mat-expansion-panel class="portal-theme__left__form__content__panel mat-elevation-z0" expanded>
+              <mat-expansion-panel-header>
+                <mat-panel-title>Font</mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="portal-theme__left__form__content__panel__fonts">
+                <mat-form-field>
+                  <mat-label>Font</mat-label>
+                  <mat-select formControlName="font" aria-label="Font family">
+                    <mat-option *ngFor="let fontFamily of fontFamilies" [value]="fontFamily">{{ fontFamily }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </mat-expansion-panel>
+            <mat-expansion-panel class="portal-theme__left__form__content__panel mat-elevation-z0" expanded>
+              <mat-expansion-panel-header>
+                <mat-panel-title>Colors</mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="portal-theme__left__form__content__panel__colors">
+                <mat-form-field>
+                  <mat-label>Primary Color</mat-label>
+                  <gio-form-color-input formControlName="primaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to active buttons and banner</mat-hint>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Secondary Color</mat-label>
+                  <gio-form-color-input formControlName="secondaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to secondary buttons</mat-hint>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Tertiary Color</mat-label>
+                  <gio-form-color-input formControlName="tertiaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to accent colors</mat-hint>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Error Color</mat-label>
+                  <gio-form-color-input formControlName="errorColor"></gio-form-color-input>
+                  <mat-hint>Applies to errors</mat-hint>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Page Background Color</mat-label>
+                  <gio-form-color-input formControlName="pageBackgroundColor"></gio-form-color-input>
+                  <mat-hint>Applies to main page background</mat-hint>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Card Background Color</mat-label>
+                  <gio-form-color-input formControlName="cardBackgroundColor"></gio-form-color-input>
+                  <mat-hint>Applies to all cards background</mat-hint>
+                </mat-form-field>
+              </div>
+            </mat-expansion-panel>
+            <mat-expansion-panel class="portal-theme__left__form__content__panel mat-elevation-z0">
+              <mat-expansion-panel-header>
+                <mat-panel-title>CSS Editor</mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="portal-theme__left__form__content__panel__editor">
+                This will override the configuration made in the Basic Theme tab.
+                <mat-form-field>
+                  <gio-monaco-editor
+                    gioMonacoEditorFormField
+                    [formControl]="portalThemeForm.controls.customCSS"
+                    [languageConfig]="{ language: 'css' }"
+                    [disableMiniMap]="true"
+                  ></gio-monaco-editor>
+                </mat-form-field>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <mat-card class="portal-theme__preview">
+    <mat-card-title class="portal-theme__preview__title">
+      <h3 class="title">Preview (Coming soon)</h3>
+    </mat-card-title>
+    <mat-card-content class="portal-theme__preview__content">
+      <img src="assets/portal-theme-customization-preview.svg" />
+    </mat-card-content>
+  </mat-card>
+</div>

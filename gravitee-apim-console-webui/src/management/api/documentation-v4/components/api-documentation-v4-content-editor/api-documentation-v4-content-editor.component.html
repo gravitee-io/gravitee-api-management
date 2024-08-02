@@ -18,8 +18,11 @@
 <div class="content__header">
   <div class="content__header__title">
     <h4>Page content</h4>
-    <span class="gio-badge-neutral" *ngIf="!published">Unpublished</span>
-    <span class="gio-badge-success" *ngIf="published">Published</span>
+    @if (!published) {
+      <span class="gio-badge-neutral">Unpublished</span>
+    } @else {
+      <span class="gio-badge-success">Published</span>
+    }
   </div>
   <button mat-stroked-button (click)="preview = !preview">Toggle preview</button>
 </div>
@@ -31,7 +34,18 @@
     [disableMiniMap]="true"
     [disabled]="disabled"
   ></gio-monaco-editor>
-  <markdown *ngIf="preview && pageType === 'MARKDOWN'" [data]="_value"> </markdown>
-  <gio-swagger-ui *ngIf="preview && pageType === 'SWAGGER'" [spec]="_value"></gio-swagger-ui>
-  <gio-async-api *ngIf="preview && pageType === 'ASYNCAPI'" [schema]="_value"></gio-async-api>
+  @if (preview) {
+    @switch (pageType) {
+      @case ('MARKDOWN') {
+        <markdown [data]="_value"></markdown>
+      }
+      @case ('SWAGGER') {
+        <gio-swagger-ui [spec]="_value"></gio-swagger-ui>
+      }
+      @case ('ASYNCAPI') {
+        <gio-async-api [schema]="_value"></gio-async-api>
+      }
+    }
+    <markdown [data]="_value"></markdown>
+  }
 </div>

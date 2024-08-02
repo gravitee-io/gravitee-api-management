@@ -116,11 +116,18 @@ export class ApiFederatedMenuService implements ApiMenuService {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
-      tabs.push({
-        displayName: 'Pages',
-        routerLink: 'v4/documentation',
-        routerLinkActiveOptions: { exact: true },
-      });
+      tabs.push(
+        {
+          displayName: 'Main Pages',
+          routerLink: 'v4/documentation/main-pages',
+          routerLinkActiveOptions: { exact: false },
+        },
+        {
+          displayName: 'Documentation Pages',
+          routerLink: 'v4/documentation/pages',
+          routerLinkActiveOptions: { exact: false },
+        },
+      );
     }
 
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
@@ -139,7 +146,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
         title: 'Documentation',
         subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
       },
-      tabs: tabs,
+      tabs,
     };
   }
 }

@@ -85,6 +85,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -103,7 +104,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -287,6 +288,9 @@ public class ApiServiceImplTest {
     @Mock
     private ApiCategoryService apiCategoryService;
 
+    @Mock
+    private IntegrationRepository integrationRepository;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -362,7 +366,8 @@ public class ApiServiceImplTest {
             primaryOwnerService,
             categoryService,
             searchEngineService,
-            apiAuthorizationService
+            apiAuthorizationService,
+            integrationRepository
         );
         apiStateService =
             new ApiStateServiceImpl(
@@ -1213,7 +1218,7 @@ public class ApiServiceImplTest {
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setVisibility(Visibility.PUBLIC);
 
-        apiEntity.setOriginContext(new ManagementContext());
+        apiEntity.setOriginContext(new OriginContext.Management());
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setId(USER_NAME);
         primaryOwnerEntity.setType("USER");

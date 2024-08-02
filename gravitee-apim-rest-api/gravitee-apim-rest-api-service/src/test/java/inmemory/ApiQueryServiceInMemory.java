@@ -22,7 +22,7 @@ import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,7 +55,10 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                 .filter(api -> {
                     var matchesIntegrationId =
                         Objects.isNull(apiCriteria.getIntegrationId()) ||
-                        Objects.equals(((IntegrationContext) api.getOriginContext()).getIntegrationId(), apiCriteria.getIntegrationId());
+                        Objects.equals(
+                            ((OriginContext.Integration) api.getOriginContext()).integrationId(),
+                            apiCriteria.getIntegrationId()
+                        );
                     var matchesApiId = Objects.isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
                     var matchesLifecycleState =
                         Objects.isNull(apiCriteria.getLifecycleStates()) ||
@@ -78,11 +81,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
         var matches = storage
             .stream()
-            .filter(api -> {
-                var integrationContext = (IntegrationContext) api.getOriginContext();
-                var originIntegrationId = integrationContext.getIntegrationId();
-                return originIntegrationId.equals(integrationId);
-            })
+            .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()))
             .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
             .toList();
 
@@ -95,6 +94,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     @Override
     public void initWith(List<Api> items) {
+        reset();
         storage.addAll(items);
     }
 

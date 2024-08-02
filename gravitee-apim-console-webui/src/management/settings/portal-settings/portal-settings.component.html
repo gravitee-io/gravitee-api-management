@@ -378,7 +378,7 @@
 
     @if (hasEnterpriseLicense$ | async; as hasEnterpriseLicense) {
       @if (hasEnterpriseLicense) {
-        <h2>New Portal</h2>
+        <h2>New Developer Portal</h2>
         <mat-card class="portal__form__card">
           <mat-card-content formGroupName="portalNext">
             <gio-banner-info>
@@ -393,10 +393,21 @@
                 aria-label="New Portal Enabled"
               ></mat-slide-toggle>
             </gio-form-slide-toggle>
-            @if (portalUrl && !!settings.portalNext?.access?.enabled) {
-              <div class="open-new-portal-button">
-                <a mat-raised-button [href]="portalUrl" target="_blank" color="primary" class="open-new-portal-button__content">
-                  <div>Open the New Developer Portal</div>
+            @if (!!settings.portalNext?.access?.enabled) {
+              <div class="new-developer-portal-actions">
+                @if (portalUrl) {
+                  <a mat-raised-button [href]="portalUrl" target="_blank" color="primary" class="new-developer-portal-actions__content">
+                    <div>Open Website</div>
+                    <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
+                  </a>
+                }
+                <a
+                  mat-stroked-button
+                  [routerLink]="[environmentRootRouterLink, '_portal']"
+                  target="_blank"
+                  class="new-developer-portal-actions__content"
+                >
+                  <div>Open Settings</div>
                   <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
                 </a>
               </div>

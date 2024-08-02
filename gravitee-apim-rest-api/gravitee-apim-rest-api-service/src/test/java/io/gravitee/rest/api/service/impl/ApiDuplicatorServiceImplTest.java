@@ -21,25 +21,23 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -64,6 +62,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -305,6 +304,41 @@ public class ApiDuplicatorServiceImplTest {
 
         verify(pageService, times(1))
             .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
+    }
+
+    @Test
+    public void shouldImportRootPageIfKubernetesOrigin() throws IOException {
+        var node = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages-root.kubernetes.json");
+
+        when(apiEntity.getId()).thenReturn(API_ID);
+
+        when(pageService.importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null)))
+            .thenReturn(List.of(PageEntity.builder().type("MARKDOWN").build(), PageEntity.builder().type("MARKDOWN").build()));
+
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, node);
+
+        verify(pageService, times(1))
+            .importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null));
+
+        verify(pageService, atLeastOnce())
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pages ->
+                    pages
+                        .stream()
+                        .allMatch(page ->
+                            "MARKDOWN".equals(page.getType()) && page.isPublished() && page.getVisibility() == Visibility.PUBLIC
+                        )
+                ),
+                eq(API_ID)
+            );
+
+        verify(pageService, atLeastOnce())
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pages -> pages.size() == 1 && pages.iterator().next().getId().equals("markdown-page")),
+                eq(API_ID)
+            );
     }
 
     @Test

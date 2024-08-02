@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { AsyncFactoryFn, ComponentHarness, TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
@@ -27,6 +28,7 @@ export class IntegrationOverviewHarness extends ComponentHarness {
     MatButtonHarness.with({ selector: '[data-testid=discover-button]' }),
   );
   private errorBannerLocator = this.locatorForOptional('gio-banner-error');
+  private jobPendingBanner = this.locatorForOptional('.pending-job-banner');
 
   public getTable = this.locatorForOptional(MatTableHarness);
   private getPaginationLocator = this.locatorForOptional(MatPaginatorHarness);
@@ -37,6 +39,10 @@ export class IntegrationOverviewHarness extends ComponentHarness {
 
   public getErrorBanner = async (): Promise<TestElement> => {
     return this.errorBannerLocator();
+  };
+
+  public getPendingJobBanner = async (): Promise<TestElement> => {
+    return this.jobPendingBanner();
   };
 
   public getSuccessBadge = async (): Promise<TestElement> => {

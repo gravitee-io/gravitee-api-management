@@ -17,7 +17,7 @@ import * as angular from 'angular';
 
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
-import { ApplicationRef, DoBootstrap, NgModule } from '@angular/core';
+import { ApplicationRef, DoBootstrap, importProvidersFrom, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
@@ -34,6 +34,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
+import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-schema-extended/form-json-schema-extended.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -59,6 +60,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     GioSideNavModule,
     GioTopNavModule,
+    GioFormJsonSchemaExtendedModule,
   ],
   providers: [
     httpInterceptorProviders,
@@ -79,6 +81,7 @@ import { AuthModule } from './auth/auth.module';
       useValue: true,
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
+    importProvidersFrom(GioFormJsonSchemaExtendedModule),
   ],
 })
 export class AppModule implements DoBootstrap {

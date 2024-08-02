@@ -37,6 +37,8 @@ import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
+import { SharedPolicyGroupsComponent } from './shared-policy-groups/shared-policy-groups.component';
+import { SharedPolicyGroupsStudioComponent } from './shared-policy-groups/shared-policy-groups-studio/shared-policy-groups-studio.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -247,6 +249,26 @@ export const settingsRoutes: Routes = [
           },
           permissions: {
             anyOf: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+            unauthorizedFallbackTo: '../shared-policy-groups',
+          },
+        },
+      },
+      {
+        path: 'shared-policy-groups',
+        component: SharedPolicyGroupsComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-shared_policy_group-r'],
+            unauthorizedFallbackTo: '../metadata',
+          },
+        },
+      },
+      {
+        path: 'shared-policy-groups/:sharedPolicyGroupId/studio',
+        component: SharedPolicyGroupsStudioComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-shared_policy_group-r'],
             unauthorizedFallbackTo: '../metadata',
           },
         },

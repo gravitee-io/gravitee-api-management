@@ -24,6 +24,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
@@ -111,13 +112,11 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             }
         }
 
-        fillQuery(query, orApiCriteria);
-
-        return query;
+        return fillQuery(query, orApiCriteria);
     }
 
     private Query fillQuery(Query query, List<ApiCriteria> orCriteria) {
-        if (orCriteria != null && orCriteria.size() > 0) {
+        if (orCriteria != null && !orCriteria.isEmpty()) {
             List<List<Criteria>> convertedCriteria = orCriteria
                 .stream()
                 .filter(Objects::nonNull)
@@ -160,15 +159,23 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                         criteria.add(where("crossId").is(apiCriteria.getCrossId()));
                     }
                     if (apiCriteria.getDefinitionVersion() != null && !apiCriteria.getDefinitionVersion().isEmpty()) {
-                        criteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
+                        var lookingForV2 = apiCriteria.getDefinitionVersion().stream().anyMatch(DefinitionVersion.V2::equals);
+
+                        var definitionVersionCriteria = new ArrayList<Criteria>();
+                        definitionVersionCriteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
+                        if (lookingForV2) {
+                            // V2 are stored with a null value for DefinitionVersion
+                            definitionVersionCriteria.add(where("definitionVersion").isNull());
+                        }
+                        criteria.add(new Criteria().orOperator(definitionVersionCriteria));
                     }
                     if (apiCriteria.getIntegrationId() != null && !apiCriteria.getIntegrationId().isEmpty()) {
                         criteria.add(where("integrationId").is(apiCriteria.getIntegrationId()));
                     }
                     return criteria;
                 })
-                .filter(criteria -> criteria.size() > 0)
-                .collect(Collectors.toList());
+                .filter(criteria -> !criteria.isEmpty())
+                .toList();
 
             if (convertedCriteria.size() > 1) {
                 query.addCriteria(

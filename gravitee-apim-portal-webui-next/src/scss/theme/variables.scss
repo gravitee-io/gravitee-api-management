@@ -18,8 +18,9 @@
 Global variables
  */
 
-$font-family: var(--gio-app-font-family, (Roboto, sans-serif));
-$background-color: var(--gio-app-background-color, #f7f8fd);
+$font-family: var(--gio-app-font-family);
+$background-color: var(--gio-app-background-color);
+$card-background-color: var(--gio-app-card-background-color);
 $default-text-color: #1d192b;
 $paragraph-color: color-mix(in srgb, $default-text-color 75%, transparent);
 
@@ -32,5 +33,5 @@ $error-main-color: var(--gio-app-error-main-color);
 /**
 Component variables
  */
-$banner-background-color: var(--gio-banner-background-color, #eaddff);
-$banner-text-color: var(--gio-banner-text-color, #220f46);
+$banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
+$banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);

@@ -27,6 +27,7 @@ import { ApiListComponent } from './api-list.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.pipe';
 
 @NgModule({
   declarations: [ApiListComponent],
@@ -43,6 +44,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioTableWrapperModule,
     GioPermissionModule,
     RouterModule,
+    MapProviderNamePipe,
   ],
 })
 export class ApiListModule {}

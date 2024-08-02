@@ -1,0 +1,45 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card
+  (click)="onSelect()"
+  class="radio-card"
+  appearance="outlined"
+  [class.selected]="selected"
+  [class.disabled]="disabled"
+  [matTooltip]="disabled ? disabledMessage : ''">
+  <mat-card-header class="radio-card__header">
+    <div class="radio-card__header-content">
+      @if (displayPicture) {
+        <app-picture [hashValue]="pictureHashValue" [size]="40" [picture]="pictureUrl" />
+      }
+      <div aria-label="Title" class="m3-title-medium">{{ title }}</div>
+    </div>
+
+    <mat-radio-group>
+      <mat-radio-button
+        class="radio-card__header-button"
+        (change)="onSelect()"
+        [value]="value"
+        [checked]="selected"
+        [disabled]="disabled" />
+    </mat-radio-group>
+  </mat-card-header>
+  <mat-card-content>
+    <ng-content />
+  </mat-card-content>
+</mat-card>

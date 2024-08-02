@@ -1,0 +1,68 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use 'src/scss/gio-layout' as gio-layout;
+$typography: map.get(gio.$mat-theme, typography);
+
+.header {
+  display: grid;
+  grid-template-columns: 6fr 1.3fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'title actions'
+    'location actions';
+  grid-column-gap: 8px;
+  padding: 20px 24px;
+  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
+  &__title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    grid-area: title;
+  }
+
+  &__location {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 2px;
+    grid-area: location;
+  }
+
+  &__actions {
+    grid-area: actions;
+
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.stepper {
+  border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
+  &__content {
+    padding-bottom: 16px;
+    .mat-mdc-form-field {
+      width: 100%;
+    }
+    .mat-mdc-radio-group {
+      width: 100%;
+    }
+
+    &__form {
+      display: flex;
+      flex-flow: column;
+      gap: 14px;
+    }
+  }
+
+  &__actions {
+    padding-top: 16px;
+    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    display: flex;
+    gap: 8px;
+  }
+}

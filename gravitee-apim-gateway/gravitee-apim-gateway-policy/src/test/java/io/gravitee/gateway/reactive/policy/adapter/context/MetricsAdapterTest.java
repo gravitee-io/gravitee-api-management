@@ -116,6 +116,15 @@ class MetricsAdapterTest {
     }
 
     @Test
+    void should_delegate_getApiName_to_metrics_v4() {
+        // When
+        metricsAdapter.getApiName();
+
+        // Then
+        verify(metricsV4).getApiName();
+    }
+
+    @Test
     void should_delegate_getApplication_to_metrics_v4() {
         // When
         metricsAdapter.getApplication();
@@ -392,6 +401,15 @@ class MetricsAdapterTest {
 
         // Then
         verify(metricsV4).setApiId(null);
+    }
+
+    @Test
+    void should_delegate_setApiName_to_metrics_v4() {
+        // When
+        metricsAdapter.setApiName(null);
+
+        // Then
+        verify(metricsV4).setApiName(null);
     }
 
     @Test

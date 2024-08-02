@@ -18,7 +18,10 @@ package io.gravitee.apim.infra.domain_service.user;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.UserAdapter;
+import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +31,14 @@ public class UserDomainServiceLegacyWrapper implements UserDomainService {
 
     private final UserService userService;
 
+    private final IdentityService identityService;
+
     @Override
-    public BaseUserEntity findBySource(String organizationId, String source, String sourceId) {
-        return UserAdapter.INSTANCE.fromUser(userService.findBySource(organizationId, source, sourceId, false));
+    public Optional<BaseUserEntity> findBySource(String organizationId, String source, String sourceId) {
+        try {
+            return Optional.ofNullable(UserAdapter.INSTANCE.fromUser(userService.findBySource(organizationId, source, sourceId, false)));
+        } catch (UserNotFoundException e) {
+            return Optional.empty();
+        }
     }
 }

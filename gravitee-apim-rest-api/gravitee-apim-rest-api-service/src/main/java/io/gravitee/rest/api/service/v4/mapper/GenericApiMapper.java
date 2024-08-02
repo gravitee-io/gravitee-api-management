@@ -39,7 +39,7 @@ public class GenericApiMapper {
         return switch (getVersionOfDefault(api)) {
             case V4 -> apiMapper.toEntity(api, primaryOwner);
             case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
-            default -> apiConverter.toApiEntity(api, primaryOwner);
+            case V1, V2 -> apiConverter.toApiEntity(api, primaryOwner);
         };
     }
 
@@ -47,7 +47,7 @@ public class GenericApiMapper {
         return switch (getVersionOfDefault(api)) {
             case V4 -> apiMapper.toEntity(executionContext, api, primaryOwner, true);
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
-            default -> apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
+            case V1, V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
         };
     }
 

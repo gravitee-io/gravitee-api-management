@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -401,7 +402,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     public boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
         try {
             // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
-            if (genericApiEntity.getOriginContext().isOriginKubernetes()) {
+            if (genericApiEntity.getOriginContext() instanceof OriginContext.Kubernetes) {
                 return true;
             }
 

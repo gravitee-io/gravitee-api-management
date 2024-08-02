@@ -358,6 +358,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.graviteesource.policy</groupId>
+            <artifactId>gravitee-policy-oas-validation</artifactId>
+            <version>${gravitee-policy-oas-validation.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-openid-connect-userinfo</artifactId>
             <version>${gravitee-policy-openid-connect-userinfo.version}</version>
