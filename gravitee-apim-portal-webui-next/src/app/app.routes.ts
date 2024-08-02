@@ -43,8 +43,9 @@ export const routes: Routes = [
   { path: '', redirectTo: 'catalog', pathMatch: 'full' },
   {
     path: 'catalog',
+    canActivateChild: [redirectGuard],
     children: [
-      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' }, canActivate: [redirectGuard] },
+      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' } },
       {
         path: 'api/:apiId',
         component: ApiComponent,
@@ -101,8 +102,9 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
+    canActivateChild: [authGuard, redirectGuard],
     children: [
-      { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' }, canActivate: [redirectGuard] },
+      { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
       {
         path: ':applicationId',
         component: ApplicationComponent,
@@ -133,8 +135,8 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: 'log-in', component: LogInComponent, canActivate: [anonymousGuard] },
-  { path: 'log-out', component: LogOutComponent, canActivate: [authGuard] },
+  { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
+  { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
   { path: '404', component: NotFoundComponent },
   {
     path: '**',
