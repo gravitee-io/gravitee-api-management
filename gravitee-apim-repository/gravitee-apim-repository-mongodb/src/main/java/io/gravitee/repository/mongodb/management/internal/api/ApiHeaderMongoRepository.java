@@ -27,6 +27,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApiHeaderMongoRepository extends MongoRepository<ApiHeaderMongo, String> {
-    @Query("{ environmentId: ?0 }")
     List<ApiHeaderMongo> findByEnvironmentId(String environmentId);
+
+    @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<ApiHeaderMongo> deleteByEnvironmentId(String environmentId);
 }

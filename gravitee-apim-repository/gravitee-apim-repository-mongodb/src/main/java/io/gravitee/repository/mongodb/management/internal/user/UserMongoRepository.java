@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.user;
 
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -37,4 +38,7 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String>,
 
     @Query(value = "{ 'email': {$regex: '^?0$', $options: 'i'}, 'organizationId': ?1 }")
     UserMongo findByEmail(String email, String organizationId);
+
+    @Query(value = "{ 'organizationId': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<UserMongo> deleteByOrganizationId(String organizationId);
 }

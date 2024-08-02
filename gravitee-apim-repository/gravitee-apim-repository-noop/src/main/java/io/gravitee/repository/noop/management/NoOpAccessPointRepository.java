@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.noop.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
-import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,7 +51,7 @@ public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<
     }
 
     @Override
-    public List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) {
-        return List.of();
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, AccessPointReferenceType referenceType) {
+        return Collections.emptyList();
     }
 }

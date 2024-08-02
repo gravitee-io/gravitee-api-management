@@ -98,7 +98,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     @Override
-    public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
+    public void deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType) {
         LOGGER.debug("Delete PortalNotificationConfigs [{}, {}]", referenceType, referenceId);
         internalRepo.deleteByReference(referenceType.name(), referenceId);
     }

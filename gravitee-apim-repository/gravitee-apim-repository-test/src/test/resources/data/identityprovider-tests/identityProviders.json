@@ -91,5 +91,69 @@
     },
     "createdAt": 1000000000000,
     "updatedAt": 1111111111111
+  },
+  {
+    "id": "idp-4",
+    "organizationId": "ToBeDeleted",
+    "name": "Google",
+    "description": "Google Identity Provider",
+    "enabled": true,
+    "type": "GOOGLE",
+    "configuration": {
+      "scopes": [
+        "openid"
+      ],
+      "clientId": "qsdqsd",
+      "clientSecret": "qsdqsdqsd",
+      "serverURL": "http://localhost:8092",
+      "domain": "portal",
+      "color": "#a93d3d"
+    },
+    "groupMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "group1",
+        "group2"
+      ]
+    },
+    "roleMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "role1",
+        "role2"
+      ]
+    },
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111
+  },
+  {
+    "id": "idp-5",
+    "organizationId": "ToBeDeleted",
+    "name": "Google",
+    "description": "Google Identity Provider",
+    "enabled": true,
+    "type": "GOOGLE",
+    "configuration": {
+      "scopes": [
+        "openid"
+      ],
+      "clientId": "qsdqsd",
+      "clientSecret": "qsdqsdqsd",
+      "serverURL": "http://localhost:8092",
+      "domain": "portal",
+      "color": "#a93d3d"
+    },
+    "groupMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "group1",
+        "group2"
+      ]
+    },
+    "roleMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "role1",
+        "role2"
+      ]
+    },
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111
   }
 ]

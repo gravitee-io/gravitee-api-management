@@ -32,6 +32,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +45,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoApiRepository implements ApiRepository {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(MongoApiRepository.class);
 
     @Autowired
     private ApiMongoRepository internalApiRepo;
@@ -160,6 +164,19 @@ public class MongoApiRepository implements ApiRepository {
     @Override
     public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
         return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete by environmentId [{}]", environmentId);
+        try {
+            final var apiMongos = internalApiRepo.deleteByEnvironmentId(environmentId).stream().map(ApiMongo::getId).toList();
+            LOGGER.debug("Delete by environmentId [{}] - Done", environmentId);
+            return apiMongos;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete api by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete api by environmentId");
+        }
     }
 
     @Override

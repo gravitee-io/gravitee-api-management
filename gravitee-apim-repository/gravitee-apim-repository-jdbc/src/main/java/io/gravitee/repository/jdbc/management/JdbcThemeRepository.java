@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.ThemeType;
 import java.sql.PreparedStatement;
 import java.sql.Types;
@@ -143,6 +144,34 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
             final String error = "Failed to search themes by criteria";
             LOGGER.error(error, ex);
             throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcThemeRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " WHERE reference_id = ? AND reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? AND reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+
+            LOGGER.debug("JdbcThemeRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            return rows;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete themes for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete themes by reference", ex);
         }
     }
 }

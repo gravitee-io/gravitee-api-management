@@ -38,7 +38,6 @@ import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,7 +118,7 @@ public class ApiPageMediaResource extends AbstractResource {
         mediaEntity.setData(IOUtils.toByteArray(uploadedInputStream));
         mediaEntity.setFileName(originalFileName);
 
-        mediaId = mediaService.saveApiMedia(api, mediaEntity);
+        mediaId = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), api, mediaEntity);
         pageService
             .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
             .flatMap(pageEntity -> pageEntity.getAttachedMedia().stream().filter(media -> media.getMediaHash().equals(mediaId)).findFirst())

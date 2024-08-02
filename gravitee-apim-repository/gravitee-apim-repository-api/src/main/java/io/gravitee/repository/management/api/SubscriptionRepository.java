@@ -42,4 +42,13 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
     List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException;
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException;
+
+    /**
+     * Delete subscription by environment ID
+     *
+     * @param environmentId The environment ID
+     * @return List of deleted IDs for subscriptions
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

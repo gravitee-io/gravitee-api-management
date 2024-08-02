@@ -23,6 +23,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.RatingCriteria;
+import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import java.sql.Types;
@@ -185,6 +186,34 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
         } catch (final Exception ex) {
             LOGGER.error("Failed to compute ranking by criteria:", ex);
             throw new TechnicalException("Failed to compute ranking by criteria", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType.name(),
+                referenceId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                    referenceType.name(),
+                    referenceId
+                );
+            }
+
+            LOGGER.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete rating by reference", ex);
         }
     }
 }

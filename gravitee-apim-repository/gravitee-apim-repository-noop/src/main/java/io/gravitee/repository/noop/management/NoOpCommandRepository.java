@@ -30,4 +30,14 @@ public class NoOpCommandRepository extends AbstractNoOpManagementRepository<Comm
     public List<Command> search(CommandCriteria criteria) {
         return List.of();
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) {
+        return List.of();
+    }
+
+    @Override
+    public List<String> deleteByOrganizationId(String organizationId) {
+        return List.of();
+    }
 }

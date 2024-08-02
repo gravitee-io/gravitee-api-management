@@ -101,4 +101,8 @@ public interface EventService {
     );
 
     Collection<EventEntity> search(ExecutionContext executionContext, EventQuery query);
+
+    void deleteOrUpdateEventsByEnvironment(String environmentId);
+
+    void deleteOrUpdateEventsByOrganization(String organizationId);
 }

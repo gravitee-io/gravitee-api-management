@@ -100,6 +100,17 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
         }
     }
 
+    @Override
+    public List<String> deleteByRating(String ratingId) throws TechnicalException {
+        try {
+            LOGGER.debug("Delete rating answer by ratingId [{}]", ratingId);
+            return internalRatingAnswerRepository.deleteByRating(ratingId).stream().map(RatingAnswerMongo::getId).toList();
+        } catch (Exception e) {
+            LOGGER.error("An error occurred while deleting rating answer by ratingId [{}]", ratingId, e);
+            throw new TechnicalException("An error occurred while deleting rating answer by ratingId");
+        }
+    }
+
     private RatingAnswer map(final RatingAnswerMongo ratingAnswerMongo) {
         if (ratingAnswerMongo == null) {
             return null;

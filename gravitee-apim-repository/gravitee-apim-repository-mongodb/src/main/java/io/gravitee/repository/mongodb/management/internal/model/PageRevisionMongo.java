@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,6 +26,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}page_revisions")
 public class PageRevisionMongo extends Auditable {
 
@@ -33,81 +40,4 @@ public class PageRevisionMongo extends Auditable {
     private String content;
     private String hash;
     private String contributor;
-
-    public PageRevisionPkMongo getId() {
-        return id;
-    }
-
-    public void setId(PageRevisionPkMongo id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public String getContributor() {
-        return contributor;
-    }
-
-    public void setContributor(String contributor) {
-        this.contributor = contributor;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PageRevisionMongo)) return false;
-        PageRevisionMongo pageMongo = (PageRevisionMongo) o;
-        return Objects.equals(id, pageMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "PageMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", content='" +
-            content +
-            '\'' +
-            ", hash='" +
-            hash +
-            '\'' +
-            ", contributor='" +
-            contributor +
-            '\'' +
-            "} " +
-            super.toString()
-        );
-    }
 }

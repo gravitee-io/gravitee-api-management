@@ -243,7 +243,7 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldDeleteByReference() throws TechnicalException {
         assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
 
-        flowRepository.deleteByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted");
+        flowRepository.deleteByReferenceIdAndReferenceType("orga-v4-deleted", FlowReferenceType.ORGANIZATION);
 
         assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
     }

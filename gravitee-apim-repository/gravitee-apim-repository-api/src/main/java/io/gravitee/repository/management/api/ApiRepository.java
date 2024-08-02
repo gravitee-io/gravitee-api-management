@@ -53,4 +53,13 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException;
 
     boolean existById(final String appId) throws TechnicalException;
+
+    /**
+     * Delete api by environment ID
+     *
+     * @param environmentId The environment ID
+     * @return List of deleted IDs for api
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

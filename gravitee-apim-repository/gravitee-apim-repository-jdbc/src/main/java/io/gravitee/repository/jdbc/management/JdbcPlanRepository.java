@@ -353,4 +353,31 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             throw new TechnicalException("Failed to find plans by id list", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> planIds = jdbcTemplate.queryForList(
+                "select p.id from " + tableName + " p left join " + APIS + " api on api.id = p.api where api.environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!planIds.isEmpty()) {
+                String inClause = getOrm().buildInClause(planIds);
+                jdbcTemplate.update("delete from " + tableName + " where id in (" + inClause + ")", planIds.toArray());
+                jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id in (" + inClause + ")", planIds.toArray());
+                jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id in (" + inClause + ")", planIds.toArray());
+                jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id in (" + inClause + ")", planIds.toArray());
+            }
+
+            LOGGER.debug("JdbcPlanRepository.deleteByEnvironment({}) = {}", environmentId, planIds);
+            return planIds;
+        } catch (final Exception ex) {
+            String message = String.format("Failed to delete by environment (%s)", environmentId);
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
 }

@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.IdentityProvider;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -34,4 +35,13 @@ public interface IdentityProviderRepository extends FindAllRepository<IdentityPr
     void delete(String key) throws TechnicalException;
 
     Optional<IdentityProvider> findById(String key) throws TechnicalException;
+
+    /**
+     * Delete identity providers by organization ID
+     *
+     * @param organizationId The organization ID
+     * @return List of IDs for deleted identity providers
+     * @throws TechnicalException
+     */
+    List<String> deleteByOrganizationId(String organizationId) throws TechnicalException;
 }

@@ -39,7 +39,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAll();
 
         assertNotNull(dictionaries);
-        assertEquals(4, dictionaries.size());
+        assertEquals(6, dictionaries.size());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.emptySet());
 
         assertNotNull(dictionaries);
-        assertEquals(4, dictionaries.size());
+        assertEquals(6, dictionaries.size());
     }
 
     @Test
@@ -209,5 +209,16 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         dictionaryRepository.update(null);
         fail("A null dictionary should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        final var nbBeforeDeletion = dictionaryRepository.findAllByEnvironments(Set.of("ToBeDeleted")).size();
+        final var deleted = dictionaryRepository.deleteByEnvironmentId("ToBeDeleted").size();
+        final var nbAfterDeletion = dictionaryRepository.findAllByEnvironments(Set.of("ToBeDeleted")).size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted);
+        assertEquals(0, nbAfterDeletion);
     }
 }

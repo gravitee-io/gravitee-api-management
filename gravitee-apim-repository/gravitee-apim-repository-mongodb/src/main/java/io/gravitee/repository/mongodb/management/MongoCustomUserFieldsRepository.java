@@ -113,6 +113,24 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, CustomUserFieldReferenceType referenceType)
+        throws TechnicalException {
+        logger.debug("Delete custom user fields by reference [{}/{}]", referenceType, referenceId);
+        try {
+            final var fields = internalMongoRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(field -> field.getId().getKey())
+                .toList();
+            logger.debug("Delete custom user fields by reference [{}/{}] - Done", referenceType, referenceId);
+            return fields;
+        } catch (Exception ex) {
+            logger.error("Failed to delete custom user fields by ref: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete custom user fields by ref");
+        }
+    }
+
+    @Override
     public Set<CustomUserField> findAll() throws TechnicalException {
         return internalMongoRepo
             .findAll()

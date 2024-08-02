@@ -172,7 +172,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent()
         );
 
-        portalNotificationConfigRepository.deleteReference(NotificationReferenceType.API, "apiToDelete");
+        portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType("apiToDelete", NotificationReferenceType.API);
 
         assertFalse(
             "should be deleted {apiToDelete-1}",

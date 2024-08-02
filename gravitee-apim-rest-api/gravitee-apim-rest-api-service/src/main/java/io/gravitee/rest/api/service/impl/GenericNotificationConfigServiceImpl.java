@@ -103,29 +103,12 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
     @Override
     public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
         try {
-            genericNotificationConfigRepository
-                .findByReference(referenceType, referenceId)
-                .forEach(cfg -> {
-                    try {
-                        genericNotificationConfigRepository.delete(cfg.getId());
-                    } catch (TechnicalException e) {
-                        LOGGER.error(
-                            "An error occurs while trying to delete the generic notifications {} / {}",
-                            referenceType,
-                            referenceId,
-                            e
-                        );
-                        throw new TechnicalManagementException(
-                            "An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId,
-                            e
-                        );
-                    }
-                });
-        } catch (TechnicalException te) {
-            LOGGER.error("An error occurs while trying to delete the generic notifications {} / {}", referenceType, referenceId, te);
+            genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurs while trying to delete the generic notifications {} / {}", referenceType, referenceId, e);
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId,
-                te
+                e
             );
         }
     }

@@ -19,5 +19,19 @@
       "referenceType":"APPLICATION",
       "name":"Mail",
       "format":"MAIL"
-   }
+   },
+  {
+    "key": "string2",
+    "referenceId": "api-delete",
+    "referenceType": "API",
+    "name": "String",
+    "format": "STRING"
+  },
+  {
+    "key": "string3",
+    "referenceId": "api-delete",
+    "referenceType": "API",
+    "name": "String",
+    "format": "STRING"
+  }
 ]

@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
+import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -35,4 +36,14 @@ public interface AuditRepository extends CrudRepository<Audit, String> {
     default void delete(String id) throws TechnicalException {
         throw new UnsupportedOperationException("Delete an audit record is forbidden");
     }
+
+    /**
+     * Delete audit by reference
+     *
+     * @param referenceId   The reference ID
+     * @param referenceType The reference type
+     * @return List of IDs for deleted audits
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType) throws TechnicalException;
 }

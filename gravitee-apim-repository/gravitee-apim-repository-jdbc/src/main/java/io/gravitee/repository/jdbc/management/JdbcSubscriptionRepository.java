@@ -160,6 +160,31 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + metadataTableName + " where subscription_id IN (" + getOrm().buildInClause(rows) + ")",
+                    rows.toArray()
+                );
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
+            return rows;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete subscription by environment", ex);
+        }
+    }
+
+    @Override
     public List<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable) throws TechnicalException {
         return searchPage(criteria, sortable, null).getContent();
     }

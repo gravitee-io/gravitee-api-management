@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Group;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,4 +30,13 @@ public interface GroupRepository extends CrudRepository<Group, String> {
     Set<Group> findByIds(Set<String> ids) throws TechnicalException;
 
     Set<Group> findAllByOrganization(String organizationId) throws TechnicalException;
+
+    /**
+     * Delete group by environment ID
+     *
+     * @param environmentId The environment ID
+     * @return List of IDs for deleted group
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

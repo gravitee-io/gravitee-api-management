@@ -130,13 +130,17 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
-    public void delete(ExecutionContext executionContext, Indexable source) {
-        CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
-        content.setAction(ACTION_DELETE);
-        content.setId(source.getId());
-        content.setClazz(source.getClass().getName());
+    public void delete(ExecutionContext executionContext, Indexable source, boolean locally) {
+        if (locally) {
+            deleteLocally(source);
+        } else {
+            CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
+            content.setAction(ACTION_DELETE);
+            content.setId(source.getId());
+            content.setClazz(source.getClass().getName());
 
-        sendCommands(executionContext, content);
+            sendCommands(executionContext, content);
+        }
     }
 
     @Override

@@ -26,7 +26,10 @@ import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -190,6 +193,30 @@ public class MongoPageRepository implements PageRepository {
         } catch (Exception e) {
             logger.error("An error occurred when counting page by parent_id {}", parentId, e);
             throw new TechnicalException("An error occurred when counting page by parentId");
+        }
+    }
+
+    @Override
+    public Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
+        throws TechnicalException {
+        logger.debug("Delete pages by refId: {}/{}", referenceId, referenceType);
+        try {
+            final var pageIdAndMedias = new HashMap<String, List<String>>();
+            internalPageRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .forEach(page ->
+                    pageIdAndMedias.put(
+                        page.getId(),
+                        page.getAttachedMedia() != null
+                            ? page.getAttachedMedia().stream().map(PageMediaMongo::getMediaHash).toList()
+                            : Collections.emptyList()
+                    )
+                );
+            logger.debug("Delete pages by refId: {}/{}", referenceId, referenceType);
+            return pageIdAndMedias;
+        } catch (Exception e) {
+            logger.error("Failed to delete page by refId: {}/{}", referenceId, referenceType, e);
+            throw new TechnicalException("Failed to delete page by reference");
         }
     }
 

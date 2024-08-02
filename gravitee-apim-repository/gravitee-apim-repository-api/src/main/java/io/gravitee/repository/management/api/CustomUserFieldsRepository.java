@@ -35,4 +35,14 @@ public interface CustomUserFieldsRepository extends FindAllRepository<CustomUser
     Optional<CustomUserField> findById(String key, String refId, CustomUserFieldReferenceType refType) throws TechnicalException;
 
     List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType) throws TechnicalException;
+
+    /**
+     * Delete custom user fields by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted custom user fields
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, CustomUserFieldReferenceType referenceType)
+        throws TechnicalException;
 }

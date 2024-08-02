@@ -16,6 +16,7 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.ApiHeader;
@@ -28,7 +29,7 @@ import org.junit.Test;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiHeaderTest extends AbstractManagementRepositoryTest {
+public class ApiHeaderRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
     protected String getTestCasesPath() {
@@ -38,7 +39,7 @@ public class ApiHeaderTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindAll() throws Exception {
         Set<ApiHeader> all = apiHeaderRepository.findAll();
-        assertEquals(3, all.size());
+        assertEquals(5, all.size());
     }
 
     @Test
@@ -81,5 +82,17 @@ public class ApiHeaderTest extends AbstractManagementRepositoryTest {
         assertEquals(up.getOrder(), updated.get().getOrder());
         assertTrue(compareDate(up.getCreatedAt(), updated.get().getCreatedAt()));
         assertTrue(compareDate(up.getUpdatedAt(), updated.get().getUpdatedAt()));
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        final var beforeDeletion = apiHeaderRepository.findAllByEnvironment("env_id_to_be_deleted");
+
+        final var deleted = apiHeaderRepository.deleteByEnvironmentId("env_id_to_be_deleted");
+        final var nbAfterDeletion = apiHeaderRepository.findAllByEnvironment("env_id_to_be_deleted").size();
+
+        assertThat(beforeDeletion.size()).isEqualTo(deleted.size());
+        assertThat(deleted).containsOnly("3", "4");
+        assertThat(nbAfterDeletion).isEqualTo(0);
     }
 }

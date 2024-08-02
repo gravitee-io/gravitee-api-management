@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.IdentityProviderType;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class IdentityProviderRepositoryTest extends AbstractManagementRepository
         final Set<IdentityProvider> identityProviders = identityProviderRepository.findAll();
 
         assertNotNull(identityProviders);
-        assertEquals(3, identityProviders.size());
+        assertEquals(5, identityProviders.size());
         for (IdentityProvider idp : identityProviders) {
             final Map<String, String[]> groupMappings = idp.getGroupMappings();
             assertNotNull(groupMappings);
@@ -288,6 +289,17 @@ public class IdentityProviderRepositoryTest extends AbstractManagementRepository
     public void shouldNotUpdateNull() throws Exception {
         identityProviderRepository.update(null);
         fail("A null identity provider should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_organization_id() throws Exception {
+        final int nbBeforeDeletion = identityProviderRepository.findAllByOrganizationId("ToBeDeleted").size();
+        List<String> deleted = identityProviderRepository.deleteByOrganizationId("ToBeDeleted");
+        final int nbAfterDeletion = identityProviderRepository.findAllByOrganizationId("ToBeDeleted").size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted.size());
+        assertEquals(0, nbAfterDeletion);
     }
 
     private boolean areEqualWithArrayValue(Map<String, String[]> first, Map<String, String[]> second) {

@@ -19,5 +19,16 @@
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
     "lifecycleState": "STOPPED"
+  },
+  {
+    "id": "api4",
+    "version": "1",
+    "environmentId": "ToBeDeleted",
+    "definitionVersion": "4.0.0",
+    "definition" : "{\"api\":{\"definitionVersion\":\"V4\",\"type\":\"PROXY\",\"listeners\":[{\"type\":\"HTTP\",\"paths\":[{\"path\":\"/jgo_http_proxy\",\"overrideAccess\":false}],\"entrypoints\":[{\"type\":\"http-proxy\",\"qos\":\"AUTO\",\"configuration\":{}}]}],\"endpointGroups\":[{\"name\":\"DefaultHTTPproxygroup\",\"type\":\"http-proxy\",\"loadBalancer\":{\"type\":\"ROUND_ROBIN\"},\"sharedConfiguration\":{\"proxy\":{\"useSystemProxy\":false,\"enabled\":false},\"http\":{\"keepAlive\":true,\"followRedirects\":false,\"readTimeout\":10000,\"idleTimeout\":60000,\"connectTimeout\":3000,\"useCompression\":true,\"maxConcurrentConnections\":20,\"version\":\"HTTP_1_1\",\"pipelining\":false},\"ssl\":{\"keyStore\":{\"type\":\"\"},\"hostnameVerifier\":true,\"trustStore\":{\"type\":\"\"},\"trustAll\":false}},\"endpoints\":[{\"name\":\"DefaultHTTPproxy\",\"type\":\"http-proxy\",\"weight\":1,\"inheritConfiguration\":true,\"configuration\":{\"target\":\"http://apim-samples:8888/echo\"},\"services\":{},\"secondary\":false}],\"services\":{}}],\"analytics\":{\"enabled\":true},\"flowExecution\":{\"mode\":\"DEFAULT\",\"matchRequired\":false},\"flows\":[],\"name\":\"jgo_http_proxy\",\"description\":\"\",\"apiVersion\":\"1.0.0\",\"disableMembershipNotifications\":false,\"groups\":[],\"state\":\"STARTED\",\"visibility\":\"PRIVATE\",\"lifecycleState\":\"CREATED\",\"tags\":[],\"originContext\":{\"origin\":\"MANAGEMENT\"},\"responseTemplates\":{},\"properties\":[]},\"members\":[],\"metadata\":[],\"pages\":[],\"plans\":[],\"apiMedia\":[]}",
+    "visibility" : "PUBLIC",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "lifecycleState": "STOPPED"
   }
 ]

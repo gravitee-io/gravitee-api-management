@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.ApiCategoryOrder;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -142,5 +143,17 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     public void shouldNotUpdateNull() throws Exception {
         apiCategoryOrderRepository.update(null);
         fail("A null ApiCategoryOrder should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_api_id() throws Exception {
+        var beforeDeletion = apiCategoryOrderRepository.findAllByApiId("api-2").stream().map(ApiCategoryOrder::getCategoryId).toList();
+
+        List<String> deleted = apiCategoryOrderRepository.deleteByApiId("api-2");
+        var nbAfterDeletion = apiCategoryOrderRepository.findAllByApiId("api-2").size();
+
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
+        assertEquals(0, nbAfterDeletion);
     }
 }

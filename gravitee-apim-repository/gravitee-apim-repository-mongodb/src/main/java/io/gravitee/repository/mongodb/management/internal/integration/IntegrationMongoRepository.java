@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.integration;
 
 import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,4 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface IntegrationMongoRepository extends MongoRepository<IntegrationMongo, String>, IntegrationMongoRepositoryCustom {}
+public interface IntegrationMongoRepository extends MongoRepository<IntegrationMongo, String>, IntegrationMongoRepositoryCustom {
+    @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<IntegrationMongo> deleteByEnvironmentId(String environmentId);
+}

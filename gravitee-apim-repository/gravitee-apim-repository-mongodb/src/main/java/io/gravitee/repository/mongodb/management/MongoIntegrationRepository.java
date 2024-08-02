@@ -103,6 +103,19 @@ public class MongoIntegrationRepository implements IntegrationRepository {
         return new Page<>(content, integrations.getPageNumber(), (int) integrations.getPageElements(), integrations.getTotalElements());
     }
 
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        logger.debug("Delete integration by environmentId: {}", environmentId);
+        try {
+            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(IntegrationMongo::getId).toList();
+            logger.debug("Delete integration by environment - Done {}", all);
+            return all;
+        } catch (Exception ex) {
+            logger.error("Failed to delete integration by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete integration by environmentId");
+        }
+    }
+
     private Integration map(IntegrationMongo integrationMongo) {
         return mapper.map(integrationMongo);
     }

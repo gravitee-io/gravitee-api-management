@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -50,7 +49,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Role> roles = roleRepository.findAll();
 
         assertNotNull(roles);
-        assertEquals(4, roles.size());
+        assertEquals(6, roles.size());
     }
 
     @Test
@@ -205,5 +204,15 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
             roleRepository.findByIdAndReferenceIdAndReferenceType("API_find_by_id_and_org_id", REFERENCE_ID, RoleReferenceType.ENVIRONMENT)
         )
             .isEmpty();
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION)).isNotEmpty();
+
+        List<String> deleted = roleRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION);
+
+        assertEquals(2, deleted.size());
+        assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION)).isEmpty();
     }
 }

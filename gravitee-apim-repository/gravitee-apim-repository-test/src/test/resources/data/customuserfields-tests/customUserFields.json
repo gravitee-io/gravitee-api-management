@@ -49,5 +49,25 @@
       "required": false,
       "createdAt": 1486771200000,
       "updatedAt": 1486771200000
+   },
+   {
+     "key":"deleteKeyByRef",
+     "referenceId": "ToBeDeleted",
+     "referenceType": "ORGANIZATION",
+     "label":"label",
+     "format":"MAIL",
+     "required": false,
+     "createdAt": 1486771200000,
+     "updatedAt": 1486771200000
+   },
+   {
+     "key":"deleteKeyByRef-2",
+     "referenceId": "ToBeDeleted",
+     "referenceType": "ORGANIZATION",
+     "label":"label",
+     "format":"MAIL",
+     "required": false,
+     "createdAt": 1486771200000,
+     "updatedAt": 1486771200000
    }
 ]

@@ -22,5 +22,17 @@
       "referenceId": "PROD",
       "referenceType": "ENVIRONMENT",
       "value": "MyClientSecretProd"
-   }
+   },
+  {
+    "key": "management.oAuth.clientSecret2",
+    "referenceId": "env-deleted",
+    "referenceType": "ENVIRONMENT",
+    "value": "MyClientSecret"
+  },
+  {
+    "key": "management.oAuth.clientSecret.prof3",
+    "referenceId": "env-deleted",
+    "referenceType": "ENVIRONMENT",
+    "value": "MyClientSecretProd"
+  }
 ]

@@ -177,6 +177,28 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
     }
 
     @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        LOGGER.debug("JdbcApiCategoryOrderRepository.deleteByApiId({})", apiId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select category_id from " + this.tableName + " where api_id = ?",
+                String.class,
+                apiId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + this.tableName + " where api_id = ?", apiId);
+            }
+
+            LOGGER.debug("JdbcApiCategoryOrderRepository.deleteByApiId({}) - Done", apiId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete ApiCategoryOrder by apiId: {}", apiId, ex);
+            throw new TechnicalException("Failed to delete ApiCategoryOrder by apiId", ex);
+        }
+    }
+
+    @Override
     public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
         LOGGER.debug("JdbcApiCategoryOrderRepository.findById({}, {})", apiId, categoryId);
 

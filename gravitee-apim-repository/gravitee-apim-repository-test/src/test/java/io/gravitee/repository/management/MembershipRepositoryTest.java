@@ -369,38 +369,14 @@ public class MembershipRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDeleteMembers() throws TechnicalException {
-        int m1 = membershipRepository
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_1", MembershipMemberType.USER, API, "api_deleteRef")
-            .size();
-        int m2 = membershipRepository
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_2", MembershipMemberType.USER, API, "api_deleteRef")
-            .size();
+        int nbBeforeDeletion = membershipRepository.findByReferenceAndRoleId(API, "api_deleteRef", null).size();
 
-        assertEquals("m1 exists", 1, m1);
-        assertEquals("m2 exists", 1, m2);
+        List<String> deleted = membershipRepository.deleteByReferenceIdAndReferenceType("api_deleteRef", API);
 
-        membershipRepository.deleteMembers(API, "api_deleteRef");
+        int nbAfterDeletion = membershipRepository.findByReferenceAndRoleId(API, "api_deleteRef", null).size();
 
-        m1 =
-            membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    "user_deleteRef_1",
-                    MembershipMemberType.USER,
-                    API,
-                    "api_deleteRef"
-                )
-                .size();
-        m2 =
-            membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    "user_deleteRef_2",
-                    MembershipMemberType.USER,
-                    API,
-                    "api_deleteRef"
-                )
-                .size();
-
-        assertEquals("m1 doesn't exist", 0, m1);
-        assertEquals("m2 doesn't exist", 0, m2);
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted.size());
+        assertEquals(0, nbAfterDeletion);
     }
 }

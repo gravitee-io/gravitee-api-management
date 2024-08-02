@@ -80,4 +80,21 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
             throw new TechnicalException("Failed to find rating answers by rating", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByRating(String ratingId) throws TechnicalException {
+        LOGGER.debug("JdbcRatingAnswerRepository.deleteByRatingId({})", ratingId);
+        try {
+            final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where rating = ?", String.class, ratingId);
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where rating = ?", ratingId);
+            }
+
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete rating answers by ratingId: {}", ratingId, ex);
+            throw new TechnicalException("Failed to delete rating answers by ratingId", ex);
+        }
+    }
 }

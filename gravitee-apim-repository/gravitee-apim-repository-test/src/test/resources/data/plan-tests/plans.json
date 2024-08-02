@@ -91,5 +91,19 @@
          "7c546c6b-2f2f-4487-946c-6b2f2f648784"
       ],
       "commentRequired": false
+   },
+   {
+     "id":"plan-deleted-1",
+     "name":"Stores",
+     "description": "Description for stores view",
+     "api": "api4",
+     "environmentId" : "ToBeDeleted"
+   },
+   {
+     "id":"plan-deleted-2",
+     "name":"Stores",
+     "description": "Description for stores view",
+     "api": "api4",
+     "environmentId" : "ToBeDeleted"
    }
 ]

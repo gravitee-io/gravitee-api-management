@@ -19,11 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.eventLatest.event.EventLatestMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -62,6 +62,18 @@ public class MongoEventLatestRepository implements EventLatestRepository {
             log.error("An error occurred when deleting event [{}]", id, e);
             throw new TechnicalException("An error occurred when deleting event");
         }
+    }
+
+    @Override
+    public List<Event> findByEnvironmentId(String environmentId) {
+        List<EventLatestMongo> eventsLatestMongo = internalEventRepo.findByEnvironmentsIn(Set.of(environmentId));
+        return mapper.mapEventLatests(eventsLatestMongo);
+    }
+
+    @Override
+    public List<Event> findByOrganizationId(String organizationId) {
+        List<EventLatestMongo> eventsLatestMongo = internalEventRepo.findByOrganizationsIn(Set.of(organizationId));
+        return mapper.mapEventLatests(eventsLatestMongo);
     }
 
     @Override

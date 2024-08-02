@@ -122,7 +122,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
         assertEquals("result size", 5, commands.size());
-        List<String> ids = commands.stream().map(Command::getId).collect(Collectors.toList());
+        List<String> ids = commands.stream().map(Command::getId).toList();
         assertFalse("not contain 'search1'", ids.contains("search1"));
         assertTrue("contain 'search2'", ids.contains("search2"));
         assertTrue("contain 'search3'", ids.contains("search3"));
@@ -208,5 +208,27 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse("not empty", commands.isEmpty());
         assertEquals("result size", 1, commands.size());
         assertEquals("contain 'msg-to-create'", "msg-to-create", commands.get(0).getId());
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        int nbBeforeDeletion = commandRepository.search((new CommandCriteria.Builder()).environmentId("ToBeDeleted").build()).size();
+        List<String> deleted = commandRepository.deleteByEnvironmentId("ToBeDeleted");
+        int nbAfterDeletion = commandRepository.search((new CommandCriteria.Builder()).environmentId("ToBeDeleted").build()).size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted.size());
+        assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_delete_by_organization_id() throws TechnicalException {
+        int nbBeforeDeletion = commandRepository.search((new CommandCriteria.Builder()).organizationId("ToBeDeleted").build()).size();
+        List<String> deleted = commandRepository.deleteByOrganizationId("ToBeDeleted");
+        int nbAfterDeletion = commandRepository.search((new CommandCriteria.Builder()).organizationId("ToBeDeleted").build()).size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted.size());
+        assertEquals(0, nbAfterDeletion);
     }
 }

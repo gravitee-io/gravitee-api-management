@@ -17,7 +17,6 @@ package io.gravitee.apim.core.event.crud_service;
 
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
 import java.util.Set;
 

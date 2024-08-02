@@ -57,4 +57,12 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException
      */
     Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException;
+
+    /**
+     * Delete plans for the environment
+     * @param environmentId The environment ID
+     * @return List of deleted plans IDs for the environment
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

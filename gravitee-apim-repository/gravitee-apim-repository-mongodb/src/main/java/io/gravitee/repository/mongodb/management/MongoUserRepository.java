@@ -96,6 +96,19 @@ public class MongoUserRepository implements UserRepository {
     }
 
     @Override
+    public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
+        logger.debug("Delete users by organizationId: {}", organizationId);
+        try {
+            final var users = internalUserRepo.deleteByOrganizationId(organizationId).stream().map(UserMongo::getId).toList();
+            logger.debug("Delete users by organizationId: {} - Done", organizationId);
+            return users;
+        } catch (Exception ex) {
+            logger.error("Failed to delete users by organizationId: {}", organizationId, ex);
+            throw new TechnicalException("Failed to delete users by organizationId");
+        }
+    }
+
+    @Override
     public Optional<User> findById(String id) throws TechnicalException {
         logger.debug("Find user by ID [{}]", id);
 
