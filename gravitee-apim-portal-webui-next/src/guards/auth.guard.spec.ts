@@ -42,7 +42,7 @@ describe('authGuard', () => {
 
     expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeTruthy();
     expect(router.navigate).toBeCalledTimes(1);
-    expect(router.navigate).toHaveBeenCalledWith(['..'], { relativeTo: activatedRoute });
+    expect(router.navigate).toHaveBeenCalledWith(['']);
   });
 
   it('should allow authenticated user', () => {

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import { ActivatedRoute, CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 
 import { CurrentUserService } from '../services/current-user.service';
 
-export const authGuard: CanActivateFn = (_route, _state) =>
-  inject(CurrentUserService).isAuthenticated() || inject(Router).navigate(['..'], { relativeTo: inject(ActivatedRoute) });
+export const authGuard: CanActivateFn = (_route, _state) => {
+  return inject(CurrentUserService).isAuthenticated() || inject(Router).navigate(['']);
+};
