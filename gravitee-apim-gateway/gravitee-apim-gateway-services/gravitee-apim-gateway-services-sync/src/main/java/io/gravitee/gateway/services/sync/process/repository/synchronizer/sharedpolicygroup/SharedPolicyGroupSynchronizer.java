@@ -41,10 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
 
-    private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.DEPLOY_ENVIRONMENT_FLOW);
+    private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.DEPLOY_SHARED_POLICY_GROUP);
     private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(
-        EventType.DEPLOY_ENVIRONMENT_FLOW,
-        EventType.UNDEPLOY_ENVIRONMENT_FLOW
+        EventType.DEPLOY_SHARED_POLICY_GROUP,
+        EventType.UNDEPLOY_SHARED_POLICY_GROUP
     );
     private final LatestEventFetcher eventsFetcher;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
@@ -74,7 +74,7 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
             .fetchLatest(
                 from,
                 to,
-                Event.EventProperties.ENVIRONMENT_FLOW_ID,
+                Event.EventProperties.SHARED_POLICY_GROUP_ID,
                 environments,
                 from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES
             )
@@ -113,9 +113,9 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
                     .flatMapIterable(e -> e)
                     .groupBy(Event::getType)
                     .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.DEPLOY_ENVIRONMENT_FLOW) {
+                        if (eventsByType.getKey() == EventType.DEPLOY_SHARED_POLICY_GROUP) {
                             return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNDEPLOY_ENVIRONMENT_FLOW) {
+                        } else if (eventsByType.getKey() == EventType.UNDEPLOY_SHARED_POLICY_GROUP) {
                             return prepareForUndeployment(eventsByType);
                         } else {
                             return Flowable.empty();
