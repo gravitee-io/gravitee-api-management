@@ -41,8 +41,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -560,6 +558,32 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by environment:", ex);
             throw new TechnicalException("Failed to find applications by environment", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApplicationRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var applicationIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!applicationIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + APPLICATION_METADATA + " where application_id IN ( " + getOrm().buildInClause(applicationIds) + " )",
+                    applicationIds.toArray()
+                );
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcApplicationRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return applicationIds;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete application by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete application by environment", ex);
         }
     }
 

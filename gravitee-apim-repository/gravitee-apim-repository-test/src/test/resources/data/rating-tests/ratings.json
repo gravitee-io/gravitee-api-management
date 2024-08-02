@@ -50,5 +50,25 @@
       "comment":"My comment5",
       "rate":0,
       "createdAt": 1586771200000
+   },
+   {
+     "id":"rating6-id",
+     "referenceId":"ToBeDeleted",
+     "referenceType": "API",
+     "user":"admin",
+     "title":"title5",
+     "comment":"My comment5",
+     "rate":0,
+     "createdAt": 1586771200000
+   },
+   {
+     "id":"rating7-id",
+     "referenceId":"ToBeDeleted",
+     "referenceType": "API",
+     "user":"admin",
+     "title":"title5",
+     "comment":"My comment5",
+     "rate":0,
+     "createdAt": 1586771200000
    }
 ]

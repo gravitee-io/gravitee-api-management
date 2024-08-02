@@ -18,6 +18,7 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,4 +32,13 @@ public interface TagRepository extends CrudRepository<Tag, String> {
     Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) throws TechnicalException;
 
     Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType) throws TechnicalException;
+
+    /**
+     * Delete tags by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted tags
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException;
 }

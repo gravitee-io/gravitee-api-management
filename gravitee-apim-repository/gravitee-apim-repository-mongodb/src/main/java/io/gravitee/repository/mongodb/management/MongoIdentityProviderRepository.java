@@ -177,7 +177,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
 
     @Override
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("Find all identity providers by organization");
+        LOGGER.debug("Find all identity providers by organization {}", organizationId);
 
         Set<IdentityProvider> res = internalIdentityProviderRepository
             .findByOrganizationId(organizationId)
@@ -185,7 +185,24 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             .map(this::map)
             .collect(Collectors.toSet());
 
-        LOGGER.debug("Find all identity providers by organization - Done");
+        LOGGER.debug("Find all identity providers by organization {} - Done", organizationId);
         return res;
+    }
+
+    @Override
+    public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
+        LOGGER.debug("Delete all identity providers by organizationId: {}", organizationId);
+        try {
+            final var res = internalIdentityProviderRepository
+                .deleteByOrganizationId(organizationId)
+                .stream()
+                .map(IdentityProviderMongo::getId)
+                .toList();
+            LOGGER.debug("Delete all identity providers by organizationId: {} - Done", organizationId);
+            return res;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete identity providers by organizationId: {}", organizationId, ex);
+            throw new TechnicalException("Failed to delete identity providers by organizationId");
+        }
     }
 }

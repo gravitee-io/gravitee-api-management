@@ -616,4 +616,22 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         boolean exist = apiRepository.existById("unknown-api");
         assertFalse(exist);
     }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        final var beforeDeletion = apiRepository
+            .search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields())
+            .stream()
+            .map(Api::getId)
+            .toList();
+
+        final var deleted = apiRepository.deleteByEnvironmentId("DEFAULT");
+        final var nbAfterDeletion = apiRepository
+            .search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields())
+            .size();
+
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(deleted.containsAll(beforeDeletion));
+        assertEquals(0, nbAfterDeletion);
+    }
 }

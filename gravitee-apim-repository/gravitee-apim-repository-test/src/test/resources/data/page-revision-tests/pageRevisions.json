@@ -24,7 +24,6 @@
       "content": "lorem ipsum",
       "createdAt": 1439022010883
    },
-
    {
       "pageId": "findByPageId",
       "revision": 1,
@@ -48,6 +47,21 @@
       "name":"revision 3",
       "content": "lorem ipsum",
       "createdAt": 1439022010885
+   },
+   {
+     "pageId": "ToBeDeleted",
+     "revision": 1,
+     "hash": "hexstring3",
+     "name":"revision 3",
+     "content": "lorem ipsum",
+     "createdAt": 1439022010885
+   },
+   {
+     "pageId": "ToBeDeleted",
+     "revision": 2,
+     "hash": "hexstring3",
+     "name":"revision 3",
+     "content": "lorem ipsum",
+     "createdAt": 1439022010885
    }
-
 ]

@@ -20,6 +20,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -33,4 +34,7 @@ public interface RatingMongoRepository extends MongoRepository<RatingMongo, Stri
     Page<RatingMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType, Pageable pageable);
 
     List<RatingMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1  }", fields = "{ _id : 1 }", delete = true)
+    List<RatingMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

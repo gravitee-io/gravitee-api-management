@@ -28,6 +28,8 @@ import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +40,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoApplicationRepository implements ApplicationRepository {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(MongoApplicationRepository.class);
 
     @Autowired
     private ApplicationMongoRepository internalApplicationRepo;
@@ -175,6 +179,23 @@ public class MongoApplicationRepository implements ApplicationRepository {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId, Arrays.asList(statuses)));
         } else {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId));
+        }
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete by environmentId [{}]", environmentId);
+        try {
+            final var applicationMongos = internalApplicationRepo
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(ApplicationMongo::getId)
+                .toList();
+            LOGGER.debug("Delete by environmentId [{}] - Done", environmentId);
+            return applicationMongos;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete applications by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete applications by environmentId");
         }
     }
 

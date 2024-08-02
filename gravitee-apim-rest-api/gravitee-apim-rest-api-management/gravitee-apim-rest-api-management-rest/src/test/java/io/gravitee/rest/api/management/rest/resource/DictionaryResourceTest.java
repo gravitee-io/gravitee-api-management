@@ -39,11 +39,13 @@ public class DictionaryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldStartDictionary() {
-        DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setId(DICTIONARY_ID);
-        dictionary.setUpdatedAt(new Date());
-        dictionary.setType(DictionaryType.DYNAMIC);
-        dictionary.setState(Lifecycle.State.STOPPED);
+        DictionaryEntity dictionary = DictionaryEntity
+            .builder()
+            .id(DICTIONARY_ID)
+            .updatedAt(new Date())
+            .type(DictionaryType.DYNAMIC)
+            .state(Lifecycle.State.STOPPED)
+            .build();
         doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         doReturn(dictionary).when(dictionaryService).start(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
@@ -54,11 +56,13 @@ public class DictionaryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldStopDictionary() {
-        DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setId(DICTIONARY_ID);
-        dictionary.setUpdatedAt(new Date());
-        dictionary.setType(DictionaryType.DYNAMIC);
-        dictionary.setState(Lifecycle.State.STARTED);
+        DictionaryEntity dictionary = DictionaryEntity
+            .builder()
+            .id(DICTIONARY_ID)
+            .updatedAt(new Date())
+            .type(DictionaryType.DYNAMIC)
+            .state(Lifecycle.State.STARTED)
+            .build();
         doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         doReturn(dictionary).when(dictionaryService).stop(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
@@ -69,11 +73,13 @@ public class DictionaryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnBadRequestWithInvalidLifecycleAction() {
-        DictionaryEntity dictionary = new DictionaryEntity();
-        dictionary.setId(DICTIONARY_ID);
-        dictionary.setUpdatedAt(new Date());
-        dictionary.setType(DictionaryType.DYNAMIC);
-        dictionary.setState(Lifecycle.State.STARTED);
+        DictionaryEntity dictionary = DictionaryEntity
+            .builder()
+            .id(DICTIONARY_ID)
+            .updatedAt(new Date())
+            .type(DictionaryType.DYNAMIC)
+            .state(Lifecycle.State.STARTED)
+            .build();
         doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         final Response response = envTarget().queryParam("action", "Bad action").request().post(null);

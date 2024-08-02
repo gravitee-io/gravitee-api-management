@@ -103,11 +103,16 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     }
 
     @Override
-    public List<AccessPoint> deleteByReference(final AccessPointReferenceType referenceType, final String referenceId) {
+    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final AccessPointReferenceType referenceType)
+        throws TechnicalException {
         log.debug("Delete access point by reference [{}, {}]", referenceType, referenceId);
-        List<AccessPointMongo> accessPointMongos = internalRepository.deleteAllByReference(referenceType.name(), referenceId);
-        log.debug("Delete access point by reference [{}, {}] - Done", referenceType, referenceId);
-        return accessPointMongos.stream().map(this::map).toList();
+        try {
+            List<AccessPointMongo> accessPointMongos = internalRepository.deleteAllByReference(referenceType.name(), referenceId);
+            log.debug("Delete access point by reference [{}, {}] - Done", referenceType, referenceId);
+            return accessPointMongos.stream().map(AccessPointMongo::getId).toList();
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred while deleting access point", e);
+        }
     }
 
     @Override

@@ -445,19 +445,20 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     @Override
-    public void deleteByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.deleteByReference({}, {})", referenceType, referenceId);
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcFlowRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
-            List<Flow> flows = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ?",
-                getOrm().getRowMapper(),
+            final var flows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
                 referenceId,
                 referenceType.name()
             );
-
-            this.deleteAllById(flows.stream().map(Flow::getId).collect(Collectors.toList()));
+            this.deleteAllById(flows);
+            LOGGER.debug("JdbcFlowRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            return flows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete flows by reference:", ex);
+            LOGGER.error("Failed to delete flows for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete flows by reference", ex);
         }
     }

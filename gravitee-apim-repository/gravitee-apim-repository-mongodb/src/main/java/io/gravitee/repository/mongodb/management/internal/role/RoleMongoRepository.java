@@ -39,4 +39,7 @@ public interface RoleMongoRepository extends MongoRepository<RoleMongo, String> 
 
     @Query("{ '_id' : ?0, 'referenceId' : ?1, 'referenceType': ?2 }")
     RoleMongo findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, String referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<RoleMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

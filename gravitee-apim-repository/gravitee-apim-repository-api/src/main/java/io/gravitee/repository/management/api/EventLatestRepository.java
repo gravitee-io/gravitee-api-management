@@ -55,4 +55,18 @@ public interface EventLatestRepository {
      * @throws TechnicalException
      */
     void delete(String eventId) throws TechnicalException;
+
+    /**
+     * Find all events by environmentId
+     * @param environmentId
+     * @return List of events
+     */
+    List<Event> findByEnvironmentId(String environmentId);
+
+    /**
+     * Find all events by organizationId
+     * @param organizationId
+     * @return List of events
+     */
+    List<Event> findByOrganizationId(String organizationId);
 }

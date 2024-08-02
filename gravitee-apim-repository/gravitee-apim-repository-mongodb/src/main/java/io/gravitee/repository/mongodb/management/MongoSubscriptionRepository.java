@@ -32,6 +32,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +43,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoSubscriptionRepository implements SubscriptionRepository {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(MongoSubscriptionRepository.class);
 
     @Autowired
     private GraviteeMapper mapper;
@@ -111,6 +115,23 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     @Override
     public void delete(String plan) throws TechnicalException {
         internalSubscriptionRepository.deleteById(plan);
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete subscriptions by environment [{}]", environmentId);
+        try {
+            final var subscriptionMongos = internalSubscriptionRepository
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(SubscriptionMongo::getId)
+                .toList();
+            LOGGER.debug("Delete subscriptions by environment [{}] - Done", environmentId);
+            return subscriptionMongos;
+        } catch (Exception e) {
+            LOGGER.error("Failed to delete subscriptions by environment [{}]", environmentId, e);
+            throw new TechnicalException("Failed to delete subscriptions by environment");
+        }
     }
 
     @Override

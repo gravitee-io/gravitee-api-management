@@ -194,4 +194,20 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
         assertNotNull(afterDelete);
         assertFalse(afterDelete.isPresent());
     }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final List<String> beforeDelete = customUserFieldsRepository
+            .findByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION)
+            .stream()
+            .map(CustomUserField::getKey)
+            .toList();
+        List<String> deleted = customUserFieldsRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION);
+
+        final List<CustomUserField> afterDelete = customUserFieldsRepository.findByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION);
+
+        assertEquals(beforeDelete.size(), deleted.size());
+        assertTrue(beforeDelete.containsAll(deleted));
+        assertEquals(0, afterDelete.size());
+    }
 }

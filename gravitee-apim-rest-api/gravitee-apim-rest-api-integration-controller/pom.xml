@@ -37,7 +37,6 @@
         <dependency>
             <groupId>io.gravitee.exchange</groupId>
             <artifactId>gravitee-exchange-api</artifactId>
-            <version>${gravitee-exchange.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.exchange</groupId>

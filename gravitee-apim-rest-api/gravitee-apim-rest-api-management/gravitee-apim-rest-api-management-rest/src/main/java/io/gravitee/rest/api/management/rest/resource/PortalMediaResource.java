@@ -84,7 +84,7 @@ public class PortalMediaResource extends AbstractResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
             }
 
-            mediaId = mediaService.savePortalMedia(mediaEntity);
+            mediaId = mediaService.savePortalMedia(GraviteeContext.getExecutionContext(), mediaEntity);
         }
 
         return Response.status(200).entity(mediaId).build();
@@ -101,7 +101,7 @@ public class PortalMediaResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "Not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getPortalMedia(@Context Request request, @PathParam("hash") String hash) {
-        MediaEntity mediaEntity = mediaService.findByHash(hash);
+        MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), hash);
 
         if (mediaEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).build();

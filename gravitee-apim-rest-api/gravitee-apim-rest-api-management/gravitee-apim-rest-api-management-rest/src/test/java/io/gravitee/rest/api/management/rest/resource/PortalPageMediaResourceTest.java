@@ -129,7 +129,7 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
         final String mediaHash = "#MEDIA_HASH";
-        when(mediaService.savePortalMedia(any())).thenReturn(mediaHash);
+        when(mediaService.savePortalMedia(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mediaHash);
 
         final Date attachedAt = new Date();
         PageEntity pageEntity = new PageEntity();

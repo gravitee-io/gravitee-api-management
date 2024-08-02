@@ -116,4 +116,21 @@ public class MongoTokenRepository implements TokenRepository {
         LOGGER.debug("Find token by ref type '{}' and ref id '{}' done", referenceType, referenceId);
         return token.stream().map(t -> mapper.map(t)).collect(Collectors.toList());
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+        LOGGER.debug("Delete token by ref type '{}' and ref id '{}'", referenceType, referenceId);
+        try {
+            final var tokens = internalTokenRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
+                .stream()
+                .map(TokenMongo::getId)
+                .toList();
+            LOGGER.debug("Delete token by ref type '{}' and ref id '{}' done", referenceId, referenceType);
+            return tokens;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete tokens by reference", ex);
+        }
+    }
 }

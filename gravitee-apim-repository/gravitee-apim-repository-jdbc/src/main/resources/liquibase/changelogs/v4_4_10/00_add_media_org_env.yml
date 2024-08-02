@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.10_add_media_org_env
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}media
+            columns:
+              - column: { name: environment, type: nvarchar(64), constraints: { nullable: true } }
+        - addColumn:
+            tableName: ${gravitee_prefix}media
+            columns:
+              - column: { name: organization, type: nvarchar(64), constraints: { nullable: true } }

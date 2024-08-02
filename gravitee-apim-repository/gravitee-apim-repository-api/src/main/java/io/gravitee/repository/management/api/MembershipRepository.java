@@ -33,12 +33,13 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
     void delete(String membershipId) throws TechnicalException;
 
     /**
-     * delete all members of a reference
-     * @param referenceType
+     * Delete by reference
      * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted membership
      * @throws TechnicalException
      */
-    void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType) throws TechnicalException;
 
     /**
      * find membership by id.

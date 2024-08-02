@@ -25,23 +25,23 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface MediaService {
-    String savePortalMedia(MediaEntity imageEntity);
+    String savePortalMedia(ExecutionContext executionContext, MediaEntity imageEntity);
 
-    String saveApiMedia(String api, MediaEntity imageEntity);
+    String saveApiMedia(ExecutionContext context, String api, MediaEntity imageEntity);
 
-    MediaEntity findByHash(String hash);
+    MediaEntity findByHash(ExecutionContext context, String hash);
     MediaEntity findByHashAndApiId(String hash, String apiId);
-    MediaEntity findByHash(String id, boolean ignoreType);
+    MediaEntity findByHash(ExecutionContext context, String id, boolean ignoreType);
     MediaEntity findByHashAndApi(String id, String api, boolean ignoreType);
 
-    List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities);
+    List<MediaEntity> findAllWithoutContent(ExecutionContext context, List<PageMediaEntity> pageMediaEntities);
     List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api);
 
     Long getMediaMaxSize(ExecutionContext executionContext);
 
     List<MediaEntity> findAllByApiId(String apiId);
 
-    String createWithDefinition(String api, String definition);
+    String createWithDefinition(ExecutionContext executionContext, String api, String definition);
 
     void deleteAllByApi(String apiId);
 

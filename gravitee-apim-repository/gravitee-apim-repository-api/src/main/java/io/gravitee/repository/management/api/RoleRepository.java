@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -67,4 +68,13 @@ public interface RoleRepository extends FindAllRepository<Role> {
 
     Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
         throws TechnicalException;
+
+    /**
+     * Delete roles by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs of deleted roles
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 }

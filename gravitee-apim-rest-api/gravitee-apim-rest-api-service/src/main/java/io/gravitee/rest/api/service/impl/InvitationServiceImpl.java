@@ -232,7 +232,10 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
     @Override
     public List<InvitationEntity> findByReference(final InvitationReferenceType referenceType, final String referenceId) {
         try {
-            final List<Invitation> invitations = invitationRepository.findByReference(referenceType.name(), referenceId);
+            final List<Invitation> invitations = invitationRepository.findByReferenceIdAndReferenceType(
+                referenceId,
+                io.gravitee.repository.management.model.InvitationReferenceType.valueOf(referenceType.name())
+            );
             return invitations.stream().map(this::convert).sorted(comparing(InvitationEntity::getEmail)).collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list invitations by reference " + referenceType + '/' + referenceId;

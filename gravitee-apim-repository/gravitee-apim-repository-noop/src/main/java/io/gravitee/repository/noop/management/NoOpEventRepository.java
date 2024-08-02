@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,5 +48,15 @@ public class NoOpEventRepository extends AbstractNoOpManagementRepository<Event,
     @Override
     public long deleteApiEvents(String apiId) throws TechnicalException {
         return 0;
+    }
+
+    @Override
+    public List<Event> findByEnvironmentId(String environmentId) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Event> findByOrganizationId(String organizationId) {
+        return Collections.emptyList();
     }
 }

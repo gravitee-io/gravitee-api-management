@@ -340,4 +340,30 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             throw new TechnicalException("Failed to find dictionary for environments", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcDictionaryRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var dictionaryIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!dictionaryIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + DICTIONARY_PROPERTY + " where dictionary_id IN (" + getOrm().buildInClause(dictionaryIds) + ")",
+                    dictionaryIds.toArray()
+                );
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcDictionaryRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return dictionaryIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete dictionaries for environment: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete dictionaries by environment", ex);
+        }
+    }
 }

@@ -67,5 +67,41 @@
       "createdAt": 1000000000000,
       "updatedAt": 1111111111111,
       "deployedAt": 1111111111111
+   },
+   {
+     "id":"dic-5",
+     "environmentId": "ToBeDeleted",
+     "name":"My dic 5",
+     "description": "Description for my dic 5",
+     "type": "DYNAMIC",
+     "provider": {
+       "type": "HTTP",
+       "configuration": "{}"
+     },
+     "trigger": {
+       "rate": 10,
+       "unit": "MINUTES"
+     },
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111,
+     "deployedAt": 1111111111111
+   },
+   {
+     "id":"dic-6",
+     "environmentId": "ToBeDeleted",
+     "name":"My dic 6",
+     "description": "Description for my dic 6",
+     "type": "DYNAMIC",
+     "provider": {
+       "type": "HTTP",
+       "configuration": "{}"
+     },
+     "trigger": {
+       "rate": 10,
+       "unit": "MINUTES"
+     },
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111,
+     "deployedAt": 1111111111111
    }
 ]

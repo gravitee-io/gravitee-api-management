@@ -24,9 +24,7 @@ import static org.mockito.Mockito.mock;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -188,6 +186,28 @@ public class SearchEngineServiceTest {
         assertThat(matches.getHits()).isEqualTo(1);
 
         assertThat(matches.getDocuments()).containsExactly("api-1");
+    }
+
+    @Test
+    public void should_delete_api_only_with_id() {
+        Map<String, Object> filters = new HashMap<>();
+
+        SearchResult beforeDeletion = searchEngineService.search(
+            GraviteeContext.getExecutionContext(),
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
+        );
+        searchEngineService.delete(GraviteeContext.getExecutionContext(), ApiEntity.builder().id("api-1").build(), true);
+        SearchResult afterDeletion = searchEngineService.search(
+            GraviteeContext.getExecutionContext(),
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
+        );
+
+        assertThat(beforeDeletion.getHits()).isEqualTo(1);
+        assertThat(beforeDeletion.getDocuments()).containsExactly("api-1");
+        assertThat(afterDeletion.getHits()).isEqualTo(0);
+
+        // force reindex after delete
+        isIndexed = false;
     }
 
     @Test

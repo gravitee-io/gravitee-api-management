@@ -104,4 +104,13 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @throws TechnicalException
      */
     Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException;
+
+    /**
+     * Delete api key by environment ID
+     *
+     * @param environmentId The environment ID
+     * @return List of deleted IDs for api key
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

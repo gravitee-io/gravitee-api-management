@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 import io.gravitee.repository.mongodb.management.internal.model.InvitationMongo;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -26,5 +27,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface InvitationMongoRepository extends MongoRepository<InvitationMongo, String> {
-    List<InvitationMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
+    List<InvitationMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<InvitationMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

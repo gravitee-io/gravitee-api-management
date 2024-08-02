@@ -387,6 +387,24 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
     }
 
+    @Override
+    public List<Event> findByEnvironmentId(String environmentId) {
+        log.debug("JdbcEventRepository.findByEnvironmentId({})", environmentId);
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = createSearchQueryBuilder();
+        addStringsWhereClause(Set.of(environmentId), "ev.environment_id", args, builder, false);
+        return queryEvents(builder.toString(), args);
+    }
+
+    @Override
+    public List<Event> findByOrganizationId(String organizationId) {
+        log.debug("JdbcEventRepository.findByOrganizationId({})", organizationId);
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = createSearchQueryBuilder();
+        addStringsWhereClause(Set.of(organizationId), "evo.organization_id", args, builder, false);
+        return queryEvents(builder.toString(), args);
+    }
+
     private int patchEvent(Event event) {
         List<Object> args = new ArrayList<>();
         StringBuilder queryBuilder = new StringBuilder();

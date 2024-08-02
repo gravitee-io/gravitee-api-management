@@ -80,7 +80,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
             if (flows == null || flows.isEmpty()) {
-                flowRepository.deleteByReference(flowReferenceType, referenceId);
+                flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return List.of();
             }
             Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById = flowRepository

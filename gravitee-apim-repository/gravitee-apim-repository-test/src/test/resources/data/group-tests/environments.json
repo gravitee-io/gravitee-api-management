@@ -13,5 +13,10 @@
       "id": "ENV_ORG_2",
       "name": "Env belonging to organization 2",
       "organizationId": "ORGANIZATION_2"
+   },
+   {
+     "id": "ToBeDeleted",
+     "name": "Env to be deleted",
+     "organizationId": "ORGANIZATION_2"
    }
 ]

@@ -63,13 +63,13 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(revisions);
         assertNotNull(revisions.getContent());
         assertEquals(revisions.getPageNumber(), 0);
-        assertEquals(revisions.getPageElements(), 6);
-        assertEquals(revisions.getTotalElements(), 6);
-        assertEquals(revisions.getContent().size(), 6);
+        assertEquals(revisions.getPageElements(), 8);
+        assertEquals(revisions.getTotalElements(), 8);
+        assertEquals(revisions.getContent().size(), 8);
     }
 
     @Test
-    public void shouldFindAll_PageSize3() throws TechnicalException {
+    public void shouldFindAll_PageSize4() throws TechnicalException {
         int pageNumber = 0;
         Set<String> accumulator = new HashSet<>();
         do {
@@ -78,7 +78,7 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
             assertNotNull(revisions.getContent());
             assertEquals(revisions.getPageNumber(), pageNumber);
             assertEquals(revisions.getPageElements(), 3);
-            assertEquals(revisions.getTotalElements(), 6);
+            assertEquals(revisions.getTotalElements(), 8);
             assertEquals(revisions.getContent().size(), 3);
             revisions.getContent().stream().forEach(rev -> accumulator.add(rev.getPageId() + "-" + rev.getRevision()));
         } while (++pageNumber < 2);
@@ -146,5 +146,20 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(pageShouldExists);
         assertFalse(pageShouldExists.isPresent());
+    }
+
+    @Test
+    public void should_delete_by_page_id() throws Exception {
+        List<String> beforeDeletion = pageRevisionRepository
+            .findAllByPageId("ToBeDeleted")
+            .stream()
+            .map(p -> p.getPageId() + ":" + p.getRevision())
+            .toList();
+        List<String> deleted = pageRevisionRepository.deleteByPageId("ToBeDeleted");
+        int nbAfterDeletion = pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
+
+        assertEquals(2, beforeDeletion.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
+        assertEquals(0, nbAfterDeletion);
     }
 }

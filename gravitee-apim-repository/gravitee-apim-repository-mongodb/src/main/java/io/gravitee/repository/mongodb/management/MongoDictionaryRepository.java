@@ -227,4 +227,21 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         LOGGER.debug("Find all dictionaries by environment- Done");
         return res;
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete dictionaries by environmentId: {}", environmentId);
+        try {
+            final var dictionaries = internalDictionaryRepo
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(DictionaryMongo::getId)
+                .toList();
+            LOGGER.debug("Delete dictionaries by environmentId: {} - Done", environmentId);
+            return dictionaries;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete dictionaries by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete dictionaries by environmentId");
+        }
+    }
 }

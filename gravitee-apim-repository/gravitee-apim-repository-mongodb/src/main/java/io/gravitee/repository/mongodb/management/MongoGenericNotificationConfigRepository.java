@@ -112,6 +112,25 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         internalRepo.deleteByConfig(config);
     }
 
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete GenericNotificationConfig by refId: [{}/{}]", referenceId, referenceType);
+
+        try {
+            final var notificationConfigIds = internalRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(GenericNotificationConfigMongo::getId)
+                .toList();
+            LOGGER.debug("Delete GenericNotificationConfig by refId: [{}/{}] - Done", referenceId, referenceType);
+            return notificationConfigIds;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete GenericNotificationConfig by refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete GenericNotificationConfig by reference");
+        }
+    }
+
     private GenericNotificationConfigMongo map(GenericNotificationConfig genericNotificationConfig) {
         GenericNotificationConfigMongo mongo = new GenericNotificationConfigMongo();
         mongo.setId(genericNotificationConfig.getId());

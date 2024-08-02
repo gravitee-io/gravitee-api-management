@@ -35,4 +35,12 @@ public interface ApiCategoryOrderRepository extends FindAllRepository<ApiCategor
     Optional<ApiCategoryOrder> findById(String apiId, String categoryId);
     Set<ApiCategoryOrder> findAllByCategoryId(String categoryId);
     Set<ApiCategoryOrder> findAllByApiId(String apiId);
+
+    /**
+     * Delete categories by api ID
+     * @param apiId The api ID
+     * @return List of deleted IDs for categories
+     * @throws TechnicalException
+     */
+    List<String> deleteByApiId(String apiId) throws TechnicalException;
 }

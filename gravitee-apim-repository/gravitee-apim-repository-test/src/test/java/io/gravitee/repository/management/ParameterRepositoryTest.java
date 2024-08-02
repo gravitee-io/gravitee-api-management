@@ -122,4 +122,14 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(parameters.isEmpty());
         assertEquals(3, parameters.size());
     }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        assertEquals(2, parameterRepository.findAll("env-deleted", ParameterReferenceType.ENVIRONMENT).size());
+
+        List<String> deleted = parameterRepository.deleteByReferenceIdAndReferenceType("env-deleted", ParameterReferenceType.ENVIRONMENT);
+
+        assertEquals(2, deleted.size());
+        assertEquals(0, parameterRepository.findAll("env-deleted", ParameterReferenceType.ENVIRONMENT).size());
+    }
 }

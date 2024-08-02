@@ -499,4 +499,48 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(updatedEvent.getProperties().containsKey("to_update_with_null"));
         assertNull(updatedEvent.getProperties().get("to_update_with_null"));
     }
+
+    @Test
+    public void should_find_by_environment_id() {
+        List<Event> events = eventRepository.findByEnvironmentId("DEFAULT");
+
+        assertEquals(11L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsOnly(
+                "event09",
+                "event08",
+                "event06",
+                "event20",
+                "event19",
+                "event17",
+                "event05",
+                "event04",
+                "event03",
+                "event02",
+                "event01"
+            );
+    }
+
+    @Test
+    public void should_find_by_organization_id() {
+        List<Event> events = eventRepository.findByOrganizationId("DEFAULT");
+
+        assertEquals(13L, events.size());
+        assertThat(events.stream().map(Event::getId))
+            .containsOnly(
+                "event09",
+                "event08",
+                "event07",
+                "event06",
+                "event20",
+                "event19",
+                "event18",
+                "event17",
+                "event05",
+                "event04",
+                "event03",
+                "event02",
+                "event01"
+            );
+    }
 }

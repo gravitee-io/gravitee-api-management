@@ -29,4 +29,7 @@ import org.springframework.stereotype.Repository;
 public interface IdentityProviderMongoRepository extends MongoRepository<IdentityProviderMongo, String> {
     @Query("{ organizationId: ?0}")
     List<IdentityProviderMongo> findByOrganizationId(String organizationId);
+
+    @Query(value = "{ organizationId: ?0}", fields = "{ _id : 1 }", delete = true)
+    List<IdentityProviderMongo> deleteByOrganizationId(String organizationId);
 }

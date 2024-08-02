@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ApiHeader;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -25,4 +26,13 @@ import java.util.Set;
  */
 public interface ApiHeaderRepository extends CrudRepository<ApiHeader, String> {
     Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException;
+
+    /**
+     * Delete api header by environment ID
+     *
+     * @param environmentId The environment ID
+     * @return List of deleted IDs for api header
+     * @throws TechnicalException
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

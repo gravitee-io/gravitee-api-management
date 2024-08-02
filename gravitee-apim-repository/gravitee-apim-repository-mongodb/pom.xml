@@ -38,7 +38,7 @@
             But "You can use newer server versions unless your application uses functionality that is affected by changes in the MongoDB server"
             Meaning that we can use mongo server 6.0.x if we use basic functionalities.
         -->
-        <mongo.version>4.11.1</mongo.version>
+        <mongo.version>4.11.2</mongo.version>
         <jna.version>5.11.0</jna.version>
     </properties>
 

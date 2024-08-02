@@ -225,4 +225,30 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         ratingAnswerRepository.delete("answer-id");
         assertFalse("Rating answer not deleted", ratingAnswerRepository.findById("answer-id").isPresent());
     }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        final var beforeDeletion = ratingRepository
+            .findByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API)
+            .stream()
+            .map(Rating::getId)
+            .toList();
+        final var deleted = ratingRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API);
+        final var nbAfterDeletion = ratingRepository.findByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API).size();
+
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
+        assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_delete_answer_by_rating() throws Exception {
+        final var beforeDeletion = ratingAnswerRepository.findByRating("ToBeDeleted").stream().map(RatingAnswer::getId).toList();
+        final var deleted = ratingAnswerRepository.deleteByRating("ToBeDeleted");
+        final var nbAfterDeletion = ratingAnswerRepository.findByRating("ToBeDeleted").size();
+
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
+        assertEquals(0, nbAfterDeletion);
+    }
 }

@@ -94,8 +94,20 @@ public class MongoFlowRepository implements FlowRepository {
     }
 
     @Override
-    public void deleteByReference(FlowReferenceType referenceType, String referenceId) {
-        internalRepository.deleteAll(internalRepository.findAll(referenceType.name(), referenceId));
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException {
+        logger.debug("Delete flows by reference [{},{}]", referenceId, referenceType);
+        try {
+            final var flows = internalRepository
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(FlowMongo::getId)
+                .toList();
+            logger.debug("Delete flows by reference [{},{}] - Done", referenceId, referenceType);
+            return flows;
+        } catch (Exception ex) {
+            logger.error("Failed to delete flows by refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete flows by reference");
+        }
     }
 
     @Override
