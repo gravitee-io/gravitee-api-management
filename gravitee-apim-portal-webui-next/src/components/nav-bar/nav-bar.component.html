@@ -20,13 +20,15 @@
   <div class="menu-items">
     <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
   </div>
-  <div class="actions">
-    @if (!isEmpty(currentUser())) {
+
+  @if (!isEmpty(currentUser())) {
+    <div class="authenticated-actions">
+      <app-nav-bar-button i18n="@@applications" [path]="['applications']">Applications</app-nav-bar-button>
       <app-user-avatar [user]="currentUser()" />
-    } @else {
+    </div>
+  } @else {
+    <div class="unauthenticated-actions">
       <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
-      <!--       Sign up button will be available in future releases-->
-      <!--      <button i18n="@@signUp" mat-flat-button class="secondary-button">Sign up</button>-->
-    }
-  </div>
+    </div>
+  }
 </div>
