@@ -133,4 +133,15 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
         Exception exception = catchException(() -> apiCategoryOrderRepository.update(null));
         assertThat(exception).isInstanceOf(IllegalStateException.class);
     }
+
+    @Test
+    public void should_delete_by_api_id() throws Exception {
+        var nbBeforeDeletion = apiCategoryOrderRepository.findAllByApiId("api-2").size();
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+
+        List<String> deletedCategoryIds = apiCategoryOrderRepository.deleteByApiId("api-2");
+
+        assertThat(deletedCategoryIds).containsOnly("category-1", "category-2");
+        assertThat(apiCategoryOrderRepository.findAllByApiId("api-2").size()).isEqualTo(0);
+    }
 }

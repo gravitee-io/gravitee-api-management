@@ -19,12 +19,14 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.search.MediaCriteria;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +62,8 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("hash", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("organization", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -111,19 +115,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     public void deleteAllByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
 
-        if (api == null) {
-            LOGGER.warn("Skipping media deletion because the API identifier given as an argument is null");
-        } else {
-            doDeleteAllByApi(api);
-        }
-    }
-
-    private void doDeleteAllByApi(String api) throws TechnicalException {
-        try {
-            jdbcTemplate.update("delete from " + this.tableName + " where api = ?", api);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
+        deleteWithMetadata("api", api);
     }
 
     @Override
@@ -138,75 +130,20 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     @Override
-    public Optional<Media> findByHash(String hash) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
-
-        try {
-            return this.findByHashAndApiAndType(hash, null, null, true);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
+    public List<String> deleteByEnvironment(String environment) throws TechnicalException {
+        LOGGER.debug("JdbcMediaRepository.deleteByEnvironment({})", environment);
+        return deleteWithMetadata("environment", environment);
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, boolean withContent) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
-
-        try {
-            return this.findByHashAndApiAndType(hash, null, null, withContent);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
+    public List<String> deleteByOrganization(String organization) throws TechnicalException {
+        LOGGER.debug("JdbcMediaRepository.deleteByOrganization({})", organization);
+        return deleteWithMetadata("organization", organization);
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHash({},{})", hash, api);
-
-        try {
-            return this.findByHashAndApiAndType(hash, api, null, true);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHash({},{}, {})", hash, api, withContent);
-
-        try {
-            return this.findByHashAndApiAndType(hash, api, null, withContent);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
-    }
-
-    @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{})", hash, mediaType);
-
-        try {
-            return this.findByHashAndApiAndType(hash, null, mediaType, true);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, api, mediaType);
-
-        try {
-            return this.findByHashAndApiAndType(hash, api, mediaType, true);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
-    }
-
-    @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent)
-        throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{}, {})", hash, mediaType, api, withContent);
+    public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException {
+        LOGGER.debug("JdbcMediaRepository.findByHash({},{},{}, {})", hash, mediaCriteria, withContent);
 
         try {
             String select = "select id, type, sub_type, file_name, size, created_at, api, hash";
@@ -217,13 +154,23 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
             List<Object> paramList = new ArrayList<>();
             paramList.add(hash);
 
-            if (api != null) {
-                sql += " and api = ?";
-                paramList.add(api);
-            }
-            if (mediaType != null) {
-                sql += " and type = ?";
-                paramList.add(mediaType);
+            if (mediaCriteria != null) {
+                if (mediaCriteria.getApi() != null) {
+                    sql += " and api = ?";
+                    paramList.add(mediaCriteria.getApi());
+                }
+                if (mediaCriteria.getMediaType() != null) {
+                    sql += " and type = ?";
+                    paramList.add(mediaCriteria.getMediaType());
+                }
+                if (mediaCriteria.getEnvironment() != null) {
+                    sql += " and ( environment = ? or environment IS NULL)";
+                    paramList.add(mediaCriteria.getEnvironment());
+                }
+                if (mediaCriteria.getOrganization() != null) {
+                    sql += " and ( organization = ? or organization IS NULL)";
+                    paramList.add(mediaCriteria.getOrganization());
+                }
             }
 
             List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), paramList.toArray());
@@ -232,5 +179,28 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
         } catch (Exception e) {
             throw new TechnicalException(e);
         }
+    }
+
+    private List<String> deleteWithMetadata(String metadata, String value) throws TechnicalException {
+        if (metadata == null || value == null) {
+            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", metadata, value);
+        } else {
+            try {
+                final var rows = jdbcTemplate.queryForList(
+                    "select id from " + this.tableName + " where " + metadata + " = ?",
+                    String.class,
+                    value
+                );
+
+                if (!rows.isEmpty()) {
+                    jdbcTemplate.update("delete from " + this.tableName + " where " + metadata + " = ?", value);
+                }
+
+                return rows;
+            } catch (Exception e) {
+                throw new TechnicalException(e);
+            }
+        }
+        return Collections.emptyList();
     }
 }

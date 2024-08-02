@@ -236,6 +236,17 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(result.getContent()).extracting(AsyncJob::getId).containsExactly("0d9a5a6e-b384-4037-b285-54b4d9716e77");
     }
 
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        long nbBeforeDeletion = asyncJobRepository.findAll().stream().filter(job -> "ToBeDeleted".equals(job.getEnvironmentId())).count();
+        int deleted = asyncJobRepository.deleteByEnvironmentId("ToBeDeleted").size();
+        long nbAfterDeletion = asyncJobRepository.findAll().stream().filter(job -> "ToBeDeleted".equals(job.getEnvironmentId())).count();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2L);
+        assertThat(deleted).isEqualTo(2);
+        assertThat(nbAfterDeletion).isEqualTo(0);
+    }
+
     private static AsyncJob aJob(String uuid, Date date) {
         return AsyncJob
             .builder()

@@ -42,7 +42,14 @@ import java.util.List;
 public interface FlowRepository extends CrudRepository<Flow, String> {
     List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;
 
-    void deleteByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;
-
     void deleteAllById(Collection<String> ids) throws TechnicalException;
+
+    /**
+     * Delete flows by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted flows
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException;
 }

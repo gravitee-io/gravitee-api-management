@@ -23,7 +23,9 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AsyncJob;
 import io.gravitee.repository.mongodb.management.internal.asyncjob.AsyncJobMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -97,5 +99,18 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
         var result = internalRepository.search(criteria, pageable);
         log.debug("Search by [{}] - Done", criteria);
         return result.map(source -> mapper.map(source));
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete integration jobs by environmentId: {}", environmentId);
+        try {
+            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(AsyncJobMongo::getId).toList();
+            log.debug("Delete integration jobs by environment - Done {}", all);
+            return all;
+        } catch (Exception ex) {
+            log.error("Failed to delete integration jobs by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete integration jobs by environmentId");
+        }
     }
 }

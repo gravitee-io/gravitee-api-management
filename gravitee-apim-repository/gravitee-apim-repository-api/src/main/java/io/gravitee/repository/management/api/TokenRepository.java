@@ -25,4 +25,13 @@ import java.util.List;
  */
 public interface TokenRepository extends CrudRepository<Token, String> {
     List<Token> findByReference(String referenceType, String referenceId) throws TechnicalException;
+
+    /**
+     * Delete tokens by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted tokens
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException;
 }

@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Dashboard;
+import io.gravitee.repository.management.model.DashboardReferenceType;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,13 @@ public interface DashboardRepository extends CrudRepository<Dashboard, String> {
     List<Dashboard> findByReference(String referenceType, String referenceId) throws TechnicalException;
     List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException;
     Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException;
+
+    /**
+     * Delete dashboards by reference
+     * @param referenceId
+     * @param referenceType
+     * @return List of IDs for deleted dashboards
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType) throws TechnicalException;
 }

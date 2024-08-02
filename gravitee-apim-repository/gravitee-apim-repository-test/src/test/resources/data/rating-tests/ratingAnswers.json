@@ -12,5 +12,19 @@
       "user":"admin",
       "comment": "Answer2",
       "createdAt": 1459032010883
+   },
+   {
+     "id":"answer3-id",
+     "rating":"ToBeDeleted",
+     "user":"admin",
+     "comment": "Answer2",
+     "createdAt": 1459032010883
+   },
+   {
+     "id":"answer4-id",
+     "rating":"ToBeDeleted",
+     "user":"admin",
+     "comment": "Answer2",
+     "createdAt": 1459032010883
    }
 ]

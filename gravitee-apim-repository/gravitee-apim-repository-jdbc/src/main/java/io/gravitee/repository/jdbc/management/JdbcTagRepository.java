@@ -124,6 +124,37 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + TAG_GROUPS + " where tag_id IN (" + getOrm().buildInClause(rows) + ")",
+                    rows.toArray()
+                );
+
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+            LOGGER.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{}) - Done", referenceId, referenceType);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete tags by reference {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete tags by reference", ex);
+        }
+    }
+
+    @Override
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         try {
             return jdbcTemplate

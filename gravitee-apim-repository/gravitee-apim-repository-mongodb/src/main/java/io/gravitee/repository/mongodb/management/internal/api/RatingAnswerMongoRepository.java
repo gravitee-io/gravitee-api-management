@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 import io.gravitee.repository.mongodb.management.internal.model.RatingAnswerMongo;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -26,5 +27,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface RatingAnswerMongoRepository extends MongoRepository<RatingAnswerMongo, String> {
-    List<RatingAnswerMongo> findByRating(String api);
+    List<RatingAnswerMongo> findByRating(String ratingId);
+
+    @Query(value = "{ 'rating': ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<RatingAnswerMongo> deleteByRating(String ratingId);
 }

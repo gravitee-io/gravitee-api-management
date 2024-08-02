@@ -76,4 +76,31 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
             throw new TechnicalException(message, ex);
         }
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceType, referenceId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType,
+                referenceId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                    referenceType,
+                    referenceId
+                );
+            }
+
+            LOGGER.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceType, referenceId);
+            return rows;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete tokens by reference", ex);
+        }
+    }
 }

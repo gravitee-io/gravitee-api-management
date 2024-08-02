@@ -219,6 +219,39 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, CustomUserFieldReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcCustomUserFieldsRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        try {
+            final var keys = jdbcTemplate.queryForList(
+                "select " + escapeReservedWord("key") + " from " + tableName + " where reference_id = ? and  reference_type = ? ",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            if (!keys.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+                jdbcTemplate.update(
+                    "delete from " + CUSTOM_USER_FIELDS_VALUES + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name()
+                );
+            }
+
+            LOGGER.debug("JdbcCustomUserFieldsRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            return keys;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete custom user fields for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete custom user fields by reference", ex);
+        }
+    }
+
+    @Override
     public void delete(String key, String refId, CustomUserFieldReferenceType refType) throws TechnicalException {
         LOGGER.debug("JdbcCustomUserFieldsRepository.delete({}, {}, {})", key, refId, refType);
         try {

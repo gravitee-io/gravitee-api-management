@@ -34,4 +34,12 @@ public interface RatingAnswerRepository extends FindAllRepository<RatingAnswer> 
     RatingAnswer update(RatingAnswer ratingAnswer) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
+
+    /**
+     * Delete by rating
+     * @param rating
+     * @return List of IDs for deleted answers
+     * @throws TechnicalException
+     */
+    List<String> deleteByRating(String rating) throws TechnicalException;
 }

@@ -323,6 +323,32 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return result;
     }
 
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var apiIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!apiIds.isEmpty()) {
+                String inClause = getOrm().buildInClause(apiIds);
+                jdbcTemplate.update("delete from " + API_LABELS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
+                jdbcTemplate.update("delete from " + API_GROUPS + " where api_id IN ( " + inClause + " )", apiIds.toArray());
+                jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id IN ( " + inClause + " )", apiIds.toArray());
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcApiRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return apiIds;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete api by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete api by environment", ex);
+        }
+    }
+
     // Labels
     private void addLabels(Api parent) {
         List<String> labels = getLabels(parent.getId());

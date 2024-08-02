@@ -81,6 +81,29 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            final var rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!rows.isEmpty()) {
+                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            }
+
+            LOGGER.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            return rows;
+        } catch (final Exception ex) {
+            final String message = "Failed to find integrations jobs of environment: " + environmentId;
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
+    @Override
     protected String getId(AsyncJob item) {
         return item.getId();
     }

@@ -342,11 +342,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                     SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
                 );
 
-        assertEquals("Subscriptions size", 5, subscriptions.size());
+        assertEquals("Subscriptions size", 8, subscriptions.size());
         assertTrue(
             "Subscription id",
             List
-                .of("sub3", "sub2", "sub5", "sub4", "sub1")
+                .of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8")
                 .containsAll(subscriptions.stream().map(Subscription::getId).collect(Collectors.toList()))
         );
     }
@@ -367,11 +367,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                     SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
                 );
 
-        assertEquals("Subscriptions size", 5, subscriptions.size());
+        assertEquals("Subscriptions size", 8, subscriptions.size());
         assertTrue(
             "Subscription id",
             List
-                .of("sub3", "sub2", "sub5", "sub4", "sub1")
+                .of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8")
                 .containsAll(subscriptions.stream().map(Subscription::getId).collect(Collectors.toList()))
         );
     }
@@ -468,5 +468,23 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("Subscription id", "sub1", iterator.next().getId());
         assertEquals("Subscription id", "sub4", iterator.next().getId());
         assertEquals("Subscription id", "sub3", iterator.next().getId());
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        List<Subscription> subscriptionsBeforeDeletion = subscriptionRepository
+            .findAll()
+            .stream()
+            .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
+            .toList();
+        assertEquals(3, subscriptionsBeforeDeletion.size());
+
+        List<String> subscriptionsIdsDeleted = subscriptionRepository.deleteByEnvironmentId("ToBeDeleted");
+
+        assertEquals(3, subscriptionsIdsDeleted.size());
+        assertEquals(
+            0,
+            subscriptionRepository.findAll().stream().filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId())).count()
+        );
     }
 }

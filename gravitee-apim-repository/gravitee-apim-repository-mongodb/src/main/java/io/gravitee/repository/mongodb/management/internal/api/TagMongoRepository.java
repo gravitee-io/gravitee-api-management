@@ -15,13 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.TagMongo;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -35,4 +35,7 @@ public interface TagMongoRepository extends MongoRepository<TagMongo, String> {
     Optional<TagMongo> findByIdAndReferenceIdAndReferenceType(String tagId, String referenceId, TagReferenceType referenceType);
 
     List<TagMongo> findByIdInAndReferenceIdAndReferenceType(Set<String> ids, String referenceId, TagReferenceType referenceType);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<TagMongo> deleteByReferenceIdAndReferenceType(String referenceId, String name);
 }

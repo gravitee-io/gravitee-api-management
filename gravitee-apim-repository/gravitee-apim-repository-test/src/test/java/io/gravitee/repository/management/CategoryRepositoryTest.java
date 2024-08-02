@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.Category;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
@@ -56,7 +57,7 @@ public class CategoryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Category> categories = categoryRepository.findAll();
 
         assertNotNull(categories);
-        assertEquals(4, categories.size());
+        assertEquals(6, categories.size());
     }
 
     @Test
@@ -176,5 +177,17 @@ public class CategoryRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         categoryRepository.update(null);
         fail("A null category should not be updated");
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        final var nbBeforeDelete = categoryRepository.findAllByEnvironment("ToBeDeleted").size();
+
+        final var deleted = categoryRepository.deleteByEnvironmentId("ToBeDeleted").size();
+        final var nbAfterDelete = categoryRepository.findAllByEnvironment("ToBeDeleted").size();
+
+        assertEquals(2, nbBeforeDelete);
+        assertEquals(2, deleted);
+        assertEquals(0, nbAfterDelete);
     }
 }

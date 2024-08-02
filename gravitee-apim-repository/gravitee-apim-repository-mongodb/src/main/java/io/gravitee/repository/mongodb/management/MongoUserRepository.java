@@ -25,6 +25,7 @@ import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -91,6 +92,19 @@ public class MongoUserRepository implements UserRepository {
 
         logger.debug("search users - Done");
         return users;
+    }
+
+    @Override
+    public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
+        logger.debug("Delete users by organizationId: {}", organizationId);
+        try {
+            final var users = internalUserRepo.deleteByOrganizationId(organizationId).stream().map(UserMongo::getId).toList();
+            logger.debug("Delete users by organizationId: {} - Done", organizationId);
+            return users;
+        } catch (Exception ex) {
+            logger.error("Failed to delete users by organizationId: {}", organizationId, ex);
+            throw new TechnicalException("Failed to delete users by organizationId");
+        }
     }
 
     @Override

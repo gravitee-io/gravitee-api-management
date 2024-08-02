@@ -59,4 +59,9 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException {
         return Set.of();
     }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        return List.of();
+    }
 }

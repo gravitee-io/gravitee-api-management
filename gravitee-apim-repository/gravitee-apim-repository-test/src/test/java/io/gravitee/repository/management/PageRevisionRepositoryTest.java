@@ -65,24 +65,24 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(revisions).isNotNull();
             softly.assertThat(revisions.getPageNumber()).isEqualTo(0);
-            softly.assertThat(revisions.getPageElements()).isEqualTo(6);
-            softly.assertThat(revisions.getTotalElements()).isEqualTo(6);
-            softly.assertThat(revisions.getContent()).hasSize(6);
+            softly.assertThat(revisions.getPageElements()).isEqualTo(8);
+            softly.assertThat(revisions.getTotalElements()).isEqualTo(8);
+            softly.assertThat(revisions.getContent()).hasSize(8);
         }
     }
 
     @Test
-    public void shouldFindAll_PageSize3() throws TechnicalException {
+    public void shouldFindAll_PageSize4() throws TechnicalException {
         int pageNumber = 0;
         do {
-            Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(pageNumber).pageSize(3).build());
+            Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(pageNumber).pageSize(4).build());
 
             try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
                 softly.assertThat(revisions).isNotNull();
-                softly.assertThat(revisions.getContent()).hasSize(3);
+                softly.assertThat(revisions.getContent()).hasSize(4);
                 softly.assertThat(revisions.getPageNumber()).isEqualTo(pageNumber);
-                softly.assertThat(revisions.getPageElements()).isEqualTo(3);
-                softly.assertThat(revisions.getTotalElements()).isEqualTo(6);
+                softly.assertThat(revisions.getPageElements()).isEqualTo(4);
+                softly.assertThat(revisions.getTotalElements()).isEqualTo(8);
             }
         } while (++pageNumber < 2);
     }
@@ -146,5 +146,16 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
         Optional<PageRevision> pageShouldExists = pageRevisionRepository.findLastByPageId("findByPageId_unknown");
 
         assertThat(pageShouldExists).isNotNull().isNotPresent();
+    }
+
+    @Test
+    public void should_delete_by_page_id() throws Exception {
+        int nbBeforeDeletion = pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
+        List<String> deleted = pageRevisionRepository.deleteByPageId("ToBeDeleted");
+        int nbAfterDeletion = pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2);
+        assertThat(deleted.size()).isEqualTo(2);
+        assertThat(nbAfterDeletion).isEqualTo(0);
     }
 }

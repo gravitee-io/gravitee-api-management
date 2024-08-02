@@ -105,6 +105,47 @@ public class JdbcGenericNotificationConfigRepository
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcGenericNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+        try {
+            final var notificationConfigIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType.name(),
+                referenceId
+            );
+
+            if (!notificationConfigIds.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " +
+                    GENERIC_NOTIFICATION_CONFIG_HOOKS +
+                    " where id IN (" +
+                    getOrm().buildInClause(notificationConfigIds) +
+                    ")",
+                    notificationConfigIds.toArray()
+                );
+
+                jdbcTemplate.update(
+                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                    referenceType.name(),
+                    referenceId
+                );
+            }
+
+            LOGGER.debug(
+                "JdbcGenericNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                referenceType,
+                referenceId
+            );
+            return notificationConfigIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete generic notification config for refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete generic notification config by reference", ex);
+        }
+    }
+
+    @Override
     public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException {
         return this.findByReference(referenceType, referenceId)

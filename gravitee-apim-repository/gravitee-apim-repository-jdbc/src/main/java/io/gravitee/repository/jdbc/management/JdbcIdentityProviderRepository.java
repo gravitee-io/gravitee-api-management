@@ -298,8 +298,30 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
     }
 
     @Override
+    public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
+        LOGGER.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({})", organizationId);
+        try {
+            final var identityProviderIds = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where organization_id = ?",
+                String.class,
+                organizationId
+            );
+
+            if (!identityProviderIds.isEmpty()) {
+                jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
+            }
+
+            LOGGER.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({}) - Done", organizationId);
+            return identityProviderIds;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete identityProviders by organizationId: {}", organizationId, ex);
+            throw new TechnicalException("Failed to delete identityProviders by organizationId", ex);
+        }
+    }
+
+    @Override
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.findAllByOrganizationId({}, {})", getOrm().getTableName(), organizationId);
+        LOGGER.debug("JdbcIdentityProviderRepository.findAllByOrganizationId({})", organizationId);
         try {
             List<IdentityProvider> identityProviders = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where organization_id = ?",

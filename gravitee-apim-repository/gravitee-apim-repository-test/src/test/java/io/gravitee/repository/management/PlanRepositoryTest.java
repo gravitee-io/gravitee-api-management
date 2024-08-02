@@ -423,4 +423,12 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         planRepository.update(null);
         fail("A null plan should not be updated");
     }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        List<String> deleted = planRepository.deleteByEnvironmentId("ToBeDeleted");
+
+        assertThat(deleted).containsOnly("plan-deleted-1", "plan-deleted-2");
+        assertEquals(0, planRepository.findAll().stream().filter(plan -> "ToBeDeleted".equals(plan.getEnvironmentId())).count());
+    }
 }

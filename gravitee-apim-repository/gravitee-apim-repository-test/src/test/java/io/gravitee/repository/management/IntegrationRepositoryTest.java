@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -193,5 +194,20 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         var deletedIntegration = integrationRepository.findById(id);
 
         assertThat(deletedIntegration).isEmpty();
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws TechnicalException {
+        long nbBeforeDeletion = integrationRepository
+            .findAllByEnvironment("ToBeDeleted", new PageableBuilder().pageSize(10).pageNumber(0).build())
+            .getTotalElements();
+        int deleted = integrationRepository.deleteByEnvironmentId("ToBeDeleted").size();
+        long nbAfterDeletion = integrationRepository
+            .findAllByEnvironment("ToBeDeleted", new PageableBuilder().pageSize(10).pageNumber(0).build())
+            .getTotalElements();
+
+        assertThat(nbBeforeDeletion).isEqualTo(2L);
+        assertThat(deleted).isEqualTo(2);
+        assertThat(nbAfterDeletion).isEqualTo(0);
     }
 }

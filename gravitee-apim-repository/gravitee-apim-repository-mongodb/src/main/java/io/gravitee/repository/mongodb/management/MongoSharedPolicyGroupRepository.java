@@ -28,6 +28,7 @@ import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGrou
 import io.gravitee.repository.mongodb.management.internal.sharedpolicygroups.SharedPolicyGroupMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -139,6 +140,25 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
 
         LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
         return res;
+    }
+
+    @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete shared policy group by environmentId [{}]", environmentId);
+
+        try {
+            final var res = internalSharedPolicyGroupMongoRepo
+                .deleteByEnvironmentId(environmentId)
+                .stream()
+                .map(SharedPolicyGroupMongo::getId)
+                .toList();
+
+            LOGGER.debug("Delete shared policy group by environmentId [{}] - Done", environmentId);
+            return res;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete shared policy group by environmentId: {}", environmentId, ex);
+            throw new TechnicalException("Failed to delete shared policy group by environmentId");
+        }
     }
 
     private SharedPolicyGroup mapSharedPolicyGroup(SharedPolicyGroupMongo item) {

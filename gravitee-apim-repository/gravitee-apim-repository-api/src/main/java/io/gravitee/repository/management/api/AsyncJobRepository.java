@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AsyncJob;
+import java.util.List;
 import java.util.Optional;
 
 public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
@@ -38,4 +39,6 @@ public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
         Optional<String> status,
         Optional<String> sourceId
     ) {}
+
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

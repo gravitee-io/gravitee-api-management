@@ -27,5 +27,19 @@
       "description": "Description for other tag",
       "referenceId": "OTHER",
       "referenceType": "ORGANIZATION"
+   },
+   {
+     "id":"ro-be-deleted-1",
+     "name":"Other",
+     "description": "Description for other tag",
+     "referenceId": "ToBeDeleted",
+     "referenceType": "ORGANIZATION"
+   },
+   {
+     "id":"ro-be-deleted-2",
+     "name":"Other",
+     "description": "Description for other tag",
+     "referenceId": "ToBeDeleted",
+     "referenceType": "ORGANIZATION"
    }
 ]

@@ -24,5 +24,23 @@
       "apiRole": "OWNER",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
+   },
+   {
+     "id":"dd09c20c-2d73-4228-824f-8c9a48bb8777",
+     "referenceType": "APPLICATION",
+     "referenceId": "ToBeDeleted",
+     "email": "invitation2@application.com",
+     "apiRole": "OWNER",
+     "createdAt": 1439022010883,
+     "updatedAt": 1439022010883
+   },
+   {
+     "id":"dd09c20c-2d73-4228-824f-8c9a48bb8888",
+     "referenceType": "APPLICATION",
+     "referenceId": "ToBeDeleted",
+     "email": "invitation2@application.com",
+     "apiRole": "OWNER",
+     "createdAt": 1439022010883,
+     "updatedAt": 1439022010883
    }
 ]

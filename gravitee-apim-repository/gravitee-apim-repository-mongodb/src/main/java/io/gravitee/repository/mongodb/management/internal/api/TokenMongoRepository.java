@@ -19,6 +19,7 @@ import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -29,4 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface TokenMongoRepository extends MongoRepository<TokenMongo, String> {
     Optional<TokenMongo> findByToken(String token);
     List<TokenMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
+
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
+    List<TokenMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

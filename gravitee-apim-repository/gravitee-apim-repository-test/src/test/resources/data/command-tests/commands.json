@@ -70,5 +70,53 @@
     "expiredAt": 978295982000,
     "createdAt": 1546305346000,
     "updatedAt": 1548983746000
+  },
+  {
+    "id": "deleted-env-1",
+    "organizationId": "FRANCE",
+    "environmentId": "ToBeDeleted",
+    "from": "node1",
+    "to": "node2",
+    "tags": [],
+    "acknowledgments": ["node1", "node3"],
+    "expiredAt": 978295982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
+  },
+  {
+    "id": "deleted-env-2",
+    "organizationId": "FRANCE",
+    "environmentId": "ToBeDeleted",
+    "from": "node1",
+    "to": "node2",
+    "tags": [],
+    "acknowledgments": ["node1", "node3"],
+    "expiredAt": 978295982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
+  },
+  {
+    "id": "deleted-org-1",
+    "organizationId": "ToBeDeleted",
+    "environmentId": "foobar",
+    "from": "node1",
+    "to": "node2",
+    "tags": [],
+    "acknowledgments": ["node1", "node3"],
+    "expiredAt": 978295982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
+  },
+  {
+    "id": "deleted-org-2",
+    "organizationId": "ToBeDeleted",
+    "environmentId": "foobar",
+    "from": "node1",
+    "to": "node2",
+    "tags": [],
+    "acknowledgments": ["node1", "node3"],
+    "expiredAt": 978295982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
   }
 ]

@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.TenantMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.TenantMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
@@ -66,6 +67,24 @@ public class MongoTenantRepository implements TenantRepository {
 
         LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
         return Optional.ofNullable(mapper.map(tenant));
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
+        try {
+            final List<String> tenants = internalTenantRepo
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                .stream()
+                .map(TenantMongo::getId)
+                .toList();
+            LOGGER.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
+            return tenants;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to delete tenants by refId: {}/{}", referenceId, referenceType, ex);
+            throw new TechnicalException("Failed to delete tenants by reference");
+        }
     }
 
     @Override

@@ -86,5 +86,27 @@
 		"target": "CONSOLE_API",
         "status": "CREATED",
         "updatedAt": 1486771200000
+    },
+    {
+        "id": "3224b421-f1a3-4979-944e-3f94d5b60777",
+        "host": "en.company.apim-console.gravitee.io:3000",
+        "overriding": false,
+        "referenceId": "env_id_to_be_deleted",
+        "referenceType": "ENVIRONMENT",
+        "secured": false,
+        "target": "CONSOLE",
+        "status": "CREATED",
+        "updatedAt": 1486771200000
+    },
+    {
+        "id": "2a7fc9de-15fb-4430-99c3-37060c8e888",
+        "host": "en.company.apim-console-api.gravitee.io:8083",
+        "overriding": false,
+        "referenceId": "env_id_to_be_deleted",
+        "referenceType": "ENVIRONMENT",
+        "secured": false,
+        "target": "CONSOLE_API",
+        "status": "CREATED",
+        "updatedAt": 1486771200000
     }
 ]

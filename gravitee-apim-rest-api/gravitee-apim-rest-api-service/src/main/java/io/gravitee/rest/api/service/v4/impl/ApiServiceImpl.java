@@ -624,7 +624,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiCategoryService.deleteApiFromCategories(apiId);
 
             // Delete alerts
-            final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
+            final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
             alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
             // delete all reference on api quality rule
             apiQualityRuleRepository.deleteByApi(apiId);

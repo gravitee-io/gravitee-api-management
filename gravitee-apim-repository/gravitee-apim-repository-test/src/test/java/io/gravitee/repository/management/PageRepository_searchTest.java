@@ -143,17 +143,10 @@ public class PageRepository_searchTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldFindPortalPageWithoutCriteria() throws Exception {
-        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().build());
-        assertNotNull(pages);
-        assertEquals(11, pages.size());
-    }
-
-    @Test
     public void shouldFindAllWhenCriteriaIsEmpty() throws Exception {
         Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().build());
         assertNotNull(pages);
-        assertEquals(11, pages.size());
+        assertEquals(13, pages.size());
     }
 
     @Test

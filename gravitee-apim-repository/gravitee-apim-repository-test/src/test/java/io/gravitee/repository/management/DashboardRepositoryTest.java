@@ -18,8 +18,10 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
+import static org.junit.Assert.assertEquals;
 
 import io.gravitee.repository.management.model.Dashboard;
+import io.gravitee.repository.management.model.DashboardReferenceType;
 import java.util.*;
 import org.junit.Test;
 
@@ -35,7 +37,7 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindAll() throws Exception {
         final Set<Dashboard> dashboards = dashboardRepository.findAll();
-        assertThat(dashboards).hasSize(6);
+        assertThat(dashboards).hasSize(8);
     }
 
     @Test
@@ -164,6 +166,17 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         int nbDashboardsAfterDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API").size();
 
         assertThat(nbDashboardsAfterDeletion).isEqualTo(nbDashboardsBeforeDeletion - 1);
+    }
+
+    @Test
+    public void should_delete_by_reference_id_and_reference_type() throws Exception {
+        var nbBeforeDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "ToBeDeleted", "API").size();
+        var deleted = dashboardRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", DashboardReferenceType.ENVIRONMENT).size();
+        var nbAfterDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "ToBeDeleted", "API").size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted);
+        assertEquals(0, nbAfterDeletion);
     }
 
     @Test(expected = IllegalStateException.class)

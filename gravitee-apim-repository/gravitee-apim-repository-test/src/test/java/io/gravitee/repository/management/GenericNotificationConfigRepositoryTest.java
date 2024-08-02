@@ -139,7 +139,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         );
 
         assertEquals("size", 2, configs.size());
-        List<String> userIds = configs.stream().map(GenericNotificationConfig::getNotifier).collect(Collectors.toList());
+        List<String> userIds = configs.stream().map(GenericNotificationConfig::getNotifier).toList();
         assertTrue("notifierA", userIds.contains("notifierA"));
         assertTrue("notifierB", userIds.contains("notifierB"));
     }
@@ -148,5 +148,19 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
     public void shouldDeleteByEmail() throws Exception {
         genericNotificationConfigRepository.deleteByConfig("test@gravitee.io");
         assertFalse(genericNotificationConfigRepository.findById("config-to-delete").isPresent());
+    }
+
+    @Test
+    public void should_delete_by_reference_type_and_reference_id() throws Exception {
+        int nbBeforeDeletion = genericNotificationConfigRepository.findByReference(NotificationReferenceType.PORTAL, "ToBeDeleted").size();
+        List<String> deleted = genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+            "ToBeDeleted",
+            NotificationReferenceType.PORTAL
+        );
+        int nbAfterDeletion = genericNotificationConfigRepository.findByReference(NotificationReferenceType.PORTAL, "ToBeDeleted").size();
+
+        assertEquals(2, nbBeforeDeletion);
+        assertEquals(2, deleted.size());
+        assertEquals(0, nbAfterDeletion);
     }
 }

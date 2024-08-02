@@ -86,6 +86,11 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
     public Set<ApiKey> findAll() throws TechnicalException {
         return Set.of();
     }

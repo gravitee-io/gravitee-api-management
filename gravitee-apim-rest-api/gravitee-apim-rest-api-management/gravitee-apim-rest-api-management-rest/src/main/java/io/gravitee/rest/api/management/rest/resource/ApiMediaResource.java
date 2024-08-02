@@ -26,7 +26,6 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
@@ -97,7 +96,7 @@ public class ApiMediaResource extends AbstractResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
             }
 
-            mediaId = mediaService.saveApiMedia(api, mediaEntity);
+            mediaId = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), api, mediaEntity);
         }
 
         return Response.status(200).entity(mediaId).build();
