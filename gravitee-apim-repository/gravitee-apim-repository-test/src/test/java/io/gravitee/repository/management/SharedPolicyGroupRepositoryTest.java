@@ -50,7 +50,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
                 .apiType(ApiType.PROXY)
                 .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
                 .definition("definition")
-                .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .lifecycleState(i % 2 == 0 ? SharedPolicyGroupLifecycleState.UNDEPLOYED : SharedPolicyGroupLifecycleState.DEPLOYED)
                 .environmentId("environmentId")
                 .organizationId("organizationId")
                 .deployedAt(new Date())
@@ -242,6 +242,20 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 9");
         assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 8");
         assertThat(page.getTotalElements()).isEqualTo(10);
+    }
+
+    @Test
+    public void should_search_with_lifecycle_state_criteria() throws TechnicalException {
+        final var criteria = SharedPolicyGroupCriteria
+            .builder()
+            .environmentId("environmentId")
+            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .build();
+
+        final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).hasSize(2);
+        assertThat(page.getTotalElements()).isEqualTo(8);
     }
 
     @Test

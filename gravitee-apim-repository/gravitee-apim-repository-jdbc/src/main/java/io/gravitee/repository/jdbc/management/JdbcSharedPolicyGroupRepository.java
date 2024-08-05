@@ -31,11 +31,13 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,13 +114,25 @@ public class JdbcSharedPolicyGroupRepository
         LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
-            final var name = criteria.getName() == null ? "%" : "%" + criteria.getName() + "%";
+            StringJoiner andWhere = new StringJoiner(" AND ");
+            List<Object> andWhereParams = new ArrayList<>();
+
+            andWhere.add("environment_id = ?");
+            andWhereParams.add(criteria.getEnvironmentId());
+
+            if (criteria.getName() != null) {
+                andWhere.add("lower(name) like ?");
+                andWhereParams.add("%" + criteria.getName().toLowerCase() + "%");
+            }
+            if (criteria.getLifecycleState() != null) {
+                andWhere.add("lifecycle_state = ?");
+                andWhereParams.add(criteria.getLifecycleState().name());
+            }
 
             var total = jdbcTemplate.queryForObject(
-                "select count(*) from " + this.tableName + " WHERE environment_id = ? AND lower(name) like ?",
+                "select count(*) from " + this.tableName + " WHERE " + andWhere,
                 Long.class,
-                criteria.getEnvironmentId(),
-                name
+                andWhereParams.toArray()
             );
 
             if (total == null || total == 0) {
@@ -131,16 +145,16 @@ public class JdbcSharedPolicyGroupRepository
 
             var result = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " WHERE environment_id = ? AND lower(name) like ? ORDER BY" +
-                " " +
+                " WHERE " +
+                andWhere +
+                " ORDER BY " +
                 sortField +
                 " " +
                 sortOrder +
                 " " +
                 createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
-                criteria.getEnvironmentId(),
-                name
+                andWhereParams.toArray()
             );
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
