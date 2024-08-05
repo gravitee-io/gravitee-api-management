@@ -46,6 +46,10 @@ public abstract class SharedPolicyGroupAdapter {
     @Mapping(target = "definition", source = ".", qualifiedByName = "serializeDefinition")
     public abstract io.gravitee.repository.management.model.SharedPolicyGroup fromEntity(SharedPolicyGroup sharedPolicyGroupEntity);
 
+    public abstract io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState fromEntity(
+        SharedPolicyGroup.SharedPolicyGroupLifecycleState sharedPolicyGroupLifecycleState
+    );
+
     @AfterMapping
     protected void addPolicyGroupDefinition(
         @MappingTarget SharedPolicyGroup result,
