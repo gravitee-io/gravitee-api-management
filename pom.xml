@@ -81,6 +81,7 @@
         <gravitee-kubernetes.version>3.3.1</gravitee-kubernetes.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-cloud-initializer.version>1.0.0</gravitee-cloud-initializer.version>
+        <gravitee-scoring-api.version>1.0.0-SNAPSHOT</gravitee-scoring-api.version>
         <!-- Other dependencies version -->
         <angus-mail.version>2.0.3</angus-mail.version>
         <angus-activation.version>2.0.2</angus-activation.version>
@@ -322,6 +323,12 @@
                 <groupId>io.gravitee.integration</groupId>
                 <artifactId>gravitee-integration-api</artifactId>
                 <version>${gravitee-integration-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.scoring</groupId>
+                <artifactId>gravitee-scoring-api</artifactId>
+                <version>${gravitee-scoring-api.version}</version>
             </dependency>
 
             <dependency>

@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.score.use_case.ScoreApiRequestUseCase;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
@@ -195,6 +196,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private GetApiDefinitionUseCase getApiDefinitionUseCase;
+
+    @Inject
+    private ScoreApiRequestUseCase scoreApiRequestUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -579,6 +583,19 @@ public class ApiResource extends AbstractResource {
         );
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
+    @POST
+    @Path("/_score")
+    public Response scoreAPI(@PathParam("apiId") String apiId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+
+        var results = scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(apiId, executionContext.getEnvironmentId(), executionContext.getOrganizationId()))
+            .results();
+
+        return Response.ok(results).build();
     }
 
     @POST
