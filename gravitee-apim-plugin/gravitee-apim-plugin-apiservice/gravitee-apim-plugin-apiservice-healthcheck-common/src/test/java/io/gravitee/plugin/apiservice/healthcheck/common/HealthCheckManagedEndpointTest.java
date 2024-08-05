@@ -43,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HealthCheckManagedEndpointTest {
 
     public static final String API_ID = "apiId";
+    public static final String API_NAME = "apiName";
     public static final String ENDPOINT_NAME = "endpoint_name";
     public static final long TIMESTAMP = System.currentTimeMillis();
     public static final String DEFAULT_STEP = "defaut";
@@ -81,7 +82,7 @@ class HealthCheckManagedEndpointTest {
         final HealthCheckManagedEndpoint cut = buildHCManagedEndpoint();
 
         final EndpointStatus endpointStatus = EndpointStatus
-            .forEndpoint(API_ID, ENDPOINT_NAME)
+            .forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
             .on(TIMESTAMP)
             .step(EndpointStatus.forStep(DEFAULT_STEP).build())
             .build();
@@ -101,7 +102,7 @@ class HealthCheckManagedEndpointTest {
         final HealthCheckManagedEndpoint cut = buildHCManagedEndpoint();
 
         final EndpointStatus endpointStatus = EndpointStatus
-            .forEndpoint(API_ID, ENDPOINT_NAME)
+            .forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
             .on(TIMESTAMP)
             .step(EndpointStatus.forStep(DEFAULT_STEP).build())
             .build();

@@ -364,7 +364,7 @@ public class HttpHealthCheckService implements ApiService {
                     reportResponse.setStatus(response.status());
 
                     final EndpointStatus.Builder statusBuilder = EndpointStatus
-                        .forEndpoint(api.getId(), hcEndpoint.getDefinition().getName())
+                        .forEndpoint(api.getId(), api.getName(), hcEndpoint.getDefinition().getName())
                         .on(request.timestamp());
 
                     final EndpointStatus.StepBuilder stepBuilder = EndpointStatus
