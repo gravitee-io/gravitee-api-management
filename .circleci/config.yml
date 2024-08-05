@@ -4,7 +4,7 @@ version: 2.1
 setup: true
 
 orbs:
-    gravitee: gravitee-io/gravitee@4.3.0
+    gravitee: gravitee-io/gravitee@4.4.0
 
 # our single workflow, that triggers the setup job defined above, filters on tag and branches are needed otherwise
 # some workflow and job will not be triggered for tags (default CircleCI behavior)
