@@ -15,15 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.sharedpolicygroups;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.PageRequest;
 
-@Repository
-public interface SharedPolicyGroupMongoRepository
-    extends MongoRepository<SharedPolicyGroupMongo, String>, SharedPolicyGroupMongoRepositoryCustom {
-    @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }")
-    Optional<SharedPolicyGroupMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+public interface SharedPolicyGroupMongoRepositoryCustom {
+    Page<SharedPolicyGroupMongo> search(SharedPolicyGroupCriteria sharedPolicyGroupCriteria, PageRequest pageRequest);
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
@@ -27,4 +28,6 @@ public class SharedPolicyGroupCriteria {
     private String name;
 
     private String environmentId;
+
+    private SharedPolicyGroupLifecycleState lifecycleState;
 }

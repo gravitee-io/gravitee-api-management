@@ -116,25 +116,15 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
-            String name = criteria.getName() == null || criteria.getName().isEmpty() ? ".*" : criteria.getName();
-
             sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
             final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
             final var sortField = FieldUtils.toCamelCase(sortable.field());
 
-            final var mongoResult =
-                this.internalSharedPolicyGroupMongoRepo.searchByEnvironment(
-                        name,
-                        criteria.getEnvironmentId(),
-                        PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-                    );
-
-            return new Page<>(
-                mongoResult.getContent().stream().map(this::mapSharedPolicyGroup).toList(),
-                mongoResult.getNumber(),
-                mongoResult.getNumberOfElements(),
-                mongoResult.getTotalElements()
-            );
+            return this.internalSharedPolicyGroupMongoRepo.search(
+                    criteria,
+                    PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
+                )
+                .map(this::mapSharedPolicyGroup);
         } catch (Exception e) {
             LOGGER.error("An error occurred when searching for shared policy groups", e);
             throw new TechnicalException("An error occurred when searching for shared policy groups", e);
