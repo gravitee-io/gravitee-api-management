@@ -208,7 +208,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             healthRequestPromise.onComplete(requestPreparationEvent -> {
                 HttpClientRequest healthRequest = requestPreparationEvent.result();
                 final EndpointStatus.Builder healthBuilder = EndpointStatus
-                    .forEndpoint(rule.api().getId(), endpoint.getName())
+                    .forEndpoint(rule.api().getId(), rule.api().getName(), endpoint.getName())
                     .on(currentTimeMillis());
 
                 long startTime = currentTimeMillis();
