@@ -74,9 +74,9 @@ public class SharedPolicyGroupFixtures {
             .id("sharedPolicyGroupId")
             .name("name")
             .description("description")
-                .apiType(ApiType.MESSAGE)
-                .phase(PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE)
-                .policyId("shared-policy-group-policy")
+            .apiType(ApiType.MESSAGE)
+            .phase(PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE)
+            .policyId("shared-policy-group-policy")
             .build();
     }
 }
