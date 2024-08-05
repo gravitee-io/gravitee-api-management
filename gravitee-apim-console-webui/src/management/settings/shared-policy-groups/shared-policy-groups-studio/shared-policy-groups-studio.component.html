@@ -24,7 +24,8 @@
   @if (sharedPolicyGroup(); as sharedPolicyGroup) {
     <mat-card-header>
       <mat-card-title
-        >{{ sharedPolicyGroup.name }} <span class="gio-badge-success">{{ sharedPolicyGroup.phase }}</span></mat-card-title
+        >{{ sharedPolicyGroup.name }} <span class="gio-badge-success">{{ sharedPolicyGroup.apiType }}</span
+        ><span class="gio-badge-success">{{ sharedPolicyGroup.phase }}</span></mat-card-title
       >
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
       <div class="shared-policy-groups-studio__headerRightBtn">
@@ -48,7 +49,7 @@
         [executionPhase]="sharedPolicyGroup.phase"
         [policyDocumentationFetcher]="policyDocumentationFetcher"
         [policySchemaFetcher]="policySchemaFetcher"
-        [policyGroup]="sharedPolicyGroup.steps"
+        [policyGroup]="sharedPolicyGroup.steps ?? []"
         (policyGroupChange)="onStudioChange($event)"
       ></gio-policy-group-studio>
     </div>
