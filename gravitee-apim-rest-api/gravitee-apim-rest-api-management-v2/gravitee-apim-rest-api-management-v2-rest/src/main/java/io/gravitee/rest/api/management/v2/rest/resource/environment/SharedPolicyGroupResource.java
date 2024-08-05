@@ -72,7 +72,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
     public Response getSharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
 
@@ -89,7 +89,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
     public Response updateSharedPolicyGroup(@Valid @NotNull final UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -122,7 +122,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
     public Response deleteSharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -150,7 +150,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @Path("/_deploy")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
     public Response deploySharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -185,7 +185,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @Path("/_undeploy")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
     public Response undeploySharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
