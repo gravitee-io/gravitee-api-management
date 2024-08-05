@@ -18,6 +18,7 @@ package fixtures.core.model;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import java.time.Instant;
@@ -64,6 +65,18 @@ public class SharedPolicyGroupFixtures {
             .description("description")
             .crossId("crossId")
             .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
+            .build();
+    }
+
+    public static SharedPolicyGroupPolicyPlugin aSharedPolicyGroupPolicyPlugin() {
+        return SharedPolicyGroupPolicyPlugin
+            .builder()
+            .id("sharedPolicyGroupId")
+            .name("name")
+            .description("description")
+                .apiType(ApiType.MESSAGE)
+                .phase(PolicyPlugin.ExecutionPhase.MESSAGE_RESPONSE)
+                .policyId("shared-policy-group-policy")
             .build();
     }
 }

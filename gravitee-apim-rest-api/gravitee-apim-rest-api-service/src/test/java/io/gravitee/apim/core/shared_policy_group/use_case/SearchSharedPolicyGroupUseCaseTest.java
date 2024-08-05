@@ -22,7 +22,6 @@ import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.SharedPolicyGroupQueryServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,19 +30,19 @@ class SearchSharedPolicyGroupUseCaseTest {
 
     static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
-    private final SharedPolicyGroupQueryServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupQueryServiceInMemory();
+    private final SharedPolicyGroupQueryServiceInMemory sharedPolicyGroupQueryService = new SharedPolicyGroupQueryServiceInMemory();
     private SearchSharedPolicyGroupUseCase searchSharedPolicyGroupUseCase;
 
     @BeforeEach
     void setUp() {
-        searchSharedPolicyGroupUseCase = new SearchSharedPolicyGroupUseCase(sharedPolicyGroupCrudService);
+        searchSharedPolicyGroupUseCase = new SearchSharedPolicyGroupUseCase(sharedPolicyGroupQueryService);
     }
 
     @Test
     void should_return_shared_policy_group() {
         // Given
         SharedPolicyGroup expectedSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
-        sharedPolicyGroupCrudService.initWith(List.of(expectedSharedPolicyGroup));
+        sharedPolicyGroupQueryService.initWith(List.of(expectedSharedPolicyGroup));
 
         // When
         var result = searchSharedPolicyGroupUseCase.execute(new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, null, null));
@@ -59,7 +58,7 @@ class SearchSharedPolicyGroupUseCaseTest {
         expectedSharedPolicyGroup.setName("Fox SPG");
         SharedPolicyGroup anotherSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         anotherSharedPolicyGroup.setName("Wolf SPG");
-        sharedPolicyGroupCrudService.initWith(List.of(expectedSharedPolicyGroup, anotherSharedPolicyGroup));
+        sharedPolicyGroupQueryService.initWith(List.of(expectedSharedPolicyGroup, anotherSharedPolicyGroup));
 
         // When
         var result = searchSharedPolicyGroupUseCase.execute(new SearchSharedPolicyGroupUseCase.Input(ENV_ID, "Fox", null, null));
@@ -77,7 +76,7 @@ class SearchSharedPolicyGroupUseCaseTest {
         wolfSharedPolicyGroup.setName("Wolf SPG");
         SharedPolicyGroup beartSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         beartSharedPolicyGroup.setName("Bear SPG");
-        sharedPolicyGroupCrudService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup, beartSharedPolicyGroup));
+        sharedPolicyGroupQueryService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup, beartSharedPolicyGroup));
 
         // When
         var resultASC = searchSharedPolicyGroupUseCase.execute(
@@ -107,7 +106,7 @@ class SearchSharedPolicyGroupUseCaseTest {
         foxSharedPolicyGroup.setName("Fox SPG");
         SharedPolicyGroup wolfSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         wolfSharedPolicyGroup.setName("Wolf SPG");
-        sharedPolicyGroupCrudService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup));
+        sharedPolicyGroupQueryService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup));
 
         // When
         var throwable = assertThrows(

@@ -19,7 +19,14 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import java.util.stream.Stream;
 
 public interface SharedPolicyGroupQueryService {
     Page<SharedPolicyGroup> searchByEnvironmentId(String environmentId, String q, Pageable pageable, Sortable sortable);
+
+    Stream<SharedPolicyGroup> streamByEnvironmentIdAndState(
+        String environmentId,
+        SharedPolicyGroup.SharedPolicyGroupLifecycleState state,
+        Sortable sortable
+    );
 }
