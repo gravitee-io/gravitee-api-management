@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupPolicyPluginsUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SharedPolicyGroupMapper;
@@ -60,6 +61,9 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
     @Inject
     private SearchSharedPolicyGroupUseCase searchSharedPolicyGroupUseCase;
+
+    @Inject
+    private GetSharedPolicyGroupPolicyPluginsUseCase getSharedPolicyGroupPolicyPluginsUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -122,5 +126,22 @@ public class SharedPolicyGroupsResource extends AbstractResource {
                 )
             )
             .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
+    }
+
+    @GET
+    @Path("/policy-plugins")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    public Response getPolicyPlugins() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var result = getSharedPolicyGroupPolicyPluginsUseCase.execute(
+            new GetSharedPolicyGroupPolicyPluginsUseCase.Input(executionContext.getEnvironmentId())
+        );
+
+        return Response
+            .ok()
+            .entity(SharedPolicyGroupMapper.INSTANCE.mapToSharedPolicyGroupPolicyPlugins(result.sharedPolicyGroupPolicyList()))
+            .build();
     }
 }

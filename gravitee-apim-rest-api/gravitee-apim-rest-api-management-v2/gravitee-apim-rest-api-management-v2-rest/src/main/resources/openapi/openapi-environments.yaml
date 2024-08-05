@@ -91,6 +91,23 @@ paths:
               $ref: "#/components/responses/SharedPolicyGroupsResponse"
             default:
               $ref: "#/components/responses/Error"
+  /shared-policy-groups/policy-plugins:
+    get:
+      tags:
+        - SharedPolicyGroups
+      summary: Get all shared policy group for a policy plugin usage
+      operationId: getPolicyPlugins
+      responses:
+        "200":
+          description: Shared policy group found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedPolicyGroupPolicyPlugin"
+        default:
+          $ref: "#/components/responses/Error"
   /shared-policy-groups/{sharedPolicyGroupId}:
     get:
         tags:
@@ -282,6 +299,30 @@ components:
               example: 2020-01-01T00:00:00Z
             lifecycleState:
               $ref: "#/components/schemas/SharedPolicyGroupLifecycleState"
+        SharedPolicyGroupPolicyPlugin:
+          type: object
+          description: A shared policy group for a policy plugin
+          properties:
+            id:
+              type: string
+              description: The unique ID of the shared policy group
+            policyId:
+              type: string
+              description: The id of shared-policy-group plugin
+            name:
+              type: string
+              description: The name of the shared policy group
+              example: My Shared Policy Group
+              maxLength: 512
+            description:
+              type: string
+              description: The description of the shared policy group
+              example: This is a shared policy group
+              maxLength: 1024
+            apiType:
+              $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+            phase:
+              $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
 
         SharedPolicyGroupLifecycleState:
             type: string
