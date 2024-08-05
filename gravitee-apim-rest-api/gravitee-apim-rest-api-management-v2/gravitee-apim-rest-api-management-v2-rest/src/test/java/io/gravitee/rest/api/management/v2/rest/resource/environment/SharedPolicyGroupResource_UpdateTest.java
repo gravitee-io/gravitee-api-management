@@ -16,10 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
-import static fixtures.SharedPolicyGroupFixtures.aCreateSharedPolicyGroup;
 import static fixtures.SharedPolicyGroupFixtures.aUpdateSharedPolicyGroup;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
-import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
@@ -33,10 +31,8 @@ import static org.mockito.Mockito.when;
 import assertions.MAPIAssertions;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
-import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.ExecutionPhase;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
@@ -170,7 +166,7 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.SHARED_POLICY_GROUP),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
                 eq(ENV_ID),
                 eq(RolePermissionAction.UPDATE)
             )
