@@ -80,7 +80,7 @@ describe('SharedPolicyGroupsStudioComponent', () => {
         id: SHARED_POLICY_GROUP_ID,
         name: 'Shared Policy Group',
         description: '',
-        steps: [],
+        steps: undefined,
       }),
     );
     fixture.detectChanges();
