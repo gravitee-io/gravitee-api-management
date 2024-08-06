@@ -15,12 +15,50 @@
     limitations under the License.
 
 -->
+<div class="m3-body-medium" i18n="@@applicationLogsExplanation">
+  Logs from all APIs for which this application has an accepted, paused, closed, or resumed subscription. Your administrator may restrict
+  what data you see below.
+</div>
+<div class="filters">
+  <div class="filters__row-one">
+    <div class="filters__row-one__select-filters">
+      @if (applicationApis$ | async; as applicationApis) {
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@applicationLogsApis">APIs</mat-label>
+          <mat-select (selectionChange)="selectApis($event)" multiple [value]="filters().apis" aria-label="Filter by API">
+            @for (api of applicationApis; track api.id) {
+              <mat-option [value]="api">{{ api.name }} ({{ api.version }})</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+    </div>
+    <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine" aria-label="Apply filters">
+      <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
+    </button>
+  </div>
+  <div class="filters__row-two">
+    <div class="m3-body-medium filters__row-two__filter-summary">
+      <div i18n="@@applicatonLogsFiltersApplied">Filters applied:</div>
+      <div class="filters__row-two__filter-summary__chips">
+        @if (filtersIsEmpty()) {
+          <span i18n="@@applicatonLogsNoFiltersApplied">None</span>
+        } @else {
+          @if (filters().apis) {
+            @for (api of filters().apis; track api.id) {
+              <mat-chip>{{ api.name }} ({{ api.version }})</mat-chip>
+            }
+          }
+        }
+      </div>
+    </div>
+    <button mat-button (click)="resetFilters()" [disabled]="filtersIsEmpty()" aria-label="Reset filters">
+      <mat-icon>clear</mat-icon><span i18n="@@applicatonLogsResetFilters">Reset Filters</span>
+    </button>
+  </div>
+</div>
 @if (logs$ | async; as logs) {
   @if (logs.length) {
-    <div class="m3-body-medium" i18n="@@applicationLogsExplanation">
-      Logs from all APIs for which this application has an accepted, paused, closed, or resumed subscription. Your administrator may
-      restrict what data you see below.
-    </div>
     <table mat-table [dataSource]="logs" class="application-logs__table">
       <ng-container matColumnDef="api">
         <th mat-header-cell *matHeaderCellDef i18n="@@applicationLogsTableColumnApi" class="m3-title-medium">API</th>
@@ -90,7 +128,7 @@
   } @else {
     <div class="no-logs">
       <div class="m3-title-medium" i18n="@@applicationLogsNoneFound">We couldn't find any logs</div>
-      <div class="m3-body-medium" i18n="@@applicationLogsNoneFoundMessage">Start using your subscriptions and consult the logs here</div>
+      <div class="m3-body-medium" i18n="@@applicationLogsNoneFoundMessage">Try unchecking some of the chosen filters</div>
     </div>
   }
 } @else {

@@ -22,6 +22,8 @@ import { LogsResponse } from '../entities/log/log';
 import { fakeLogsResponse } from '../entities/log/log.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
+/* eslint-disable no-useless-escape */
+
 describe('ApplicationLogService', () => {
   let service: ApplicationLogService;
   let httpTestingController: HttpTestingController;
@@ -53,7 +55,7 @@ describe('ApplicationLogService', () => {
       req.flush(logsResponse);
     });
 
-    it('should return logs list with default parameters', done => {
+    it('should return logs list with custom parameters', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
       const toDate = new Date(MOCK_DATE.getDate() - 10);
       const fromDate = new Date(MOCK_DATE.getDate() - 100);
@@ -65,7 +67,27 @@ describe('ApplicationLogService', () => {
         });
 
       const req = httpTestingController.expectOne(
-        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=2&size=11&from=${fromDate.getTime()}&to=${toDate.getTime()}&order=ASC&field=@name`,
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=2&size=11&from=${fromDate.getTime()}&to=${toDate.getTime()}&order=ASC&field=name`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(logsResponse);
+    });
+
+    it('should return logs list with specified apis', done => {
+      const logsResponse: LogsResponse = fakeLogsResponse();
+      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+      const API_ID_1 = 'api-id-1';
+      const API_ID_2 = 'api-id-2';
+      service.list(APP_ID, { apis: [API_ID_1, API_ID_2] }).subscribe(response => {
+        expect(response).toMatchObject(logsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
+          `&query=(api:\\"${API_ID_1}\\" OR \\"${API_ID_2}\\")`,
       );
       expect(req.request.method).toEqual('GET');
 
