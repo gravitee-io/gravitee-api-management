@@ -27,7 +27,6 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
-import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -80,28 +79,14 @@ class SharedPolicyGroupMapperTest {
         final Date date = new Date();
         event.setPayload(
             objectMapper.writeValueAsString(
-                io.gravitee.repository.management.model.SharedPolicyGroup
+                SharedPolicyGroup
                     .builder()
+                    .phase(SharedPolicyGroup.Phase.REQUEST)
+                    .policies(List.of())
                     .id("spg_id")
-                    .environmentId("env")
                     .name("name")
-                    .crossId("cross_id")
-                    .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
-                    .version(1)
-                    .createdAt(date)
-                    .updatedAt(date)
+                    .environmentId("env")
                     .deployedAt(date)
-                    .definition(
-                        objectMapper.writeValueAsString(
-                            SharedPolicyGroup
-                                .builder()
-                                .phase(SharedPolicyGroup.Phase.REQUEST)
-                                .policies(List.of())
-                                .id("spg_id")
-                                .name("name")
-                                .build()
-                        )
-                    )
                     .build()
             )
         );
