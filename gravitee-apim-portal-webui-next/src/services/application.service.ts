@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Application, ApplicationsResponse } from '../entities/application/application';
+import { Application, ApplicationsResponse, ApplicationType } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -31,6 +31,10 @@ export class ApplicationService {
 
   get(applicationId: string): Observable<Application> {
     return this.http.get<Application>(`${this.configService.baseURL}/applications/${applicationId}`);
+  }
+
+  getType(applicationId: string): Observable<ApplicationType> {
+    return this.http.get<ApplicationType>(`${this.configService.baseURL}/applications/${applicationId}/configuration`);
   }
 
   list(page?: number, size?: number, forSubscriptions?: boolean): Observable<ApplicationsResponse> {
