@@ -33,11 +33,16 @@
           <button mat-stroked-button (click)="onEdit()">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
           </button>
+          <button [disabled]="!canUndeploy()" mat-stroked-button (click)="onUndeploy()">
+            <mat-icon svgIcon="gio:cloud-unpublished">undeploy</mat-icon>
+          </button>
           <button *gioPermission="{ anyOf: ['environment-shared_policy_group-d'] }" mat-stroked-button (click)="onDelete()">
             <mat-icon svgIcon="gio:trash">delete</mat-icon>
           </button>
           <button [disabled]="!enableSaveButton" color="primary" mat-flat-button (click)="onSave()">Save</button>
-          <button [disabled]="!enableDeployButton" color="primary" mat-flat-button (click)="onDeploy()">Deploy</button>
+          <button [disabled]="!canDeploy()" color="primary" mat-flat-button (click)="onDeploy()">
+            <mat-icon svgIcon="gio:rocket">deploy</mat-icon>Deploy
+          </button>
         }
       </div>
     </mat-card-header>

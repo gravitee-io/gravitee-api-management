@@ -32,10 +32,13 @@ import {
   fakePoliciesPlugin,
   fakePolicyPlugin,
   fakeUpdateSharedPolicyGroup,
+  SharedPolicyGroup,
 } from '../../../../entities/management-api-v2';
 import { SharedPolicyGroupsAddEditDialogHarness } from '../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.harness';
 import {
+  expectDeploySharedPolicyGroupRequest,
   expectGetSharedPolicyGroupRequest,
+  expectUndeploySharedPolicyGroupRequest,
   expectUpdateSharedPolicyGroupRequest,
 } from '../../../../services-ngx/shared-policy-groups.service.spec';
 
@@ -74,17 +77,6 @@ describe('SharedPolicyGroupsStudioComponent', () => {
 
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupsStudioHarness);
     fixture.detectChanges();
-    expectGetSharedPolicyGroupRequest(
-      httpTestingController,
-      fakeSharedPolicyGroup({
-        id: SHARED_POLICY_GROUP_ID,
-        name: 'Shared Policy Group',
-        description: '',
-        steps: undefined,
-      }),
-    );
-    fixture.detectChanges();
-    expectGetPolicies();
   });
 
   afterEach(() => {
@@ -92,6 +84,8 @@ describe('SharedPolicyGroupsStudioComponent', () => {
   });
 
   it('should display empty request phase', async () => {
+    expectSharedPolicyGroup();
+    expectGetPolicies();
     const studio = await componentHarness.getPolicyGroupStudio();
 
     const phase = await studio.getPolicyGroupPhase();
@@ -108,6 +102,8 @@ describe('SharedPolicyGroupsStudioComponent', () => {
   });
 
   it('should edit shared policy group', async () => {
+    expectSharedPolicyGroup();
+    expectGetPolicies();
     await componentHarness.clickEditButton();
 
     fixture.detectChanges();
@@ -142,6 +138,8 @@ describe('SharedPolicyGroupsStudioComponent', () => {
   });
 
   it('should add policy to phase', async () => {
+    expectSharedPolicyGroup();
+    expectGetPolicies();
     const studio = await componentHarness.getPolicyGroupStudio();
 
     const phase = await studio.getPolicyGroupPhase();
@@ -188,6 +186,62 @@ describe('SharedPolicyGroupsStudioComponent', () => {
       }),
     );
   });
+
+  it.each([
+    <Partial<SharedPolicyGroup>>{ lifecycleState: 'UNDEPLOYED' },
+    <Partial<SharedPolicyGroup>>{ lifecycleState: 'DEPLOYED', updatedAt: new Date(2023, 2, 22), deployedAt: new Date(2023, 2, 21) },
+  ])('should display Deploy button: %p', async (modifier: Partial<SharedPolicyGroup>) => {
+    expectSharedPolicyGroup(modifier);
+    expectGetPolicies();
+    const deployButton = await componentHarness.getDeployButton();
+
+    expect(await deployButton.isDisabled()).toEqual(false);
+  });
+
+  it('should deploy shared policy group', async () => {
+    expectSharedPolicyGroup({ lifecycleState: 'UNDEPLOYED' });
+    expectGetPolicies();
+    const deployButton = await componentHarness.getDeployButton();
+    await deployButton.click();
+
+    expectDeploySharedPolicyGroupRequest(httpTestingController, SHARED_POLICY_GROUP_ID);
+    expectSharedPolicyGroup();
+  });
+
+  it.each([
+    <Partial<SharedPolicyGroup>>{ lifecycleState: 'DEPLOYED' },
+    <Partial<SharedPolicyGroup>>{ lifecycleState: 'UNDEPLOYED', updatedAt: new Date(2023, 2, 22), deployedAt: new Date(2023, 2, 21) },
+  ])('should display Undeploy button: %p', async (modifier: Partial<SharedPolicyGroup>) => {
+    expectSharedPolicyGroup(modifier);
+    expectGetPolicies();
+    const undeployButton = await componentHarness.getUndeployButton();
+
+    expect(await undeployButton.isDisabled()).toEqual(false);
+  });
+
+  it('should undeploy shared policy group', async () => {
+    expectSharedPolicyGroup({ lifecycleState: 'DEPLOYED' });
+    expectGetPolicies();
+    const undeployButton = await componentHarness.getUndeployButton();
+    await undeployButton.click();
+
+    expectUndeploySharedPolicyGroupRequest(httpTestingController, SHARED_POLICY_GROUP_ID);
+    expectSharedPolicyGroup();
+  });
+
+  function expectSharedPolicyGroup(modifier?: Partial<SharedPolicyGroup> | ((base: SharedPolicyGroup) => SharedPolicyGroup)) {
+    expectGetSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeSharedPolicyGroup({
+        ...modifier,
+        id: SHARED_POLICY_GROUP_ID,
+        name: 'Shared Policy Group',
+        description: '',
+        steps: undefined,
+      }),
+    );
+    fixture.detectChanges();
+  }
 
   function expectGetPolicies() {
     httpTestingController
