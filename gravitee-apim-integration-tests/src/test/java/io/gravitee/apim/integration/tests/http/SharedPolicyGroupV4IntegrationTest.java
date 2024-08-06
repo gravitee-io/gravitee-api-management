@@ -34,27 +34,39 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.gateway.tests.sdk.resource.ResourceBuilder;
+import io.gravitee.apim.integration.tests.fake.DummyCacheResource;
 import io.gravitee.apim.integration.tests.fake.ThrowingPolicy;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.DefaultSharedPolicyGroupPolicyChainFactory;
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.SharedPolicyGroupPolicy;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
+import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.resource.ResourcePlugin;
+import io.gravitee.policy.cache.CachePolicy;
+import io.gravitee.policy.cache.CacheResponse;
+import io.gravitee.policy.cache.configuration.CachePolicyConfiguration;
 import io.gravitee.policy.interrupt.InterruptPolicy;
 import io.gravitee.policy.interrupt.configuration.InterruptPolicyConfiguration;
 import io.gravitee.policy.transformheaders.TransformHeadersPolicy;
 import io.gravitee.policy.transformheaders.configuration.TransformHeadersPolicyConfiguration;
+import io.gravitee.resource.cache.api.Cache;
+import io.gravitee.resource.cache.api.CacheResource;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -203,6 +215,62 @@ class SharedPolicyGroupV4IntegrationTest {
                 .element(0)
                 .extracting(ILoggingEvent::getFormattedMessage)
                 .isEqualTo("No Shared Policy Group found for shared-policy-group-policy on RESPONSE phase");
+        }
+    }
+
+    @Nested
+    @DeploySharedPolicyGroups({ "/sharedpolicygroups/spg-policy-cache.json" })
+    class Resource extends TestPreparer {
+
+        @Override
+        public void configurePolicies(Map<String, PolicyPlugin> policies) {
+            super.configurePolicies(policies);
+            policies.putIfAbsent("cache", PolicyBuilder.build("cache", CachePolicy.class, CachePolicyConfiguration.class));
+        }
+
+        @Override
+        public void configureResources(Map<String, ResourcePlugin> resources) {
+            resources.put("dummy-cache", ResourceBuilder.build("dummy-cache", DummyCacheResource.class));
+        }
+
+        @AfterEach
+        public void setup() {
+            DummyCacheResource.clearCache();
+        }
+
+        @Test
+        @DeployApi({ "/apis/v4/http/sharedpolicygroup/api-shared-policy-group-cache.json" })
+        @SneakyThrows
+        void should_use_shared_policy_group_relying_on_policy_using_resource(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(extractHeaders(response))
+                        .contains(
+                            Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
+                            Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
+                        );
+                    return true;
+                })
+                .assertNoErrors();
+
+            wiremock.verify(
+                1,
+                getRequestedFor(urlPathEqualTo("/endpoint"))
+                    .withHeader("X-Request-Header-Outside-0", equalTo("Header Outside 0"))
+                    .withHeader("X-Request-Header-Outside-1", equalTo("Header Outside 1"))
+            );
+            DummyCacheResource.checkNumberOfCacheEntries(1);
+            CacheResponse firstEntry = DummyCacheResource.getFirstEntry();
+            assertThat(firstEntry).isNotNull();
+            assertThat(firstEntry.getContent()).hasToString("response from backend");
         }
     }
 

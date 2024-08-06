@@ -1,0 +1,22 @@
+{
+  "id": "spg-policy-cache",
+  "name": "spg-policy-cache",
+  "environmentId": "DEFAULT",
+  "version": "1",
+  "phase": "REQUEST",
+  "policies": [
+    {
+      "name": "Cache",
+      "description": "test cache",
+      "enabled": true,
+      "policy": "cache",
+      "configuration": {
+        "scope": "API",
+        "cacheName": "dummy-cache",
+        "key": "integration-test-cache",
+        "methods": ["GET"],
+        "responseCondition": "{#upstreamResponse.status == 200}"
+      }
+    }
+  ]
+}
