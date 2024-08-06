@@ -17,8 +17,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApplicationService } from './application.service';
-import { Application, ApplicationsResponse } from '../entities/application/application';
-import { fakeApplication, fakeApplicationsResponse } from '../entities/application/application.fixture';
+import { Application, ApplicationsResponse, ApplicationType } from '../entities/application/application';
+import { fakeApplication, fakeApplicationsResponse, fakeSimpleApplicationType } from '../entities/application/application.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApplicationService', () => {
@@ -62,5 +62,18 @@ describe('ApplicationService', () => {
     expect(req.request.method).toEqual('GET');
 
     req.flush(application);
+  });
+
+  it('should return application type configuration', done => {
+    const applicationType: ApplicationType = fakeSimpleApplicationType();
+    service.getType(applicationId).subscribe(response => {
+      expect(response).toMatchObject(applicationType);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/testId/configuration`);
+    expect(req.request.method).toEqual('GET');
+
+    req.flush(applicationType);
   });
 });
