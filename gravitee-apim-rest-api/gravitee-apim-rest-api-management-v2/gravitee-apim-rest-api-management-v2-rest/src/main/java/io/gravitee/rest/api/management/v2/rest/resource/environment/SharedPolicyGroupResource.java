@@ -18,7 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SharedPolicyGroupMapper;
@@ -35,10 +37,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -55,6 +60,12 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @Inject
     private UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase;
+
+    @Inject
+    private DeploySharedPolicyGroupUseCase deploySharedPolicyGroupUseCase;
+
+    @Inject
+    private UndeploySharedPolicyGroupUseCase undeploySharedPolicyGroupUseCase;
 
     @Inject
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
@@ -133,5 +144,75 @@ public class SharedPolicyGroupResource extends AbstractResource {
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroupId, audit));
 
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/_deploy")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    public Response deploySharedPolicyGroup() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        var output = deploySharedPolicyGroupUseCase.execute(
+            new DeploySharedPolicyGroupUseCase.Input(sharedPolicyGroupId, executionContext.getEnvironmentId(), audit)
+        );
+
+        return Response
+            .accepted()
+            .tag(Long.toString(output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
+            .lastModified(Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
+            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+            .build();
+    }
+
+    @POST
+    @Path("/_undeploy")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    public Response undeploySharedPolicyGroup() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        var output = undeploySharedPolicyGroupUseCase.execute(
+            new UndeploySharedPolicyGroupUseCase.Input(sharedPolicyGroupId, executionContext.getEnvironmentId(), audit)
+        );
+
+        return Response
+            .accepted()
+            .tag(Long.toString(output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
+            .lastModified(Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
+            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+            .build();
     }
 }
