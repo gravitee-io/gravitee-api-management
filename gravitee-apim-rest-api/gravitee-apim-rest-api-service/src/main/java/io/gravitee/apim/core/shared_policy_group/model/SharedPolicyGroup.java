@@ -16,10 +16,12 @@
 package io.gravitee.apim.core.shared_policy_group.model;
 
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -89,6 +91,40 @@ public class SharedPolicyGroup {
      * The current runtime life cycle state.
      */
     private SharedPolicyGroupLifecycleState lifecycleState;
+
+    public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup deploy() {
+        lifecycleState = SharedPolicyGroupLifecycleState.DEPLOYED;
+        final ZonedDateTime now = TimeProvider.now();
+        deployedAt = now;
+        updatedAt = now;
+
+        return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup
+            .builder()
+            .id(crossId)
+            .environmentId(environmentId)
+            .policies(steps)
+            .phase(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.valueOf(phase.name()))
+            .name(name)
+            .deployedAt(Date.from(deployedAt.toInstant()))
+            .build();
+    }
+
+    public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup undeploy() {
+        lifecycleState = SharedPolicyGroupLifecycleState.UNDEPLOYED;
+        final ZonedDateTime now = TimeProvider.now();
+        deployedAt = now;
+        updatedAt = now;
+
+        return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup
+            .builder()
+            .id(crossId)
+            .environmentId(environmentId)
+            .policies(steps)
+            .phase(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.valueOf(phase.name()))
+            .name(name)
+            .deployedAt(Date.from(deployedAt.toInstant()))
+            .build();
+    }
 
     public enum SharedPolicyGroupLifecycleState {
         DEPLOYED,
