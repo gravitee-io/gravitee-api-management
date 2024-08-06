@@ -68,6 +68,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
         keyless: { enabled: true },
         customApiKey: { enabled: false },
         sharedApiKey: { enabled: false },
+        mtls: { enabled: false },
       },
     },
   };

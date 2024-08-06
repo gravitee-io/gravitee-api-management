@@ -107,6 +107,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
         Arrays.asList(
+            new PlanSecurityEntity("mtls", "mTLS", "mtls"),
             new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
             new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
             new PlanSecurityEntity("api_key", "API Key", "api-key"),

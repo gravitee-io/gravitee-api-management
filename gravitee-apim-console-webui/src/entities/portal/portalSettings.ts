@@ -160,6 +160,9 @@ export interface PortalSettingsPlan {
     push: {
       enabled: boolean;
     };
+    mtls: {
+      enabled: boolean;
+    };
   };
 }
 

@@ -177,6 +177,9 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
         push: {
           enabled: true,
         },
+        mtls: {
+          enabled: true,
+        },
       },
     },
     scheduler: {
