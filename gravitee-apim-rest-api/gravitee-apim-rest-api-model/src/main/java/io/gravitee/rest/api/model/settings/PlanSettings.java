@@ -63,6 +63,9 @@ public class PlanSettings {
         @ParameterKey(Key.PLAN_SECURITY_PUSH_ENABLED)
         private Enabled push;
 
+        @ParameterKey(Key.PLAN_SECURITY_MTLS_ENABLED)
+        private Enabled mtls;
+
         public Enabled getApikey() {
             return apikey;
         }
@@ -101,6 +104,14 @@ public class PlanSettings {
 
         public void setJwt(Enabled jwt) {
             this.jwt = jwt;
+        }
+
+        public Enabled getMtls() {
+            return mtls;
+        }
+
+        public void setMtls(Enabled mtls) {
+            this.mtls = mtls;
         }
 
         public Enabled getSharedApiKey() {

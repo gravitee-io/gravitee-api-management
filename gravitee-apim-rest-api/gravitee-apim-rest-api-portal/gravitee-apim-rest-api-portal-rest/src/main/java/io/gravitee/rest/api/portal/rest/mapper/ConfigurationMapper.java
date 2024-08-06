@@ -155,6 +155,7 @@ public class ConfigurationMapper {
         configuration.setApikey(convert(security.getApikey()));
         configuration.setSharedApiKey(convert(security.getSharedApiKey()));
         configuration.setJwt(convert(security.getJwt()));
+        configuration.setMtls(convert(security.getMtls()));
         configuration.setKeyless(convert(security.getKeyless()));
         configuration.setOauth2(convert(security.getOauth2()));
         return configuration;
