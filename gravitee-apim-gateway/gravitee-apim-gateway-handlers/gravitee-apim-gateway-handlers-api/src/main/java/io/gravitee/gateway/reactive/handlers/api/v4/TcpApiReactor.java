@@ -17,13 +17,11 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
-import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.*;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.SERVICES_TRACING_ENABLED_PROPERTY;
 import static io.reactivex.rxjava3.core.Completable.defer;
-import static io.reactivex.rxjava3.core.Observable.interval;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -104,6 +102,8 @@ public class TcpApiReactor extends AbstractApiReactor {
 
     @Override
     public Completable handle(MutableExecutionContext ctx) {
+        log.info("Contextual logging should appear ... contextualized");
+
         prepareCommonAttributes(ctx);
 
         // TODO specific Tcp API Request processor chain factory that contains SubscriptionProcessor in beforeApi chain

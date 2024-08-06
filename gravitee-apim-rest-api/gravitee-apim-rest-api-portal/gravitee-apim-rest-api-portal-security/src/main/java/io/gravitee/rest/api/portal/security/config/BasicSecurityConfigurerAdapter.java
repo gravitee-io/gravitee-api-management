@@ -29,6 +29,7 @@ import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetail
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
+import io.gravitee.rest.api.security.filter.ContextualLoggingFilter;
 import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
@@ -192,6 +193,7 @@ public class BasicSecurityConfigurerAdapter {
             new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
             CorsFilter.class
         );
+        http.addFilterAfter(new ContextualLoggingFilter(), GraviteeContextFilter.class);
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();
