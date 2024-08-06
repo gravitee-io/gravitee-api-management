@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -56,7 +57,7 @@ public class SharedPolicyGroup implements Serializable {
     @NotBlank
     private String name;
 
-    @JsonProperty(required = false)
+    @JsonProperty
     @NotBlank
     private String version;
 
@@ -66,6 +67,8 @@ public class SharedPolicyGroup implements Serializable {
 
     @Valid
     private List<Step> policies;
+
+    private Date deployedAt;
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
