@@ -76,6 +76,10 @@
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.exchange</groupId>
+            <artifactId>gravitee-exchange-api</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>io.gravitee.cockpit</groupId>
 			<artifactId>gravitee-cockpit-api</artifactId>
@@ -84,6 +88,10 @@
 			<groupId>io.gravitee.integration</groupId>
 			<artifactId>gravitee-integration-api</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>io.gravitee.scoring</groupId>
+            <artifactId>gravitee-scoring-api</artifactId>
+        </dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>
