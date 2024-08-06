@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { Application, ApplicationsResponse } from './application';
+import { Application, ApplicationsResponse, ApplicationType } from './application';
 
 export function fakeApplication(modifier?: Partial<Application> | ((baseApplication: Application) => Application)): Application {
   const base: Application = {
@@ -84,6 +84,7 @@ export function fakeApplication(modifier?: Partial<Application> | ((baseApplicat
     ...modifier,
   };
 }
+
 export function fakeApplicationsResponse(
   modifier?: Partial<ApplicationsResponse> | ((baseApplication: ApplicationsResponse) => ApplicationsResponse),
 ): ApplicationsResponse {
@@ -109,5 +110,161 @@ export function fakeApplicationsResponse(
   return {
     ...base,
     ...modifier,
+  };
+}
+
+export function fakeSimpleApplicationType(): ApplicationType {
+  return {
+    id: 'simple',
+    name: 'Simple',
+    description: 'A hands-free application. Using this type, you will be able to define the client_id by your own.',
+    requires_redirect_uris: false,
+    allowed_grant_types: [],
+    default_grant_types: [],
+    mandatory_grant_types: [],
+  };
+}
+
+export function fakeBackendToBackendApplicationType(): ApplicationType {
+  return {
+    id: 'backend_to_backend',
+    name: 'Backend to backend',
+    description: 'Machine to machine',
+    requires_redirect_uris: false,
+    allowed_grant_types: [
+      {
+        type: 'client_credentials',
+        name: 'Client Credentials',
+        response_types: [],
+      },
+    ],
+    default_grant_types: [
+      {
+        type: 'client_credentials',
+        name: 'Client Credentials',
+        response_types: [],
+      },
+    ],
+    mandatory_grant_types: [
+      {
+        type: 'client_credentials',
+        name: 'Client Credentials',
+        response_types: [],
+      },
+    ],
+  };
+}
+
+export function fakeNativeApplicationType(): ApplicationType {
+  return {
+    id: 'native',
+    name: 'Native',
+    description: 'iOS, Android, ...',
+    requires_redirect_uris: true,
+    allowed_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+      {
+        type: 'refresh_token',
+        name: 'Refresh Token',
+        response_types: [],
+      },
+      {
+        type: 'password',
+        name: 'Resource Owner Password',
+        response_types: [],
+      },
+      {
+        type: 'implicit',
+        name: 'Implicit (Hybrid)',
+        response_types: ['token', 'id_token'],
+      },
+    ],
+    default_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+    ],
+    mandatory_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+    ],
+  };
+}
+
+export function fakeBrowserApplicationType(): ApplicationType {
+  return {
+    id: 'browser',
+    name: 'SPA',
+    description: 'Angular, React, Ember, ...',
+    requires_redirect_uris: true,
+    allowed_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+      {
+        type: 'implicit',
+        name: 'Implicit',
+        response_types: ['token', 'id_token'],
+      },
+    ],
+    default_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+    ],
+    mandatory_grant_types: [],
+  };
+}
+
+export function fakeWebApplicationType(): ApplicationType {
+  return {
+    id: 'web',
+    name: 'Web',
+    description: 'Java, .Net, ...',
+    requires_redirect_uris: true,
+    allowed_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+      {
+        type: 'refresh_token',
+        name: 'Refresh Token',
+        response_types: [],
+      },
+      {
+        type: 'implicit',
+        name: 'Implicit (Hybrid)',
+        response_types: ['token', 'id_token'],
+      },
+    ],
+    default_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+    ],
+    mandatory_grant_types: [
+      {
+        type: 'authorization_code',
+        name: 'Authorization Code',
+        response_types: ['code'],
+      },
+    ],
   };
 }
