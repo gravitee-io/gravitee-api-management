@@ -143,6 +143,40 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
+  /shared-policy-groups/{sharedPolicyGroupId}/_deploy:
+    post:
+      tags:
+        - SharedPolicyGroups
+      summary: Deploy a shared policy group
+      operationId: deploySharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      responses:
+        "202":
+          description: Shared policy group deploy request has been accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
+  /shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
+    post:
+      tags:
+        - SharedPolicyGroups
+      summary: Undeploy a shared policy group
+      operationId: undeploySharedPolicyGroup
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+      responses:
+        "202":
+          description: Shared policy group undeploy request has been accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        default:
+          $ref: "#/components/responses/Error"
 components:
     schemas:
         # Shared policy group
