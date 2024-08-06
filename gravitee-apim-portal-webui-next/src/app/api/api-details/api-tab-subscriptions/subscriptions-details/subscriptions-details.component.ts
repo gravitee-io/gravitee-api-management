@@ -132,11 +132,18 @@ export class SubscriptionsDetailsComponent implements OnInit {
               entrypointUrl,
             };
           } else if (foundPlan?.security === 'OAUTH2' || foundPlan?.security === 'JWT') {
-            return {
-              ...subscriptionDetails,
-              clientId: application.settings?.oauth.client_id,
-              clientSecret: application.settings?.oauth.client_secret,
-            };
+            if (application.settings.oauth) {
+              return {
+                ...subscriptionDetails,
+                clientId: application.settings.oauth.client_id,
+                clientSecret: application.settings.oauth.client_secret,
+              };
+            } else if (application.settings.app) {
+              return {
+                ...subscriptionDetails,
+                clientId: application.settings.app.client_id,
+              };
+            }
           }
         }
 

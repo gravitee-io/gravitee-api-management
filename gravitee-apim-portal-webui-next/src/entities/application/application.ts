@@ -19,13 +19,15 @@ export interface Application {
   api_key_mode?: string;
   applicationType?: string;
   created_at?: string;
+  updated_at?: string;
   id: string;
   name: string;
   description?: string;
+  picture?: string;
   hasClientId?: boolean;
   owner?: ApplicationOwner;
   groups?: ApplicationGroups[];
-  settings?: ApplicationSettings;
+  settings: ApplicationSettings;
   _links?: ApplicationLinks;
 }
 
@@ -57,17 +59,21 @@ export interface ApplicationOwnerLinks {
 }
 
 export interface ApplicationSettings {
-  oauth: ApplicationSettingsOAuth;
-  updated_at: string;
+  oauth?: ApplicationSettingsOAuth;
+  app?: ApplicationSettingsApp;
+}
+
+export interface ApplicationSettingsApp {
+  client_id?: string;
+  type?: string;
 }
 
 export interface ApplicationSettingsOAuth {
-  application_type: string;
   client_id: string;
   client_secret: string;
-  redirect_uris: [];
+  redirect_uris: string[];
   renew_client_secret_supported: boolean;
-  response_types: [];
+  response_types: string[];
   grant_types: string[];
 }
 
@@ -98,3 +104,5 @@ export interface ApplicationsResponse {
 export interface ApplicationsMetadataSubscriptions {
   [applicationId: string]: Subscription[];
 }
+
+
