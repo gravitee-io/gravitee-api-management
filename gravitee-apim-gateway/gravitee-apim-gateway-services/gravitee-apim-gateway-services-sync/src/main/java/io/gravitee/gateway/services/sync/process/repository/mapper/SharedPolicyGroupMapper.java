@@ -49,24 +49,18 @@ public class SharedPolicyGroupMapper {
     public Maybe<ReactableSharedPolicyGroup> to(Event sharedPolicyGroupEvent) {
         return Maybe.fromCallable(() -> {
             try {
-                // Read API definition from event
-                var sharedPolicyGroup = objectMapper.readValue(
-                    sharedPolicyGroupEvent.getPayload(),
-                    io.gravitee.repository.management.model.SharedPolicyGroup.class
-                );
-
-                var sharedPolicyGroupDefinition = objectMapper.readValue(sharedPolicyGroup.getDefinition(), SharedPolicyGroup.class);
+                var sharedPolicyGroupDefinition = objectMapper.readValue(sharedPolicyGroupEvent.getPayload(), SharedPolicyGroup.class);
 
                 final ReactableSharedPolicyGroup reactableSharedPolicyGroup = ReactableSharedPolicyGroup
                     .builder()
-                    .id(sharedPolicyGroup.getId())
-                    .name(sharedPolicyGroup.getName())
-                    .environmentId(sharedPolicyGroup.getEnvironmentId())
+                    .id(sharedPolicyGroupDefinition.getId())
+                    .name(sharedPolicyGroupDefinition.getName())
+                    .environmentId(sharedPolicyGroupDefinition.getEnvironmentId())
                     .definition(sharedPolicyGroupDefinition)
-                    .deployedAt(sharedPolicyGroup.getDeployedAt())
+                    .deployedAt(sharedPolicyGroupDefinition.getDeployedAt())
                     .build();
 
-                environmentService.fill(sharedPolicyGroup.getEnvironmentId(), reactableSharedPolicyGroup);
+                environmentService.fill(sharedPolicyGroupDefinition.getEnvironmentId(), reactableSharedPolicyGroup);
 
                 return reactableSharedPolicyGroup;
             } catch (Exception e) {
