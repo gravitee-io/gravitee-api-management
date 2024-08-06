@@ -495,7 +495,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         return apiDefinitionV4;
     }
 
-    private void createOrPatchLatestEvent(final String latestEventId, String organizationId, final EventEntity event) {
+    @Override
+    public void createOrPatchLatestEvent(final String latestEventId, String organizationId, final EventEntity event) {
         Event latestEvent = convert(event);
         latestEvent.setId(latestEventId);
         latestEvent.setOrganizations(Set.of(organizationId));
