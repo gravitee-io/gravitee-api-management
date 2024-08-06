@@ -4840,6 +4840,8 @@ components:
           $ref: '#/components/schemas/Enabled'
         jwt:
           $ref: '#/components/schemas/Enabled'
+        mtls:
+          $ref: '#/components/schemas/Enabled'
     ConfigurationAnalytics:
       properties:
         clientTimeout:
