@@ -29,6 +29,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -113,6 +114,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
@@ -173,6 +175,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         var expected = existingSharedPolicyGroup
             .toBuilder()
             .description("new-description")
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
         assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
