@@ -100,7 +100,7 @@ public class IngestFederatedApisUseCase {
                             apiCrudService
                                 .findById(federatedApi.getId())
                                 .ifPresentOrElse(
-                                    existingApi -> updateApi(federatedApi, existingApi, api, auditInfo, primaryOwner),
+                                    existingApi -> updateApi(federatedApi, api, auditInfo, primaryOwner),
                                     () -> createApi(federatedApi, api, auditInfo, primaryOwner)
                                 );
                             List<ApiMetadata> metadata = metadata(api, federatedApi);
@@ -135,21 +135,9 @@ public class IngestFederatedApisUseCase {
         }
     }
 
-    private void updateApi(
-        Api federatedApi,
-        Api existingApi,
-        IntegrationApi integrationApi,
-        AuditInfo auditInfo,
-        PrimaryOwnerEntity primaryOwner
-    ) {
+    private void updateApi(Api federatedApi, IntegrationApi integrationApi, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwner) {
         log.debug("API already ingested [id={}] [name={}], performing update", federatedApi.getId(), federatedApi.getName());
         try {
-            /*
-             * Because we use page names as identifiers we need to look for the page by existing API name.
-             * Otherwise, in case of an API name update, we would create a new page instead of updating the existing one.
-             * If we move on to some predictable unique ID the existingApiName will become unnecessary.
-             */
-            var existingApiName = existingApi.getName();
             UnaryOperator<Api> updater = update(federatedApi);
             updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner);
 
@@ -167,8 +155,11 @@ public class IngestFederatedApisUseCase {
             stream(integrationApi.pages())
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
                 .forEach(page ->
+                    /*
+                     * We let agent choose coherent page name and rely on it to updating
+                     */
                     pageQueryService
-                        .findByNameAndReferenceId(generatePageName(existingApiName, page.getType()), federatedApi.getId())
+                        .findByNameAndReferenceId(page.getName(), federatedApi.getId())
                         .ifPresentOrElse(
                             existingPage -> {
                                 var pageWithProperCreatedAt = page
@@ -191,8 +182,8 @@ public class IngestFederatedApisUseCase {
             return Stream.empty();
         }
         return switch (page.pageType()) {
-            case SWAGGER -> Stream.of(buildSwaggerPage(integrationApi.name(), referenceId, page.content()));
-            case ASYNCAPI -> Stream.of(buildAsyncApiPage(integrationApi.name(), referenceId, page.content()));
+            case SWAGGER -> Stream.of(buildSwaggerPage(referenceId, page));
+            case ASYNCAPI -> Stream.of(buildAsyncApiPage(referenceId, page));
             case ASCIIDOC, MARKDOWN, MARKDOWN_TEMPLATE -> {
                 log.error("Impossible to import {} documentation for {}", page.pageType(), integrationApi.name());
                 yield Stream.empty();
@@ -200,13 +191,13 @@ public class IngestFederatedApisUseCase {
         };
     }
 
-    private Page buildSwaggerPage(String name, String referenceId, String content) {
+    private Page buildSwaggerPage(String referenceId, IntegrationApi.Page page) {
         var now = Date.from(TimeProvider.instantNow());
         return Page
             .builder()
             .id(UuidString.generateRandom())
-            .name(generatePageName(name, Page.Type.SWAGGER))
-            .content(content)
+            .name(page.filename())
+            .content(page.content())
             .type(Page.Type.SWAGGER)
             .referenceId(referenceId)
             .referenceType(Page.ReferenceType.API)
@@ -219,13 +210,13 @@ public class IngestFederatedApisUseCase {
             .build();
     }
 
-    private Page buildAsyncApiPage(String name, String referenceId, String content) {
+    private Page buildAsyncApiPage(String referenceId, IntegrationApi.Page page) {
         var now = Date.from(TimeProvider.instantNow());
         return Page
             .builder()
             .id(UuidString.generateRandom())
-            .name(generatePageName(name, Page.Type.ASYNCAPI))
-            .content(content)
+            .name(page.filename())
+            .content(page.content())
             .type(Page.Type.ASYNCAPI)
             .referenceId(referenceId)
             .referenceType(Page.ReferenceType.API)
@@ -235,14 +226,6 @@ public class IngestFederatedApisUseCase {
             .createdAt(now)
             .updatedAt(now)
             .build();
-    }
-
-    private String generatePageName(String apiName, Page.Type pageType) {
-        return switch (pageType) {
-            case SWAGGER -> apiName.concat("-oas.yml");
-            case ASYNCAPI -> apiName.concat(".json");
-            default -> throw new IllegalStateException("Unexpected value: " + pageType);
-        };
     }
 
     static UnaryOperator<Api> update(Api newOne) {

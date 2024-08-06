@@ -473,7 +473,7 @@ class IntegrationAgentImplTest {
                         .build()
                 )
             )
-            .pages(List.of(new Page(PageType.SWAGGER, "swaggerDoc")))
+            .pages(List.of(new Page(PageType.SWAGGER, "swaggerDoc", "MyPage.yml")))
             .build();
     }
 
@@ -516,7 +516,7 @@ class IntegrationAgentImplTest {
                         List.of(
                             new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY, List.of())
                         ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc")),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
                         null
                     ),
                     new IntegrationApi(
@@ -530,7 +530,7 @@ class IntegrationAgentImplTest {
                         List.of(
                             new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY, List.of())
                         ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc")),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
                         null
                     )
                 );
