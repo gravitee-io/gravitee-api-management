@@ -20,6 +20,8 @@ import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import { LogsResponse } from '../entities/log/log';
 
+/* eslint-disable no-useless-escape */
+
 @Injectable({
   providedIn: 'root',
 })
@@ -38,6 +40,7 @@ export class ApplicationLogService {
       from?: number;
       order?: 'ASC' | 'DESC';
       field?: string;
+      apis?: string[];
     },
   ): Observable<LogsResponse> {
     const paramsList = [];
@@ -52,8 +55,22 @@ export class ApplicationLogService {
     paramsList.push(`to=${params.to ?? currentDate.getTime()}`);
     paramsList.push(`order=${params.order ?? 'DESC'}`);
 
-    paramsList.push(`field=@${params.field ?? 'timestamp'}`);
+    paramsList.push(`field=${params.field ?? '@timestamp'}`);
+
+    const query = this.serializeLogListQuery({ ...params });
+    if (query.length) {
+      paramsList.push(`query=${query}`);
+    }
 
     return this.http.get<LogsResponse>(`${this.configService.baseURL}/applications/${applicationId}/logs?${paramsList.join('&')}`);
+  }
+
+  private serializeLogListQuery(params: { apis?: string[] }): string {
+    const queryList: string[] = [];
+    if (params.apis?.length) {
+      const apis = `(api\:${params.apis.map(api => `\\"${api}\\"`).join(' OR ')})`;
+      queryList.push(apis);
+    }
+    return queryList.join(' AND ');
   }
 }
