@@ -44,6 +44,7 @@ export function fakeApplication(modifier?: Partial<Application> | ((baseApplicat
       },
     },
     created_at: '2022-05-03T12:36:08.85Z',
+    updated_at: '2022-05-03T12:36:08.85Z',
     groups: [
       {
         id: '1001f3a8-a0c8-4904-81f3-a8a0c81904bc',
@@ -58,10 +59,8 @@ export function fakeApplication(modifier?: Partial<Application> | ((baseApplicat
         redirect_uris: [],
         response_types: [],
         grant_types: ['client_credentials'],
-        application_type: 'backend_to_backend',
         renew_client_secret_supported: false,
       },
-      updated_at: '2022-05-03T12:36:08.85Z',
     },
     _links: {
       self: 'https://apim-master-api.team-apim.gravitee.dev/portal/environments/DEFAULT/applications/b62f6e82-c39b-4edb-af6e-82c39b9edb46',
