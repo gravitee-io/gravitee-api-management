@@ -49,6 +49,41 @@
   }
 }
 
+.filters {
+  --mat-form-field-subscript-text-line-height: 0;
+
+  &__row-one {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__select-filters {
+      display: flex;
+      gap: 16px;
+    }
+  }
+
+  &__row-two {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__filter-summary {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 8px;
+
+      &__chips {
+        display: flex;
+        flex: 1;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+    }
+  }
+}
+
 .error {
   color: theme.$error-main-color;
 }
