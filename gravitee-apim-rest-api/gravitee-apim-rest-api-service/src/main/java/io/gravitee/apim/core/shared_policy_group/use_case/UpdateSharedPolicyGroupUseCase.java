@@ -51,6 +51,7 @@ public class UpdateSharedPolicyGroupUseCase {
             .from(existingSharedPolicyGroup, input.sharedPolicyGroupToUpdate())
             .toBuilder()
             .updatedAt(TimeProvider.now())
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .build();
 
         validateUpdateSharedPolicyGroup(sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
