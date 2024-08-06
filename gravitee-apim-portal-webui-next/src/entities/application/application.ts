@@ -105,4 +105,18 @@ export interface ApplicationsMetadataSubscriptions {
   [applicationId: string]: Subscription[];
 }
 
+export interface ApplicationType {
+  id?: string;
+  name?: string;
+  description?: string;
+  requires_redirect_uris?: boolean;
+  allowed_grant_types?: Array<ApplicationGrantType>;
+  mandatory_grant_types?: Array<ApplicationGrantType>;
+  default_grant_types?: Array<ApplicationGrantType>;
+}
 
+export interface ApplicationGrantType {
+  type?: string;
+  name?: string;
+  response_types?: string[];
+}
