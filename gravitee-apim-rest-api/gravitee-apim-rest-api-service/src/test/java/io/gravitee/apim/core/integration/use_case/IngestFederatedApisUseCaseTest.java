@@ -1146,7 +1146,7 @@ class IngestFederatedApisUseCaseTest {
                     IntegrationApiFixtures
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.yml")))
                         .build()
                 );
 
@@ -1159,7 +1159,7 @@ class IngestFederatedApisUseCaseTest {
             var expectedPage = Page
                 .builder()
                 .id("generated-id")
-                .name("An alien API-oas.yml")
+                .name("MyPageName.yml")
                 .referenceId("environment-idintegration-idasset-uid")
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.SWAGGER)
@@ -1184,7 +1184,7 @@ class IngestFederatedApisUseCaseTest {
                     IntegrationApiFixtures
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.csv")))
                         .build()
                 );
 
@@ -1221,7 +1221,7 @@ class IngestFederatedApisUseCaseTest {
                     IntegrationApiFixtures
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.csv")))
                         .build()
                 );
 
@@ -1234,7 +1234,7 @@ class IngestFederatedApisUseCaseTest {
             var expectedPage = Page
                 .builder()
                 .id("generated-id")
-                .name("An alien API-oas.yml")
+                .name("MyPageName.csv")
                 .referenceId("environment-idintegration-idasset-uid")
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.SWAGGER)
@@ -1259,7 +1259,7 @@ class IngestFederatedApisUseCaseTest {
                     IntegrationApiFixtures
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc", "MyPage.md")))
                         .build()
                 );
 
@@ -1272,7 +1272,7 @@ class IngestFederatedApisUseCaseTest {
             var expectedPage = Page
                 .builder()
                 .id("generated-id")
-                .name("An alien API.json")
+                .name("MyPage.md")
                 .referenceId("environment-idintegration-idasset-uid")
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.ASYNCAPI)
@@ -1310,7 +1310,7 @@ class IngestFederatedApisUseCaseTest {
             var apiToIngest = IntegrationApiFixtures
                 .anIntegrationApiForIntegration(INTEGRATION_ID)
                 .toBuilder()
-                .pages(List.of(new IntegrationApi.Page(pageType, "somePageTypeContent")))
+                .pages(List.of(new IntegrationApi.Page(pageType, "somePageTypeContent", "MyPage.json")))
                 .build();
 
             // When
@@ -1341,7 +1341,7 @@ class IngestFederatedApisUseCaseTest {
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
                         .uniqueId("uid-1")
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
                         .build()
                 );
             givenExistingApi(
@@ -1358,7 +1358,7 @@ class IngestFederatedApisUseCaseTest {
                 Page
                     .builder()
                     .id("generated-id")
-                    .name("An alien API-oas.yml")
+                    .name("MyPage.json")
                     .referenceId("environment-idintegration-iduid-1")
                     .referenceType(Page.ReferenceType.API)
                     .type(Page.Type.SWAGGER)
@@ -1382,7 +1382,7 @@ class IngestFederatedApisUseCaseTest {
             var expectedPage = Page
                 .builder()
                 .id("generated-id")
-                .name("An alien API-oas.yml")
+                .name("MyPage.json")
                 .referenceId("environment-idintegration-iduid-1")
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.SWAGGER)
@@ -1408,7 +1408,7 @@ class IngestFederatedApisUseCaseTest {
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
                         .uniqueId("uid-1")
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", "MyPage.json")))
                         .build()
                 );
             givenExistingApi(
@@ -1425,7 +1425,7 @@ class IngestFederatedApisUseCaseTest {
                 Page
                     .builder()
                     .id("generated-id")
-                    .name("An alien API.json")
+                    .name("MyPage.json")
                     .referenceId("environment-idintegration-iduid-1")
                     .referenceType(Page.ReferenceType.API)
                     .type(Page.Type.ASYNCAPI)
@@ -1448,7 +1448,7 @@ class IngestFederatedApisUseCaseTest {
             var expectedPage = Page
                 .builder()
                 .id("generated-id")
-                .name("An alien API.json")
+                .name("MyPage.json")
                 .referenceId("environment-idintegration-iduid-1")
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.ASYNCAPI)
@@ -1472,14 +1472,14 @@ class IngestFederatedApisUseCaseTest {
                     IntegrationApiFixtures
                         .anIntegrationApiForIntegration(INTEGRATION_ID)
                         .toBuilder()
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", "MyPage.json")))
                         .build()
                 );
             givenExistingPage(
                 Page
                     .builder()
                     .id("generated-id")
-                    .name("An alien API.json")
+                    .name("MyPage.json")
                     .referenceId("environment-idintegration-idasset-uid")
                     .referenceType(Page.ReferenceType.API)
                     .type(Page.Type.ASYNCAPI)
@@ -1538,7 +1538,7 @@ class IngestFederatedApisUseCaseTest {
                         .toBuilder()
                         .uniqueId("uid-1")
                         .name("new-name")
-                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc")))
+                        .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
                         .build()
                 );
             givenExistingApi(
@@ -1555,7 +1555,7 @@ class IngestFederatedApisUseCaseTest {
                 Page
                     .builder()
                     .id("generated-id")
-                    .name("old-name-oas.yml")
+                    .name("MyPage.json")
                     .referenceId("environment-idintegration-iduid-1")
                     .referenceType(Page.ReferenceType.API)
                     .type(Page.Type.SWAGGER)
@@ -1579,7 +1579,7 @@ class IngestFederatedApisUseCaseTest {
             var expectedPage = Page
                 .builder()
                 .id("generated-id")
-                .name("new-name-oas.yml")
+                .name("MyPage.json")
                 .referenceId("environment-idintegration-iduid-1")
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.SWAGGER)

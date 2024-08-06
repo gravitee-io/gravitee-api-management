@@ -40,7 +40,7 @@ public record IntegrationApi(
         OAUTH2,
     }
 
-    public record Page(PageType pageType, String content) {}
+    public record Page(PageType pageType, String content, String filename) {}
     public enum PageType {
         ASCIIDOC,
         ASYNCAPI,
