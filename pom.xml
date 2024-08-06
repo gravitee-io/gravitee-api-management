@@ -59,7 +59,7 @@
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>8.1.0</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
-        <gravitee-cockpit-api.version>3.0.50</gravitee-cockpit-api.version>
+        <gravitee-cockpit-api.version>3.1.0</gravitee-cockpit-api.version>
         <gravitee-common.version>4.5.1</gravitee-common.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
         <gravitee-exchange.version>1.8.2</gravitee-exchange.version>
@@ -67,6 +67,7 @@
         <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.5.1</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
+        <gravitee-scoring-api.version>0.1.0</gravitee-scoring-api.version>
         <gravitee-node.version>6.3.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>4.1.0</gravitee-plugin.version>
@@ -323,6 +324,18 @@
                 <groupId>io.gravitee.integration</groupId>
                 <artifactId>gravitee-integration-api</artifactId>
                 <version>${gravitee-integration-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.scoring</groupId>
+                <artifactId>gravitee-scoring-api</artifactId>
+                <version>${gravitee-scoring-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.exchange</groupId>
+                <artifactId>gravitee-exchange-api</artifactId>
+                <version>${gravitee-exchange.version}</version>
             </dependency>
 
             <dependency>

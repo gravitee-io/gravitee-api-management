@@ -69,6 +69,7 @@ import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.ResourcePluginCrudServiceInMemory;
 import inmemory.ResourcePluginQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import inmemory.ScoringProviderInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
@@ -425,5 +426,10 @@ public class InMemoryConfiguration {
     @Bean
     public ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainServiceInMemory() {
         return new ThemePortalNextAssetsDomainServiceInMemory();
+    }
+
+    @Bean
+    public ScoringProviderInMemory scoringProviderInMemory() {
+        return new ScoringProviderInMemory();
     }
 }
