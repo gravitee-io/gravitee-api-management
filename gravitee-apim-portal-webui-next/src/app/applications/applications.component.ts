@@ -61,7 +61,7 @@ export class ApplicationsComponent {
   private loadApplications$(): Observable<ApplicationPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.applicationService.list({ page: currentPage, size: 9 })),
+      switchMap(currentPage => this.applicationService.list(currentPage, 9)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({
@@ -69,6 +69,7 @@ export class ApplicationsComponent {
               description: application.description,
               name: application.name,
               picture: application._links?.picture,
+              settings: application.settings,
             }))
           : [];
         const page = resp.metadata?.pagination?.current_page ?? 1;
