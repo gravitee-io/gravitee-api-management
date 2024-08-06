@@ -55,6 +55,9 @@ interface PortalForm {
     push: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
+    mtls: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
   }>;
   api: FormGroup<{
     labelsDictionary: FormControl<string[]>;
@@ -263,6 +266,12 @@ export class PortalSettingsComponent implements OnInit {
           enabled: new FormControl({
             value: this.settings.plan.security.push.enabled,
             disabled: this.isReadonly('plan.security.push.enabled'),
+          }),
+        }),
+        mtls: new FormGroup({
+          enabled: new FormControl({
+            value: this.settings.plan.security.mtls.enabled,
+            disabled: this.isReadonly('plan.security.mtls.enabled'),
           }),
         }),
       }),

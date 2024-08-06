@@ -112,6 +112,19 @@
             aria-label="Push plans ( only available for API V4 )"
           ></mat-slide-toggle>
         </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          formGroupName="mtls"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.mtls.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>mTLS plans ( only available for API V4 )</gio-form-label>
+          <mat-slide-toggle
+            formControlName="enabled"
+            gioFormSlideToggle
+            aria-label="mTLS plans ( only available for API V4 )"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </mat-card-content>
 
       <mat-card-content formGroupName="api">

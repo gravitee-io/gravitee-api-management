@@ -64,6 +64,9 @@ describe('ConstantsService', () => {
         push: {
           enabled: true,
         },
+        mtls: {
+          enabled: true,
+        },
       });
       const expectedPlanSecurityTypes = AVAILABLE_PLANS_FOR_MENU;
 
@@ -127,6 +130,9 @@ describe('ConstantsService', () => {
         push: {
           enabled: true,
         },
+        mtls: {
+          enabled: true,
+        },
       };
 
       beforeEach(async () => {
@@ -137,6 +143,10 @@ describe('ConstantsService', () => {
         const result = constantsService.getPlanMenuItems('V4', ['HTTP']);
 
         expect(result).toMatchObject([
+          {
+            planFormType: 'MTLS',
+            name: 'mTLS',
+          },
           {
             planFormType: 'OAUTH2',
             name: 'OAuth2',
@@ -159,7 +169,7 @@ describe('ConstantsService', () => {
         ]);
       });
 
-      it('should filter PUSH plan menu items when API definition version is V2', () => {
+      it('should filter PUSH plan and mTLS menu items when API definition version is V2', () => {
         const result = constantsService.getPlanMenuItems('V2', null);
 
         expect(result).toMatchObject([
@@ -202,10 +212,14 @@ describe('ConstantsService', () => {
         ]);
       });
 
-      it('should return only KEYLESS plan menu items when user has only TCP listeners types selected', () => {
+      it('should return only KEYLESS and mTLS plans menu items when user has only TCP listeners types selected', () => {
         const result = constantsService.getPlanMenuItems('V4', ['TCP']);
 
         expect(result).toMatchObject([
+          {
+            planFormType: 'MTLS',
+            name: 'mTLS',
+          },
           {
             planFormType: 'KEY_LESS',
             name: 'Keyless (public)',

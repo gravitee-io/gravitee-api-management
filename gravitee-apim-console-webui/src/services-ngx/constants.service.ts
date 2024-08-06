@@ -28,6 +28,11 @@ export interface PlanMenuItemVM {
 }
 export const AVAILABLE_PLANS_FOR_MENU: PlanMenuItemVM[] = [
   {
+    planFormType: 'MTLS',
+    name: 'mTLS',
+    policy: 'mtls',
+  },
+  {
     planFormType: 'OAUTH2',
     name: 'OAuth2',
     policy: 'oauth2',
@@ -77,15 +82,21 @@ export class ConstantsService {
     const availablePlanMenuItems = this.getEnabledPlanMenuItems();
 
     if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'TCP')) {
-      return availablePlanMenuItems.filter((p) => p.planFormType === 'KEY_LESS');
+      return availablePlanMenuItems.filter((p) => p.planFormType === 'KEY_LESS' || p.planFormType === 'MTLS');
     }
 
     if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'SUBSCRIPTION')) {
       return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
     }
 
-    if (definitionVersion !== 'V4' || listenerTypes?.every((listenerType) => ['HTTP', 'TCP'].includes(listenerType))) {
+    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => ['HTTP', 'TCP'].includes(listenerType))) {
       return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
+    }
+
+    if (definitionVersion !== 'V4') {
+      return availablePlanMenuItems
+        .filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH')
+        .filter((planMenuItem) => planMenuItem.planFormType !== 'MTLS');
     }
 
     return availablePlanMenuItems;

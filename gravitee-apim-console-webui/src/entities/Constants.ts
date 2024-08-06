@@ -145,6 +145,9 @@ export interface EnvSettings {
       jwt: {
         enabled: boolean;
       };
+      mtls: {
+        enabled: boolean;
+      };
     };
   };
   portal: {
