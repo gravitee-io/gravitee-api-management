@@ -83,7 +83,6 @@ export class SharedPolicyGroupsStudioComponent {
     .list()
     .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
   protected enableSaveButton = false;
-  protected enableDeployButton = false;
 
   constructor() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-r']);
@@ -123,8 +122,33 @@ export class SharedPolicyGroupsStudioComponent {
   }
 
   public onDeploy(): void {
-    // TODO
-    this.enableDeployButton = false;
+    this.sharedPolicyGroupsService
+      .deploy(this.sharedPolicyGroup().id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Shared Policy Group deployed successfully');
+          this.refresh$.next();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group deployment!');
+        },
+      });
+  }
+
+  public onUndeploy(): void {
+    this.sharedPolicyGroupsService
+      .undeploy(this.sharedPolicyGroup().id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Shared Policy Group undeployed successfully');
+          this.refresh$.next();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group undeployment!');
+        },
+      });
   }
 
   public onSave(): void {
@@ -142,7 +166,6 @@ export class SharedPolicyGroupsStudioComponent {
         next: () => {
           this.snackBarService.success('Shared Policy Group updated');
           this.refresh$.next();
-          this.enableDeployButton = true;
         },
         error: (error) => {
           this.enableSaveButton = true;
@@ -166,5 +189,26 @@ export class SharedPolicyGroupsStudioComponent {
         this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
       },
     );
+  }
+
+  public canDeploy(): boolean {
+    const sharedPolicyGroup = this.sharedPolicyGroup();
+    return (
+      sharedPolicyGroup.lifecycleState === 'UNDEPLOYED' ||
+      (sharedPolicyGroup.lifecycleState === 'DEPLOYED' && this.hasBeenUpdatedAfterDeployment())
+    );
+  }
+
+  public canUndeploy(): boolean {
+    const sharedPolicyGroup = this.sharedPolicyGroup();
+    return (
+      sharedPolicyGroup.lifecycleState === 'DEPLOYED' ||
+      (sharedPolicyGroup.lifecycleState === 'UNDEPLOYED' && this.hasBeenUpdatedAfterDeployment())
+    );
+  }
+
+  private hasBeenUpdatedAfterDeployment(): boolean {
+    const sharedPolicyGroup = this.sharedPolicyGroup();
+    return sharedPolicyGroup.deployedAt < sharedPolicyGroup.updatedAt;
   }
 }

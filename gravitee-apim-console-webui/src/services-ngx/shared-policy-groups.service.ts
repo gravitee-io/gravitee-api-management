@@ -66,4 +66,12 @@ export class SharedPolicyGroupsService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}`);
   }
+
+  deploy(id: string): Observable<SharedPolicyGroup> {
+    return this.http.post<SharedPolicyGroup>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}/_deploy`, undefined);
+  }
+
+  undeploy(id: string): Observable<SharedPolicyGroup> {
+    return this.http.post<SharedPolicyGroup>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}/_undeploy`, undefined);
+  }
 }

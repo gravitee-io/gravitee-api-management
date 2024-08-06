@@ -23,6 +23,8 @@ export class SharedPolicyGroupsStudioHarness extends ComponentHarness {
   public getEditButton = this.locatorFor(MatButtonHarness.with({ text: /edit/ }));
 
   public getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/ }));
+  public getDeployButton = this.locatorFor(MatButtonHarness.with({ text: /Deploy/ }));
+  public getUndeployButton = this.locatorFor(MatButtonHarness.with({ text: /undeploy/ }));
 
   public getPolicyGroupStudio = this.locatorFor(GioPolicyGroupStudioHarness);
 
