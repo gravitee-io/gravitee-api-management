@@ -29,6 +29,7 @@ import io.vertx.redis.client.RedisRole;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
@@ -171,6 +172,13 @@ public class RedisConnectionFactory {
 
         // Set max waiting handlers high enough to manage high throughput since we are not using the pooled mode
         options.setMaxWaitingHandlers(1024);
+
+        // Enforce timeouts with default ones if not defined.
+        options
+            .getNetClientOptions()
+            .setConnectTimeout(readPropertyValue(propertyPrefix + "tcp.connectTimeout", int.class, 5000))
+            .setIdleTimeout(readPropertyValue(propertyPrefix + "tcp.idleTimeout", int.class, 0))
+            .setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
 
         return options;
     }

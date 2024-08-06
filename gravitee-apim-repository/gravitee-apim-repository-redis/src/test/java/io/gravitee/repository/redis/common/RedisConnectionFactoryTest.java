@@ -252,4 +252,16 @@ public class RedisConnectionFactoryTest {
         assertThat(options.getNetClientOptions()).isNotNull();
         assertThat(options.getNetClientOptions().isTrustAll()).isTrue();
     }
+
+    @Test
+    void shouldReturnRedisOptionsWithTCPTimeouts() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.tcp.connectTimeout", "1234");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.tcp.idleTimeout", "5678");
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        assertThat(options.getNetClientOptions()).isNotNull();
+        assertThat(options.getNetClientOptions().getConnectTimeout()).isEqualTo(1234);
+        assertThat(options.getNetClientOptions().getIdleTimeout()).isEqualTo(5678);
+    }
 }
