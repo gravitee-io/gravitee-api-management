@@ -595,6 +595,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-mtls</artifactId>
+            <version>${gravitee-policy-mtls.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-oauth2</artifactId>
             <version>${gravitee-policy-oauth2.version}</version>
             <type>zip</type>
