@@ -40,6 +40,27 @@
           }
         </mat-select>
       </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@applicationLogsResponseTimes">Response Times</mat-label>
+        <mat-select
+          (selectionChange)="selectResponseTimes($event)"
+          multiple
+          [value]="filters().responseTimes"
+          aria-label="Filter by Response Time">
+          @for (responseTime of responseTimes; track responseTime.value) {
+            <mat-option [value]="responseTime">
+              @if (responseTime.min === 0) {
+                < {{ responseTime.max }}
+              } @else if (responseTime.max) {
+                {{ responseTime.min }} <span i18n="@@applicationLogsTo">to</span> {{ responseTime.max }}
+              } @else {
+                > {{ responseTime.min }}
+              }
+              <span i18n="@@applicationLogsMilliseconds">ms</span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
     </div>
     <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine" aria-label="Apply filters">
       <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
@@ -60,6 +81,21 @@
           @if (filters().methods) {
             @for (method of filters().methods; track method.value) {
               <mat-chip>{{ method.label }}</mat-chip>
+            }
+          }
+          @if (filters().responseTimes) {
+            @for (responseTime of filters().responseTimes; track responseTime.value) {
+              <mat-chip>
+                <span i18n="@@applicationLogsResponseTimeChip">Response time</span>
+                @if (responseTime.min === 0) {
+                  < {{ responseTime.max }}
+                } @else if (responseTime.max) {
+                  {{ responseTime.min }} - {{ responseTime.max }}
+                } @else {
+                  > {{ responseTime.min }}
+                }
+                <span i18n="@@applicationLogsMilliseconds">ms</span>
+              </mat-chip>
             }
           }
         }
