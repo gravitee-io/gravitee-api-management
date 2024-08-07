@@ -90,4 +90,13 @@ describe('ApplicationService', () => {
 
     req.flush(application);
   });
+
+  it('should delete application', done => {
+    service.delete(applicationId).subscribe(done());
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}`);
+    expect(req.request.method).toEqual('DELETE');
+
+    req.flush(null);
+  });
 });
