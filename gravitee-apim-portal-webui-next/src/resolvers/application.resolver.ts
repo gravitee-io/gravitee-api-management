@@ -17,7 +17,7 @@ import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs';
 
-import { Application } from '../entities/application/application';
+import { Application, ApplicationType } from '../entities/application/application';
 import { ApplicationService } from '../services/application.service';
 
 export const applicationResolver = ((
@@ -25,3 +25,9 @@ export const applicationResolver = ((
   _: RouterStateSnapshot,
   applicationService: ApplicationService = inject(ApplicationService),
 ): Observable<Application> => applicationService.get(route.params['applicationId'])) satisfies ResolveFn<Application>;
+
+export const applicationTypeResolver = ((
+  route: ActivatedRouteSnapshot,
+  _: RouterStateSnapshot,
+  applicationService: ApplicationService = inject(ApplicationService),
+): Observable<ApplicationType> => applicationService.getType(route.params['applicationId'])) satisfies ResolveFn<ApplicationType>;
