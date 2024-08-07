@@ -49,4 +49,8 @@ export class ApplicationService {
 
     return this.http.get<ApplicationsResponse>(`${this.configService.baseURL}/applications?${paramList.join('&')}`);
   }
+
+  save(application: Application): Observable<Application> {
+    return this.http.put<Application>(`${this.configService.baseURL}/applications/${application.id}`, application);
+  }
 }
