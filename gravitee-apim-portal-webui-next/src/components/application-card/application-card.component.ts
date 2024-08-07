@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { RouterModule } from '@angular/router';
+import { MatButton } from '@angular/material/button';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { RouterLink } from '@angular/router';
 
+import { Application } from '../../entities/application/application';
 import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
 
 @Component({
-  selector: 'app-api-card',
+  selector: 'app-application-card',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, AppCardComponent],
-  templateUrl: './api-card.component.html',
+  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, AppCardComponent],
+  templateUrl: './application-card.component.html',
 })
-export class ApiCardComponent {
+export class ApplicationCardComponent {
   @Input({ required: true })
-  title!: string;
-  @Input({ required: true })
-  version!: string;
-  @Input({ required: true })
-  id!: string;
-  @Input()
-  picture: string | undefined;
-  @Input()
-  content?: string;
+  application!: Application;
 }

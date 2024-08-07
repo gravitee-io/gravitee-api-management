@@ -17,13 +17,13 @@
 -->
 
 <app-card
-  [isApi]="true"
-  [title]="title"
-  [version]="version"
-  [id]="id"
-  [picture]="picture"
-  [content]="content"
-  [pictureValue]="title + ' ' + version"
-  [routerLinkValue]="['.', 'api', id]"
-  [buttonCapture]="'Learn More'"
-  [missingContentMessage]="'Description for this API is missing.'" />
+  [isApi]="false"
+  [title]="application.name"
+  [owner]="application.owner?.display_name"
+  [id]="application.id"
+  [picture]="application._links?.picture"
+  [content]="application.description"
+  [pictureValue]="application.name"
+  [routerLinkValue]="['.', application.id]"
+  [buttonCapture]="'Open'"
+  [missingContentMessage]="'Description for this application is missing.'" />

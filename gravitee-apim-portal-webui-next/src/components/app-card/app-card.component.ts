@@ -14,28 +14,50 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { RouterModule } from '@angular/router';
+import { MatButton } from '@angular/material/button';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { RouterLink } from '@angular/router';
 
-import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
 
 @Component({
-  selector: 'app-api-card',
+  selector: 'app-card',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, AppCardComponent],
-  templateUrl: './api-card.component.html',
+  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink],
+  templateUrl: './app-card.component.html',
+  styleUrl: './app-card.component.scss',
 })
-export class ApiCardComponent {
+export class AppCardComponent {
+  @Input({ required: true })
+  isApi!: boolean;
+
   @Input({ required: true })
   title!: string;
-  @Input({ required: true })
-  version!: string;
+
+  @Input()
+  version?: string;
+
+  @Input()
+  owner?: string;
+
   @Input({ required: true })
   id!: string;
+
   @Input()
   picture: string | undefined;
+
   @Input()
   content?: string;
+
+  @Input()
+  missingContentMessage!: string;
+
+  @Input()
+  pictureValue!: string;
+
+  @Input()
+  routerLinkValue!: string[];
+
+  @Input()
+  buttonCapture!: string;
 }

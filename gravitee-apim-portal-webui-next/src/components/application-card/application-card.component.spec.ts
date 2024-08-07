@@ -23,25 +23,32 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { ApiCardComponent } from './api-card.component';
+import { ApplicationCardComponent } from './application-card.component';
+import { fakeApplication } from '../../entities/application/application.fixture';
 import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
 
-describe('ApiCardComponent', () => {
-  let component: ApiCardComponent;
-  let fixture: ComponentFixture<ApiCardComponent>;
+describe('ApplicationCardComponent', () => {
+  let component: ApplicationCardComponent;
+  let fixture: ComponentFixture<ApplicationCardComponent>;
   let harnessLoader: HarnessLoader;
 
   const mockData = {
-    title: 'Test title',
-    version: 'v.1',
-    id: '1',
-    content:
-      'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-    picture: 'path/to/picture.png',
-    routerLinkValue: ['.', 'api', '1'],
-    buttonCapture: 'Learn More',
-    missingContentMessage: 'Description for this API is missing.',
+    application: {
+      ...fakeApplication(),
+      id: '1',
+      _links: {
+        ...fakeApplication()._links,
+        picture: 'link1',
+        background: 'background',
+        members: 'members',
+        notifications: 'notifications',
+        self: 'self',
+      },
+    },
+    routerLinkValue: ['.', '1'],
+    buttonCapture: 'Open',
+    missingContentMessage: 'Description for this application is missing.',
   };
 
   beforeEach(async () => {
@@ -52,22 +59,17 @@ describe('ApiCardComponent', () => {
         RouterModule.forRoot([]),
         NoopAnimationsModule,
         HttpClientTestingModule,
-        ApiCardComponent,
         AppCardComponent,
         PictureComponent,
       ],
       declarations: [],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiCardComponent);
+    fixture = TestBed.createComponent(ApplicationCardComponent);
     component = fixture.componentInstance;
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
-    component.title = mockData.title;
-    component.version = mockData.version;
-    component.content = mockData.content;
-    component.id = mockData.id;
-    component.picture = mockData.picture;
+    component.application = mockData.application;
 
     fixture.detectChanges();
   });
@@ -78,24 +80,24 @@ describe('ApiCardComponent', () => {
 
   it('should display the correct title', () => {
     const titleElement = fixture.nativeElement.querySelector('.m3-title-medium');
-    expect(titleElement.textContent).toContain(mockData.title);
+    expect(titleElement.textContent).toContain(mockData.application.name);
   });
 
-  it('should display the version', () => {
+  it('should display the owner', () => {
     const versionElement = fixture.nativeElement.querySelector('.m3-body-medium');
-    expect(versionElement.textContent).toContain(`Version: ${mockData.version}`);
+    expect(versionElement.textContent).toContain(`Owner: ${mockData.application.owner?.display_name}`);
   });
 
   it('should display content if available', () => {
     const contentElement = fixture.nativeElement.querySelector('.app-card__description');
     expect(contentElement).not.toBeNull();
     if (contentElement) {
-      expect(contentElement.textContent).toContain(mockData.content);
+      expect(contentElement.textContent).toContain(mockData.application.description);
     }
   });
 
   it('should display missing content message if content is not available', () => {
-    component.content = '';
+    component.application.description = '';
     fixture.detectChanges();
 
     const missingContentElement = fixture.nativeElement.querySelector('.app-card__description span');
@@ -118,8 +120,8 @@ describe('ApiCardComponent', () => {
 
   it('should display the picture component with the correct inputs', () => {
     const pictureComponent = fixture.nativeElement.querySelector('app-picture');
-    expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(mockData.picture);
-    expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(`${mockData.title} ${mockData.version}`);
+    expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(mockData.application._links?.picture);
+    expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(`${mockData.application.name}`);
   });
 
   it('should show card list', async () => {
@@ -139,7 +141,7 @@ describe('ApiCardComponent', () => {
   });
 
   it('should display card component correctly with search query', async () => {
-    fixture.componentInstance.title = 'sample query';
+    fixture.componentInstance.application.name = 'sample query';
     fixture.detectChanges();
 
     const cardHarnesses = await harnessLoader.getAllHarnesses(MatCardHarness);

@@ -23,25 +23,25 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { ApiCardComponent } from './api-card.component';
-import { AppCardComponent } from '../app-card/app-card.component';
+import { AppCardComponent } from './app-card.component';
 import { PictureComponent } from '../picture/picture.component';
 
-describe('ApiCardComponent', () => {
-  let component: ApiCardComponent;
-  let fixture: ComponentFixture<ApiCardComponent>;
+describe('CardComponent', () => {
+  let fixture: ComponentFixture<AppCardComponent>;
   let harnessLoader: HarnessLoader;
 
   const mockData = {
-    title: 'Test title',
-    version: 'v.1',
-    id: '1',
-    content:
-      'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+    title: 'Sample Title',
+    version: 'v1.0.0',
+    owner: 'John Doe',
+    content: 'This is a sample content.',
+    missingContentMessage: 'Content is missing.',
     picture: 'path/to/picture.png',
-    routerLinkValue: ['.', 'api', '1'],
-    buttonCapture: 'Learn More',
-    missingContentMessage: 'Description for this API is missing.',
+    pictureValue: 'hash123',
+    routerLinkValue: ['sample-route'],
+    buttonCapture: 'Click Me',
+    isApi: true,
+    id: '123',
   };
 
   beforeEach(async () => {
@@ -52,28 +52,33 @@ describe('ApiCardComponent', () => {
         RouterModule.forRoot([]),
         NoopAnimationsModule,
         HttpClientTestingModule,
-        ApiCardComponent,
         AppCardComponent,
         PictureComponent,
       ],
       declarations: [],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiCardComponent);
-    component = fixture.componentInstance;
+    fixture = TestBed.createComponent(AppCardComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
+    const component = fixture.componentInstance;
     component.title = mockData.title;
     component.version = mockData.version;
+    component.owner = mockData.owner;
     component.content = mockData.content;
-    component.id = mockData.id;
+    component.missingContentMessage = mockData.missingContentMessage;
     component.picture = mockData.picture;
+    component.pictureValue = mockData.pictureValue;
+    component.routerLinkValue = mockData.routerLinkValue;
+    component.buttonCapture = mockData.buttonCapture;
+    component.isApi = mockData.isApi;
+    component.id = mockData.id;
 
     fixture.detectChanges();
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should display the correct title', () => {
@@ -81,9 +86,18 @@ describe('ApiCardComponent', () => {
     expect(titleElement.textContent).toContain(mockData.title);
   });
 
-  it('should display the version', () => {
+  it('should display the version if isApi is true', () => {
     const versionElement = fixture.nativeElement.querySelector('.m3-body-medium');
     expect(versionElement.textContent).toContain(`Version: ${mockData.version}`);
+  });
+
+  it('should display the owner if isApi is false', () => {
+    const component = fixture.componentInstance;
+    component.isApi = false;
+    fixture.detectChanges();
+
+    const ownerElement = fixture.nativeElement.querySelector('.m3-body-medium');
+    expect(ownerElement.textContent).toContain(`Owner: ${mockData.owner}`);
   });
 
   it('should display content if available', () => {
@@ -95,6 +109,7 @@ describe('ApiCardComponent', () => {
   });
 
   it('should display missing content message if content is not available', () => {
+    const component = fixture.componentInstance;
     component.content = '';
     fixture.detectChanges();
 
@@ -113,13 +128,13 @@ describe('ApiCardComponent', () => {
   it('should have the correct router link value', () => {
     const buttonElement = fixture.nativeElement.querySelector('button');
     const routerLinkValue = buttonElement.getAttribute('ng-reflect-router-link');
-    expect(routerLinkValue).toEqual(mockData.routerLinkValue.join(','));
+    expect(routerLinkValue).toEqual(mockData.routerLinkValue[0]);
   });
 
   it('should display the picture component with the correct inputs', () => {
     const pictureComponent = fixture.nativeElement.querySelector('app-picture');
     expect(pictureComponent.getAttribute('ng-reflect-picture')).toEqual(mockData.picture);
-    expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(`${mockData.title} ${mockData.version}`);
+    expect(pictureComponent.getAttribute('ng-reflect-hash-value')).toEqual(mockData.pictureValue);
   });
 
   it('should show card list', async () => {
