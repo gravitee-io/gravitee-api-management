@@ -16,12 +16,25 @@
 import { TestBed } from '@angular/core/testing';
 import { ResolveFn } from '@angular/router';
 
-import { applicationResolver } from './application.resolver';
-import { Application } from '../entities/application/application';
+import { applicationResolver, applicationTypeResolver } from './application.resolver';
+import { Application, ApplicationType } from '../entities/application/application';
 
 describe('applicationResolver', () => {
   const executeResolver: ResolveFn<Application> = (...resolverParameters) =>
     TestBed.runInInjectionContext(() => applicationResolver(...resolverParameters));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+  });
+
+  it('should be created', () => {
+    expect(executeResolver).toBeTruthy();
+  });
+});
+
+describe('applicationTypeResolver', () => {
+  const executeResolver: ResolveFn<ApplicationType> = (...resolverParameters) =>
+    TestBed.runInInjectionContext(() => applicationTypeResolver(...resolverParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

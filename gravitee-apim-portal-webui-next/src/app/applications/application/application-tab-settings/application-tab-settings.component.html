@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2024 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,4 +15,129 @@
     limitations under the License.
 
 -->
-<p>application-tab-settings works!</p>
+<form [formGroup]="applicationSettingsForm" class="applicationSettings">
+  <div class="applicationSettings__content">
+    <div class="applicationSettings__content__general">
+      <div class="applicationSettings__content__general__title">
+        <div i18n="@@generalTitleApplicationSettings" class="m3-title-medium">General</div>
+      </div>
+      <div class="applicationSettings__content__general__picture">
+        <app-picture [hashValue]="application.name" [picture]="this.applicationSettingsForm.controls.picture.value"></app-picture>
+        <input #applicationPictureFile type="file" hidden (change)="onPictureChange($event)" id="applicationPictureFile" />
+        <button mat-stroked-button type="button" (click)="applicationPictureFile.click()" i18n="@@uploadPictureApplicationSettings">
+          Upload new picture
+        </button>
+        <button
+          mat-button
+          (click)="deletePicture()"
+          i18n="@@deletePictureApplicationSettings"
+          [disabled]="!this.applicationSettingsForm.controls.picture.value"
+          aria-label="Delete picture">
+          Delete
+        </button>
+      </div>
+      <mat-form-field>
+        <mat-label i18n="@@applicationNameApplicationSettings">Application name</mat-label>
+        <input matInput formControlName="name" aria-label="Application name" />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label i18n="@@applicationDescriptionApplicationSettings">Application description</mat-label>
+        <input matInput formControlName="description" aria-label="Application description" />
+      </mat-form-field>
+    </div>
+
+    @if (application.settings) {
+      <div class="applicationSettings__content__integration">
+        @if (application.settings.oauth) {
+          <div class="applicationSettings__content__integration__title">
+            <div i18n="@@integrationOIDCTitleApplicationSettings" class="m3-title-medium">OpenID Connect Integration</div>
+            <p>
+              <b>{{ applicationTypeConfiguration.name }}</b
+              >: {{ applicationTypeConfiguration.description }}
+            </p>
+          </div>
+          <div class="applicationSettings__content__integration__copy-code">
+            <app-copy-code id="client-id" title="Client ID" [text]="application.settings.oauth.client_id"></app-copy-code>
+            <app-copy-code
+              id="client-secret"
+              title="Client Secret"
+              [text]="application.settings.oauth.client_secret"
+              [mode]="'PASSWORD'"></app-copy-code>
+          </div>
+          @if (applicationTypeConfiguration.requires_redirect_uris) {
+            <mat-form-field>
+              <mat-label i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs</mat-label>
+              <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" formControlName="oauthRedirectUris">
+                @for (uri of applicationSettingsForm.controls.oauthRedirectUris.value; track uri) {
+                  <mat-chip-row (removed)="removeRedirectUri(uri)">
+                    {{ uri }}
+                    <button matChipRemove aria-label="'remove redirect URI' + uri">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </mat-chip-row>
+                }
+                <input
+                  placeholder="Add redirect URI..."
+                  [matChipInputFor]="redirectURIChipGrid"
+                  [matChipInputAddOnBlur]="true"
+                  (matChipInputTokenEnd)="addRedirectUri($event)" />
+              </mat-chip-grid>
+              <mat-hint i18n="@@hintRedirectUrisApplicationSettings"
+                >URIs where the authorization server will send OAuth responses</mat-hint
+              >
+            </mat-form-field>
+          }
+          <mat-form-field>
+            <mat-label i18n="@@applicationGrantTypesApplicationSettings">Grant types</mat-label>
+            <mat-select formControlName="oauthGrantTypes" multiple aria-label="Grant types">
+              @for (grantType of grantTypesList; track grantType) {
+                <mat-option [value]="grantType.type" [disabled]="grantType.isDisabled">{{ grantType.name }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint i18n="@@hintGrantTypesApplicationSettings"
+              >Grant types allowed for the client. Please set only grant types you need for security reasons</mat-hint
+            >
+          </mat-form-field>
+        } @else if (application.settings.app) {
+          <div class="applicationSettings__content__integration__title">
+            <div i18n="@@integrationOauthTitleApplicationSettings" class="m3-title-medium">OAuth2 Integration</div>
+          </div>
+          <mat-form-field>
+            <mat-label i18n="@@applicationTypeApplicationSettings">Application type</mat-label>
+            <input matInput formControlName="appType" aria-label="Application type" />
+            <mat-hint i18n="@@hintApplicationTypeApplicationSettings">Type of the application (mobile, web, ...)</mat-hint>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label i18n="@@applicationClientIdApplicationSettings">ClientID</mat-label>
+            <input matInput formControlName="appClientId" aria-label="Client ID" />
+            <mat-hint i18n="@@hintClientIdApplicationSettings"
+              >This field is required to subscribe to certain types of API Plan (OAuth2, JWT)</mat-hint
+            >
+          </mat-form-field>
+        }
+      </div>
+    }
+  </div>
+  <div class="applicationSettings__actions">
+    <button
+      (click)="submit()"
+      mat-flat-button
+      class="secondary-button"
+      [disabled]="applicationSettingsForm.invalid || (formUnchanged$ | async)"
+      i18n="@@saveApplicationSettings"
+      aria-label="Save application">
+      Save
+    </button>
+    <button
+      (click)="reset()"
+      mat-stroked-button
+      [disabled]="formUnchanged$ | async"
+      i18n="@@discardChangesApplicationSettings"
+      aria-label="Discard changes">
+      Discard changes
+    </button>
+    <button mat-button (click)="deleteApplication()" i18n="@@deleteApplicationSettings" aria-label="Delete application">
+      Delete application
+    </button>
+  </div>
+</form>
