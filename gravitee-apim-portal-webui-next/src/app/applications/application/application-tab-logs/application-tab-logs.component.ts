@@ -58,9 +58,16 @@ interface ApiVM {
   version: string;
 }
 
+interface ResponseTimeVM {
+  value: string;
+  min: number;
+  max?: number;
+}
+
 interface FiltersVM {
   apis?: ApiVM[];
   methods?: HttpMethodVM[];
+  responseTimes?: ResponseTimeVM[];
 }
 
 @Component({
@@ -117,6 +124,52 @@ export class ApplicationTabLogsComponent implements OnInit {
   filtersPristine: boolean = true;
 
   httpMethods: HttpMethodVM[] = ApplicationLogService.METHODS;
+  responseTimes: ResponseTimeVM[] = [
+    {
+      value: '0 TO 100',
+      min: 0,
+      max: 100,
+    },
+    {
+      value: '100 TO 200',
+      min: 100,
+      max: 200,
+    },
+    {
+      value: '200 TO 300',
+      min: 200,
+      max: 300,
+    },
+    {
+      value: '300 TO 400',
+      min: 300,
+      max: 400,
+    },
+    {
+      value: '400 TO 500',
+      min: 400,
+      max: 500,
+    },
+    {
+      value: '500 TO 1000',
+      min: 500,
+      max: 1000,
+    },
+    {
+      value: '1000 TO 2000',
+      min: 1000,
+      max: 2000,
+    },
+    {
+      value: '2000 TO 5000',
+      min: 2000,
+      max: 5000,
+    },
+    {
+      value: '5000 TO *',
+      min: 5000,
+    },
+  ];
 
   displayedColumns: string[] = ['api', 'timestamp', 'httpMethod', 'responseStatus'];
 
@@ -136,10 +189,14 @@ export class ApplicationTabLogsComponent implements OnInit {
       distinctUntilChanged(),
       map(queryParams => {
         const page: number = queryParams['page'] ? +queryParams['page'] : 1;
-        const apis: string[] = queryParams['apis'] ?? [];
-        const methodsQueryParams: string[] = queryParams['methods'] ?? [];
+        const apis: string[] = this.mapQueryParamToStringArray(queryParams['apis']);
+
+        const methodsQueryParams: string[] = this.mapQueryParamToStringArray(queryParams['methods']);
         const methods = ApplicationLogService.METHODS.filter(method => methodsQueryParams.includes(method.value));
-        return { page, apis, methods };
+
+        const responseTimes: string[] = this.mapQueryParamToStringArray(queryParams['responseTimes']);
+
+        return { page, apis, methods, responseTimes };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => this.applicationLogService.list(this.application.id, values)),
@@ -217,11 +274,17 @@ export class ApplicationTabLogsComponent implements OnInit {
     this.filters.update(filters => ({ ...filters, methods: $event.value }));
   }
 
+  selectResponseTimes($event: MatSelectChange) {
+    this.filtersPristine = false;
+    this.filters.update(filters => ({ ...filters, responseTimes: $event.value }));
+  }
+
   private navigate(params: { page: number }) {
     this.filtersPristine = true;
 
     const apis: string[] = this.filters().apis?.map(api => api.id) ?? [];
     const methods: string[] = this.filters().methods?.map(method => method.value) ?? [];
+    const responseTimes: string[] = this.filters().responseTimes?.map(rt => rt.value) ?? [];
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -229,14 +292,32 @@ export class ApplicationTabLogsComponent implements OnInit {
         page: params.page,
         ...(apis.length ? { apis } : {}),
         ...(methods.length ? { methods } : {}),
+        ...(responseTimes.length ? { responseTimes } : {}),
       },
     });
   }
 
-  private initializeFiltersAndPagination(params: { page: number; apis: string[]; methods: HttpMethodVM[] }): void {
+  private initializeFiltersAndPagination(params: { page: number; apis: string[]; methods: HttpMethodVM[]; responseTimes: string[] }): void {
     this.filtersPristine = true;
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
-    this.filters.update(filters => ({ ...filters, ...(params.methods.length ? { methods: params.methods } : {}) }));
+
+    const responseTimes = this.responseTimes.filter(rt => params.responseTimes.includes(rt.value));
+
+    this.filters.update(filters => ({
+      ...filters,
+      ...(params.methods.length ? { methods: params.methods } : {}),
+      ...(responseTimes.length ? { responseTimes } : {}),
+    }));
+  }
+
+  private mapQueryParamToStringArray(queryParam: string | string[] | undefined): string[] {
+    if (!queryParam) {
+      return [];
+    }
+    if (Array.isArray(queryParam)) {
+      return queryParam;
+    }
+    return [queryParam];
   }
 }
