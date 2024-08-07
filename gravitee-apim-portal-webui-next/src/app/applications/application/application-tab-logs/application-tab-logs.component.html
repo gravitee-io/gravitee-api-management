@@ -32,6 +32,14 @@
           </mat-select>
         </mat-form-field>
       }
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@applicationLogsHttpMethods">HTTP Methods</mat-label>
+        <mat-select (selectionChange)="selectHttpMethods($event)" multiple [value]="filters().methods" aria-label="Filter by HTTP Method">
+          @for (method of httpMethods; track method) {
+            <mat-option [value]="method">{{ method.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
     </div>
     <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine" aria-label="Apply filters">
       <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
@@ -47,6 +55,11 @@
           @if (filters().apis) {
             @for (api of filters().apis; track api.id) {
               <mat-chip>{{ api.name }} ({{ api.version }})</mat-chip>
+            }
+          }
+          @if (filters().methods) {
+            @for (method of filters().methods; track method.value) {
+              <mat-chip>{{ method.label }}</mat-chip>
             }
           }
         }

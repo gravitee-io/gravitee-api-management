@@ -22,27 +22,44 @@ import { LogsResponse } from '../entities/log/log';
 
 /* eslint-disable no-useless-escape */
 
+export interface HttpMethodVM {
+  value: string;
+  label: string;
+}
+
+export interface ApplicationLogsListParameters {
+  page?: number;
+  size?: number;
+  to?: number;
+  from?: number;
+  order?: 'ASC' | 'DESC';
+  field?: string;
+  apis?: string[];
+  methods?: HttpMethodVM[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ApplicationLogService {
+  public static METHODS: HttpMethodVM[] = [
+    { value: '3', label: 'GET' },
+    { value: '7', label: 'POST' },
+    { value: '8', label: 'PUT' },
+    { value: '2', label: 'DELETE' },
+    { value: '6', label: 'PATCH' },
+    { value: '5', label: 'OPTIONS' },
+    { value: '4', label: 'HEAD' },
+    { value: '9', label: 'TRACE' },
+    { value: '1', label: 'CONNECT' },
+    { value: '0', label: 'OTHER' },
+  ];
   constructor(
     private readonly http: HttpClient,
     private configService: ConfigService,
   ) {}
 
-  list(
-    applicationId: string,
-    params: {
-      page?: number;
-      size?: number;
-      to?: number;
-      from?: number;
-      order?: 'ASC' | 'DESC';
-      field?: string;
-      apis?: string[];
-    },
-  ): Observable<LogsResponse> {
+  list(applicationId: string, params: ApplicationLogsListParameters): Observable<LogsResponse> {
     const paramsList = [];
     paramsList.push(`page=${params.page ?? 1}`);
     paramsList.push(`size=${params.size ?? 10}`);
@@ -65,12 +82,28 @@ export class ApplicationLogService {
     return this.http.get<LogsResponse>(`${this.configService.baseURL}/applications/${applicationId}/logs?${paramsList.join('&')}`);
   }
 
-  private serializeLogListQuery(params: { apis?: string[] }): string {
+  private serializeLogListQuery(params: { apis?: string[]; methods?: HttpMethodVM[] }): string {
     const queryList: string[] = [];
-    if (params.apis?.length) {
-      const apis = `(api\:${params.apis.map(api => `\\"${api}\\"`).join(' OR ')})`;
-      queryList.push(apis);
+    const apisQuerySegment = this.createQuerySegment('api', params.apis);
+    if (apisQuerySegment) {
+      queryList.push(apisQuerySegment);
     }
+
+    const methodsQuerySegment = this.createQuerySegment(
+      'method',
+      params.methods?.map(m => m.value),
+    );
+    if (methodsQuerySegment) {
+      queryList.push(methodsQuerySegment);
+    }
+
     return queryList.join(' AND ');
+  }
+
+  private createQuerySegment(root: string, values?: string[]) {
+    if (values?.length) {
+      return `(${root}\:${values.map(v => `\\"${v}\\"`).join(' OR ')})`;
+    }
+    return undefined;
   }
 }
