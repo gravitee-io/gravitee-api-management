@@ -15,6 +15,7 @@
   <a href="https://github.com/gravitee-io/gravitee-api-management/blob/master/LICENSE.txt">
     <img src="https://img.shields.io/github/license/gravitee-io/gravitee-api-management.svg" alt="License" />
   </a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fgravitee-io%2Fgravitee-api-management?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgravitee-io%2Fgravitee-api-management.svg?type=shield"/></a>
   <a href="https://gravitee.io">
     <img src="https://img.shields.io/snyk/vulnerabilities/github/gravitee-io/gravitee-api-management" alt="Snyk Vulnerabilities for GitHub Repo" />
   </a>
@@ -29,6 +30,9 @@
     <img src="https://img.shields.io/twitter/follow/graviteeio?color=blue&logo=twitter" alt="Official Twitter Handle" />
   </a>
 </p>
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgravitee-io%2Fgravitee-api-management.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgravitee-io%2Fgravitee-api-management?ref=badge_large)
 
 ## Table of contents
 
