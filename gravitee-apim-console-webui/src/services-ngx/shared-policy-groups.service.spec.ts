@@ -29,6 +29,8 @@ import {
   SharedPolicyGroup,
   UpdateSharedPolicyGroup,
 } from '../entities/management-api-v2';
+import { fakeSharedPolicyGroupPolicyPlugin } from '../entities/management-api-v2/sharedPolicyGroup/SharedPolicyGroupPolicyPlugin.fixture';
+import { SharedPolicyGroupPolicyPlugin } from '../entities/management-api-v2/sharedPolicyGroup/SharedPolicyGroupPolicyPlugin';
 
 describe('SharedPolicyGroupsService', () => {
   let httpTestingController: HttpTestingController;
@@ -117,6 +119,17 @@ describe('SharedPolicyGroupsService', () => {
       expectUndeploySharedPolicyGroupRequest(httpTestingController, 'spgId');
     });
   });
+
+  describe('getSharedPolicyGroupPolicyPlugin', () => {
+    it('should call the API', (done) => {
+      service.getSharedPolicyGroupPolicyPlugin().subscribe((policyPlugins) => {
+        expect(policyPlugins.length).toEqual(1);
+        done();
+      });
+
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+    });
+  });
 });
 
 export const expectListSharedPolicyGroupsRequest = (
@@ -185,4 +198,13 @@ export const expectUndeploySharedPolicyGroupRequest = (
   const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/${sharedPolicyGroupId}/_undeploy`);
   expect(req.request.method).toEqual('POST');
   req.flush(sharedPolicyGroupDeployed);
+};
+
+export const expectGetSharedPolicyGroupPolicyPluginRequest = (
+  httpTestingController: HttpTestingController,
+  sharedPolicyGroupPolicyPlugin: SharedPolicyGroupPolicyPlugin[] = [fakeSharedPolicyGroupPolicyPlugin()],
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/policy-plugins`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(sharedPolicyGroupPolicyPlugin);
 };

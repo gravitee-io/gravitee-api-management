@@ -25,6 +25,7 @@ import {
   PolicyDocumentationFetcher,
   PolicySchemaFetcher,
   SaveOutput,
+  SharedPolicyGroupPolicy,
 } from '@gravitee/ui-policy-studio-angular';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
@@ -38,6 +39,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { ResourceTypeService } from '../../../../shared/components/form-json-schema-extended/resource-type.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
+import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -54,6 +56,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public commonFlows: PSFlow[];
   public plans: PSPlan[];
   public policies: PSPolicy[];
+  public sharedPolicyGroupPolicyPlugins: SharedPolicyGroupPolicy[];
   public isLoading = true;
   public isReadOnly = true;
 
@@ -71,6 +74,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly apiPlanV2Service: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly policyV2Service: PolicyV2Service,
+    private readonly sharedPolicyGroupsService: SharedPolicyGroupsService,
     private readonly resourceTypeService: ResourceTypeService,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
@@ -92,9 +96,10 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         )
         .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
       this.policyV2Service.list(),
+      this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
     ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([api, entrypoints, endpoints, plans, policies]) => {
+      .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 
@@ -137,6 +142,14 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.policies = policies.map((policy) => ({
           ...policy,
           icon: this.iconService.registerSvg(policy.id, policy.icon),
+        }));
+        this.sharedPolicyGroupPolicyPlugins = sharedPolicyGroupPolicyPlugins.map((plugin) => ({
+          id: plugin.id,
+          name: plugin.name,
+          description: plugin.description,
+          policyId: plugin.policyId,
+          phase: plugin.phase,
+          apiType: plugin.apiType,
         }));
 
         // Set resources for specific json schema resource type component
