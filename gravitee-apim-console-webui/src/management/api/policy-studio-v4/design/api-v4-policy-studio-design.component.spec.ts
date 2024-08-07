@@ -45,6 +45,7 @@ import {
   FlowV4,
   PlanV4,
 } from '../../../../entities/management-api-v2';
+import { expectGetSharedPolicyGroupPolicyPluginRequest } from '../../../../services-ngx/shared-policy-groups.service.spec';
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
@@ -175,6 +176,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
       expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
       expectGetPolicies();
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
 
       expectListApiPlans(API_ID, [planA]);
       expectGetApi(api);
@@ -277,6 +279,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
       expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
       expectGetPolicies();
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
 
       expectListApiPlans(API_ID, [planA]);
       expectGetApi(api);
@@ -736,7 +739,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
   function expectNewNgOnInit() {
     // 5 requests are made on init
-    expect(httpTestingController.match(() => true).length).toEqual(5);
+    expect(httpTestingController.match(() => true).length).toEqual(6);
     // Not flush it to stop test here
   }
 });

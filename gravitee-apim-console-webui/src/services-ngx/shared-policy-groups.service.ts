@@ -25,6 +25,7 @@ import {
   SharedPolicyGroupsSortByParam,
   PagedResult,
 } from '../entities/management-api-v2';
+import { SharedPolicyGroupPolicyPlugin } from '../entities/management-api-v2/sharedPolicyGroup/SharedPolicyGroupPolicyPlugin';
 
 @Injectable({
   providedIn: 'root',
@@ -73,5 +74,9 @@ export class SharedPolicyGroupsService {
 
   undeploy(id: string): Observable<SharedPolicyGroup> {
     return this.http.post<SharedPolicyGroup>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}/_undeploy`, undefined);
+  }
+
+  getSharedPolicyGroupPolicyPlugin(): Observable<SharedPolicyGroupPolicyPlugin[]> {
+    return this.http.get<SharedPolicyGroupPolicyPlugin[]>(`${this.constants.env.v2BaseURL}/shared-policy-groups/policy-plugins`);
   }
 }

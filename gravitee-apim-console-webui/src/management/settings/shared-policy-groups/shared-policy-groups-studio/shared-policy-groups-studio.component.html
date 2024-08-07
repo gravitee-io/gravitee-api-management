@@ -48,15 +48,19 @@
     </mat-card-header>
 
     <div class="card__content">
-      <gio-policy-group-studio
-        [policies]="policies$ | async"
-        [apiType]="sharedPolicyGroup.apiType"
-        [executionPhase]="sharedPolicyGroup.phase"
-        [policyDocumentationFetcher]="policyDocumentationFetcher"
-        [policySchemaFetcher]="policySchemaFetcher"
-        [policyGroup]="sharedPolicyGroup.steps ?? []"
-        (policyGroupChange)="onStudioChange($event)"
-      ></gio-policy-group-studio>
+      @if (policies$ | async; as policies) {
+        <gio-policy-group-studio
+          [policies]="policies"
+          [apiType]="sharedPolicyGroup.apiType"
+          [executionPhase]="sharedPolicyGroup.phase"
+          [policyDocumentationFetcher]="policyDocumentationFetcher"
+          [policySchemaFetcher]="policySchemaFetcher"
+          [policyGroup]="sharedPolicyGroup.steps ?? []"
+          (policyGroupChange)="onStudioChange($event)"
+        ></gio-policy-group-studio>
+      } @else {
+        <gio-loader></gio-loader>
+      }
     </div>
   } @else {
     <mat-card-content><gio-loader></gio-loader></mat-card-content>
