@@ -25,6 +25,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { IntegrationPreview, IntegrationPreviewApis, IntegrationPreviewApisState } from '../integrations.model';
+import { fieldIsSet, fieldSet, fieldUnSet } from '../../../shared/utils';
 
 @Component({
   selector: 'app-discovery-preview',
@@ -35,8 +36,8 @@ export class DiscoveryPreviewComponent implements OnInit {
   IntegrationPreviewApisState = IntegrationPreviewApisState;
   private destroyRef: DestroyRef = inject(DestroyRef);
 
-  private static readonly NEW_BITFIELD_VALUE = 0b0001;
-  private static readonly UPDATE_BITFIELD_VALUE = 0b0010;
+  private static readonly NEW_BITFIELD_VALUE = 0b01;
+  private static readonly UPDATE_BITFIELD_VALUE = 0b10;
 
   public displayedColumns = ['name', 'state'];
   public isLoadingPreview = true;
@@ -90,8 +91,9 @@ export class DiscoveryPreviewComponent implements OnInit {
           this.tableData.filterPredicate = (api, filter) => {
             const filterValues = parseInt(filter, 10);
             return (
-              (filterValues & DiscoveryPreviewComponent.NEW_BITFIELD_VALUE && api.state === IntegrationPreviewApisState.NEW) ||
-              (filterValues & DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE && api.state === IntegrationPreviewApisState.UPDATE)
+              (fieldIsSet(filterValues, DiscoveryPreviewComponent.NEW_BITFIELD_VALUE) && api.state === IntegrationPreviewApisState.NEW) ||
+              (fieldIsSet(filterValues, DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE) &&
+                api.state === IntegrationPreviewApisState.UPDATE)
             );
           };
           this.setupForm('ingestNewApis', this.integrationPreview.newCount);
@@ -115,8 +117,7 @@ export class DiscoveryPreviewComponent implements OnInit {
     const state =
       controlName === 'ingestNewApis' ? DiscoveryPreviewComponent.NEW_BITFIELD_VALUE : DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE;
     this.ingestParameters.controls[controlName].valueChanges.subscribe((selected) => {
-      const previous = parseInt(this.tableData.filter, 10);
-      this.tableData.filter = (selected ? previous | state : previous & ~state).toString();
+      this.tableData.filter = (selected ? fieldSet(this.tableData.filter, state) : fieldUnSet(this.tableData.filter, state)).toString();
     });
   }
 }
