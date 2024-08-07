@@ -528,6 +528,58 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('Response Times', () => {
+      describe('One method in query params', () => {
+        const RESPONSE_TIME = '0 TO 100';
+        beforeEach(async () => {
+          await init({ responseTimes: RESPONSE_TIME });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(response-time:[${RESPONSE_TIME}])`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have method pre-selected', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(false);
+          const responseTimeSelection = await getResponseTimesSelection();
+          expect(await responseTimeSelection.isEmpty()).toEqual(false);
+          expect(await responseTimeSelection.getValueText()).toEqual('< 100 ms');
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(1);
+
+          expect(await filterChips[0].getText()).toEqual('Response time < 100 ms');
+        });
+
+        it('should select 100 - 200 response time filter', async () => {
+          const responseTimeSelection = await getResponseTimesSelection();
+          await responseTimeSelection.open();
+          await responseTimeSelection.clickOptions({ text: '100 to 200 ms' });
+          await responseTimeSelection.close();
+          expect(await responseTimeSelection.getValueText()).toEqual('< 100 ms, 100 to 200 ms');
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[1].getText()).toEqual('Response time 100 - 200 ms');
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(response-time:[${RESPONSE_TIME}] OR [100 TO 200])`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expectGetApplicationLogs(fakeLogsResponse());
+          fixture.detectChanges();
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string) {
@@ -589,6 +641,10 @@ describe('ApplicationTabLogsComponent', () => {
 
   async function getHttpMethodSelection(): Promise<MatSelectHarness> {
     return await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Filter by HTTP Method"]' }));
+  }
+
+  async function getResponseTimesSelection(): Promise<MatSelectHarness> {
+    return await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Filter by Response Time"]' }));
   }
 
   async function getResetFilterButton(): Promise<MatButtonHarness> {

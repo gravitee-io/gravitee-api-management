@@ -36,6 +36,7 @@ export interface ApplicationLogsListParameters {
   field?: string;
   apis?: string[];
   methods?: HttpMethodVM[];
+  responseTimes?: string[];
 }
 
 @Injectable({
@@ -82,14 +83,14 @@ export class ApplicationLogService {
     return this.http.get<LogsResponse>(`${this.configService.baseURL}/applications/${applicationId}/logs?${paramsList.join('&')}`);
   }
 
-  private serializeLogListQuery(params: { apis?: string[]; methods?: HttpMethodVM[] }): string {
+  private serializeLogListQuery(params: ApplicationLogsListParameters): string {
     const queryList: string[] = [];
-    const apisQuerySegment = this.createQuerySegment('api', params.apis);
+    const apisQuerySegment = this.createQuotationsQuerySegment('api', params.apis);
     if (apisQuerySegment) {
       queryList.push(apisQuerySegment);
     }
 
-    const methodsQuerySegment = this.createQuerySegment(
+    const methodsQuerySegment = this.createQuotationsQuerySegment(
       'method',
       params.methods?.map(m => m.value),
     );
@@ -97,12 +98,26 @@ export class ApplicationLogService {
       queryList.push(methodsQuerySegment);
     }
 
+    const responseTimesQuerySegment = this.createListQuerySegment('response-time', params.responseTimes);
+    if (responseTimesQuerySegment) {
+      queryList.push(responseTimesQuerySegment);
+    }
+
     return queryList.join(' AND ');
   }
 
-  private createQuerySegment(root: string, values?: string[]) {
+  private createQuotationsQuerySegment(root: string, values?: string[]) {
     if (values?.length) {
-      return `(${root}\:${values.map(v => `\\"${v}\\"`).join(' OR ')})`;
+      const queryContent = values.map(v => `\\"${v}\\"`).join(' OR ');
+      return `(${root}\:${queryContent})`;
+    }
+    return undefined;
+  }
+
+  private createListQuerySegment(root: string, values?: string[]) {
+    if (values?.length) {
+      const queryContent = values.map(v => `[${v}]`).join(' OR ');
+      return `(${root}\:${queryContent})`;
     }
     return undefined;
   }
