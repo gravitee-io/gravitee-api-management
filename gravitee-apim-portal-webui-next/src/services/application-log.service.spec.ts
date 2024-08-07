@@ -93,5 +93,25 @@ describe('ApplicationLogService', () => {
 
       req.flush(logsResponse);
     });
+
+    it('should return logs list with specified methods', done => {
+      const logsResponse: LogsResponse = fakeLogsResponse();
+      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+      const GET_METHOD = { value: '3', label: 'GET' };
+      const POST_METHOD = { value: '7', label: 'POST' };
+      service.list(APP_ID, { methods: [GET_METHOD, POST_METHOD] }).subscribe(response => {
+        expect(response).toMatchObject(logsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
+          `&query=(method:\\"${GET_METHOD.value}\\" OR \\"${POST_METHOD.value}\\")`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(logsResponse);
+    });
   });
 });

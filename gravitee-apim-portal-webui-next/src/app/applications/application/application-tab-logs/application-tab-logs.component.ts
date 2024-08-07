@@ -41,7 +41,7 @@ import { LoaderComponent } from '../../../../components/loader/loader.component'
 import { Application } from '../../../../entities/application/application';
 import { LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../entities/log/log';
 import { CapitalizeFirstPipe } from '../../../../pipe/capitalize-first.pipe';
-import { ApplicationLogService } from '../../../../services/application-log.service';
+import { ApplicationLogService, HttpMethodVM } from '../../../../services/application-log.service';
 import { SubscriptionService } from '../../../../services/subscription.service';
 
 interface LogVM {
@@ -60,6 +60,7 @@ interface ApiVM {
 
 interface FiltersVM {
   apis?: ApiVM[];
+  methods?: HttpMethodVM[];
 }
 
 @Component({
@@ -115,6 +116,8 @@ export class ApplicationTabLogsComponent implements OnInit {
   filtersIsEmpty: Signal<boolean> = computed(() => isEmpty(this.filters()));
   filtersPristine: boolean = true;
 
+  httpMethods: HttpMethodVM[] = ApplicationLogService.METHODS;
+
   displayedColumns: string[] = ['api', 'timestamp', 'httpMethod', 'responseStatus'];
 
   private currentLogsPage: WritableSignal<number> = signal(1);
@@ -134,10 +137,12 @@ export class ApplicationTabLogsComponent implements OnInit {
       map(queryParams => {
         const page: number = queryParams['page'] ? +queryParams['page'] : 1;
         const apis: string[] = queryParams['apis'] ?? [];
-        return { page, apis };
+        const methodsQueryParams: string[] = queryParams['methods'] ?? [];
+        const methods = ApplicationLogService.METHODS.filter(method => methodsQueryParams.includes(method.value));
+        return { page, apis, methods };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
-      switchMap(({ page, apis }) => this.applicationLogService.list(this.application.id, { page, apis })),
+      switchMap(values => this.applicationLogService.list(this.application.id, values)),
       tap(({ metadata }) => {
         this.totalLogs.set((metadata['data'] as LogsResponseMetadataTotalData).total);
       }),
@@ -207,22 +212,31 @@ export class ApplicationTabLogsComponent implements OnInit {
     this.filters.update(filters => ({ ...filters, apis: $event.value }));
   }
 
+  selectHttpMethods($event: MatSelectChange) {
+    this.filtersPristine = false;
+    this.filters.update(filters => ({ ...filters, methods: $event.value }));
+  }
+
   private navigate(params: { page: number }) {
     this.filtersPristine = true;
 
     const apis: string[] = this.filters().apis?.map(api => api.id) ?? [];
+    const methods: string[] = this.filters().methods?.map(method => method.value) ?? [];
+
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
       queryParams: {
         page: params.page,
         ...(apis.length ? { apis } : {}),
+        ...(methods.length ? { methods } : {}),
       },
     });
   }
 
-  private initializeFiltersAndPagination(params: { page: number; apis: string[] }): void {
+  private initializeFiltersAndPagination(params: { page: number; apis: string[]; methods: HttpMethodVM[] }): void {
     this.filtersPristine = true;
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
+    this.filters.update(filters => ({ ...filters, ...(params.methods.length ? { methods: params.methods } : {}) }));
   }
 }
