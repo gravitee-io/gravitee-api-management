@@ -21,13 +21,13 @@ import { RouterLink } from '@angular/router';
 import { PictureComponent } from '../picture/picture.component';
 
 @Component({
-  selector: 'app-card',
+  selector: 'app-tile-card',
   standalone: true,
   imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink],
-  templateUrl: './app-card.component.html',
-  styleUrl: './app-card.component.scss',
+  templateUrl: './tile-card.component.html',
+  styleUrl: './tile-card.component.scss',
 })
-export class AppCardComponent {
+export class TileCardComponent {
   @Input({ required: true })
   isApi!: boolean;
 

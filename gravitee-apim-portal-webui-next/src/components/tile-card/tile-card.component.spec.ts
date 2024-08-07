@@ -23,11 +23,11 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { AppCardComponent } from './app-card.component';
+import { TileCardComponent } from './tile-card.component';
 import { PictureComponent } from '../picture/picture.component';
 
 describe('CardComponent', () => {
-  let fixture: ComponentFixture<AppCardComponent>;
+  let fixture: ComponentFixture<TileCardComponent>;
   let harnessLoader: HarnessLoader;
 
   const mockData = {
@@ -52,13 +52,13 @@ describe('CardComponent', () => {
         RouterModule.forRoot([]),
         NoopAnimationsModule,
         HttpClientTestingModule,
-        AppCardComponent,
+        TileCardComponent,
         PictureComponent,
       ],
       declarations: [],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AppCardComponent);
+    fixture = TestBed.createComponent(TileCardComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
     const component = fixture.componentInstance;

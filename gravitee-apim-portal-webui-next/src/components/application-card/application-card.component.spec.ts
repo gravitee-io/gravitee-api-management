@@ -25,8 +25,8 @@ import { RouterModule } from '@angular/router';
 
 import { ApplicationCardComponent } from './application-card.component';
 import { fakeApplication } from '../../entities/application/application.fixture';
-import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
+import { TileCardComponent } from '../tile-card/tile-card.component';
 
 describe('ApplicationCardComponent', () => {
   let component: ApplicationCardComponent;
@@ -59,7 +59,7 @@ describe('ApplicationCardComponent', () => {
         RouterModule.forRoot([]),
         NoopAnimationsModule,
         HttpClientTestingModule,
-        AppCardComponent,
+        TileCardComponent,
         PictureComponent,
       ],
       declarations: [],

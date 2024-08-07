@@ -45,7 +45,6 @@ export class ApplicationsComponent {
 
   showBanner: boolean;
   bannerTitle: string;
-  bannerSubtitle: string;
 
   private applicationService = inject(ApplicationService);
   private page$ = new BehaviorSubject(1);
@@ -53,7 +52,6 @@ export class ApplicationsComponent {
   constructor(private configService: ConfigService) {
     this.showBanner = this.configService.configuration?.portalNext?.banner?.enabled ?? false;
     this.bannerTitle = this.configService.configuration?.portalNext?.banner?.title ?? '';
-    this.bannerSubtitle = this.configService.configuration?.portalNext?.banner?.subtitle ?? '';
     this.applicationPaginator$ = this.loadApplications$();
   }
 

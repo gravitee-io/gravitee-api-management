@@ -24,8 +24,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
 import { ApiCardComponent } from './api-card.component';
-import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
+import { TileCardComponent } from '../tile-card/tile-card.component';
 
 describe('ApiCardComponent', () => {
   let component: ApiCardComponent;
@@ -53,7 +53,7 @@ describe('ApiCardComponent', () => {
         NoopAnimationsModule,
         HttpClientTestingModule,
         ApiCardComponent,
-        AppCardComponent,
+        TileCardComponent,
         PictureComponent,
       ],
       declarations: [],

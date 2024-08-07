@@ -22,7 +22,7 @@ import { RouterModule } from '@angular/router';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
-import { AppCardHarness } from '../../components/app-card/app-card.harness';
+import { AppCardHarness } from '../../components/tile-card/app-card.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
 import { fakeCategoriesResponse } from '../../entities/categories/categories.fixture';

@@ -18,13 +18,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 
-import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
+import { TileCardComponent } from '../tile-card/tile-card.component';
 
 @Component({
   selector: 'app-api-card',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, AppCardComponent],
+  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, TileCardComponent],
   templateUrl: './api-card.component.html',
 })
 export class ApiCardComponent {

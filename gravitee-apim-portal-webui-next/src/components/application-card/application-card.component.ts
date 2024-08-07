@@ -19,13 +19,13 @@ import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card'
 import { RouterLink } from '@angular/router';
 
 import { Application } from '../../entities/application/application';
-import { AppCardComponent } from '../app-card/app-card.component';
 import { PictureComponent } from '../picture/picture.component';
+import { TileCardComponent } from '../tile-card/tile-card.component';
 
 @Component({
   selector: 'app-application-card',
   standalone: true,
-  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, AppCardComponent],
+  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, TileCardComponent],
   templateUrl: './application-card.component.html',
 })
 export class ApplicationCardComponent {
