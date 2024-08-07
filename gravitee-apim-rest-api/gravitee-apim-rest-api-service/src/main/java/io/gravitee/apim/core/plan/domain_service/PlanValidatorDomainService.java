@@ -101,6 +101,7 @@ public class PlanValidatorDomainService {
                 case KEY_LESS -> Key.PLAN_SECURITY_KEYLESS_ENABLED;
                 case JWT -> Key.PLAN_SECURITY_JWT_ENABLED;
                 case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
+                case MTLS -> Key.PLAN_SECURITY_MTLS_ENABLED;
             };
         if (
             !parametersQueryService.findAsBoolean(
@@ -113,7 +114,13 @@ public class PlanValidatorDomainService {
     }
 
     public void validatePlanSecurityAgainstEntrypoints(PlanSecurity planSecurity, List<ListenerType> listenerTypes) {
-        if (listenerTypes.contains(ListenerType.TCP) && !PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType())) {
+        if (
+            listenerTypes.contains(ListenerType.TCP) &&
+            !(
+                PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
+                PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType())
+            )
+        ) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }
     }
