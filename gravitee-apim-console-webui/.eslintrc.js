@@ -46,7 +46,7 @@ module.exports = {
     'angular/window-service': 'off',
     'angular/interval-service': 'off',
     'angular/timeout-service': 'off',
-    'no-bitwise': 'warn',
+    'no-bitwise': 'error',
     'no-redeclare': 'warn',
     'no-useless-escape': 'error',
     'no-prototype-builtins': 'warn',
