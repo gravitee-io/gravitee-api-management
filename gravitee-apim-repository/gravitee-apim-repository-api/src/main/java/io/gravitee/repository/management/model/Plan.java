@@ -268,6 +268,10 @@ public class Plan {
          * Plan which is using a JWT security authentication type for incoming HTTP requests.
          */
         JWT,
+        /**
+         * Plan which is using a MTLS security authentication type for incoming HTTP requests.
+         */
+        MTLS,
     }
 
     public enum PlanValidationType {

@@ -4002,6 +4002,7 @@ components:
                 - API_KEY
                 - OAUTH2
                 - JWT
+                - MTLS
         PlanStatus:
             type: string
             description: Plan status.

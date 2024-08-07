@@ -111,7 +111,7 @@ public interface PlanMapper {
     @Mapping(target = "planDefinitionV4", source = "source", qualifiedByName = "mapToPlanDefinitionV4")
     io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source);
 
-    @Mapping(target = "security", source = "security.type")
+    @Mapping(target = "security", source = "security.type", qualifiedByName = "toV2PlanSecurityType")
     @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.rest.api.model.NewPlanEntity map(CreatePlanV2 plan);
 
@@ -165,6 +165,15 @@ public interface PlanMapper {
             return null;
         }
         return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
+    }
+
+    @Named("toV2PlanSecurityType")
+    default io.gravitee.rest.api.model.PlanSecurityType toV2PlanSecurityType(PlanSecurityType securityType) {
+        // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is ignored during mapping
+        if (Objects.isNull(securityType) || PlanSecurityType.MTLS.equals(securityType)) {
+            return null;
+        }
+        return io.gravitee.rest.api.model.PlanSecurityType.valueOf(securityType.name());
     }
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")

@@ -4023,6 +4023,7 @@ components:
             - KEY_LESS
             - JWT
             - OAUTH2
+            - MTLS
         description:
           description: Description of the plan.
           type: string

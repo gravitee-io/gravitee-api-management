@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -174,6 +175,37 @@ public class PlanMapperTest {
         assertEquals(createPlanV2.getSelectionRule(), createPlanEntity.getSelectionRule());
 
         assertEquals(createPlanV2.getSecurity().getType().name(), createPlanEntity.getSecurity().name());
+        assertDefinitionEquals(createPlanV2.getSecurity().getConfiguration(), createPlanEntity.getSecurityDefinition());
+
+        assertEquals(createPlanEntity.getFlows().size(), createPlanV2.getFlows().size()); // Flow mapping is tested in FlowMapperTest
+    }
+
+    @Test
+    void should_map_CreatePlanV2_to_CreatePlanEntity_ignoring_mtls_plan_security_type() {
+        final var createPlanV2 = PlanFixtures.aCreatePlanV2();
+        // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is ignored during mapping
+        createPlanV2.security(
+            io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
+                .builder()
+                .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.MTLS)
+                .build()
+        );
+        final var createPlanEntity = planMapper.map(createPlanV2);
+
+        Assertions.assertNull(createPlanEntity.getId());
+        assertEquals(createPlanV2.getName(), createPlanEntity.getName());
+        assertEquals(createPlanV2.getDescription(), createPlanEntity.getDescription());
+        assertEquals(createPlanV2.getOrder(), createPlanEntity.getOrder());
+        assertEquals(createPlanV2.getCharacteristics(), createPlanEntity.getCharacteristics());
+        assertEquals(createPlanV2.getCommentMessage(), createPlanEntity.getCommentMessage());
+        assertEquals(createPlanV2.getCrossId(), createPlanEntity.getCrossId());
+        assertEquals(createPlanV2.getGeneralConditions(), createPlanEntity.getGeneralConditions());
+        assertEquals(new HashSet<>(createPlanV2.getTags()), createPlanEntity.getTags());
+        assertEquals(createPlanV2.getExcludedGroups(), createPlanEntity.getExcludedGroups());
+        assertEquals(createPlanV2.getValidation().name(), createPlanEntity.getValidation().name());
+        assertEquals(createPlanV2.getSelectionRule(), createPlanEntity.getSelectionRule());
+
+        assertNull(createPlanEntity.getSecurity());
         assertDefinitionEquals(createPlanV2.getSecurity().getConfiguration(), createPlanEntity.getSecurityDefinition());
 
         assertEquals(createPlanEntity.getFlows().size(), createPlanV2.getFlows().size()); // Flow mapping is tested in FlowMapperTest
