@@ -58,7 +58,7 @@ describe('ApplicationService', () => {
       done();
     });
 
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/testId`);
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}`);
     expect(req.request.method).toEqual('GET');
 
     req.flush(application);
@@ -71,9 +71,23 @@ describe('ApplicationService', () => {
       done();
     });
 
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/testId/configuration`);
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/configuration`);
     expect(req.request.method).toEqual('GET');
 
     req.flush(applicationType);
+  });
+
+  it('should save application', done => {
+    const application: Application = fakeApplication({ id: applicationId });
+    service.save(application).subscribe(response => {
+      expect(response).toMatchObject(application);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}`);
+    expect(req.request.method).toEqual('PUT');
+    expect(req.request.body).toEqual(application);
+
+    req.flush(application);
   });
 });
