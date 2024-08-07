@@ -36,7 +36,7 @@ import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
-import { applicationResolver } from '../resolvers/application.resolver';
+import { applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 
 export const routes: Routes = [
@@ -124,6 +124,7 @@ export const routes: Routes = [
           {
             path: 'settings',
             component: ApplicationTabSettingsComponent,
+            resolve: { applicationTypeConfiguration: applicationTypeResolver },
             data: { breadcrumb: { skip: true } },
           },
           {
