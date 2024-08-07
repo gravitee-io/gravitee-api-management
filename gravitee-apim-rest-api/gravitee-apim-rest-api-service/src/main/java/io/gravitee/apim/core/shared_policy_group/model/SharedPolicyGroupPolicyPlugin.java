@@ -17,9 +17,11 @@ package io.gravitee.apim.core.shared_policy_group.model;
 
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.ApiType;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -53,8 +55,9 @@ public class SharedPolicyGroupPolicyPlugin {
     /**
      * The policy id to use in steps definition
      */
-    @Setter(lombok.AccessLevel.NONE)
-    private String policyId = "shared-policy-group-policy";
+    @Setter(AccessLevel.NONE)
+    @Builder.Default
+    private final String policyId = "shared-policy-group-policy";
 
     public static SharedPolicyGroupPolicyPlugin fromSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroup) {
         return SharedPolicyGroupPolicyPlugin
