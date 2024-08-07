@@ -53,4 +53,8 @@ export class ApplicationService {
   save(application: Application): Observable<Application> {
     return this.http.put<Application>(`${this.configService.baseURL}/applications/${application.id}`, application);
   }
+
+  delete(applicationId: string): Observable<void> {
+    return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}`);
+  }
 }
