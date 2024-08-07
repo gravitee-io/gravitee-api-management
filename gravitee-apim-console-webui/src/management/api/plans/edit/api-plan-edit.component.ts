@@ -26,6 +26,7 @@ import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../..
 import { Api, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
+import { isApiV4 } from '../../../../util';
 
 @Component({
   selector: 'api-plan-edit',
@@ -46,6 +47,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
   @ViewChild('apiPlanForm')
   private apiPlanForm: ApiPlanFormComponent;
   public currentPlanStatus: PlanStatus;
+  public hasTcpListeners;
 
   constructor(
     private readonly router: Router,
@@ -65,6 +67,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
       .pipe(
         tap((api) => {
           this.api = api;
+          this.hasTcpListeners = isApiV4(api) && api.listeners.find((listener) => listener.type === 'TCP') != null;
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-plan-u']) ||
             this.api.definitionContext?.origin === 'KUBERNETES' ||

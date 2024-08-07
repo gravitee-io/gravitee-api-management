@@ -39,6 +39,8 @@ export class Step4Security1PlansAddComponent implements OnInit {
   @Output()
   planChanges = new EventEmitter<CreatePlanV4>();
 
+  @Input() isTcpApi!: boolean;
+
   @Output()
   exitPlanCreation = new EventEmitter<void>();
 

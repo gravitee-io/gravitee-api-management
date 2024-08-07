@@ -63,7 +63,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
       selectionRule: new UntypedFormControl(),
     });
 
-    if (['KEY_LESS', 'PUSH'].includes(this.securityType.planFormType)) {
+    if (['KEY_LESS', 'PUSH', 'MTLS'].includes(this.securityType.planFormType)) {
       return;
     }
 

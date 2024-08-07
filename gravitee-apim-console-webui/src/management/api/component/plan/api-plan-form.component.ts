@@ -139,11 +139,15 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   @Input()
   planStatus?: PlanStatus;
 
+  @Input({ required: true }) isTcpApi!: boolean;
+
   public isInit = false;
 
   public planForm = new UntypedFormGroup({});
   public initialPlanFormValue: unknown;
   public displaySubscriptionsSection = true;
+  public displayRestrictionStep: boolean;
+  public displaySecurityStep: boolean;
 
   @ViewChild(PlanEditGeneralStepComponent)
   private planEditGeneralStepComponent: PlanEditGeneralStepComponent;
@@ -191,6 +195,12 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     // Add default validator to the form control
     this.ngControl.control.setValidators(this.validate.bind(this));
     this.ngControl.control.updateValueAndValidity();
+
+    this.displayRestrictionStep = this.mode === 'create' && !this.isTcpApi;
+    this.displaySecurityStep =
+      !this.isFederated &&
+      !['KEY_LESS', 'PUSH'].includes(this.planMenuItem.planFormType) &&
+      !('MTLS' === this.planMenuItem.planFormType && this.isTcpApi);
 
     // When the parent form is touched, mark all the sub formGroup as touched
     const parentControl = this.ngControl.control.parent;
@@ -307,7 +317,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
           securityConfig: new UntypedFormControl({}),
           selectionRule: new UntypedFormControl(),
         }),
-      ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
+      ...(this.displayRestrictionStep ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });
 
     const value = planToInternalFormValue(this.controlValue, this.mode, this.isV2Api);

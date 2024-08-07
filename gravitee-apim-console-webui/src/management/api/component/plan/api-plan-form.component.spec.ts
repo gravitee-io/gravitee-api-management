@@ -42,6 +42,7 @@ import {
   fakeApiV4,
   fakePlanV2,
   fakePlanV4,
+  fakeProxyTcpApiV4,
   Plan,
   PlanV2,
   PlanV4,
@@ -49,6 +50,7 @@ import {
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../entities/Constants';
+import { isApiV4 } from '../../../../util';
 
 @Component({
   template: `
@@ -59,6 +61,7 @@ import { Constants } from '../../../../entities/Constants';
       [api]="api"
       [apiType]="apiType"
       [planMenuItem]="planMenuItem"
+      [isTcpApi]="isTcpApi"
     ></api-plan-form>
   `,
 })
@@ -70,6 +73,7 @@ class TestComponent {
   api?: Api;
   apiType?: ApiType;
   plan?: Plan;
+  isTcpApi?: boolean = false;
 }
 
 const fakeApiKeySchema = {
@@ -103,6 +107,7 @@ describe('ApiPlanFormComponent', () => {
             set(constants, 'env.settings.plan.security', {
               oauth2: { enabled: false },
               jwt: { enabled: true },
+              mtls: { enabled: true },
             });
             return constants;
           },
@@ -119,6 +124,7 @@ describe('ApiPlanFormComponent', () => {
     testComponent.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
     testComponent.api = api;
     testComponent.apiType = apiType;
+    testComponent.isTcpApi = isApiV4(api) && api.listeners.find((listener) => listener.type === 'TCP') != null;
   };
 
   afterEach(() => {
@@ -1046,10 +1052,8 @@ describe('ApiPlanFormComponent', () => {
     const PLAN_ID = 'plan-1';
 
     describe('Keyless plan', () => {
-      beforeEach(async () => {
-        configureTestingModule('edit', 'KEY_LESS', API);
-      });
       it('should edit plan', async () => {
+        configureTestingModule('edit', 'KEY_LESS', API);
         const planToUpdate = fakePlanV4({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
         testComponent.planControl = new FormControl(planToUpdate);
         fixture.detectChanges();
@@ -1121,6 +1125,7 @@ describe('ApiPlanFormComponent', () => {
       });
 
       it('should only show published pages for general conditions', async () => {
+        configureTestingModule('edit', 'KEY_LESS', API);
         const planForm = await loader.getHarness(ApiPlanFormHarness);
 
         planForm
@@ -1139,6 +1144,28 @@ describe('ApiPlanFormComponent', () => {
         expect(options.length).toEqual(2);
         expect(await options[0].getText()).toEqual(''); // First option is blank so user can choose not to have general conditions
         expect(await options[1].getText()).toEqual('Doc 1');
+      });
+
+      it('should not display restrictions step for TCP api', async () => {
+        const tcpApi = fakeProxyTcpApiV4();
+        configureTestingModule('create', 'KEY_LESS', tcpApi, 'PROXY');
+        fixture.detectChanges();
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(tcpApi.id, []);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+        planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+        fixture.detectChanges();
+
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
+
+        const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
+        const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+        expect(steps).toEqual(['General']);
       });
     });
     describe('API Key plan', () => {
@@ -1195,6 +1222,47 @@ describe('ApiPlanFormComponent', () => {
         const selectionRuleInput = await planForm.getSelectionRuleInput();
         expect(selectionRuleInput).toBeDefined();
       });
+    });
+  });
+  describe('MTLS plans', () => {
+    it.each(['PROXY', 'MESSAGE'])('should display secure step with mTLS plans for %s api', async (apiType: ApiType) => {
+      configureTestingModule('create', 'MTLS', undefined, apiType);
+      fixture.detectChanges();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      fixture.detectChanges();
+
+      expect(testComponent.planControl.touched).toEqual(false);
+      expect(testComponent.planControl.dirty).toEqual(false);
+      expect(testComponent.planControl.valid).toEqual(false);
+
+      const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
+      const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+      expect(steps).toEqual(['General', 'mTLS authentication configuration', 'Restriction']);
+    });
+
+    it('should not display secure step with mTLS plans for TCP api', async () => {
+      const tcpApi = fakeProxyTcpApiV4();
+      configureTestingModule('create', 'MTLS', tcpApi, 'PROXY');
+      fixture.detectChanges();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(tcpApi.id, []);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+      planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+      fixture.detectChanges();
+
+      expect(testComponent.planControl.touched).toEqual(false);
+      expect(testComponent.planControl.dirty).toEqual(false);
+      expect(testComponent.planControl.valid).toEqual(false);
+
+      const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
+      const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+      expect(steps).toEqual(['General']);
     });
   });
 });
