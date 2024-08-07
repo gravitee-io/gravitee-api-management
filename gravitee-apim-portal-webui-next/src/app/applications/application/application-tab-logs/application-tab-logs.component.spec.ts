@@ -476,6 +476,58 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('HTTP Methods', () => {
+      describe('One method in query params', () => {
+        const GET_METHOD = '3';
+        beforeEach(async () => {
+          await init({ methods: [GET_METHOD] });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(method:\\"${GET_METHOD}\\")`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have method pre-selected', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(false);
+          const httpMethodFilter = await getHttpMethodSelection();
+          expect(await httpMethodFilter.isEmpty()).toEqual(false);
+          expect(await httpMethodFilter.getValueText()).toEqual('GET');
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(1);
+
+          expect(await filterChips[0].getText()).toEqual('GET');
+        });
+
+        it('should select POST HTTP Method filter', async () => {
+          const httpMethodFilter = await getHttpMethodSelection();
+          await httpMethodFilter.open();
+          await httpMethodFilter.clickOptions({ text: 'POST' });
+          await httpMethodFilter.close();
+          expect(await httpMethodFilter.getValueText()).toEqual('GET, POST');
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[1].getText()).toEqual('POST');
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(method:\\"${GET_METHOD}\\" OR \\"7\\")`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expectGetApplicationLogs(fakeLogsResponse());
+          fixture.detectChanges();
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string) {
@@ -533,6 +585,10 @@ describe('ApplicationTabLogsComponent', () => {
 
   async function getApiSelection(): Promise<MatSelectHarness> {
     return await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Filter by API"]' }));
+  }
+
+  async function getHttpMethodSelection(): Promise<MatSelectHarness> {
+    return await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Filter by HTTP Method"]' }));
   }
 
   async function getResetFilterButton(): Promise<MatButtonHarness> {
