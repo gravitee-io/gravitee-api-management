@@ -353,6 +353,12 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-mtls</artifactId>
+            <version>${gravitee-policy-mtls.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-oauth2</artifactId>
             <version>${gravitee-policy-oauth2.version}</version>
             <scope>test</scope>
