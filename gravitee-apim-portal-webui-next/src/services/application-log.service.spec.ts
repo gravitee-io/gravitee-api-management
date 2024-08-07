@@ -113,5 +113,25 @@ describe('ApplicationLogService', () => {
 
       req.flush(logsResponse);
     });
+
+    it('should return logs list with specified response times', done => {
+      const logsResponse: LogsResponse = fakeLogsResponse();
+      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+      const responseTimeOne = '0 TO 100';
+      const responseTimeTwo = '5000 TO *';
+      service.list(APP_ID, { responseTimes: [responseTimeOne, responseTimeTwo] }).subscribe(response => {
+        expect(response).toMatchObject(logsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
+          `&query=(response-time:[${responseTimeOne}] OR [${responseTimeTwo}])`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(logsResponse);
+    });
   });
 });
