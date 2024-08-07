@@ -37,6 +37,7 @@
     <step-4-security-1-plans-add
       [planMenuItem]="selectedPlanMenuItem"
       [apiType]="apiType"
+      [isTcpApi]="isTcpApi"
       (planChanges)="addPlan($event)"
       (exitPlanCreation)="onExitPlanCreation()"
     ></step-4-security-1-plans-add>
@@ -47,6 +48,7 @@
       [plan]="planToEdit"
       [planMenuItem]="selectedPlanMenuItem"
       [apiType]="apiType"
+      [isTcpApi]="isTcpApi"
       (planChanges)="editPlan($event)"
       (exitPlanCreation)="onExitPlanCreation()"
     ></step-4-security-1-plans-add>

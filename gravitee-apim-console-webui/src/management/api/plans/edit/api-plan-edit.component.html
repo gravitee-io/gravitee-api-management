@@ -28,6 +28,7 @@
       formControlName="plan"
       [mode]="mode"
       [api]="$any(api)"
+      [isTcpApi]="hasTcpListeners"
       [isFederated]="api.definitionVersion === 'FEDERATED'"
       [planMenuItem]="planMenuItem"
       [planStatus]="currentPlanStatus"

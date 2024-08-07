@@ -35,6 +35,7 @@ export class Step4Security1PlansComponent implements OnInit {
 
   selectedPlanMenuItem: PlanMenuItemVM;
   public apiType: ApiType;
+  public isTcpApi: boolean;
 
   constructor(
     private readonly stepService: ApiCreationStepService,
@@ -52,6 +53,7 @@ export class Step4Security1PlansComponent implements OnInit {
     }
 
     this.apiType = currentStepPayload.type;
+    this.isTcpApi = currentStepPayload.hosts?.length > 0;
   }
 
   private computeDefaultApiPlans(currentStepPayload: ApiCreationPayload) {

@@ -31,11 +31,7 @@
     ></plan-edit-general-step>
   </mat-step>
 
-  <mat-step
-    *ngIf="!isFederated && !['KEY_LESS', 'PUSH'].includes(planMenuItem.planFormType)"
-    state="secure"
-    [stepControl]="planForm.get('secure')"
-  >
+  <mat-step *ngIf="displaySecurityStep" state="secure" [stepControl]="planForm.get('secure')">
     <ng-template matStepperIcon="secure">
       <mat-icon svgIcon="gio:lock"></mat-icon>
     </ng-template>
@@ -43,7 +39,7 @@
     <plan-edit-secure-step matStepContent [api]="api" [securityType]="planMenuItem"></plan-edit-secure-step>
   </mat-step>
 
-  <mat-step *ngIf="mode === 'create'" state="restriction" [stepControl]="planForm.get('restriction')">
+  <mat-step *ngIf="displayRestrictionStep" state="restriction" [stepControl]="planForm.get('restriction')">
     <ng-template matStepperIcon="restriction">
       <mat-icon svgIcon="gio:shield-cross"></mat-icon>
     </ng-template>
