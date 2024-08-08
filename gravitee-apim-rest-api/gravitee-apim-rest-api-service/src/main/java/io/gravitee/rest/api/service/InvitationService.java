@@ -38,6 +38,7 @@ public interface InvitationService {
         String referenceId,
         String userId,
         String apiRole,
-        String applicationRole
+        String applicationRole,
+        String integrationRole
     );
 }

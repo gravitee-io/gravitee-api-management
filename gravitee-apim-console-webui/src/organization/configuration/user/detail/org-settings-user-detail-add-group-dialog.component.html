@@ -54,6 +54,19 @@
           >
         </mat-select>
       </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Integration Role</mat-label>
+        <mat-select formControlName="integrationRole" aria-label="Integration role">
+          <mat-option>-- None --</mat-option>
+          <mat-option
+            *ngFor="let integrationRole of integrationRoles$ | async"
+            [disabled]="integrationRole.system"
+            [value]="integrationRole.name"
+            >{{ integrationRole.name }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
     </div>
     <div *ngIf="addGroupForm.dirty && addGroupForm.hasError('leastOneIsRequired')" class="mat-caption error">
       At least one role is mandatory

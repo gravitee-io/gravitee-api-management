@@ -595,7 +595,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 MembershipReferenceType.GROUP == reference.getType() &&
                 RoleScope.GROUP != roleEntity.getScope() &&
                 RoleScope.API != roleEntity.getScope() &&
-                RoleScope.APPLICATION != roleEntity.getScope()
+                RoleScope.APPLICATION != roleEntity.getScope() &&
+                RoleScope.INTEGRATION != roleEntity.getScope()
             )
         ) {
             throw new NotAuthorizedMembershipException(roleEntity.getName());

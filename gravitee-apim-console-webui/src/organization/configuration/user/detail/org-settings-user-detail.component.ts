@@ -98,6 +98,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay(1));
   apiRoles$ = this.roleService.list('API').pipe(shareReplay(1));
   applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay(1));
+  integrationRoles$ = this.roleService.list('INTEGRATION').pipe(shareReplay(1));
 
   organizationRolesControl: UntypedFormControl;
   environmentsRolesFormGroup: UntypedFormGroup;
@@ -107,7 +108,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   environmentsTableDisplayedColumns = ['name', 'description', 'roles'];
 
   groupsTableDS: GroupDS[];
-  groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'applicationRole', 'delete'];
+  groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'applicationRole', 'integrationRole', 'delete'];
 
   apisTableDS: ApiDS[];
   apisTableDisplayedColumns = ['name', 'version', 'visibility'];
@@ -268,7 +269,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           mergeMap((groupId) => {
             const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as UntypedFormGroup;
             if (groupRolesFormGroup.dirty) {
-              const { GROUP, API, APPLICATION } = groupRolesFormGroup.value;
+              const { GROUP, API, APPLICATION, INTEGRATION } = groupRolesFormGroup.value;
 
               return this.groupService.addOrUpdateMemberships(groupId, [
                 {
@@ -277,6 +278,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
                     { scope: 'GROUP' as const, name: GROUP ? 'ADMIN' : '' },
                     { scope: 'API' as const, name: API },
                     { scope: 'APPLICATION' as const, name: APPLICATION },
+                    { scope: 'INTEGRATION' as const, name: INTEGRATION },
                   ],
                 },
               ]);
@@ -448,6 +450,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
                 { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
                 { scope: 'API' as const, name: groupeAdded.apiRole },
                 { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
+                { scope: 'INTEGRATION' as const, name: groupeAdded.integrationRole },
               ],
             },
           ]),
@@ -501,8 +504,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       const GROUP = groupRolesFormGroup.get('GROUP').value;
       const API = groupRolesFormGroup.get('API').value;
       const APPLICATION = groupRolesFormGroup.get('APPLICATION').value;
+      const INTEGRATION = groupRolesFormGroup.get('INTEGRATION').value;
 
-      if (GROUP || API || APPLICATION) {
+      if (GROUP || API || APPLICATION || INTEGRATION) {
         return null;
       }
 
@@ -520,6 +524,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
               GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' }),
               API: new UntypedFormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' }),
               APPLICATION: new UntypedFormControl({ value: group.roles['APPLICATION'], disabled: this.user.status !== 'ACTIVE' }),
+              INTEGRATION: new UntypedFormControl({ value: group.roles['INTEGRATION'], disabled: this.user.status !== 'ACTIVE' }),
             },
             [leastOneGroupRoleIsRequiredValidator],
           ),

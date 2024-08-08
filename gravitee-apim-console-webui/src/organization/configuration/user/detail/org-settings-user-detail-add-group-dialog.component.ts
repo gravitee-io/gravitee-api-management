@@ -27,6 +27,7 @@ export type OrgSettingsUserDetailAddGroupDialogReturn = {
   groupId: string;
   apiRole: string;
   applicationRole?: string;
+  integrationRole?: string;
   isAdmin?: boolean;
 };
 
@@ -45,6 +46,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
   groups$: Observable<Group[]>;
   apiRoles$ = this.roleService.list('API').pipe(shareReplay(1));
   applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay(1));
+  integrationRoles$ = this.roleService.list('INTEGRATION').pipe(shareReplay(1));
 
   constructor(
     public readonly dialogRef: MatDialogRef<OrgSettingsUserDetailAddGroupDialogComponent, OrgSettingsUserDetailAddGroupDialogReturn>,
@@ -63,6 +65,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
         isAdmin: new UntypedFormControl(null),
         apiRole: new UntypedFormControl(null),
         applicationRole: new UntypedFormControl(null),
+        integrationRole: new UntypedFormControl(null),
       },
       [leastOneGroupRoleIsRequiredValidator],
     );
@@ -81,8 +84,9 @@ const leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: AbstractCont
   const isAdmin = groupRolesFormGroup.get('isAdmin').value;
   const apiRoleValue = groupRolesFormGroup.get('apiRole').value;
   const applicationRoleValue = groupRolesFormGroup.get('applicationRole').value;
+  const integrationRoleValue = groupRolesFormGroup.get('integrationRole').value;
 
-  if (isAdmin || apiRoleValue || applicationRoleValue) {
+  if (isAdmin || apiRoleValue || applicationRoleValue || integrationRoleValue) {
     return null;
   }
 
