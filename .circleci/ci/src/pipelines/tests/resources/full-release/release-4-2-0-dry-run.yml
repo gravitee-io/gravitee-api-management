@@ -347,7 +347,7 @@ jobs:
       - cmd-prepare-gpg
       - run:
           name: Maven deploy to Gravitee's private Artifactory
-          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-artifactory-release,gio-release,bundle-default clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"

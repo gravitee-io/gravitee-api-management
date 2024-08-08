@@ -45,7 +45,7 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
       new reusable.ReusedCommand(prepareGpgCommand),
       new commands.Run({
         name: "Maven deploy to Gravitee's private Artifactory",
-        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
+        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-artifactory-release,gio-release,bundle-default clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
