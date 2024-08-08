@@ -13,13 +13,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { InfiniteScrollModule } from 'ngx-infinite-scroll';
+import { BehaviorSubject, map, Observable, scan, switchMap, tap } from 'rxjs';
+
+import { ApiCardComponent } from '../../components/api-card/api-card.component';
+import { ApplicationCardComponent } from '../../components/application-card/application-card.component';
+import { LoaderComponent } from '../../components/loader/loader.component';
+import { Application } from '../../entities/application/application';
+import { ApplicationService } from '../../services/application.service';
+import { ConfigService } from '../../services/config.service';
+
+export interface ApplicationPaginatorVM {
+  data: Application[];
+  page: number;
+  hasNextPage: boolean;
+}
 
 @Component({
   selector: 'app-applications',
   standalone: true,
-  imports: [],
+  imports: [ApiCardComponent, AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
-export class ApplicationsComponent {}
+export class ApplicationsComponent {
+  applicationPaginator$: Observable<ApplicationPaginatorVM>;
+  loadingPage$ = new BehaviorSubject(true);
+
+  private applicationService = inject(ApplicationService);
+  private page$ = new BehaviorSubject(1);
+
+  constructor(private configService: ConfigService) {
+    this.applicationPaginator$ = this.loadApplications$();
+  }
+
+  loadMoreApplications(paginator: ApplicationPaginatorVM) {
+    if (!paginator.hasNextPage) {
+      return;
+    }
+
+    this.page$.next(paginator.page + 1);
+  }
+
+  private loadApplications$(): Observable<ApplicationPaginatorVM> {
+    return this.page$.pipe(
+      tap(_ => this.loadingPage$.next(true)),
+      switchMap(currentPage => this.applicationService.list({ page: currentPage, size: 9 })),
+      map(resp => {
+        const data = resp.data
+          ? resp.data.map(application => ({
+              id: application.id,
+              description: application.description,
+              name: application.name,
+              picture: application._links?.picture,
+            }))
+          : [];
+        const page = resp.metadata?.pagination?.current_page ?? 1;
+        const hasNextPage = resp.metadata?.pagination?.total_pages ? page < resp.metadata.pagination.total_pages : false;
+        return {
+          data,
+          page,
+          hasNextPage,
+        };
+      }),
+      scan(this.updatePaginator, { data: [], page: 1, hasNextPage: true }),
+      tap(_ => this.loadingPage$.next(false)),
+    );
+  }
+
+  private updatePaginator(accumulator: ApplicationPaginatorVM, value: ApplicationPaginatorVM): ApplicationPaginatorVM {
+    if (value.page === 1) {
+      return value;
+    }
+
+    accumulator.data.push(...value.data);
+    accumulator.page = value.page;
+    accumulator.hasNextPage = value.hasNextPage;
+
+    return accumulator;
+  }
+}
