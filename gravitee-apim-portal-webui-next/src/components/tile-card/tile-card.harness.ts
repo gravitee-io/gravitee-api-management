@@ -15,13 +15,13 @@
  */
 import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 
-export class AppCardHarness extends ContentContainerComponentHarness {
+export class TileCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-card';
   protected locateHeaderContent = this.locatorFor('.app-card__header__content');
   protected locateDescription = this.locatorFor('.app-card__description');
 
-  public static with(options: BaseHarnessFilters): HarnessPredicate<AppCardHarness> {
-    return new HarnessPredicate(AppCardHarness, options);
+  public static with(options: BaseHarnessFilters): HarnessPredicate<TileCardHarness> {
+    return new HarnessPredicate(TileCardHarness, options);
   }
 
   public async getTitle(): Promise<string> {

@@ -15,15 +15,27 @@
     limitations under the License.
 
 -->
+<mat-card class="app-card" appearance="outlined">
+  <mat-card-content class="app-card__content">
+    <div class="app-card__header">
+      <app-picture [picture]="application._links?.picture" [hashValue]="application.name" [size]="40" />
+      <div class="app-card__header__content">
+        <div class="m3-title-medium">{{ application.name }}</div>
+        <div class="m3-body-medium"><span i18n="@@owner">Owner: </span>{{ application.owner?.display_name }}</div>
 
-<app-tile-card
-  [isApi]="false"
-  [title]="application.name"
-  [owner]="application.owner?.display_name"
-  [id]="application.id"
-  [picture]="application._links?.picture"
-  [content]="application.description"
-  [pictureValue]="application.name"
-  [routerLinkValue]="['.', application.id]"
-  [buttonCapture]="'Open'"
-  [missingContentMessage]="'Description for this application is missing.'" />
+      </div>
+    </div>
+    <div class="app-card__description m3-body-medium">
+      @if (application.description) {
+        {{ application.description }}
+      } @else {
+        <span i18n="@@descriptionMissing">Description for this application is missing.</span>
+      }
+    </div>
+  </mat-card-content>
+  <mat-card-actions class="app-card__actions">
+    <button i18n="@@cardButton" mat-stroked-button color="primary" [routerLink]="['.', application.id]">
+      Open
+    </button>
+  </mat-card-actions>
+</mat-card>

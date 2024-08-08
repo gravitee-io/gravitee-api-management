@@ -25,7 +25,7 @@ import { PictureComponent } from '../picture/picture.component';
   standalone: true,
   imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink],
   templateUrl: './tile-card.component.html',
-  styleUrl: './tile-card.component.scss',
+  styleUrl: '../application-card/application-card.component.scss',
 })
 export class TileCardComponent {
   @Input({ required: true })

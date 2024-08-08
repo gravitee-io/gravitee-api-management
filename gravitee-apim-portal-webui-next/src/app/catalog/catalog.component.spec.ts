@@ -22,7 +22,7 @@ import { RouterModule } from '@angular/router';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
-import { AppCardHarness } from '../../components/tile-card/app-card.harness';
+import { TileCardHarness } from '../../components/tile-card/tile-card.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
 import { fakeCategoriesResponse } from '../../entities/categories/categories.fixture';
@@ -83,7 +83,7 @@ describe('CatalogComponent', () => {
     });
 
     it('should show API list', async () => {
-      const appCard = await harnessLoader.getHarness(AppCardHarness);
+      const appCard = await harnessLoader.getHarness(TileCardHarness);
       expect(appCard).toBeDefined();
       expect(await appCard.getTitle()).toEqual('Test title');
       expect(await appCard.getDescription()).toEqual(
@@ -94,7 +94,7 @@ describe('CatalogComponent', () => {
     });
 
     it('should call second page after scrolled event', async () => {
-      const appCard = await harnessLoader.getAllHarnesses(AppCardHarness);
+      const appCard = await harnessLoader.getAllHarnesses(TileCardHarness);
       expect(appCard).toBeDefined();
       expect(appCard.length).toEqual(1);
       expect(await appCard[0].getTitle()).toEqual('Test title');
@@ -117,15 +117,15 @@ describe('CatalogComponent', () => {
       fixture.detectChanges();
       expectCategoriesList(fakeCategoriesResponse());
 
-      const allHarnesses = await harnessLoader.getAllHarnesses(AppCardHarness);
+      const allHarnesses = await harnessLoader.getAllHarnesses(TileCardHarness);
       expect(allHarnesses.length).toEqual(2);
 
-      const secondPageApi = await harnessLoader.getHarnessOrNull(AppCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
+      const secondPageApi = await harnessLoader.getHarnessOrNull(TileCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
       expect(secondPageApi).toBeTruthy();
     });
 
     it('should call API list with search query', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(AppCardHarness);
+      const apiCard = await harnessLoader.getAllHarnesses(TileCardHarness);
       expect(apiCard).toBeDefined();
       expect(apiCard.length).toEqual(1);
       expect(await apiCard[0].getTitle()).toEqual('Test title');

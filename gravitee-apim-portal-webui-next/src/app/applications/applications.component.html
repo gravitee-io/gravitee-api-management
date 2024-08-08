@@ -15,29 +15,30 @@
     limitations under the License.
 
 -->
+<mat-card appearance="outlined">
+  <mat-card-content class="tile">
+    <div>
+      <h2>Applications</h2>
+      <div>
+        An application represents a developer's project that interacts with the API. It acts as a means to manage
+        access control to APIs
+        via subscriptions.
+      </div>
+    </div>
 
-@if (applicationPaginator$ | async; as applications) {
-  @if (applications.data.length === 0) {
-    <mat-card id="no-apps" appearance="outlined"></mat-card>
-    <p i18n="@@noAppsAvailable">Sorry, there are no applications yet.</p>
-  } @else {
-    <mat-card appearance="outlined">
-      <mat-card-content>
-        <h2>Applications</h2>
-        <div class="padding-bottom">
-          An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs
-          via subscriptions.
-        </div>
+    @if (applicationPaginator$ | async; as applications) {
+      @if (applications.data.length === 0) {
+        <p i18n="@@noAppsAvailable">Sorry, there are no applications yet.</p>
+      } @else {
         <div class="app-list__container" infiniteScroll (scrolled)="loadMoreApplications(applications)">
           @for (application of applications.data; track application.id) {
-            <app-application-card [application]="application" />
+            <app-application-card [application]="application"/>
           }
         </div>
-      </mat-card-content>
-    </mat-card>
-  }
-}
-
-@if (loadingPage$ | async) {
-  <app-loader />
-}
+      }
+    }
+    @if (loadingPage$ | async) {
+      <app-loader/>
+    }
+  </mat-card-content>
+</mat-card>

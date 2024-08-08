@@ -16,14 +16,24 @@
 
 -->
 
-<app-tile-card
-  [isApi]="true"
-  [title]="title"
-  [version]="version"
-  [id]="id"
-  [picture]="picture"
-  [content]="content"
-  [pictureValue]="title + ' ' + version"
-  [routerLinkValue]="['.', 'api', id]"
-  [buttonCapture]="'Learn More'"
-  [missingContentMessage]="'Description for this API is missing.'" />
+<mat-card class="api-card" appearance="outlined">
+  <mat-card-content class="api-card__content">
+    <div class="api-card__header">
+      <app-picture [picture]="picture" [hashValue]="title + ' ' + version" [size]="40" />
+      <div class="api-card__header__content">
+        <div class="m3-title-medium">{{ title }}</div>
+        <div class="m3-body-medium"><span i18n="@@apiVersion">Version: </span>{{ version }}</div>
+      </div>
+    </div>
+    <div class="api-card__description m3-body-medium">
+      @if (content) {
+        {{ content }}
+      } @else {
+        <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
+      }
+    </div>
+  </mat-card-content>
+  <mat-card-actions class="api-card__actions">
+    <button i18n="@@apiCardButton" mat-stroked-button color="primary" [routerLink]="['.', 'api', id]">Learn more</button>
+  </mat-card-actions>
+</mat-card>
