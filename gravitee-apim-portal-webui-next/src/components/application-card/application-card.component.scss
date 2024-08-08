@@ -16,21 +16,51 @@
 :host {
   display: flex;
   flex-flow: column;
-  gap: 32px;
 }
 
-.tile {
+.app-card {
   display: flex;
+  height: 100%;
   flex-flow: column;
-  gap: 16px;
-}
+  align-items: stretch;
+  justify-content: space-between;
 
-.app-list__container {
-  display: grid;
-  gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 
-  > * {
-    height: 256px;
+    &__content {
+      display: flex;
+      flex-flow: column;
+      gap: 4px;
+    }
+  }
+
+  &__header-picture {
+    border-radius: 50%;
+  }
+
+  &__content {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  &__description {
+    display: -webkit-box;
+    overflow: hidden;
+    max-height: 98px;
+    -webkit-box-orient: vertical;
+    color: var(--mdc-outlined-text-field-label-text-color);
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+
+  &__actions {
+    margin: 8px;
   }
 }
