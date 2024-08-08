@@ -16,7 +16,7 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
@@ -26,7 +26,7 @@ import { DiscoveryPreviewHarness } from './discovery-preview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Integration } from '../integrations.model';
+import { IngestionStatus, Integration, IntegrationIngestionResponse } from '../integrations.model';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -36,6 +36,8 @@ describe('DiscoveryPreviewComponent', () => {
   let fixture: ComponentFixture<DiscoveryPreviewComponent>;
   let componentHarness: DiscoveryPreviewHarness = null;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
+
   const integrationId: string = 'TestTestTest123';
 
   const fakeSnackBarService = {
@@ -80,34 +82,72 @@ describe('DiscoveryPreviewComponent', () => {
     fixture = TestBed.createComponent(DiscoveryPreviewComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DiscoveryPreviewHarness);
+    routerNavigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+
     fixture.detectChanges();
   };
+
+  beforeEach(() => init());
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  describe('DiscoveryPreviewComponent', () => {
-    beforeEach(() => {
-      init();
-    });
+  it('should display preview toggles with correct values', async () => {
+    expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+    expectPreviewGetRequest(fakeDiscoveryPreview());
 
-    it('should display preview toggles with correct values', async () => {
+    const newItemsToggle = await componentHarness.getNewItemsToggle();
+    expect(await newItemsToggle.isDisabled()).toBe(false);
+
+    const updateItemsToggle = await componentHarness.getUpdateItemsToggle();
+    expect(await updateItemsToggle.isDisabled()).toBe(true);
+  });
+
+  it('should display table with correct number of items', async () => {
+    expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+    expectPreviewGetRequest(fakeDiscoveryPreview());
+
+    expect(await componentHarness.rowsNumber()).toEqual(3);
+  });
+
+  it('should return to overview when cancel', async () => {
+    expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+    expectPreviewGetRequest(fakeDiscoveryPreview());
+
+    await componentHarness.getCancelButton().then((button) => button.click());
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: TestBed.inject(ActivatedRoute) });
+  });
+
+  describe('proceed', () => {
+    it('should trigger ingest and return to overview when proceed', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
       expectPreviewGetRequest(fakeDiscoveryPreview());
 
-      const newItemsToggle = await componentHarness.getNewItemsToggle();
-      const updateItemsToggle = await componentHarness.getUpdateItemsToggle();
+      await componentHarness.getProceedButton().then((button) => button.click());
 
-      expect(await newItemsToggle.isDisabled()).toBe(false);
-      expect(await updateItemsToggle.isDisabled()).toBe(true);
+      expectIngestPostRequest(['testit', 'testit2', 'testit3']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: TestBed.inject(ActivatedRoute) });
     });
 
-    it('should display table with correct number of items', async () => {
+    it('should show Snackbar notif and return to overview if ingest succeed immediately', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
       expectPreviewGetRequest(fakeDiscoveryPreview());
 
-      expect(await componentHarness.rowsNumber()).toEqual(3);
+      await componentHarness.getProceedButton().then((button) => button.click());
+
+      expectIngestPostRequest(['testit', 'testit2', 'testit3'], { status: IngestionStatus.SUCCESS });
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('Ingestion complete! Your integration is now updated.');
+    });
+
+    it('should show Snackbar error and return to overview if ingest fails immediately', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectPreviewGetRequest(fakeDiscoveryPreview());
+
+      await componentHarness.getProceedButton().then((button) => button.click());
+
+      expectIngestPostRequest(['testit', 'testit2', 'testit3'], { status: IngestionStatus.ERROR, message: 'an error' });
+      expect(fakeSnackBarService.error).toHaveBeenCalledWith('Ingestion failed. Please check your settings and try again: an error');
     });
   });
 
@@ -121,5 +161,14 @@ describe('DiscoveryPreviewComponent', () => {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_preview`);
     req.flush(preview);
     expect(req.request.method).toEqual('GET');
+  }
+
+  function expectIngestPostRequest(toIngest: string[], response: IntegrationIngestionResponse = { status: IngestionStatus.PENDING }): void {
+    const req: TestRequest = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`,
+    });
+    expect(req.request.body).toEqual({ apiIds: toIngest });
+    req.flush(response);
   }
 });

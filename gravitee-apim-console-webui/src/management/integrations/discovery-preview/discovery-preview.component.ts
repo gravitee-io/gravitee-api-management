@@ -48,6 +48,8 @@ export class DiscoveryPreviewComponent implements OnInit {
   });
   public tableData = new MatTableDataSource<IntegrationPreviewApis>();
 
+  private integrationId = this.activatedRoute.snapshot.params.integrationId;
+
   constructor(
     public readonly integrationsService: IntegrationsService,
     private readonly activatedRoute: ActivatedRoute,
@@ -61,10 +63,8 @@ export class DiscoveryPreviewComponent implements OnInit {
   }
 
   private getIntegration(): void {
-    const { integrationId } = this.activatedRoute.snapshot.params;
-
     this.integrationsService
-      .getIntegration(integrationId)
+      .getIntegration(this.integrationId)
       .pipe(
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -103,9 +103,27 @@ export class DiscoveryPreviewComponent implements OnInit {
       });
   }
 
+  public cancel() {
+    return this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
+
   public proceedIngest() {
-    this.integrationsService.prepareRunIngest(this.tableData.filteredData.map((api) => api.id));
-    this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+    this.integrationsService
+      .ingest(
+        this.integrationId,
+        this.tableData.filteredData.map((api) => api.id),
+      )
+      .subscribe((response) => {
+        switch (response.status) {
+          case 'SUCCESS':
+            this.snackBarService.success('Ingestion complete! Your integration is now updated.');
+            break;
+          case 'ERROR':
+            this.snackBarService.error(`Ingestion failed. Please check your settings and try again: ${response.message}`);
+            break;
+        }
+        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+      });
   }
 
   private setupForm(controlName: 'ingestUpdateApis' | 'ingestNewApis', value: number) {
