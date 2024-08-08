@@ -1,0 +1,38 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title class="delete-confirm-dialog__title" i18n="@@titleDeleteApplicationDialog">Delete application</h2>
+
+<mat-dialog-content class="delete-confirm-dialog__content">
+  <p i18n="@@contentDeleteApplicationDialog">All your subscriptions will be closed. Are you sure you want to delete this application?</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="delete-confirm-dialog__actions">
+  <button class="delete-confirm-dialog__cancel-button" mat-button [mat-dialog-close]="false" i18n="@@cancelDeleteApplicationDialog">
+    Cancel
+  </button>
+  <button
+    class="delete-confirm-dialog__confirm-button"
+    color="warn"
+    mat-flat-button
+    [mat-dialog-close]="true"
+    cdkFocusInitial
+    data-testid="delete-confirm-dialog"
+    i18n="@@confirmDeleteApplicationDialog">
+    Delete
+  </button>
+</mat-dialog-actions>
