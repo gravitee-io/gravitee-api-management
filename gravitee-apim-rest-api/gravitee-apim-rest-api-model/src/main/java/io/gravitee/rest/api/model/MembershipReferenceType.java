@@ -15,19 +15,29 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.EnumSet;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Schema(enumAsRef = true)
+@RequiredArgsConstructor
 public enum MembershipReferenceType {
-    APPLICATION,
-    API,
-    GROUP,
-    ENVIRONMENT,
-    ORGANIZATION,
-    PLATFORM,
-    INTEGRATION,
+    APPLICATION(EnumSet.of(RoleScope.APPLICATION)),
+    API(EnumSet.of(RoleScope.API)),
+    GROUP(EnumSet.of(RoleScope.GROUP, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION)),
+    ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
+    ORGANIZATION(EnumSet.allOf(RoleScope.class)),
+    PLATFORM(EnumSet.allOf(RoleScope.class)),
+    INTEGRATION(EnumSet.allOf(RoleScope.class));
+
+    private final EnumSet<RoleScope> roleScopes;
+
+    public boolean allowedRoleScope(RoleScope scope) {
+        return roleScopes.contains(scope);
+    }
 }

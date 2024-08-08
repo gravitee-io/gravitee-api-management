@@ -204,11 +204,12 @@
               <table md-table ng-init="orderGrp = 'displayName'">
                 <thead md-head md-order="orderGrp">
                   <tr md-row>
-                    <th md-column width="22%" md-order-by="displayName">Name</th>
-                    <th md-column width="22%">Group Admin</th>
-                    <th md-column width="22%">API Role</th>
-                    <th md-column width="22%">Application Role</th>
-                    <th md-column width="12%"></th>
+                    <th md-column width="18%" md-order-by="displayName">Name</th>
+                    <th md-column width="18%">Group Admin</th>
+                    <th md-column width="18%">API Role</th>
+                    <th md-column width="18%">Application Role</th>
+                    <th md-column width="18%">Integration Role</th>
+                    <th md-column width="10%"></th>
                   </tr>
                 </thead>
                 <tbody md-body>
@@ -232,7 +233,7 @@
                       <md-select
                         ng-model="member.roles['API']"
                         aria-label="API Role"
-                        ng-change="$ctrl.updateRole(member)"
+                        ng-change="$ctrl.updateRole(member, 'API')"
                         ng-disabled="!$ctrl.canChangeDefaultApiRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
@@ -244,10 +245,25 @@
                       <md-select
                         ng-model="member.roles['APPLICATION']"
                         aria-label="Application Role"
-                        ng-change="$ctrl.updateRole(member)"
+                        ng-change="$ctrl.updateRole(member, 'APPLICATION')"
                         ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
+                          >{{role.name}}</md-option
+                        >
+                      </md-select>
+                    </td>
+                    <td md-cell>
+                      <md-select
+                        ng-model="member.roles['INTEGRATION']"
+                        aria-label="Integration Role"
+                        ng-change="$ctrl.updateRole(member, 'INTEGRATION')"
+                        ng-disabled="!$ctrl.canChangeDefaultIntegrationRole"
+                      >
+                        <md-option
+                          ng-value="role.name"
+                          ng-repeat="role in $ctrl.integrationRoles"
+                          ng-disabled="$ctrl.isIntegrationRoleDisabled(role)"
                           >{{role.name}}</md-option
                         >
                       </md-select>

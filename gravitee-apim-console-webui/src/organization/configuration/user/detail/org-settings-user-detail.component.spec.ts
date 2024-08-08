@@ -348,7 +348,10 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id, [
-      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+      fakeGroup({
+        id: 'groupA',
+        roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER', INTEGRATION: 'ROLE_INTEGRATION_OWNER' },
+      }),
     ]);
     expectUserMembershipGetRequest(user.id, 'api');
     expectUserMembershipGetRequest(user.id, 'application');
@@ -358,6 +361,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }),
       fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' }),
     ]);
+    expectRolesListRequest('INTEGRATION', [fakeRole({ id: 'roleIntegrationOwnerId', name: 'ROLE_INTEGRATION_OWNER' })]);
 
     const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
     const groupsTable = await groupsCard.getHarness(MatTableHarness);
@@ -365,11 +369,13 @@ describe('OrgSettingsUserDetailComponent', () => {
     const groupAdminCheckbox = await (await (await groupsTable.getRows())[0].getCells())[1].getHarness(MatCheckboxHarness);
     const apiRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[2].getHarness(MatSelectHarness);
     const applicationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[3].getHarness(MatSelectHarness);
+    const integrationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[4].getHarness(MatSelectHarness);
 
     // expect initial value
     expect(await groupAdminCheckbox.isChecked()).toBe(true);
     expect(await apiRoleSelect.getValueText()).toBe('ROLE_API');
     expect(await applicationRoleSelect.getValueText()).toBe('ROLE_APP_OWNER');
+    expect(await integrationRoleSelect.getValueText()).toBe('ROLE_INTEGRATION_OWNER');
 
     // change values
     await groupAdminCheckbox.uncheck();
@@ -401,12 +407,13 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectRolesListRequest('ORGANIZATION');
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
+    expectRolesListRequest('INTEGRATION');
 
     const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
     const groupsTable = await groupsCard.getHarness(MatTableHarness);
 
     // First row and delete column
-    const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[4].getHarness(MatButtonHarness);
+    const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[5].getHarness(MatButtonHarness);
 
     await deleteUserGroupButton.click();
 
@@ -530,6 +537,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectRolesListRequest('ORGANIZATION');
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
+    expectRolesListRequest('INTEGRATION');
 
     const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
 
@@ -539,6 +547,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
+    expectRolesListRequest('INTEGRATION');
 
     const dialog = await rootLoader.getHarness(MatDialogHarness);
 
@@ -564,6 +573,7 @@ describe('OrgSettingsUserDetailComponent', () => {
           { name: 'ADMIN', scope: 'GROUP' },
           { name: null, scope: 'API' },
           { name: null, scope: 'APPLICATION' },
+          { name: null, scope: 'INTEGRATION' },
         ],
       },
     ]);
@@ -579,7 +589,10 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id, [
-      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+      fakeGroup({
+        id: 'groupA',
+        roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER', INTEGRATION: 'ROLE_INTEGRATION_OWNER' },
+      }),
     ]);
     expectUserMembershipGetRequest(user.id, 'api');
     expectUserMembershipGetRequest(user.id, 'application');
@@ -589,6 +602,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }),
       fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' }),
     ]);
+    expectRolesListRequest('INTEGRATION', [fakeRole({ id: 'roleApiId', name: 'ROLE_INTEGRATION_OWNER' })]);
 
     const tokensCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__tokens__card' }));
     const generateTokenButton = await tokensCard.getHarness(MatButtonHarness);
@@ -615,16 +629,21 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id, [
-      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+      fakeGroup({
+        id: 'groupA',
+        roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER', INTEGRATION: 'ROLE_INTEGRATION_OWNER' },
+      }),
     ]);
     expectUserMembershipGetRequest(user.id, 'api');
     expectUserMembershipGetRequest(user.id, 'application');
+    // expectUserMembershipGetRequest(user.id, 'integration');
     expectRolesListRequest('ORGANIZATION');
     expectRolesListRequest('API', [fakeRole({ id: 'roleApiId', name: 'ROLE_API' })]);
     expectRolesListRequest('APPLICATION', [
       fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }),
       fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' }),
     ]);
+    expectRolesListRequest('INTEGRATION', [fakeRole({ id: 'roleIntegrationId', name: 'ROLE_INTEGRATION_OWNER' })]);
 
     const tokensCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__tokens__card' }));
     const tokensTable = await tokensCard.getHarness(MatTableHarness);
