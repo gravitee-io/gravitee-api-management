@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2024 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,4 +15,29 @@
     limitations under the License.
 
 -->
-<p>applications works!</p>
+<mat-card appearance="outlined">
+  <mat-card-content class="tile">
+    <div>
+      <h2 i18n="@@applicationsGridTitle">Applications</h2>
+      <div class="description" i18n="@@applicationsGridDescription">
+        An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via
+        subscriptions.
+      </div>
+    </div>
+
+    @if (applicationPaginator$ | async; as applications) {
+      @if (applications.data.length === 0) {
+        <p i18n="@@noAppsAvailable">Sorry, there are no applications yet.</p>
+      } @else {
+        <div class="app-list__container" infiniteScroll (scrolled)="loadMoreApplications(applications)">
+          @for (application of applications.data; track application.id) {
+            <app-application-card [application]="application" />
+          }
+        </div>
+      }
+    }
+    @if (loadingPage$ | async) {
+      <app-loader />
+    }
+  </mat-card-content>
+</mat-card>
