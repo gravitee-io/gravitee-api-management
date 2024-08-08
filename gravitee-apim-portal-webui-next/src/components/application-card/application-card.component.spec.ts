@@ -26,7 +26,6 @@ import { RouterModule } from '@angular/router';
 import { ApplicationCardComponent } from './application-card.component';
 import { fakeApplication } from '../../entities/application/application.fixture';
 import { PictureComponent } from '../picture/picture.component';
-import { TileCardComponent } from '../tile-card/tile-card.component';
 
 describe('ApplicationCardComponent', () => {
   let component: ApplicationCardComponent;
@@ -53,15 +52,7 @@ describe('ApplicationCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        MatCardModule,
-        MatButtonModule,
-        RouterModule.forRoot([]),
-        NoopAnimationsModule,
-        HttpClientTestingModule,
-        TileCardComponent,
-        PictureComponent,
-      ],
+      imports: [MatCardModule, MatButtonModule, RouterModule.forRoot([]), NoopAnimationsModule, HttpClientTestingModule, PictureComponent],
       declarations: [],
     }).compileComponents();
 

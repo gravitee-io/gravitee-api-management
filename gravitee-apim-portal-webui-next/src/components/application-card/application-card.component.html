@@ -22,7 +22,6 @@
       <div class="app-card__header__content">
         <div class="m3-title-medium">{{ application.name }}</div>
         <div class="m3-body-medium"><span i18n="@@owner">Owner: </span>{{ application.owner?.display_name }}</div>
-
       </div>
     </div>
     <div class="app-card__description m3-body-medium">
@@ -34,8 +33,6 @@
     </div>
   </mat-card-content>
   <mat-card-actions class="app-card__actions">
-    <button i18n="@@cardButton" mat-stroked-button color="primary" [routerLink]="['.', application.id]">
-      Open
-    </button>
+    <button i18n="@@cardButton" mat-stroked-button color="primary" [routerLink]="['.', application.id]">Open</button>
   </mat-card-actions>
 </mat-card>

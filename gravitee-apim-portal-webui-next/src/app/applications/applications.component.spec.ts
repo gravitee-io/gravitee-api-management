@@ -66,7 +66,7 @@ describe('ApplicationsComponent', () => {
           },
         }),
         1,
-        10,
+        9,
       );
     });
 
@@ -78,7 +78,7 @@ describe('ApplicationsComponent', () => {
       expect(h2Element).toBeDefined();
       expect(h2Element.textContent).toEqual('Applications');
 
-      const descriptionElement = fixture.nativeElement.querySelector('.padding-bottom');
+      const descriptionElement = fixture.nativeElement.querySelector('.description');
       expect(descriptionElement).toBeDefined();
       expect(descriptionElement.textContent.trim()).toEqual(
         "An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via subscriptions.",
@@ -101,7 +101,7 @@ describe('ApplicationsComponent', () => {
           },
         }),
         2,
-        10,
+        9,
       );
       fixture.detectChanges();
 
@@ -109,23 +109,22 @@ describe('ApplicationsComponent', () => {
       expect(allHarnesses.length).toEqual(2);
 
       document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
-      httpTestingController.expectNone(`${TESTING_BASE_URL}/applications?page=3&size=10`);
+      httpTestingController.expectNone(`${TESTING_BASE_URL}/applications?page=3&size=9`);
     });
   });
 
   describe('empty component', () => {
     it('should show empty Application list', async () => {
-      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 10);
-      const noAppCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apps' }));
+      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 9);
+      const noAppCard = await harnessLoader.getHarness(MatCardHarness.with({ text: /Sorry, there are no applications yet\./ }));
       expect(noAppCard).toBeTruthy();
-      expect(await noAppCard.getText()).toContain('');
     });
   });
 
   function expectApplicationList(
     applicationsResponse: ApplicationsResponse = fakeApplicationsResponse(),
     page: number = 1,
-    size: number = 10,
+    size: number = 9,
   ) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=${size}`).flush(applicationsResponse);
   }

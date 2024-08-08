@@ -20,12 +20,11 @@ import { RouterLink } from '@angular/router';
 
 import { Application } from '../../entities/application/application';
 import { PictureComponent } from '../picture/picture.component';
-import { TileCardComponent } from '../tile-card/tile-card.component';
 
 @Component({
   selector: 'app-application-card',
   standalone: true,
-  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, TileCardComponent],
+  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink],
   templateUrl: './application-card.component.html',
   styleUrl: './application-card.component.scss',
 })

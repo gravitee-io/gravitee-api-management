@@ -21,8 +21,8 @@
 .app-card {
   display: flex;
   height: 100%;
-  align-items: stretch;
   flex-flow: column;
+  align-items: stretch;
   justify-content: space-between;
 
   &__header {

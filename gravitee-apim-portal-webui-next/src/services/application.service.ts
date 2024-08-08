@@ -35,7 +35,7 @@ export class ApplicationService {
 
   list(params: { forSubscriptions?: boolean; page?: number; size?: number }): Observable<ApplicationsResponse> {
     const pageParam = params.page ? 'page=' + params.page : 'page=1';
-    const perPageParam = params.size ? 'size=' + params.size : 'size=9';
+    const perPageParam = params.size ? 'size=' + params.size : 'size=10';
 
     const paramList = [pageParam, perPageParam];
 

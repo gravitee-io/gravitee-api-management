@@ -66,7 +66,7 @@ export class ApplicationsComponent {
   private loadApplications$(): Observable<ApplicationPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.applicationService.list({ page: currentPage })),
+      switchMap(currentPage => this.applicationService.list({ page: currentPage, size: 9 })),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({

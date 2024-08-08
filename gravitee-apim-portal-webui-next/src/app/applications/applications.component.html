@@ -19,10 +19,9 @@
   <mat-card-content class="tile">
     <div>
       <h2>Applications</h2>
-      <div>
-        An application represents a developer's project that interacts with the API. It acts as a means to manage
-        access control to APIs
-        via subscriptions.
+      <div class="description">
+        An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via
+        subscriptions.
       </div>
     </div>
 
@@ -32,13 +31,13 @@
       } @else {
         <div class="app-list__container" infiniteScroll (scrolled)="loadMoreApplications(applications)">
           @for (application of applications.data; track application.id) {
-            <app-application-card [application]="application"/>
+            <app-application-card [application]="application" />
           }
         </div>
       }
     }
     @if (loadingPage$ | async) {
-      <app-loader/>
+      <app-loader />
     }
   </mat-card-content>
 </mat-card>

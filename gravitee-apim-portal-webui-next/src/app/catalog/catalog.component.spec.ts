@@ -22,7 +22,6 @@ import { RouterModule } from '@angular/router';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
-import { TileCardHarness } from '../../components/tile-card/tile-card.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
 import { fakeCategoriesResponse } from '../../entities/categories/categories.fixture';
@@ -83,21 +82,21 @@ describe('CatalogComponent', () => {
     });
 
     it('should show API list', async () => {
-      const appCard = await harnessLoader.getHarness(TileCardHarness);
-      expect(appCard).toBeDefined();
-      expect(await appCard.getTitle()).toEqual('Test title');
-      expect(await appCard.getDescription()).toEqual(
+      const apiCard = await harnessLoader.getHarness(ApiCardHarness);
+      expect(apiCard).toBeDefined();
+      expect(await apiCard.getTitle()).toEqual('Test title');
+      expect(await apiCard.getDescription()).toEqual(
         'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
       );
-      expect(await appCard.getVersion()).toEqual('v.1.2');
+      expect(await apiCard.getVersion()).toEqual('v.1.2');
       expectCategoriesList(fakeCategoriesResponse());
     });
 
     it('should call second page after scrolled event', async () => {
-      const appCard = await harnessLoader.getAllHarnesses(TileCardHarness);
-      expect(appCard).toBeDefined();
-      expect(appCard.length).toEqual(1);
-      expect(await appCard[0].getTitle()).toEqual('Test title');
+      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(apiCard).toBeDefined();
+      expect(apiCard.length).toEqual(1);
+      expect(await apiCard[0].getTitle()).toEqual('Test title');
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
       expectApiList(
@@ -117,15 +116,15 @@ describe('CatalogComponent', () => {
       fixture.detectChanges();
       expectCategoriesList(fakeCategoriesResponse());
 
-      const allHarnesses = await harnessLoader.getAllHarnesses(TileCardHarness);
+      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(2);
 
-      const secondPageApi = await harnessLoader.getHarnessOrNull(TileCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
+      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
       expect(secondPageApi).toBeTruthy();
     });
 
     it('should call API list with search query', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(TileCardHarness);
+      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
       expect(apiCard.length).toEqual(1);
       expect(await apiCard[0].getTitle()).toEqual('Test title');

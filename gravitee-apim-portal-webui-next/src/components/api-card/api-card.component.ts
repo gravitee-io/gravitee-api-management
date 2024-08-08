@@ -19,13 +19,13 @@ import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 
 import { PictureComponent } from '../picture/picture.component';
-import { TileCardComponent } from '../tile-card/tile-card.component';
 
 @Component({
   selector: 'app-api-card',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, TileCardComponent],
+  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule],
   templateUrl: './api-card.component.html',
+  styleUrl: './api-card.component.scss',
 })
 export class ApiCardComponent {
   @Input({ required: true })
