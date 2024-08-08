@@ -33,7 +33,7 @@ import {
   MatTable,
 } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
-import { isEmpty } from 'lodash';
+import { isEmpty, isEqual } from 'lodash';
 import { catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -64,10 +64,18 @@ interface ResponseTimeVM {
   max?: number;
 }
 
+interface PeriodVM {
+  milliseconds: number;
+  period: number;
+  unit: 'MINUTE' | 'HOUR' | 'DAY';
+  value: string;
+}
+
 interface FiltersVM {
   apis?: ApiVM[];
   methods?: HttpMethodVM[];
   responseTimes?: ResponseTimeVM[];
+  period?: PeriodVM;
 }
 
 @Component({
@@ -121,7 +129,8 @@ export class ApplicationTabLogsComponent implements OnInit {
 
   filters: WritableSignal<FiltersVM> = signal({});
   filtersIsEmpty: Signal<boolean> = computed(() => isEmpty(this.filters()));
-  filtersPristine: boolean = true;
+  noFiltersApplied: Signal<boolean> = computed(() => isEqual(this.filters(), { period: this.filters().period }));
+  filtersPristine: Signal<boolean> = computed(() => isEqual(this.filters(), this.filtersInitialValue));
 
   httpMethods: HttpMethodVM[] = ApplicationLogService.METHODS;
   responseTimes: ResponseTimeVM[] = [
@@ -171,11 +180,87 @@ export class ApplicationTabLogsComponent implements OnInit {
     },
   ];
 
+  periods: PeriodVM[] = [
+    {
+      milliseconds: this.toMilliseconds(0, 0, 5),
+      period: 5,
+      unit: 'MINUTE',
+      value: '5m',
+    },
+    {
+      milliseconds: this.toMilliseconds(0, 0, 30),
+      period: 30,
+      unit: 'MINUTE',
+      value: '30m',
+    },
+    {
+      milliseconds: this.toMilliseconds(0, 1, 0),
+      period: 1,
+      unit: 'HOUR',
+      value: '1h',
+    },
+    {
+      milliseconds: this.toMilliseconds(0, 3, 0),
+      period: 3,
+      unit: 'HOUR',
+      value: '3h',
+    },
+    {
+      milliseconds: this.toMilliseconds(0, 6, 0),
+      period: 6,
+      unit: 'HOUR',
+      value: '6h',
+    },
+    {
+      milliseconds: this.toMilliseconds(0, 12, 0),
+      period: 12,
+      unit: 'HOUR',
+      value: '12h',
+    },
+    {
+      milliseconds: this.toMilliseconds(1, 0, 0),
+      period: 1,
+      unit: 'DAY',
+      value: '1d',
+    },
+    {
+      milliseconds: this.toMilliseconds(3, 0, 0),
+      period: 3,
+      unit: 'DAY',
+      value: '3d',
+    },
+    {
+      milliseconds: this.toMilliseconds(7, 0, 0),
+      period: 7,
+      unit: 'DAY',
+      value: '7d',
+    },
+    {
+      milliseconds: this.toMilliseconds(14, 0, 0),
+      period: 14,
+      unit: 'DAY',
+      value: '14d',
+    },
+    {
+      milliseconds: this.toMilliseconds(30, 0, 0),
+      period: 30,
+      unit: 'DAY',
+      value: '30d',
+    },
+    {
+      milliseconds: this.toMilliseconds(90, 0, 0),
+      period: 90,
+      unit: 'DAY',
+      value: '90d',
+    },
+  ];
+
   displayedColumns: string[] = ['api', 'timestamp', 'httpMethod', 'responseStatus'];
 
   private currentLogsPage: WritableSignal<number> = signal(1);
   private totalLogs: WritableSignal<number> = signal(0);
   private selectedApis: WritableSignal<string[]> = signal([]);
+  private filtersInitialValue: FiltersVM = {};
 
   constructor(
     private applicationLogService: ApplicationLogService,
@@ -196,10 +281,17 @@ export class ApplicationTabLogsComponent implements OnInit {
 
         const responseTimes: string[] = this.mapQueryParamToStringArray(queryParams['responseTimes']);
 
-        return { page, apis, methods, responseTimes };
+        const period: string = queryParams['period'] ?? '1d';
+
+        return { page, apis, methods, responseTimes, period };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
-      switchMap(values => this.applicationLogService.list(this.application.id, values)),
+      switchMap(values => {
+        const difference = this.periods.find(p => p.value === values.period)?.milliseconds ?? 0;
+
+        const from = difference === 0 ? undefined : Date.now() - difference;
+        return this.applicationLogService.list(this.application.id, { ...values, from });
+      }),
       tap(({ metadata }) => {
         this.totalLogs.set((metadata['data'] as LogsResponseMetadataTotalData).total);
       }),
@@ -232,6 +324,7 @@ export class ApplicationTabLogsComponent implements OnInit {
         tap(apiFilters => {
           if (this.selectedApis().length) {
             this.filters.update(filters => ({ ...filters, apis: apiFilters.filter(apiVm => this.selectedApis().includes(apiVm.id)) }));
+            this.filtersInitialValue.apis = this.filters().apis;
           }
         }),
       );
@@ -256,8 +349,7 @@ export class ApplicationTabLogsComponent implements OnInit {
   }
 
   resetFilters() {
-    this.filters.set({});
-    this.navigate({ page: 1 });
+    this.filters.update(filters => ({ period: filters.period }));
   }
 
   search() {
@@ -265,26 +357,26 @@ export class ApplicationTabLogsComponent implements OnInit {
   }
 
   selectApis($event: MatSelectChange) {
-    this.filtersPristine = false;
     this.filters.update(filters => ({ ...filters, apis: $event.value }));
   }
 
   selectHttpMethods($event: MatSelectChange) {
-    this.filtersPristine = false;
     this.filters.update(filters => ({ ...filters, methods: $event.value }));
   }
 
   selectResponseTimes($event: MatSelectChange) {
-    this.filtersPristine = false;
     this.filters.update(filters => ({ ...filters, responseTimes: $event.value }));
   }
 
-  private navigate(params: { page: number }) {
-    this.filtersPristine = true;
+  selectPeriod($event: MatSelectChange) {
+    this.filters.update(filters => ({ ...filters, period: $event.value }));
+  }
 
+  private navigate(params: { page: number }) {
     const apis: string[] = this.filters().apis?.map(api => api.id) ?? [];
     const methods: string[] = this.filters().methods?.map(method => method.value) ?? [];
     const responseTimes: string[] = this.filters().responseTimes?.map(rt => rt.value) ?? [];
+    const period: string = this.filters().period?.value ?? '';
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -293,22 +385,32 @@ export class ApplicationTabLogsComponent implements OnInit {
         ...(apis.length ? { apis } : {}),
         ...(methods.length ? { methods } : {}),
         ...(responseTimes.length ? { responseTimes } : {}),
+        ...(period ? { period } : {}),
       },
     });
   }
 
-  private initializeFiltersAndPagination(params: { page: number; apis: string[]; methods: HttpMethodVM[]; responseTimes: string[] }): void {
-    this.filtersPristine = true;
+  private initializeFiltersAndPagination(params: {
+    page: number;
+    apis: string[];
+    methods: HttpMethodVM[];
+    responseTimes: string[];
+    period?: string;
+  }): void {
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
 
     const responseTimes = this.responseTimes.filter(rt => params.responseTimes.includes(rt.value));
 
+    const period = this.periods.find(p => p.value === params.period);
+
     this.filters.update(filters => ({
       ...filters,
       ...(params.methods.length ? { methods: params.methods } : {}),
       ...(responseTimes.length ? { responseTimes } : {}),
+      ...(period ? { period } : {}),
     }));
+    this.filtersInitialValue = this.filters();
   }
 
   private mapQueryParamToStringArray(queryParam: string | string[] | undefined): string[] {
@@ -319,5 +421,9 @@ export class ApplicationTabLogsComponent implements OnInit {
       return queryParam;
     }
     return [queryParam];
+  }
+
+  private toMilliseconds(days: number, hours: number, minutes: number): number {
+    return (days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60) * 1000;
   }
 }
