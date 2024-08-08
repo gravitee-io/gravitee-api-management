@@ -421,8 +421,7 @@ describe('ApplicationTabLogsComponent', () => {
           expect(await resetButton.isDisabled()).toEqual(false);
           await resetButton.click();
 
-          expectGetApplicationLogs(fakeLogsResponse());
-          fixture.detectChanges();
+          expect(await noChipFiltersDisplayed()).toEqual(true);
         });
       });
       describe('Two APIs in query params', () => {
@@ -523,8 +522,7 @@ describe('ApplicationTabLogsComponent', () => {
           expect(await resetButton.isDisabled()).toEqual(false);
           await resetButton.click();
 
-          expectGetApplicationLogs(fakeLogsResponse());
-          fixture.detectChanges();
+          expect(await noChipFiltersDisplayed()).toEqual(true);
         });
       });
     });
@@ -575,19 +573,89 @@ describe('ApplicationTabLogsComponent', () => {
           expect(await resetButton.isDisabled()).toEqual(false);
           await resetButton.click();
 
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+      });
+    });
+
+    describe('Period', () => {
+      describe('No period in query params', () => {
+        beforeEach(async () => {
+          await init({});
+
           expectGetApplicationLogs(fakeLogsResponse());
+          expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
+        });
+
+        it('should have "Last day" pre-selected + empty filters', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+
+          const periodSelection = await getPeriodSelection();
+          expect(await periodSelection.getValueText()).toEqual('Last day');
+        });
+      });
+      describe('One period in query params', () => {
+        const LAST_3_DAYS = '3d';
+        beforeEach(async () => {
+          await init({ period: LAST_3_DAYS });
+
+          const dateMinusThreeDays = MOCK_DATE.getTime() - 86400000 * 3;
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, undefined, dateMinusThreeDays);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have period pre-selected', async () => {
+          const periodSelection = await getPeriodSelection();
+          expect(await periodSelection.isEmpty()).toEqual(false);
+          expect(await periodSelection.getValueText()).toEqual('Last 3 days');
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+
+        it('should select "Last 6 hours"', async () => {
+          const periodSelection = await getPeriodSelection();
+          await periodSelection.open();
+          expect(await periodSelection.isOpen()).toEqual(true);
+          await periodSelection.clickOptions({ text: 'Last day' });
+
+          expect(await periodSelection.getValueText()).toEqual('Last day');
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse());
+        });
+        it('should reset filter but keep same period', async () => {
+          const httpMethodsSelection = await getHttpMethodSelection();
+          await httpMethodsSelection.open();
+          await httpMethodsSelection.clickOptions({ text: 'GET' });
+
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+
+          await resetButton.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+          const periodSelection = await getPeriodSelection();
+          expect(await periodSelection.isEmpty()).toEqual(false);
+          expect(await periodSelection.getValueText()).toEqual('Last 3 days');
         });
       });
     });
   });
 
-  function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string) {
-    const currentDateInMilliseconds = MOCK_DATE.getTime();
-    const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+  function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
+    const toInMilliseconds = to ?? MOCK_DATE.getTime();
+    const fromInMilliseconds = from ?? toInMilliseconds - 86400000;
     httpTestingController
       .expectOne(
-        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=${page}&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=${page}&size=10&from=${fromInMilliseconds}&to=${toInMilliseconds}&order=DESC&field=@timestamp` +
           `${query ? '&query=' + query : ''}`,
       )
       .flush(logsResponse);
@@ -645,6 +713,10 @@ describe('ApplicationTabLogsComponent', () => {
 
   async function getResponseTimesSelection(): Promise<MatSelectHarness> {
     return await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Filter by Response Time"]' }));
+  }
+
+  async function getPeriodSelection(): Promise<MatSelectHarness> {
+    return await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Filter by Period"]' }));
   }
 
   async function getResetFilterButton(): Promise<MatButtonHarness> {
