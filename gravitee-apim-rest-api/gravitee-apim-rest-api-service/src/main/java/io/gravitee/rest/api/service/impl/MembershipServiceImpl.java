@@ -234,141 +234,134 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
-            Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(
-                role.getScope(),
-                role.getName(),
-                executionContext.getOrganizationId()
-            );
-            if (optRoleEntity.isPresent()) {
-                RoleEntity roleEntity = optRoleEntity.get();
+            RoleEntity roleEntity = roleService
+                .findByScopeAndName(role.getScope(), role.getName(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new RoleNotFoundException(role.getScope().name() + "_" + role.getName()));
 
-                assertRoleScopeAllowedForReference(reference, roleEntity);
-                assertRoleNameAllowedForReference(reference, roleEntity);
+            assertRoleScopeAllowedForReference(reference, roleEntity);
+            assertRoleNameAllowedForReference(reference, roleEntity);
 
-                if (member.getMemberId() != null) {
-                    Set<io.gravitee.repository.management.model.Membership> similarMemberships =
-                        membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                            member.getMemberId(),
-                            convert(member.getMemberType()),
-                            convert(reference.getType()),
-                            reference.getId(),
-                            roleEntity.getId()
-                        );
-
-                    if (!similarMemberships.isEmpty()) {
-                        if (update) {
-                            UserEntity userEntity = findUserFromMembershipMember(executionContext, member);
-                            return getUserMember(executionContext, reference.getType(), reference.getId(), userEntity.getId());
-                        } else {
-                            throw new MembershipAlreadyExistsException(
-                                member.getMemberId(),
-                                member.getMemberType(),
-                                reference.getId(),
-                                reference.getType()
-                            );
-                        }
-                    }
-                }
-                Date updateDate = new Date();
-                MemberEntity userMember = null;
-                if (member.getMemberType() == MembershipMemberType.USER) {
-                    UserEntity userEntity = findUserFromMembershipMember(executionContext, member);
-                    io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
-                        UuidString.generateRandom(),
-                        userEntity.getId(),
+            if (member.getMemberId() != null) {
+                Set<io.gravitee.repository.management.model.Membership> similarMemberships =
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                        member.getMemberId(),
                         convert(member.getMemberType()),
-                        reference.getId(),
                         convert(reference.getType()),
+                        reference.getId(),
                         roleEntity.getId()
                     );
-                    membership.setSource(source);
-                    membership.setCreatedAt(updateDate);
-                    membership.setUpdatedAt(updateDate);
-                    membershipRepository.create(membership);
-                    createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
-                    if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
-                        applicationAlertService.addMemberToApplication(executionContext, reference.getId(), userEntity.getEmail());
-                    }
-
-                    Set<io.gravitee.repository.management.model.Membership> userRolesOnReference =
-                        membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                            userEntity.getId(),
-                            convert(member.getMemberType()),
-                            convert(reference.getType()),
-                            reference.getId()
+                if (!similarMemberships.isEmpty()) {
+                    if (update) {
+                        UserEntity userEntity = findUserFromMembershipMember(executionContext, member);
+                        return getUserMember(executionContext, reference.getType(), reference.getId(), userEntity.getId());
+                    } else {
+                        throw new MembershipAlreadyExistsException(
+                            member.getMemberId(),
+                            member.getMemberType(),
+                            reference.getId(),
+                            reference.getType()
                         );
-                    boolean shouldNotify =
-                        notify &&
-                        userRolesOnReference != null &&
-                        userRolesOnReference.size() == 1 &&
-                        userEntity.getEmail() != null &&
-                        !userEntity.getEmail().isEmpty();
-                    if (shouldNotify) {
-                        if (MembershipReferenceType.GROUP.equals(reference.getType())) {
-                            final GroupEntity group = groupService.findById(executionContext, reference.getId());
-                            shouldNotify = !group.isDisableMembershipNotifications();
-                        } else if (MembershipReferenceType.API.equals(reference.getType())) {
-                            final GenericApiEntity api = apiSearchService.findGenericById(executionContext, reference.getId());
-                            shouldNotify = !api.isDisableMembershipNotifications();
-                        } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
-                            final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
-                            shouldNotify = !application.isDisableMembershipNotifications();
-                        }
                     }
+                }
+            }
+            Date updateDate = new Date();
+            MemberEntity userMember = null;
+            if (member.getMemberType() == MembershipMemberType.USER) {
+                UserEntity userEntity = findUserFromMembershipMember(executionContext, member);
+                io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
+                    UuidString.generateRandom(),
+                    userEntity.getId(),
+                    convert(member.getMemberType()),
+                    reference.getId(),
+                    convert(reference.getType()),
+                    roleEntity.getId()
+                );
+                membership.setSource(source);
+                membership.setCreatedAt(updateDate);
+                membership.setUpdatedAt(updateDate);
+                membershipRepository.create(membership);
+                createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
-                    if (shouldNotify) {
-                        EmailNotification emailNotification = buildEmailNotification(
+                if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
+                    applicationAlertService.addMemberToApplication(executionContext, reference.getId(), userEntity.getEmail());
+                }
+
+                Set<io.gravitee.repository.management.model.Membership> userRolesOnReference =
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                        userEntity.getId(),
+                        convert(member.getMemberType()),
+                        convert(reference.getType()),
+                        reference.getId()
+                    );
+                boolean shouldNotify =
+                    notify &&
+                    userRolesOnReference != null &&
+                    userRolesOnReference.size() == 1 &&
+                    userEntity.getEmail() != null &&
+                    !userEntity.getEmail().isEmpty();
+                if (shouldNotify) {
+                    if (MembershipReferenceType.GROUP.equals(reference.getType())) {
+                        final GroupEntity group = groupService.findById(executionContext, reference.getId());
+                        shouldNotify = !group.isDisableMembershipNotifications();
+                    } else if (MembershipReferenceType.API.equals(reference.getType())) {
+                        final GenericApiEntity api = apiSearchService.findGenericById(executionContext, reference.getId());
+                        shouldNotify = !api.isDisableMembershipNotifications();
+                    } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
+                        final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
+                        shouldNotify = !application.isDisableMembershipNotifications();
+                    }
+                }
+
+                if (shouldNotify) {
+                    EmailNotification emailNotification = buildEmailNotification(
+                        executionContext,
+                        userEntity,
+                        reference.getType(),
+                        reference.getId()
+                    );
+                    if (emailNotification != null) {
+                        final boolean isTrialInstance = parameterService.findAsBoolean(
                             executionContext,
-                            userEntity,
-                            reference.getType(),
-                            reference.getId()
+                            Key.TRIAL_INSTANCE,
+                            ParameterReferenceType.SYSTEM
                         );
-                        if (emailNotification != null) {
-                            final boolean isTrialInstance = parameterService.findAsBoolean(
-                                executionContext,
-                                Key.TRIAL_INSTANCE,
-                                ParameterReferenceType.SYSTEM
-                            );
-                            if (!isTrialInstance || userEntity.optedIn()) {
-                                try {
-                                    emailService.sendAsyncEmailNotification(executionContext, emailNotification);
-                                } catch (Exception e) {
-                                    LOGGER.error(
-                                        "An error occurs while trying to send email notification for {} {} {}",
-                                        reference.getType(),
-                                        reference.getId(),
-                                        userEntity.getId(),
-                                        e
-                                    );
-                                }
+                        if (!isTrialInstance || userEntity.optedIn()) {
+                            try {
+                                emailService.sendAsyncEmailNotification(executionContext, emailNotification);
+                            } catch (Exception e) {
+                                LOGGER.error(
+                                    "An error occurs while trying to send email notification for {} {} {}",
+                                    reference.getType(),
+                                    reference.getId(),
+                                    userEntity.getId(),
+                                    e
+                                );
                             }
                         }
                     }
-
-                    userMember = getUserMember(executionContext, reference.getType(), reference.getId(), userEntity.getId());
-                } else {
-                    io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
-                        UuidString.generateRandom(),
-                        member.getMemberId(),
-                        convert(member.getMemberType()),
-                        reference.getId(),
-                        convert(reference.getType()),
-                        roleEntity.getId()
-                    );
-                    membership.setSource(source);
-                    membership.setCreatedAt(updateDate);
-                    membership.setUpdatedAt(updateDate);
-                    membershipRepository.create(membership);
-                    createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
                 }
 
-                roles.invalidate(reference.getType().name() + reference.getId() + member.getMemberType() + member.getMemberId());
-
-                return userMember;
+                userMember = getUserMember(executionContext, reference.getType(), reference.getId(), userEntity.getId());
             } else {
-                throw new RoleNotFoundException(role.getScope().name() + "_" + role.getName());
+                io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
+                    UuidString.generateRandom(),
+                    member.getMemberId(),
+                    convert(member.getMemberType()),
+                    reference.getId(),
+                    convert(reference.getType()),
+                    roleEntity.getId()
+                );
+                membership.setSource(source);
+                membership.setCreatedAt(updateDate);
+                membership.setUpdatedAt(updateDate);
+                membershipRepository.create(membership);
+                createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
+
+            roles.invalidate(reference.getType().name() + reference.getId() + member.getMemberType() + member.getMemberId());
+
+            return userMember;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add member for {} {}", reference.getType(), reference.getId(), ex);
             throw new TechnicalManagementException(
@@ -588,16 +581,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
      * assert that the role's scope is allowed for the given reference
      */
     private void assertRoleScopeAllowedForReference(MembershipReference reference, RoleEntity roleEntity) {
-        if (
-            (MembershipReferenceType.API == reference.getType() && RoleScope.API != roleEntity.getScope()) ||
-            (MembershipReferenceType.APPLICATION == reference.getType() && RoleScope.APPLICATION != roleEntity.getScope()) ||
-            (
-                MembershipReferenceType.GROUP == reference.getType() &&
-                RoleScope.GROUP != roleEntity.getScope() &&
-                RoleScope.API != roleEntity.getScope() &&
-                RoleScope.APPLICATION != roleEntity.getScope()
-            )
-        ) {
+        if (!reference.getType().allowedRoleScope(roleEntity.getScope())) {
             throw new NotAuthorizedMembershipException(roleEntity.getName());
         }
     }

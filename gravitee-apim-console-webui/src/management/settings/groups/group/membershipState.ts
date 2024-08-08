@@ -24,6 +24,7 @@ export enum RoleName {
 export enum RoleScope {
   API = 'API',
   APPLICATION = 'APPLICATION',
+  INTEGRATION = 'INTEGRATION',
 }
 
 export type Roles = {
@@ -42,16 +43,16 @@ export class MemberState {
     private previousMemberState,
   ) {}
 
-  wasPrimaryOwner(): boolean {
-    return !this.isNewMember() && this.previousMemberState.roles[RoleScope.API] === RoleName.PRIMARY_OWNER;
+  wasPrimaryOwner(scope: RoleScope): boolean {
+    return !this.isNewMember() && this.previousMemberState.roles[scope] === RoleName.PRIMARY_OWNER;
   }
 
-  isPrimaryOwner(): boolean {
-    return this.member.roles[RoleScope.API] === RoleName.PRIMARY_OWNER;
+  isPrimaryOwner(scope: RoleScope): boolean {
+    return this.member.roles[scope] === RoleName.PRIMARY_OWNER;
   }
 
-  isApiRoleUpdate(): boolean {
-    return this.isNewMember() || this.previousMemberState.roles[RoleScope.API] !== this.member.roles[RoleScope.API];
+  isRoleUpdate(scope: RoleScope): boolean {
+    return this.isNewMember() || this.previousMemberState.roles[scope] !== this.member.roles[scope];
   }
 
   isNewMember(): boolean {
@@ -64,6 +65,12 @@ export class MemberState {
 
   getCurrentState(): Member {
     return this.member;
+  }
+
+  getPrimaryOwnerScopes() {
+    return Object.entries(this.member.roles)
+      .filter(([, roleName]) => roleName === RoleName.PRIMARY_OWNER)
+      .map(([roleScope]) => roleScope);
   }
 }
 
@@ -78,12 +85,12 @@ export class MembershipState {
     return new MemberState(cloneDeep(member), this.findByRef(member));
   }
 
-  getPrimaryOwner(): Member {
-    return this.members.find((member) => member.roles[RoleScope.API] === RoleName.PRIMARY_OWNER);
+  getPrimaryOwner(scope: RoleScope): Member {
+    return this.members.find((member) => member.roles[scope] === RoleName.PRIMARY_OWNER);
   }
 
-  hasPrimaryOwner(): boolean {
-    return this.members.some((member) => member.roles[RoleScope.API] === RoleName.PRIMARY_OWNER);
+  hasPrimaryOwner(scope: RoleScope): boolean {
+    return this.members.some((member) => member.roles[scope] === RoleName.PRIMARY_OWNER);
   }
 
   findByRef(memberRef): Member | undefined {
@@ -98,18 +105,25 @@ export class MembershipState {
     this.members.push(cloneDeep(member));
   }
 
-  isPrimaryOwnerDemotion(member: Member): boolean {
+  isPrimaryOwnerDemotion(member: Member, scope: RoleScope): boolean {
     const memberState = this.stateOf(member);
-    return memberState.isApiRoleUpdate() && memberState.wasPrimaryOwner();
+    return memberState.isRoleUpdate(scope) && memberState.wasPrimaryOwner(scope);
   }
 
-  isPrimaryOwnerPromotion(member: Member): boolean {
+  isPrimaryOwnerPromotion(member: Member, scope: RoleScope): boolean {
     const memberState = this.stateOf(member);
-    return memberState.isApiRoleUpdate() && memberState.isPrimaryOwner() && this.hasPrimaryOwner();
+    return memberState.isRoleUpdate(scope) && memberState.isPrimaryOwner(scope) && this.hasPrimaryOwner(scope);
   }
 
   isNewMember(member: Member): boolean {
     return !this.findByRef(member);
+  }
+
+  primaryOwnerWithScopes(scopes: RoleScope[]) {
+    return scopes.map((scope) => ({
+      member: this.getPrimaryOwner(scope),
+      roleScope: scope,
+    }));
   }
 
   sync(members: Member[]): void {
