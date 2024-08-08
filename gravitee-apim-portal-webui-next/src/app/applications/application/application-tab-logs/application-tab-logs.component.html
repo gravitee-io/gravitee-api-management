@@ -61,8 +61,36 @@
           }
         </mat-select>
       </mat-form-field>
+      <div class="filters__row-one__separator"></div>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@applicationLogsResponsePeriod">Period</mat-label>
+        <mat-select (selectionChange)="selectPeriod($event)" [value]="filters().period" aria-label="Filter by Period">
+          @for (period of periods; track period.value) {
+            <mat-option [value]="period">
+              <span i18n="@@applicationLogsLast">Last </span>
+              @switch (period.unit) {
+                @case ('MINUTE') {
+                  <span i18n="@@applicationLogsMinute">{period.period, plural, =0 {} =1 {minute} other {{{period.period}} minutes}}</span>
+                }
+                @case ('HOUR') {
+                  <span i18n="@@applicationLogsHour">{period.period, plural, =0 {} =1 {hour} other {{{period.period}} hours}}</span>
+                }
+                @case ('DAY') {
+                  <span i18n="@@applicationLogsDay">{period.period, plural, =0 {} =1 {day} other {{{period.period}} days}}</span>
+                }
+              }
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
     </div>
-    <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine" aria-label="Apply filters">
+    <button
+      mat-flat-button
+      class="filters__row-one__search-btn"
+      color="primary"
+      (click)="search()"
+      [disabled]="filtersPristine()"
+      aria-label="Apply filters">
       <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
     </button>
   </div>
@@ -70,7 +98,7 @@
     <div class="m3-body-medium filters__row-two__filter-summary">
       <div i18n="@@applicatonLogsFiltersApplied">Filters applied:</div>
       <div class="filters__row-two__filter-summary__chips">
-        @if (filtersIsEmpty()) {
+        @if (noFiltersApplied()) {
           <span i18n="@@applicatonLogsNoFiltersApplied">None</span>
         } @else {
           @if (filters().apis) {
@@ -101,7 +129,7 @@
         }
       </div>
     </div>
-    <button mat-button (click)="resetFilters()" [disabled]="filtersIsEmpty()" aria-label="Reset filters">
+    <button mat-button (click)="resetFilters()" [disabled]="noFiltersApplied()" aria-label="Reset filters">
       <mat-icon>clear</mat-icon><span i18n="@@applicatonLogsResetFilters">Reset Filters</span>
     </button>
   </div>
