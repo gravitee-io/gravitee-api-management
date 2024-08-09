@@ -84,7 +84,7 @@ class ValidateCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(ENV_ID, any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(ENV_ID, spec.getId(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();

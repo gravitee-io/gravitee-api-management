@@ -15,15 +15,14 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
-import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -41,8 +40,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.support.CronExpression;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @DomainService
 public class DocumentationValidationDomainService {
@@ -76,7 +76,9 @@ public class DocumentationValidationDomainService {
 
     public void validateContent(String content, String apiId, String organizationId) {
         this.validateContentIsSafe(content);
-        this.validateTemplate(content, apiId, organizationId);
+        if (apiId != null) {
+            this.validateTemplate(content, apiId, organizationId);
+        }
     }
 
     public void validateContentIsSafe(String content) {
@@ -87,24 +89,29 @@ public class DocumentationValidationDomainService {
     }
 
     public void validateTemplate(String pageContent, String apiId, String organizationId) {
-        var metadata =
-            this.apiMetadataQueryService.findApiMetadata(apiId)
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
-                    )
-                );
+        try {
+            Api exitingApi = this.apiCrudService.get(apiId);
+            var metadata =
+                this.apiMetadataQueryService.findApiMetadata(apiId)
+                    .entrySet()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
+                        )
+                    );
 
-        var api = new ApiFreemarkerTemplate(
-            this.apiCrudService.get(apiId),
-            metadata,
-            apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId)
-        );
+            var api = new ApiFreemarkerTemplate(
+                exitingApi,
+                metadata,
+                apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId)
+            );
 
-        this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", api));
+            this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", api));
+        } catch (ApiNotFoundException e) {
+            log.debug("api doesn't exist [{}]. Template will not be validated", apiId);
+        }
     }
 
     public void parseOpenApiContent(String content) {

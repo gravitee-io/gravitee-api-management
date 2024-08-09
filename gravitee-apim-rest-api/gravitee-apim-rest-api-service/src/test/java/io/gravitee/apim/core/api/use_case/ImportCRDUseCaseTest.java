@@ -54,13 +54,10 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
-import inmemory.NoopSwaggerOpenApiResolver;
-import inmemory.NoopTemplateResolverDomainService;
 import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -97,7 +94,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
-import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
@@ -131,7 +127,6 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
@@ -197,7 +192,6 @@ class ImportCRDUseCaseTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -332,26 +326,6 @@ class ImportCRDUseCaseTest {
             workflowCrudService
         );
         updateApiDomainService = mock(UpdateApiDomainService.class);
-        var documentationValidationDomainService = new DocumentationValidationDomainService(
-            new HtmlSanitizerImpl(),
-            new NoopTemplateResolverDomainService(),
-            apiCrudService,
-            new NoopSwaggerOpenApiResolver(),
-            new ApiMetadataQueryServiceInMemory(),
-            new ApiPrimaryOwnerDomainService(
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
-            new ApiDocumentationDomainService(pageQueryService, planQueryService),
-            pageCrudService,
-            pageSourceDomainService,
-            groupQueryService,
-            roleQueryService
-        );
         PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
         var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
             pageCrudService,
@@ -412,7 +386,6 @@ class ImportCRDUseCaseTest {
                 apiMetadataDomainService,
                 pageQueryService,
                 pageCrudService,
-                documentationValidationDomainService,
                 createApiDocumentationDomainService,
                 updateApiDocumentationDomainService,
                 crdValidator

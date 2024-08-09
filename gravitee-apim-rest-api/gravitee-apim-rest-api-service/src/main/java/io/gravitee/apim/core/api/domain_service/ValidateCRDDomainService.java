@@ -78,7 +78,9 @@ public class ValidateCRDDomainService implements Validator<ValidateCRDDomainServ
             .peek(sanitized -> sanitizedBuilder.resources(sanitized.resources()), errors::addAll);
 
         pagesValidator
-            .validateAndSanitize(new ValidatePagesDomainService.Input(input.auditInfo.organizationId(), input.spec.getPages()))
+            .validateAndSanitize(
+                new ValidatePagesDomainService.Input(input.auditInfo.organizationId(), input.spec.getId(), input.spec.getPages())
+            )
             .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
         return Validator.Result.ofBoth(new ValidateCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
