@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component, inject, Inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS, provideNativeDateAdapter } from '@angular/material/core';
+import { MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS, MatOption, provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelect } from '@angular/material/select';
+
+import { ApplicationTabLogsService, HttpStatusVM } from '../../application-tab-logs.service';
 
 export interface MoreFiltersDialogData {
   startDate?: number;
   endDate?: number;
   requestId?: string;
   transactionId?: string;
+  httpStatuses?: HttpStatusVM[];
 }
 
 @Component({
@@ -40,6 +44,8 @@ export interface MoreFiltersDialogData {
     MatIconModule,
     ReactiveFormsModule,
     FormsModule,
+    MatSelect,
+    MatOption,
   ],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_FORMATS, useValue: MAT_NATIVE_DATE_FORMATS }],
   selector: 'app-more-filters-dialog',
@@ -52,6 +58,9 @@ export class MoreFiltersDialogComponent {
   endDate: Date | undefined;
   requestId: string | undefined;
   transactionId: string | undefined;
+  httpStatuses: string[] | undefined;
+
+  httpStatusChoices = inject(ApplicationTabLogsService).httpStatuses;
 
   private readonly initialData: MoreFiltersDialogData;
 
@@ -65,6 +74,7 @@ export class MoreFiltersDialogComponent {
     this.endDate = dialogData.endDate ? new Date(dialogData.endDate) : undefined;
     this.requestId = dialogData.requestId ?? '';
     this.transactionId = dialogData.transactionId ?? '';
+    this.httpStatuses = dialogData.httpStatuses?.map(hs => hs.value) ?? [];
   }
 
   onCancel() {
@@ -72,11 +82,14 @@ export class MoreFiltersDialogComponent {
   }
 
   onApply() {
+    const httpStatuses = this.httpStatusChoices.filter(x => this.httpStatuses?.includes(x.value));
+
     this.dialogRef.close({
       startDate: this.startDate?.getTime(),
       endDate: this.endDate?.getTime(),
       requestId: this.requestId,
       transactionId: this.transactionId,
+      ...(this.httpStatuses ? { httpStatuses } : {}),
     });
   }
 

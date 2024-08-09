@@ -994,6 +994,59 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('HTTP Statuses', () => {
+      describe('One method in query params', () => {
+        const OK = '200';
+        beforeEach(async () => {
+          await init({ httpStatuses: OK });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(status:\\"${OK}\\")`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have HTTP Status pre-selected', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(1);
+          expect(await filterChips[0].getText()).toEqual('HTTP Status: 200 - OK');
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const httpStatusSelection = await dialog.getHttpStatusSelection();
+          expect(await httpStatusSelection.getValueText()).toEqual('200 - OK');
+        });
+
+        it('should select 404 HTTP Status filter', async () => {
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const httpStatusSelection = await dialog.getHttpStatusSelection();
+          await httpStatusSelection.open();
+          await httpStatusSelection.clickOptions({ text: '404 - Not Found' });
+          expect(await httpStatusSelection.getValueText()).toEqual('200 - OK, 404 - Not Found');
+
+          await dialog.applyFilters();
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[1].getText()).toEqual('HTTP Status: 404 - Not Found');
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(status:\\"${OK}\\" OR \\"404\\")`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {

@@ -71,6 +71,7 @@ interface FiltersVM {
   from?: number;
   requestId?: string;
   transactionId?: string;
+  httpStatuses?: HttpStatusVM[];
 }
 
 @Component({
@@ -130,6 +131,7 @@ export class ApplicationTabLogsComponent implements OnInit {
   httpMethods: HttpMethodVM[] = inject(ApplicationTabLogsService).httpMethods;
   responseTimes: ResponseTimeVM[] = inject(ApplicationTabLogsService).responseTimes;
   periods: PeriodVM[] = inject(ApplicationTabLogsService).periods;
+  httpStatuses: HttpStatusVM[] = inject(ApplicationTabLogsService).httpStatuses;
 
   displayedColumns: string[] = ['api', 'timestamp', 'httpMethod', 'responseStatus'];
 
@@ -168,7 +170,9 @@ export class ApplicationTabLogsComponent implements OnInit {
         const requestId: string | undefined = queryParams['requestId'];
         const transactionId: string | undefined = queryParams['transactionId'];
 
-        return { page, apis, methods, responseTimes, period, from, to, requestId, transactionId };
+        const httpStatuses: string[] = this.mapQueryParamToStringArray(queryParams['httpStatuses']);
+
+        return { page, apis, methods, responseTimes, period, from, to, requestId, transactionId, httpStatuses };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
@@ -263,6 +267,7 @@ export class ApplicationTabLogsComponent implements OnInit {
           endDate: this.filters().to,
           requestId: this.filters().requestId,
           transactionId: this.filters().transactionId,
+          httpStatuses: this.filters().httpStatuses,
         },
       })
       .afterClosed()
@@ -275,6 +280,7 @@ export class ApplicationTabLogsComponent implements OnInit {
             to: dialogFilters?.endDate,
             requestId: dialogFilters?.requestId,
             transactionId: dialogFilters?.transactionId,
+            httpStatuses: dialogFilters?.httpStatuses,
           }));
         },
       });
@@ -289,6 +295,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     const to = this.filters().to;
     const requestId = this.filters().requestId;
     const transactionId = this.filters().transactionId;
+    const httpStatuses: string[] = this.filters().httpStatuses?.map(rt => rt.value) ?? [];
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -302,6 +309,7 @@ export class ApplicationTabLogsComponent implements OnInit {
         ...(to ? { to } : {}),
         ...(requestId ? { requestId } : {}),
         ...(transactionId ? { transactionId } : {}),
+        ...(httpStatuses.length ? { httpStatuses } : {}),
       },
     });
   }
@@ -316,6 +324,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     to?: number;
     requestId?: string;
     transactionId?: string;
+    httpStatuses: string[];
   }): void {
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
@@ -323,6 +332,8 @@ export class ApplicationTabLogsComponent implements OnInit {
     const responseTimes = this.responseTimes.filter(rt => params.responseTimes.includes(rt.value));
 
     const period = this.periods.find(p => p.value === params.period);
+
+    const httpStatuses = this.httpStatuses.filter(hs => params.httpStatuses.includes(hs.value));
 
     this.filters.update(filters => ({
       ...filters,
@@ -333,6 +344,7 @@ export class ApplicationTabLogsComponent implements OnInit {
       ...(params.to ? { to: params.to } : {}),
       ...(params.requestId ? { requestId: params.requestId } : {}),
       ...(params.transactionId ? { transactionId: params.transactionId } : {}),
+      ...(httpStatuses.length ? { httpStatuses } : {}),
     }));
     this.filtersInitialValue = this.filters();
   }
