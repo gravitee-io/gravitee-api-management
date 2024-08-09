@@ -209,7 +209,7 @@ public class GroupMembersResource extends AbstractResource {
                     .stream()
                     .map(GroupMembership::getId)
                     .filter(s -> {
-                        final List<String> membershipIdsToSave = members.stream().map(MemberEntity::getId).collect(toList());
+                        final List<String> membershipIdsToSave = members.stream().map(MemberEntity::getId).toList();
                         return !membershipIdsToSave.contains(s);
                     })
                     .count();
@@ -226,6 +226,7 @@ public class GroupMembersResource extends AbstractResource {
             RoleEntity previousApiRole = null;
             RoleEntity previousApplicationRole = null;
             RoleEntity previousGroupRole = null;
+            RoleEntity previousIntegrationRole = null;
 
             if (membership.getId() != null) {
                 Set<RoleEntity> userRoles = membershipService.getRoles(
@@ -244,6 +245,9 @@ public class GroupMembersResource extends AbstractResource {
                             break;
                         case GROUP:
                             previousGroupRole = role;
+                            break;
+                        case INTEGRATION:
+                            previousIntegrationRole = role;
                             break;
                         default:
                             break;
@@ -343,6 +347,45 @@ public class GroupMembersResource extends AbstractResource {
                         );
                     }
                 }
+
+                RoleEntity integrationRoleEntity = roleEntities.get(RoleScope.INTEGRATION);
+                if (integrationRoleEntity != null && !integrationRoleEntity.equals(previousIntegrationRole)) {
+                    String roleName = integrationRoleEntity.getName();
+                    if (!hasPermission) {
+                        if (groupEntity.getRoles() != null && !groupEntity.getRoles().isEmpty()) {
+                            roleName = groupEntity.getRoles().get(RoleScope.INTEGRATION);
+                        } else {
+                            final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
+                                GraviteeContext.getCurrentOrganization(),
+                                RoleScope.INTEGRATION
+                            );
+                            if (defaultRoles != null && !defaultRoles.isEmpty()) {
+                                roleName = defaultRoles.get(0).getName();
+                            }
+                        }
+                    }
+                    updatedMembership =
+                        membershipService.addRoleToMemberOnReference(
+                            executionContext,
+                            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
+                            new MembershipService.MembershipMember(
+                                membership.getId(),
+                                membership.getReference(),
+                                MembershipMemberType.USER
+                            ),
+                            new MembershipService.MembershipRole(RoleScope.INTEGRATION, roleName)
+                        );
+                    if (previousIntegrationRole != null) {
+                        membershipService.removeRole(
+                            MembershipReferenceType.GROUP,
+                            group,
+                            MembershipMemberType.USER,
+                            updatedMembership.getId(),
+                            previousIntegrationRole.getId()
+                        );
+                    }
+                }
+
                 RoleEntity groupRoleEntity = roleEntities.get(RoleScope.GROUP);
                 if (groupRoleEntity != null && !groupRoleEntity.equals(previousGroupRole)) {
                     updatedMembership =
@@ -368,36 +411,20 @@ public class GroupMembersResource extends AbstractResource {
                 }
 
                 // Delete if existing and new role is empty
-                if (apiRoleEntity == null && previousApiRole != null) {
-                    membershipService.removeRole(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        MembershipMemberType.USER,
-                        membership.getId(),
-                        previousApiRole.getId()
-                    );
-                }
-                if (applicationRoleEntity == null && previousApplicationRole != null) {
-                    membershipService.removeRole(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        MembershipMemberType.USER,
-                        membership.getId(),
-                        previousApplicationRole.getId()
-                    );
-                }
-                if (groupRoleEntity == null && previousGroupRole != null) {
-                    membershipService.removeRole(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        MembershipMemberType.USER,
-                        membership.getId(),
-                        previousGroupRole.getId()
-                    );
-                }
+                var membershipId = membership.getId();
+                deleteIfNewAndPreviousRoleNull(apiRoleEntity, previousApiRole, membershipId);
+                deleteIfNewAndPreviousRoleNull(applicationRoleEntity, previousApplicationRole, membershipId);
+                deleteIfNewAndPreviousRoleNull(integrationRoleEntity, previousIntegrationRole, membershipId);
+                deleteIfNewAndPreviousRoleNull(groupRoleEntity, previousGroupRole, membershipId);
 
                 // Send notification
-                if (previousApiRole == null && previousApplicationRole == null && previousGroupRole == null && updatedMembership != null) {
+                if (
+                    previousApiRole == null &&
+                    previousApplicationRole == null &&
+                    previousGroupRole == null &&
+                    previousIntegrationRole == null &&
+                    updatedMembership != null
+                ) {
                     UserEntity userEntity = this.userService.findById(executionContext, updatedMembership.getId());
                     Map<String, Object> params = new HashMap<>();
                     params.put("group", groupEntity);
@@ -413,6 +440,18 @@ public class GroupMembersResource extends AbstractResource {
         );
 
         return Response.ok().build();
+    }
+
+    private void deleteIfNewAndPreviousRoleNull(RoleEntity newRole, RoleEntity previousRole, String membershipId) {
+        if (newRole == null && previousRole != null) {
+            membershipService.removeRole(
+                MembershipReferenceType.GROUP,
+                group,
+                MembershipMemberType.USER,
+                membershipId,
+                previousRole.getId()
+            );
+        }
     }
 
     @Path("{member}")
