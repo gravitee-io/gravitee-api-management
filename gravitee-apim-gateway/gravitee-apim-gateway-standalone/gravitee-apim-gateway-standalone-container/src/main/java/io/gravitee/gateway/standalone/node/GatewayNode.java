@@ -26,13 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GatewayNode extends AbstractNode {
+
+    public static final String APPLICATION_NAME = "gio-apim-gateway";
 
     @Autowired
     private NodeMetadataResolver nodeMetadataResolver;
@@ -46,7 +47,7 @@ public class GatewayNode extends AbstractNode {
 
     @Override
     public String application() {
-        return "gio-apim-gateway";
+        return APPLICATION_NAME;
     }
 
     @Override

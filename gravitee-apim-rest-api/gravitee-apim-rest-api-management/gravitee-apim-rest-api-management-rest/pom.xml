@@ -68,11 +68,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.gravitee.common</groupId>
-			<artifactId>gravitee-common</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>io.gravitee.el</groupId>
 			<artifactId>gravitee-expression-language</artifactId>
 		</dependency>

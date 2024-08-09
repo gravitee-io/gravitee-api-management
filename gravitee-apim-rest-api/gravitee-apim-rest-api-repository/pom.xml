@@ -46,11 +46,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.gravitee.common</groupId>
-			<artifactId>gravitee-common</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-core</artifactId>
 		</dependency>
