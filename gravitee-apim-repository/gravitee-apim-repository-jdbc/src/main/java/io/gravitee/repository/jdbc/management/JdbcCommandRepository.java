@@ -257,7 +257,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             commands =
                 commands
                     .stream()
-                    .filter(command -> command.getTags() != null && command.getTags().containsAll(Arrays.asList(criteria.getTags())))
+                    .filter(command ->
+                        command.getTags() != null && command.getTags().stream().anyMatch(Arrays.asList(criteria.getTags())::contains)
+                    )
                     .collect(Collectors.toList());
         }
 
