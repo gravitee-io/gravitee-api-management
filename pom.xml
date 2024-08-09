@@ -67,7 +67,7 @@
         <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.5.1</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
-        <gravitee-node.version>6.0.4</gravitee-node.version>
+        <gravitee-node.version>6.1.0-archi-352-identify-workload-SNAPSHOT</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>4.1.0</gravitee-plugin.version>
         <gravitee-platform-repository-api.version>1.3.0</gravitee-platform-repository-api.version>
@@ -1118,26 +1118,10 @@
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -1149,11 +1133,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
