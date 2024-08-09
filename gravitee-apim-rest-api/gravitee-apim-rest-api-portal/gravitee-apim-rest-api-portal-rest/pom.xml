@@ -142,10 +142,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>io.gravitee.common</groupId>
-			<artifactId>gravitee-common</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>io.gravitee.el</groupId>

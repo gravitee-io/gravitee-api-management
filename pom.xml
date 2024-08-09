@@ -67,7 +67,7 @@
         <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.5.1</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
-        <gravitee-node.version>6.0.4</gravitee-node.version>
+        <gravitee-node.version>6.3.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>4.1.0</gravitee-plugin.version>
         <gravitee-platform-repository-api.version>1.3.0</gravitee-platform-repository-api.version>
@@ -80,7 +80,7 @@
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <gravitee-kubernetes.version>3.3.1</gravitee-kubernetes.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
-        <gravitee-cloud-initializer.version>1.0.0</gravitee-cloud-initializer.version>
+        <gravitee-cloud-initializer.version>2.0.0</gravitee-cloud-initializer.version>
         <!-- Other dependencies version -->
         <angus-mail.version>2.0.3</angus-mail.version>
         <angus-activation.version>2.0.2</angus-activation.version>
