@@ -137,6 +137,9 @@
               </mat-chip>
             }
           }
+          @if (filters().requestId) {
+            <mat-chip><span i18n="@@applicationLogsRequestId">Request ID</span>: {{ filters().requestId }}</mat-chip>
+          }
         }
       </div>
     </div>

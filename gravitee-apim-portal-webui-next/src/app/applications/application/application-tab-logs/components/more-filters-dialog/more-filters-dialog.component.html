@@ -37,6 +37,12 @@
         <mat-datepicker #endPicker></mat-datepicker>
       </mat-form-field>
     </div>
+    <div class="content__row">
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@moreFiltersDialogRequestId">Request ID</mat-label>
+        <input matInput [(ngModel)]="requestId" aria-label="Filter by Request ID" />
+      </mat-form-field>
+    </div>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>
