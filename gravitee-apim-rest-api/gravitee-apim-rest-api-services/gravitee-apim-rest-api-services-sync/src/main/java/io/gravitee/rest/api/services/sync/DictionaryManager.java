@@ -74,8 +74,7 @@ public class DictionaryManager {
      */
     public void stop(String dictionaryId) {
         try {
-            DictionaryEntity dictionary = new DictionaryEntity();
-            dictionary.setId(dictionaryId);
+            DictionaryEntity dictionary = DictionaryEntity.builder().id(dictionaryId).build();
             eventManager.publishEvent(DictionaryEvent.STOP, dictionary);
 
             dictionaries.remove(dictionaryId);

@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterPkMongo;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -31,4 +32,7 @@ import org.springframework.stereotype.Repository;
 public interface ParameterMongoRepository extends MongoRepository<ParameterMongo, ParameterPkMongo> {
     @Query("{ '_id.referenceId': ?0, '_id.referenceType': ?1 }")
     List<ParameterMongo> findAll(String referenceId, String referenceType);
+
+    @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1 }", delete = true)
+    Set<ParameterMongo> deleteByReferenceIdAndReferenceType(String referenceId, String name);
 }

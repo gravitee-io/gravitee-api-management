@@ -16,19 +16,22 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.ApiHeader;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiHeaderTest extends AbstractManagementRepositoryTest {
+public class ApiHeaderRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
     protected String getTestCasesPath() {
@@ -38,7 +41,7 @@ public class ApiHeaderTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindAll() throws Exception {
         Set<ApiHeader> all = apiHeaderRepository.findAll();
-        assertEquals(3, all.size());
+        assertEquals(5, all.size());
     }
 
     @Test
@@ -81,5 +84,19 @@ public class ApiHeaderTest extends AbstractManagementRepositoryTest {
         assertEquals(up.getOrder(), updated.get().getOrder());
         assertTrue(compareDate(up.getCreatedAt(), updated.get().getCreatedAt()));
         assertTrue(compareDate(up.getUpdatedAt(), updated.get().getUpdatedAt()));
+    }
+
+    @Test
+    public void shouldDeleteByEnvironmentId() throws Exception {
+        Set<ApiHeader> apiHeaderBeforeDeletion = apiHeaderRepository.findAllByEnvironment("ToBeDeleted");
+        assertEquals(2, apiHeaderBeforeDeletion.size());
+
+        List<String> deletedApiHeaderIds = apiHeaderRepository.deleteByEnvironment("ToBeDeleted");
+
+        assertThat(deletedApiHeaderIds).containsOnly("3", "4");
+        assertEquals(
+            0,
+            apiHeaderRepository.findAll().stream().filter(apiHeader -> "ToBeDeleted".equals(apiHeader.getEnvironmentId())).count()
+        );
     }
 }

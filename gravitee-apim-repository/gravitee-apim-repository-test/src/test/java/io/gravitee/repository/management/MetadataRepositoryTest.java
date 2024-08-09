@@ -135,4 +135,14 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         metadataRepository.update(null);
         fail("A null metadata should not be updated");
     }
+
+    @Test
+    public void shouldDeleteByReferenceTypeAndReferenceId() throws Exception {
+        Assert.assertEquals(2, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+
+        List<String> metadataIds = metadataRepository.deleteByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete");
+
+        assertEquals(2, metadataIds.size());
+        Assert.assertEquals(0, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+    }
 }

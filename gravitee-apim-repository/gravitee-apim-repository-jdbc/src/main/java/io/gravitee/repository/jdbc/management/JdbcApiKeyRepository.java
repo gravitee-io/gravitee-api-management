@@ -244,6 +244,24 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         return findById(id);
     }
 
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApiKeyRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+            jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            rows.forEach(keyId -> jdbcTemplate.update("delete from " + keySubscriptions + " where key_id = ?", keyId));
+            LOGGER.debug("JdbcApiKeyRepository.deleteByEnvironment({}) = {}", environmentId, rows);
+            return rows;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete api keys by environment", ex);
+        }
+    }
+
     private boolean addClause(boolean first, StringBuilder query) {
         if (first) {
             query.append(" where ");

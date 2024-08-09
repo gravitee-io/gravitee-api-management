@@ -353,4 +353,30 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             throw new TechnicalException("Failed to find plans by id list", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+
+            rows.forEach(id -> {
+                jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id = ?", id);
+                jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id = ?", id);
+                jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?", id);
+            });
+            LOGGER.debug("JdbcPlanRepository.deleteByEnvironment({}) = {}", environmentId, rows);
+            return rows;
+        } catch (final Exception ex) {
+            String message = String.format("Failed to delete by environment (%s)", environmentId);
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
 }

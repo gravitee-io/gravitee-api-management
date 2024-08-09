@@ -34,10 +34,12 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
@@ -636,5 +638,22 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotExist() throws TechnicalException {
         boolean exist = apiRepository.existById("unknown-api");
         assertFalse(exist);
+    }
+
+    @Test
+    public void shouldDeleteByEnvironmentId() throws TechnicalException {
+        List<Api> apiBeforeDeletion = apiRepository.search(
+            new ApiCriteria.Builder().environmentId("DEFAULT").build(),
+            ApiFieldFilter.defaultFields()
+        );
+        assertEquals(2, apiBeforeDeletion.size());
+
+        List<String> apiIdsDeleted = apiRepository.deleteByEnvironment("DEFAULT");
+
+        assertEquals(2, apiIdsDeleted.size());
+        assertEquals(
+            0,
+            apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields()).size()
+        );
     }
 }

@@ -19,6 +19,7 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,6 +46,10 @@ public class ExecutionContext {
 
     public ExecutionContext(String organizationId) {
         this(organizationId, null);
+    }
+
+    public ExecutionContext(OrganizationEntity organization) {
+        this(organization.getId(), null);
     }
 
     public ExecutionContext(EnvironmentEntity environment) {

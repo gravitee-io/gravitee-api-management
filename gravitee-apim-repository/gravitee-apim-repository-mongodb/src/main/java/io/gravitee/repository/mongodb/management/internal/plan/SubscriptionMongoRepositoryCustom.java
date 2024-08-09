@@ -20,8 +20,11 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
+import java.util.List;
 import java.util.Set;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**

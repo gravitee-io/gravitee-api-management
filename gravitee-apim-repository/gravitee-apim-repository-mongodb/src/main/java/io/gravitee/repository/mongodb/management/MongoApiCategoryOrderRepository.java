@@ -19,12 +19,15 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.model.ApiCategoryOrder;
 import io.gravitee.repository.mongodb.management.internal.api.ApiCategoryOrderMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderPkMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,6 +136,14 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
         LOGGER.debug("Find all ApiCategoryOrder by api id [{}] -- Done", apiId);
 
         return mapper.map(allByApiId);
+    }
+
+    @Override
+    public List<String> deleteByApiId(String apiId) throws TechnicalException {
+        LOGGER.debug("Delete all by api id [{}]", apiId);
+        var allByApiId = internalApiCategoryOrderRepo.deleteByApiId(apiId);
+        LOGGER.debug("Delete all by api id [{}] -- Done", apiId);
+        return allByApiId.stream().map(apiCategoryOrderMongo -> apiCategoryOrderMongo.getId().getCategoryId()).collect(Collectors.toList());
     }
 
     @Override

@@ -145,6 +145,14 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     }
 
     @Override
+    public Document transformForDelete(UserEntity user) {
+        Document doc = new Document();
+        doc.add(new StringField(FIELD_ID, user.getId(), Field.Store.YES));
+        doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+        return doc;
+    }
+
+    @Override
     public boolean handle(Class<? extends Indexable> source) {
         return UserEntity.class.isAssignableFrom(source);
     }

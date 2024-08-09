@@ -24,9 +24,7 @@ import static org.mockito.Mockito.mock;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -91,6 +89,8 @@ public class SearchEngineServiceTest {
 
     @Autowired
     private SearchEngineService searchEngineService;
+
+    private static Map<String, ApiEntity> apisById = new HashMap<>();
 
     private static boolean isIndexed = false;
 
@@ -188,6 +188,22 @@ public class SearchEngineServiceTest {
         assertThat(matches.getHits()).isEqualTo(1);
 
         assertThat(matches.getDocuments()).containsExactly("api-1");
+    }
+
+    @Test
+    public void shouldNotFindWithExplicitNameFilterWhenDeleteDocument() {
+        Map<String, Object> filters = new HashMap<>();
+
+        searchEngineService.delete(GraviteeContext.getExecutionContext(), apisById.get("api-1"), true);
+
+        SearchResult matches = searchEngineService.search(
+            GraviteeContext.getExecutionContext(),
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
+        );
+        assertThat(matches.getHits()).isEqualTo(0);
+
+        // force reindex after delete
+        isIndexed = false;
     }
 
     @Test
@@ -666,6 +682,7 @@ public class SearchEngineServiceTest {
         }
 
         apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
+        apisById.put(apiEntity.getId(), apiEntity);
         return apiEntity;
     }
 

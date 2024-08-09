@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.mongodb.management.internal.model.AccessControlMongo;
+import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageMediaMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
@@ -190,6 +193,20 @@ public class MongoPageRepository implements PageRepository {
         } catch (Exception e) {
             logger.error("An error occurred when counting page by parent_id {}", parentId, e);
             throw new TechnicalException("An error occurred when counting page by parentId");
+        }
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(PageReferenceType referenceType, String referenceId) throws TechnicalException {
+        logger.debug("Delete by reference [{}, {}]", referenceType.name(), referenceId);
+        try {
+            List<PageMongo> pageMongos = internalPageRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name());
+            logger.debug("Delete by reference [{}, {}] = {}", referenceType.name(), referenceId, pageMongos);
+
+            return pageMongos.stream().map(PageMongo::getId).collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("An error occurs when deleting page by ref [{}, {}]", referenceId, referenceType, e);
+            throw new TechnicalException("An error occurs when page activation by ref");
         }
     }
 

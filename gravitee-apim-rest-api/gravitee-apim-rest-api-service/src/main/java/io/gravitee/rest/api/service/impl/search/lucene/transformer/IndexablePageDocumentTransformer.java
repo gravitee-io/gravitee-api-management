@@ -61,6 +61,14 @@ public class IndexablePageDocumentTransformer implements DocumentTransformer<Ind
     }
 
     @Override
+    public Document transformForDelete(IndexablePage indexable) {
+        var document = new Document();
+        document.add(new StringField(FIELD_ID, indexable.getId(), Field.Store.YES));
+        document.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+        return document;
+    }
+
+    @Override
     public boolean handle(Class<? extends Indexable> source) {
         return IndexablePage.class.isAssignableFrom(source);
     }

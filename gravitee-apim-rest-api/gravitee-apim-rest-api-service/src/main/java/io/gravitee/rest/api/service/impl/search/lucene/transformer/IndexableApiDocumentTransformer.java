@@ -163,6 +163,18 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         return doc;
     }
 
+    @Override
+    public Document transformForDelete(IndexableApi indexableApi) {
+        var api = indexableApi.getApi();
+
+        Document doc = new Document();
+
+        doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
+        doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+
+        return doc;
+    }
+
     private boolean accept(IndexableApi indexableApi) {
         Api api = indexableApi.getApi();
 

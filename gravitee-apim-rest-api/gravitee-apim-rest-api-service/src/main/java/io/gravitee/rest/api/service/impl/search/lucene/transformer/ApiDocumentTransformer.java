@@ -206,6 +206,14 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         return doc;
     }
 
+    @Override
+    public Document transformForDelete(GenericApiEntity api) {
+        Document doc = new Document();
+        doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
+        doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+        return doc;
+    }
+
     private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {
         doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
         doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));

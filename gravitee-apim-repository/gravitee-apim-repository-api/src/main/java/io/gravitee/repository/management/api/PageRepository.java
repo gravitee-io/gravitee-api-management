@@ -44,4 +44,14 @@ public interface PageRepository extends FindAllRepository<Page> {
     io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException;
 
     long countByParentIdAndIsPublished(String parentId) throws TechnicalException;
+
+    /**
+     * Delete pages by reference
+     *
+     * @param referenceType Page reference Type
+     * @param referenceId   Page reference id
+     * @return List of IDs for deleted pages
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(PageReferenceType referenceType, String referenceId) throws TechnicalException;
 }

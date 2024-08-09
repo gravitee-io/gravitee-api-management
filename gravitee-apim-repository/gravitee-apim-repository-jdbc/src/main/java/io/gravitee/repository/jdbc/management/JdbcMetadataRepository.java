@@ -212,4 +212,30 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
             throw new TechnicalException("Failed to find metadata by reference type and reference id", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId)
+        throws TechnicalException {
+        LOGGER.debug("JdbcMetadataRepository.deleteByReferenceTypeAndReferenceId({}, {})", referenceId, referenceType);
+        try {
+            var rows = jdbcTemplate.queryForList(
+                "select " + escapeReservedWord("key") + " from " + this.tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType.name(),
+                referenceId
+            );
+
+            jdbcTemplate.update(
+                "delete from " + this.tableName + " where reference_type = ? and reference_id = ? ",
+                referenceType.name(),
+                referenceId
+            );
+            LOGGER.debug("JdbcMetadataRepository.deleteByReferenceTypeAndReferenceId({}, {}) = {}", referenceId, referenceType, rows);
+            return rows;
+        } catch (final Exception ex) {
+            var message = String.format("Failed to delete metadata by ref (%s, %s)", referenceType, referenceId);
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
 }

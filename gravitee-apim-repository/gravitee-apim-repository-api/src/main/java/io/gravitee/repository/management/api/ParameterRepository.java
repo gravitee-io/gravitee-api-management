@@ -38,4 +38,14 @@ public interface ParameterRepository extends FindAllRepository<Parameter> {
     List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
 
     List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
+
+    /**
+     * Delete parameter by reference
+     *
+     * @param referenceType The parameter reference type
+     * @param referenceId   The parameter reference id
+     * @return List of keys for deleted parameter
+     * @throws TechnicalException
+     */
+    List<String> deleteByReferenceIdAndReferenceType(ParameterReferenceType referenceType, String referenceId) throws TechnicalException;
 }

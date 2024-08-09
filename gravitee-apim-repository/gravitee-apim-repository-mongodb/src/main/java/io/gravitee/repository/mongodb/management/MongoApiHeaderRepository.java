@@ -111,4 +111,16 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironmentId(environmentId);
         return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo)).collect(Collectors.toSet());
     }
+
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete by environment [{}]", environmentId);
+        try {
+            List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.deleteByEnvironmentId(environmentId);
+            LOGGER.debug("Delete by environment [{}] = {}", environmentId, apiHeaders);
+            return apiHeaders.stream().map(ApiHeaderMongo::getId).collect(Collectors.toList());
+        } catch (Exception ex) {
+            throw new TechnicalException(ex);
+        }
+    }
 }

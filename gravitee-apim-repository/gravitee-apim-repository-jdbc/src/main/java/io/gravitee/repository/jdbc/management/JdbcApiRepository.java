@@ -323,6 +323,29 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return result;
     }
 
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+            jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            rows.forEach(apiId -> {
+                jdbcTemplate.update("delete from " + API_LABELS + " where api_id = ?", apiId);
+                jdbcTemplate.update("delete from " + API_GROUPS + " where api_id = ?", apiId);
+                jdbcTemplate.update("delete from " + API_CATEGORIES + " where api_id = ?", apiId);
+            });
+
+            LOGGER.debug("JdbcApiRepository.deleteByEnvironment({}) = {}", environmentId, rows);
+            return rows;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete api by environment", ex);
+        }
+    }
+
     // Labels
     private void addLabels(Api parent) {
         List<String> labels = getLabels(parent.getId());

@@ -130,13 +130,17 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
-    public void delete(ExecutionContext executionContext, Indexable source) {
-        CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
-        content.setAction(ACTION_DELETE);
-        content.setId(source.getId());
-        content.setClazz(source.getClass().getName());
+    public void delete(ExecutionContext executionContext, Indexable source, boolean locally) {
+        if (locally) {
+            deleteLocally(source);
+        } else {
+            CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
+            content.setAction(ACTION_DELETE);
+            content.setId(source.getId());
+            content.setClazz(source.getClass().getName());
 
-        sendCommands(executionContext, content);
+            sendCommands(executionContext, content);
+        }
     }
 
     @Override
@@ -227,7 +231,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .findFirst()
             .ifPresent(transformer -> {
                 try {
-                    indexer.remove(transformer.transform(source));
+                    indexer.remove(transformer.transformForDelete(source));
                 } catch (TechnicalException te) {
                     logger.error("Unexpected error while deleting a document", te);
                 }

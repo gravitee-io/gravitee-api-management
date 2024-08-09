@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiHeaderMongo;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -29,4 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface ApiHeaderMongoRepository extends MongoRepository<ApiHeaderMongo, String> {
     @Query("{ environmentId: ?0 }")
     List<ApiHeaderMongo> findByEnvironmentId(String environmentId);
+
+    @Query(value = "{ 'environmentId': ?0 }", delete = true)
+    List<ApiHeaderMongo> deleteByEnvironmentId(String environmentId);
 }

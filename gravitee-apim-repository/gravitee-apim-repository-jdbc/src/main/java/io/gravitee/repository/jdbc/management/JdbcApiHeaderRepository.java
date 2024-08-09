@@ -76,4 +76,22 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
             throw new TechnicalException("Failed to find api headers by environment", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApiHeaderRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            LOGGER.debug("JdbcApiHeaderRepository.deleteByEnvironment({}) = {}", environmentId, rows);
+            return rows;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete api headers by environment", ex);
+        }
+    }
 }

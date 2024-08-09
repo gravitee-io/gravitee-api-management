@@ -55,4 +55,7 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
 
     @Query("{ environmentId: ?0 }")
     List<ApplicationMongo> findAllByEnvironmentId(String environmentId);
+
+    @Query(value = "{ environmentId: ?0 }", delete = true)
+    List<ApplicationMongo> deleteByEnvironment(String environmentId);
 }

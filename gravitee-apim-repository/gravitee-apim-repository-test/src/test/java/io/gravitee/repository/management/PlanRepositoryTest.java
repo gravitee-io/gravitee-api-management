@@ -25,8 +25,10 @@ import static org.junit.Assert.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ApiHeader;
 import io.gravitee.repository.management.model.Plan;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -422,5 +424,20 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         planRepository.update(null);
         fail("A null plan should not be updated");
+    }
+
+    @Test
+    public void shouldDeleteByEnvironmentId() throws Exception {
+        Set<Plan> planBeforeDeletion = planRepository
+            .findAll()
+            .stream()
+            .filter(apiHeader -> "ToBeDeleted".equals(apiHeader.getEnvironmentId()))
+            .collect(Collectors.toSet());
+        assertEquals(2, planBeforeDeletion.size());
+
+        List<String> deleted = planRepository.deleteByEnvironment("ToBeDeleted");
+
+        assertThat(deleted).containsOnly("plan-deleted-1", "plan-deleted-2");
+        assertEquals(0, planRepository.findAll().stream().filter(apiHeader -> "ToBeDeleted".equals(apiHeader.getEnvironmentId())).count());
     }
 }

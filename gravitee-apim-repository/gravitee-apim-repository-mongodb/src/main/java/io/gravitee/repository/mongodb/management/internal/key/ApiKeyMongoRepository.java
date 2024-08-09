@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.key;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -38,4 +39,7 @@ public interface ApiKeyMongoRepository extends MongoRepository<ApiKeyMongo, Stri
     List<ApiKeyMongo> findByApplication(String applicationId);
 
     List<ApiKeyMongo> findByKey(String key);
+
+    @Query(value = "{ environmentId: ?0 }", delete = true)
+    List<ApiKeyMongo> deleteByEnvironment(String environmentId);
 }

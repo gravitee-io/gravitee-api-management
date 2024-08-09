@@ -212,4 +212,30 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
             throw new TechnicalException("Failed to find all parameters", ex);
         }
     }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(ParameterReferenceType referenceType, String referenceId)
+        throws TechnicalException {
+        LOGGER.debug("JdbcParameterRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select " + escapeReservedWord("key") + " from " + this.tableName + " where reference_type = ? and reference_id = ?",
+                String.class,
+                referenceType.name(),
+                referenceId
+            );
+
+            jdbcTemplate.update(
+                "delete from " + this.tableName + " where reference_type = ? and reference_id = ? ",
+                referenceType.name(),
+                referenceId
+            );
+            LOGGER.debug("JdbcParameterRepository.deleteByReferenceIdAndReferenceType({}, {}) = {}", referenceId, referenceType, rows);
+            return rows;
+        } catch (final Exception ex) {
+            String message = "Failed to delete parameter by reference";
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
 }

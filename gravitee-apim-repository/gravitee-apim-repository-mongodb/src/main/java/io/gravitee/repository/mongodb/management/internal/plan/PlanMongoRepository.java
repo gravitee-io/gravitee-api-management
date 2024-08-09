@@ -15,10 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.plan;
 
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -28,4 +30,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PlanMongoRepository extends MongoRepository<PlanMongo, String>, PlanMongoRepositoryCustom {
     List<PlanMongo> findByApi(String api);
+
+    @Query(value = "{ environmentId: ?0 }", delete = true)
+    List<PlanMongo> deleteByEnvironment(String environmentId);
 }

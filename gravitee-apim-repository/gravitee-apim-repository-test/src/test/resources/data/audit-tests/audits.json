@@ -36,5 +36,29 @@
     "user": "JohnDoe",
     "createdAt": 2000000000000,
     "patch": "diff"
+  },
+  {
+    "id": "ToBeDeleted1",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "API",
+    "event": "PLAN_CREATED",
+    "properties": {
+      "PLAN": "456"
+    },
+    "user": "JohnDoe",
+    "createdAt": 3000000000000,
+    "patch": "diff"
+  },
+  {
+    "id": "ToBeDeleted2",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "API",
+    "event": "PLAN_CREATED",
+    "properties": {
+      "PLAN": "456"
+    },
+    "user": "JohnDoe",
+    "createdAt": 3000000000000,
+    "patch": "diff"
   }
 ]

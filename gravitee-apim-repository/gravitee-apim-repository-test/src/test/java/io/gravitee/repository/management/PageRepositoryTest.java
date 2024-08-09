@@ -20,6 +20,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
@@ -44,9 +45,9 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertNotNull(pages);
-        assertEquals(11, pages.getTotalElements());
-        assertEquals(11, pages.getPageElements());
-        assertEquals(11, pages.getContent().size());
+        assertEquals(13, pages.getTotalElements());
+        assertEquals(13, pages.getPageElements());
+        assertEquals(13, pages.getContent().size());
 
         Page findApiPage = pages.getContent().stream().filter(p -> p.getId().equals("FindApiPage")).findFirst().get();
         assertFindPage(findApiPage);
@@ -62,7 +63,7 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
             Pageable build = new PageableBuilder().pageNumber(pageNumber).pageSize(1).build();
             io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(build);
             assertNotNull(pages);
-            assertEquals(11, pages.getTotalElements());
+            assertEquals(13, pages.getTotalElements());
             assertEquals(1, pages.getPageElements());
             assertEquals(1, pages.getContent().size());
 
@@ -74,10 +75,10 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
             }
 
             pageNumber++;
-        } while (pageNumber < 11);
+        } while (pageNumber < 13);
 
         assertTrue(findApiTested);
-        assertEquals(11, ids.size()); // all pages were different
+        assertEquals(13, ids.size()); // all pages were different
     }
 
     @Test
@@ -478,5 +479,25 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(homePage.isPresent());
         assertNotNull(homePage.get().getAccessControls());
         assertEquals(0, homePage.get().getAccessControls().size());
+    }
+
+    @Test
+    public void shouldDeleteByReferenceIdAndReferenceType() throws Exception {
+        assertEquals(
+            2,
+            pageRepository
+                .search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("api-deleted").build())
+                .size()
+        );
+
+        List<String> deleted = pageRepository.deleteByReferenceIdAndReferenceType(PageReferenceType.API, "api-deleted");
+
+        assertEquals(2, deleted.size());
+        assertEquals(
+            0,
+            pageRepository
+                .search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("api-deleted").build())
+                .size()
+        );
     }
 }

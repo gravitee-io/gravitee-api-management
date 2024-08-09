@@ -28,4 +28,11 @@ public interface DocumentTransformer<T extends Indexable> extends TypedHandler {
     String FIELD_REFERENCE_ID = "reference_id";
 
     Document transform(T indexable);
+
+    /**
+     * This transform will only contain the id and type. It's sufficient for deletion from the index.
+     * @param indexable
+     * @return
+     */
+    Document transformForDelete(T indexable);
 }

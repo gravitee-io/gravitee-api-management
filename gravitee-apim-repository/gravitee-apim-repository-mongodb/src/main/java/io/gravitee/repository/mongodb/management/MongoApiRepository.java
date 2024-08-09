@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -25,6 +27,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
@@ -32,6 +35,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +48,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoApiRepository implements ApiRepository {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(MongoApiRepository.class);
 
     @Autowired
     private ApiMongoRepository internalApiRepo;
@@ -158,6 +165,18 @@ public class MongoApiRepository implements ApiRepository {
     @Override
     public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
         return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
+    }
+
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("Delete by environment [{}]", environmentId);
+        try {
+            List<ApiMongo> apiMongos = internalApiRepo.deleteByEnvironment(environmentId);
+            LOGGER.debug("Delete by environment [{}] = {}", environmentId, apiMongos);
+            return apiMongos.stream().map(ApiMongo::getId).collect(toList());
+        } catch (Exception ex) {
+            throw new TechnicalException(ex);
+        }
     }
 
     @Override

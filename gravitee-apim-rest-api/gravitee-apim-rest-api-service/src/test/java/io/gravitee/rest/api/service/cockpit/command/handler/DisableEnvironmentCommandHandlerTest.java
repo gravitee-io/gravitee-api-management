@@ -29,15 +29,19 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +56,7 @@ class DisableEnvironmentCommandHandlerTest {
     private static final String ENV_APIM_ID = "env#apim#id";
     private static final String API_ID = "env#api#id";
     private static final String USER_ID = "user#id";
+    private static final String DICTIONARY_ID = "dictionary#id";
 
     @Mock
     private EnvironmentService environmentService;
@@ -68,6 +73,9 @@ class DisableEnvironmentCommandHandlerTest {
     @Mock
     private IdentityProviderActivationService idpActivationService;
 
+    @Mock
+    private DictionaryService dictionaryService;
+
     private DisableEnvironmentCommandHandler cut;
 
     @BeforeEach
@@ -78,7 +86,8 @@ class DisableEnvironmentCommandHandlerTest {
                 apiStateService,
                 apiRepository,
                 accessPointService,
-                idpActivationService
+                idpActivationService,
+                dictionaryService
             );
     }
 
@@ -91,6 +100,7 @@ class DisableEnvironmentCommandHandlerTest {
     void handleSuccessfulCommand() {
         var apimEnvironment = EnvironmentEntity.builder().id(ENV_APIM_ID).build();
         var context = new ExecutionContext(apimEnvironment);
+        var dictionary = DictionaryEntity.builder().id(DICTIONARY_ID).build();
         when(environmentService.findByCockpitId(ENV_COCKPIT_ID)).thenReturn(apimEnvironment);
         when(
             apiRepository.search(
@@ -99,6 +109,7 @@ class DisableEnvironmentCommandHandlerTest {
             )
         )
             .thenReturn(List.of(Api.builder().id(API_ID).build()));
+        when(dictionaryService.findAll(context)).thenReturn(Set.of(dictionary));
 
         cut
             .handle(aDisableEnvCommand())
@@ -108,6 +119,7 @@ class DisableEnvironmentCommandHandlerTest {
 
         verify(apiStateService).stop(eq(context), eq(API_ID), eq(USER_ID));
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, ENV_APIM_ID);
+        verify(dictionaryService).stop(context, DICTIONARY_ID);
         verify(idpActivationService)
             .removeAllIdpsFromTarget(
                 eq(context),

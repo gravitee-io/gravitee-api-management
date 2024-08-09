@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.page;
 
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -25,4 +27,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {}
+public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {
+    @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", delete = true)
+    List<PageMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
+}

@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.ParameterMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterPkMongo;
 import java.util.List;
@@ -115,6 +116,24 @@ public class MongoParameterRepository implements ParameterRepository {
 
         LOGGER.debug("Find parameters by keys and env - Done");
         return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> deleteByReferenceIdAndReferenceType(ParameterReferenceType referenceType, String referenceId)
+        throws TechnicalException {
+        LOGGER.debug("Delete by reference [{}, {}]", referenceType.name(), referenceId);
+        try {
+            Set<ParameterMongo> parameterMongos = internalParameterRepo.deleteByReferenceIdAndReferenceType(
+                referenceId,
+                referenceType.name()
+            );
+            LOGGER.debug("Delete by reference [{}, {}] = {}", referenceType.name(), referenceId, parameterMongos);
+
+            return parameterMongos.stream().map(parameterMongo -> parameterMongo.getId().getKey()).collect(Collectors.toList());
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when deleting parameter by ref [{}, {}]", referenceId, referenceType, e);
+            throw new TechnicalException("An error occurs when deleting parameter by ref");
+        }
     }
 
     private Parameter map(final ParameterMongo parameterMongo) {

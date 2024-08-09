@@ -41,8 +41,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -560,6 +558,27 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by environment:", ex);
             throw new TechnicalException("Failed to find applications by environment", ex);
+        }
+    }
+
+    @Override
+    public List<String> deleteByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApplicationRepository.deleteByEnvironment({})", environmentId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+            jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+            rows.forEach(appId -> {
+                jdbcTemplate.update("delete from " + APPLICATION_METADATA + " where application_id = ?", appId);
+            });
+
+            LOGGER.debug("JdbcApplicationRepository.deleteByEnvironment({}) = {}", environmentId, rows);
+            return rows;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete application by environment", ex);
         }
     }
 

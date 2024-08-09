@@ -520,6 +520,39 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
+    public List<String> deleteByReferenceIdAndReferenceType(PageReferenceType referenceType, String referenceId) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceType, referenceId);
+        try {
+            List<String> rows = jdbcTemplate.queryForList(
+                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                String.class,
+                referenceId,
+                referenceType.name()
+            );
+
+            jdbcTemplate.update(
+                "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                referenceId,
+                referenceType.name()
+            );
+
+            rows.forEach(id -> {
+                jdbcTemplate.update("delete from " + PAGE_CONFIGURATION + " where page_id = ?", id);
+                jdbcTemplate.update("delete from " + PAGE_METADATA + " where page_id = ?", id);
+                jdbcTemplate.update("delete from " + PAGE_ACL + " where page_id = ?", id);
+            });
+
+            LOGGER.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}, {}) = {}", referenceType, referenceId, rows);
+
+            return rows;
+        } catch (final Exception ex) {
+            String message = "Failed to delete page by reference";
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
+    @Override
     public List<Page> search(PageCriteria criteria) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.search()");
         try {

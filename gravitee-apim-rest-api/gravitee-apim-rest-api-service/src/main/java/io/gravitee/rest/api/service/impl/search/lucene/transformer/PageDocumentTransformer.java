@@ -66,6 +66,14 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
     }
 
     @Override
+    public Document transformForDelete(PageEntity page) {
+        Document doc = new Document();
+        doc.add(new StringField(FIELD_ID, page.getId(), Field.Store.YES));
+        doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+        return doc;
+    }
+
+    @Override
     public boolean handle(Class<? extends Indexable> source) {
         return PageEntity.class.isAssignableFrom(source);
     }
