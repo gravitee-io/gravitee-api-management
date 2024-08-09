@@ -39,6 +39,7 @@ import { isEmpty, isEqual } from 'lodash';
 import { catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { ApplicationTabLogsService, HttpStatusVM, PeriodVM, ResponseTimeVM } from './application-tab-logs.service';
 import { MoreFiltersDialogComponent, MoreFiltersDialogData } from './components/more-filters-dialog/more-filters-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { Application } from '../../../../entities/application/application';
@@ -59,19 +60,6 @@ interface ApiVM {
   id: string;
   name: string;
   version: string;
-}
-
-interface ResponseTimeVM {
-  value: string;
-  min: number;
-  max?: number;
-}
-
-interface PeriodVM {
-  milliseconds: number;
-  period: number;
-  unit: 'MINUTE' | 'HOUR' | 'DAY';
-  value: string;
 }
 
 interface FiltersVM {
@@ -139,128 +127,9 @@ export class ApplicationTabLogsComponent implements OnInit {
   noFiltersApplied: Signal<boolean> = computed(() => isEqual(this.filters(), { period: this.filters().period }));
   filtersPristine: Signal<boolean> = computed(() => isEqual(this.filters(), this.filtersInitialValue));
 
-  httpMethods: HttpMethodVM[] = ApplicationLogService.METHODS;
-  responseTimes: ResponseTimeVM[] = [
-    {
-      value: '0 TO 100',
-      min: 0,
-      max: 100,
-    },
-    {
-      value: '100 TO 200',
-      min: 100,
-      max: 200,
-    },
-    {
-      value: '200 TO 300',
-      min: 200,
-      max: 300,
-    },
-    {
-      value: '300 TO 400',
-      min: 300,
-      max: 400,
-    },
-    {
-      value: '400 TO 500',
-      min: 400,
-      max: 500,
-    },
-    {
-      value: '500 TO 1000',
-      min: 500,
-      max: 1000,
-    },
-    {
-      value: '1000 TO 2000',
-      min: 1000,
-      max: 2000,
-    },
-    {
-      value: '2000 TO 5000',
-      min: 2000,
-      max: 5000,
-    },
-    {
-      value: '5000 TO *',
-      min: 5000,
-    },
-  ];
-
-  periods: PeriodVM[] = [
-    {
-      milliseconds: this.toMilliseconds(0, 0, 5),
-      period: 5,
-      unit: 'MINUTE',
-      value: '5m',
-    },
-    {
-      milliseconds: this.toMilliseconds(0, 0, 30),
-      period: 30,
-      unit: 'MINUTE',
-      value: '30m',
-    },
-    {
-      milliseconds: this.toMilliseconds(0, 1, 0),
-      period: 1,
-      unit: 'HOUR',
-      value: '1h',
-    },
-    {
-      milliseconds: this.toMilliseconds(0, 3, 0),
-      period: 3,
-      unit: 'HOUR',
-      value: '3h',
-    },
-    {
-      milliseconds: this.toMilliseconds(0, 6, 0),
-      period: 6,
-      unit: 'HOUR',
-      value: '6h',
-    },
-    {
-      milliseconds: this.toMilliseconds(0, 12, 0),
-      period: 12,
-      unit: 'HOUR',
-      value: '12h',
-    },
-    {
-      milliseconds: this.toMilliseconds(1, 0, 0),
-      period: 1,
-      unit: 'DAY',
-      value: '1d',
-    },
-    {
-      milliseconds: this.toMilliseconds(3, 0, 0),
-      period: 3,
-      unit: 'DAY',
-      value: '3d',
-    },
-    {
-      milliseconds: this.toMilliseconds(7, 0, 0),
-      period: 7,
-      unit: 'DAY',
-      value: '7d',
-    },
-    {
-      milliseconds: this.toMilliseconds(14, 0, 0),
-      period: 14,
-      unit: 'DAY',
-      value: '14d',
-    },
-    {
-      milliseconds: this.toMilliseconds(30, 0, 0),
-      period: 30,
-      unit: 'DAY',
-      value: '30d',
-    },
-    {
-      milliseconds: this.toMilliseconds(90, 0, 0),
-      period: 90,
-      unit: 'DAY',
-      value: '90d',
-    },
-  ];
+  httpMethods: HttpMethodVM[] = inject(ApplicationTabLogsService).httpMethods;
+  responseTimes: ResponseTimeVM[] = inject(ApplicationTabLogsService).responseTimes;
+  periods: PeriodVM[] = inject(ApplicationTabLogsService).periods;
 
   displayedColumns: string[] = ['api', 'timestamp', 'httpMethod', 'responseStatus'];
 
@@ -476,10 +345,6 @@ export class ApplicationTabLogsComponent implements OnInit {
       return queryParam;
     }
     return [queryParam];
-  }
-
-  private toMilliseconds(days: number, hours: number, minutes: number): number {
-    return (days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60) * 1000;
   }
 
   private computeStartDateTimeFromQueryParams(
