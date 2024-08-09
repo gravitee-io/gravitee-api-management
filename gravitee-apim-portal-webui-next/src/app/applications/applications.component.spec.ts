@@ -56,6 +56,16 @@ describe('ApplicationsComponent', () => {
               id: '1',
               name: 'Test Application',
               description: 'A sample application for testing purposes.',
+              owner: {
+                id: 'owner1',
+                first_name: 'John',
+                last_name: 'Doe',
+                display_name: 'John Doe',
+                email: 'john.doe@example.com',
+                editable_profile: true,
+                customFields: { city: 'City', job_position: 'Developer' },
+                _links: { avatar: '', notifications: '', self: '' },
+              },
             }),
           ],
           metadata: {
@@ -83,6 +93,15 @@ describe('ApplicationsComponent', () => {
       expect(descriptionElement.textContent.trim()).toEqual(
         "An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via subscriptions.",
       );
+    });
+
+    it("should display owner's display name", async () => {
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const ownerElement = fixture.nativeElement.querySelector('.m3-body-medium');
+      expect(ownerElement).toBeDefined();
+      expect(ownerElement.textContent).toEqual('Owner: John Doe');
     });
 
     it('should not call page if on last page', async () => {
