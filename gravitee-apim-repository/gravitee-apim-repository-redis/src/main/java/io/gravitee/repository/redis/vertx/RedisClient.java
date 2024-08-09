@@ -16,7 +16,6 @@
 package io.gravitee.repository.redis.vertx;
 
 import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.redis.client.Redis;
@@ -27,6 +26,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +46,10 @@ public class RedisClient {
     private final Map<String, String> scriptsSha = new HashMap<>();
     private Future<RedisAPI> redisAPIFuture;
 
+    private final AtomicBoolean connected = new AtomicBoolean(false);
+    private final AtomicBoolean connecting = new AtomicBoolean(false);
+    private Redis redis;
+
     public RedisClient(final Vertx vertx, final RedisOptions options, final Map<String, String> scripts) {
         this.vertx = vertx;
         this.options = options;
@@ -52,36 +57,58 @@ public class RedisClient {
         this.connect(0);
     }
 
+    public boolean isConnected() {
+        return connected.get();
+    }
+
     private void connect(final int retry) {
-        this.redisAPIFuture =
-            Redis
-                .createClient(vertx, options)
-                .connect()
-                .onSuccess(conn -> {
-                    log.debug("Connected to Redis");
-                    // make sure the client is reconnected on error
-                    conn.exceptionHandler(e ->
-                        // attempt to reconnect,
-                        // if there is an unrecoverable error
-                        attemptReconnect(0)
-                    );
-                    // make sure the client is reconnected on connection close
-                    conn.endHandler(v -> attemptReconnect(0));
-                })
-                .flatMap(redisConnection -> {
-                    RedisAPI redisAPI = RedisAPI.api(redisConnection);
-                    return loadScripts(redisAPI);
-                })
-                .onFailure(t -> {
-                    log.error("Unable to connect to Redis", t);
-                    attemptReconnect(retry);
-                });
+        // Cleanup any already existing connection.
+        if (redis != null) {
+            redis.close();
+            redis = null;
+            connected.set(false);
+        }
+
+        if (connecting.compareAndSet(false, true)) {
+            redis = Redis.createClient(vertx, options);
+            this.redisAPIFuture =
+                redis
+                    .connect()
+                    .onSuccess(conn -> {
+                        log.debug("Connected to Redis");
+                        // make sure the client is reconnected on error
+                        conn.exceptionHandler(e ->
+                            // attempt to reconnect,
+                            // if there is an unrecoverable error
+                            attemptReconnect(0)
+                        );
+                        // make sure the client is reconnected on connection close
+                        conn.endHandler(v -> attemptReconnect(0));
+                    })
+                    .flatMap(redisConnection -> {
+                        RedisAPI redisAPI = RedisAPI.api(redisConnection);
+                        return loadScripts(redisAPI);
+                    })
+                    .onSuccess(redisAPI -> {
+                        log.info("Redis is now ready to be used.");
+                        connecting.set(false);
+                        connected.set(true);
+                    })
+                    .timeout(options.getNetClientOptions().getConnectTimeout(), TimeUnit.MILLISECONDS)
+                    .onFailure(t -> {
+                        log.error("Unable to connect to Redis", t);
+                        connected.set(false);
+                        attemptReconnect(retry);
+                    });
+        }
     }
 
     /**
      * Attempt to reconnect
      */
     private void attemptReconnect(int retry) {
+        connecting.set(false);
+
         // retry with backoff up to 10240 ms
         long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
         vertx.setTimer(backoff, timer -> connect(retry + 1));
@@ -89,7 +116,7 @@ public class RedisClient {
 
     private Future<RedisAPI> loadScripts(final RedisAPI redisAPI) {
         if (scripts != null) {
-            return CompositeFuture
+            return Future
                 .all(
                     scripts
                         .entrySet()
@@ -113,7 +140,7 @@ public class RedisClient {
                 )
                 .map(v -> redisAPI);
         }
-        return Future.succeededFuture();
+        return Future.succeededFuture(redisAPI);
     }
 
     public Future<RedisAPI> redisApi() {

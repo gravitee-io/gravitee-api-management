@@ -30,10 +30,6 @@
 
 	<name>Gravitee.io APIM - Repository - Redis</name>
 
-	<properties>
-		<lettuce.version>6.1.5.RELEASE</lettuce.version>
-	</properties>
-
 	<dependencies>
 		<!-- Gravitee dependencies -->
 		<dependency>

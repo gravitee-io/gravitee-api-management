@@ -78,7 +78,7 @@ public class RedisTestRepositoryConfiguration {
 
     @Bean
     public RedisRateLimitRepository redisRateLimitRepository(@Qualifier("redisRateLimitClient") RedisClient redisRateLimitClient) {
-        return new RedisRateLimitRepository(redisRateLimitClient);
+        return new RedisRateLimitRepository(redisRateLimitClient, 500);
     }
 
     @Bean
