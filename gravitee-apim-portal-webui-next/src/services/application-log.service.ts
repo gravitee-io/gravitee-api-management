@@ -40,6 +40,7 @@ export interface ApplicationLogsListParameters {
   requestId?: string;
   transactionId?: string;
   httpStatuses?: string[];
+  messageText?: string;
 }
 
 @Injectable({
@@ -121,6 +122,11 @@ export class ApplicationLogService {
       queryList.push(httpStatusesQuerySegment);
     }
 
+    const messageTextQuerySegment = this.createAsteriskQuerySegment('body', params.messageText);
+    if (messageTextQuerySegment) {
+      queryList.push(messageTextQuerySegment);
+    }
+
     return queryList.join(' AND ');
   }
 
@@ -143,6 +149,13 @@ export class ApplicationLogService {
     if (values?.length) {
       const queryContent = values.map(v => `[${v}]`).join(' OR ');
       return `(${root}\:${queryContent})`;
+    }
+    return undefined;
+  }
+
+  private createAsteriskQuerySegment(root: string, value?: string) {
+    if (value && value.length) {
+      return `(${root}\:*${value}*)`;
     }
     return undefined;
   }
