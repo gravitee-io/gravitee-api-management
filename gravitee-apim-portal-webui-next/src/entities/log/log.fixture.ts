@@ -46,6 +46,7 @@ export function fakeLogsResponse(modifier?: Partial<LogsResponse> | ((baseApplic
     metadata: {
       'my-plan': { name: 'plan' },
       'my-api': { name: 'my api', version: '1' },
+      data: { total: 1 },
     },
     links: {},
   };

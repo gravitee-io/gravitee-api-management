@@ -35,3 +35,4 @@ Component variables
  */
 $banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
 $banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
+$chip-background: color-mix(in srgb, $primary-main-color 20%, transparent);

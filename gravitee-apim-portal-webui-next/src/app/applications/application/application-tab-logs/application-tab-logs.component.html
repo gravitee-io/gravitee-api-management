@@ -15,12 +15,155 @@
     limitations under the License.
 
 -->
+<div class="m3-body-medium" i18n="@@applicationLogsExplanation">
+  Logs from all APIs for which this application has an accepted, paused, closed, or resumed subscription. Your administrator may restrict
+  what data you see below.
+</div>
+<div class="filters">
+  <div class="filters__row-one">
+    <div class="filters__row-one__select-filters">
+      @if (applicationApis$ | async; as applicationApis) {
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@applicationLogsApis">APIs</mat-label>
+          <mat-select (selectionChange)="selectApis($event)" multiple [value]="filters().apis" aria-label="Filter by API">
+            @for (api of applicationApis; track api.id) {
+              <mat-option [value]="api">{{ api.name }} ({{ api.version }})</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@applicationLogsHttpMethods">HTTP Methods</mat-label>
+        <mat-select (selectionChange)="selectHttpMethods($event)" multiple [value]="filters().methods" aria-label="Filter by HTTP Method">
+          @for (method of httpMethods; track method) {
+            <mat-option [value]="method">{{ method.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@applicationLogsResponseTimes">Response Times</mat-label>
+        <mat-select
+          (selectionChange)="selectResponseTimes($event)"
+          multiple
+          [value]="filters().responseTimes"
+          aria-label="Filter by Response Time">
+          @for (responseTime of responseTimes; track responseTime.value) {
+            <mat-option [value]="responseTime">
+              @if (responseTime.min === 0) {
+                < {{ responseTime.max }}
+              } @else if (responseTime.max) {
+                {{ responseTime.min }} <span i18n="@@applicationLogsTo">to</span> {{ responseTime.max }}
+              } @else {
+                > {{ responseTime.min }}
+              }
+              <span i18n="@@applicationLogsMilliseconds">ms</span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <div class="filters__row-one__separator"></div>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@applicationLogsResponsePeriod">Period</mat-label>
+        <mat-select
+          (selectionChange)="selectPeriod($event)"
+          [value]="filters().period"
+          aria-label="Filter by Period"
+          [disabled]="!!filters().from">
+          @for (period of periods; track period.value) {
+            <mat-option [value]="period">
+              <span i18n="@@applicationLogsLast">Last </span>
+              @switch (period.unit) {
+                @case ('MINUTE') {
+                  <span i18n="@@applicationLogsMinute">{period.period, plural, =0 {} =1 {minute} other {{{period.period}} minutes}}</span>
+                }
+                @case ('HOUR') {
+                  <span i18n="@@applicationLogsHour">{period.period, plural, =0 {} =1 {hour} other {{{period.period}} hours}}</span>
+                }
+                @case ('DAY') {
+                  <span i18n="@@applicationLogsDay">{period.period, plural, =0 {} =1 {day} other {{{period.period}} days}}</span>
+                }
+              }
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="filters__row-one__btn">
+      <button mat-stroked-button (click)="openMoreFiltersDialog()" aria-label="Add more filters">
+        <mat-icon>filter_alt</mat-icon><span i18n="@@applicatonLogsMoreFilters">More</span>
+      </button>
+      <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine()" aria-label="Apply filters">
+        <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
+      </button>
+    </div>
+  </div>
+  <div class="filters__row-two">
+    <div class="m3-body-medium filters__row-two__filter-summary">
+      <div i18n="@@applicatonLogsFiltersApplied">Filters applied:</div>
+      <div class="filters__row-two__filter-summary__chips">
+        @if (noFiltersApplied()) {
+          <span i18n="@@applicatonLogsNoFiltersApplied">None</span>
+        } @else {
+          @if (filters().from) {
+            <mat-chip><span i18n="@@applicationLogsFrom">From</span>: {{ filters().from | date: 'YYYY-MM-dd' }}</mat-chip>
+          }
+
+          @if (filters().to) {
+            <mat-chip><span i18n="@@applicationLogsTo">To</span>: {{ filters().to | date: 'YYYY-MM-dd' }}</mat-chip>
+          }
+
+          @if (filters().apis) {
+            @for (api of filters().apis; track api.id) {
+              <mat-chip>{{ api.name }} ({{ api.version }})</mat-chip>
+            }
+          }
+          @if (filters().methods) {
+            @for (method of filters().methods; track method.value) {
+              <mat-chip>{{ method.label }}</mat-chip>
+            }
+          }
+          @if (filters().responseTimes) {
+            @for (responseTime of filters().responseTimes; track responseTime.value) {
+              <mat-chip>
+                <span i18n="@@applicationLogsResponseTimeChip">Response time</span>
+                @if (responseTime.min === 0) {
+                  < {{ responseTime.max }}
+                } @else if (responseTime.max) {
+                  {{ responseTime.min }} - {{ responseTime.max }}
+                } @else {
+                  > {{ responseTime.min }}
+                }
+                <span i18n="@@applicationLogsMilliseconds">ms</span>
+              </mat-chip>
+            }
+          }
+          @if (filters().requestId) {
+            <mat-chip><span i18n="@@applicationLogsRequestId">Request ID</span>: {{ filters().requestId }}</mat-chip>
+          }
+          @if (filters().transactionId) {
+            <mat-chip><span i18n="@@applicationLogsTransactionId">Transaction ID</span>: {{ filters().transactionId }}</mat-chip>
+          }
+          @if (filters().httpStatuses) {
+            @for (httpStatus of filters().httpStatuses; track httpStatus.value) {
+              <mat-chip> <span i18n="@@applicationLogsHttpStatuses">HTTP Status</span>: {{ httpStatus.label }} </mat-chip>
+            }
+          }
+          @if (filters().messageText) {
+            <mat-chip><span i18n="@@applicationLogsMessageContaining">Message body includes</span>: {{ filters().messageText }}</mat-chip>
+          }
+          @if (filters().path) {
+            <mat-chip><span i18n="@@applicationLogsPath">Path</span>: {{ filters().path }}</mat-chip>
+          }
+        }
+      </div>
+    </div>
+    <button mat-button (click)="resetFilters()" [disabled]="noFiltersApplied()" aria-label="Reset filters">
+      <mat-icon>clear</mat-icon><span i18n="@@applicatonLogsResetFilters">Reset Filters</span>
+    </button>
+  </div>
+</div>
 @if (logs$ | async; as logs) {
   @if (logs.length) {
-    <div class="m3-body-medium" i18n="@@applicationLogsExplanation">
-      Logs from all APIs for which this application has an accepted, paused, closed, or resumed subscription. Your administrator may
-      restrict what data you see below.
-    </div>
     <table mat-table [dataSource]="logs" class="application-logs__table">
       <ng-container matColumnDef="api">
         <th mat-header-cell *matHeaderCellDef i18n="@@applicationLogsTableColumnApi" class="m3-title-medium">API</th>
@@ -90,7 +233,7 @@
   } @else {
     <div class="no-logs">
       <div class="m3-title-medium" i18n="@@applicationLogsNoneFound">We couldn't find any logs</div>
-      <div class="m3-body-medium" i18n="@@applicationLogsNoneFoundMessage">Start using your subscriptions and consult the logs here</div>
+      <div class="m3-body-medium" i18n="@@applicationLogsNoneFoundMessage">Try unchecking some of the chosen filters</div>
     </div>
   }
 } @else {
