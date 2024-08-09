@@ -151,6 +151,9 @@
           @if (filters().messageText) {
             <mat-chip><span i18n="@@applicationLogsMessageContaining">Message body includes</span>: {{ filters().messageText }}</mat-chip>
           }
+          @if (filters().path) {
+            <mat-chip><span i18n="@@applicationLogsPath">Path</span>: {{ filters().path }}</mat-chip>
+          }
         }
       </div>
     </div>

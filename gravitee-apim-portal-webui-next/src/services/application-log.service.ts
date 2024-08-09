@@ -41,6 +41,7 @@ export interface ApplicationLogsListParameters {
   transactionId?: string;
   httpStatuses?: string[];
   messageText?: string;
+  path?: string;
 }
 
 @Injectable({
@@ -127,6 +128,11 @@ export class ApplicationLogService {
       queryList.push(messageTextQuerySegment);
     }
 
+    const pathQuerySegment = this.createAsteriskQuerySegment('uri', params.path);
+    if (pathQuerySegment) {
+      queryList.push(pathQuerySegment);
+    }
+
     return queryList.join(' AND ');
   }
 
@@ -155,7 +161,8 @@ export class ApplicationLogService {
 
   private createAsteriskQuerySegment(root: string, value?: string) {
     if (value && value.length) {
-      return `(${root}\:*${value}*)`;
+      const cleanValue = value.replace('/', '\\\\/');
+      return `(${root}\:*${cleanValue}*)`;
     }
     return undefined;
   }

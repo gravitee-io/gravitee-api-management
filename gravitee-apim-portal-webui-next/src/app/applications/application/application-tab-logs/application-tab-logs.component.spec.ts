@@ -1093,6 +1093,52 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('Path', () => {
+      describe('Path defined in query params', () => {
+        const PATH = 'a-nice-path';
+        beforeEach(async () => {
+          await init({ path: PATH });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(uri:*${PATH}*)`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have path pre-filled', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(false);
+          const chips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(chips).toHaveLength(1);
+          expect(await chips[0].getText()).toEqual(`Path: ${PATH}`);
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const pathInput = await dialog.getPathInput();
+          expect(await pathInput.getValue()).toEqual(PATH);
+        });
+
+        it('should change path filter', async () => {
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const pathInput = await dialog.getPathInput();
+          await pathInput.setValue('/different-path');
+          await dialog.applyFilters();
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(uri:*\\\\/different-path*)`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
