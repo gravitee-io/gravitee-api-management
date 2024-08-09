@@ -141,7 +141,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "integrations",
         "integrationjobs",
         "api_category_orders",
-        "sharedpolicygroups"
+        "sharedpolicygroups",
+        "sharedpolicygrouphistories"
     );
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate, List.of("databasechangelog", "databasechangeloglock"));
     private final DataSource dataSource;

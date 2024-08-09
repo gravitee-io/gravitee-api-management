@@ -64,20 +64,22 @@ public abstract class AbstractRepositoryTest {
     public void setUp() throws Exception {
         testRepositoryInitializer.setUp();
 
-        URL testCaseResource = AbstractRepositoryTest.class.getResource(getTestCasesPath());
+        if (getTestCasesPath() != null) {
+            URL testCaseResource = AbstractRepositoryTest.class.getResource(getTestCasesPath());
 
-        if (testCaseResource == null) {
-            throw new IllegalStateException("No resource defined in " + getTestCasesPath());
-        }
+            if (testCaseResource == null) {
+                throw new IllegalStateException("No resource defined in " + getTestCasesPath());
+            }
 
-        final File directory = new File(testCaseResource.toURI());
+            final File directory = new File(testCaseResource.toURI());
 
-        final File[] files = directory.listFiles(pathname ->
-            pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
-        );
+            final File[] files = directory.listFiles(pathname ->
+                pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
+            );
 
-        for (final File file : getSortedFilesList(files)) {
-            createModels(file);
+            for (final File file : getSortedFilesList(files)) {
+                createModels(file);
+            }
         }
     }
 

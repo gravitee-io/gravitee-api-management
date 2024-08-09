@@ -40,6 +40,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     @Before
     public void before() throws TechnicalException {
         for (int i = 0; i < 10; i++) {
+            var date = new Date(new Date(172321739410L).getTime() + i * 1000);
             final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup
                 .builder()
                 .id("id_search_test_" + i)
@@ -53,9 +54,9 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
                 .lifecycleState(i % 2 == 0 ? SharedPolicyGroupLifecycleState.UNDEPLOYED : SharedPolicyGroupLifecycleState.DEPLOYED)
                 .environmentId("environmentId")
                 .organizationId("organizationId")
-                .deployedAt(new Date())
-                .createdAt(new Date())
-                .updatedAt(new Date())
+                .deployedAt(date)
+                .createdAt(date)
+                .updatedAt(date)
                 .build();
             sharedPolicyGroupRepository.create(sharedPolicyGroup);
         }

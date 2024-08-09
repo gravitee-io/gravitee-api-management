@@ -113,7 +113,7 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
+        LOGGER.debug("MongoSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
