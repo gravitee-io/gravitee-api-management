@@ -106,6 +106,8 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           }
           this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
 
+          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+
           // Initialize the properties form group
           this.initPropertiesFormGroup();
 
@@ -263,7 +265,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         const keyControl = new UntypedFormControl(
           {
             value: currentValue.key,
-            disabled: currentValue.dynamic,
+            disabled: this.isReadOnly || currentValue.dynamic,
           },
           [
             Validators.required,
@@ -277,7 +279,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
         const valueControl = new UntypedFormControl({
           value: currentValue.encrypted ? '*************' : currentValue.value,
-          disabled: currentValue.encrypted || currentValue.dynamic,
+          disabled: this.isReadOnly || currentValue.encrypted || currentValue.dynamic,
         });
         valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editValueProperty(currentValue._id, value));
 
