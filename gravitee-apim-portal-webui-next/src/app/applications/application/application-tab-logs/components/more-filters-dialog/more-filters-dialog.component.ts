@@ -32,6 +32,7 @@ export interface MoreFiltersDialogData {
   requestId?: string;
   transactionId?: string;
   httpStatuses?: HttpStatusVM[];
+  messageText?: string;
 }
 
 @Component({
@@ -59,6 +60,7 @@ export class MoreFiltersDialogComponent {
   requestId: string | undefined;
   transactionId: string | undefined;
   httpStatuses: string[] | undefined;
+  messageText: string | undefined;
 
   httpStatusChoices = inject(ApplicationTabLogsService).httpStatuses;
 
@@ -75,6 +77,7 @@ export class MoreFiltersDialogComponent {
     this.requestId = dialogData.requestId ?? '';
     this.transactionId = dialogData.transactionId ?? '';
     this.httpStatuses = dialogData.httpStatuses?.map(hs => hs.value) ?? [];
+    this.messageText = dialogData.messageText ?? '';
   }
 
   onCancel() {
@@ -90,6 +93,7 @@ export class MoreFiltersDialogComponent {
       requestId: this.requestId,
       transactionId: this.transactionId,
       ...(this.httpStatuses ? { httpStatuses } : {}),
+      messageText: this.messageText,
     });
   }
 

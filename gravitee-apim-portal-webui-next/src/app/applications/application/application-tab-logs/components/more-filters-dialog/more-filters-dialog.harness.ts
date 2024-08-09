@@ -28,6 +28,7 @@ export class MoreFiltersDialogHarness extends ComponentHarness {
   protected locateRequestId = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Filter by Request ID"]' }));
   protected locateTransactionId = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Filter by Transaction ID"]' }));
   protected locateHttpStatus = this.locatorFor(MatSelectHarness.with({ selector: '[aria-label="Filter by HTTP Status"]' }));
+  protected locateMessageText = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Filter by Message Text"]' }));
 
   async getStartDatePicker(): Promise<MatDatepickerInputHarness> {
     return await this.locateStartDatePicker();
@@ -47,6 +48,10 @@ export class MoreFiltersDialogHarness extends ComponentHarness {
 
   async getHttpStatusSelection(): Promise<MatSelectHarness> {
     return await this.locateHttpStatus();
+  }
+
+  async getMessageTextInput(): Promise<MatInputHarness> {
+    return await this.locateMessageText();
   }
 
   async applyFilters(): Promise<void> {
