@@ -140,6 +140,9 @@
           @if (filters().requestId) {
             <mat-chip><span i18n="@@applicationLogsRequestId">Request ID</span>: {{ filters().requestId }}</mat-chip>
           }
+          @if (filters().transactionId) {
+            <mat-chip><span i18n="@@applicationLogsTransactionId">Transaction ID</span>: {{ filters().transactionId }}</mat-chip>
+          }
         }
       </div>
     </div>

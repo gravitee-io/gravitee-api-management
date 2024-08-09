@@ -82,6 +82,7 @@ interface FiltersVM {
   to?: number;
   from?: number;
   requestId?: string;
+  transactionId?: string;
 }
 
 @Component({
@@ -296,8 +297,9 @@ export class ApplicationTabLogsComponent implements OnInit {
         const to: number | undefined = queryParams['to'] ? +queryParams['to'] : undefined;
 
         const requestId: string | undefined = queryParams['requestId'];
+        const transactionId: string | undefined = queryParams['transactionId'];
 
-        return { page, apis, methods, responseTimes, period, from, to, requestId };
+        return { page, apis, methods, responseTimes, period, from, to, requestId, transactionId };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
@@ -391,6 +393,7 @@ export class ApplicationTabLogsComponent implements OnInit {
           startDate: this.filters().from,
           endDate: this.filters().to,
           requestId: this.filters().requestId,
+          transactionId: this.filters().transactionId,
         },
       })
       .afterClosed()
@@ -402,6 +405,7 @@ export class ApplicationTabLogsComponent implements OnInit {
             from: dialogFilters?.startDate,
             to: dialogFilters?.endDate,
             requestId: dialogFilters?.requestId,
+            transactionId: dialogFilters?.transactionId,
           }));
         },
       });
@@ -415,6 +419,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     const from = this.filters().from;
     const to = this.filters().to;
     const requestId = this.filters().requestId;
+    const transactionId = this.filters().transactionId;
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -427,6 +432,7 @@ export class ApplicationTabLogsComponent implements OnInit {
         ...(from ? { from } : {}),
         ...(to ? { to } : {}),
         ...(requestId ? { requestId } : {}),
+        ...(transactionId ? { transactionId } : {}),
       },
     });
   }
@@ -440,6 +446,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     from?: number;
     to?: number;
     requestId?: string;
+    transactionId?: string;
   }): void {
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
@@ -456,6 +463,7 @@ export class ApplicationTabLogsComponent implements OnInit {
       ...(params.from ? { from: params.from } : {}),
       ...(params.to ? { to: params.to } : {}),
       ...(params.requestId ? { requestId: params.requestId } : {}),
+      ...(params.transactionId ? { transactionId: params.transactionId } : {}),
     }));
     this.filtersInitialValue = this.filters();
   }
