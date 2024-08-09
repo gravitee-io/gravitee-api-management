@@ -1,2 +1,4 @@
 io.gravitee.node.api.healthcheck.Probe=\
     io.gravitee.gateway.standalone.healthcheck.HttpServerProbe
+io.gravitee.node.container.ContainerInitializer=\
+    io.gravitee.gateway.standalone.APIMGatewayProductInitializer
