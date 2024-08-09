@@ -27,6 +27,7 @@ export interface MoreFiltersDialogData {
   startDate?: number;
   endDate?: number;
   requestId?: string;
+  transactionId?: string;
 }
 
 @Component({
@@ -50,6 +51,7 @@ export class MoreFiltersDialogComponent {
   startDate: Date | undefined;
   endDate: Date | undefined;
   requestId: string | undefined;
+  transactionId: string | undefined;
 
   private readonly initialData: MoreFiltersDialogData;
 
@@ -62,6 +64,7 @@ export class MoreFiltersDialogComponent {
     this.startDate = dialogData.startDate ? new Date(dialogData.startDate) : undefined;
     this.endDate = dialogData.endDate ? new Date(dialogData.endDate) : undefined;
     this.requestId = dialogData.requestId ?? '';
+    this.transactionId = dialogData.transactionId ?? '';
   }
 
   onCancel() {
@@ -73,6 +76,7 @@ export class MoreFiltersDialogComponent {
       startDate: this.startDate?.getTime(),
       endDate: this.endDate?.getTime(),
       requestId: this.requestId,
+      transactionId: this.transactionId,
     });
   }
 
