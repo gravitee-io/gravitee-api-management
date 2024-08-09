@@ -24,7 +24,6 @@ import { ApplicationCardComponent } from '../../components/application-card/appl
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { Application } from '../../entities/application/application';
 import { ApplicationService } from '../../services/application.service';
-import { ConfigService } from '../../services/config.service';
 
 export interface ApplicationPaginatorVM {
   data: Application[];
@@ -46,7 +45,7 @@ export class ApplicationsComponent {
   private applicationService = inject(ApplicationService);
   private page$ = new BehaviorSubject(1);
 
-  constructor(private configService: ConfigService) {
+  constructor() {
     this.applicationPaginator$ = this.loadApplications$();
   }
 
@@ -68,6 +67,7 @@ export class ApplicationsComponent {
               id: application.id,
               description: application.description,
               name: application.name,
+              owner: application.owner,
               picture: application._links?.picture,
               settings: application.settings,
             }))

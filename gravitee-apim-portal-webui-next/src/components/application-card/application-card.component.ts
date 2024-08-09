@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { MatTooltip } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
 import { Application } from '../../entities/application/application';
@@ -24,11 +25,24 @@ import { PictureComponent } from '../picture/picture.component';
 @Component({
   selector: 'app-application-card',
   standalone: true,
-  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink],
+  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, MatTooltip],
   templateUrl: './application-card.component.html',
   styleUrl: './application-card.component.scss',
 })
-export class ApplicationCardComponent {
+export class ApplicationCardComponent implements AfterViewInit {
   @Input({ required: true })
   application!: Application;
+
+  @ViewChild('appName', { static: true }) appNameElement!: ElementRef;
+
+  isOverflowing: boolean = false;
+
+  ngAfterViewInit() {
+    this.checkOverflow();
+  }
+
+  checkOverflow() {
+    const el = this.appNameElement.nativeElement;
+    this.isOverflowing = el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
+  }
 }

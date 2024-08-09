@@ -25,9 +25,21 @@
   align-items: stretch;
   justify-content: space-between;
 
+  .m3-title-medium {
+    display: -webkit-box;
+    overflow: hidden;
+    max-width: 200px;
+    max-height: 50px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    text-overflow: ellipsis;
+    white-space: normal;
+  }
+
   &__header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
 
     &__content {
@@ -54,8 +66,8 @@
     max-height: 98px;
     -webkit-box-orient: vertical;
     color: var(--mdc-outlined-text-field-label-text-color);
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     text-overflow: ellipsis;
     word-wrap: break-word;
   }
