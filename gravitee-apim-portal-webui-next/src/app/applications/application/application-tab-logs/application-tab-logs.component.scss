@@ -73,8 +73,10 @@ $form-field-hint-height: 16px;
       margin-bottom: $form-field-hint-height;
     }
 
-    &__search-btn {
+    &__btn {
+      display: flex;
       margin-bottom: $form-field-hint-height;
+      gap: 16px;
     }
   }
 

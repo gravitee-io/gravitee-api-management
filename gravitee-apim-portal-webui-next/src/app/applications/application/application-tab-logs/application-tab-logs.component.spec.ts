@@ -27,6 +27,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
 import { ApplicationTabLogsComponent } from './application-tab-logs.component';
+import { MoreFiltersDialogComponent } from './components/more-filters-dialog/more-filters-dialog.component';
+import { MoreFiltersDialogHarness } from './components/more-filters-dialog/more-filters-dialog.harness';
 import { fakeApplication } from '../../../../entities/application/application.fixture';
 import { LogsResponse } from '../../../../entities/log/log';
 import { fakeLog, fakeLogsResponse } from '../../../../entities/log/log.fixture';
@@ -41,6 +43,7 @@ describe('ApplicationTabLogsComponent', () => {
   let fixture: ComponentFixture<ApplicationTabLogsComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
+  let rootHarnessLoader: HarnessLoader;
 
   const APP_ID = 'app-id';
   const MOCK_DATE = new Date(1466424490000);
@@ -49,7 +52,7 @@ describe('ApplicationTabLogsComponent', () => {
     const asBehaviorSubject = new BehaviorSubject(queryParams);
 
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabLogsComponent, AppTestingModule],
+      imports: [ApplicationTabLogsComponent, MoreFiltersDialogComponent, AppTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -61,6 +64,7 @@ describe('ApplicationTabLogsComponent', () => {
     fixture = TestBed.createComponent(ApplicationTabLogsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     component.application = fakeApplication({ id: APP_ID });
 
@@ -70,7 +74,8 @@ describe('ApplicationTabLogsComponent', () => {
       return new Promise(_ => true);
     });
 
-    jest.useFakeTimers().setSystemTime(MOCK_DATE);
+    jest.useFakeTimers({ advanceTimers: true }).setSystemTime(MOCK_DATE);
+
     fixture.detectChanges();
   };
   afterEach(() => {
@@ -648,6 +653,250 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('Start + End Dates', () => {
+      describe('Only start date in query params', () => {
+        beforeEach(async () => {
+          const from = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          await init({ from });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, undefined, from);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+        it('should be applied and shown in the filter chips', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(1);
+
+          expect(await filterChips[0].getText()).toEqual('From: 2016-06-18');
+
+          await openMoreFiltersDialog();
+          fixture.detectChanges();
+
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const startDatePicker = await dialog.getStartDatePicker();
+          expect(await startDatePicker.getValue()).toEqual('6/18/2016');
+
+          const endDatePicker = await dialog.getEndDatePicker();
+          expect(await endDatePicker.getValue()).toEqual('');
+        });
+        it('should have the period drop-down disabled', async () => {
+          const periodFilter = await getPeriodSelection();
+          expect(await periodFilter.isDisabled()).toEqual(true);
+        });
+        it('should be able to add an end date', async () => {
+          await openMoreFiltersDialog();
+          fixture.detectChanges();
+
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+
+          const endDatePicker = await dialog.getEndDatePicker();
+          await endDatePicker.openCalendar();
+          const endDateCalendar = await endDatePicker.getCalendar();
+          await endDateCalendar.selectCell({ text: '19' });
+          expect(await endDatePicker.getValue()).toEqual('6/19/2016');
+
+          await dialog.applyFilters();
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[0].getText()).toEqual('From: 2016-06-18');
+          expect(await filterChips[1].getText()).toEqual('To: 2016-06-19');
+        });
+        it('should reset', async () => {
+          const resetBtn = await getResetFilterButton();
+          await resetBtn.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+
+          const startDatePicker = await dialog.getStartDatePicker();
+          expect(await startDatePicker.getValue()).toEqual('');
+
+          const endDatePicker = await dialog.getEndDatePicker();
+          expect(await endDatePicker.getValue()).toEqual('');
+        });
+      });
+
+      describe('Only Start date + Period in query params', () => {
+        beforeEach(async () => {
+          const from = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const period = '14d';
+          await init({ from, period });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, undefined, from);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+        it('should only apply start date', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(await filterChips[0].getText()).toEqual('From: 2016-06-18');
+
+          await openMoreFiltersDialog();
+          fixture.detectChanges();
+
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const startDatePicker = await dialog.getStartDatePicker();
+          expect(await startDatePicker.getValue()).toEqual('6/18/2016');
+        });
+        it('should have the period drop-down disabled', async () => {
+          const periodFilter = await getPeriodSelection();
+          expect(await periodFilter.isDisabled()).toEqual(true);
+          expect(await periodFilter.getValueText()).toEqual('Last 14 days');
+        });
+      });
+
+      describe('Only End date in query params', () => {
+        beforeEach(async () => {
+          const to = MOCK_DATE.getTime() - 86400000 * 2; // To mock date - 2 days
+          await init({ to });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+        it('should only apply end date', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(1);
+
+          expect(await filterChips[0].getText()).toEqual('To: 2016-06-18');
+
+          await openMoreFiltersDialog();
+          fixture.detectChanges();
+
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const endDatePicker = await dialog.getEndDatePicker();
+          expect(await endDatePicker.getValue()).toEqual('6/18/2016');
+        });
+        it('should apply "Last day" by default', async () => {
+          const periodFilter = await getPeriodSelection();
+          expect(await periodFilter.isDisabled()).toEqual(false);
+          expect(await periodFilter.getValueText()).toEqual('Last day');
+        });
+        it('should be able to add start date', async () => {
+          await openMoreFiltersDialog();
+          fixture.detectChanges();
+
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const startDatePicker = await dialog.getStartDatePicker();
+          await startDatePicker.setValue('6/10/2016');
+          await dialog.applyFilters();
+
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[0].getText()).toEqual('From: 2016-06-10');
+          expect(await filterChips[1].getText()).toEqual('To: 2016-06-18');
+        });
+        it('should reset', async () => {
+          const resetBtn = await getResetFilterButton();
+          await resetBtn.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+
+          const startDatePicker = await dialog.getStartDatePicker();
+          expect(await startDatePicker.getValue()).toEqual('');
+
+          const endDatePicker = await dialog.getEndDatePicker();
+          expect(await endDatePicker.getValue()).toEqual('');
+        });
+      });
+
+      describe('Only End date + Period in query params', () => {
+        const to = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+        beforeEach(async () => {
+          const from = to - 86400000 * 14; // 14 days before the 'to' date
+          const period = '14d';
+          await init({ to, period });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to, from);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+        it('should apply end date + period', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(1);
+
+          expect(await filterChips[0].getText()).toEqual('To: 2016-06-18');
+
+          const periodSelection = await getPeriodSelection();
+          expect(await periodSelection.getValueText()).toEqual('Last 14 days');
+        });
+        it('should have period drop-down enabled', async () => {
+          const periodSelection = await getPeriodSelection();
+          expect(await periodSelection.isDisabled()).toEqual(false);
+        });
+        it('should be able to add start date + disabled period drop-down', async () => {
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const startDatePicker = await dialog.getStartDatePicker();
+          await startDatePicker.setValue('6/10/2016');
+          await dialog.applyFilters();
+
+          const periodSelection = await getPeriodSelection();
+          expect(await periodSelection.isDisabled()).toEqual(true);
+
+          await getSearchButton().then(btn => btn.click());
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to, new Date('6/10/2016').getTime());
+        });
+      });
+
+      describe('Only end date + start date in query params', () => {
+        beforeEach(async () => {
+          const to = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const from = to - 86400000 * 14; // 14 days before the 'to' date
+          await init({ to, from });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to, from);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+        it('should apply start date + end date', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[0].getText()).toEqual('From: 2016-06-04');
+          expect(await filterChips[1].getText()).toEqual('To: 2016-06-18');
+        });
+        it('should have the period drop-down disabled + "Last day"', async () => {
+          const periodFilter = await getPeriodSelection();
+          expect(await periodFilter.isDisabled()).toEqual(true);
+          expect(await periodFilter.getValueText()).toEqual('Last day');
+        });
+      });
+
+      describe('End date + start date + period in query params', () => {
+        beforeEach(async () => {
+          const to = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const from = to - 86400000 * 14; // 14 days before the 'to' date
+          const period = '14d';
+          await init({ to, from, period });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to, from);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+        it('should apply start date + end date', async () => {
+          const filterChips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(filterChips).toHaveLength(2);
+
+          expect(await filterChips[0].getText()).toEqual('From: 2016-06-04');
+          expect(await filterChips[1].getText()).toEqual('To: 2016-06-18');
+        });
+        it('should have the period drop-down disabled set to query param period', async () => {
+          const periodFilter = await getPeriodSelection();
+          expect(await periodFilter.isDisabled()).toEqual(true);
+          expect(await periodFilter.getValueText()).toEqual('Last 14 days');
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
@@ -722,7 +971,12 @@ describe('ApplicationTabLogsComponent', () => {
   async function getResetFilterButton(): Promise<MatButtonHarness> {
     return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
   }
+
   async function getSearchButton(): Promise<MatButtonHarness> {
     return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Apply filters"]' }));
+  }
+
+  async function openMoreFiltersDialog(): Promise<void> {
+    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add more filters"]' })).then(btn => btn.click());
   }
 });
