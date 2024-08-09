@@ -65,6 +65,12 @@
         <input matInput [(ngModel)]="messageText" aria-label="Filter by Message Text" />
       </mat-form-field>
     </div>
+    <div class="content__row">
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@moreFiltersDialogPath">Path</mat-label>
+        <input matInput [(ngModel)]="path" aria-label="Filter by Path" />
+      </mat-form-field>
+    </div>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>
