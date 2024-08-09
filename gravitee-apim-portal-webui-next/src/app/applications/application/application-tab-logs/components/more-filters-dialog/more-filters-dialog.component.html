@@ -59,6 +59,12 @@
         </mat-select>
       </mat-form-field>
     </div>
+    <div class="content__row">
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@moreFiltersDialogSearchText">Search Text in Message Bodies</mat-label>
+        <input matInput [(ngModel)]="messageText" aria-label="Filter by Message Text" />
+      </mat-form-field>
+    </div>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>

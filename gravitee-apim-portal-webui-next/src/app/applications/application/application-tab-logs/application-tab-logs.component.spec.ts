@@ -1047,6 +1047,52 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('Message text', () => {
+      describe('Message text defined in query params', () => {
+        const MESSAGE_TEXT = 'find me';
+        beforeEach(async () => {
+          await init({ messageText: MESSAGE_TEXT });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(body:*${MESSAGE_TEXT}*)`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have message text pre-filled', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(false);
+          const chips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(chips).toHaveLength(1);
+          expect(await chips[0].getText()).toEqual(`Message body includes: ${MESSAGE_TEXT}`);
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const messageTextInput = await dialog.getMessageTextInput();
+          expect(await messageTextInput.getValue()).toEqual(MESSAGE_TEXT);
+        });
+
+        it('should change message text filter', async () => {
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const messageTextInput = await dialog.getMessageTextInput();
+          await messageTextInput.setValue('actually find this');
+          await dialog.applyFilters();
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(body:*actually find this*)`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
