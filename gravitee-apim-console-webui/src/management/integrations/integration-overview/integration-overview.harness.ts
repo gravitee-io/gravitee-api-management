@@ -19,9 +19,12 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 
+import { IntegrationStatusHarness } from '../integration-status/integration-status.harness';
+
 export class IntegrationOverviewHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integration-overview';
 
+  private loaderPanel = this.locatorForOptional('[data-testid=loader-spinner]');
   private badgeErrorLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-error');
   private badgeSuccessLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-success');
   private discoverButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
@@ -30,12 +33,16 @@ export class IntegrationOverviewHarness extends ComponentHarness {
   private errorBannerLocator = this.locatorForOptional('gio-banner-error');
   private jobPendingBanner = this.locatorForOptional('.pending-job-banner');
 
+  private noIntegrationMessageDiv = this.locatorForOptional('.no-integrations__message');
   public getTable = this.locatorForOptional(MatTableHarness);
   private getPaginationLocator = this.locatorForOptional(MatPaginatorHarness);
 
-  public getErrorBadge = async (): Promise<TestElement> => {
-    return this.badgeErrorLocator();
-  };
+  private agentStatusLocator = this.locatorForOptional(IntegrationStatusHarness);
+  private integrationProviderLocator = this.locatorForOptional('[data-testid=integration-provider]');
+
+  public getLoaderPanel() {
+    return this.loaderPanel();
+  }
 
   public getErrorBanner = async (): Promise<TestElement> => {
     return this.errorBannerLocator();
@@ -45,12 +52,20 @@ export class IntegrationOverviewHarness extends ComponentHarness {
     return this.jobPendingBanner();
   };
 
-  public getSuccessBadge = async (): Promise<TestElement> => {
-    return this.badgeSuccessLocator();
-  };
-
   public getDiscoverButton = async (): Promise<MatButtonHarness> => {
     return this.discoverButtonLocator();
+  };
+
+  public getAgentStatus = async (): Promise<string> => {
+    return this.agentStatusLocator().then((status) => status.getAgentStatus());
+  };
+
+  public getIntegrationProvider = async (): Promise<string> => {
+    return this.integrationProviderLocator().then((provider) => provider.text());
+  };
+
+  public getNoIntegrationMessage = async (): Promise<string> => {
+    return this.noIntegrationMessageDiv().then((div) => div.text());
   };
 
   public rowsNumber = async (): Promise<number> => {

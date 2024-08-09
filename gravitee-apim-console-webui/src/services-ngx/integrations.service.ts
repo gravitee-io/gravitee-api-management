@@ -16,15 +16,17 @@
 
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+
+import { SnackBarService } from './snack-bar.service';
 
 import {
   CreateIntegrationPayload,
   DeletedFederatedAPIsResponse,
   FederatedAPIsResponse,
+  IngestionStatus,
   Integration,
-  IntegrationIngestionRequest,
   IntegrationIngestionResponse,
   IntegrationPreview,
   IntegrationResponse,
@@ -49,20 +51,20 @@ export class IntegrationsService {
   constructor(
     private readonly httpClient: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
-  public clearIngestParameters(): void {
-    this.IS_INGEST_TO_RUN = false;
-    this.APIS_IDS_TO_INGEST = undefined;
-  }
+  public ingest(integrationId: string, apiIdsToIngest: string[]): Observable<IntegrationIngestionResponse> {
+    this.snackBarService.success('API ingestion is in progress. The process should only take a few minute to complete. Come back shortly!');
 
-  public prepareRunIngest(apiIds: string[]): void {
-    this.IS_INGEST_TO_RUN = true;
-    this.APIS_IDS_TO_INGEST = apiIds;
-  }
-
-  public isIngestToRun(): boolean {
-    return this.IS_INGEST_TO_RUN;
+    return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${integrationId}/_ingest`, { apiIds: apiIdsToIngest }).pipe(
+      catchError((error) => {
+        return of({
+          status: IngestionStatus.ERROR,
+          message: `Fail to ingest APIs: ${error.message}`,
+        });
+      }),
+    );
   }
 
   public currentIntegration(): Observable<Integration> {
@@ -91,14 +93,6 @@ export class IntegrationsService {
 
   public deleteIntegration(id: string): Observable<Integration> {
     return this.httpClient.delete<Integration>(`${this.url}/${id}`);
-  }
-
-  public ingestIntegration(id: string): Observable<IntegrationIngestionResponse> {
-    const payload: IntegrationIngestionRequest = {
-      apiIds: this.APIS_IDS_TO_INGEST,
-    };
-    this.clearIngestParameters();
-    return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${id}/_ingest`, payload);
   }
 
   public previewIntegration(id: string): Observable<IntegrationPreview> {
