@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.score.use_case.ScoreApiRequestUseCase;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
@@ -120,7 +121,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
@@ -195,6 +198,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private GetApiDefinitionUseCase getApiDefinitionUseCase;
+
+    @Inject
+    private ScoreApiRequestUseCase scoreApiRequestUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -579,6 +585,16 @@ public class ApiResource extends AbstractResource {
         );
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
+    @POST
+    @Path("/_score")
+    public void scoreAPI(@PathParam("apiId") String apiId, @Suspended final AsyncResponse response) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(apiId, executionContext.getEnvironmentId(), executionContext.getOrganizationId()))
+            .subscribe(() -> response.resume(Response.noContent().build()), response::resume);
     }
 
     @POST
