@@ -16,11 +16,10 @@
 package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDMetadata;
+import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSettings;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import java.util.List;
 
 /**
@@ -43,7 +42,7 @@ public class ApplicationFixtures {
         var spec = new ApplicationCRDSpec();
         spec.setName("test");
         spec.setDescription("description");
-        spec.setSettings(new ApplicationSettings(new SimpleApplicationSettings("WEB", "test"), null));
+        spec.setSettings(new ApplicationCRDSettings(new ApplicationCRDSettings.SimpleApplicationSettings("WEB", "test"), null));
 
         ApplicationCRDMetadata metadata = new ApplicationCRDMetadata();
         metadata.setName("test");

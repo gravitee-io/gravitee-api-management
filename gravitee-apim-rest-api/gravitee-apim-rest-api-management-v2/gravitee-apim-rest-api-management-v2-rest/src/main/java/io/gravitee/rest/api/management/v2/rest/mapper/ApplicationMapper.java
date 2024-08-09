@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -36,5 +35,6 @@ public interface ApplicationMapper {
     BaseApplication mapToBaseApplication(ApplicationListItem applicationListItem);
     List<BaseApplication> mapToBaseApplicationList(Collection<ApplicationListItem> applications);
 
+    @Mapping(target = "picture", source = "pictureUrl")
     ApplicationCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec spec);
 }
