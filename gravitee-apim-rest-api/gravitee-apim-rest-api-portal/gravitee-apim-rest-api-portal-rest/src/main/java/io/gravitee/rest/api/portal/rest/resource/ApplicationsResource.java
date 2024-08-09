@@ -117,7 +117,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
                 ocs.setApplicationType(oauthAppInput.getApplicationType());
                 ocs.setGrantTypes(oauthAppInput.getGrantTypes());
                 ocs.setRedirectUris(oauthAppInput.getRedirectUris());
-                newApplicationEntitySettings.setoAuthClient(ocs);
+                newApplicationEntitySettings.setOAuthClient(ocs);
             }
         }
         newApplicationEntity.setSettings(newApplicationEntitySettings);

@@ -406,7 +406,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final ApplicationSettings settings = value.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        assertNull(settings.getoAuthClient());
+        assertNull(settings.getOAuthClient());
         assertEquals(ApiKeyMode.UNSPECIFIED, value.getApiKeyMode());
 
         Application createdApp = response.readEntity(Application.class);
@@ -444,7 +444,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final ApplicationSettings settings = value.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        assertNull(settings.getoAuthClient());
+        assertNull(settings.getOAuthClient());
         assertEquals(ApiKeyMode.SHARED, value.getApiKeyMode());
 
         Application createdApp = response.readEntity(Application.class);
@@ -483,7 +483,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNotNull(app);
         assertEquals(APPLICATION, app.getClientId());
         assertEquals(APPLICATION, app.getType());
-        assertNull(settings.getoAuthClient());
+        assertNull(settings.getOAuthClient());
 
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);
@@ -527,7 +527,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final ApplicationSettings settings = value.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        final io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings = settings.getoAuthClient();
+        final io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings = settings.getOAuthClient();
         assertNotNull(oauthClientSettings);
         assertEquals(APPLICATION, oauthClientSettings.getApplicationType());
         final List<String> grantTypes = oauthClientSettings.getGrantTypes();
