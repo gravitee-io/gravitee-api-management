@@ -17,6 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDatepickerInputHarness } from '@angular/material/datepicker/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 export class MoreFiltersDialogHarness extends ComponentHarness {
   public static hostSelector = 'app-more-filters-dialog';
@@ -26,6 +27,7 @@ export class MoreFiltersDialogHarness extends ComponentHarness {
   protected locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   protected locateRequestId = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Filter by Request ID"]' }));
   protected locateTransactionId = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Filter by Transaction ID"]' }));
+  protected locateHttpStatus = this.locatorFor(MatSelectHarness.with({ selector: '[aria-label="Filter by HTTP Status"]' }));
 
   async getStartDatePicker(): Promise<MatDatepickerInputHarness> {
     return await this.locateStartDatePicker();
@@ -41,6 +43,10 @@ export class MoreFiltersDialogHarness extends ComponentHarness {
 
   async getTransactionIdInput(): Promise<MatInputHarness> {
     return await this.locateTransactionId();
+  }
+
+  async getHttpStatusSelection(): Promise<MatSelectHarness> {
+    return await this.locateHttpStatus();
   }
 
   async applyFilters(): Promise<void> {

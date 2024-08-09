@@ -49,6 +49,16 @@
         <input matInput [(ngModel)]="transactionId" aria-label="Filter by Transaction ID" />
       </mat-form-field>
     </div>
+    <div class="content__row">
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@moreFiltersDialogHttpStatus">HTTP Status</mat-label>
+        <mat-select multiple [(ngModel)]="httpStatuses" aria-label="Filter by HTTP Status">
+          @for (httpStatus of httpStatusChoices; track httpStatus) {
+            <mat-option [value]="httpStatus.value">{{ httpStatus.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>

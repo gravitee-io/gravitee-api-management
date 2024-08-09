@@ -171,5 +171,25 @@ describe('ApplicationLogService', () => {
 
       req.flush(logsResponse);
     });
+
+    it('should return logs list with specified http statuses', done => {
+      const logsResponse: LogsResponse = fakeLogsResponse();
+      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+      const OK = '200';
+      const NOT_FOUND = '404';
+      service.list(APP_ID, { httpStatuses: [OK, NOT_FOUND] }).subscribe(response => {
+        expect(response).toMatchObject(logsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
+          `&query=(status:\\"${OK}\\" OR \\"${NOT_FOUND}\\")`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(logsResponse);
+    });
   });
 });
