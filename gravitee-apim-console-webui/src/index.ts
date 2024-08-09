@@ -30,7 +30,6 @@ import { environment } from './environments/environment';
 
 const requestConfig: RequestInit = {
   headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-  credentials: 'omit',
 };
 
 // fix angular-schema-form angular<1.7
