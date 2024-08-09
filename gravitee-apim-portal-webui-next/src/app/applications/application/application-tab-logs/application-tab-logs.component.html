@@ -143,6 +143,11 @@
           @if (filters().transactionId) {
             <mat-chip><span i18n="@@applicationLogsTransactionId">Transaction ID</span>: {{ filters().transactionId }}</mat-chip>
           }
+          @if (filters().httpStatuses) {
+            @for (httpStatus of filters().httpStatuses; track httpStatus.value) {
+              <mat-chip> <span i18n="@@applicationLogsHttpStatuses">HTTP Status</span>: {{ httpStatus.label }} </mat-chip>
+            }
+          }
         }
       </div>
     </div>

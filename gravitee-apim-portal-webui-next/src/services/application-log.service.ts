@@ -39,6 +39,7 @@ export interface ApplicationLogsListParameters {
   responseTimes?: string[];
   requestId?: string;
   transactionId?: string;
+  httpStatuses?: string[];
 }
 
 @Injectable({
@@ -113,6 +114,11 @@ export class ApplicationLogService {
     const transactionIdQuerySegment = this.createQuotationsQuerySegment('transaction', params.transactionId);
     if (transactionIdQuerySegment) {
       queryList.push(transactionIdQuerySegment);
+    }
+
+    const httpStatusesQuerySegment = this.createQuotationsListQuerySegment('status', params.httpStatuses);
+    if (httpStatusesQuerySegment) {
+      queryList.push(httpStatusesQuerySegment);
     }
 
     return queryList.join(' AND ');
