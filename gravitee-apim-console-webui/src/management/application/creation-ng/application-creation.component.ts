@@ -78,6 +78,7 @@ export class ApplicationCreationComponent {
 
     appType: new FormControl(),
     appClientId: new FormControl(),
+    appClientCertificate: new FormControl(),
 
     oauthGrantTypes: new FormControl(),
     oauthRedirectUris: new FormControl([]),
@@ -137,6 +138,9 @@ export class ApplicationCreationComponent {
                   redirect_uris: applicationPayload.oauthRedirectUris ?? [],
                 },
               }),
+          tls: {
+            client_certificate: applicationPayload.appClientCertificate,
+          },
         },
       })
       .pipe(takeUntilDestroyed(this.destroyRef))

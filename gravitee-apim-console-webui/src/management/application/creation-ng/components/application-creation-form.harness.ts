@@ -29,6 +29,7 @@ export class ApplicationCreationFormHarness extends ComponentHarness {
 
   // Simple type
   private getAppTypeInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="appType"]' }));
+  private getAppClientCertificateInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="appClientCertificate"]' }));
   private getAppClientIdInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="appClientId"]' }));
 
   // OAuth type
@@ -61,5 +62,9 @@ export class ApplicationCreationFormHarness extends ComponentHarness {
       const redirectUrisInput = await this.getOauthRedirectUrisInput();
       await parallel(() => redirectUris.map(async (redirectUri) => await redirectUrisInput.addTag(redirectUri)));
     }
+  }
+
+  public async setApplicationClientCertificate(appClientCertificate: string) {
+    await this.getAppClientCertificateInput().then(async (input) => await input.setValue(appClientCertificate));
   }
 }

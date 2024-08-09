@@ -35,6 +35,7 @@ export type ApplicationForm = {
 
   appType: FormControl<string>;
   appClientId: FormControl<string>;
+  appClientCertificate: FormControl<string>;
 
   oauthGrantTypes: FormControl<string[]>;
   oauthRedirectUris: FormControl<string[]>;

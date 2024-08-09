@@ -106,6 +106,13 @@
           >
         </mat-form-field>
       }
+      <mat-form-field>
+        <textarea id="appClientCertificate" type="text" matInput formControlName="appClientCertificate"></textarea>
+        <mat-label>Client Certificate (PEM Only)</mat-label>
+        <mat-hint
+          >The <code>client_certificate</code> of the application. This field is required to subscribe to certain mTLS plans.</mat-hint
+        >
+      </mat-form-field>
     }
   </div>
 }
