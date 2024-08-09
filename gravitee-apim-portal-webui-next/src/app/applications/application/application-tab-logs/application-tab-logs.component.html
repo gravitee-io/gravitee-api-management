@@ -148,6 +148,9 @@
               <mat-chip> <span i18n="@@applicationLogsHttpStatuses">HTTP Status</span>: {{ httpStatus.label }} </mat-chip>
             }
           }
+          @if (filters().messageText) {
+            <mat-chip><span i18n="@@applicationLogsMessageContaining">Message body includes</span>: {{ filters().messageText }}</mat-chip>
+          }
         }
       </div>
     </div>
