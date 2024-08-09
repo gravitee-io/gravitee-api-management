@@ -38,9 +38,9 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
 
     private final DocumentationValidationDomainService validationDomainService;
 
-    public record Input(String organisationId, Map<String, PageCRD> pages) implements Validator.Input {
+    public record Input(String organisationId, String apiId, Map<String, PageCRD> pages) implements Validator.Input {
         ValidatePagesDomainService.Input sanitized(Map<String, PageCRD> sanitizedPages) {
-            return new ValidatePagesDomainService.Input(organisationId, sanitizedPages);
+            return new ValidatePagesDomainService.Input(organisationId, apiId, sanitizedPages);
         }
     }
 
@@ -57,11 +57,9 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
 
         input.pages.forEach((k, v) -> {
             try {
-                Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(
-                    PageModelFactory.fromCRDSpec(v),
-                    input.organisationId,
-                    false
-                );
+                Page page = PageModelFactory.fromCRDSpec(v);
+                page.setReferenceId(input.apiId());
+                Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(page, input.organisationId, false);
                 sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
             } catch (Exception e) {
                 errors.add(Error.severe("invalid documentation page [%s]. Error: %s", k, e.getMessage()));

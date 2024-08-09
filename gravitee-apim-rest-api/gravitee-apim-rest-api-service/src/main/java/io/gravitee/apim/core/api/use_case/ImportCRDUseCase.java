@@ -40,7 +40,6 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -105,7 +104,6 @@ public class ImportCRDUseCase {
     private final MembershipCrudService membershipCrudService;
     private final MembershipQueryService membershipQueryService;
     private final ApiMetadataDomainService apiMetadataDomainService;
-    private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final ValidateCRDDomainService validateCRDDomainService;
@@ -132,7 +130,6 @@ public class ImportCRDUseCase {
         ApiMetadataDomainService apiMetadataDomainService,
         PageQueryService pageQueryService,
         PageCrudService pageCrudService,
-        DocumentationValidationDomainService documentationValidationDomainService,
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ValidateCRDDomainService validateCRDDomainService
@@ -158,7 +155,6 @@ public class ImportCRDUseCase {
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.pageQueryService = pageQueryService;
         this.pageCrudService = pageCrudService;
-        this.documentationValidationDomainService = documentationValidationDomainService;
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.validateCRDDomainService = validateCRDDomainService;
@@ -450,27 +446,14 @@ public class ImportCRDUseCase {
                 .findById(page.getId())
                 .ifPresentOrElse(
                     oldPage -> {
-                        var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForUpdate(
-                            page,
-                            auditInfo.organizationId(),
-                            false
-                        );
                         updateApiDocumentationDomainService.updatePage(
-                            sanitizedPage.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
+                            page.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
                             oldPage,
                             auditInfo
                         );
                     },
                     () -> {
-                        var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForCreation(
-                            page,
-                            auditInfo.organizationId(),
-                            false
-                        );
-                        createApiDocumentationDomainService.createPage(
-                            sanitizedPage.toBuilder().createdAt(now).updatedAt(now).build(),
-                            auditInfo
-                        );
+                        createApiDocumentationDomainService.createPage(page.toBuilder().createdAt(now).updatedAt(now).build(), auditInfo);
                     }
                 );
         });
