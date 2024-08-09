@@ -26,6 +26,7 @@ import { MatInputModule } from '@angular/material/input';
 export interface MoreFiltersDialogData {
   startDate?: number;
   endDate?: number;
+  requestId?: string;
 }
 
 @Component({
@@ -48,6 +49,7 @@ export interface MoreFiltersDialogData {
 export class MoreFiltersDialogComponent {
   startDate: Date | undefined;
   endDate: Date | undefined;
+  requestId: string | undefined;
 
   private readonly initialData: MoreFiltersDialogData;
 
@@ -59,6 +61,7 @@ export class MoreFiltersDialogComponent {
 
     this.startDate = dialogData.startDate ? new Date(dialogData.startDate) : undefined;
     this.endDate = dialogData.endDate ? new Date(dialogData.endDate) : undefined;
+    this.requestId = dialogData.requestId ?? '';
   }
 
   onCancel() {
@@ -69,6 +72,7 @@ export class MoreFiltersDialogComponent {
     this.dialogRef.close({
       startDate: this.startDate?.getTime(),
       endDate: this.endDate?.getTime(),
+      requestId: this.requestId,
     });
   }
 

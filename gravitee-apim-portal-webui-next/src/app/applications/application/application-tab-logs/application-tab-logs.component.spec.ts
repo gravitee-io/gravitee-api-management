@@ -78,6 +78,11 @@ describe('ApplicationTabLogsComponent', () => {
 
     fixture.detectChanges();
   };
+
+  afterAll(async () => {
+    jest.useRealTimers();
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
@@ -897,10 +902,56 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('Request ID', () => {
+      describe('One request ID in query params', () => {
+        const REQUEST_ID = 'my-request';
+        beforeEach(async () => {
+          await init({ requestId: REQUEST_ID });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(_id:\\"${REQUEST_ID}\\")`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have request id pre-selected', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(false);
+          const chips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(chips).toHaveLength(1);
+          expect(await chips[0].getText()).toEqual(`Request ID: ${REQUEST_ID}`);
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const requestIdInput = await dialog.getRequestIdInput();
+          expect(await requestIdInput.getValue()).toEqual(REQUEST_ID);
+        });
+
+        it('should change Request ID filter', async () => {
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const requestIdInput = await dialog.getRequestIdInput();
+          await requestIdInput.setValue('new-request-id');
+          await dialog.applyFilters();
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(_id:\\"new-request-id\\")`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
-    const toInMilliseconds = to ?? MOCK_DATE.getTime();
+    const toInMilliseconds = to ?? Date.now();
     const fromInMilliseconds = from ?? toInMilliseconds - 86400000;
     httpTestingController
       .expectOne(
