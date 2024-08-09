@@ -43,7 +43,7 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
         }
 
         if (criteria.getTags() != null && criteria.getTags().length > 0) {
-            query.addCriteria(where("tags").all(Arrays.asList(criteria.getTags())));
+            query.addCriteria(where("tags").in(Arrays.asList(criteria.getTags())));
         }
 
         if (criteria.isNotExpired()) {
