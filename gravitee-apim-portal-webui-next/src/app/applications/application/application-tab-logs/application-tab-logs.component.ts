@@ -73,6 +73,7 @@ interface FiltersVM {
   transactionId?: string;
   httpStatuses?: HttpStatusVM[];
   messageText?: string;
+  path?: string;
 }
 
 @Component({
@@ -174,8 +175,9 @@ export class ApplicationTabLogsComponent implements OnInit {
         const httpStatuses: string[] = this.mapQueryParamToStringArray(queryParams['httpStatuses']);
 
         const messageText: string | undefined = queryParams['messageText'];
+        const path: string | undefined = queryParams['path'];
 
-        return { page, apis, methods, responseTimes, period, from, to, requestId, transactionId, httpStatuses, messageText };
+        return { page, apis, methods, responseTimes, period, from, to, requestId, transactionId, httpStatuses, messageText, path };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
@@ -272,6 +274,7 @@ export class ApplicationTabLogsComponent implements OnInit {
           transactionId: this.filters().transactionId,
           httpStatuses: this.filters().httpStatuses,
           messageText: this.filters().messageText,
+          path: this.filters().path,
         },
       })
       .afterClosed()
@@ -286,6 +289,7 @@ export class ApplicationTabLogsComponent implements OnInit {
             transactionId: dialogFilters?.transactionId,
             httpStatuses: dialogFilters?.httpStatuses,
             messageText: dialogFilters?.messageText,
+            path: dialogFilters?.path,
           }));
         },
       });
@@ -302,6 +306,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     const transactionId = this.filters().transactionId;
     const httpStatuses: string[] = this.filters().httpStatuses?.map(rt => rt.value) ?? [];
     const messageText = this.filters().messageText;
+    const path = this.filters().path;
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -317,6 +322,7 @@ export class ApplicationTabLogsComponent implements OnInit {
         ...(transactionId ? { transactionId } : {}),
         ...(httpStatuses.length ? { httpStatuses } : {}),
         ...(messageText ? { messageText } : {}),
+        ...(path ? { path } : {}),
       },
     });
   }
@@ -333,6 +339,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     transactionId?: string;
     httpStatuses: string[];
     messageText?: string;
+    path?: string;
   }): void {
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
@@ -354,6 +361,7 @@ export class ApplicationTabLogsComponent implements OnInit {
       ...(params.transactionId ? { transactionId: params.transactionId } : {}),
       ...(httpStatuses.length ? { httpStatuses } : {}),
       ...(params.messageText ? { messageText: params.messageText } : {}),
+      ...(params.path ? { path: params.path } : {}),
     }));
     this.filtersInitialValue = this.filters();
   }
