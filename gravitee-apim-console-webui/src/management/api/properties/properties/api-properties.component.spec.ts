@@ -35,7 +35,7 @@ import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-a
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2/api';
+import { Api, fakeApiV2, fakeApiV4, KubernetesContext } from '../../../../entities/management-api-v2/api';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPropertiesComponent', () => {
@@ -264,6 +264,20 @@ describe('ApiPropertiesComponent', () => {
     expect(postApiReq.request.body.properties).toEqual([]);
   });
 
+  it('should disable remove with origin KUBERNETES', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+        originContext: new KubernetesContext(),
+      }),
+    );
+
+    const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    const isDisabled = await removePropertyButton.isDisabled();
+    expect(isDisabled).toBe(true);
+  });
+
   it('should add property', async () => {
     expectGetApi(
       fakeApiV4({
@@ -299,6 +313,18 @@ describe('ApiPropertiesComponent', () => {
       },
       { key: 'x-existing', value: '', encrypted: false },
     ]);
+  });
+
+  it('should hide add property with origin KUBERNETES', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+        originContext: new KubernetesContext(),
+      }),
+    );
+
+    await expect(loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' }))).rejects.toBeTruthy();
   });
 
   it('should import properties', async () => {
