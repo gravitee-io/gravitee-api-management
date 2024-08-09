@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -110,6 +111,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretExcep
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationCertificateException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
@@ -121,7 +123,9 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.security.cert.Certificate;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -414,6 +418,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         // Create application metadata
         Map<String, String> metadata = new HashMap<>();
+        final Set<Application> activeApplicationsForCurrentEnvironment = getActiveApplicationsForCurrentEnvironment(
+            executionContext.getEnvironmentId()
+        );
 
         // Create a simple "internal" application
         if (newApplicationEntity.getSettings().getApp() != null) {
@@ -429,7 +436,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String clientId = newApplicationEntity.getSettings().getApp().getClientId();
 
             if (clientId != null && !clientId.trim().isEmpty()) {
-                checkClientIdIsUniqueForEnv(executionContext.getEnvironmentId(), clientId);
+                checkClientIdIsUniqueForEnv(activeApplicationsForCurrentEnvironment, clientId);
             }
         } else {
             // Check that client registration is enabled
@@ -451,6 +458,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 LOGGER.error("An error has occurred while serializing registration response", e);
             }
         }
+
+        validateAndEncodeClientCertificate(newApplicationEntity.getSettings(), activeApplicationsForCurrentEnvironment);
 
         if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
             //throw a NotFoundException if the group doesn't exist
@@ -479,6 +488,56 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setUpdatedAt(application.getCreatedAt());
 
         return createApplicationForEnvironment(executionContext, userId, application);
+    }
+
+    private Set<Application> getActiveApplicationsForCurrentEnvironment(String environmentId) {
+        final Set<Application> activeApplicationsForCurrentEnvironment;
+        try {
+            activeApplicationsForCurrentEnvironment = applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to fetch applications for environment [" + environmentId + "]",
+                ex
+            );
+        }
+        return activeApplicationsForCurrentEnvironment;
+    }
+
+    private static void validateAndEncodeClientCertificate(
+        ApplicationSettings applicationSettings,
+        Set<Application> activeApplicationsForCurrentEnvironment
+    ) {
+        if (applicationSettings.getTls() != null && !StringUtils.isBlank(applicationSettings.getTls().getClientCertificate())) {
+            // validate certificate
+            try {
+                final Certificate[] certificates = KeyStoreUtils.loadPemCertificates(applicationSettings.getTls().getClientCertificate());
+                // For some cases, KeyStoreUtils does not throw an exception but simply returns an empty array of certificates.
+                if (certificates.length == 0) {
+                    throw new InvalidApplicationCertificateException("An error has occurred while parsing client certificate");
+                }
+            } catch (Exception e) {
+                throw new InvalidApplicationCertificateException("An error has occurred while parsing client certificate");
+            }
+            // convert it to base64
+            applicationSettings
+                .getTls()
+                .setClientCertificate(
+                    Base64.getEncoder().encodeToString(applicationSettings.getTls().getClientCertificate().trim().getBytes())
+                );
+
+            // validate certificate is unique
+            final boolean appExistForCertificate = activeApplicationsForCurrentEnvironment
+                .stream()
+                .anyMatch(application ->
+                    applicationSettings
+                        .getTls()
+                        .getClientCertificate()
+                        .equals(application.getMetadata().get(Application.METADATA_CLIENT_CERTIFICATE))
+                );
+            if (appExistForCertificate) {
+                throw new InvalidApplicationCertificateException("Certificate is currently in use by another application");
+            }
+        }
     }
 
     @NotNull
@@ -1407,19 +1466,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private void checkClientIdIsUniqueForEnv(String environmentId, String clientId) {
-        final boolean alreadyExistingApp;
         try {
-            alreadyExistingApp =
-                applicationRepository
-                    .findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE)
-                    .stream()
-                    .anyMatch(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)));
+            final Set<Application> activeApplications = applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE);
+            checkClientIdIsUniqueForEnv(activeApplications, clientId);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to fetch applications for environment [" + environmentId + "]",
                 ex
             );
         }
+    }
+
+    private void checkClientIdIsUniqueForEnv(Set<Application> applications, String clientId) {
+        final boolean alreadyExistingApp;
+        alreadyExistingApp =
+            applications.stream().anyMatch(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)));
         if (alreadyExistingApp) {
             throw new ClientIdAlreadyExistsException(clientId);
         }

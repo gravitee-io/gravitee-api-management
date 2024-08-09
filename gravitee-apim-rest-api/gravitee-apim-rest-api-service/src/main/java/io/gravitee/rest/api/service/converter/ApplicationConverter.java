@@ -97,6 +97,11 @@ public class ApplicationConverter {
                 metadata.put("type", applicationSettings.getApp().getType());
             }
         }
+        if (applicationSettings != null && applicationSettings.getTls() != null) {
+            if (applicationSettings.getTls().getClientCertificate() != null) {
+                metadata.put(Application.METADATA_CLIENT_CERTIFICATE, applicationSettings.getTls().getClientCertificate());
+            }
+        }
         return metadata;
     }
 

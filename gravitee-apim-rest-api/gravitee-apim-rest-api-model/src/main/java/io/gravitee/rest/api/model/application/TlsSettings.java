@@ -16,33 +16,18 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
-public class ApplicationSettings {
+public class TlsSettings {
 
-    public ApplicationSettings(SimpleApplicationSettings simpleApplicationSettings, OAuthClientSettings oAuthClient) {
-        this.app = simpleApplicationSettings;
-        this.oAuthClient = oAuthClient;
-        this.tls = null;
-    }
-
-    @JsonProperty("app")
-    private SimpleApplicationSettings app;
-
-    @JsonProperty("oauth")
-    private OAuthClientSettings oAuthClient;
-
-    @JsonProperty("tls")
-    private TlsSettings tls;
+    @JsonProperty("client_certificate")
+    private String clientCertificate;
 }
