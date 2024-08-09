@@ -81,6 +81,7 @@ interface FiltersVM {
   period?: PeriodVM;
   to?: number;
   from?: number;
+  requestId?: string;
 }
 
 @Component({
@@ -294,7 +295,9 @@ export class ApplicationTabLogsComponent implements OnInit {
         const from: number | undefined = queryParams['from'] ? +queryParams['from'] : undefined;
         const to: number | undefined = queryParams['to'] ? +queryParams['to'] : undefined;
 
-        return { page, apis, methods, responseTimes, period, from, to };
+        const requestId: string | undefined = queryParams['requestId'];
+
+        return { page, apis, methods, responseTimes, period, from, to, requestId };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
@@ -387,13 +390,19 @@ export class ApplicationTabLogsComponent implements OnInit {
         data: {
           startDate: this.filters().from,
           endDate: this.filters().to,
+          requestId: this.filters().requestId,
         },
       })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: dialogFilters => {
-          this.filters.update(filters => ({ ...filters, from: dialogFilters?.startDate, to: dialogFilters?.endDate }));
+          this.filters.update(filters => ({
+            ...filters,
+            from: dialogFilters?.startDate,
+            to: dialogFilters?.endDate,
+            requestId: dialogFilters?.requestId,
+          }));
         },
       });
   }
@@ -405,6 +414,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     const period: string = this.filters().period?.value ?? '';
     const from = this.filters().from;
     const to = this.filters().to;
+    const requestId = this.filters().requestId;
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -416,6 +426,7 @@ export class ApplicationTabLogsComponent implements OnInit {
         ...(period ? { period } : {}),
         ...(from ? { from } : {}),
         ...(to ? { to } : {}),
+        ...(requestId ? { requestId } : {}),
       },
     });
   }
@@ -428,6 +439,7 @@ export class ApplicationTabLogsComponent implements OnInit {
     period?: string;
     from?: number;
     to?: number;
+    requestId?: string;
   }): void {
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
@@ -443,6 +455,7 @@ export class ApplicationTabLogsComponent implements OnInit {
       ...(period ? { period } : {}),
       ...(params.from ? { from: params.from } : {}),
       ...(params.to ? { to: params.to } : {}),
+      ...(params.requestId ? { requestId: params.requestId } : {}),
     }));
     this.filtersInitialValue = this.filters();
   }
