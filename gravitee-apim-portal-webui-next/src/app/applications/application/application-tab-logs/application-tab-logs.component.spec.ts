@@ -948,6 +948,52 @@ describe('ApplicationTabLogsComponent', () => {
         });
       });
     });
+
+    describe('Transaction ID', () => {
+      describe('One transaction ID in query params', () => {
+        const TRANSACTION_ID = 'my-transaction';
+        beforeEach(async () => {
+          await init({ transactionId: TRANSACTION_ID });
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(transaction:\\"${TRANSACTION_ID}\\")`);
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should have transaction id pre-selected', async () => {
+          expect(await noChipFiltersDisplayed()).toEqual(false);
+          const chips = await harnessLoader.getAllHarnesses(MatChipHarness);
+          expect(chips).toHaveLength(1);
+          expect(await chips[0].getText()).toEqual(`Transaction ID: ${TRANSACTION_ID}`);
+
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const transactionIdInput = await dialog.getTransactionIdInput();
+          expect(await transactionIdInput.getValue()).toEqual(TRANSACTION_ID);
+        });
+
+        it('should change Transaction ID filter', async () => {
+          await openMoreFiltersDialog();
+          const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+          const transactionIdInput = await dialog.getTransactionIdInput();
+          await transactionIdInput.setValue('new-transaction-id');
+          await dialog.applyFilters();
+
+          const searchButton = await getSearchButton();
+          expect(await searchButton.isDisabled()).toEqual(false);
+
+          await searchButton.click();
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `(transaction:\\"new-transaction-id\\")`);
+        });
+        it('should reset filter', async () => {
+          const resetButton = await getResetFilterButton();
+          expect(await resetButton.isDisabled()).toEqual(false);
+          await resetButton.click();
+
+          expect(await noChipFiltersDisplayed()).toEqual(true);
+        });
+      });
+    });
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {

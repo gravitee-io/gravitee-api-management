@@ -43,6 +43,12 @@
         <input matInput [(ngModel)]="requestId" aria-label="Filter by Request ID" />
       </mat-form-field>
     </div>
+    <div class="content__row">
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@moreFiltersDialogChooseTransactionId">Transaction ID</mat-label>
+        <input matInput [(ngModel)]="transactionId" aria-label="Filter by Transaction ID" />
+      </mat-form-field>
+    </div>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>
