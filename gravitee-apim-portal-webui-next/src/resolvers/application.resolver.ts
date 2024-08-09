@@ -18,7 +18,9 @@ import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular
 import { Observable } from 'rxjs';
 
 import { Application, ApplicationType } from '../entities/application/application';
+import { UserApplicationPermissions } from '../entities/permission/permission';
 import { ApplicationService } from '../services/application.service';
+import { PermissionsService } from '../services/permissions.service';
 
 export const applicationResolver = ((
   route: ActivatedRouteSnapshot,
@@ -31,3 +33,10 @@ export const applicationTypeResolver = ((
   _: RouterStateSnapshot,
   applicationService: ApplicationService = inject(ApplicationService),
 ): Observable<ApplicationType> => applicationService.getType(route.params['applicationId'])) satisfies ResolveFn<ApplicationType>;
+
+export const applicationPermissionResolver = ((
+  route: ActivatedRouteSnapshot,
+  _: RouterStateSnapshot,
+  permissionsService: PermissionsService = inject(PermissionsService),
+): Observable<UserApplicationPermissions> =>
+  permissionsService.getApplicationPermissions(route.params['applicationId'])) satisfies ResolveFn<UserApplicationPermissions>;

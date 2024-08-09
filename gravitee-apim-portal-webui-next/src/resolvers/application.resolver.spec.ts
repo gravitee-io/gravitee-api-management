@@ -16,8 +16,9 @@
 import { TestBed } from '@angular/core/testing';
 import { ResolveFn } from '@angular/router';
 
-import { applicationResolver, applicationTypeResolver } from './application.resolver';
+import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from './application.resolver';
 import { Application, ApplicationType } from '../entities/application/application';
+import { UserApplicationPermissions } from '../entities/permission/permission';
 
 describe('applicationResolver', () => {
   const executeResolver: ResolveFn<Application> = (...resolverParameters) =>
@@ -35,6 +36,19 @@ describe('applicationResolver', () => {
 describe('applicationTypeResolver', () => {
   const executeResolver: ResolveFn<ApplicationType> = (...resolverParameters) =>
     TestBed.runInInjectionContext(() => applicationTypeResolver(...resolverParameters));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+  });
+
+  it('should be created', () => {
+    expect(executeResolver).toBeTruthy();
+  });
+});
+
+describe('applicationPermissionsResolver', () => {
+  const executeResolver: ResolveFn<UserApplicationPermissions> = (...resolverParameters) =>
+    TestBed.runInInjectionContext(() => applicationPermissionResolver(...resolverParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
