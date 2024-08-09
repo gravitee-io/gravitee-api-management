@@ -15,12 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
-import io.gravitee.definition.model.Origin;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
@@ -28,26 +24,26 @@ import lombok.Data;
  * @author GraviteeSource Team
  */
 @Data
-public class ApplicationCRDSpec {
+@AllArgsConstructor
+public class ApplicationCRDSettings {
 
-    private String id;
+    private SimpleApplicationSettings app;
+    private OAuthClientSettings oauth;
 
-    @NotNull
-    @NotEmpty
-    private String name;
+    @Data
+    @AllArgsConstructor
+    public static class SimpleApplicationSettings {
 
-    @NotNull
-    @NotEmpty
-    private String description;
+        private String type;
+        private String clientId;
+    }
 
-    private String domain;
-    private Set<String> groups;
-    private String status;
-    private String pictureUrl;
-    private boolean disableMembershipNotifications;
-    private String background;
-    private Origin origin;
-    private PrimaryOwnerEntity primaryOwner;
-    private ApplicationCRDSettings settings;
-    private List<ApplicationCRDMetadata> metadata;
+    @Data
+    @AllArgsConstructor
+    public static class OAuthClientSettings {
+
+        private List<String> responseTypes;
+        private List<String> grantTypes;
+        private String applicationType;
+    }
 }
