@@ -110,6 +110,7 @@
               mat-icon-button
               aria-label="Renew encrypted value"
               matTooltip="Renew encrypted value"
+              [disabled]="isReadOnly"
               (click)="renewEncryptedPropertyValue(element._id)"
             >
               <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
@@ -121,6 +122,7 @@
               mat-icon-button
               aria-label="Encrypt value"
               matTooltip="Encrypt value"
+              [disabled]="isReadOnly"
               (click)="encryptPropertyValue(element._id)"
             >
               <mat-icon svgIcon="gio:lock"></mat-icon>
@@ -131,6 +133,7 @@
             type="button"
             mat-icon-button
             aria-label="Remove property"
+            [disabled]="isReadOnly"
             [matTooltip]="element.dynamic ? 'Remove property. Can be re-added with next sync.' : 'Remove property'"
             (click)="removeProperty(element._id)"
           >
