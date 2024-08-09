@@ -39,6 +39,8 @@ public class SharedPolicyGroupMongo extends Auditable {
 
     private String description;
 
+    private String prerequisiteMessage;
+
     private Integer version;
 
     private String apiType;

@@ -64,6 +64,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
             .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
             .addColumn("version", Types.INTEGER, Integer.class)
             .addColumn("api_type", Types.NVARCHAR, ApiType.class)
             .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.ExecutionPhase.class)

@@ -71,6 +71,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .name("name")
             .version(1)
             .description("description")
+            .prerequisiteMessage("prerequisiteMessage")
             .crossId("crossId")
             .apiType(ApiType.PROXY)
             .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
@@ -88,6 +89,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(create.getName()).isEqualTo(sharedPolicyGroup.getName());
         assertThat(create.getVersion()).isEqualTo(sharedPolicyGroup.getVersion());
         assertThat(create.getDescription()).isEqualTo(sharedPolicyGroup.getDescription());
+        assertThat(create.getPrerequisiteMessage()).isEqualTo(sharedPolicyGroup.getPrerequisiteMessage());
         assertThat(create.getCrossId()).isEqualTo(sharedPolicyGroup.getCrossId());
         assertThat(create.getApiType()).isEqualTo(sharedPolicyGroup.getApiType());
         assertThat(create.getPhase()).isEqualTo(sharedPolicyGroup.getPhase());
@@ -109,6 +111,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
             .name("new name")
             .version(2)
             .description("new description")
+            .prerequisiteMessage("new prerequisiteMessage")
             .crossId("new crossId")
             .apiType(ApiType.MESSAGE)
             .phase(SharedPolicyGroup.ExecutionPhase.MESSAGE_REQUEST)
@@ -125,6 +128,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(update.getName()).isEqualTo(toUpdate.getName());
         assertThat(update.getVersion()).isEqualTo(toUpdate.getVersion());
         assertThat(update.getDescription()).isEqualTo(toUpdate.getDescription());
+        assertThat(update.getPrerequisiteMessage()).isEqualTo(toUpdate.getPrerequisiteMessage());
         assertThat(update.getCrossId()).isEqualTo(toUpdate.getCrossId());
         assertThat(update.getApiType()).isEqualTo(toUpdate.getApiType());
         assertThat(update.getPhase()).isEqualTo(toUpdate.getPhase());

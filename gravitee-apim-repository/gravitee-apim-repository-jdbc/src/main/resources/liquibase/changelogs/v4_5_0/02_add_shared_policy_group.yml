@@ -15,6 +15,7 @@ databaseChangeLog:
               - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
               - column: {name: description, type: nvarchar(1024) }
+              - column: {name: prerequisite_message, type: nvarchar(1024) }
               - column: {name: version, type: int, constraints: { nullable: false } }
               - column: {name: api_type, type: nvarchar(10), constraints: { nullable: false } }
               - column: {name: phase, type: nvarchar(32), constraints: { nullable: false } }
@@ -59,6 +60,7 @@ databaseChangeLog:
               - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
               - column: {name: description, type: nvarchar(1024) }
+              - column: {name: prerequisite_message, type: nvarchar(1024) }
               - column: {name: version, type: int, constraints: { nullable: false } }
               - column: {name: api_type, type: nvarchar(10), constraints: { nullable: false } }
               - column: {name: phase, type: nvarchar(32), constraints: { nullable: false } }
