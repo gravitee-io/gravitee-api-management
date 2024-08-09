@@ -158,8 +158,14 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 1, commands.size());
-        assertEquals("contain 'search3'", "search3", commands.get(0).getId());
+        assertEquals("result size", 5, commands.size());
+        assertTrue(
+            "contain [msg-to-create, msg-to-update, search1, search2, search3]",
+            commands
+                .stream()
+                .map(Command::getId)
+                .allMatch(List.of("msg-to-create", "msg-to-update", "search1", "search2", "search3")::contains)
+        );
     }
 
     @Test
