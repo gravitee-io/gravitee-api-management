@@ -421,7 +421,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 registrationResponse.getRegistrationAccessToken(),
                 registrationResponse.getRegistrationClientUri(),
                 convert(registrationRequest, application),
-                application.getSettings().getoAuthClient().getClientId()
+                application.getSettings().getOAuthClient().getClientId()
             );
         } catch (JsonProcessingException ex) {
             LOGGER.error("Unexpected error while updating a client", ex);
@@ -480,12 +480,12 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
         request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getoAuthClient().getApplicationType());
-        request.setClientUri(application.getSettings().getoAuthClient().getClientUri());
-        request.setGrantTypes(application.getSettings().getoAuthClient().getGrantTypes());
-        request.setLogoUri(application.getSettings().getoAuthClient().getLogoUri());
-        request.setRedirectUris(application.getSettings().getoAuthClient().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getoAuthClient().getResponseTypes());
+        request.setApplicationType(application.getSettings().getOAuthClient().getApplicationType());
+        request.setClientUri(application.getSettings().getOAuthClient().getClientUri());
+        request.setGrantTypes(application.getSettings().getOAuthClient().getGrantTypes());
+        request.setLogoUri(application.getSettings().getOAuthClient().getLogoUri());
+        request.setRedirectUris(application.getSettings().getOAuthClient().getRedirectUris());
+        request.setResponseTypes(application.getSettings().getOAuthClient().getResponseTypes());
 
         return request;
     }
@@ -494,12 +494,12 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         ClientRegistrationRequest request = new ClientRegistrationRequest();
 
         request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getoAuthClient().getApplicationType());
-        request.setClientUri(application.getSettings().getoAuthClient().getClientUri());
-        request.setGrantTypes(application.getSettings().getoAuthClient().getGrantTypes());
-        request.setLogoUri(application.getSettings().getoAuthClient().getLogoUri());
-        request.setRedirectUris(application.getSettings().getoAuthClient().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getoAuthClient().getResponseTypes());
+        request.setApplicationType(application.getSettings().getOAuthClient().getApplicationType());
+        request.setClientUri(application.getSettings().getOAuthClient().getClientUri());
+        request.setGrantTypes(application.getSettings().getOAuthClient().getGrantTypes());
+        request.setLogoUri(application.getSettings().getOAuthClient().getLogoUri());
+        request.setRedirectUris(application.getSettings().getOAuthClient().getRedirectUris());
+        request.setResponseTypes(application.getSettings().getOAuthClient().getResponseTypes());
 
         return request;
     }

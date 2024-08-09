@@ -118,7 +118,7 @@ public class ApplicationMapper {
                 );
                 application.setHasClientId(simpleAppEntitySettings.getClientId() != null);
             } else {
-                final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getoAuthClient();
+                final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getOAuthClient();
 
                 appSettings.oauth(
                     new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
@@ -191,9 +191,9 @@ public class ApplicationMapper {
             settings != null &&
             (
                 (
-                    settings.getoAuthClient() != null &&
-                    settings.getoAuthClient().getClientId() != null &&
-                    !settings.getoAuthClient().getClientId().isEmpty()
+                    settings.getOAuthClient() != null &&
+                    settings.getOAuthClient().getClientId() != null &&
+                    !settings.getOAuthClient().getClientId().isEmpty()
                 ) ||
                 (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
             )

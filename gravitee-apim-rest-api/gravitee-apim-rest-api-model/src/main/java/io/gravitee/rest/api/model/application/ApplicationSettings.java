@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.application;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
@@ -26,6 +27,7 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Builder(toBuilder = true)
 public class ApplicationSettings {
 
@@ -34,20 +36,4 @@ public class ApplicationSettings {
 
     @JsonProperty("oauth")
     private OAuthClientSettings oAuthClient;
-
-    public SimpleApplicationSettings getApp() {
-        return app;
-    }
-
-    public void setApp(SimpleApplicationSettings app) {
-        this.app = app;
-    }
-
-    public OAuthClientSettings getoAuthClient() {
-        return oAuthClient;
-    }
-
-    public void setoAuthClient(OAuthClientSettings oAuthClient) {
-        this.oAuthClient = oAuthClient;
-    }
 }

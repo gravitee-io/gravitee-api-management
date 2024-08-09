@@ -218,7 +218,7 @@ public class ApplicationsResource extends AbstractResource {
         // To preserve backward compatibility, ensure that we have at least default settings for simple application type
         if (
             application.getSettings() == null ||
-            (application.getSettings().getoAuthClient() == null && application.getSettings().getApp() == null)
+            (application.getSettings().getOAuthClient() == null && application.getSettings().getApp() == null)
         ) {
             ApplicationSettings settings = new ApplicationSettings();
             SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();

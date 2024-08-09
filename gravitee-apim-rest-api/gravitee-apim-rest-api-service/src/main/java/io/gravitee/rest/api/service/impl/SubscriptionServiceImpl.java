@@ -475,8 +475,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             : null;
                 } else {
                     clientId =
-                        (applicationEntity.getSettings() != null && applicationEntity.getSettings().getoAuthClient() != null)
-                            ? applicationEntity.getSettings().getoAuthClient().getClientId()
+                        (applicationEntity.getSettings() != null && applicationEntity.getSettings().getOAuthClient() != null)
+                            ? applicationEntity.getSettings().getOAuthClient().getClientId()
                             : null;
                 }
 

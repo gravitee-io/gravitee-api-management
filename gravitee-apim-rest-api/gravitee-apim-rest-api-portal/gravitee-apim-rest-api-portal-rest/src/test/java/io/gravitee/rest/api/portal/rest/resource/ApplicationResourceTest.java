@@ -224,7 +224,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        assertNull(settings.getoAuthClient());
+        assertNull(settings.getOAuthClient());
 
         String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
@@ -279,7 +279,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertNotNull(app);
         assertEquals(APPLICATION_ID, app.getClientId());
         assertEquals(APPLICATION_ID, app.getType());
-        assertNull(settings.getoAuthClient());
+        assertNull(settings.getOAuthClient());
 
         String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
@@ -295,7 +295,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
             new io.gravitee.rest.api.model.application.ApplicationSettings();
         io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings =
             new io.gravitee.rest.api.model.application.OAuthClientSettings();
-        appSettings.setoAuthClient(oauthClientSettings);
+        appSettings.setOAuthClient(oauthClientSettings);
         appEntity.setSettings(appSettings);
         UserEntity userEntity = new UserEntity();
         userEntity.setId(USER_NAME);
@@ -346,7 +346,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        final io.gravitee.rest.api.model.application.OAuthClientSettings oAuthClientSettings = settings.getoAuthClient();
+        final io.gravitee.rest.api.model.application.OAuthClientSettings oAuthClientSettings = settings.getOAuthClient();
         assertNotNull(oAuthClientSettings);
         final List<String> grantTypes = oAuthClientSettings.getGrantTypes();
         assertNotNull(grantTypes);
