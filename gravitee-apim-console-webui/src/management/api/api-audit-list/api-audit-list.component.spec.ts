@@ -106,7 +106,7 @@ describe('ApiAuditListComponent', () => {
     expectGetApiAuditListRequest({ from: 1649635200000 });
 
     await (await rangeSelect.getEndInput()).setValue('4/20/2022');
-    expectGetApiAuditListRequest({ from: 1649635200000, to: 1650412800000 });
+    expectGetApiAuditListRequest({ from: 1649635200000, to: 1650499199999 });
   });
 
   it('should reset pagination on filter change', async () => {

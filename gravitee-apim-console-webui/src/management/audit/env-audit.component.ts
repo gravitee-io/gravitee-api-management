@@ -25,6 +25,7 @@ import { ApplicationService } from '../../services-ngx/application.service';
 import { AuditService } from '../../services-ngx/audit.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { endOfDay } from '../../util/date.util';
 
 interface AuditDataTable {
   id: string;
@@ -118,7 +119,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
             applicationId,
             apiId,
             from: range?.start?.valueOf() ?? undefined,
-            to: range?.end?.valueOf() ?? undefined,
+            to: endOfDay(range?.end) ?? undefined,
           },
         });
       });

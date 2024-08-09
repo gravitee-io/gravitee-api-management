@@ -96,7 +96,7 @@ describe('AuditLogsComponent', () => {
       await form.setDateRange({ start: '4/11/2022', end: '4/20/2022' });
 
       expectAuditListRequest({ from: 1649635200000 });
-      expectAuditListRequest({ from: 1649635200000, to: 1650412800000 });
+      expectAuditListRequest({ from: 1649635200000, to: 1650499199999 });
     });
 
     it('should reset filters and pagination', async () => {
@@ -126,7 +126,7 @@ describe('AuditLogsComponent', () => {
         fakeAuditResponse({ pagination: { page: 1, perPage: 10, pageCount: 3, pageItemsCount: 10, totalCount: 29 } }),
       );
       expectAuditListRequest(
-        { events: 'API_CREATED', from: 1649635200000, to: 1650412800000 },
+        { events: 'API_CREATED', from: 1649635200000, to: 1650499199999 },
         { page: 1, perPage: 10 },
         fakeAuditResponse({ pagination: { page: 1, perPage: 10, pageCount: 3, pageItemsCount: 10, totalCount: 29 } }),
       );
@@ -134,7 +134,7 @@ describe('AuditLogsComponent', () => {
       // navigate to 2nd page
       await paginator.goToNextPage();
       expectAuditListRequest(
-        { events: 'API_CREATED', from: 1649635200000, to: 1650412800000 },
+        { events: 'API_CREATED', from: 1649635200000, to: 1650499199999 },
         { page: 2, perPage: 10 },
         fakeAuditResponse({ pagination: { page: 2, perPage: 10, pageCount: 3, pageItemsCount: 10, totalCount: 29 } }),
       );

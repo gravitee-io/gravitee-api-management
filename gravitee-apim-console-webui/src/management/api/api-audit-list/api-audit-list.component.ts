@@ -25,6 +25,7 @@ import { Moment } from 'moment';
 import { ApiAuditService } from '../../../services-ngx/api-audit.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { endOfDay } from '../../../util/date.util';
 
 interface ApiAuditData {
   id: string;
@@ -96,7 +97,7 @@ export class ApiAuditListComponent implements OnInit, OnDestroy {
             ...this.filtersStream.value.auditFilters,
             event,
             from: range?.start?.valueOf() ?? undefined,
-            to: range?.end?.valueOf() ?? undefined,
+            to: endOfDay(range?.end) ?? undefined,
           },
         });
       });
