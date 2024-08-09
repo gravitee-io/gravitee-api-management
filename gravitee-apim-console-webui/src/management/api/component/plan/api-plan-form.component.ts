@@ -369,7 +369,13 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
       return internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType);
     }
     const apiType = this.api ? (this.api as ApiV4).type : this.apiType;
-    return internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType, apiType);
+    return internalFormValueToPlanV4(
+      this.planForm.getRawValue(),
+      this.mode,
+      this.planMenuItem.planFormType,
+      apiType,
+      this.displayRestrictionStep,
+    );
   }
 }
 
@@ -524,41 +530,44 @@ const internalFormValueToPlanV4 = (
   mode: 'create' | 'edit',
   planFormType: PlanFormType,
   apiType: ApiType,
+  displayRestrictionStep: boolean,
 ): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
-    const restrictionPolicies: StepV4[] = [
-      ...(restriction.rateLimitEnabled
-        ? [
-            {
-              enabled: true,
-              name: 'Rate Limiting',
-              configuration: restriction.rateLimitConfig,
-              policy: 'rate-limit',
-            },
-          ]
-        : []),
-      ...(restriction.quotaEnabled
-        ? [
-            {
-              enabled: true,
-              name: 'Quota',
-              configuration: restriction.quotaConfig,
-              policy: 'quota',
-            },
-          ]
-        : []),
-      ...(restriction.resourceFilteringEnabled
-        ? [
-            {
-              enabled: true,
-              name: 'Resource Filtering',
-              configuration: restriction.resourceFilteringConfig,
-              policy: 'resource-filtering',
-            },
-          ]
-        : []),
-    ];
+    const restrictionPolicies: StepV4[] = displayRestrictionStep
+      ? [
+          ...(restriction.rateLimitEnabled
+            ? [
+                {
+                  enabled: true,
+                  name: 'Rate Limiting',
+                  configuration: restriction.rateLimitConfig,
+                  policy: 'rate-limit',
+                },
+              ]
+            : []),
+          ...(restriction.quotaEnabled
+            ? [
+                {
+                  enabled: true,
+                  name: 'Quota',
+                  configuration: restriction.quotaConfig,
+                  policy: 'quota',
+                },
+              ]
+            : []),
+          ...(restriction.resourceFilteringEnabled
+            ? [
+                {
+                  enabled: true,
+                  name: 'Resource Filtering',
+                  configuration: restriction.resourceFilteringConfig,
+                  policy: 'resource-filtering',
+                },
+              ]
+            : []),
+        ]
+      : [];
 
     return [
       {
