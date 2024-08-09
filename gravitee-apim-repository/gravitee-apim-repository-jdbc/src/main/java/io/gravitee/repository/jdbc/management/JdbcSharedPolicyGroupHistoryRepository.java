@@ -22,10 +22,10 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
@@ -44,14 +44,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class JdbcSharedPolicyGroupRepository
+public class JdbcSharedPolicyGroupHistoryRepository
     extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupRepository {
+    implements SharedPolicyGroupHistoryRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSharedPolicyGroupRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSharedPolicyGroupHistoryRepository.class);
 
-    JdbcSharedPolicyGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
-        super(tablePrefix, "sharedpolicygroups");
+    JdbcSharedPolicyGroupHistoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "sharedpolicygrouphistories");
     }
 
     @Override
@@ -107,12 +107,12 @@ public class JdbcSharedPolicyGroupRepository
     }
 
     @Override
-    public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable)
+    public Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
         throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
-        LOGGER.debug("JdbcSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
+        LOGGER.debug("JdbcSharedPolicyGroupHistoryRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
             StringJoiner andWhere = new StringJoiner(" AND ");
@@ -121,9 +121,9 @@ public class JdbcSharedPolicyGroupRepository
             andWhere.add("environment_id = ?");
             andWhereParams.add(criteria.getEnvironmentId());
 
-            if (criteria.getName() != null) {
-                andWhere.add("lower(name) like ?");
-                andWhereParams.add("%" + criteria.getName().toLowerCase() + "%");
+            if (criteria.getSharedPolicyGroupId() != null) {
+                andWhere.add("id = ?");
+                andWhereParams.add(criteria.getSharedPolicyGroupId());
             }
             if (criteria.getLifecycleState() != null) {
                 andWhere.add("lifecycle_state = ?");
@@ -160,30 +160,72 @@ public class JdbcSharedPolicyGroupRepository
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
-            LOGGER.error("Failed to search for SharedPolicyGroups:", ex);
-            throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
+            LOGGER.error("Failed to search for SharedPolicyGroupHistory:", ex);
+            throw new TechnicalException("Failed to search for SharedPolicyGroupHistory", ex);
         }
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
-
+    public Page<SharedPolicyGroup> searchLastDeployedBySharedPolicyPolicyGroupId(
+        SharedPolicyGroupHistoryCriteria criteria,
+        Pageable pageable
+    ) throws TechnicalException {
         try {
-            final var result = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND cross_id = ?",
+            Objects.requireNonNull(pageable, "Pageable must not be null");
+            Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
+            Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
+            if (criteria.getSharedPolicyGroupId() != null) {
+                throw new IllegalArgumentException("SharedPolicyGroupHistoryCriteria must not contain sharedPolicyGroupId criteria");
+            }
+            LOGGER.debug(
+                "JdbcSharedPolicyGroupHistoryRepository.searchLastDeployedBySharedPolicyPolicyGroupId({}, {})",
+                criteria.toString(),
+                pageable.toString()
+            );
+            StringJoiner andWhere = new StringJoiner(" AND ");
+            List<Object> andWhereParams = new ArrayList<>();
+
+            andWhere.add("environment_id = ?");
+            andWhereParams.add(criteria.getEnvironmentId());
+
+            if (criteria.getLifecycleState() != null) {
+                andWhere.add("lifecycle_state = ?");
+                andWhereParams.add(criteria.getLifecycleState().name());
+            }
+
+            var totalResult = jdbcTemplate.queryForList(
+                "select count(DISTINCT(id)) as total from " + this.tableName + " WHERE " + andWhere + "",
+                andWhereParams.toArray()
+            );
+            long total = !totalResult.isEmpty() ? Long.parseLong(totalResult.get(0).get("total").toString()) : 0;
+            if (total == 0) {
+                return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
+            }
+
+            var result = jdbcTemplate.query(
+                "SELECT t1.* " +
+                "FROM " +
+                this.tableName +
+                " t1 " +
+                "JOIN ( " +
+                "    SELECT id, MAX(updated_at) as max_updated_at " +
+                "    FROM " +
+                this.tableName +
+                " " +
+                "    WHERE " +
+                andWhere +
+                "    GROUP BY id " +
+                ") t2 ON t1.id = t2.id AND t1.updated_at = t2.max_updated_at" +
+                " ORDER BY t1.name ASC " +
+                createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
-                environmentId,
-                crossId
+                andWhereParams.toArray()
             );
 
-            final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
-
-            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
-            return Optional.ofNullable(sharedPolicyGroup);
+            return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
-            LOGGER.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
-            throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and cross ID", ex);
+            LOGGER.error("Failed to search for SharedPolicyGroups:", ex);
+            throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
         }
     }
 }

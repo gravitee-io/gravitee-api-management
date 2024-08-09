@@ -325,4 +325,8 @@ public interface GraviteeMapper {
     // SharedPolicyGroup mapping
     SharedPolicyGroupMongo map(SharedPolicyGroup item);
     SharedPolicyGroup map(SharedPolicyGroupMongo item);
+
+    // SharedPolicyGroupHistory mapping
+    SharedPolicyGroupHistoryMongo mapHistory(SharedPolicyGroup item);
+    SharedPolicyGroup mapHistory(SharedPolicyGroupHistoryMongo item);
 }

@@ -23,10 +23,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}sharedpolicygroups")
-public class SharedPolicyGroupMongo extends Auditable {
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}sharedpolicygrouphistories")
+public class SharedPolicyGroupHistoryMongo extends Auditable {
 
     @Id
+    private String _id;
+
     private String id;
 
     private String organizationId;

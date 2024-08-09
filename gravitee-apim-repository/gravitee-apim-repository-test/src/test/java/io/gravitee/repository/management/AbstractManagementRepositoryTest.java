@@ -205,6 +205,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected SharedPolicyGroupRepository sharedPolicyGroupRepository;
 
+    @Inject
+    protected SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         if (object instanceof Application application) {
             applicationRepository.create(application);

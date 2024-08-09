@@ -15,6 +15,7 @@ databaseChangeLog:
               - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
               - column: {name: description, type: nvarchar(1024) }
+              - column: {name: prerequisite_message, type: nvarchar(1024) }
               - column: {name: version, type: int, constraints: { nullable: false } }
               - column: {name: api_type, type: nvarchar(10), constraints: { nullable: false } }
               - column: {name: phase, type: nvarchar(32), constraints: { nullable: false } }
@@ -46,4 +47,42 @@ databaseChangeLog:
                   type: nvarchar(64)
               - column:
                   name: cross_id
+                  type: nvarchar(64)
+        # ################
+        # shared policy group history changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}sharedpolicygrouphistories
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64) }
+              - column: {name: cross_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(1024) }
+              - column: {name: prerequisite_message, type: nvarchar(1024) }
+              - column: {name: version, type: int, constraints: { nullable: false } }
+              - column: {name: api_type, type: nvarchar(10), constraints: { nullable: false } }
+              - column: {name: phase, type: nvarchar(32), constraints: { nullable: false } }
+              - column: {name: definition, type: nclob }
+              - column: {name: lifecycle_state, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+        - createIndex:
+            tableName: ${gravitee_prefix}sharedpolicygrouphistories
+            indexName: idx_${gravitee_prefix}environment_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+        - createIndex:
+            tableName: ${gravitee_prefix}sharedpolicygrouphistories
+            indexName: idx_${gravitee_prefix}environment_id_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+              - column:
+                  name: id
                   type: nvarchar(64)

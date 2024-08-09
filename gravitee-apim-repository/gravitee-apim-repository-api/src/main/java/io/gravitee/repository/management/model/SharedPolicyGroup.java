@@ -61,9 +61,14 @@ public class SharedPolicyGroup {
      */
     private String name;
     /**
-     * the shared policy group description.
+     * The shared policy group description.
      */
     private String description;
+    /**
+     * The shared policy group prerequisite message.
+     * This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+     */
+    private String prerequisiteMessage;
     /**
      * The shared policy group version.
      */
