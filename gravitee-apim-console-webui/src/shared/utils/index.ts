@@ -17,3 +17,4 @@ export * from './cors.util';
 export * from './http.util';
 export * from './simple-validator';
 export * from './propertiesParser';
+export * from './bitfield';
