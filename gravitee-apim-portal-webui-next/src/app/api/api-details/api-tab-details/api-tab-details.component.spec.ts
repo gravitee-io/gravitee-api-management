@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { of } from 'rxjs';
 
 import { ApiTabDetailsComponent } from './api-tab-details.component';
 import { fakeApi } from '../../../../entities/api/api.fixtures';
+import { CategoriesService } from '../../../../services/categories.service';
+import { PageService } from '../../../../services/page.service';
 import { AppTestingModule } from '../../../../testing/app-testing.module';
 
 describe('ApiTabDetailsComponent', () => {
@@ -25,7 +30,11 @@ describe('ApiTabDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiTabDetailsComponent, AppTestingModule],
+      imports: [ApiTabDetailsComponent, AppTestingModule, HttpClientTestingModule],
+      providers: [
+        { provide: PageService, useValue: { listByApiId: () => of({ data: [] }), content: () => of({}) } },
+        { provide: CategoriesService, useValue: { categories: () => of({ data: [] }) } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabDetailsComponent);
@@ -36,5 +45,14 @@ describe('ApiTabDetailsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should display "API Last Updated" if api.updated_at is present', () => {
+    component.api.updated_at = new Date();
+    fixture.detectChanges();
+    const lastUpdatedElement = fixture.debugElement
+      .queryAll(By.css('.m3-body-large'))
+      .find(el => el.nativeElement.textContent.includes('API Last Updated'));
+    expect(lastUpdatedElement).toBeDefined();
   });
 });
