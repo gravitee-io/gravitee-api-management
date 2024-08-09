@@ -152,5 +152,24 @@ describe('ApplicationLogService', () => {
 
       req.flush(logsResponse);
     });
+
+    it('should return logs list with specified transaction id', done => {
+      const logsResponse: LogsResponse = fakeLogsResponse();
+      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
+      const transactionId = 'my-transaction';
+      service.list(APP_ID, { transactionId: transactionId }).subscribe(response => {
+        expect(response).toMatchObject(logsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
+          `&query=(transaction:\\"${transactionId}\\")`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(logsResponse);
+    });
   });
 });
