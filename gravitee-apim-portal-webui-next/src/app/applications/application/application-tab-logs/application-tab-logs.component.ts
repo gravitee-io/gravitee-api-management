@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { Component, computed, Input, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatChip, MatChipRow } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatOption, MatSelect, MatSelectChange } from '@angular/material/select';
@@ -37,6 +39,7 @@ import { isEmpty, isEqual } from 'lodash';
 import { catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
+import { MoreFiltersDialogComponent, MoreFiltersDialogData } from './components/more-filters-dialog/more-filters-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { Application } from '../../../../entities/application/application';
 import { LogsResponseMetadataApi, LogsResponseMetadataTotalData } from '../../../../entities/log/log';
@@ -76,6 +79,8 @@ interface FiltersVM {
   methods?: HttpMethodVM[];
   responseTimes?: ResponseTimeVM[];
   period?: PeriodVM;
+  to?: number;
+  from?: number;
 }
 
 @Component({
@@ -262,11 +267,14 @@ export class ApplicationTabLogsComponent implements OnInit {
   private selectedApis: WritableSignal<string[]> = signal([]);
   private filtersInitialValue: FiltersVM = {};
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private applicationLogService: ApplicationLogService,
     private subscriptionService: SubscriptionService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
+    private matDialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -283,13 +291,14 @@ export class ApplicationTabLogsComponent implements OnInit {
 
         const period: string = queryParams['period'] ?? '1d';
 
-        return { page, apis, methods, responseTimes, period };
+        const from: number | undefined = queryParams['from'] ? +queryParams['from'] : undefined;
+        const to: number | undefined = queryParams['to'] ? +queryParams['to'] : undefined;
+
+        return { page, apis, methods, responseTimes, period, from, to };
       }),
       tap(values => this.initializeFiltersAndPagination(values)),
       switchMap(values => {
-        const difference = this.periods.find(p => p.value === values.period)?.milliseconds ?? 0;
-
-        const from = difference === 0 ? undefined : Date.now() - difference;
+        const from = this.computeStartDateTimeFromQueryParams(values.from, values.to, values.period);
         return this.applicationLogService.list(this.application.id, { ...values, from });
       }),
       tap(({ metadata }) => {
@@ -317,8 +326,8 @@ export class ApplicationTabLogsComponent implements OnInit {
           const apiIds = [...new Set(response.data.map(s => s.api))];
           return apiIds.map(apiId => ({
             id: apiId,
-            name: response.metadata[apiId].name ?? '',
-            version: response.metadata[apiId].apiVersion ?? '',
+            name: response.metadata[apiId]?.name ?? '',
+            version: response.metadata[apiId]?.apiVersion ?? '',
           }));
         }),
         tap(apiFilters => {
@@ -372,11 +381,30 @@ export class ApplicationTabLogsComponent implements OnInit {
     this.filters.update(filters => ({ ...filters, period: $event.value }));
   }
 
+  openMoreFiltersDialog() {
+    this.matDialog
+      .open<MoreFiltersDialogComponent, MoreFiltersDialogData, MoreFiltersDialogData>(MoreFiltersDialogComponent, {
+        data: {
+          startDate: this.filters().from,
+          endDate: this.filters().to,
+        },
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: dialogFilters => {
+          this.filters.update(filters => ({ ...filters, from: dialogFilters?.startDate, to: dialogFilters?.endDate }));
+        },
+      });
+  }
+
   private navigate(params: { page: number }) {
     const apis: string[] = this.filters().apis?.map(api => api.id) ?? [];
     const methods: string[] = this.filters().methods?.map(method => method.value) ?? [];
     const responseTimes: string[] = this.filters().responseTimes?.map(rt => rt.value) ?? [];
     const period: string = this.filters().period?.value ?? '';
+    const from = this.filters().from;
+    const to = this.filters().to;
 
     this.router.navigate(['.'], {
       relativeTo: this.activatedRoute,
@@ -386,6 +414,8 @@ export class ApplicationTabLogsComponent implements OnInit {
         ...(methods.length ? { methods } : {}),
         ...(responseTimes.length ? { responseTimes } : {}),
         ...(period ? { period } : {}),
+        ...(from ? { from } : {}),
+        ...(to ? { to } : {}),
       },
     });
   }
@@ -396,6 +426,8 @@ export class ApplicationTabLogsComponent implements OnInit {
     methods: HttpMethodVM[];
     responseTimes: string[];
     period?: string;
+    from?: number;
+    to?: number;
   }): void {
     this.currentLogsPage.set(params.page);
     this.selectedApis.set(params.apis);
@@ -409,6 +441,8 @@ export class ApplicationTabLogsComponent implements OnInit {
       ...(params.methods.length ? { methods: params.methods } : {}),
       ...(responseTimes.length ? { responseTimes } : {}),
       ...(period ? { period } : {}),
+      ...(params.from ? { from: params.from } : {}),
+      ...(params.to ? { to: params.to } : {}),
     }));
     this.filtersInitialValue = this.filters();
   }
@@ -425,5 +459,24 @@ export class ApplicationTabLogsComponent implements OnInit {
 
   private toMilliseconds(days: number, hours: number, minutes: number): number {
     return (days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60) * 1000;
+  }
+
+  private computeStartDateTimeFromQueryParams(
+    fromQueryParam: number | undefined,
+    toQueryParam: number | undefined,
+    periodQueryParam: string,
+  ): number | undefined {
+    if (fromQueryParam) {
+      return fromQueryParam;
+    }
+
+    if (!periodQueryParam) {
+      return undefined;
+    }
+
+    const periodDifference = this.periods.find(p => p.value === periodQueryParam)?.milliseconds ?? 0;
+
+    const endDateTime = toQueryParam ?? Date.now();
+    return endDateTime - periodDifference;
   }
 }

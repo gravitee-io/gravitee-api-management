@@ -64,7 +64,11 @@
       <div class="filters__row-one__separator"></div>
       <mat-form-field appearance="outline">
         <mat-label i18n="@@applicationLogsResponsePeriod">Period</mat-label>
-        <mat-select (selectionChange)="selectPeriod($event)" [value]="filters().period" aria-label="Filter by Period">
+        <mat-select
+          (selectionChange)="selectPeriod($event)"
+          [value]="filters().period"
+          aria-label="Filter by Period"
+          [disabled]="!!filters().from">
           @for (period of periods; track period.value) {
             <mat-option [value]="period">
               <span i18n="@@applicationLogsLast">Last </span>
@@ -84,15 +88,14 @@
         </mat-select>
       </mat-form-field>
     </div>
-    <button
-      mat-flat-button
-      class="filters__row-one__search-btn"
-      color="primary"
-      (click)="search()"
-      [disabled]="filtersPristine()"
-      aria-label="Apply filters">
-      <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
-    </button>
+    <div class="filters__row-one__btn">
+      <button mat-stroked-button (click)="openMoreFiltersDialog()" aria-label="Add more filters">
+        <mat-icon>filter_alt</mat-icon><span i18n="@@applicatonLogsMoreFilters">More</span>
+      </button>
+      <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine()" aria-label="Apply filters">
+        <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
+      </button>
+    </div>
   </div>
   <div class="filters__row-two">
     <div class="m3-body-medium filters__row-two__filter-summary">
@@ -101,6 +104,14 @@
         @if (noFiltersApplied()) {
           <span i18n="@@applicatonLogsNoFiltersApplied">None</span>
         } @else {
+          @if (filters().from) {
+            <mat-chip><span i18n="@@applicationLogsFrom">From</span>: {{ filters().from | date: 'YYYY-MM-dd' }}</mat-chip>
+          }
+
+          @if (filters().to) {
+            <mat-chip><span i18n="@@applicationLogsTo">To</span>: {{ filters().to | date: 'YYYY-MM-dd' }}</mat-chip>
+          }
+
           @if (filters().apis) {
             @for (api of filters().apis; track api.id) {
               <mat-chip>{{ api.name }} ({{ api.version }})</mat-chip>
