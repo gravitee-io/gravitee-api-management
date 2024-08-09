@@ -15,7 +15,9 @@
     limitations under the License.
 
 -->
-<h1>Messages</h1>
+<h1>Send a Broadcast Message</h1>
+<gio-banner-info> Send a one-way message to specified recipients to inform them of any changes or updates. </gio-banner-info>
+
 <form [formGroup]="form" *ngIf="form" (ngSubmit)="sendMessage()">
   <mat-card>
     <mat-card-content class="form">

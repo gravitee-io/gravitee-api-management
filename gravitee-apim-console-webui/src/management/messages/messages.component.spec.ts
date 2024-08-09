@@ -78,12 +78,12 @@ describe('MigratedMessagesComponent', () => {
     it('should list available channels', async () => {
       const options = await harness.getAvailableChannel();
       expect(options.length).toEqual(3);
-      expect(options).toEqual(['Portal notifications', 'Email', 'POST HTTP message']);
+      expect(options).toEqual(['Portal Notifications', 'Email', 'POST HTTP Message']);
     });
 
     it('should init form with proper values', async () => {
       expect(fixture.componentInstance.form.controls['channel'].value).toEqual('PORTAL');
-      expect(await harness.getSelectedChannel()).toEqual('Portal notifications');
+      expect(await harness.getSelectedChannel()).toEqual('Portal Notifications');
 
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeTruthy();
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeTruthy();
@@ -95,7 +95,7 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should disable title and add controls for http notifications', async () => {
-      await harness.selectChannel('POST HTTP message');
+      await harness.selectChannel('POST HTTP Message');
 
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeFalsy();
       expect(fixture.componentInstance.form.controls['url'].disabled).toBeFalsy();
@@ -147,7 +147,7 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send HTTP message with selected options', async () => {
-      await harness.selectChannel('POST HTTP message');
+      await harness.selectChannel('POST HTTP Message');
       await harness.selectRecipients(['Members with the ADMIN role on subscribing applications']);
       await harness.setUrl('http://alert.io');
       await harness.setText('Text');
@@ -188,7 +188,7 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send MAIL message with selected options', async () => {
-      await harness.selectChannel('Portal notifications');
+      await harness.selectChannel('Portal Notifications');
       await harness.selectRecipients(['Members with the USER role on ENVIRONMENT scope']);
       await harness.setTitle('Title');
       await harness.setText('Text');
@@ -208,7 +208,7 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send HTTP message with selected options', async () => {
-      await harness.selectChannel('POST HTTP message');
+      await harness.selectChannel('POST HTTP Message');
       await harness.selectRecipients([
         'Members with the ADMIN role on ENVIRONMENT scope',
         'Members with the REVIEWER role on ENVIRONMENT scope',

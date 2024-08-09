@@ -187,7 +187,7 @@ describe('HomeApiHealthCheckComponent', () => {
     });
 
     it("should filter by 'has_health_check:true'", async () => {
-      await loader.getHarness(MatButtonHarness.with({ text: 'Filter by Heath-Check enabled only' })).then((button) => button.click());
+      await loader.getHarness(MatButtonHarness.with({ text: 'Filter to Health Check-enabled APIs' })).then((button) => button.click());
 
       expectApisListRequest([api], 'has_health_check:true');
     });

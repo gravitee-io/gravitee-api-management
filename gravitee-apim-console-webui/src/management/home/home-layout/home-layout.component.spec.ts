@@ -53,12 +53,13 @@ describe('HomeLayoutComponent', () => {
     const tabs = await loader.getHarness(MatTabNavBarHarness);
     const links = await tabs.getLinks();
     expect(await links[0].getLabel()).toEqual('Overview');
-    expect(await links[1].getLabel()).toEqual('APIs health-check');
+    expect(await links[1].getLabel()).toEqual('API Health Check');
     expect(await links[2].getLabel()).toEqual('Tasks');
+    expect(await links[3].getLabel()).toEqual('Broadcasts');
 
     // Change Tasks label when tasks are loaded
     expectGetTasks();
-    expect(await links[2].getLabel()).toEqual('My tasks 42');
+    expect(await links[2].getLabel()).toEqual('My Tasks 42');
   });
 
   function expectGetTasks() {

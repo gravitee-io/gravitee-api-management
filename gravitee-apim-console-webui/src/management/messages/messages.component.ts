@@ -32,9 +32,9 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
 })
 export class MessagesComponent implements OnInit, OnDestroy {
   channels = [
-    { id: 'PORTAL', name: 'Portal notifications' },
+    { id: 'PORTAL', name: 'Portal Notifications' },
     { id: 'MAIL', name: 'Email' },
-    { id: 'HTTP', name: 'POST HTTP message' },
+    { id: 'HTTP', name: 'POST HTTP Message' },
   ];
 
   form: UntypedFormGroup;
@@ -61,7 +61,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
         const sortedRoles = sortBy(roles, ['name']);
         this.recipients = sortedRoles.map((role) => {
           const displayName =
-            `Members with the ${role.name} role on ` + (this.scope === 'APPLICATION' ? `subscribing applications` : `ENVIRONMENT scope`);
+            this.scope === 'APPLICATION'
+              ? `Members with the ${role.name} role on applications subscribed to this API`
+              : `Members with the ${role.name} role on this environment`;
           return {
             name: role.name,
             displayName,

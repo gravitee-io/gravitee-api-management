@@ -53,7 +53,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   timeRangeParams: TimeRangeParams;
 
   ngOnInit(): void {
-    // Quick Summary
+    // Summary
     this.fetchAnalyticsRequest$
       .pipe(
         tap(() => {

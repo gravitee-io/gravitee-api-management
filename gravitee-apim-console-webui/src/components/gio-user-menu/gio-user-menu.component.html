@@ -39,12 +39,12 @@
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="goToMyAccount()">
       <mat-icon svgIcon="gio:user"></mat-icon>
-      <span>My account</span>
+      <span>My Account</span>
     </button>
     <button mat-menu-item (click)="goToTask()" data-testid="user-menu-task-button">
       <mat-icon svgIcon="gio:check-circled-outline"></mat-icon>
       <span
-        >Task <span *ngIf="hasAlert" class="gio-badge-accent">{{ userTaskCount }}</span>
+        >Tasks <span *ngIf="hasAlert" class="gio-badge-accent">{{ userTaskCount }}</span>
       </span>
     </button>
     <button *ngIf="supportEnabled" mat-menu-item (click)="goToSupport()">
@@ -54,7 +54,7 @@
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="signOut()">
       <mat-icon svgIcon="gio:logout"></mat-icon>
-      <span>Sign out</span>
+      <span>Sign Out</span>
     </button>
   </mat-menu>
 </ng-container>

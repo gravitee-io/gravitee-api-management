@@ -17,7 +17,7 @@
 -->
 <div *ngIf="!loading; else loader">
   <div *ngIf="data && data.length > 0; else emptyBlock">
-    <h2>My tasks ({{ tasks.page.total_elements }})</h2>
+    <h2>My Tasks ({{ tasks.page.total_elements }})</h2>
     <ng-container *ngFor="let task of data">
       <mat-card class="task" data-testid="task-card">
         <mat-card-content>
@@ -56,6 +56,6 @@
 <ng-template #emptyBlock>
   <div class="empty">
     <mat-icon svgIcon="gio:sun"></mat-icon>
-    <div class="mat-h5">Congratulations, you did all your tasks!</div>
+    <div class="mat-h5">No tasks to display.</div>
   </div>
 </ng-template>

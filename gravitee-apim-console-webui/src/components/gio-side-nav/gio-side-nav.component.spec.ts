@@ -166,7 +166,6 @@ describe('GioSideNavComponent', () => {
           expect.objectContaining({ name: 'Applications', routerLink: expect.not.stringContaining('./') }),
           expect.objectContaining({ name: 'Gateways', routerLink: expect.not.stringContaining('./') }),
           expect.objectContaining({ name: 'Audit', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'Messages', routerLink: expect.not.stringContaining('./') }),
           expect.objectContaining({ name: 'Analytics', routerLink: expect.not.stringContaining('./') }),
           expect.objectContaining({ name: 'Settings', routerLink: expect.not.stringContaining('./') }),
         ]),

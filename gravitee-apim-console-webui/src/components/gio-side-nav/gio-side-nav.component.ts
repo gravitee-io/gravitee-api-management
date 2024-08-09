@@ -165,13 +165,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         category: 'Audit',
       },
       {
-        icon: 'gio:message-text',
-        displayName: 'Messages',
-        routerLink: './messages',
-        permissions: ['environment-message-c'],
-        category: 'Messages',
-      },
-      {
         icon: 'gio:bar-chart-2',
         displayName: 'Analytics',
         routerLink: './analytics/dashboard',
