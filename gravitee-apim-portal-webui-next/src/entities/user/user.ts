@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface UserPermissions {
-  APPLICATION?: Array<string>;
-  USER?: Array<string>;
-}
+import { UserEnvironmentPermissions } from '../permission/permission';
 
 export interface UserConfig {
   /**
@@ -48,7 +45,7 @@ export interface User {
    * True if the user can edit the MyAccount information
    */
   editable_profile?: boolean;
-  permissions?: UserPermissions;
+  permissions?: UserEnvironmentPermissions;
   /**
    * Values for CustomUserFields
    */
