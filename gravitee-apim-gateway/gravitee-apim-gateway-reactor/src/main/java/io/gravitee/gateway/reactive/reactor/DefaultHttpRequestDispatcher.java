@@ -48,6 +48,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.reactiverse.contextual.logging.ContextualData;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -152,6 +153,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             mutableCtx.request().contextPath(httpAcceptor.path());
 
             final ApiReactor apiReactor = (ApiReactor) httpAcceptor.reactor();
+
+            ContextualData.put("envId", apiReactor.api().getEnvironmentId());
+            ContextualData.put("orgId", apiReactor.api().getOrganizationId());
+
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             return HookHelper

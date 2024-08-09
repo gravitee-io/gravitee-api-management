@@ -92,6 +92,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.reactiverse</groupId>
+            <artifactId>reactiverse-contextual-logging</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
