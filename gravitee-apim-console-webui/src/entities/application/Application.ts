@@ -53,6 +53,9 @@ export interface ApplicationSettings {
     redirect_uris?: string[];
     renew_client_secret_supported?: boolean;
   };
+  tls?: {
+    client_certificate?: string;
+  };
 }
 
 export interface ApplicationType {

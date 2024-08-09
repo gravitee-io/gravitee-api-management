@@ -55,6 +55,7 @@ describe('ApplicationCreationComponent', () => {
       await applicationCreationForm.setApplicationType('SIMPLE');
 
       await applicationCreationForm.setSimpleApplicationType('appType', 'appClientId');
+      await applicationCreationForm.setApplicationClientCertificate('PEM certificate');
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       await saveBar.clickSubmit();
@@ -71,6 +72,9 @@ describe('ApplicationCreationComponent', () => {
           app: {
             client_id: 'appClientId',
             type: 'appType',
+          },
+          tls: {
+            client_certificate: 'PEM certificate',
           },
         },
       });
@@ -99,6 +103,9 @@ describe('ApplicationCreationComponent', () => {
             grant_types: ['authorization_code', 'refresh_token'],
             redirect_uris: ['redirectUri'],
           },
+          tls: {
+            client_certificate: null,
+          },
         },
       });
     });
@@ -125,6 +132,9 @@ describe('ApplicationCreationComponent', () => {
             application_type: 'BACKEND_TO_BACKEND',
             grant_types: ['client_credentials'],
             redirect_uris: [],
+          },
+          tls: {
+            client_certificate: null,
           },
         },
       });
@@ -158,6 +168,9 @@ describe('ApplicationCreationComponent', () => {
           app: {
             client_id: 'appClientId',
             type: 'appType',
+          },
+          tls: {
+            client_certificate: null,
           },
         },
       });
