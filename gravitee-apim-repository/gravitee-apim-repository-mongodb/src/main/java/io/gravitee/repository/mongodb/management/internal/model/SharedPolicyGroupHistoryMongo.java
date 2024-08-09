@@ -41,6 +41,8 @@ public class SharedPolicyGroupHistoryMongo extends Auditable {
 
     private String description;
 
+    private String prerequisiteMessage;
+
     private Integer version;
 
     private String apiType;
