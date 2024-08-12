@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Application.AuditEvent.APP
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_RESTORED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.repository.management.model.Application.METADATA_TYPE;
@@ -67,6 +68,7 @@ import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
@@ -1310,6 +1312,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 }
             }
             settings.setOAuthClient(clientSettings);
+        }
+
+        if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE)) {
+            final byte[] decodedCertificate = Base64.getDecoder().decode(application.getMetadata().get(METADATA_CLIENT_CERTIFICATE));
+            settings.setTls(TlsSettings.builder().clientCertificate(new String(decodedCertificate)).build());
         }
         return settings;
     }

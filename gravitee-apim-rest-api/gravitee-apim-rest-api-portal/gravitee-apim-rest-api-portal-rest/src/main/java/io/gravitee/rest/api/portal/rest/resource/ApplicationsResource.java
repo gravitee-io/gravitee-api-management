@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.TlsClientSettings;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -100,7 +102,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         final io.gravitee.rest.api.portal.rest.model.ApplicationSettings settings = applicationInput.getSettings();
         ApplicationSettings newApplicationEntitySettings = new ApplicationSettings();
 
-        if (settings == null || (settings.getApp() == null && settings.getOauth() == null)) {
+        if (settings == null || (settings.getApp() == null && settings.getOauth() == null && settings.getTls() == null)) {
             newApplicationEntity.setSettings(newApplicationEntitySettings);
         } else {
             final io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings simpleAppInput = settings.getApp();
@@ -118,6 +120,11 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
                 ocs.setGrantTypes(oauthAppInput.getGrantTypes());
                 ocs.setRedirectUris(oauthAppInput.getRedirectUris());
                 newApplicationEntitySettings.setOAuthClient(ocs);
+            }
+
+            final TlsClientSettings tlsAppInput = settings.getTls();
+            if (tlsAppInput != null) {
+                newApplicationEntitySettings.setTls(TlsSettings.builder().clientCertificate(tlsAppInput.getClientCertificate()).build());
             }
         }
         newApplicationEntity.setSettings(newApplicationEntitySettings);

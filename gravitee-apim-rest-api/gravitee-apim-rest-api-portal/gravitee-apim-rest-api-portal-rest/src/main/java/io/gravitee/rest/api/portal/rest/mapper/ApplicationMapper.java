@@ -134,6 +134,9 @@ public class ApplicationMapper {
                 );
                 application.setHasClientId(oAuthClientEntitySettings.getClientId() != null);
             }
+            if (applicationEntitySettings.getTls() != null) {
+                appSettings.setTls(new TlsClientSettings().clientCertificate(applicationEntitySettings.getTls().getClientCertificate()));
+            }
             application.setSettings(appSettings);
         }
 
