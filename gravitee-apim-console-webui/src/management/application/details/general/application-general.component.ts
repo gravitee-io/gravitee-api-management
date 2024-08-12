@@ -128,6 +128,18 @@ export class ApplicationGeneralComponent implements OnInit {
           );
         }
 
+        this.applicationForm.addControl(
+          'TlsForm',
+          new UntypedFormGroup({
+            client_certificate: new UntypedFormControl({
+              value: this.initialApplication.settings?.tls?.client_certificate
+                ? this.initialApplication.settings.tls.client_certificate
+                : undefined,
+              disabled: this.isReadOnly,
+            }),
+          }),
+        );
+
         this.initialApplicationGeneralFormsValue = this.applicationForm.getRawValue();
       });
   }

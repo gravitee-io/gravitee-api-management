@@ -195,6 +195,27 @@
     </mat-card>
   </ng-container>
 
+  <ng-container>
+    <mat-card class="details-card" formGroupName="TlsForm">
+      <mat-card-content>
+        <div class="details-card__header">
+          <h3>Tls Configuration</h3>
+        </div>
+        <div class="details-card__header__info-inputs">
+          <div class="details-card__header__info-inputs__client_id-row">
+            <mat-form-field>
+              <mat-label>Client Certificate</mat-label>
+              <textarea formControlName="client_certificate" matInput type="text" rows="6" gioClipboardCopyWrapper></textarea>
+              <mat-hint align="start"
+                >The <code>client_certificate</code> of the application. This field is required to subscribe to mTLS plans.
+              </mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+
   <mat-card class="danger-card" *ngIf="!isReadOnly">
     <mat-card-content>
       <h3 class="danger-card__title">Danger Zone</h3>
