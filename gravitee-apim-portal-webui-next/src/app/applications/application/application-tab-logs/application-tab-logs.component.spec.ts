@@ -46,7 +46,6 @@ describe('ApplicationTabLogsComponent', () => {
   let rootHarnessLoader: HarnessLoader;
 
   const APP_ID = 'app-id';
-  const MOCK_DATE = new Date(1466424490000);
 
   const init = async (queryParams: unknown) => {
     const asBehaviorSubject = new BehaviorSubject(queryParams);
@@ -73,8 +72,6 @@ describe('ApplicationTabLogsComponent', () => {
       asBehaviorSubject.next(configuration?.queryParams ?? {});
       return new Promise(_ => true);
     });
-
-    jest.useFakeTimers({ advanceTimers: true }).setSystemTime(MOCK_DATE);
 
     fixture.detectChanges();
   };
@@ -610,7 +607,7 @@ describe('ApplicationTabLogsComponent', () => {
         beforeEach(async () => {
           await init({ period: LAST_3_DAYS });
 
-          const dateMinusThreeDays = MOCK_DATE.getTime() - 86400000 * 3;
+          const dateMinusThreeDays = Date.now() - 86400000 * 3;
 
           expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, undefined, dateMinusThreeDays);
           expectGetSubscriptions(fakeSubscriptionResponse());
@@ -662,7 +659,7 @@ describe('ApplicationTabLogsComponent', () => {
     describe('Start + End Dates', () => {
       describe('Only start date in query params', () => {
         beforeEach(async () => {
-          const from = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const from = Date.now() - 86400000 * 2; // From mock date - 2 days
           await init({ from });
 
           expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, undefined, from);
@@ -728,7 +725,7 @@ describe('ApplicationTabLogsComponent', () => {
 
       describe('Only Start date + Period in query params', () => {
         beforeEach(async () => {
-          const from = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const from = Date.now() - 86400000 * 2; // From mock date - 2 days
           const period = '14d';
           await init({ from, period });
 
@@ -756,7 +753,7 @@ describe('ApplicationTabLogsComponent', () => {
 
       describe('Only End date in query params', () => {
         beforeEach(async () => {
-          const to = MOCK_DATE.getTime() - 86400000 * 2; // To mock date - 2 days
+          const to = Date.now() - 86400000 * 2; // To mock date - 2 days
           await init({ to });
 
           expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to);
@@ -814,7 +811,7 @@ describe('ApplicationTabLogsComponent', () => {
       });
 
       describe('Only End date + Period in query params', () => {
-        const to = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+        const to = Date.now() - 86400000 * 2; // From mock date - 2 days
         beforeEach(async () => {
           const from = to - 86400000 * 14; // 14 days before the 'to' date
           const period = '14d';
@@ -855,7 +852,7 @@ describe('ApplicationTabLogsComponent', () => {
 
       describe('Only end date + start date in query params', () => {
         beforeEach(async () => {
-          const to = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const to = Date.now() - 86400000 * 2; // From mock date - 2 days
           const from = to - 86400000 * 14; // 14 days before the 'to' date
           await init({ to, from });
 
@@ -879,7 +876,7 @@ describe('ApplicationTabLogsComponent', () => {
 
       describe('End date + start date + period in query params', () => {
         beforeEach(async () => {
-          const to = MOCK_DATE.getTime() - 86400000 * 2; // From mock date - 2 days
+          const to = Date.now() - 86400000 * 2; // From mock date - 2 days
           const from = to - 86400000 * 14; // 14 days before the 'to' date
           const period = '14d';
           await init({ to, from, period });
@@ -1142,7 +1139,7 @@ describe('ApplicationTabLogsComponent', () => {
   });
 
   function expectGetApplicationLogs(logsResponse: LogsResponse, page: number = 1, query?: string, to?: number, from?: number) {
-    const toInMilliseconds = to ?? Date.now();
+    const toInMilliseconds = to ?? new Date().getTime();
     const fromInMilliseconds = from ?? toInMilliseconds - 86400000;
     httpTestingController
       .expectOne(
