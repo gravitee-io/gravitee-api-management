@@ -41,7 +41,7 @@
     <div class="separator"></div>
 
     @if (!isLoadingPreview && integrationPreview) {
-      <div [formGroup]="ingestParameters" class="preview">
+      <div [formGroup]="ingestParametersForm" class="preview">
         <section>
           <p class="preview-desc">The following assets were discovered. You can create or update them in Gravitee:</p>
           <gio-form-slide-toggle>
@@ -100,6 +100,7 @@
       </div>
     } @else {
       <gio-loader></gio-loader>
+      <p class="mat-body-strong loading-info">We’re gathering your data</p>
     }
   </mat-card-content>
 </mat-card>

@@ -42,7 +42,7 @@ export class DiscoveryPreviewComponent implements OnInit {
   public displayedColumns = ['name', 'state'];
   public isLoadingPreview = true;
   public integrationPreview: IntegrationPreview = null;
-  public ingestParameters = new FormGroup({
+  public ingestParametersForm = new FormGroup({
     ingestNewApis: new FormControl(false),
     ingestUpdateApis: new FormControl(false),
   });
@@ -110,13 +110,13 @@ export class DiscoveryPreviewComponent implements OnInit {
 
   private setupForm(controlName: 'ingestUpdateApis' | 'ingestNewApis', value: number) {
     if (value <= 0) {
-      this.ingestParameters.controls[controlName].disable({ onlySelf: true });
+      this.ingestParametersForm.controls[controlName].disable({ onlySelf: true });
     } else {
-      this.ingestParameters.controls[controlName].setValue(value > 0);
+      this.ingestParametersForm.controls[controlName].setValue(value > 0);
     }
     const state =
       controlName === 'ingestNewApis' ? DiscoveryPreviewComponent.NEW_BITFIELD_VALUE : DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE;
-    this.ingestParameters.controls[controlName].valueChanges.subscribe((selected) => {
+    this.ingestParametersForm.controls[controlName].valueChanges.subscribe((selected) => {
       this.tableData.filter = (selected ? fieldSet(this.tableData.filter, state) : fieldUnSet(this.tableData.filter, state)).toString();
     });
   }
