@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.shared_policy_group;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,7 +28,13 @@ import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapterImpl;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,6 +121,80 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
             assertThat(result.get(3).getId()).isEqualTo("id4");
             assertThat(result.get(4).getId()).isEqualTo("id5");
             assertThat(result.get(5).getId()).isEqualTo("id6");
+        }
+    }
+
+    @Nested
+    class Search {
+
+        @Test
+        @SneakyThrows
+        void search_should_return_empty_page() {
+            // Given
+            String sharedPolicyGroupId = "sharedPolicyGroupId";
+            String environmentId = "environmentId";
+            when(
+                repository.search(
+                    argThat(criteria ->
+                        criteria.getSharedPolicyGroupId().equals(sharedPolicyGroupId) && criteria.getEnvironmentId().equals(environmentId)
+                    ),
+                    eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
+                    eq(new SortableBuilder().field(null).setAsc(false).build())
+                )
+            )
+                .thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+            // When
+            Pageable pageable = new PageableImpl(1, 10);
+            Sortable sortable = new SortableImpl(null, false);
+
+            Page<SharedPolicyGroup> result = service.search(environmentId, sharedPolicyGroupId, pageable, sortable);
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void search_should_return_page() {
+            // Given
+            String sharedPolicyGroupId = "sharedPolicyGroupId";
+            String environmentId = "environmentId";
+            when(
+                repository.search(
+                    argThat(criteria ->
+                        criteria.getSharedPolicyGroupId().equals(sharedPolicyGroupId) && criteria.getEnvironmentId().equals(environmentId)
+                    ),
+                    any(),
+                    eq(new SortableBuilder().field("createdAt").setAsc(true).build())
+                )
+            )
+                .thenReturn(
+                    new Page<>(
+                        List.of(
+                            aRepositorySharedPolicyGroup("id"),
+                            aRepositorySharedPolicyGroup("id2"),
+                            aRepositorySharedPolicyGroup("id3")
+                        ),
+                        1,
+                        3,
+                        42
+                    )
+                );
+
+            // When
+            Pageable pageable = new PageableImpl(0, 3);
+            Sortable sortable = new SortableImpl("createdAt", true);
+
+            Page<SharedPolicyGroup> result = service.search(environmentId, sharedPolicyGroupId, pageable, sortable);
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isNotEmpty();
+            assertThat(result.getContent()).hasSize(3);
+            assertThat(result.getTotalElements()).isEqualTo(42);
+            assertThat(result.getContent().get(0).getId()).isEqualTo("id");
+            assertThat(result.getContent().get(1).getId()).isEqualTo("id2");
+            assertThat(result.getContent().get(2).getId()).isEqualTo("id3");
         }
     }
 

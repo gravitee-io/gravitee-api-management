@@ -17,9 +17,14 @@ package inmemory;
 
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SharedPolicyGroupHistoryQueryServiceInMemory
@@ -30,6 +35,39 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
     @Override
     public Stream<SharedPolicyGroup> streamLatestBySharedPolicyPolicyGroupId(String environmentId) {
         return storage.stream().filter(spg -> spg.getEnvironmentId().equals(environmentId));
+    }
+
+    @Override
+    public Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable) {
+        // Search, sort, and paginate the shared policy groups from storage
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+        var sortableField = sortable.getField();
+        var isAscending = sortable.isAscOrder();
+
+        var stream = storage
+            .stream()
+            .filter(spg -> spg.getEnvironmentId().equals(environmentId))
+            .filter(spg -> sharedPolicyGroupId == null || spg.getId().equals(sharedPolicyGroupId));
+
+        stream =
+            switch (sortableField) {
+                case "version" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getVersion));
+                case "deployedAt" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getDeployedAt));
+                default -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
+            };
+
+        var matches = stream.collect(Collectors.toList());
+
+        if (!isAscending) {
+            Collections.reverse(matches);
+        }
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override
