@@ -874,9 +874,12 @@ class DefaultApiReactorTest {
         HttpListener httpListener = new HttpListener();
         Path path = new Path("host", "path");
         httpListener.setPaths(List.of(path));
+        httpListener.setEntrypoints(new ArrayList<>());
         SubscriptionListener subscriptionListener = new SubscriptionListener();
+        subscriptionListener.setEntrypoints(new ArrayList<>());
         when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
 
+        cut = buildApiReactor();
         List<Acceptor<?>> acceptors = cut.acceptors();
         assertThat(acceptors).hasSize(1);
         Acceptor<?> acceptor1 = acceptors.get(0);
@@ -891,7 +894,9 @@ class DefaultApiReactorTest {
         HttpListener httpListener = new HttpListener();
         Path path = new Path(null, "path");
         httpListener.setPaths(List.of(path));
+        httpListener.setEntrypoints(new ArrayList<>());
         SubscriptionListener subscriptionListener = new SubscriptionListener();
+        subscriptionListener.setEntrypoints(new ArrayList<>());
         when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
         when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID))
             .thenReturn(
@@ -901,6 +906,7 @@ class DefaultApiReactorTest {
                 )
             );
 
+        cut = buildApiReactor();
         List<Acceptor<?>> acceptors = cut.acceptors();
         assertThat(acceptors).hasSize(1);
         Acceptor<?> acceptor1 = acceptors.get(0);
