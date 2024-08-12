@@ -196,6 +196,9 @@ describe('ApplicationGeneralInfoComponent', () => {
   describe('Application General details status is ARCHIVED', () => {
     it('details form should be set to readonly', async () => {
       const applicationDetails = fakeApplication({ status: 'ARCHIVED' });
+      applicationDetails.settings.tls = {
+        client_certificate: 'pem certificate',
+      };
       const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
@@ -207,6 +210,9 @@ describe('ApplicationGeneralInfoComponent', () => {
 
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
       expect(await nameInput.isDisabled()).toEqual(true);
+
+      const clientCertificateInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_certificate"]' }));
+      expect(await clientCertificateInput.isDisabled()).toEqual(true);
     });
   });
 
