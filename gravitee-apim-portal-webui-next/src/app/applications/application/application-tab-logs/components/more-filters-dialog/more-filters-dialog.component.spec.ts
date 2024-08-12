@@ -49,7 +49,6 @@ class TestComponent {
 describe('MoreFiltersDialogComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let rootHarnessLoader: HarnessLoader;
-  const MOCK_DATE = new Date(1466424490000);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -65,8 +64,6 @@ describe('MoreFiltersDialogComponent', () => {
 
     fixture = TestBed.createComponent(TestComponent);
     rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
-    jest.useFakeTimers().setSystemTime(MOCK_DATE);
 
     fixture.detectChanges();
 

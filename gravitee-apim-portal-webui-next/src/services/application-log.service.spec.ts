@@ -27,14 +27,12 @@ import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.modul
 describe('ApplicationLogService', () => {
   let service: ApplicationLogService;
   let httpTestingController: HttpTestingController;
-  const MOCK_DATE = new Date(1466424490000);
   const APP_ID = 'app-id';
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [AppTestingModule] });
     service = TestBed.inject(ApplicationLogService);
     httpTestingController = TestBed.inject(HttpTestingController);
-    jest.useFakeTimers().setSystemTime(MOCK_DATE);
   });
 
   describe('list', () => {
@@ -45,7 +43,7 @@ describe('ApplicationLogService', () => {
         done();
       });
 
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp`,
@@ -57,8 +55,8 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with custom parameters', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const toDate = new Date(MOCK_DATE.getDate() - 10);
-      const fromDate = new Date(MOCK_DATE.getDate() - 100);
+      const toDate = new Date(new Date().getDate() - 10);
+      const fromDate = new Date(new Date().getDate() - 100);
       service
         .list(APP_ID, { page: 2, size: 11, to: toDate.getTime(), from: fromDate.getTime(), field: 'name', order: 'ASC' })
         .subscribe(response => {
@@ -76,7 +74,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified apis', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const API_ID_1 = 'api-id-1';
       const API_ID_2 = 'api-id-2';
@@ -96,7 +94,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified methods', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const GET_METHOD = { value: '3', label: 'GET' };
       const POST_METHOD = { value: '7', label: 'POST' };
@@ -116,7 +114,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified response times', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const responseTimeOne = '0 TO 100';
       const responseTimeTwo = '5000 TO *';
@@ -136,7 +134,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified request id', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const requestId = 'my-request';
       service.list(APP_ID, { requestId }).subscribe(response => {
@@ -155,7 +153,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified transaction id', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const transactionId = 'my-transaction';
       service.list(APP_ID, { transactionId: transactionId }).subscribe(response => {
@@ -174,7 +172,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified http statuses', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const OK = '200';
       const NOT_FOUND = '404';
@@ -194,7 +192,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified message text', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const messageText = 'find me';
       service.list(APP_ID, { messageText }).subscribe(response => {
@@ -213,7 +211,7 @@ describe('ApplicationLogService', () => {
 
     it('should return logs list with specified path', done => {
       const logsResponse: LogsResponse = fakeLogsResponse();
-      const currentDateInMilliseconds = MOCK_DATE.getTime();
+      const currentDateInMilliseconds = Date.now();
       const yesterdayInMilliseconds = currentDateInMilliseconds - 86400000;
       const path = 'my-path';
       service.list(APP_ID, { path }).subscribe(response => {
