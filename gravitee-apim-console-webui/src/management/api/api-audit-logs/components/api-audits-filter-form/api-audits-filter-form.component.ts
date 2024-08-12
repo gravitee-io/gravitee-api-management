@@ -20,6 +20,8 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { Moment } from 'moment';
 
+import { endOfDay } from '../../../../../util/date.util';
+
 export interface ApiAuditFilter {
   events?: string[];
   from?: number;
@@ -58,7 +60,7 @@ export class ApiAuditsFilterFormComponent implements OnInit, OnDestroy {
         this.filtersChange.emit({
           events,
           from: range?.start?.valueOf() ?? null,
-          to: range?.end?.valueOf() ?? null,
+          to: endOfDay(range?.end) ?? null,
         });
       });
   }
