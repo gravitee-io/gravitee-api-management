@@ -949,6 +949,11 @@ gateway:
     #         port: 26379
     #       - host: sentinel2
     #         port: 26379
+    #   operation:
+    #     timeout: 10 # in milliseconds
+    #   tcp:
+    #     connectTimeout: 5000 # in milliseconds
+    #     idleTimeout: 0 # in milliseconds
   management:
     http:
       # url: 
