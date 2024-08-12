@@ -26,21 +26,21 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
-import { ApplicationTabLogsComponent } from './application-tab-logs.component';
-import { MoreFiltersDialogComponent } from './components/more-filters-dialog/more-filters-dialog.component';
-import { MoreFiltersDialogHarness } from './components/more-filters-dialog/more-filters-dialog.harness';
-import { fakeApplication } from '../../../../entities/application/application.fixture';
-import { LogsResponse } from '../../../../entities/log/log';
-import { fakeLog, fakeLogsResponse } from '../../../../entities/log/log.fixture';
-import { fakeSubscription, fakeSubscriptionResponse } from '../../../../entities/subscription/subscription.fixture';
-import { SubscriptionsResponse } from '../../../../entities/subscription/subscriptions-response';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { ApplicationLogTableComponent } from './application-log-table.component';
+import { fakeApplication } from '../../../../../entities/application/application.fixture';
+import { LogsResponse } from '../../../../../entities/log/log';
+import { fakeLog, fakeLogsResponse } from '../../../../../entities/log/log.fixture';
+import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
+import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
+import { MoreFiltersDialogComponent } from '../components/more-filters-dialog/more-filters-dialog.component';
+import { MoreFiltersDialogHarness } from '../components/more-filters-dialog/more-filters-dialog.harness';
 
 /* eslint-disable no-useless-escape */
 
-describe('ApplicationTabLogsComponent', () => {
-  let component: ApplicationTabLogsComponent;
-  let fixture: ComponentFixture<ApplicationTabLogsComponent>;
+describe('ApplicationLogTableComponent', () => {
+  let component: ApplicationLogTableComponent;
+  let fixture: ComponentFixture<ApplicationLogTableComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
   let rootHarnessLoader: HarnessLoader;
@@ -51,7 +51,7 @@ describe('ApplicationTabLogsComponent', () => {
     const asBehaviorSubject = new BehaviorSubject(queryParams);
 
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabLogsComponent, MoreFiltersDialogComponent, AppTestingModule],
+      imports: [ApplicationLogTableComponent, MoreFiltersDialogComponent, AppTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -60,7 +60,7 @@ describe('ApplicationTabLogsComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApplicationTabLogsComponent);
+    fixture = TestBed.createComponent(ApplicationLogTableComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     rootHarnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
