@@ -203,7 +203,7 @@
         <gravitee-policy-mock.version>1.13.5</gravitee-policy-mock.version>
         <gravitee-policy-mtls.version>1.0.0-alpha.1</gravitee-policy-mtls.version>
         <gravitee-policy-oauth2.version>3.0.4</gravitee-policy-oauth2.version>
-        <gravitee-policy-oas-validation.version>1.0.0-alpha.11</gravitee-policy-oas-validation.version>
+        <gravitee-policy-oas-validation.version>1.0.0</gravitee-policy-oas-validation.version>
         <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
@@ -234,7 +234,7 @@
         <gravitee-resource-cache.version>2.1.0</gravitee-resource-cache.version>
         <gravitee-resource-oauth2-provider-am.version>2.1.0</gravitee-resource-oauth2-provider-am.version>
         <gravitee-resource-oauth2-provider-generic.version>2.1.0</gravitee-resource-oauth2-provider-generic.version>
-        <gravitee-resource-content-provider-inline.version>1.0.0-alpha.5</gravitee-resource-content-provider-inline.version>
+        <gravitee-resource-content-provider-inline.version>1.0.0</gravitee-resource-content-provider-inline.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
         <!-- Management API Only -->
         <gravitee-cockpit-connectors-ws.version>5.0.29</gravitee-cockpit-connectors-ws.version>
