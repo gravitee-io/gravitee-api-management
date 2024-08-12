@@ -92,14 +92,12 @@
             minor
             clickable
             (:gv-tag:click)="removeRedirectUri(i)"
-          >{{ control.value }}
-          </gv-tag
-          >
+            >{{ control.value }}
+          </gv-tag>
         </div>
       </ng-container>
       <ng-container formGroupName="tls">
         <div class="form-control">
-
           <gv-text
             id="oauthClientCertificate"
             formControlName="client_certificate"
