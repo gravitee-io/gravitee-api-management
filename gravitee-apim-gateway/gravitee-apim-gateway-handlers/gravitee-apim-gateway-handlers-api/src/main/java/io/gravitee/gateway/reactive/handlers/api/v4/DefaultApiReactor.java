@@ -130,6 +130,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected AnalyticsContext analyticsContext;
     private List<ApiService> services;
     private final boolean validateSubscriptionEnabled;
+    private List<Acceptor<?>> acceptors;
 
     public DefaultApiReactor(
         final Api api,
@@ -378,11 +379,13 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     @Override
     public List<Acceptor<?>> acceptors() {
-        final List<Acceptor<?>> acceptors = new ArrayList<>();
+        if (acceptors == null) {
+            acceptors = new ArrayList<>();
 
-        for (Listener listener : api.getDefinition().getListeners()) {
-            if (listener.getType() == ListenerType.HTTP) {
-                acceptors.addAll(prepareHttpAcceptors(listener));
+            for (Listener listener : api.getDefinition().getListeners()) {
+                if (listener.getType() == ListenerType.HTTP) {
+                    acceptors.addAll(prepareHttpAcceptors(listener));
+                }
             }
         }
 
