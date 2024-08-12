@@ -1,0 +1,112 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="settings__readonly">
+  <div class="settings__readonly__content">
+    @if (readOnlyValues.isSimple) {
+      <mat-card appearance="outlined" class="settings__readonly__content__card">
+        <mat-card-header>
+          <div
+            i18n="@@integrationOauthTitleApplicationSettings"
+            class="settings__readonly__content__card__header m3-title-medium"
+            data-testId="infoCardTitle">
+            OAuth2 Integration
+          </div>
+        </mat-card-header>
+        <mat-card-content class="settings__readonly__content__card__content">
+          <div class="settings__readonly__content__card__content__information">
+            <div class="settings__readonly__content__card__content__information__content">
+              <span class="m3-title-small" i18n="@@applicationTypeApplicationSettings" data-testId="type">Application type: </span
+              ><span class="m3-body-medium" data-testId="typeDescription">{{ readOnlyValues.typeDescription }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card appearance="outlined" class="settings__readonly__content__card">
+        <mat-card-header>
+          <div i18n="@@crdentialsApplicationSettings" class="settings__readonly__content__card__header m3-title-medium">Credentials</div>
+        </mat-card-header>
+        <mat-card-content class="settings__readonly__content__card__content">
+          <app-copy-code
+            id="app-readonly-client-id"
+            title="Client ID"
+            [text]="readOnlyValues.clientId ?? ''"
+            data-testId="clientId"></app-copy-code>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card appearance="outlined" class="settings__readonly__content__card">
+        <mat-card-header>
+          <div
+            i18n="@@integrationOIDCTitleApplicationSettings"
+            class="settings__readonly__content__card__header m3-title-medium"
+            data-testId="infoCardTitle">
+            OpenID Connect Integration
+          </div>
+        </mat-card-header>
+        <mat-card-content class="settings__readonly__content__card__content">
+          <div class="settings__readonly__content__card__content__information">
+            <div class="settings__readonly__content__card__content__information__content">
+              <span class="m3-title-small" data-testId="type">{{ readOnlyValues.type }}: </span>
+              <span class="m3-body-medium" data-testId="typeDescription">{{ readOnlyValues.typeDescription }}</span>
+            </div>
+          </div>
+
+          @if (readOnlyValues.isRedirectUriRequired) {
+            <div class="settings__readonly__content__card__content__information">
+              <div class="settings__readonly__content__card__content__information__content">
+                <span class="m3-title-small" i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs: </span>
+                <span class="m3-body-medium" data-testId="redirectUris">{{ readOnlyValues.redirectUris }}</span>
+              </div>
+              <div class="m3-body-small" i18n="@@hintReadOnlyRedirectUrisApplicationSettings">
+                URIs where the authorization server will send OAuth2 responses
+              </div>
+            </div>
+          }
+          <div class="settings__readonly__content__card__content__information">
+            <div class="settings__readonly__content__card__content__information__content">
+              <span class="m3-title-small" i18n="@@applicationGrantTypesApplicationSettings">Grant types: </span
+              ><span class="m3-body-medium" data-testId="grantTypes">{{ readOnlyValues.grantTypes }}</span>
+            </div>
+            <div class="m3-body-small" i18n="@@hintReadOnlyGrantTypesApplicationSettings">Grant types allowed for the client</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card appearance="outlined" class="settings__readonly__content__card">
+        <mat-card-header>
+          <div i18n="@@credentialsApplicationSettings" class="settings__readonly__content__card__header m3-title-medium">Credentials</div>
+        </mat-card-header>
+        <mat-card-content class="settings__readonly__content__card__content">
+          <app-copy-code
+            id="oauth-readonly-client-id"
+            title="Client ID"
+            [text]="readOnlyValues.clientId ?? ''"
+            data-testId="clientId"></app-copy-code>
+          <app-copy-code
+            id="oauth-readonly-client-secret"
+            title="Client Secret"
+            [text]="readOnlyValues.clientSecret ?? ''"
+            [mode]="'PASSWORD'"
+            data-testId="clientSecret"></app-copy-code>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+  <div class="settings__readonly__actions">
+    <ng-content select="[additionalActions]"></ng-content>
+  </div>
+</div>
