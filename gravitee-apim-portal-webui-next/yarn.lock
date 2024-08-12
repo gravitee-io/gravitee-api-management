@@ -7103,6 +7103,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@testing-library/angular@npm:^17.2.1":
+  version: 17.2.1
+  resolution: "@testing-library/angular@npm:17.2.1"
+  dependencies:
+    tslib: "npm:^2.3.1"
+  peerDependencies:
+    "@angular/common": ">= 17.0.0"
+    "@angular/core": ">= 17.0.0"
+    "@angular/platform-browser": ">= 17.0.0"
+    "@angular/router": ">= 17.0.0"
+    "@testing-library/dom": ^10.0.0
+  checksum: 10c0/5b4c25ce85f8dd8e051050de7777d8061975c1906f21fad66c7059a68c67ea63fe3ae9735c521519c839ee5df128b8d5bcf851db3baec986fda3c69690e8f68a
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:^9.3.4":
   version: 9.3.4
   resolution: "@testing-library/dom@npm:9.3.4"
@@ -13036,6 +13051,7 @@ __metadata:
     "@storybook/angular": "npm:8.0.5"
     "@storybook/blocks": "npm:8.0.5"
     "@storybook/test": "npm:8.0.5"
+    "@testing-library/angular": "npm:^17.2.1"
     "@types/jest": "npm:29.5.12"
     "@types/js-yaml": "npm:4.0.9"
     "@types/swagger-ui": "npm:3.52.4"
