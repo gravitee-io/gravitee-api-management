@@ -40,6 +40,15 @@
         placeholder="{{ 'applicationType.security.clientId.description' | translate }}"
       ></gv-input>
     </div>
+    <div class="form-control" formGroupName="tls">
+      <gv-text
+        id="appClientCertificate"
+        formControlName="client_certificate"
+        ngDefaultControl
+        label="{{ 'applicationType.security.clientCertificate.label' | translate }}"
+        placeholder="{{ 'applicationType.security.clientCertificate.description' | translate }}"
+      ></gv-text>
+    </div>
   </form>
 
   <form [formGroup]="oauthForm" class="form step-grid-content" *ngIf="!isSimpleApp">
@@ -59,32 +68,47 @@
       </div>
     </div>
     <div class="step-grid-column" formGroupName="oauth">
-      <div class="form-control" *ngIf="requiresRedirectUris" formArrayName="redirect_uris">
-        <gv-input
-          [required]="requiresRedirectUris"
-          autofocus
-          clickable
-          (:gv-input:submit)="addRedirectUri($event)"
-          (blur)="addRedirectUri($event)"
-          [label]="'applicationType.security.redirectUris.label' | translate"
-          [valid]="hasRedirectUris"
-          [invalid]="!hasRedirectUris"
-          type="url"
-          placeholder="https://example.com"
-          icon="code:plus"
-        ></gv-input>
-      </div>
-      <div *ngIf="redirectURIs.controls.length > 0">
-        <div class="label">{{ 'applicationType.security.redirectUris.description' | translate }}</div>
-        <gv-tag
-          *ngFor="let control of redirectURIs.controls; index as i"
-          icon-right="general:close"
-          minor
-          clickable
-          (:gv-tag:click)="removeRedirectUri(i)"
-          >{{ control.value }}</gv-tag
-        >
-      </div>
+      <ng-container formGroupName="oauth">
+        <div class="form-control" *ngIf="requiresRedirectUris" formArrayName="redirect_uris">
+          <gv-input
+            [required]="requiresRedirectUris"
+            autofocus
+            clickable
+            (:gv-input:submit)="addRedirectUri($event)"
+            (blur)="addRedirectUri($event)"
+            [label]="'applicationType.security.redirectUris.label' | translate"
+            [valid]="hasRedirectUris"
+            [invalid]="!hasRedirectUris"
+            type="url"
+            placeholder="https://example.com"
+            icon="code:plus"
+          ></gv-input>
+        </div>
+        <div *ngIf="redirectURIs.controls.length > 0">
+          <div class="label">{{ 'applicationType.security.redirectUris.description' | translate }}</div>
+          <gv-tag
+            *ngFor="let control of redirectURIs.controls; index as i"
+            icon-right="general:close"
+            minor
+            clickable
+            (:gv-tag:click)="removeRedirectUri(i)"
+          >{{ control.value }}
+          </gv-tag
+          >
+        </div>
+      </ng-container>
+      <ng-container formGroupName="tls">
+        <div class="form-control">
+
+          <gv-text
+            id="oauthClientCertificate"
+            formControlName="client_certificate"
+            ngDefaultControl
+            label="{{ 'applicationType.security.clientCertificate.label' | translate }}"
+            placeholder="{{ 'applicationType.security.clientCertificate.description' | translate }}"
+          ></gv-text>
+        </div>
+      </ng-container>
     </div>
   </form>
 </div>

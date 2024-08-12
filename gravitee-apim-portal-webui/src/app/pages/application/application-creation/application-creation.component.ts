@@ -60,7 +60,9 @@ type ApplicationFormType = FormGroup<{
   domain: FormControl<string>;
   picture: FormControl<string>;
   settings: FormControl<
-    { app: { type: string; client_id: string } } | { oauth: { redirect_uris: any[]; grant_types: any[]; application_type: string } }
+    ({ app: { type: string; client_id: string } } | { oauth: { redirect_uris: any[]; grant_types: any[]; application_type: string } }) & {
+      tls: { client_certificate: string };
+    }
   >;
 }>;
 

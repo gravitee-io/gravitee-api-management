@@ -618,6 +618,10 @@
         "description": " The Client_id of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).",
         "label": "Client ID"
       },
+      "clientCertificate": {
+        "description": " The client_certificate of the application. This field is required to subscribe to mTLS plans.",
+        "label": "Client Certificate (PEM only)"
+      },
       "client_credentials": {
         "description": " ",
         "title": "Client credentials"

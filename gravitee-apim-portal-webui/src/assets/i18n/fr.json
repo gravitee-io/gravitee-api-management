@@ -618,6 +618,10 @@
         "description": " Le client_id de l'application. Ce champ est obligatoire pour souscrire à un certain type de plan API (OAuth2, JWT).",
         "label": "Client ID"
       },
+      "clientCertificate": {
+        "description": " Le client_certificate de l'application. Ce champs est obligatoire pour souscrire au type de plan mTLS.",
+        "label": "Client Certificate (PEM)"
+      },
       "client_credentials": {
         "description": " ",
         "title": "Informations d'identification du client"
