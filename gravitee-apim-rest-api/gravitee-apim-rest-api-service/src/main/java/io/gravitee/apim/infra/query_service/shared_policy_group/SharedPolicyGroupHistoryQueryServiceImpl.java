@@ -20,14 +20,21 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.apim.infra.repository.PageUtils;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
+import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGroupHistoryQueryService {
@@ -56,6 +63,41 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
             logger.error("An error occurred while streaming all last shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
                 "An error occurred while trying to stream all last shared policy groups by environment ID: " + environmentId + e
+            );
+        }
+    }
+
+    @Override
+    public Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable) {
+        Assert.notNull(environmentId, "EnvironmentId must not be null");
+        Assert.notNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
+        try {
+            var criteria = SharedPolicyGroupHistoryCriteria
+                .builder()
+                .sharedPolicyGroupId(sharedPolicyGroupId)
+                .environmentId(environmentId)
+                .build();
+
+            var result = sharedPolicyGroupHistoryRepository.search(
+                criteria,
+                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),
+                new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build()
+            );
+
+            return result.map(sharedPolicyGroupAdapter::toEntity);
+        } catch (TechnicalException e) {
+            logger.error(
+                "An error occurred while searching shared policy group histories by environment ID {} and sharedPolicyGroupId {}",
+                environmentId,
+                sharedPolicyGroupId,
+                e
+            );
+            throw new TechnicalDomainException(
+                "An error occurred while trying to search shared policy group histories by environment ID: " +
+                environmentId +
+                " and sharedPolicyGroupId: " +
+                sharedPolicyGroupId +
+                e
             );
         }
     }
