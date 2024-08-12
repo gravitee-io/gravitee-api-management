@@ -15,7 +15,7 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { AgentStatus } from '../integrations.model';
+import { AgentStatus } from '../../integrations.model';
 
 @Component({
   selector: 'app-integration-status',

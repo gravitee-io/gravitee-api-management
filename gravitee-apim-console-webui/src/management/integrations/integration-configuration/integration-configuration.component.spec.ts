@@ -17,24 +17,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
-import { MatErrorHarness } from '@angular/material/form-field/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
-import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { IntegrationConfigurationComponent } from './integration-configuration.component';
 import { IntegrationConfigurationHarness } from './integration-configuration.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 import { IntegrationsModule } from '../integrations.module';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { DeletedFederatedAPIsResponse, FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
-import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
-import { fakeFederatedAPI } from '../../../entities/integrations/federatedAPI.fixture';
+import { IntegrationNavigationItem } from '../integrations.model';
 
 describe('IntegrationConfigurationComponent', (): void => {
   let fixture: ComponentFixture<IntegrationConfigurationComponent>;
@@ -48,6 +42,12 @@ describe('IntegrationConfigurationComponent', (): void => {
   };
 
   const init = async (
+    tabs: IntegrationNavigationItem[] = [
+      {
+        displayName: 'OneTab',
+        routerLink: 'One',
+      },
+    ],
     permissions: GioTestingPermission = [
       'environment-integration-u',
       'environment-integration-d',
@@ -83,225 +83,40 @@ describe('IntegrationConfigurationComponent', (): void => {
     fixture = TestBed.createComponent(IntegrationConfigurationComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationConfigurationHarness);
+    fixture.componentInstance.configurationTabs = tabs;
     fixture.detectChanges();
   };
 
   afterEach(() => {
-    init();
     httpTestingController.verify();
   });
 
-  describe('update integration details', () => {
+  describe('tabs', () => {
     beforeEach(() => {
-      init();
+      init([
+        {
+          displayName: 'OneTab',
+          routerLink: 'One',
+        },
+        {
+          displayName: 'TwoTab',
+          routerLink: 'Two',
+        },
+        {
+          displayName: 'ThreeTab',
+          routerLink: 'Three',
+        },
+        {
+          displayName: 'FourTab',
+          routerLink: 'Four',
+        },
+      ]);
     });
 
-    it('should show validation error when name is not valid', async () => {
-      expectIntegrationGetRequest(fakeIntegration());
-      expectFederatedAPIsGetRequest();
+    it('should have correct number of tabs', async () => {
+      const tabNavBar = await componentHarness.getTabNavBar();
 
-      await componentHarness.setName('');
-      await componentHarness.setDescription('Some description');
-      fixture.detectChanges();
-
-      const error: MatErrorHarness = await componentHarness.matErrorMessage();
-      expect(await error.getText()).toEqual('Integration name is required.');
-
-      await componentHarness.setName('test too long name 01234567890123456789012345678901234567890123456789');
-      await componentHarness.setDescription('Some description');
-      fixture.detectChanges();
-
-      const errorToLongName: MatErrorHarness = await componentHarness.matErrorMessage();
-      expect(await errorToLongName.getText()).toEqual('Integration name can not exceed 50 characters.');
-    });
-
-    it('should not show submit bar when form not valid', async () => {
-      expectIntegrationGetRequest(fakeIntegration());
-      expectFederatedAPIsGetRequest();
-
-      await componentHarness.setName('');
-      await componentHarness.setDescription('Some description');
-      fixture.detectChanges();
-
-      const submitBar: GioSaveBarHarness = await componentHarness.getSubmitButton();
-      expect(submitBar).toBeNull();
-
-      await componentHarness.setName('test too long name 01234567890123456789012345678901234567890123456789');
-      await componentHarness.setDescription('Some description');
-      fixture.detectChanges();
-
-      const submitBarTwo: GioSaveBarHarness = await componentHarness.getSubmitButton();
-      expect(submitBarTwo).toBeNull();
-    });
-
-    it('should send request PUT with payload', async () => {
-      expectIntegrationGetRequest(fakeIntegration());
-      expectFederatedAPIsGetRequest();
-
-      await componentHarness.setName('Test Title');
-      await componentHarness.setDescription('Description');
-      fixture.detectChanges();
-
-      await componentHarness.clickOnSubmit();
-
-      expectIntegrationPutRequest(fakeIntegration(), {
-        description: 'Description',
-        name: 'Test Title',
-      });
-      expectIntegrationGetRequest(fakeIntegration());
+      expect(tabNavBar.length).toBe(4);
     });
   });
-
-  describe('no delete permissions', () => {
-    beforeEach((): void => {
-      init([]);
-    });
-
-    it('should not display delete button', async () => {
-      expectIntegrationGetRequest(fakeIntegration());
-      expectFederatedAPIsGetRequest();
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
-      expect(deleteButton).toBeNull();
-    });
-  });
-
-  describe('no update permissions', () => {
-    beforeEach(() => {
-      init([]);
-    });
-
-    it('should not display update form', async () => {
-      expectIntegrationGetRequest(fakeIntegration());
-      expectFederatedAPIsGetRequest();
-      const updateForm: MatCardHarness = await componentHarness.getUpdateSection();
-      expect(updateForm).toBeNull();
-    });
-  });
-
-  describe('danger zone', () => {
-    beforeEach((): void => {
-      init();
-    });
-
-    it('should send DELETE request with correct ID', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
-      expectFederatedAPIsGetRequest([]);
-
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
-      await deleteButton.click();
-
-      fixture.detectChanges();
-
-      const dialogHarness: GioConfirmDialogHarness =
-        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.confirm();
-
-      expectIntegrationDeleteRequest('idToDelete123');
-    });
-  });
-
-  describe('delete button', () => {
-    beforeEach((): void => {
-      init();
-    });
-
-    it('should be disabled when federated APIS are present', async (): Promise<void> => {
-      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
-      expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
-
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
-      expect(await deleteButton.isDisabled()).toBeTruthy();
-    });
-
-    it('should be enabled when federated APIs are not present', async (): Promise<void> => {
-      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
-      expectFederatedAPIsGetRequest([]);
-
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
-      expect(fixture.componentInstance.hasFederatedAPIs).toBeFalsy();
-      expect(await deleteButton.isDisabled()).toBeFalsy();
-    });
-  });
-
-  describe('delete federated APIs button', () => {
-    it('should be disabled when federated APIS are not present', async (): Promise<void> => {
-      await init(['environment-api-d', 'environment-integration-d']);
-      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
-      expectFederatedAPIsGetRequest([], 1, 10);
-
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
-      expect(await deleteButton.isDisabled()).toBeTruthy();
-    });
-
-    it('should be hidden when user has no delete API permission', async (): Promise<void> => {
-      await init(['environment-integration-d']);
-      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
-      expectFederatedAPIsGetRequest([], 1, 10);
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
-      expect(deleteButton).toBeNull();
-    });
-
-    it('should send delete request with proper integration ID and display deleted items info', async (): Promise<void> => {
-      await init(['environment-api-d', 'environment-integration-d']);
-      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
-      expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
-
-      const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
-
-      await deleteButton.click();
-      fixture.detectChanges();
-
-      const dialogHarness: GioConfirmDialogHarness =
-        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.confirm();
-
-      expectDeleteAPIsRequest('idToDelete123', { deleted: 5, skipped: 1, errors: 1 });
-      expect(fakeSnackBarService.success).toHaveBeenCalledWith('We’re deleting Federated APIs from this integration...');
-      expectFederatedAPIsGetRequest([], 1, 10);
-
-      expect(fakeSnackBarService.success).toHaveBeenCalledWith(
-        'Federated APIs have been deleted.\n' + '  • Deleted: 5\n' + '  • Not deleted: 1\n' + '  • Errors: 1',
-      );
-    });
-  });
-
-  function expectIntegrationDeleteRequest(id: string): void {
-    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${id}`);
-    expect(req.request.method).toEqual('DELETE');
-  }
-
-  function expectDeleteAPIsRequest(id: string, response: DeletedFederatedAPIsResponse): void {
-    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${id}/apis`);
-    req.flush(response);
-    expect(req.request.method).toEqual('DELETE');
-  }
-
-  function expectIntegrationGetRequest(integrationMock: Integration): void {
-    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
-    req.flush(integrationMock);
-    expect(req.request.method).toEqual('GET');
-  }
-
-  function expectIntegrationPutRequest(integrationMock: Integration, payload): void {
-    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
-    req.flush(integrationMock);
-    expect(req.request.method).toEqual('PUT');
-    expect(req.request.body).toEqual(payload);
-  }
-
-  function expectFederatedAPIsGetRequest(federatedAPIs: FederatedAPI[] = [fakeFederatedAPI()], page = 1, perPage = 10): void {
-    const req: TestRequest = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/apis?page=${page}&perPage=${perPage}`,
-    );
-    const res: FederatedAPIsResponse = {
-      data: federatedAPIs,
-      pagination: {
-        page,
-        perPage,
-      },
-    };
-
-    req.flush(res);
-    expect(req.request.method).toEqual('GET');
-  }
 });

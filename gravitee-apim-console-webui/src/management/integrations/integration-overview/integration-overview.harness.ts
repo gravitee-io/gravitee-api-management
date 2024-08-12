@@ -19,14 +19,12 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 
-import { IntegrationStatusHarness } from '../integration-status/integration-status.harness';
+import { IntegrationStatusHarness } from '../components/integration-status/integration-status.harness';
 
 export class IntegrationOverviewHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integration-overview';
 
   private loaderPanel = this.locatorForOptional('[data-testid=loader-spinner]');
-  private badgeErrorLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-error');
-  private badgeSuccessLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-success');
   private discoverButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
     MatButtonHarness.with({ selector: '[data-testid=discover-button]' }),
   );

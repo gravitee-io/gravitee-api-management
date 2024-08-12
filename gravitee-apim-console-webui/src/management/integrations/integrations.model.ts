@@ -19,8 +19,10 @@ import { Pagination } from '../../entities/management-api-v2';
 export interface IntegrationNavigationItem {
   routerLink: string;
   displayName: string;
-  permissions: string[];
-  icon: string;
+  permissions?: string[];
+  icon?: string;
+  routerLinkActiveOptions?: { exact: boolean };
+  disabled?: boolean;
 }
 
 export interface IntegrationResponse {
