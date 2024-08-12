@@ -5297,6 +5297,8 @@ components:
           $ref: '#/components/schemas/SimpleApplicationSettings'
         oauth:
           $ref: '#/components/schemas/OAuthClientSettings'
+        tls:
+          $ref: '#/components/schemas/TlsClientSettings'
     SimpleApplicationSettings:
       properties:
         type:
@@ -5329,6 +5331,10 @@ components:
           type: string
         renew_client_secret_supported:
           type: boolean
+    TlsClientSettings:
+      properties:
+        client_certificate:
+          type: string
     Metadata:
       description: Information about the page, if this page is from an external source.
       properties:
