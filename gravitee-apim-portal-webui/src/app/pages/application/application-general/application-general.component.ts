@@ -38,7 +38,10 @@ import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 
 const StatusEnum = Subscription.StatusEnum;
 
-type AppFormType = FormGroup<{ app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }> }>;
+type AppFormType = FormGroup<{
+  app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }>;
+  tls: FormGroup<{ client_certificate: FormControl<string> }>;
+}>;
 type OAuthFormType = FormGroup<{
   oauth: FormGroup<{
     redirect_uris: FormArray;
@@ -46,6 +49,7 @@ type OAuthFormType = FormGroup<{
     client_secret: FormControl<string>;
     client_id: FormControl<string>;
   }>;
+  tls: FormGroup<{ client_certificate: FormControl<string> }>;
 }>;
 
 type ApplicationFormType = FormGroup<{
@@ -130,6 +134,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   initForm() {
     let settings: OAuthFormType | AppFormType;
     if (this.application) {
+      console.log(JSON.stringify(this.application));
       if (this.isOAuth()) {
         settings = this.formBuilder.group({
           oauth: this.formBuilder.group({
@@ -138,12 +143,18 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
             redirect_uris: new FormArray([]),
             grant_types: new FormArray([]),
           }),
+          tls: this.formBuilder.group({
+            client_certificate: new FormControl(this.application.settings.tls.client_certificate, null),
+          }),
         });
       } else {
         settings = this.formBuilder.group({
           app: this.formBuilder.group({
             type: new FormControl(this.application.settings.app.type, null),
             client_id: new FormControl(this.application.settings.app.client_id, null),
+          }),
+          tls: this.formBuilder.group({
+            client_certificate: new FormControl(this.application.settings.tls.client_certificate, null),
           }),
         });
       }

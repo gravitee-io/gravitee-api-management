@@ -62,27 +62,42 @@
           </gv-input>
 
           <div formGroupName="settings" *ngIf="application.settings.app">
-            <div formGroupName="app">
-              <gv-input
-                [attr.readonly]="!canUpdate ? 'readonly' : null"
-                class="form__control"
-                label="{{ 'application.type.title' | translate }}"
-                placeholder="{{ 'application.type.label' | translate }}"
-                formControlName="type"
-                name="application.type"
-                ngDefaultControl
-              >
-              </gv-input>
-              <gv-input
-                [attr.readonly]="!canUpdate ? 'readonly' : null"
-                class="form__control"
-                label="{{ 'application.client_id.title' | translate }}"
-                placeholder="{{ 'application.client_id.label' | translate }}"
-                formControlName="client_id"
-                name="application.client_id"
-                ngDefaultControl
-              >
-              </gv-input>
+            <div>
+              <ng-container formGroupName="app">
+                <gv-input
+                  [attr.readonly]="!canUpdate ? 'readonly' : null"
+                  class="form__control"
+                  label="{{ 'application.type.title' | translate }}"
+                  placeholder="{{ 'application.type.label' | translate }}"
+                  formControlName="type"
+                  name="application.type"
+                  ngDefaultControl
+                >
+                </gv-input>
+                <gv-input
+                  [attr.readonly]="!canUpdate ? 'readonly' : null"
+                  class="form__control"
+                  label="{{ 'application.client_id.title' | translate }}"
+                  placeholder="{{ 'application.client_id.label' | translate }}"
+                  formControlName="client_id"
+                  name="application.client_id"
+                  ngDefaultControl
+                >
+                </gv-input>
+              </ng-container>
+              <ng-container formGroupName="tls">
+                <gv-text
+                  formGroupName="tls"
+                  [attr.readonly]="!canUpdate ? 'readonly' : null"
+                  class="form__control"
+                  label="{{ 'applicationType.security.clientCertificate.label' | translate }}"
+                  placeholder="{{ 'applicationType.security.clientCertificate.description' | translate }}"
+                  formControlName="client_certificate"
+                  name="application.client_certificate"
+                  ngDefaultControl
+                >
+                </gv-text>
+              </ng-container>
             </div>
           </div>
 

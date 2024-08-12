@@ -107,6 +107,7 @@ export * from './request';
 export * from './resetUserPasswordInput';
 export * from './response';
 export * from './simpleApplicationSettings';
+export * from './tlsClientSettings';
 export * from './subscription';
 export * from './subscriptionConfigurationInput';
 export * from './subscriptionInput';
