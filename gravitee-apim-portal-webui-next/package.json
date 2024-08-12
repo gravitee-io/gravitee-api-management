@@ -14,7 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --runInBand",
-    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" NODE_OPTIONS=--max-old-space-size=6144 jest --ci --reporters=default --reporters=jest-junit --max-workers=3 --collect-coverage",
+    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" NODE_OPTIONS=--max-old-space-size=6144 jest --ci --reporters=default --reporters=jest-junit --collect-coverage  --runInBand",
     "lint:eslint": "ng lint --max-warnings=0",
     "lint:eslint:fix": "ng lint --max-warnings=0 --fix",
     "lint:prettier": "prettier --check \"**/*.{js,ts,json,html,scss}\"",
