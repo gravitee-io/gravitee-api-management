@@ -20,12 +20,18 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupHistoryUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SharedPolicyGroupMapper;
+import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupHistoriesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -34,6 +40,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -42,6 +49,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +77,9 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @Inject
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
+
+    @Inject
+    private SearchSharedPolicyGroupHistoryUseCase searchSharedPolicyGroupHistoryUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -144,6 +155,37 @@ public class SharedPolicyGroupResource extends AbstractResource {
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroupId, audit));
 
         return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/histories")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    public SharedPolicyGroupHistoriesResponse getSharedPolicyGroupHistories(
+        @BeanParam @Valid PaginationParam paginationParam,
+        @QueryParam("sortBy") String sortBy
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var result = searchSharedPolicyGroupHistoryUseCase.execute(
+            new SearchSharedPolicyGroupHistoryUseCase.Input(
+                executionContext.getEnvironmentId(),
+                sharedPolicyGroupId,
+                paginationParam.toPageable(),
+                sortBy
+            )
+        );
+
+        return new SharedPolicyGroupHistoriesResponse()
+            .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
+            .pagination(
+                PaginationInfo.computePaginationInfo(
+                    result.result().getTotalElements(),
+                    result.result().getContent().size(),
+                    paginationParam
+                )
+            )
+            .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
     }
 
     @POST
