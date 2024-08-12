@@ -347,6 +347,15 @@ data:
               port: {{ .port }}
             {{- end }}
         {{- end }}
+        {{- if (not (empty (.Values.gateway.ratelimit.redis.operation))) }}
+        operation:
+          timeout: {{ .Values.gateway.ratelimit.redis.operation.timeout | default "10" }}
+        {{- end }}
+        {{- if (not (empty (.Values.gateway.ratelimit.redis.tcp))) }}
+        tcp:
+          connectTimeout: {{ .Values.gateway.ratelimit.redis.tcp.connectTimeout | default "5000" }}
+          idleTimeout: {{ .Values.gateway.ratelimit.redis.tcp.idleTimeout | default "0" }}
+        {{- end }}
       {{- end }}
 
     # Sharding tags configuration
