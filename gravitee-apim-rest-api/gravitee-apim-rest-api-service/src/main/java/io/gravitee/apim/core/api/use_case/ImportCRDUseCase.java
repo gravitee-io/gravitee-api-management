@@ -232,7 +232,7 @@ public class ImportCRDUseCase {
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
-            if (sanitizedInput.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
+            if (shouldDeploy(sanitizedInput.spec())) {
                 if (createdApi.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(createdApi, sanitizedInput.auditInfo);
                 } else {
@@ -314,7 +314,7 @@ public class ImportCRDUseCase {
 
             deletePlans(api, existingPlans, planKeyIdMapping, sanitizedInput);
 
-            if (sanitizedInput.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
+            if (shouldDeploy(sanitizedInput.spec())) {
                 if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(api, sanitizedInput.auditInfo);
                 } else {
@@ -495,5 +495,16 @@ public class ImportCRDUseCase {
             .displayName(crd.getDisplayName())
             .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
             .build();
+    }
+
+    private static boolean shouldDeploy(ApiCRDSpec spec) {
+        return (
+            spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT) &&
+            spec
+                .getPlans()
+                .values()
+                .stream()
+                .anyMatch(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
+        );
     }
 }
