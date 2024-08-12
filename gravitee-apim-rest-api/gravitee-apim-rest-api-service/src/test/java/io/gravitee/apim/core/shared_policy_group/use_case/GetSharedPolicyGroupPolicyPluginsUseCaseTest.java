@@ -18,7 +18,7 @@ package io.gravitee.apim.core.shared_policy_group.use_case;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
-import inmemory.SharedPolicyGroupQueryServiceInMemory;
+import inmemory.SharedPolicyGroupHistoryQueryServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +28,14 @@ class GetSharedPolicyGroupPolicyPluginsUseCaseTest {
 
     static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
-    private final SharedPolicyGroupQueryServiceInMemory sharedPolicyGroupQueryService = new SharedPolicyGroupQueryServiceInMemory();
+    private final SharedPolicyGroupHistoryQueryServiceInMemory sharedPolicyGroupHistoryQueryServiceInMemory =
+        new SharedPolicyGroupHistoryQueryServiceInMemory();
     private GetSharedPolicyGroupPolicyPluginsUseCase getSharedPolicyGroupPolicyPluginsUseCase;
 
     @BeforeEach
     void setUp() {
-        getSharedPolicyGroupPolicyPluginsUseCase = new GetSharedPolicyGroupPolicyPluginsUseCase(sharedPolicyGroupQueryService);
+        getSharedPolicyGroupPolicyPluginsUseCase =
+            new GetSharedPolicyGroupPolicyPluginsUseCase(sharedPolicyGroupHistoryQueryServiceInMemory);
     }
 
     @Test
@@ -44,7 +46,7 @@ class GetSharedPolicyGroupPolicyPluginsUseCaseTest {
 
         SharedPolicyGroup undeployedSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         undeployedSharedPolicyGroup.setLifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED);
-        sharedPolicyGroupQueryService.initWith(List.of(deployedSharedPolicyGroup, undeployedSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryServiceInMemory.initWith(List.of(deployedSharedPolicyGroup, undeployedSharedPolicyGroup));
 
         // When
         var result = getSharedPolicyGroupPolicyPluginsUseCase.execute(new GetSharedPolicyGroupPolicyPluginsUseCase.Input(ENV_ID));

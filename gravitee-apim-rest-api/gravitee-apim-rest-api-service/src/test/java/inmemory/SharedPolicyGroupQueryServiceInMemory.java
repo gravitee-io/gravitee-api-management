@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SharedPolicyGroupQueryServiceInMemory implements SharedPolicyGroupQueryService, InMemoryAlternative<SharedPolicyGroup> {
 
@@ -63,18 +62,6 @@ public class SharedPolicyGroupQueryServiceInMemory implements SharedPolicyGroupQ
             : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
-    }
-
-    @Override
-    public Stream<SharedPolicyGroup> streamByEnvironmentIdAndState(
-        String environmentId,
-        SharedPolicyGroup.SharedPolicyGroupLifecycleState state,
-        Sortable sortable
-    ) {
-        return storage
-            .stream()
-            .filter(spg -> spg.getEnvironmentId().equals(environmentId))
-            .filter(spg -> spg.getLifecycleState().equals(state));
     }
 
     @Override
