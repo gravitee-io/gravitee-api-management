@@ -35,7 +35,7 @@ import {
   MatTable,
 } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
-import { isEmpty, isEqual } from 'lodash';
+import { isEqual } from 'lodash';
 import { catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -126,8 +126,11 @@ export class ApplicationTabLogsComponent implements OnInit {
   });
 
   filters: WritableSignal<FiltersVM> = signal({});
-  filtersIsEmpty: Signal<boolean> = computed(() => isEmpty(this.filters()));
-  noFiltersApplied: Signal<boolean> = computed(() => isEqual(this.filters(), { period: this.filters().period }));
+  noFiltersApplied: Signal<boolean> = computed(() =>
+    Object.entries(this.filters())
+      .filter(keyValueArray => keyValueArray[0] !== 'period')
+      .every(keyValueArray => !keyValueArray[1]),
+  );
   filtersPristine: Signal<boolean> = computed(() => isEqual(this.filters(), this.filtersInitialValue));
 
   httpMethods: HttpMethodVM[] = inject(ApplicationTabLogsService).httpMethods;
@@ -283,6 +286,7 @@ export class ApplicationTabLogsComponent implements OnInit {
         next: dialogFilters => {
           this.filters.update(filters => ({
             ...filters,
+            ...dialogFilters,
             from: dialogFilters?.startDate,
             to: dialogFilters?.endDate,
             requestId: dialogFilters?.requestId,
@@ -352,16 +356,16 @@ export class ApplicationTabLogsComponent implements OnInit {
 
     this.filters.update(filters => ({
       ...filters,
-      ...(params.methods.length ? { methods: params.methods } : {}),
-      ...(responseTimes.length ? { responseTimes } : {}),
-      ...(period ? { period } : {}),
-      ...(params.from ? { from: params.from } : {}),
-      ...(params.to ? { to: params.to } : {}),
-      ...(params.requestId ? { requestId: params.requestId } : {}),
-      ...(params.transactionId ? { transactionId: params.transactionId } : {}),
-      ...(httpStatuses.length ? { httpStatuses } : {}),
-      ...(params.messageText ? { messageText: params.messageText } : {}),
-      ...(params.path ? { path: params.path } : {}),
+      ...(params.methods.length ? { methods: params.methods } : { methods: undefined }),
+      ...(responseTimes.length ? { responseTimes } : { responseTimes: undefined }),
+      period,
+      from: params.from,
+      to: params.to,
+      requestId: params.requestId,
+      transactionId: params.transactionId,
+      ...(httpStatuses.length ? { httpStatuses } : { httpStatuses: undefined }),
+      messageText: params.messageText,
+      path: params.path,
     }));
     this.filtersInitialValue = this.filters();
   }

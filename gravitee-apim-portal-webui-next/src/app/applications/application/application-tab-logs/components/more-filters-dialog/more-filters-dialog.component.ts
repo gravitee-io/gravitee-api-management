@@ -93,11 +93,11 @@ export class MoreFiltersDialogComponent {
     this.dialogRef.close({
       startDate: this.startDate?.getTime(),
       endDate: this.endDate?.getTime(),
-      requestId: this.requestId,
-      transactionId: this.transactionId,
-      ...(this.httpStatuses ? { httpStatuses } : {}),
-      messageText: this.messageText,
-      path: this.path,
+      ...(this.requestId?.length ? { requestId: this.requestId } : {}),
+      ...(this.transactionId?.length ? { transactionId: this.transactionId } : {}),
+      ...(this.httpStatuses?.length ? { httpStatuses } : {}),
+      ...(this.messageText?.length ? { messageText: this.messageText } : {}),
+      ...(this.path?.length ? { path: this.path } : {}),
     });
   }
 
