@@ -60,6 +60,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupPolicyPluginsUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupUseCase;
+import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupHistoryUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.SearchSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
@@ -474,5 +475,10 @@ public class ResourceContextConfiguration {
     @Bean
     public UndeploySharedPolicyGroupUseCase undeploySharedPolicyGroupUseCase() {
         return mock(UndeploySharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public SearchSharedPolicyGroupHistoryUseCase searchSharedPolicyGroupHistoryUseCase() {
+        return mock(SearchSharedPolicyGroupHistoryUseCase.class);
     }
 }

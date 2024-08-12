@@ -159,7 +159,22 @@ paths:
             description: Shared policy group deleted
           default:
             $ref: "#/components/responses/Error"
-
+  /shared-policy-groups/{sharedPolicyGroupId}/histories:
+    get:
+      tags:
+        - SharedPolicyGroups
+      summary: Get the histories of a shared policy group
+      operationId: getSharedPolicyGroupHistories
+      parameters:
+        - $ref: "#/components/parameters/sharedPolicyGroupId"
+        - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
+        - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/sharedPolicyGroupHistoriesSortByParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharedPolicyGroupHistoriesResponse"
+        default:
+          $ref: "#/components/responses/Error"
   /shared-policy-groups/{sharedPolicyGroupId}/_deploy:
     post:
       tags:
@@ -382,7 +397,7 @@ components:
           in: query
           required: false
           description: |-
-            Possibility to sort APIs results by field.
+            Possibility to sort Shared Policy Group results by field.
             Can be ascending or descending with minus '-' prefix.
             By default, no sort is applied.
           schema:
@@ -407,6 +422,24 @@ components:
           schema:
             type: string
             example: my shared policy group
+        sharedPolicyGroupHistoriesSortByParam:
+          name: sortBy
+          in: query
+          required: false
+          description: |-
+            Possibility to sort Shared Policy Group history results by field.
+            Can be ascending or descending with minus '-' prefix.
+            By default, no sort is applied.
+          schema:
+            type: string
+            example: name
+            enum:
+              - version
+              - -version
+              - updatedAt
+              - -updatedAt
+              - deployedAt
+              - -deployedAt
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -420,6 +453,22 @@ components:
             application/json:
               schema:
                 title: "SharedPolicyGroupsResponse"
+                properties:
+                  data:
+                    description: List of SharedPolicyGroup.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SharedPolicyGroup"
+                  pagination:
+                    $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                  links:
+                    $ref: "./openapi-apis.yaml#/components/schemas/Links"
+        SharedPolicyGroupHistoriesResponse:
+          description: Page of shared policy group histories
+          content:
+            application/json:
+              schema:
+                title: "SharedPolicyGroupHistoriesResponse"
                 properties:
                   data:
                     description: List of SharedPolicyGroup.
