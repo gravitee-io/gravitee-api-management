@@ -19,7 +19,6 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupQueryService;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
-import io.gravitee.apim.infra.repository.PageUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
@@ -28,7 +27,6 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -65,40 +63,6 @@ public class SharedPolicyGroupQueryServiceImpl implements SharedPolicyGroupQuery
             logger.error("An error occurred while searching shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
                 "An error occurred while trying to search shared policy groups by environment ID: " + environmentId,
-                e
-            );
-        }
-    }
-
-    @Override
-    public Stream<SharedPolicyGroup> streamByEnvironmentIdAndState(
-        String environmentId,
-        SharedPolicyGroup.SharedPolicyGroupLifecycleState lifecycleState,
-        Sortable sortable
-    ) {
-        try {
-            var criteria = SharedPolicyGroupCriteria
-                .builder()
-                .environmentId(environmentId)
-                .lifecycleState(sharedPolicyGroupAdapter.fromEntity(lifecycleState))
-                .build();
-            var repositorySortable = new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
-
-            return PageUtils
-                .toStream(repositoryPageable -> sharedPolicyGroupRepository.search(criteria, repositoryPageable, repositorySortable))
-                .map(sharedPolicyGroupAdapter::toEntity);
-        } catch (TechnicalException e) {
-            logger.error(
-                "An error occurred while streaming shared policy groups by environment ID {} and lifecycleState {}",
-                environmentId,
-                lifecycleState,
-                e
-            );
-            throw new TechnicalDomainException(
-                "An error occurred while trying to stream shared policy groups by environment ID: " +
-                environmentId +
-                " and lifecycleState: " +
-                lifecycleState,
                 e
             );
         }

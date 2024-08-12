@@ -18,8 +18,7 @@ package io.gravitee.apim.core.shared_policy_group.use_case;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
-import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupQueryService;
-import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
 import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -28,16 +27,15 @@ import lombok.RequiredArgsConstructor;
 @DomainService
 public class GetSharedPolicyGroupPolicyPluginsUseCase {
 
-    private final SharedPolicyGroupQueryService sharedPolicyGroupQueryService;
+    private final SharedPolicyGroupHistoryQueryService sharedPolicyGroupHistoryQueryService;
 
     /**
      * Get all deployed shared policy group for policy plugins usage in steps
      */
     public Output execute(Input input) {
-        var sortable = new SortableImpl("name", false);
-
-        var result = sharedPolicyGroupQueryService
-            .streamByEnvironmentIdAndState(input.environmentId(), SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED, sortable)
+        var result = sharedPolicyGroupHistoryQueryService
+            .streamLatestBySharedPolicyPolicyGroupId(input.environmentId())
+            .filter(SharedPolicyGroup::isDeployed)
             .map(SharedPolicyGroupPolicyPlugin::fromSharedPolicyGroup)
             .toList();
 

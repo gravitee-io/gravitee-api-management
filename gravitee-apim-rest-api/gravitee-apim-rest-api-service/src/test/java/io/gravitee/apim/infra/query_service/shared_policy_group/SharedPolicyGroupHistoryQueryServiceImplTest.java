@@ -1,0 +1,135 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.infra.query_service.shared_policy_group;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
+import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapterImpl;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
+import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
+import java.util.List;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+class SharedPolicyGroupHistoryQueryServiceImplTest {
+
+    SharedPolicyGroupHistoryRepository repository;
+    SharedPolicyGroupAdapter mapper;
+    SharedPolicyGroupHistoryQueryServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        repository = mock(SharedPolicyGroupHistoryRepository.class);
+        mapper = new SharedPolicyGroupAdapterImpl();
+        service = new SharedPolicyGroupHistoryQueryServiceImpl(repository, mapper);
+    }
+
+    @Nested
+    class StreamByEnvironmentIdAndState {
+
+        @Test
+        @SneakyThrows
+        void streamByEnvironmentIdAndState_should_return_empty_stream() {
+            // Given
+            String environmentId = "environmentId";
+            when(repository.searchLatestBySharedPolicyPolicyGroupId(eq(environmentId), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+            // When
+            List<SharedPolicyGroup> result = service.streamLatestBySharedPolicyPolicyGroupId(environmentId).toList();
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void streamByEnvironmentIdAndState_should_return_stream() {
+            // Given
+            String environmentId = "environmentId";
+            when(
+                repository.searchLatestBySharedPolicyPolicyGroupId(
+                    eq(environmentId),
+                    any(io.gravitee.repository.management.api.search.Pageable.class)
+                )
+            )
+                .thenAnswer(invocation -> {
+                    io.gravitee.repository.management.api.search.Pageable pageable = invocation.getArgument(1);
+                    if (pageable.pageNumber() == 0) {
+                        return new Page<>(
+                            List.of(
+                                aRepositorySharedPolicyGroup("id"),
+                                aRepositorySharedPolicyGroup("id2"),
+                                aRepositorySharedPolicyGroup("id3")
+                            ),
+                            pageable.pageNumber(),
+                            3,
+                            6
+                        );
+                    }
+                    if (pageable.pageNumber() == 1) {
+                        return new Page<>(
+                            List.of(
+                                aRepositorySharedPolicyGroup("id4"),
+                                aRepositorySharedPolicyGroup("id5"),
+                                aRepositorySharedPolicyGroup("id6")
+                            ),
+                            pageable.pageNumber(),
+                            3,
+                            6
+                        );
+                    }
+                    return null;
+                });
+
+            // When
+            var result = service.streamLatestBySharedPolicyPolicyGroupId(environmentId).toList();
+
+            // Then
+            assertThat(result).isNotEmpty();
+            assertThat(result.get(0).getId()).isEqualTo("id");
+            assertThat(result.get(1).getId()).isEqualTo("id2");
+            assertThat(result.get(2).getId()).isEqualTo("id3");
+            assertThat(result.get(3).getId()).isEqualTo("id4");
+            assertThat(result.get(4).getId()).isEqualTo("id5");
+            assertThat(result.get(5).getId()).isEqualTo("id6");
+        }
+    }
+
+    private io.gravitee.repository.management.model.SharedPolicyGroup aRepositorySharedPolicyGroup(String id) {
+        return io.gravitee.repository.management.model.SharedPolicyGroup
+            .builder()
+            .id(id)
+            .name("name")
+            .version(1)
+            .description("description")
+            .crossId("crossId")
+            .apiType(ApiType.PROXY)
+            .definition("{}")
+            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .environmentId("environmentId")
+            .organizationId("organizationId")
+            .build();
+    }
+}

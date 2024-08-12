@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.shared_policy_group.query_service;
+package io.gravitee.apim.core.shared_policy_group.crud_service;
 
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.Sortable;
 
-public interface SharedPolicyGroupQueryService {
-    Page<SharedPolicyGroup> searchByEnvironmentId(String environmentId, String q, Pageable pageable, Sortable sortable);
+public interface SharedPolicyGroupHistoryCrudService {
+    SharedPolicyGroup create(SharedPolicyGroup sharedPolicyGroupEntity);
 }
