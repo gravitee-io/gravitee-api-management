@@ -23,6 +23,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -75,6 +76,8 @@ class DeploySharedPolicyGroupUseCaseTest {
     private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
+    private final SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService =
+        new SharedPolicyGroupHistoryCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
 
@@ -95,7 +98,14 @@ class DeploySharedPolicyGroupUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        cut = new DeploySharedPolicyGroupUseCase(eventCrudInMemory, eventLatestCrudInMemory, sharedPolicyGroupCrudService, auditService);
+        cut =
+            new DeploySharedPolicyGroupUseCase(
+                eventCrudInMemory,
+                eventLatestCrudInMemory,
+                sharedPolicyGroupCrudService,
+                sharedPolicyGroupHistoryCrudService,
+                auditService
+            );
     }
 
     @Test
@@ -106,6 +116,7 @@ class DeploySharedPolicyGroupUseCaseTest {
 
     @Test
     void should_deploy_shared_policy_group() {
+        // Given
         final SharedPolicyGroup existingSharedPolicyGroup = SharedPolicyGroup
             .builder()
             .environmentId(ENV_ID)
@@ -113,9 +124,15 @@ class DeploySharedPolicyGroupUseCaseTest {
             .id(SHARED_POLICY_GROUP_ID)
             .crossId(SHARED_POLICY_GROUP_CROSS_ID)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .version(1)
             .build();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+
+        // When
         cut.execute(new Input(SHARED_POLICY_GROUP_ID, ENV_ID, AUDIT_INFO));
+
+        // Then
+        // - Check events
         assertThat(eventCrudInMemory.storage())
             .hasSize(1)
             .first()
@@ -164,6 +181,26 @@ class DeploySharedPolicyGroupUseCaseTest {
                 assertThat(sharedPolicyGroupDefinition.getPhase())
                     .isEqualTo(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST);
             });
+
+        // - Check shared policy group CRUD service
+        assertThat(sharedPolicyGroupCrudService.storage())
+            .hasSize(1)
+            .first()
+            .satisfies(sharedPolicyGroup -> {
+                assertThat(sharedPolicyGroup.getId()).isEqualTo(SHARED_POLICY_GROUP_ID);
+                assertThat(sharedPolicyGroup.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
+                assertThat(sharedPolicyGroup.getVersion()).isEqualTo(2);
+            });
+        assertThat(sharedPolicyGroupHistoryCrudService.storage())
+            .hasSize(1)
+            .last()
+            .satisfies(sharedPolicyGroup -> {
+                assertThat(sharedPolicyGroup.getId()).isEqualTo(SHARED_POLICY_GROUP_ID);
+                assertThat(sharedPolicyGroup.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
+                assertThat(sharedPolicyGroup.getVersion()).isEqualTo(2);
+            });
+
+        // - Check audit
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
