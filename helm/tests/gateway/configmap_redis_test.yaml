@@ -135,3 +135,30 @@ tests:
                      *     path: \\${gravitee.home}/security/redis-truststore.jks\n
                      *     password: secret\n
                      *     alias: anotheralias\n"
+
+  - it: Set operation timeout, tcp connectTimeout and idleTimeout
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            ssl: false
+            operation:
+              timeout: 15
+            tcp:
+              connectTimeout: 10
+              idleTimeout: 5
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: " * redis:\n
+                     *   host: redis\n
+                     *   port: 6379\n
+                     *   operation:\n
+                     *     timeout: 15\n
+                     *   tcp:\n
+                     *     connectTimeout: 10\n"
