@@ -60,3 +60,13 @@ $typography: map.get(gio.$mat-theme, typography);
 .preview-table {
   margin: 16px -16px;
 }
+
+gio-loader {
+  width: 24px;
+  height: 24px;
+}
+
+.loading-info {
+  text-align: center;
+  margin-top: 8px;
+}
