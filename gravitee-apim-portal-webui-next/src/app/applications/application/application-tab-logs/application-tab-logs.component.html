@@ -200,11 +200,14 @@
         <button mat-button (click)="goToPage(1)" aria-label="First page of logs">1</button>
 
         @if (pagination().currentPage > 3) {
-          <div class="m3-body-medium">...</div>
+          @if (pagination().totalPages > 4) {
+            <div class="m3-body-medium">...</div>
+          }
+          @if (pagination().currentPage === pagination().totalPages) {
+            <button mat-button (click)="goToPage(pagination().currentPage - 2)">{{ pagination().currentPage - 2 }}</button>
+          }
         }
-        @if (pagination().currentPage === pagination().totalPages) {
-          <button mat-button (click)="goToPage(pagination().currentPage - 2)">{{ pagination().currentPage - 2 }}</button>
-        }
+
         @if (pagination().currentPage > 2) {
           <button mat-button (click)="goToPreviousPage()" aria-label="Previous page of logs">{{ pagination().currentPage - 1 }}</button>
         }
@@ -216,10 +219,10 @@
         @if (pagination().currentPage + 1 < pagination().totalPages) {
           <button mat-button (click)="goToNextPage()" aria-label="Next page of logs">{{ pagination().currentPage + 1 }}</button>
         }
-        @if (pagination().currentPage === 1 && pagination().totalPages > 4) {
+        @if (pagination().totalPages > 3 && pagination().currentPage === 1) {
           <button mat-button (click)="goToPage(3)">{{ 3 }}</button>
         }
-        @if (pagination().currentPage <= pagination().totalPages - 3) {
+        @if (pagination().totalPages > 4 && pagination().currentPage <= pagination().totalPages - 3) {
           <div class="m3-body-medium">...</div>
         }
 
