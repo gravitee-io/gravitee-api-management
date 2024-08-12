@@ -27,6 +27,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
 import io.gravitee.rest.api.model.EventType;
@@ -41,6 +42,7 @@ public class UndeploySharedPolicyGroupUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
+    private final SharedPolicyGroupHistoryCrudService sharedPolicyGroupHistoryCrudService;
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
@@ -54,6 +56,7 @@ public class UndeploySharedPolicyGroupUseCase {
         publishEvent(input, definition, existingSharedPolicyGroup);
 
         final SharedPolicyGroup updatedSharedPolicyGroup = sharedPolicyGroupCrudService.update(existingSharedPolicyGroup);
+        sharedPolicyGroupHistoryCrudService.create(updatedSharedPolicyGroup);
 
         createAuditLog(existingSharedPolicyGroup, updatedSharedPolicyGroup, input.auditInfo);
 

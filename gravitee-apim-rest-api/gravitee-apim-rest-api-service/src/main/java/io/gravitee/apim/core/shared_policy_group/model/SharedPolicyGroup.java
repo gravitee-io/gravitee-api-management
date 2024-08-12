@@ -94,6 +94,7 @@ public class SharedPolicyGroup {
 
     public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup deploy() {
         lifecycleState = SharedPolicyGroupLifecycleState.DEPLOYED;
+        version = version != null ? version + 1 : 1;
         final ZonedDateTime now = TimeProvider.now();
         deployedAt = now;
         updatedAt = now;
@@ -111,6 +112,7 @@ public class SharedPolicyGroup {
 
     public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup undeploy() {
         lifecycleState = SharedPolicyGroupLifecycleState.UNDEPLOYED;
+        version = version != null ? version + 1 : 1;
         final ZonedDateTime now = TimeProvider.now();
         deployedAt = now;
         updatedAt = now;
@@ -161,6 +163,10 @@ public class SharedPolicyGroup {
 
     public boolean hasName() {
         return this.name != null && !this.name.isEmpty();
+    }
+
+    public boolean isDeployed() {
+        return this.lifecycleState == SharedPolicyGroupLifecycleState.DEPLOYED;
     }
 
     public boolean hasValidPhase() {

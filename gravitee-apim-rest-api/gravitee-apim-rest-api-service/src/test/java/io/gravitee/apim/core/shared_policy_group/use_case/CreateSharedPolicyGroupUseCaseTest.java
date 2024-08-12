@@ -111,6 +111,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .environmentId(ENV_ID)
             .crossId("generated-id")
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .version(0)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
@@ -139,6 +140,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
             .description(toCreate.getDescription())
             .steps(toCreate.getSteps())
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .version(0)
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
