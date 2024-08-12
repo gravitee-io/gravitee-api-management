@@ -90,6 +90,9 @@
           <gio-form-tags-input formControlName="oauthRedirectUris" placeholder="Enter a redirect URI"> </gio-form-tags-input>
           <mat-hint align="start">URIs where the authorization server will send OAuth responses</mat-hint>
         </mat-form-field>
+        <gio-form-headers formControlName="additionalClientMetadata" [autocompleteDisabled]="true">
+          <gio-form-headers-label>Additional Client Metadata (optional)</gio-form-headers-label>
+        </gio-form-headers>
       } @else {
         <mat-form-field>
           <input id="appType" type="text" matInput formControlName="appType" maxlength="64" />

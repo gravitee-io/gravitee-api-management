@@ -82,6 +82,7 @@ export class ApplicationCreationComponent {
 
     oauthGrantTypes: new FormControl(),
     oauthRedirectUris: new FormControl([]),
+    additionalClientMetadata: new FormControl([]),
   });
 
   public applicationTypes$ = this.applicationTypesService.getEnabledApplicationTypes().pipe(
@@ -136,6 +137,7 @@ export class ApplicationCreationComponent {
                   application_type: applicationPayload.type,
                   grant_types: applicationPayload.oauthGrantTypes ?? [],
                   redirect_uris: applicationPayload.oauthRedirectUris ?? [],
+                  additional_client_metadata: applicationPayload.additionalClientMetadata ?? [],
                 },
               }),
           tls: {

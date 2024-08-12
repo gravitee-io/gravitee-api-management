@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Header } from '@gravitee/ui-particles-angular';
+
 export enum ApiKeyMode {
   UNSPECIFIED = 'UNSPECIFIED',
   SHARED = 'SHARED',
@@ -52,6 +54,7 @@ export interface ApplicationSettings {
     application_type?: string;
     redirect_uris?: string[];
     renew_client_secret_supported?: boolean;
+    additional_client_metadata?: Header[];
   };
   tls?: {
     client_certificate?: string;
