@@ -24,6 +24,8 @@ import { IntegrationOverviewComponent } from './integration-overview/integration
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
 import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
+import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
+import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
 
 import { hasEnterpriseLicenseGuard } from '../../shared/components/gio-license/has-enterprise-license.guard';
 
@@ -82,6 +84,21 @@ const routes: Routes = [
             anyOf: ['environment-integration-u', 'environment-integration-d'],
           },
         },
+        children: [
+          {
+            path: '',
+            component: IntegrationGeneralConfigurationComponent,
+          },
+          {
+            path: 'members',
+            component: IntegrationUserPermissionsComponent,
+          },
+          // toDo: uncomment when component ready
+          // {
+          //   path: 'discovery',
+          //   component: ,
+          // },
+        ],
       },
     ],
   },

@@ -40,6 +40,7 @@ import {
   GioFormSlideToggleModule,
 } from '@gravitee/ui-particles-angular';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 
 import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
@@ -49,11 +50,14 @@ import { IntegrationOverviewComponent } from './integration-overview/integration
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
-import { IntegrationStatusComponent } from './integration-status/integration-status.component';
+import { IntegrationStatusComponent } from './components/integration-status/integration-status.component';
 import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
+import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
+import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { ApiUserGroupModule } from '../api/user-group-access/api-user-group.module';
 
 @NgModule({
   declarations: [
@@ -65,10 +69,14 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationAgentComponent,
     IntegrationStatusComponent,
     DiscoveryPreviewComponent,
+    IntegrationGeneralConfigurationComponent,
+    IntegrationUserPermissionsComponent,
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    IntegrationsRoutingModule,
+
     MatCard,
     MatCardTitle,
     MatCardHeader,
@@ -87,16 +95,26 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatIconButton,
     MatTooltip,
     MatTableModule,
-    GioTableWrapperModule,
-    IntegrationsRoutingModule,
     MatRadioGroup,
     MatRadioButton,
+
     MatStepper,
     MatStep,
     MatStepLabel,
     MatStepperPrevious,
     MatStepperNext,
     MatStepperIcon,
+
+    MapProviderNamePipe,
+    MatSlideToggle,
+    MatTableModule,
+    MatTabNavPanel,
+    MatTabLink,
+    MatTabNav,
+
+    CdkAccordion,
+    CdkAccordionItem,
+
     GioBreadcrumbModule,
     GioSubmenuModule,
     GioBannerModule,
@@ -105,12 +123,11 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioPermissionModule,
     GioFormSelectionInlineModule,
     GioSaveBarModule,
-    CdkAccordion,
-    CdkAccordionItem,
-    MapProviderNamePipe,
     GioLicenseModule,
     GioFormSlideToggleModule,
-    MatSlideToggle,
+    GioTableWrapperModule,
+
+    ApiUserGroupModule,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })

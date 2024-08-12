@@ -33,18 +33,21 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       displayName: 'Overview',
       permissions: ['environment-integration-r'],
       icon: 'info',
+      routerLinkActiveOptions: { exact: true },
     },
     {
       routerLink: `agent`,
       displayName: 'Agent',
       permissions: ['environment-integration-r'],
       icon: 'server-connection',
+      routerLinkActiveOptions: { exact: true },
     },
     {
       routerLink: `configuration`,
       displayName: 'Configuration',
       permissions: ['environment-integration-u', 'environment-integration-d'],
       icon: 'settings',
+      routerLinkActiveOptions: { exact: false },
     },
   ];
 

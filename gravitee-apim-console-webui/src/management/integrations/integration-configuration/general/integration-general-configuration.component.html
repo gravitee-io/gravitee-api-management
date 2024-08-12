@@ -1,0 +1,108 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div *ngIf="!isLoading && integration; else loadingTemplate" class="page-cards">
+  <mat-card class="mat-card" *gioPermission="{ anyOf: ['environment-integration-u'] }" data-testid="update-card">
+    <div class="card-header">
+      <div class="card-header__title">
+        <h3>General Information</h3>
+      </div>
+    </div>
+
+    <mat-card-content>
+      <form [formGroup]="generalInformationForm" class="form" autocomplete="off">
+        <mat-form-field appearance="outline" class="form-field">
+          <input id="name" type="text" matInput formControlName="name" required="true" data-testid="update-integration-name-input" />
+          <mat-label>Name</mat-label>
+          <mat-error *ngIf="generalInformationForm.get('name').hasError('required')">Integration name is required. </mat-error>
+          <mat-error *ngIf="generalInformationForm.get('name').hasError('maxlength')"
+            >Integration name can not exceed 50 characters.
+          </mat-error>
+          <mat-error *ngIf="generalInformationForm.get('name').hasError('minlength')"
+            >Integration name has to be at least 1 characters long.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <textarea
+            id="description"
+            matInput
+            #input
+            formControlName="description"
+            maxlength="250"
+            rows="2"
+            data-testid="update-integration-description"
+          ></textarea>
+          <mat-label>Description</mat-label>
+          <mat-hint align="start" class="hint">{{ input.value.length }}/250</mat-hint>
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="danger-card mat-card" *gioPermission="{ anyOf: ['environment-integration-d'] }">
+    <mat-card-content>
+      <h3 class="danger-card__title">Danger Zone</h3>
+      <div class="danger-card__actions">
+        <div class="danger-action">
+          <span>Delete this integration. An integration with Federated APIs associated to it cannot be deleted.</span>
+          <span
+            [matTooltipDisabled]="!hasFederatedAPIs"
+            matTooltip="This Integration cannot be deleted because there are Federated APIs linked to it"
+          >
+            <button
+              mat-button
+              color="warn"
+              (click)="deleteIntegration()"
+              data-testid="delete-integration-button"
+              *gioPermission="{ anyOf: ['environment-integration-d'] }"
+              [disabled]="hasFederatedAPIs"
+            >
+              Delete Integration
+            </button>
+          </span>
+        </div>
+        <div class="danger-action" *gioPermission="{ anyOf: ['environment-api-d'] }">
+          <span>Delete Federated APIs associated with this integration.</span>
+          <span [matTooltipDisabled]="hasFederatedAPIs" matTooltip="There is no federated APIs to delete.">
+            <button
+              mat-button
+              color="warn"
+              (click)="deleteFederatedApis()"
+              data-testid="delete-federated-apis-button"
+              [disabled]="!hasFederatedAPIs"
+            >
+              Delete APIs
+            </button>
+          </span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <gio-save-bar
+    *ngIf="generalInformationForm.dirty && generalInformationForm.valid"
+    [form]="generalInformationForm"
+    (resetClicked)="ngOnInit()"
+    (submitted)="onSubmit()"
+  ></gio-save-bar>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="loadingTemplate" data-testid="loader-spinner">
+    <gio-loader></gio-loader>
+  </div>
+</ng-template>
