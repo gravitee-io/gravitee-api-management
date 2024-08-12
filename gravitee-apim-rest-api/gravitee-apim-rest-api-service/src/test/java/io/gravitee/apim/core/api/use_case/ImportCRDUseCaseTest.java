@@ -647,6 +647,23 @@ class ImportCRDUseCaseTest {
         }
 
         @Test
+        void should_not_start_the_api_with_no_plan() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of())
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
+        }
+
+        @Test
         void should_stop_the_api() {
             when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
 
@@ -661,6 +678,24 @@ class ImportCRDUseCaseTest {
             );
 
             verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), any());
+        }
+
+        @Test
+        void should_not_stop_the_api_with_no_plan() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of())
+                        .state("STOPPED")
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
