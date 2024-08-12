@@ -19,9 +19,13 @@ import { Subscription } from 'rxjs';
 
 import { ApplicationTypeOption } from '../application-creation.component';
 
-export type AppFormType = FormGroup<{ app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }> }> | null;
+export type AppFormType = FormGroup<{
+  app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string>; }>,
+  tls: FormGroup<{ client_certificate: FormControl<string> }>;
+}> | null;
 export type OAuthFormType = FormGroup<{
-  oauth: FormGroup<{ redirect_uris: FormArray; grant_types: FormArray; application_type: FormControl<string> }>;
+  oauth: FormGroup<{ redirect_uris: FormArray; grant_types: FormArray; application_type: FormControl<string>; }>,
+  tls: FormGroup<{ client_certificate: FormControl<string>; }>;
 }>;
 
 @Component({
@@ -62,6 +66,9 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
         type: new FormControl('', null),
         client_id: new FormControl('', null),
       }),
+      tls: this.formBuilder.group({
+        client_certificate: new FormControl('')
+      })
     });
     this.oauthForm = this.formBuilder.group({
       oauth: this.formBuilder.group({
@@ -69,6 +76,9 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
         grant_types: new FormArray([], [Validators.required]),
         application_type: new FormControl(null, [Validators.required]),
       }),
+      tls: this.formBuilder.group({
+        client_certificate: new FormControl('')
+      })
     });
     this.setApplicationType(firstApplicationType);
   }
@@ -90,6 +100,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
       }
       return { ...allowedGrantType, disabled, value };
     });
+
 
     if (this.isSimpleApp) {
       this.formSubscription = this.appForm.valueChanges.subscribe(() => {

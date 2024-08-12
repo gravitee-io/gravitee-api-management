@@ -618,6 +618,10 @@
         "description": " Client_id aplikace. Toto pole je vyžadováno k odběru určitého typu plánu API (OAuth2, JWT).",
         "label": "Client ID"
       },
+      "clientCertificate": {
+        "description": "client_certificate aplikace. Toto pole je vyžadováno pro přihlášení k plánům mTLS.",
+        "label": "Client Certificate (pouze PEM)"
+      },
       "client_credentials": {
         "description": " ",
         "title": "Pověření klienta"
