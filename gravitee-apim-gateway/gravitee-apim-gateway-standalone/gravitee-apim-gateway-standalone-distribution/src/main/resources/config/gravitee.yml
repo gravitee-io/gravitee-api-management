@@ -192,6 +192,11 @@ ratelimit:
 #      path: ${gravitee.home}/security/redis-truststore.jks
 #      password: secret
 #      alias:
+#    operation:
+#      timeout: 10 # in milliseconds
+#    tcp:
+#      connectTimeout: 5000 # in milliseconds
+#      idleTimeout: 0 # in milliseconds
 
 # You must define the type of repository to use, when enabling distributed sync in clustering mode
 # because the gateway has to store data to share with other gateway instances.
