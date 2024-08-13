@@ -16,7 +16,7 @@
 import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -49,13 +49,12 @@ const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
-    MatFormField,
+    MatFormFieldModule,
     MatInput,
-    MatLabel,
     MatButtonToggleModule,
-    ReactiveFormsModule,
     GioFormFocusInvalidModule,
   ],
 })
@@ -66,12 +65,14 @@ export class SharedPolicyGroupsAddEditDialogComponent {
   protected isValid$: Observable<boolean>;
 
   protected phases: ExecutionPhase[];
+  protected isEdit: boolean;
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: SharedPolicyGroupAddEditDialogData,
     public dialogRef: MatDialogRef<SharedPolicyGroupsAddEditDialogComponent, SharedPolicyGroupAddEditDialogResult>,
   ) {
+    this.isEdit = isEdit(data);
     const apiType = isEdit(data) ? data.sharedPolicyGroup.apiType : data.apiType;
 
     this.apiTypeLabel = apiType === 'MESSAGE' ? 'Message' : 'Proxy';

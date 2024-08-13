@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<span mat-dialog-title>Add Shared Policy Group for {{ apiTypeLabel }} API</span>
+<span mat-dialog-title>{{ isEdit ? 'Edit' : 'Add' }} Shared Policy Group for {{ apiTypeLabel }} API</span>
 
 <form [formGroup]="formGroup">
   <mat-dialog-content class="mat-typography content">
@@ -23,12 +23,14 @@
 
     <mat-form-field class="form-field">
       <mat-label>Name</mat-label>
-      <input type="text" aria-label="Name" matInput formControlName="name" />
+      <input #nameInput type="text" aria-label="Name" matInput formControlName="name" [maxLength]="512" />
+      <mat-hint align="end">{{ nameInput.value.length }}/512</mat-hint>
     </mat-form-field>
 
     <mat-form-field class="form-field">
       <mat-label>Description</mat-label>
-      <textarea matInput formControlName="description"></textarea>
+      <textarea #descriptionInput matInput formControlName="description" [maxLength]="1024"></textarea>
+      <mat-hint align="end">{{ descriptionInput.value.length }}/1024</mat-hint>
     </mat-form-field>
 
     <label>Phase</label>
