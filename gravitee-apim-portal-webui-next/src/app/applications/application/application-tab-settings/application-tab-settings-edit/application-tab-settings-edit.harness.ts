@@ -19,7 +19,6 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatChipGridHarness } from '@angular/material/chips/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { fireEvent } from '@testing-library/angular';
 
 import { CopyCodeHarness } from '../../../../../components/copy-code/copy-code.harness';
 import { PictureHarness } from '../../../../../components/picture/picture.harness';
@@ -43,14 +42,14 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
     const pictureComponent = await this.getHarness(PictureHarness);
     return pictureComponent.getSource();
   }
+
   public async changePicture(fileContent: string) {
     const inputFile = await this.locatorFor('#applicationPictureFile')();
     const nativeElement = TestbedHarnessEnvironment.getNativeElement(inputFile);
-    fireEvent.change(nativeElement, {
-      target: {
-        files: [new File([fileContent], 'New image', { type: 'image/png' })],
-      },
-    });
+
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [new File([fileContent], 'New image', { type: 'image/png' })] } });
+    nativeElement.dispatchEvent(event);
     await new Promise(resolve => setTimeout(resolve, 50));
   }
 
