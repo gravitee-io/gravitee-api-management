@@ -23,6 +23,8 @@ import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscri
 import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
 import { ApiComponent } from './api/api.component';
 import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api.component';
+import { ApplicationLogComponent } from './applications/application/application-tab-logs/application-log/application-log.component';
+import { ApplicationLogTableComponent } from './applications/application/application-tab-logs/application-log-table/application-log-table.component';
 import { ApplicationTabLogsComponent } from './applications/application/application-tab-logs/application-tab-logs.component';
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
 import { ApplicationTabSubscriptionsComponent } from './applications/application/application-tab-subscriptions/application-tab-subscriptions.component';
@@ -123,6 +125,13 @@ export const routes: Routes = [
             path: 'logs',
             component: ApplicationTabLogsComponent,
             data: { breadcrumb: { skip: true } },
+            children: [
+              {
+                path: '',
+                component: ApplicationLogTableComponent,
+              },
+              { path: ':logId', component: ApplicationLogComponent, data: { breadcrumb: { skip: true } } },
+            ],
           },
           {
             path: 'settings',
