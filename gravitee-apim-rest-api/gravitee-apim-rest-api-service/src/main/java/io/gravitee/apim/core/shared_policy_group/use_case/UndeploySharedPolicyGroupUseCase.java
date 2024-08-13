@@ -28,10 +28,13 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEvent;
+import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
 import io.gravitee.rest.api.model.EventType;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -43,24 +46,44 @@ public class UndeploySharedPolicyGroupUseCase {
     private final EventLatestCrudService eventLatestCrudService;
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
     private final SharedPolicyGroupHistoryCrudService sharedPolicyGroupHistoryCrudService;
+    private final SharedPolicyGroupHistoryQueryService sharedPolicyGroupHistoryQueryService;
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
+        final SharedPolicyGroup sharedPolicyGroup = getLastDeployedSharedPolicyGroup(input);
+
+        sharedPolicyGroup.undeploy();
+
+        publishEvent(input, sharedPolicyGroup.toDefinition(), sharedPolicyGroup);
+
+        updateSharedPolicyGroup(input);
+        sharedPolicyGroupHistoryCrudService.create(sharedPolicyGroup);
+
+        createAuditLog(sharedPolicyGroup, sharedPolicyGroup, input.auditInfo);
+
+        return new Output(sharedPolicyGroup);
+    }
+
+    private void updateSharedPolicyGroup(Input input) {
         final SharedPolicyGroup existingSharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
             input.environmentId(),
             input.sharedPolicyGroupId()
         );
 
-        final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup definition = existingSharedPolicyGroup.undeploy();
+        existingSharedPolicyGroup.undeploy();
 
-        publishEvent(input, definition, existingSharedPolicyGroup);
+        sharedPolicyGroupCrudService.update(existingSharedPolicyGroup);
+    }
 
-        final SharedPolicyGroup updatedSharedPolicyGroup = sharedPolicyGroupCrudService.update(existingSharedPolicyGroup);
-        sharedPolicyGroupHistoryCrudService.create(updatedSharedPolicyGroup);
-
-        createAuditLog(existingSharedPolicyGroup, updatedSharedPolicyGroup, input.auditInfo);
-
-        return new Output(existingSharedPolicyGroup);
+    private SharedPolicyGroup getLastDeployedSharedPolicyGroup(Input input) {
+        final Optional<SharedPolicyGroup> optional = sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(
+            input.environmentId(),
+            input.sharedPolicyGroupId()
+        );
+        if (optional.isEmpty()) {
+            throw new SharedPolicyGroupNotFoundException(input.sharedPolicyGroupId());
+        }
+        return optional.get();
     }
 
     private void publishEvent(

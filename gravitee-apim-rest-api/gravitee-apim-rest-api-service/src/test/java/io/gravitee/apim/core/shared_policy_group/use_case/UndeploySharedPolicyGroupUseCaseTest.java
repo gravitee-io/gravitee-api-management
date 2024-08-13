@@ -24,6 +24,7 @@ import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
+import inmemory.SharedPolicyGroupHistoryQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -78,6 +79,8 @@ class UndeploySharedPolicyGroupUseCaseTest {
     private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
     private final SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService =
         new SharedPolicyGroupHistoryCrudServiceInMemory();
+    private final SharedPolicyGroupHistoryQueryServiceInMemory sharedPolicyGroupHistoryQueryService =
+        new SharedPolicyGroupHistoryQueryServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
 
@@ -104,6 +107,7 @@ class UndeploySharedPolicyGroupUseCaseTest {
                 eventLatestCrudInMemory,
                 sharedPolicyGroupCrudService,
                 sharedPolicyGroupHistoryCrudService,
+                sharedPolicyGroupHistoryQueryService,
                 auditService
             );
     }
@@ -123,10 +127,11 @@ class UndeploySharedPolicyGroupUseCaseTest {
             .phase(PolicyPlugin.ExecutionPhase.REQUEST)
             .id(SHARED_POLICY_GROUP_ID)
             .crossId(SHARED_POLICY_GROUP_CROSS_ID)
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
             .version(1)
             .build();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
         cut.execute(new Input(SHARED_POLICY_GROUP_ID, ENV_ID, AUDIT_INFO));
@@ -189,7 +194,7 @@ class UndeploySharedPolicyGroupUseCaseTest {
             .satisfies(sharedPolicyGroup -> {
                 assertThat(sharedPolicyGroup.getId()).isEqualTo(SHARED_POLICY_GROUP_ID);
                 assertThat(sharedPolicyGroup.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED);
-                assertThat(sharedPolicyGroup.getVersion()).isEqualTo(2);
+                assertThat(sharedPolicyGroup.getVersion()).isEqualTo(1);
             });
         assertThat(sharedPolicyGroupHistoryCrudService.storage())
             .hasSize(1)
@@ -197,7 +202,7 @@ class UndeploySharedPolicyGroupUseCaseTest {
             .satisfies(sharedPolicyGroup -> {
                 assertThat(sharedPolicyGroup.getId()).isEqualTo(SHARED_POLICY_GROUP_ID);
                 assertThat(sharedPolicyGroup.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED);
-                assertThat(sharedPolicyGroup.getVersion()).isEqualTo(2);
+                assertThat(sharedPolicyGroup.getVersion()).isEqualTo(1);
             });
 
         // - Check audit

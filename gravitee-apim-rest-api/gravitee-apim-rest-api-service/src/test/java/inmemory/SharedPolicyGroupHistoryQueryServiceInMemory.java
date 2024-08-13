@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,6 +69,15 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
             : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) {
+        return storage
+            .stream()
+            .filter(spg -> spg.getEnvironmentId().equals(environmentId))
+            .filter(spg -> spg.getId().equals(sharedPolicyGroupId))
+            .max(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
     }
 
     @Override

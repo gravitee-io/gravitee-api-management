@@ -19,10 +19,13 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface SharedPolicyGroupHistoryQueryService {
     Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId);
 
     Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable);
+
+    Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId);
 }
