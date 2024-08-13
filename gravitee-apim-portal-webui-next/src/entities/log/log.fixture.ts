@@ -15,10 +15,10 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { Log, LogsResponse } from './log';
+import { LogListItem, LogsResponse } from './log';
 
-export function fakeLog(modifier?: Partial<Log> | ((baseApplication: Log) => Log)): Log {
-  const base: Log = {
+export function fakeLogListItem(modifier?: Partial<LogListItem> | ((baseApplication: LogListItem) => LogListItem)): LogListItem {
+  const base: LogListItem = {
     id: 'b62f6e82-c39b-4edb-af6e-82c39b9edb46',
     api: 'my-api',
     plan: 'my-plan',
@@ -42,7 +42,7 @@ export function fakeLog(modifier?: Partial<Log> | ((baseApplication: Log) => Log
 }
 export function fakeLogsResponse(modifier?: Partial<LogsResponse> | ((baseApplication: LogsResponse) => LogsResponse)): LogsResponse {
   const base: LogsResponse = {
-    data: [fakeLog()],
+    data: [fakeLogListItem()],
     metadata: {
       'my-plan': { name: 'plan' },
       'my-api': { name: 'my api', version: '1' },
