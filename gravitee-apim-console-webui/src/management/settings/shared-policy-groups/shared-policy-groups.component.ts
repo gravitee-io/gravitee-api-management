@@ -42,7 +42,7 @@ import { SharedPolicyGroupsService } from '../../../services-ngx/shared-policy-g
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { ApiV4, SharedPolicyGroup, SharedPolicyGroupsSortByParam } from '../../../entities/management-api-v2';
+import { ApiV4, SharedPolicyGroup, SharedPolicyGroupsSortByParam, toReadableExecutionPhase } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -52,7 +52,7 @@ type PageTableVM = {
     name: string;
     description: string;
     lifecycleState: SharedPolicyGroup['lifecycleState'];
-    apiType: ApiV4['type'];
+    apiType: string;
     phase: string;
     updatedAt: Date;
     deployedAt: Date;
@@ -127,7 +127,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
             description: sharedPolicyGroup.description,
             lifecycleState: sharedPolicyGroup.lifecycleState,
             apiType: sharedPolicyGroup.apiType,
-            phase: sharedPolicyGroup.phase,
+            phase: toReadableExecutionPhase(sharedPolicyGroup.phase),
             updatedAt: sharedPolicyGroup.updatedAt,
             deployedAt: sharedPolicyGroup.deployedAt,
           }));

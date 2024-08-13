@@ -14,3 +14,16 @@
  * limitations under the License.
  */
 export type ExecutionPhase = 'REQUEST' | 'RESPONSE' | 'MESSAGE_REQUEST' | 'MESSAGE_RESPONSE';
+
+export const toReadableExecutionPhase = (executionPhase: ExecutionPhase): string => {
+  switch (executionPhase) {
+    case 'REQUEST':
+      return 'Request';
+    case 'RESPONSE':
+      return 'Response';
+    case 'MESSAGE_REQUEST':
+      return 'Publish';
+    case 'MESSAGE_RESPONSE':
+      return 'Subscribe';
+  }
+};

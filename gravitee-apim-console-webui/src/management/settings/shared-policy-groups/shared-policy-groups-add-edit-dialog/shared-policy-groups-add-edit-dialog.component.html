@@ -36,8 +36,8 @@
     <label>Phase</label>
     <mat-button-toggle-group formControlName="phase" class="gio-button-toggle-group">
       @for (phase of phases; track phase) {
-        <mat-button-toggle [value]="phase">
-          {{ phase }}
+        <mat-button-toggle [value]="phase.value">
+          {{ phase.name }}
         </mat-button-toggle>
       }
     </mat-button-toggle-group>

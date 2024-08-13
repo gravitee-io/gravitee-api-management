@@ -111,7 +111,7 @@ describe('SharedPolicyGroupsStudioComponent', () => {
 
     expect(await addDialog.getName()).toEqual('Shared Policy Group');
     expect(await addDialog.getDescription()).toEqual('');
-    expect(await addDialog.getPhase()).toEqual('REQUEST');
+    expect(await addDialog.getPhase()).toEqual('Request');
 
     await addDialog.setName('New name');
     await addDialog.setDescription('New description');

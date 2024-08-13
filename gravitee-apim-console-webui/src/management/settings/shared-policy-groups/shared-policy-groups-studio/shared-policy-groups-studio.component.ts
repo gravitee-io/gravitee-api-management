@@ -44,6 +44,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { removeSharedPolicyGroup } from '../shared-policy-groups.component';
 import { SharedPolicyGroupsStateBadgeComponent } from '../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
+import { toReadableExecutionPhase } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'shared-policy-groups-studio',
@@ -87,6 +88,7 @@ export class SharedPolicyGroupsStudioComponent {
     .list()
     .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
   protected enableSaveButton = false;
+  protected toReadableExecutionPhase = toReadableExecutionPhase;
 
   public onEdit(): void {
     const sharedPolicyGroup = this.sharedPolicyGroup();

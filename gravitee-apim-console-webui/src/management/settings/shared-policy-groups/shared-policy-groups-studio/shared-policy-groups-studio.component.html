@@ -25,8 +25,8 @@
     <mat-card-header>
       <mat-card-title
         >{{ sharedPolicyGroup.name }}
-        <span class="gio-badge-accent">{{ sharedPolicyGroup.apiType }}</span>
-        <span class="gio-badge-accent">{{ sharedPolicyGroup.phase }}</span>
+        <span class="gio-badge-accent" matTooltip="API type">{{ sharedPolicyGroup.apiType | titlecase }}</span>
+        <span class="gio-badge-accent" matTooltip="Phase">{{ toReadableExecutionPhase(sharedPolicyGroup.phase) }}</span>
         <shared-policy-groups-state-badge [lifecycleState]="sharedPolicyGroup.lifecycleState"></shared-policy-groups-state-badge>
       </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
