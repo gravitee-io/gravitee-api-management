@@ -78,17 +78,24 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
     @Override
     protected String getId(SharedPolicyGroup item) {
-        return item.getId();
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
     public SharedPolicyGroup create(SharedPolicyGroup item) throws TechnicalException {
-        return super.create(item);
+        LOGGER.debug("JdbcSharedPolicyGroupHistoryRepository<{}>.create({})", getOrm().getTableName(), item);
+        try {
+            jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
+            return getLatestBySharedPolicyGroupId(item.getEnvironmentId(), item.getId()).orElse(null);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to create SharedPolicyGroup item:", ex);
+            throw new TechnicalException("Failed to create SharedPolicyGroup item", ex);
+        }
     }
 
     @Override
     public SharedPolicyGroup update(final SharedPolicyGroup item) throws TechnicalException {
-        return super.update(item);
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
