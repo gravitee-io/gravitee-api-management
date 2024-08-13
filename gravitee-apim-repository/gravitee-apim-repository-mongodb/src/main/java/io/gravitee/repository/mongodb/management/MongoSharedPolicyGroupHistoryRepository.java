@@ -143,8 +143,13 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     }
 
     @Override
-    public void delete(String s) throws TechnicalException {
-        throw new IllegalStateException("Not implemented");
+    public void delete(String id) throws TechnicalException {
+        try {
+            internalSharedPolicyGroupHistoryMongoRepo.deleteBySharedPolicyGroupId(id);
+        } catch (Exception e) {
+            LOGGER.error("An error occurred when deleting shared policy group history [{}]", id, e);
+            throw new TechnicalException("An error occurred when deleting shared policy group history");
+        }
     }
 
     @Override

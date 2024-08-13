@@ -259,6 +259,23 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         assertThat(sharedPolicyGroup).isEmpty();
     }
 
+    @Test
+    public void should_delete() throws TechnicalException {
+        final var sharedPolicyGroup = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId(
+            "environmentId",
+            "sharedPolicyGroupId_1"
+        );
+        assertThat(sharedPolicyGroup).isPresent();
+
+        sharedPolicyGroupHistoryRepository.delete(sharedPolicyGroup.get().getId());
+
+        final var sharedPolicyGroupAfterDelete = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId(
+            "environmentId",
+            "sharedPolicyGroupId_1"
+        );
+        assertThat(sharedPolicyGroupAfterDelete).isEmpty();
+    }
+
     private static SharedPolicyGroup.SharedPolicyGroupBuilder getDefaultSharedPolicyGroupBuilder(String id) {
         return SharedPolicyGroup
             .builder()

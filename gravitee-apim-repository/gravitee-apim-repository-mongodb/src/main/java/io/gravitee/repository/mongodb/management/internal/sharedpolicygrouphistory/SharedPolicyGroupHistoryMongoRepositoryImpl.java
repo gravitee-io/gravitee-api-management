@@ -121,4 +121,11 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
 
         return new Page<>(sharedPolicyGroups, pageRequest.getPageNumber(), pageRequest.getPageSize(), total);
     }
+
+    @Override
+    public void deleteBySharedPolicyGroupId(String sharedPolicyGroupId) {
+        Objects.requireNonNull(sharedPolicyGroupId, "sharedPolicyGroupId must not be null");
+        var query = new Query(where("id").is(sharedPolicyGroupId));
+        mongoTemplate.remove(query, SharedPolicyGroupHistoryMongo.class);
+    }
 }
