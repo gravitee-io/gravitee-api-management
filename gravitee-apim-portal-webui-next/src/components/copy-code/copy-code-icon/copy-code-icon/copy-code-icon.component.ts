@@ -36,10 +36,10 @@ import { MatIcon } from '@angular/material/icon';
 })
 export class CopyCodeIconComponent {
   @Input()
-  label!: string;
+  contentToCopy!: string;
 
   @Input()
-  contentToCopy!: string;
+  label: string = '';
 
   clicked: boolean = false;
 
