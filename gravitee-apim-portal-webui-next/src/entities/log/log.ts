@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export interface Log {
+export interface LogListItem {
   id: string;
   api: string;
   metadata?: unknown;
@@ -28,7 +28,7 @@ export interface Log {
 }
 
 export interface LogsResponse {
-  data: Log[];
+  data: LogListItem[];
   links?: unknown;
   metadata: LogsResponseMetadata;
 }
