@@ -27,6 +27,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -357,7 +358,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         if (apiJsonNode.isKubernetesOrigin()) {
-            importedApi.setCategories(cleanDefinitionCategories(executionContext.getEnvironmentId(), apiJsonNode));
+            var categories = cleanDefinitionCategories(executionContext.getEnvironmentId(), apiJsonNode);
+            importedApi.setCategories(categories);
         }
 
         // merge existing plans data with plans definition data
@@ -368,13 +370,21 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return importedApi;
     }
 
-    private Set<String> cleanDefinitionCategories(String environmentId, ImportApiJsonNode apiNode) {
+    protected Set<String> cleanDefinitionCategories(String environmentId, ImportApiJsonNode apiNode) {
         if (!apiNode.hasCategories() || apiNode.getCategoriesArray().isEmpty()) {
             return Set.of();
         }
         var categoriesNode = apiNode.getCategoriesArray();
         var categories = new HashSet<String>();
-        categoriesNode.forEach(category -> categories.add(category.asText()));
+        if (apiNode.isKubernetesOrigin()) {
+            // In kubernetes resources, a category can be referenced by name. If we don't do this the
+            // category is not found because the IdGenerator lower cases the category name to produce
+            // the key when the category is created. We don't know what would be the implications
+            // of applying this for non kubernetes resources, hence the condition.
+            categoriesNode.forEach(category -> categories.add(IdGenerator.generate(category.asText())));
+        } else {
+            categoriesNode.forEach(category -> categories.add(category.asText()));
+        }
         return categoryMapper.toCategoryId(environmentId, categories);
     }
 
