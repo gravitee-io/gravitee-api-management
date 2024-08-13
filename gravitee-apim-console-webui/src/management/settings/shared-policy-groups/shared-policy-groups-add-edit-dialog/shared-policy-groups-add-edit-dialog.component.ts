@@ -25,7 +25,7 @@ import { GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ApiV4, SharedPolicyGroup, ExecutionPhase } from '../../../../entities/management-api-v2';
+import { ApiV4, SharedPolicyGroup, ExecutionPhase, toReadableExecutionPhase } from '../../../../entities/management-api-v2';
 
 export type SharedPolicyGroupAddEditDialogData =
   | {
@@ -64,7 +64,7 @@ export class SharedPolicyGroupsAddEditDialogComponent {
   protected formGroup: FormGroup<{ name: FormControl<string>; description: FormControl<string>; phase: FormControl<ExecutionPhase> }>;
   protected isValid$: Observable<boolean>;
 
-  protected phases: ExecutionPhase[];
+  protected phases: { name: string; value: ExecutionPhase }[];
   protected isEdit: boolean;
 
   constructor(
@@ -76,12 +76,15 @@ export class SharedPolicyGroupsAddEditDialogComponent {
     const apiType = isEdit(data) ? data.sharedPolicyGroup.apiType : data.apiType;
 
     this.apiTypeLabel = apiType === 'MESSAGE' ? 'Message' : 'Proxy';
-    this.phases = PHASE_BY_API_TYPE[apiType];
+    this.phases = PHASE_BY_API_TYPE[apiType].map((phase) => ({ name: toReadableExecutionPhase(phase), value: phase }));
 
     this.formGroup = new FormGroup({
       name: new FormControl(isEdit(data) ? data.sharedPolicyGroup.name : '', Validators.required),
       description: new FormControl(isEdit(data) ? data.sharedPolicyGroup.description : ''),
-      phase: new FormControl(isEdit(data) ? { disabled: true, value: data.sharedPolicyGroup.phase } : this.phases[0], Validators.required),
+      phase: new FormControl(
+        isEdit(data) ? { disabled: true, value: data.sharedPolicyGroup.phase } : this.phases[0].value,
+        Validators.required,
+      ),
     });
 
     this.isValid$ = this.formGroup.statusChanges.pipe(

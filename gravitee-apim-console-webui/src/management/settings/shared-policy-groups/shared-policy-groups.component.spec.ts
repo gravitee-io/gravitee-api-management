@@ -71,7 +71,7 @@ describe('SharedPolicyGroupsComponent', () => {
     expectListSharedPolicyGroupsRequest(httpTestingController);
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Shared policy group', 'PROXY', 'REQUEST', expect.any(String), expect.any(String), ''],
+      ['Shared policy group', 'Proxy', 'Request', expect.any(String), expect.any(String), ''],
     ]);
   });
 
@@ -90,7 +90,7 @@ describe('SharedPolicyGroupsComponent', () => {
     expectListSharedPolicyGroupsRequest(httpTestingController, undefined, '?page=1&perPage=25&q=test');
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Shared policy group', 'PROXY', 'REQUEST', expect.any(String), expect.any(String), ''],
+      ['Shared policy group', 'Proxy', 'Request', expect.any(String), expect.any(String), ''],
     ]);
   });
 
@@ -102,7 +102,7 @@ describe('SharedPolicyGroupsComponent', () => {
 
     await addDialog.setName('test');
     await addDialog.setDescription('test');
-    await addDialog.setPhase('RESPONSE');
+    await addDialog.setPhase('Response');
     await addDialog.save();
 
     expectCreateSharedPolicyGroupRequest(

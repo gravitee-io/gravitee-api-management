@@ -61,7 +61,7 @@
         <ng-container matColumnDef="apiType">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="apiType">API Type</th>
           <td mat-cell *matCellDef="let element">
-            {{ element.apiType }}
+            {{ element.apiType | titlecase }}
           </td>
         </ng-container>
 
