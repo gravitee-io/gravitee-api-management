@@ -194,6 +194,7 @@ export class ApplicationLogTableComponent implements OnInit {
       }),
       map(response =>
         response.data.map(log => ({
+          id: log.id,
           apiName: (response.metadata[log.api] as LogsResponseMetadataApi).name,
           apiVersion: (response.metadata[log.api] as LogsResponseMetadataApi).version,
           method: log.method,
