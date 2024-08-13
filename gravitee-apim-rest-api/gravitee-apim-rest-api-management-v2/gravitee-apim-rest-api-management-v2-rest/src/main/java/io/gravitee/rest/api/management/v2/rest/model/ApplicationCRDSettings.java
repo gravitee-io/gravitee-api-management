@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.model;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -25,6 +26,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class ApplicationCRDSettings {
 
     private SimpleApplicationSettings app;
@@ -32,6 +34,7 @@ public class ApplicationCRDSettings {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class SimpleApplicationSettings {
 
         private String type;
@@ -40,6 +43,7 @@ public class ApplicationCRDSettings {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class OAuthClientSettings {
 
         private List<String> responseTypes;
