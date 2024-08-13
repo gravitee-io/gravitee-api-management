@@ -20,6 +20,7 @@ import static java.util.Collections.singletonMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.http.HttpMethod;
@@ -332,6 +333,23 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         return registrationProviderClient.register(clientRegistrationRequest);
     }
 
+    private static ClientRegistrationRequest convert(NewApplicationEntity application) {
+        var mapped = ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(application);
+        var objectMapper = new ObjectMapper();
+        ObjectNode mappedJsonNode = objectMapper.valueToTree(mapped);
+
+        var additionalClientMetadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
+        if (additionalClientMetadata instanceof ObjectNode additionalClientMetadataNode) {
+            additionalClientMetadataNode.setAll(mappedJsonNode);
+            mappedJsonNode = additionalClientMetadataNode;
+        }
+        try {
+            return objectMapper.treeToValue(mappedJsonNode, ClientRegistrationRequest.class);
+        } catch (JsonProcessingException e) {
+            return mapped;
+        }
+    }
+
     private DynamicClientRegistrationProviderClient getDCRClient(
         final boolean forceRefresh,
         final ClientRegistrationProviderEntity clientRegistrationProvider
@@ -478,20 +496,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
-        request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getOauth().getApplicationType());
-        request.setClientUri(application.getSettings().getOauth().getClientUri());
-        request.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
-        request.setLogoUri(application.getSettings().getOauth().getLogoUri());
-        request.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
-
-        return request;
-    }
-
-    private ClientRegistrationRequest convert(NewApplicationEntity application) {
-        ClientRegistrationRequest request = new ClientRegistrationRequest();
-
         request.setClientName(application.getName());
         request.setApplicationType(application.getSettings().getOauth().getApplicationType());
         request.setClientUri(application.getSettings().getOauth().getClientUri());

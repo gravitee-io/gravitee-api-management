@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,4 +55,7 @@ public class OAuthClientSettings {
 
     @JsonProperty("renew_client_secret_supported")
     private boolean renewClientSecretSupported;
+
+    @JsonProperty("additional_client_metadata")
+    private JsonNode additionalClientMetadata;
 }

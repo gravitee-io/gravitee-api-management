@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Header } from '@gravitee/ui-particles-angular';
 
 export enum ApiKeyMode {
   UNSPECIFIED = 'UNSPECIFIED',
@@ -41,6 +40,10 @@ export interface Application {
   origin?: string;
 }
 
+export interface AdditionalClientMetadata {
+  [key: string]: string;
+}
+
 export interface ApplicationSettings {
   app?: {
     client_id?: string;
@@ -54,7 +57,7 @@ export interface ApplicationSettings {
     application_type?: string;
     redirect_uris?: string[];
     renew_client_secret_supported?: boolean;
-    additional_client_metadata?: Header[];
+    additional_client_metadata?: AdditionalClientMetadata;
   };
   tls?: {
     client_certificate?: string;

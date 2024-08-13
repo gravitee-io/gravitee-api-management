@@ -19,7 +19,7 @@ import { Component, ChangeDetectionStrategy, DestroyRef, inject } from '@angular
 import { MatCardModule } from '@angular/material/card';
 import { map, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioSaveBarModule, Header } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,6 +29,7 @@ import { ApplicationCreationFormComponent, ApplicationForm } from './components/
 import { ApplicationTypesService } from '../../../services-ngx/application-types.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { AdditionalClientMetadata } from '../../../entities/application/Application';
 
 const TYPES_INFOS = {
   SIMPLE: {
@@ -57,6 +58,13 @@ const TYPES_INFOS = {
     icon: 'gio:share-2',
   },
 };
+
+function toMetadataDictionary(additionalClientMetadata: Header[]) {
+  return additionalClientMetadata.reduce((acc, header) => {
+    acc[header.key] = header.value;
+    return acc;
+  }, {} as AdditionalClientMetadata);
+}
 
 @Component({
   selector: 'application-creation',
@@ -137,7 +145,7 @@ export class ApplicationCreationComponent {
                   application_type: applicationPayload.type,
                   grant_types: applicationPayload.oauthGrantTypes ?? [],
                   redirect_uris: applicationPayload.oauthRedirectUris ?? [],
-                  additional_client_metadata: applicationPayload.additionalClientMetadata ?? [],
+                  additional_client_metadata: toMetadataDictionary(applicationPayload.additionalClientMetadata) ?? undefined,
                 },
               }),
           tls: {
