@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -41,12 +42,14 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
@@ -65,6 +68,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author GraviteeSource Team
@@ -100,12 +104,16 @@ public class ApiDuplicatorServiceImplTest {
     @Mock
     private ApiEntity apiEntity;
 
+    @Mock
+    private CategoryService categoryService;
+
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
 
     @Before
     public void setup() {
         when(apiEntity.getId()).thenReturn(API_ID);
+        ReflectionTestUtils.setField(apiDuplicatorService, "categoryMapper", new CategoryMapper(categoryService));
     }
 
     /*
@@ -441,6 +449,18 @@ public class ApiDuplicatorServiceImplTest {
         );
 
         verify(membershipService).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void cleanCategories_shouldUseCaseInsensitiveKeysIfKubernetesOrigin() throws IOException {
+        when(categoryService.findAll(ENVIRONMENT_ID))
+            .thenReturn(List.of(CategoryEntity.builder().key("poc").name("PoC").id("poc-id").build()));
+
+        var jsonNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.categories.kubernetes.json");
+
+        var categories = apiDuplicatorService.cleanDefinitionCategories(ENVIRONMENT_ID, jsonNode);
+
+        assertEquals(Set.of("poc-id"), categories);
     }
 
     /*
