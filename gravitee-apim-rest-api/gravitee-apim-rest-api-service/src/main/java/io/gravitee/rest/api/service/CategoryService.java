@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.UpdateCategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,7 +33,7 @@ import java.util.Set;
  */
 public interface CategoryService {
     List<CategoryEntity> findAll(final String environmentId);
-    Set<CategoryEntity> findByIdIn(final String environmentId, final Set<String> ids);
+    Set<CategoryEntity> findByIdIn(final String environmentId, final Map<String, Integer> distinctCategories);
     CategoryEntity findById(String id, final String environment);
     CategoryEntity findNotHiddenById(String id, final String environmentId);
     CategoryEntity create(ExecutionContext executionContext, NewCategoryEntity category);

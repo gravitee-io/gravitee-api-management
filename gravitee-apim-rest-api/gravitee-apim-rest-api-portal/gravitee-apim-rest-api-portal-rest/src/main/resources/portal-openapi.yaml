@@ -109,6 +109,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /apis/categories:
     get:
+      depracated: true
       tags:
         - Api
       parameters:

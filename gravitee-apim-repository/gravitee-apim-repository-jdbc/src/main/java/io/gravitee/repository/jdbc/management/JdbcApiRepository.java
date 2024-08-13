@@ -39,14 +39,7 @@ import io.gravitee.repository.management.model.Visibility;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -258,12 +251,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
+    public Map<String, Integer> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
         LOGGER.debug("JdbcApiRepository.listCategories({})", apiCriteria);
         try {
             boolean hasInClause = apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty();
 
-            StringBuilder queryBuilder = new StringBuilder("SELECT category from ").append(API_CATEGORIES);
+            StringBuilder queryBuilder = new StringBuilder("SELECT category, COUNT(api_id) from ").append(API_CATEGORIES);
 
             if (hasInClause) {
                 queryBuilder.append(" where api_id IN (").append(getOrm().buildInClause(apiCriteria.getIds())).append(") ");
@@ -278,10 +271,11 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                     }
                 },
                 resultSet -> {
-                    Set<String> distinctCategories = new LinkedHashSet<>();
+                    Map<String, Integer> distinctCategories = new LinkedHashMap<>();
                     while (resultSet.next()) {
                         String referenceId = resultSet.getString(1);
-                        distinctCategories.add(referenceId);
+                        Integer apiId = resultSet.getInt(2);
+                        distinctCategories.put(referenceId, apiId);
                     }
                     return distinctCategories;
                 }

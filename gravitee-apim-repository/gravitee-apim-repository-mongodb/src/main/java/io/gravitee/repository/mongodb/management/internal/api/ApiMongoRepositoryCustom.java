@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,5 +42,5 @@ public interface ApiMongoRepositoryCustom {
      */
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
-    Set<String> listCategories(ApiCriteria apiCriteria);
+    Map<String, Integer> listCategories(ApiCriteria apiCriteria);
 }

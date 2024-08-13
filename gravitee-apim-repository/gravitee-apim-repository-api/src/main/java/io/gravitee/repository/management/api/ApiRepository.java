@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -46,7 +47,7 @@ public interface ApiRepository extends CrudRepository<Api, String> {
 
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
-    Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
+    Map<String, Integer> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;
 

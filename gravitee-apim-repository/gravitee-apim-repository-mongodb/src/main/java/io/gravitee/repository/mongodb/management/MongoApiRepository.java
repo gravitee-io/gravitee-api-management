@@ -28,6 +28,7 @@ import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -128,7 +129,7 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Set<String> listCategories(ApiCriteria apiCriteria) {
+    public Map<String, Integer> listCategories(ApiCriteria apiCriteria) {
         return internalApiRepo.listCategories(apiCriteria);
     }
 

@@ -91,8 +91,8 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
         try {
             ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
-            Set<String> categoryIds = apiRepository.listCategories(criteria);
-            return categoryService.findByIdIn(environment, categoryIds);
+            Map<String, Integer> distinctCategories = apiRepository.listCategories(criteria);
+            return categoryService.findByIdIn(environment, distinctCategories);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to list categories for APIs {}", apis, ex);
             throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);

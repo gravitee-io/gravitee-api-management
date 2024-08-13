@@ -430,7 +430,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldListCategories() throws TechnicalException {
-        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
+        final Map<String, Integer> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
         assertNotNull(categories);
         Set<String> expectedCategories = new LinkedHashSet<>();
         expectedCategories.add("category-1");
@@ -440,16 +440,31 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         expectedCategories.add("my-category");
         expectedCategories.add("my-many-category");
         expectedCategories.add("my-many-category-2");
-        assertEquals(expectedCategories, categories);
+        assertEquals(expectedCategories, categories.keySet());
     }
 
     @Test
     public void shouldListCategoriesWithCriteria() throws TechnicalException {
-        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids("api-to-findById").build());
+        final Map<String, Integer> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids("api-to-findById").build());
         assertNotNull(categories);
         Set<String> expectedCategories = new LinkedHashSet<>();
         expectedCategories.add("my-category");
-        assertEquals(expectedCategories, categories);
+        assertEquals(expectedCategories, categories.keySet());
+    }
+
+    @Test
+    public void shouldListCategoriesWithTotalApisCount() throws TechnicalException {
+        final Map<String, Integer> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids().build());
+        assertNotNull(categories);
+        Set<String> expectedCategories = new LinkedHashSet<>();
+        expectedCategories.add("category-1");
+        expectedCategories.add("cycling");
+        expectedCategories.add("hiking");
+        expectedCategories.add("my-async-category");
+        expectedCategories.add("my-category");
+        expectedCategories.add("my-many-category");
+        expectedCategories.add("my-many-category-2");
+        assertEquals(expectedCategories, categories.keySet());
     }
 
     @Test

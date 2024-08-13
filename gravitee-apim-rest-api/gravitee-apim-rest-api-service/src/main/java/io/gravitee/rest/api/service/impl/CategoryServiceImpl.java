@@ -79,12 +79,12 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public Set<CategoryEntity> findByIdIn(String environmentId, Set<String> ids) {
+    public Set<CategoryEntity> findByIdIn(String environmentId, Map<String, Integer> distinctCategories) {
         try {
             return categoryRepository
-                .findByEnvironmentIdAndIdIn(environmentId, ids)
+                .findByEnvironmentIdAndIdIn(environmentId, distinctCategories.keySet())
                 .stream()
-                .map(this::convert)
+                .map(category -> convert(category, distinctCategories.get(category.getId())))
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to find categories by ids", e);
@@ -352,5 +352,24 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         categoryEntity.setUpdatedAt(category.getUpdatedAt());
         categoryEntity.setCreatedAt(category.getCreatedAt());
         return categoryEntity;
+    }
+
+    private CategoryEntity convert(final Category category, final Integer totalApis) {
+        return CategoryEntity
+            .builder()
+            .id(category.getId())
+            .key(category.getKey())
+            .name(category.getName())
+            .description(category.getDescription())
+            .order(category.getOrder())
+            .hidden(category.isHidden())
+            .highlightApi(category.getHighlightApi())
+            .picture(category.getPicture())
+            .background(category.getBackground())
+            .page(category.getPage())
+            .updatedAt(category.getUpdatedAt())
+            .createdAt(category.getCreatedAt())
+            .totalApis(totalApis)
+            .build();
     }
 }

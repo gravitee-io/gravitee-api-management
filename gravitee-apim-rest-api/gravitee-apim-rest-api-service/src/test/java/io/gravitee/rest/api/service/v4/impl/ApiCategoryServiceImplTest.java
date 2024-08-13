@@ -18,14 +18,8 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import inmemory.CategoryServiceInMemory;
 import io.gravitee.common.data.domain.Page;
@@ -45,11 +39,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,7 +90,7 @@ public class ApiCategoryServiceImplTest {
     @Test
     public void shouldReturnCategories() throws TechnicalException {
         String category1 = "category1";
-        Set<String> categories = Set.of(category1);
+        Map<String, Integer> categories = Map.of(category1, 1);
         when(apiRepository.listCategories(any())).thenReturn(categories);
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(category1);

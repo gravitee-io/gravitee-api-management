@@ -4,7 +4,6 @@
       <entry exclude="true" path="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/target/test-classes" />
     </classpathModifications>
     <module name="gravitee-apim-repository-mongodb" />
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="ALTERNATIVE_JRE_PATH" value="17" />
     <option name="PACKAGE_NAME" value="io.gravitee.repository.management" />
     <option name="MAIN_CLASS_NAME" value="io.gravitee.repository.management.RepositoryTestSuite" />

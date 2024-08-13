@@ -23,10 +23,7 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import jakarta.xml.bind.DatatypeConverter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
@@ -59,7 +56,7 @@ public class CategoryServiceInMemory implements CategoryService {
     }
 
     @Override
-    public Set<CategoryEntity> findByIdIn(String environmentId, Set<String> ids) {
+    public Set<CategoryEntity> findByIdIn(String environmentId, Map<String, Integer> ids) {
         return new HashSet<>(storage);
     }
 

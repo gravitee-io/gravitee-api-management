@@ -23,6 +23,7 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.Accumulators;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
@@ -182,23 +183,24 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     }
 
     @Override
-    public Set<String> listCategories(ApiCriteria apiCriteria) {
+    public Map<String, Integer> listCategories(ApiCriteria apiCriteria) {
         List<Bson> aggregations = new ArrayList<>();
         if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
             aggregations.add(match(in("_id", apiCriteria.getIds())));
         }
         aggregations.add(unwind("$categories"));
-        aggregations.add(group("$categories"));
+        aggregations.add(group("$categories", Accumulators.sum("totalApis", 1)));
         aggregations.add(sort(ascending("_id")));
 
         AggregateIterable<Document> distinctCategories = mongoTemplate
             .getCollection(mongoTemplate.getCollectionName(ApiMongo.class))
             .aggregate(aggregations);
 
-        Set<String> categories = new LinkedHashSet<>();
+        Map<String, Integer> categories = new LinkedHashMap<>();
         distinctCategories.forEach(document -> {
             String category = document.getString("_id");
-            categories.add(category);
+            Integer totalApis = document.getInteger("totalApis");
+            categories.put(category, totalApis);
         });
         return categories;
     }
