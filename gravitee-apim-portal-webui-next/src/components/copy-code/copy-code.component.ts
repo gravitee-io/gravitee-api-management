@@ -30,13 +30,13 @@ import { CopyCodeIconComponent } from './copy-code-icon/copy-code-icon/copy-code
 })
 export class CopyCodeComponent {
   @Input()
-  title!: string;
-
-  @Input()
   text: string = '';
 
   @Input()
   mode: 'TEXT' | 'PASSWORD' = 'TEXT';
+
+  @Input()
+  title?: string;
 
   hidePassword = signal(true);
 
