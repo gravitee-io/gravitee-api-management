@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.common.Sortable;
 import java.util.stream.Stream;
 
 public interface SharedPolicyGroupHistoryQueryService {
-    Stream<SharedPolicyGroup> streamLatestBySharedPolicyPolicyGroupId(String environmentId);
+    Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId);
 
     Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable);
 }

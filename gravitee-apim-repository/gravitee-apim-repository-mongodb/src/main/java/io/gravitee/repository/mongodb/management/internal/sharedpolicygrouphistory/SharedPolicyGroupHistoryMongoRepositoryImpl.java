@@ -67,7 +67,7 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
     }
 
     @Override
-    public Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyPolicyGroupId(String environmentId, int page, int size) {
+    public Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyGroupId(String environmentId, int page, int size) {
         Objects.requireNonNull(environmentId, "environmentId must not be null");
         var collectionName = mongoTemplate.getCollectionName(SharedPolicyGroupHistoryMongo.class);
 

@@ -216,8 +216,8 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     }
 
     @Test
-    public void should_searchLatestBySharedPolicyPolicyGroupId() throws TechnicalException {
-        final var page1 = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId(
+    public void should_searchLatestBySharedPolicyGroupId() throws TechnicalException {
+        final var page1 = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
             "environmentId",
             new PageableBuilder().pageNumber(0).pageSize(2).build()
         );
@@ -228,7 +228,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         assertThat(page1.getContent().get(0).getName()).isEqualTo("Name changed 9 times");
         assertThat(page1.getContent().get(1).getName()).isEqualTo("Yet another SPG 2");
 
-        final var page2 = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId(
+        final var page2 = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
             "environmentId",
             new PageableBuilder().pageNumber(1).pageSize(2).build()
         );
@@ -238,8 +238,8 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     }
 
     @Test
-    public void should_searchLatestBySharedPolicyPolicyGroupId_with_no_result() throws TechnicalException {
-        final var page = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId(
+    public void should_searchLatestBySharedPolicyGroupId_with_no_result() throws TechnicalException {
+        final var page = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
             "unknown",
             new PageableBuilder().pageNumber(0).pageSize(2).build()
         );
@@ -249,8 +249,8 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     }
 
     @Test
-    public void should_searchLatestBySharedPolicyPolicyGroupId_with_no_result_with_unknown_environment() throws TechnicalException {
-        final var page = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId(
+    public void should_searchLatestBySharedPolicyGroupId_with_no_result_with_unknown_environment() throws TechnicalException {
+        final var page = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
             "unknown",
             new PageableBuilder().pageNumber(0).pageSize(2).build()
         );

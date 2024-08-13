@@ -33,7 +33,7 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
 
     @Override
-    public Stream<SharedPolicyGroup> streamLatestBySharedPolicyPolicyGroupId(String environmentId) {
+    public Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId) {
         return storage.stream().filter(spg -> spg.getEnvironmentId().equals(environmentId));
     }
 

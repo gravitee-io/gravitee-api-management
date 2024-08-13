@@ -62,10 +62,10 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
         void streamByEnvironmentIdAndState_should_return_empty_stream() {
             // Given
             String environmentId = "environmentId";
-            when(repository.searchLatestBySharedPolicyPolicyGroupId(eq(environmentId), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+            when(repository.searchLatestBySharedPolicyGroupId(eq(environmentId), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
-            List<SharedPolicyGroup> result = service.streamLatestBySharedPolicyPolicyGroupId(environmentId).toList();
+            List<SharedPolicyGroup> result = service.streamLatestBySharedPolicyGroupId(environmentId).toList();
             // Then
             assertThat(result).isEmpty();
         }
@@ -76,7 +76,7 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
             // Given
             String environmentId = "environmentId";
             when(
-                repository.searchLatestBySharedPolicyPolicyGroupId(
+                repository.searchLatestBySharedPolicyGroupId(
                     eq(environmentId),
                     any(io.gravitee.repository.management.api.search.Pageable.class)
                 )
@@ -111,7 +111,7 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
                 });
 
             // When
-            var result = service.streamLatestBySharedPolicyPolicyGroupId(environmentId).toList();
+            var result = service.streamLatestBySharedPolicyGroupId(environmentId).toList();
 
             // Then
             assertThat(result).isNotEmpty();

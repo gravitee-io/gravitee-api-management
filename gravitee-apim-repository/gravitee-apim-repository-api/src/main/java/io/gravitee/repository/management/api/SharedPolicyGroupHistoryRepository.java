@@ -26,5 +26,5 @@ public interface SharedPolicyGroupHistoryRepository extends CrudRepository<Share
     Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
         throws TechnicalException;
 
-    Page<SharedPolicyGroup> searchLatestBySharedPolicyPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException;
+    Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException;
 }

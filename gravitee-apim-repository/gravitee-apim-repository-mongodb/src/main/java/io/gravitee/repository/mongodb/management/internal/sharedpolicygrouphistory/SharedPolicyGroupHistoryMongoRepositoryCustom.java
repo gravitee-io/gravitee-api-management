@@ -22,5 +22,5 @@ import org.springframework.data.domain.PageRequest;
 
 public interface SharedPolicyGroupHistoryMongoRepositoryCustom {
     Page<SharedPolicyGroupHistoryMongo> search(SharedPolicyGroupHistoryCriteria sharedPolicyGroupHistoryCriteria, PageRequest pageRequest);
-    Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyPolicyGroupId(String environmentId, int page, int size);
+    Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyGroupId(String environmentId, int page, int size);
 }
