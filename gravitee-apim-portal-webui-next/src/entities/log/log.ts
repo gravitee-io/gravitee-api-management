@@ -48,3 +48,45 @@ export interface LogsResponseMetadataApi {
 export interface LogsResponseMetadataTotalData {
   total: number;
 }
+
+export interface Log extends LogListItem {
+  uri?: string;
+  requestContentLength?: number;
+  responseContentLength?: number;
+  request?: Request;
+  response?: Response;
+  metadata?: LogMetadata;
+  host?: string;
+  user?: string;
+  securityType?: string;
+  securityToken?: string;
+}
+
+export interface Request {
+  method?: string;
+  headers?: HttpHeaders;
+  uri?: string;
+  body?: string;
+}
+
+export interface Response {
+  status?: number;
+  headers?: HttpHeaders;
+  body?: string;
+}
+
+interface HttpHeaders {
+  [headerKey: string]: string;
+}
+
+export interface LogMetadata {
+  [headerKey: string]: LogMetadataApi | LogMetadataPlan;
+}
+
+export interface LogMetadataApi {
+  name: string;
+  version: string;
+}
+export interface LogMetadataPlan {
+  name: string;
+}
