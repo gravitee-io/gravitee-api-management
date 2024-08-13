@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -132,6 +133,9 @@ public class ApplicationResource extends AbstractResource {
                 oacs.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
                 oacs.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
                 settings.setOAuthClient(oacs);
+            }
+            if (application.getSettings().getTls() != null) {
+                settings.setTls(TlsSettings.builder().clientCertificate(application.getSettings().getTls().getClientCertificate()).build());
             }
             updateApplicationEntity.setSettings(settings);
         }

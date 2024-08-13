@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -280,6 +281,60 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertEquals(APPLICATION_ID, app.getClientId());
         assertEquals(APPLICATION_ID, app.getType());
         assertNull(settings.getOAuthClient());
+
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
+
+        Application applicationResponse = response.readEntity(Application.class);
+        assertEquals(APPLICATION_ID, applicationResponse.getId());
+    }
+
+    @Test
+    public void shouldUpdateApplicationWithTlsSettings() {
+        ApplicationEntity appEntity = new ApplicationEntity();
+        io.gravitee.rest.api.model.application.ApplicationSettings appSettings =
+            new io.gravitee.rest.api.model.application.ApplicationSettings();
+
+        appSettings.setTls(TlsSettings.builder().clientCertificate("certificate").build());
+        appEntity.setSettings(appSettings);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(USER_NAME);
+        PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
+        appEntity.setPrimaryOwner(owner);
+        doReturn(appEntity).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+
+        ApplicationEntity updatedEntity = new ApplicationEntity();
+        updatedEntity.setId(APPLICATION_ID);
+        doReturn(updatedEntity).when(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), any());
+
+        Instant now = Instant.now();
+        Application updatedApp = new Application();
+        updatedApp.setId(APPLICATION_ID);
+        updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
+        doReturn(updatedApp).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(updatedEntity), any());
+
+        Application appInput = new Application()
+            .description(APPLICATION_ID)
+            .name(APPLICATION_ID)
+            .settings(new ApplicationSettings().tls(new TlsClientSettings().clientCertificate("certificate_updated")));
+        appInput.setId(APPLICATION_ID);
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        Mockito.verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+
+        ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
+        Mockito.verify(applicationService).update(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), captor.capture());
+        UpdateApplicationEntity updateAppEntity = captor.getValue();
+        assertEquals(APPLICATION_ID, updateAppEntity.getName());
+        assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
+        final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
+        assertNotNull(settings);
+        final TlsSettings tlsResult = settings.getTls();
+        assertNotNull(tlsResult);
+        assertEquals("certificate_updated", tlsResult.getClientCertificate());
+        assertNull(settings.getOAuthClient());
+        assertNull(settings.getApp());
 
         String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
