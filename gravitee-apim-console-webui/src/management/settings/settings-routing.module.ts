@@ -38,7 +38,9 @@ import { EnvironmentNotificationComponent } from './notification/environment-not
 import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalSettingsComponent } from './portal-settings/portal-settings.component';
 import { SharedPolicyGroupsComponent } from './shared-policy-groups/shared-policy-groups.component';
-import { SharedPolicyGroupsStudioComponent } from './shared-policy-groups/shared-policy-groups-studio/shared-policy-groups-studio.component';
+import { SharedPolicyGroupStudioComponent } from './shared-policy-groups/shared-policy-group/shared-policy-group-studio/shared-policy-group-studio.component';
+import { SharedPolicyGroupComponent } from './shared-policy-groups/shared-policy-group/shared-policy-group.component';
+import { SharedPolicyGroupHistoryComponent } from './shared-policy-groups/shared-policy-group/shared-policy-group-history/shared-policy-group-history.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -264,8 +266,23 @@ export const settingsRoutes: Routes = [
         },
       },
       {
-        path: 'shared-policy-groups/:sharedPolicyGroupId/studio',
-        component: SharedPolicyGroupsStudioComponent,
+        path: 'shared-policy-groups/:sharedPolicyGroupId',
+        component: SharedPolicyGroupComponent,
+        children: [
+          {
+            path: 'studio',
+            component: SharedPolicyGroupStudioComponent,
+          },
+          {
+            path: 'history',
+            component: SharedPolicyGroupHistoryComponent,
+          },
+          {
+            path: '',
+            redirectTo: 'studio',
+            pathMatch: 'full',
+          },
+        ],
         data: {
           permissions: {
             anyOf: ['environment-shared_policy_group-r'],

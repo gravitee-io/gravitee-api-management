@@ -17,8 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { GioPolicyGroupStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class SharedPolicyGroupsStudioHarness extends ComponentHarness {
-  static readonly hostSelector = 'shared-policy-groups-studio';
+export class SharedPolicyGroupStudioHarness extends ComponentHarness {
+  static readonly hostSelector = 'shared-policy-group-studio';
 
   public getEditButton = this.locatorFor(MatButtonHarness.with({ text: /edit/ }));
 
