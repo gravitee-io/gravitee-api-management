@@ -92,31 +92,22 @@ public class SharedPolicyGroup {
      */
     private SharedPolicyGroupLifecycleState lifecycleState;
 
-    public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup deploy() {
+    public void deploy() {
         lifecycleState = SharedPolicyGroupLifecycleState.DEPLOYED;
         version = version != null ? version + 1 : 1;
         final ZonedDateTime now = TimeProvider.now();
         deployedAt = now;
         updatedAt = now;
-
-        return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup
-            .builder()
-            .id(crossId)
-            .environmentId(environmentId)
-            .policies(steps)
-            .phase(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.valueOf(phase.name()))
-            .name(name)
-            .deployedAt(Date.from(deployedAt.toInstant()))
-            .build();
     }
 
-    public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup undeploy() {
+    public void undeploy() {
         lifecycleState = SharedPolicyGroupLifecycleState.UNDEPLOYED;
-        version = version != null ? version + 1 : 1;
         final ZonedDateTime now = TimeProvider.now();
         deployedAt = now;
         updatedAt = now;
+    }
 
+    public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup toDefinition() {
         return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup
             .builder()
             .id(crossId)

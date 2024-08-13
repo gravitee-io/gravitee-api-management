@@ -51,9 +51,9 @@ public class DeploySharedPolicyGroupUseCase {
             input.sharedPolicyGroupId()
         );
 
-        final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup definition = existingSharedPolicyGroup.deploy();
+        existingSharedPolicyGroup.deploy();
 
-        publishEvent(input, definition, existingSharedPolicyGroup);
+        publishEvent(input, existingSharedPolicyGroup.toDefinition(), existingSharedPolicyGroup);
 
         final SharedPolicyGroup updatedSharedPolicyGroup = sharedPolicyGroupCrudService.update(existingSharedPolicyGroup);
         sharedPolicyGroupHistoryCrudService.create(updatedSharedPolicyGroup);

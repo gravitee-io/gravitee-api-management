@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,31 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
             );
             throw new TechnicalDomainException(
                 "An error occurred while trying to search shared policy group histories by environment ID: " +
+                environmentId +
+                " and sharedPolicyGroupId: " +
+                sharedPolicyGroupId +
+                e
+            );
+        }
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) {
+        Assert.notNull(environmentId, "EnvironmentId must not be null");
+        Assert.notNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
+        try {
+            return sharedPolicyGroupHistoryRepository
+                .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
+                .map(sharedPolicyGroupAdapter::toEntity);
+        } catch (TechnicalException e) {
+            logger.error(
+                "An error occurred while getting the latest shared policy group by environment ID {} and sharedPolicyGroupId {}",
+                environmentId,
+                sharedPolicyGroupId,
+                e
+            );
+            throw new TechnicalDomainException(
+                "An error occurred while trying to get the latest shared policy group by environment ID: " +
                 environmentId +
                 " and sharedPolicyGroupId: " +
                 sharedPolicyGroupId +
