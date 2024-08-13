@@ -50,6 +50,7 @@ public class Membership {
         ENVIRONMENT,
         ORGANIZATION,
         PLATFORM,
+        INTEGRATION,
     }
 
     public boolean isGroupUser() {
