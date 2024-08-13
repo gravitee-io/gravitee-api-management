@@ -653,6 +653,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
+            final Set<Application> activeApplicationsForCurrentEnvironment = getActiveApplicationsForCurrentEnvironment(
+                executionContext.getEnvironmentId()
+            )
+                .stream()
+                .filter(application -> !application.getId().equals(applicationId))
+                .collect(toSet());
 
             if (updateApplicationEntity.getGroups() != null && !updateApplicationEntity.getGroups().isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
@@ -684,6 +690,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 // Check that application API Key mode is valid
                 checkApiKeyModeUpdate(executionContext, updateApplicationEntity.getApiKeyMode(), applicationToUpdate);
             }
+
+            validateAndEncodeClientCertificate(updateApplicationEntity.getSettings(), activeApplicationsForCurrentEnvironment);
 
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
