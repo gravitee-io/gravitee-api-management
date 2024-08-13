@@ -22,37 +22,37 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { importProvidersFrom } from '@angular/core';
 import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 
-import { SharedPolicyGroupsStudioComponent } from './shared-policy-groups-studio.component';
-import { SharedPolicyGroupsStudioHarness } from './shared-policy-groups-studio.harness';
+import { SharedPolicyGroupStudioComponent } from './shared-policy-group-studio.component';
+import { SharedPolicyGroupStudioHarness } from './shared-policy-group-studio.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import {
   fakeSharedPolicyGroup,
   fakePoliciesPlugin,
   fakePolicyPlugin,
   fakeUpdateSharedPolicyGroup,
   SharedPolicyGroup,
-} from '../../../../entities/management-api-v2';
-import { SharedPolicyGroupsAddEditDialogHarness } from '../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.harness';
+} from '../../../../../entities/management-api-v2';
+import { SharedPolicyGroupsAddEditDialogHarness } from '../../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.harness';
 import {
   expectDeploySharedPolicyGroupRequest,
   expectGetSharedPolicyGroupRequest,
   expectUndeploySharedPolicyGroupRequest,
   expectUpdateSharedPolicyGroupRequest,
-} from '../../../../services-ngx/shared-policy-groups.service.spec';
+} from '../../../../../services-ngx/shared-policy-groups.service.spec';
 
-describe('SharedPolicyGroupsStudioComponent', () => {
+describe('SharedPolicyGroupStudioComponent', () => {
   const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
 
-  let fixture: ComponentFixture<SharedPolicyGroupsStudioComponent>;
-  let componentHarness: SharedPolicyGroupsStudioHarness;
+  let fixture: ComponentFixture<SharedPolicyGroupStudioComponent>;
+  let componentHarness: SharedPolicyGroupStudioHarness;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedPolicyGroupsStudioComponent, GioTestingModule, NoopAnimationsModule],
+      imports: [SharedPolicyGroupStudioComponent, GioTestingModule, NoopAnimationsModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -71,11 +71,11 @@ describe('SharedPolicyGroupsStudioComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SharedPolicyGroupsStudioComponent);
+    fixture = TestBed.createComponent(SharedPolicyGroupStudioComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupsStudioHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupStudioHarness);
     fixture.detectChanges();
   });
 

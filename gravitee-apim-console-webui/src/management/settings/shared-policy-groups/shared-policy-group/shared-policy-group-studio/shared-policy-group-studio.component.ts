@@ -31,25 +31,25 @@ import { filter, map } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltip } from '@angular/material/tooltip';
 
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
-import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
-import { IconService } from '../../../../services-ngx/icon.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { PolicyV2Service } from '../../../../../services-ngx/policy-v2.service';
+import { SharedPolicyGroupsService } from '../../../../../services-ngx/shared-policy-groups.service';
+import { IconService } from '../../../../../services-ngx/icon.service';
 import {
   SharedPolicyGroupsAddEditDialogComponent,
   SharedPolicyGroupAddEditDialogData,
   SharedPolicyGroupAddEditDialogResult,
-} from '../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.component';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { removeSharedPolicyGroup } from '../shared-policy-groups.component';
-import { SharedPolicyGroupsStateBadgeComponent } from '../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
-import { toReadableExecutionPhase } from '../../../../entities/management-api-v2';
+} from '../../shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.component';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { removeSharedPolicyGroup } from '../../shared-policy-groups.component';
+import { SharedPolicyGroupsStateBadgeComponent } from '../../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
+import { toReadableExecutionPhase } from '../../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'shared-policy-groups-studio',
-  templateUrl: './shared-policy-groups-studio.component.html',
-  styleUrls: ['./shared-policy-groups-studio.component.scss'],
+  selector: 'shared-policy-group-studio',
+  templateUrl: './shared-policy-group-studio.component.html',
+  styleUrls: ['./shared-policy-group-studio.component.scss'],
   imports: [
     CommonModule,
     MatCardModule,
@@ -66,7 +66,7 @@ import { toReadableExecutionPhase } from '../../../../entities/management-api-v2
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SharedPolicyGroupsStudioComponent {
+export class SharedPolicyGroupStudioComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
   private readonly activatedRoute = inject(ActivatedRoute);

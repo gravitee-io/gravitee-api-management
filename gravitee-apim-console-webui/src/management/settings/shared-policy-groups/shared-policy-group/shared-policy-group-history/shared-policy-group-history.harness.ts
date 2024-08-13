@@ -13,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, StoryObj } from '@storybook/angular';
+import { ComponentHarness } from '@angular/cdk/testing';
 
-import { SharedPolicyGroupsStudioComponent } from './shared-policy-groups-studio.component';
-
-export default {
-  title: 'SharedPolicyGroupsStudioComponent story',
-  component: SharedPolicyGroupsStudioComponent,
-  argTypes: {},
-  render: (args) => ({
-    template: `
-      <div style="width: 800px">
-        <shared-policy-groups-studio></shared-policy-groups-studio>
-      </div>
-    `,
-    props: args,
-  }),
-} as Meta;
-
-export const Default: StoryObj = {};
-Default.args = {};
+export class SharedPolicyGroupHistoryHarness extends ComponentHarness {
+  static readonly hostSelector = 'shared-policy-group-history';
+}

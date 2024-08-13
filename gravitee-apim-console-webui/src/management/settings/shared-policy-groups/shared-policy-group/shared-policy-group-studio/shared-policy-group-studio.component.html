@@ -15,11 +15,6 @@
     limitations under the License.
 
 -->
-
-<div class="back-button">
-  <a mat-button [routerLink]="'../../'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to the list</a>
-</div>
-
 <mat-card class="card">
   @if (sharedPolicyGroup(); as sharedPolicyGroup) {
     <mat-card-header>
@@ -30,7 +25,7 @@
         <shared-policy-groups-state-badge [lifecycleState]="sharedPolicyGroup.lifecycleState"></shared-policy-groups-state-badge>
       </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
-      <div class="shared-policy-groups-studio__headerRightBtn">
+      <div class="shared-policy-group-studio__headerRightBtn">
         @if (!isReadOnly) {
           <button mat-stroked-button (click)="onEdit()" matTooltip="Edit genral info">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
