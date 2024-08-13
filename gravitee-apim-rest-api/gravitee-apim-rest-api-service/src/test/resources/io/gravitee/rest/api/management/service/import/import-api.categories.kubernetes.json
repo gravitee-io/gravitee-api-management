@@ -1,0 +1,7 @@
+{
+    "name": "empty-pages",
+    "definition_context": {
+      "origin": "kubernetes"
+    },
+    "categories": ["PoC"]
+}
