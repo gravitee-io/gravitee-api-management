@@ -20,7 +20,7 @@
     <div class="app-card__header">
       <app-picture [picture]="application._links?.picture" [hashValue]="application.name" [size]="40" />
       <div class="app-card__header__content">
-        <div #appName class="m3-title-medium" [matTooltip]="isOverflowing ? application.name : ''">{{ application.name }}x</div>
+        <div #appName class="title m3-title-medium" [matTooltip]="isOverflowing ? application.name : ''">{{ application.name }}</div>
         <div class="m3-body-medium"><span i18n="@@owner">Owner: </span>{{ application.owner?.display_name }}</div>
       </div>
     </div>
