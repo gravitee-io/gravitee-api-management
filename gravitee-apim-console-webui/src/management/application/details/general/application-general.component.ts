@@ -156,12 +156,18 @@ export class ApplicationGeneralComponent implements OnInit {
               app: {
                 ...this.applicationForm.getRawValue().OAuth2Form,
               },
+              tls: {
+                ...this.applicationForm.getRawValue().TlsForm,
+              },
             }
           : {
               oauth: {
                 ...this.initialApplication.settings.oauth,
                 ...this.applicationForm.getRawValue().OpenIDForm,
                 application_type: 'NATIVE',
+              },
+              tls: {
+                ...this.applicationForm.getRawValue().TlsForm,
               },
             },
       ...(imagesValue?.picture?.length ? { picture: imagesValue.picture[0].dataUrl } : { picture: null }),
