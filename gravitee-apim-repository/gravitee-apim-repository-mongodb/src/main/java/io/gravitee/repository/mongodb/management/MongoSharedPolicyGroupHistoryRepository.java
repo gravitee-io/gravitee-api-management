@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupHistoryMongo;
+import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupMongo;
 import io.gravitee.repository.mongodb.management.internal.sharedpolicygrouphistory.SharedPolicyGroupHistoryMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
@@ -93,6 +94,28 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
             LOGGER.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);
         }
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
+        throws TechnicalException {
+        LOGGER.debug(
+            "Get latest shared policy group by environment ID [{}] and shared policy group ID [{}]",
+            environmentId,
+            sharedPolicyGroupId
+        );
+
+        final SharedPolicyGroupHistoryMongo sharedPolicyGroupMongo = internalSharedPolicyGroupHistoryMongoRepo
+            .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
+            .orElse(null);
+
+        LOGGER.debug(
+            "Get shared policy group by environment ID [{}] and shared policy group ID [{}] - Done",
+            environmentId,
+            sharedPolicyGroupId
+        );
+
+        return Optional.ofNullable(mapSharedPolicyGroupHistory(sharedPolicyGroupMongo));
     }
 
     @Override
