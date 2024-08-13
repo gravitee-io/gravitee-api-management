@@ -34,7 +34,7 @@ public class GetSharedPolicyGroupPolicyPluginsUseCase {
      */
     public Output execute(Input input) {
         var result = sharedPolicyGroupHistoryQueryService
-            .streamLatestBySharedPolicyPolicyGroupId(input.environmentId())
+            .streamLatestBySharedPolicyGroupId(input.environmentId())
             .filter(SharedPolicyGroup::isDeployed)
             .map(SharedPolicyGroupPolicyPlugin::fromSharedPolicyGroup)
             .toList();

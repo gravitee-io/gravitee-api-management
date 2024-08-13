@@ -73,18 +73,17 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchLatestBySharedPolicyPolicyGroupId(String environmentId, Pageable pageable)
-        throws TechnicalException {
+    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         LOGGER.debug(
-            "MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId({}, {})",
+            "MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
             environmentId,
             pageable.toString()
         );
 
         try {
-            return this.internalSharedPolicyGroupHistoryMongoRepo.searchLatestBySharedPolicyPolicyGroupId(
+            return this.internalSharedPolicyGroupHistoryMongoRepo.searchLatestBySharedPolicyGroupId(
                     environmentId,
                     pageable.pageNumber(),
                     pageable.pageSize()

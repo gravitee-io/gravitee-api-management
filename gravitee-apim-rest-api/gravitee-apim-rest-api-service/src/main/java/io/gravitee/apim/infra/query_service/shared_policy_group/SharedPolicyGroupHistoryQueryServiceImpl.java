@@ -52,11 +52,11 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
     }
 
     @Override
-    public Stream<SharedPolicyGroup> streamLatestBySharedPolicyPolicyGroupId(String environmentId) {
+    public Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId) {
         try {
             return PageUtils
                 .toStream(repositoryPageable ->
-                    sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId(environmentId, repositoryPageable)
+                    sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(environmentId, repositoryPageable)
                 )
                 .map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {

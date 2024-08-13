@@ -38,8 +38,7 @@ public class NoOpSharedPolicyGroupHistoryRepository
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchLatestBySharedPolicyPolicyGroupId(String environmentId, Pageable pageable)
-        throws TechnicalException {
+    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
         return new Page<>(List.of(), 0, 0, 0L);
     }
 }

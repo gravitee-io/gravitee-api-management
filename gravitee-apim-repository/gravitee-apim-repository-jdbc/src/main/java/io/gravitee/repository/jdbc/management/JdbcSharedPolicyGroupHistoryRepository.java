@@ -166,13 +166,12 @@ public class JdbcSharedPolicyGroupHistoryRepository
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchLatestBySharedPolicyPolicyGroupId(String environmentId, Pageable pageable)
-        throws TechnicalException {
+    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
         try {
             Objects.requireNonNull(pageable, "Pageable must not be null");
             Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
             LOGGER.debug(
-                "JdbcSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyPolicyGroupId({}, {})",
+                "JdbcSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
                 environmentId,
                 pageable.toString()
             );
