@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 @Data
 @NoArgsConstructor
@@ -119,9 +120,21 @@ public class SharedPolicyGroup {
             .build();
     }
 
+    /**
+     * Shared policy group life cycle state
+     * UNDEPLOYED: The shared policy group is not deployed
+     * DEPLOYED: The shared policy group is deployed
+     * PENDING: The shared policy group is deployed but last changes are not yet deployed
+     *
+     * Change lifecycle :
+     * - (Create SPG)[UNDEPLOYED] -> (Deploy SPG)[DEPLOYED] -> (Update SPG)[PENDING] -> (Deploy SPG)[DEPLOYED]
+     * - (Deployed SPG)[DEPLOYED] -> (Undeploy SPG)[UNDEPLOYED] -> (Update SPG)[UNDEPLOYED] -> (Deploy SPG)[DEPLOYED]
+     * - (Updated SPG)[PENDING] -> (Undeploy SPG)[UNDEPLOYED]
+     */
     public enum SharedPolicyGroupLifecycleState {
-        DEPLOYED,
         UNDEPLOYED,
+        DEPLOYED,
+        PENDING,
     }
 
     public static SharedPolicyGroup from(CreateSharedPolicyGroup createSharedPolicyGroup) {
@@ -136,19 +149,20 @@ public class SharedPolicyGroup {
             .build();
     }
 
-    public static SharedPolicyGroup from(SharedPolicyGroup existingSharedPolicyGroup, UpdateSharedPolicyGroup updateSharedPolicyGroup) {
-        return existingSharedPolicyGroup
-            .toBuilder()
-            .crossId(
-                updateSharedPolicyGroup.getCrossId() == null ? existingSharedPolicyGroup.getCrossId() : updateSharedPolicyGroup.getCrossId()
-            )
-            .name(updateSharedPolicyGroup.getName() == null ? existingSharedPolicyGroup.getName() : updateSharedPolicyGroup.getName())
+    public SharedPolicyGroup update(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
+        return this.toBuilder()
+            .crossId(updateSharedPolicyGroup.getCrossId() == null ? this.getCrossId() : updateSharedPolicyGroup.getCrossId())
+            .name(updateSharedPolicyGroup.getName() == null ? this.getName() : updateSharedPolicyGroup.getName())
             .description(
-                updateSharedPolicyGroup.getDescription() == null
-                    ? existingSharedPolicyGroup.getDescription()
-                    : updateSharedPolicyGroup.getDescription()
+                updateSharedPolicyGroup.getDescription() == null ? this.getDescription() : updateSharedPolicyGroup.getDescription()
             )
-            .steps(updateSharedPolicyGroup.getSteps() == null ? existingSharedPolicyGroup.getSteps() : updateSharedPolicyGroup.getSteps())
+            .steps(updateSharedPolicyGroup.getSteps() == null ? this.getSteps() : updateSharedPolicyGroup.getSteps())
+            .updatedAt(TimeProvider.now())
+            .lifecycleState(
+                this.lifecycleState == SharedPolicyGroupLifecycleState.DEPLOYED
+                    ? SharedPolicyGroupLifecycleState.PENDING
+                    : this.lifecycleState
+            )
             .build();
     }
 

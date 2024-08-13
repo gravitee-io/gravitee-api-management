@@ -23,4 +23,5 @@ package io.gravitee.repository.management.model;
 public enum SharedPolicyGroupLifecycleState {
     DEPLOYED,
     UNDEPLOYED,
+    PENDING,
 }

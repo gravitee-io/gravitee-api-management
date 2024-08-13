@@ -91,7 +91,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     }
 
     @Test
-    void should_update() {
+    void should_update_with_DEPLOYED_state() {
         // Given
         var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
@@ -114,8 +114,56 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING)
             .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .build();
+        assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
+        assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void should_update_with_PENDING_state() {
+        // Given
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        existingSharedPolicyGroup.setLifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING);
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+
+        // When
+        var toUpdate = UpdateSharedPolicyGroup.builder().name("new-name").build();
+        var updatedSharedPolicyGroup = updateSharedPolicyGroupUseCase.execute(
+            new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+        );
+
+        // Then
+        var expected = existingSharedPolicyGroup
+            .toBuilder()
+            .name("new-name")
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING)
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .build();
+        assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
+        assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void should_update_with_UNDEPLOYED_state() {
+        // Given
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
+        existingSharedPolicyGroup.setLifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED);
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+
+        // When
+        var toUpdate = UpdateSharedPolicyGroup.builder().name("new-name").build();
+        var updatedSharedPolicyGroup = updateSharedPolicyGroupUseCase.execute(
+            new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+        );
+
+        // Then
+        var expected = existingSharedPolicyGroup
+            .toBuilder()
+            .name("new-name")
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
         assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
@@ -175,7 +223,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         var expected = existingSharedPolicyGroup
             .toBuilder()
             .description("new-description")
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING)
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
         assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
