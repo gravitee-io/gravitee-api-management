@@ -134,7 +134,6 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   initForm() {
     let settings: OAuthFormType | AppFormType;
     if (this.application) {
-      console.log(JSON.stringify(this.application));
       if (this.isOAuth()) {
         settings = this.formBuilder.group({
           oauth: this.formBuilder.group({
@@ -144,7 +143,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
             grant_types: new FormArray([]),
           }),
           tls: this.formBuilder.group({
-            client_certificate: new FormControl(this.application.settings.tls.client_certificate, null),
+            client_certificate: new FormControl(this.application.settings?.tls?.client_certificate, null),
           }),
         });
       } else {
@@ -154,7 +153,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
             client_id: new FormControl(this.application.settings.app.client_id, null),
           }),
           tls: this.formBuilder.group({
-            client_certificate: new FormControl(this.application.settings.tls.client_certificate, null),
+            client_certificate: new FormControl(this.application.settings?.tls?.client_certificate, null),
           }),
         });
       }
