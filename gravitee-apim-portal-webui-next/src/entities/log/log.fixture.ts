@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { LogListItem, LogsResponse } from './log';
+import { Log, LogListItem, LogsResponse } from './log';
 
 export function fakeLogListItem(modifier?: Partial<LogListItem> | ((baseApplication: LogListItem) => LogListItem)): LogListItem {
   const base: LogListItem = {
@@ -49,6 +49,22 @@ export function fakeLogsResponse(modifier?: Partial<LogsResponse> | ((baseApplic
       data: { total: 1 },
     },
     links: {},
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeLog(modifier?: Partial<Log> | ((baseApplication: Log) => Log)): Log {
+  const base: Log = {
+    ...fakeLogListItem(),
+    metadata: {},
   };
 
   if (isFunction(modifier)) {
