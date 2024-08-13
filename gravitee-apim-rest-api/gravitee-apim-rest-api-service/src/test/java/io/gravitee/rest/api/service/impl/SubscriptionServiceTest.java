@@ -90,19 +90,17 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
+import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
@@ -437,6 +435,31 @@ public class SubscriptionServiceTest {
         Subscription existingSubscription = buildTestSubscription("sub-1", API_ID, ACCEPTED, existingApiKeyPlanId, APPLICATION_ID, null);
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
+
+        when(
+            subscriptionRepository.search(SubscriptionCriteria.builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build())
+        )
+            .thenReturn(List.of(existingSubscription));
+        // Run
+        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+    }
+
+    @Test(expected = PlanMtlsAlreadySubscribedException.class)
+    public void shouldNotCreateBecauseExistingMtlsPlanSubscription() throws Exception {
+        final String existingMtlsPlanId = "existing-mtls-plan";
+
+        planEntity.setSecurity(PlanSecurityType.MTLS);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+
+        PlanEntity existingApiKeyPlan = new PlanEntity();
+        existingApiKeyPlan.setId(existingMtlsPlanId);
+        existingApiKeyPlan.setSecurity(PlanSecurityType.MTLS);
+
+        Subscription existingSubscription = buildTestSubscription("sub-1", API_ID, ACCEPTED, existingMtlsPlanId, APPLICATION_ID, null);
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingMtlsPlanId)).thenReturn(existingApiKeyPlan);
 
         when(
             subscriptionRepository.search(SubscriptionCriteria.builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build())
