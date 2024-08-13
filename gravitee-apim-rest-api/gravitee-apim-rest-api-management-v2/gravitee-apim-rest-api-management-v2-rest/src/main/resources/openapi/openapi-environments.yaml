@@ -346,6 +346,7 @@ components:
             enum:
                 - DEPLOYED
                 - UNDEPLOYED
+                - PENDING
         Error:
             type: object
             properties:

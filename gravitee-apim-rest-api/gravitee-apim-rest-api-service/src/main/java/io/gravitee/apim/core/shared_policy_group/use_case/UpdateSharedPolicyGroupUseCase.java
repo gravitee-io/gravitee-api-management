@@ -47,12 +47,7 @@ public class UpdateSharedPolicyGroupUseCase {
         var existingSharedPolicyGroup =
             this.sharedPolicyGroupCrudService.getByEnvironmentId(input.auditInfo().environmentId(), input.sharedPolicyGroupId());
 
-        var sharedPolicyGroupToUpdate = SharedPolicyGroup
-            .from(existingSharedPolicyGroup, input.sharedPolicyGroupToUpdate())
-            .toBuilder()
-            .updatedAt(TimeProvider.now())
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .build();
+        var sharedPolicyGroupToUpdate = existingSharedPolicyGroup.update(input.sharedPolicyGroupToUpdate());
 
         validateUpdateSharedPolicyGroup(sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
 
