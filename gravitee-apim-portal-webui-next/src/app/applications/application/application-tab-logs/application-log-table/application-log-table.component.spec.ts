@@ -29,7 +29,7 @@ import { BehaviorSubject } from 'rxjs';
 import { ApplicationLogTableComponent } from './application-log-table.component';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
 import { LogsResponse } from '../../../../../entities/log/log';
-import { fakeLog, fakeLogsResponse } from '../../../../../entities/log/log.fixture';
+import { fakeLogListItem, fakeLogsResponse } from '../../../../../entities/log/log.fixture';
 import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
@@ -101,8 +101,8 @@ describe('ApplicationLogTableComponent', () => {
       expectGetApplicationLogs(
         fakeLogsResponse({
           data: [
-            fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-            fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+            fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+            fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
           ],
           metadata: {
             'my-api': { name: 'My API', version: '1.0' },
@@ -141,8 +141,8 @@ describe('ApplicationLogTableComponent', () => {
           expectGetApplicationLogs(
             fakeLogsResponse({
               data: [
-                fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-                fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
               ],
               metadata: {
                 'my-api': { name: 'My API', version: '1.0' },
@@ -176,8 +176,8 @@ describe('ApplicationLogTableComponent', () => {
           expectGetApplicationLogs(
             fakeLogsResponse({
               data: [
-                fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-                fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
               ],
               metadata: {
                 'my-api': { name: 'My API', version: '1.0' },
@@ -230,8 +230,8 @@ describe('ApplicationLogTableComponent', () => {
           expectGetApplicationLogs(
             fakeLogsResponse({
               data: [
-                fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-                fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
               ],
               metadata: {
                 'my-api': { name: 'My API', version: '1.0' },
@@ -250,8 +250,8 @@ describe('ApplicationLogTableComponent', () => {
           expectGetApplicationLogs(
             fakeLogsResponse({
               data: [
-                fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-                fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
               ],
               metadata: {
                 'my-api': { name: 'My API', version: '1.0' },
@@ -278,8 +278,8 @@ describe('ApplicationLogTableComponent', () => {
         expectGetApplicationLogs(
           fakeLogsResponse({
             data: [
-              fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-              fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+              fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+              fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
             ],
             metadata: {
               'my-api': { name: 'My API', version: '1.0' },
@@ -329,8 +329,8 @@ describe('ApplicationLogTableComponent', () => {
         expectGetApplicationLogs(
           fakeLogsResponse({
             data: [
-              fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-              fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+              fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+              fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
             ],
             metadata: {
               'my-api': { name: 'My API', version: '1.0' },
@@ -354,8 +354,8 @@ describe('ApplicationLogTableComponent', () => {
         expectGetApplicationLogs(
           fakeLogsResponse({
             data: [
-              fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-              fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+              fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+              fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
             ],
             metadata: {
               'my-api': { name: 'My API', version: '1.0' },
@@ -389,8 +389,8 @@ describe('ApplicationLogTableComponent', () => {
           expectGetApplicationLogs(
             fakeLogsResponse({
               data: [
-                fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-                fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
               ],
               metadata: {
                 'my-api': { name: 'My API', version: '1.0' },
@@ -441,8 +441,8 @@ describe('ApplicationLogTableComponent', () => {
           expectGetApplicationLogs(
             fakeLogsResponse({
               data: [
-                fakeLog({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
-                fakeLog({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
               ],
               metadata: {
                 'my-api': { name: 'My API', version: '1.0' },
