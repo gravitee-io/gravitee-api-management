@@ -24,7 +24,9 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
+import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
@@ -35,6 +37,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
@@ -69,6 +72,12 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Inject
     private GetCategoryApisUseCase getCategoryApisUseCase;
 
+    @Inject
+    private ApiCategoryService apiCategoryService;
+
+    @Inject
+    private CategoryMapper categoryMapper;
+
     @GET
     @Path("categories")
     @Produces(MediaType.APPLICATION_JSON)
@@ -80,7 +89,16 @@ public class ApisResource extends AbstractResource<Api, String> {
             convert(apisParam.getFilter()),
             convert(apisParam.getExcludedFilter())
         );
-        return Response.ok(new DataResponse().data(categories)).build();
+
+        Map<String, Long> countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
+
+        List<Category> categoryList = categories
+            .stream()
+            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.get(categoryEntity.getId())))
+            .map(categoryEntity -> categoryMapper.convert(categoryEntity, uriInfo.getBaseUriBuilder()))
+            .collect(Collectors.toList());
+
+        return Response.ok(new DataResponse().data(categoryList)).build();
     }
 
     @GET
