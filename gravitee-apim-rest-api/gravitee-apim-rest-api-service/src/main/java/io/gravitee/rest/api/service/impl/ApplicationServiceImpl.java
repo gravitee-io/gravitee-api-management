@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Application.AuditEvent.APP
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_RESTORED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
+import static io.gravitee.repository.management.model.Application.METADATA_ADDITIONAL_CLIENT_METADATA;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
@@ -458,6 +459,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             try {
                 metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
                 metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
+                metadata.put(
+                    METADATA_ADDITIONAL_CLIENT_METADATA,
+                    mapper.writeValueAsString(newApplicationEntity.getSettings().getOAuthClient().getAdditionalClientMetadata())
+                );
             } catch (JsonProcessingException e) {
                 LOGGER.error("An error has occurred while serializing registration response", e);
             }

@@ -71,7 +71,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(ClientRegistrationServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientRegistrationServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -340,14 +340,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
         var additionalClientMetadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
         if (additionalClientMetadata instanceof ObjectNode additionalClientMetadataNode) {
-            additionalClientMetadataNode.setAll(mappedJsonNode);
-            mappedJsonNode = additionalClientMetadataNode;
+            var result = additionalClientMetadataNode.deepCopy();
+            result.setAll(mappedJsonNode);
+            try {
+                return objectMapper.treeToValue(result, ClientRegistrationRequest.class);
+            } catch (JsonProcessingException e) {
+                LOGGER.warn("Failed to merge additional client metadata with the mapped client registration request", e);
+            }
         }
-        try {
-            return objectMapper.treeToValue(mappedJsonNode, ClientRegistrationRequest.class);
-        } catch (JsonProcessingException e) {
-            return mapped;
-        }
+
+        return mapped;
     }
 
     private DynamicClientRegistrationProviderClient getDCRClient(
