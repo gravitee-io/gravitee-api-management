@@ -15,9 +15,11 @@
     limitations under the License.
 
 -->
-@if (!!text && !!title) {
+@if (!!text) {
   <div class="copy-code__copy-block">
-    <div class="m3-body-medium">{{ title }}</div>
+    @if (title) {
+      <div class="m3-body-medium">{{ title }}</div>
+    }
     <div class="copy-code__command-line">
       @if (mode === 'PASSWORD') {
         <code class="copy-code__command-line__code">{{ passwordContent() }}</code>
@@ -32,7 +34,7 @@
       } @else {
         <code class="copy-code__command-line__code">{{ text }}</code>
       }
-      <app-copy-code-icon [contentToCopy]="text" [label]="title" />
+      <app-copy-code-icon [contentToCopy]="text" [label]="title ?? ''" />
     </div>
   </div>
 }
