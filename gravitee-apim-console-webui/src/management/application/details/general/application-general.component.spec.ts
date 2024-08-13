@@ -108,6 +108,9 @@ describe('ApplicationGeneralInfoComponent', () => {
             renew_client_secret_supported: false,
             response_types: ['code', 'token', 'id_token'],
           },
+          tls: {
+            client_certificate: undefined,
+          },
         },
       });
     });
@@ -129,6 +132,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(await nameInput.getValue()).toEqual('');
       await nameInput.setValue('123');
 
+      const clientCertificateInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_certificate"]' }));
+      expect(await clientCertificateInput.getValue()).toEqual('');
+      await clientCertificateInput.setValue('certificate');
+
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
 
@@ -144,6 +151,9 @@ describe('ApplicationGeneralInfoComponent', () => {
         settings: {
           app: {
             client_id: '123',
+          },
+          tls: {
+            client_certificate: 'certificate',
           },
         },
       });
@@ -166,6 +176,10 @@ describe('ApplicationGeneralInfoComponent', () => {
       expect(await nameInput.getValue()).toEqual('test_client_id');
       await nameInput.setValue('123');
 
+      const clientCertificate = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_certificate"]' }));
+      expect(await clientCertificate.getValue()).toEqual('');
+      await clientCertificate.setValue('certificate');
+
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
 
@@ -187,6 +201,9 @@ describe('ApplicationGeneralInfoComponent', () => {
             redirect_uris: ['https://apim-master-console.team-apim.gravitee.dev/'],
             renew_client_secret_supported: false,
             response_types: ['code', 'token', 'id_token'],
+          },
+          tls: {
+            client_certificate: 'certificate',
           },
         },
       });
