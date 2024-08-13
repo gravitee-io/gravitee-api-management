@@ -74,7 +74,7 @@
         </ng-container>
 
         <ng-container matColumnDef="lastDeploy">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="deployedAt">Las deployed</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="deployedAt">Last deployed</th>
           <td mat-cell *matCellDef="let element">
             {{ element.deployedAt | date: 'medium' }}
           </td>
@@ -85,7 +85,7 @@
           <td mat-cell *matCellDef="let element">
             <div class="actions_btn">
               @if (isReadOnly) {
-                <button mat-button aria-label="Button to view" matTooltip="View" (click)="onEdit(element.resourceIndex)">
+                <button mat-button aria-label="Button to view" matTooltip="View" (click)="onEdit(element.id)">
                   <mat-icon svgIcon="gio:eye-empty"></mat-icon>
                 </button>
               } @else {

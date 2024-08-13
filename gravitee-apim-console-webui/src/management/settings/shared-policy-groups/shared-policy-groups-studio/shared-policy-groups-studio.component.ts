@@ -73,7 +73,7 @@ export class SharedPolicyGroupsStudioComponent {
   private readonly snackBarService = inject(SnackBarService);
   private refresh$ = new BehaviorSubject<void>(undefined);
 
-  protected isReadOnly = false;
+  protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']);
   protected sharedPolicyGroup = toSignal(
     this.refresh$.pipe(switchMap(() => this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId))),
   );
@@ -83,10 +83,6 @@ export class SharedPolicyGroupsStudioComponent {
     .list()
     .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
   protected enableSaveButton = false;
-
-  constructor() {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-r']);
-  }
 
   public onEdit(): void {
     const sharedPolicyGroup = this.sharedPolicyGroup();
