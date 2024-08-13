@@ -40,11 +40,10 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -105,7 +104,6 @@ public class ImportCRDUseCase {
     private final MembershipCrudService membershipCrudService;
     private final MembershipQueryService membershipQueryService;
     private final ApiMetadataDomainService apiMetadataDomainService;
-    private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final ValidateCRDDomainService validateCRDDomainService;
@@ -132,7 +130,6 @@ public class ImportCRDUseCase {
         ApiMetadataDomainService apiMetadataDomainService,
         PageQueryService pageQueryService,
         PageCrudService pageCrudService,
-        DocumentationValidationDomainService documentationValidationDomainService,
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ValidateCRDDomainService validateCRDDomainService
@@ -158,7 +155,6 @@ public class ImportCRDUseCase {
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.pageQueryService = pageQueryService;
         this.pageCrudService = pageCrudService;
-        this.documentationValidationDomainService = documentationValidationDomainService;
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.validateCRDDomainService = validateCRDDomainService;
@@ -232,7 +228,7 @@ public class ImportCRDUseCase {
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
-            if (sanitizedInput.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
+            if (shouldDeploy(sanitizedInput.spec())) {
                 if (createdApi.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(createdApi, sanitizedInput.auditInfo);
                 } else {
@@ -314,7 +310,7 @@ public class ImportCRDUseCase {
 
             deletePlans(api, existingPlans, planKeyIdMapping, sanitizedInput);
 
-            if (sanitizedInput.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
+            if (shouldDeploy(sanitizedInput.spec())) {
                 if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
                     apiStateDomainService.stop(api, sanitizedInput.auditInfo);
                 } else {
@@ -431,13 +427,13 @@ public class ImportCRDUseCase {
         }
     }
 
-    private void createOrUpdatePages(Map<String, PageCRD> pageCrds, String apiId, AuditInfo auditInfo) {
-        if (pageCrds == null || pageCrds.isEmpty()) {
+    private void createOrUpdatePages(Map<String, PageCRD> pageCRDs, String apiId, AuditInfo auditInfo) {
+        if (pageCRDs == null || pageCRDs.isEmpty()) {
             return;
         }
 
         var now = Date.from(TimeProvider.now().toInstant());
-        List<Page> pages = pageCrds.values().stream().map(this::initPageFromCRD).toList();
+        var pages = pageCRDs.values().stream().map(PageModelFactory::fromCRDSpec).toList();
 
         pages.forEach(page -> {
             page.setReferenceId(apiId);
@@ -450,27 +446,14 @@ public class ImportCRDUseCase {
                 .findById(page.getId())
                 .ifPresentOrElse(
                     oldPage -> {
-                        var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForUpdate(
-                            page,
-                            auditInfo.organizationId(),
-                            false
-                        );
                         updateApiDocumentationDomainService.updatePage(
-                            sanitizedPage.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
+                            page.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
                             oldPage,
                             auditInfo
                         );
                     },
                     () -> {
-                        var sanitizedPage = documentationValidationDomainService.validateAndSanitizeForCreation(
-                            page,
-                            auditInfo.organizationId(),
-                            false
-                        );
-                        createApiDocumentationDomainService.createPage(
-                            sanitizedPage.toBuilder().createdAt(now).updatedAt(now).build(),
-                            auditInfo
-                        );
+                        createApiDocumentationDomainService.createPage(page.toBuilder().createdAt(now).updatedAt(now).build(), auditInfo);
                     }
                 );
         });
@@ -488,29 +471,6 @@ public class ImportCRDUseCase {
             });
     }
 
-    private Page initPageFromCRD(PageCRD pageCRD) {
-        Page page = Page
-            .builder()
-            .id(pageCRD.getId())
-            .name(pageCRD.getName())
-            .crossId(pageCRD.getCrossId())
-            .parentId(pageCRD.getParentId())
-            .type(Page.Type.valueOf(pageCRD.getType().name()))
-            .visibility(Page.Visibility.valueOf(pageCRD.getVisibility().name()))
-            .order(pageCRD.getOrder())
-            .published(pageCRD.isPublished())
-            .content(pageCRD.getContent())
-            .homepage(pageCRD.isHomepage())
-            .configuration(pageCRD.getConfiguration())
-            .build();
-
-        if (pageCRD.getSource() != null) {
-            page.setSource(new PageSource(pageCRD.getSource().getType(), pageCRD.getSource().getConfiguration()));
-        }
-
-        return page;
-    }
-
     private ApiMember initApiMemberFromCRD(MemberCRD crd) {
         return ApiMember
             .builder()
@@ -518,5 +478,16 @@ public class ImportCRDUseCase {
             .displayName(crd.getDisplayName())
             .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
             .build();
+    }
+
+    private static boolean shouldDeploy(ApiCRDSpec spec) {
+        return (
+            spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT) &&
+            spec
+                .getPlans()
+                .values()
+                .stream()
+                .anyMatch(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
+        );
     }
 }

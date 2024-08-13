@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.documentation.model;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,4 +29,7 @@ public class PageSource {
 
     private String type;
     private String configuration;
+
+    // Exactly same as the above String configuration
+    private Map<String, Object> configurationMap;
 }

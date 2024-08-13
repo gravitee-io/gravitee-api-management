@@ -33,8 +33,8 @@ export function fakeDiscoveryPreview(attribute?: Partial<IntegrationPreview>): I
         state: IntegrationPreviewApisState.NEW,
       },
       {
-        id: 'testit2',
-        name: 'test name2',
+        id: 'testit3',
+        name: 'test name3',
         state: IntegrationPreviewApisState.NEW,
       },
     ],

@@ -21,9 +21,17 @@
   @include mat.button-color(theme.$light-theme, $color-variant: secondary);
 }
 
+mat-chip {
+  --mdc-chip-elevated-container-color: #{theme.$chip-background};
+}
+
 mat-card {
   --mdc-elevated-card-container-elevation: 0;
   --mdc-outlined-card-container-color: #{theme.$card-background-color};
+}
+
+mat-dialog-container {
+  --mdc-dialog-container-color: #{theme.$card-background-color};
 }
 
 mat-form-field {

@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Application, ApplicationsResponse } from '../entities/application/application';
+import { Application, ApplicationsResponse, ApplicationType } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -33,16 +33,28 @@ export class ApplicationService {
     return this.http.get<Application>(`${this.configService.baseURL}/applications/${applicationId}`);
   }
 
-  list(params: { forSubscriptions?: boolean; page?: number; size?: number }): Observable<ApplicationsResponse> {
-    const pageParam = params.page ? 'page=' + params.page : 'page=1';
-    const perPageParam = params.size ? 'size=' + params.size : 'size=10';
+  getType(applicationId: string): Observable<ApplicationType> {
+    return this.http.get<ApplicationType>(`${this.configService.baseURL}/applications/${applicationId}/configuration`);
+  }
+
+  list(page?: number, size?: number, forSubscriptions?: boolean): Observable<ApplicationsResponse> {
+    const pageParam = page ? 'page=' + page : 'page=1';
+    const perPageParam = size ? 'size=' + size : 'size=10';
 
     const paramList = [pageParam, perPageParam];
 
-    if (params.forSubscriptions !== undefined) {
-      paramList.push('forSubscriptions=' + params.forSubscriptions);
+    if (forSubscriptions !== undefined) {
+      paramList.push('forSubscriptions=' + forSubscriptions);
     }
 
     return this.http.get<ApplicationsResponse>(`${this.configService.baseURL}/applications?${paramList.join('&')}`);
+  }
+
+  save(application: Application): Observable<Application> {
+    return this.http.put<Application>(`${this.configService.baseURL}/applications/${application.id}`, application);
+  }
+
+  delete(applicationId: string): Observable<void> {
+    return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}`);
   }
 }

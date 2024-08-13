@@ -25,6 +25,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { IntegrationPreview, IntegrationPreviewApis, IntegrationPreviewApisState } from '../integrations.model';
+import { fieldIsSet, fieldSet, fieldUnSet } from '../../../shared/utils';
 
 @Component({
   selector: 'app-discovery-preview',
@@ -35,17 +36,19 @@ export class DiscoveryPreviewComponent implements OnInit {
   IntegrationPreviewApisState = IntegrationPreviewApisState;
   private destroyRef: DestroyRef = inject(DestroyRef);
 
-  private static readonly NEW_BITFIELD_VALUE = 0b0001;
-  private static readonly UPDATE_BITFIELD_VALUE = 0b0010;
+  private static readonly NEW_BITFIELD_VALUE = 0b01;
+  private static readonly UPDATE_BITFIELD_VALUE = 0b10;
 
   public displayedColumns = ['name', 'state'];
   public isLoadingPreview = true;
   public integrationPreview: IntegrationPreview = null;
-  public ingestParameters = new FormGroup({
+  public ingestParametersForm = new FormGroup({
     ingestNewApis: new FormControl(false),
     ingestUpdateApis: new FormControl(false),
   });
   public tableData = new MatTableDataSource<IntegrationPreviewApis>();
+
+  private integrationId = this.activatedRoute.snapshot.params.integrationId;
 
   constructor(
     public readonly integrationsService: IntegrationsService,
@@ -60,10 +63,8 @@ export class DiscoveryPreviewComponent implements OnInit {
   }
 
   private getIntegration(): void {
-    const { integrationId } = this.activatedRoute.snapshot.params;
-
     this.integrationsService
-      .getIntegration(integrationId)
+      .getIntegration(this.integrationId)
       .pipe(
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -90,8 +91,9 @@ export class DiscoveryPreviewComponent implements OnInit {
           this.tableData.filterPredicate = (api, filter) => {
             const filterValues = parseInt(filter, 10);
             return (
-              (filterValues & DiscoveryPreviewComponent.NEW_BITFIELD_VALUE && api.state === IntegrationPreviewApisState.NEW) ||
-              (filterValues & DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE && api.state === IntegrationPreviewApisState.UPDATE)
+              (fieldIsSet(filterValues, DiscoveryPreviewComponent.NEW_BITFIELD_VALUE) && api.state === IntegrationPreviewApisState.NEW) ||
+              (fieldIsSet(filterValues, DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE) &&
+                api.state === IntegrationPreviewApisState.UPDATE)
             );
           };
           this.setupForm('ingestNewApis', this.integrationPreview.newCount);
@@ -101,22 +103,39 @@ export class DiscoveryPreviewComponent implements OnInit {
       });
   }
 
+  public cancel() {
+    return this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
+
   public proceedIngest() {
-    this.integrationsService.prepareRunIngest(this.tableData.filteredData.map((api) => api.id));
-    this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+    this.integrationsService
+      .ingest(
+        this.integrationId,
+        this.tableData.filteredData.map((api) => api.id),
+      )
+      .subscribe((response) => {
+        switch (response.status) {
+          case 'SUCCESS':
+            this.snackBarService.success('Ingestion complete! Your integration is now updated.');
+            break;
+          case 'ERROR':
+            this.snackBarService.error(`Ingestion failed. Please check your settings and try again: ${response.message}`);
+            break;
+        }
+        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+      });
   }
 
   private setupForm(controlName: 'ingestUpdateApis' | 'ingestNewApis', value: number) {
     if (value <= 0) {
-      this.ingestParameters.controls[controlName].disable({ onlySelf: true });
+      this.ingestParametersForm.controls[controlName].disable({ onlySelf: true });
     } else {
-      this.ingestParameters.controls[controlName].setValue(value > 0);
+      this.ingestParametersForm.controls[controlName].setValue(value > 0);
     }
     const state =
       controlName === 'ingestNewApis' ? DiscoveryPreviewComponent.NEW_BITFIELD_VALUE : DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE;
-    this.ingestParameters.controls[controlName].valueChanges.subscribe((selected) => {
-      const previous = parseInt(this.tableData.filter, 10);
-      this.tableData.filter = (selected ? previous | state : previous & ~state).toString();
+    this.ingestParametersForm.controls[controlName].valueChanges.subscribe((selected) => {
+      this.tableData.filter = (selected ? fieldSet(this.tableData.filter, state) : fieldUnSet(this.tableData.filter, state)).toString();
     });
   }
 }

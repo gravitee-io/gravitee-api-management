@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
@@ -44,6 +45,8 @@ public class ValidateCRDDomainService implements Validator<ValidateCRDDomainServ
     private final ValidateGroupsDomainService groupsValidator;
 
     private final ValidateResourceDomainService resourceValidator;
+
+    private final ValidatePagesDomainService pagesValidator;
 
     @Override
     public Validator.Result<ValidateCRDDomainService.Input> validateAndSanitize(ValidateCRDDomainService.Input input) {
@@ -73,6 +76,12 @@ public class ValidateCRDDomainService implements Validator<ValidateCRDDomainServ
         resourceValidator
             .validateAndSanitize(new ValidateResourceDomainService.Input(input.auditInfo.environmentId(), input.spec().getResources()))
             .peek(sanitized -> sanitizedBuilder.resources(sanitized.resources()), errors::addAll);
+
+        pagesValidator
+            .validateAndSanitize(
+                new ValidatePagesDomainService.Input(input.auditInfo.organizationId(), input.spec.getId(), input.spec.getPages())
+            )
+            .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
         return Validator.Result.ofBoth(new ValidateCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }

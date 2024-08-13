@@ -16,13 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.model;
 
 import io.gravitee.definition.model.Origin;
-import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
@@ -47,13 +43,11 @@ public class ApplicationCRDSpec {
     private String domain;
     private Set<String> groups;
     private String status;
-    private String type;
-    private String picture;
+    private String pictureUrl;
     private boolean disableMembershipNotifications;
-    private ApiKeyMode apiKeyMode;
     private String background;
     private Origin origin;
     private PrimaryOwnerEntity primaryOwner;
-    private ApplicationSettings settings;
+    private ApplicationCRDSettings settings;
     private List<ApplicationCRDMetadata> metadata;
 }

@@ -22,6 +22,8 @@ import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -52,13 +54,10 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
-import inmemory.NoopSwaggerOpenApiResolver;
-import inmemory.NoopTemplateResolverDomainService;
 import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -95,10 +94,10 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
-import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -119,7 +118,6 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -129,7 +127,6 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
@@ -153,7 +150,6 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
-import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -196,7 +192,6 @@ class ImportCRDUseCaseTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    PageSourceDomainServiceInMemory pageSourceDomainService = new PageSourceDomainServiceInMemory();
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -229,6 +224,7 @@ class ImportCRDUseCaseTest {
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
     ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
+    DocumentationValidationDomainService validationDomainService = mock(DocumentationValidationDomainService.class);
 
     ImportCRDUseCase useCase;
 
@@ -330,26 +326,6 @@ class ImportCRDUseCaseTest {
             workflowCrudService
         );
         updateApiDomainService = mock(UpdateApiDomainService.class);
-        var documentationValidationDomainService = new DocumentationValidationDomainService(
-            new HtmlSanitizerImpl(),
-            new NoopTemplateResolverDomainService(),
-            apiCrudService,
-            new NoopSwaggerOpenApiResolver(),
-            new ApiMetadataQueryServiceInMemory(),
-            new ApiPrimaryOwnerDomainService(
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
-            new ApiDocumentationDomainService(pageQueryService, planQueryService),
-            pageCrudService,
-            pageSourceDomainService,
-            groupQueryService,
-            roleQueryService
-        );
         PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
         var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
             pageCrudService,
@@ -381,7 +357,8 @@ class ImportCRDUseCaseTest {
             verifyApiPathDomainService,
             new ValidateCRDMembersDomainService(userDomainService),
             new ValidateGroupsDomainService(groupQueryService),
-            validateResourceDomainService
+            validateResourceDomainService,
+            new ValidatePagesDomainService(validationDomainService)
         );
 
         categoryQueryService.reset();
@@ -409,7 +386,6 @@ class ImportCRDUseCaseTest {
                 apiMetadataDomainService,
                 pageQueryService,
                 pageCrudService,
-                documentationValidationDomainService,
                 createApiDocumentationDomainService,
                 updateApiDocumentationDomainService,
                 crdValidator
@@ -615,6 +591,9 @@ class ImportCRDUseCaseTest {
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
 
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                .thenAnswer(call -> call.getArgument(0));
+
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
 
             assertThat(pageCrudService.storage())
@@ -641,6 +620,23 @@ class ImportCRDUseCaseTest {
         }
 
         @Test
+        void should_not_start_the_api_with_no_plan() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of())
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
+        }
+
+        @Test
         void should_stop_the_api() {
             when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
 
@@ -655,6 +651,24 @@ class ImportCRDUseCaseTest {
             );
 
             verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), any());
+        }
+
+        @Test
+        void should_not_stop_the_api_with_no_plan() {
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+            useCase.execute(
+                new ImportCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of())
+                        .state("STOPPED")
+                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                        .build()
+                )
+            );
+
+            verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
@@ -1062,6 +1076,9 @@ class ImportCRDUseCaseTest {
 
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
+
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                .thenAnswer(call -> call.getArgument(0));
 
             useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
 

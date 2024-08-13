@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.documentation;
 
 import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -27,9 +28,11 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,6 +50,22 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
     @Override
     public void setContentFromSource(Page page) {
         loadFetcher(page).ifPresentOrElse(fetcher -> fetchContent(fetcher, page), () -> page.setUseAutoFetch(false));
+    }
+
+    @Override
+    public void validatePageSource(Page page) {
+        if (page.getSource() == null || page.getSource().getConfigurationMap() == null) {
+            return;
+        }
+
+        // Validate Page Fetcher Cron Expression
+        Map<String, Object> config = page.getSource().getConfigurationMap();
+        Object fetchCron = config.get("fetchCron");
+        if (fetchCron != null && !CronExpression.isValidExpression(fetchCron.toString())) {
+            throw new InvalidPageSourceException(
+                String.format("documentation page [%s] contains a fetcher with an invalid cron expression", page.getName())
+            );
+        }
     }
 
     private void fetchContent(Fetcher fetcher, Page page) {

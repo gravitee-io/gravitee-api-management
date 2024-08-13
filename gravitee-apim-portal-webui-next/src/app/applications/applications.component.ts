@@ -24,7 +24,6 @@ import { ApplicationCardComponent } from '../../components/application-card/appl
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { Application } from '../../entities/application/application';
 import { ApplicationService } from '../../services/application.service';
-import { ConfigService } from '../../services/config.service';
 
 export interface ApplicationPaginatorVM {
   data: Application[];
@@ -46,7 +45,7 @@ export class ApplicationsComponent {
   private applicationService = inject(ApplicationService);
   private page$ = new BehaviorSubject(1);
 
-  constructor(private configService: ConfigService) {
+  constructor() {
     this.applicationPaginator$ = this.loadApplications$();
   }
 
@@ -61,14 +60,16 @@ export class ApplicationsComponent {
   private loadApplications$(): Observable<ApplicationPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.applicationService.list({ page: currentPage, size: 9 })),
+      switchMap(currentPage => this.applicationService.list(currentPage, 9)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({
               id: application.id,
               description: application.description,
               name: application.name,
+              owner: application.owner,
               picture: application._links?.picture,
+              settings: application.settings,
             }))
           : [];
         const page = resp.metadata?.pagination?.current_page ?? 1;

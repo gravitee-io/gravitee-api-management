@@ -51,7 +51,7 @@ class GetSharedPolicyGroupPolicyPluginsUseCaseTest {
 
         // Then
         assertEquals(result.sharedPolicyGroupPolicyList().size(), 1);
-        assertEquals(result.sharedPolicyGroupPolicyList().get(0).getId(), deployedSharedPolicyGroup.getId());
+        assertEquals(result.sharedPolicyGroupPolicyList().get(0).getId(), deployedSharedPolicyGroup.getCrossId());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getName(), deployedSharedPolicyGroup.getName());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getDescription(), deployedSharedPolicyGroup.getDescription());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getApiType(), deployedSharedPolicyGroup.getApiType());

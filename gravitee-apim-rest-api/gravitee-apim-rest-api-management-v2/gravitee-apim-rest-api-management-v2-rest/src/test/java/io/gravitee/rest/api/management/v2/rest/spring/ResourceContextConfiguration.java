@@ -45,6 +45,8 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
@@ -419,7 +421,8 @@ public class ResourceContextConfiguration {
         UserDomainServiceInMemory userDomainService,
         VerifyApiPathDomainService verifyApiPathDomainService,
         GroupQueryService groupQueryService,
-        ValidateResourceDomainService validateResourceDomainService
+        ValidateResourceDomainService validateResourceDomainService,
+        DocumentationValidationDomainService validationDomainService
     ) {
         return new ValidateCRDUseCase(
             new ValidateCRDDomainService(
@@ -427,7 +430,8 @@ public class ResourceContextConfiguration {
                 verifyApiPathDomainService,
                 new ValidateCRDMembersDomainService(userDomainService),
                 new ValidateGroupsDomainService(groupQueryService),
-                validateResourceDomainService
+                validateResourceDomainService,
+                new ValidatePagesDomainService(validationDomainService)
             )
         );
     }

@@ -62,7 +62,7 @@ public class SharedPolicyGroupPolicyPlugin {
     public static SharedPolicyGroupPolicyPlugin fromSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroup) {
         return SharedPolicyGroupPolicyPlugin
             .builder()
-            .id(sharedPolicyGroup.getId())
+            .id(sharedPolicyGroup.getCrossId())
             .name(sharedPolicyGroup.getName())
             .description(sharedPolicyGroup.getDescription())
             .apiType(sharedPolicyGroup.getApiType())

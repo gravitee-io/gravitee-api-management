@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, discardPeriodicTasks, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 
 import { IntegrationOverviewComponent } from './integration-overview.component';
 import { IntegrationOverviewHarness } from './integration-overview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
-import { AgentStatus, FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
+import { AgentStatus, FederatedAPI, FederatedAPIsResponse, IngestionStatus, Integration } from '../integrations.model';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -91,154 +89,163 @@ describe('IntegrationOverviewComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('permissions', () => {
-    beforeEach(() => {
-      init(['environment-integration-r']);
-    });
+  it('should display loading panel while loading', fakeAsync(async () => {
+    await init();
+    expect(await componentHarness.getLoaderPanel()).not.toBeNull();
 
-    it('button should be hidden without permissions', async () => {
+    discardPeriodicTasks();
+  }));
+
+  describe('permissions', () => {
+    beforeEach(() => {});
+
+    it('button should be hidden without permissions', fakeAsync(async () => {
+      await init(['environment-integration-r']);
+      tick(1);
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
       expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       expect(discoverBtn).toBeNull();
-    });
-  });
-
-  describe('discover', () => {
-    beforeEach(() => {
-      init();
-    });
-
-    it('button should be disabled when agent "DISCONNECTED"', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.DISCONNECTED }));
-      expectFederatedAPIsGetRequest();
-
-      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-      expect(discoverBtn).toBeTruthy();
-      expect(await discoverBtn.isDisabled()).toBe(true);
-    });
-
-    it('button should be active when agent "CONNECTED"', async () => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
-      expectFederatedAPIsGetRequest();
-
-      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
-      expect(discoverBtn).toBeTruthy();
-      expect(await discoverBtn.isDisabled()).toBe(false);
-    });
+    }));
   });
 
   describe('details', () => {
-    beforeEach(() => {
-      init();
-    });
+    it('should integration info once loaded', fakeAsync(async () => {
+      await init();
 
-    it('should call backend with proper integration id', () => {
-      const integrationMock: Integration = fakeIntegration({ id: integrationId });
-      expectIntegrationGetRequest(integrationMock);
+      tick(1);
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
       expectFederatedAPIsGetRequest();
-    });
 
-    it('should display error badge', async (): Promise<void> => {
+      expect(await componentHarness.getIntegrationProvider()).toEqual('test_provider');
+      expect(await componentHarness.getAgentStatus()).toEqual('connected');
+    }));
+
+    it('should display error badge', fakeAsync(async (): Promise<void> => {
+      await init();
+
+      tick(1);
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.DISCONNECTED }));
       expectFederatedAPIsGetRequest();
 
-      const errorBadge: TestElement = await componentHarness.getErrorBadge();
-      expect(errorBadge).toBeTruthy();
+      expect(await componentHarness.getAgentStatus()).toEqual('disconnected');
 
       const errorBanner = await componentHarness.getErrorBanner().then((e) => e.text());
       expect(errorBanner).toEqual(
         'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
       );
-    });
-
-    it('should display success badge', async (): Promise<void> => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
-      expectFederatedAPIsGetRequest();
-
-      const successBadge: TestElement = await componentHarness.getSuccessBadge();
-      expect(successBadge).toBeTruthy();
-
-      expect(await componentHarness.getErrorBanner()).toBeNull();
-    });
-
-    it('should display pending job banner when a job is pending', async (): Promise<void> => {
-      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
-      expectFederatedAPIsGetRequest();
-
-      const successBadge: TestElement = await componentHarness.getSuccessBadge();
-      expect(successBadge).toBeTruthy();
-
-      expect(await componentHarness.getErrorBanner()).toBeNull();
-    });
+    }));
   });
 
   describe('federated APIs table', () => {
-    beforeEach(() => {
-      init();
-    });
-
-    it('should disable Discover button when data is loading', async (): Promise<void> => {
-      expectIntegrationGetRequest();
-      expectFederatedAPIsGetRequest();
-
-      fixture.componentInstance.isLoadingFederatedAPI = true;
-      fixture.detectChanges();
-
-      const discoverButton = await componentHarness.getDiscoverButton();
-      expect(discoverButton.isDisabled()).toBeTruthy();
-    });
-
-    it('should not be in UI without data', async (): Promise<void> => {
+    it('should display a panel without data', fakeAsync(async (): Promise<void> => {
+      await init();
+      tick(1);
       expectIntegrationGetRequest();
       expectFederatedAPIsGetRequest([]);
 
-      const table: MatTableHarness = await componentHarness.getTable();
-      expect(table).toBeNull();
-    });
+      expect(await componentHarness.getTable()).toBeNull();
+      expect(await componentHarness.getNoIntegrationMessage()).toContain('No APIs created');
+    }));
 
-    it('should display correct number of rows', async (): Promise<void> => {
+    it('should display a panel when ingestion is pending and not API ingested yet ', fakeAsync(async (): Promise<void> => {
+      await init();
+      tick(1);
+      expectIntegrationGetRequest(
+        fakeIntegration({
+          pendingJob: { id: 'job-id', status: IngestionStatus.PENDING, startedAt: '2023-08-27T18:04:37Z' },
+        }),
+      );
+      expectFederatedAPIsGetRequest([]);
+
+      expect(await componentHarness.getTable()).toBeNull();
+      expect(await componentHarness.getNoIntegrationMessage()).toContain('APIs are being ingested');
+
+      discardPeriodicTasks();
+    }));
+
+    it('should display the current APIs list with a banner when ingestion is pending', fakeAsync(async (): Promise<void> => {
+      await init();
+      tick(1);
+      expectIntegrationGetRequest(
+        fakeIntegration({
+          pendingJob: { id: 'job-id', status: IngestionStatus.PENDING, startedAt: '2023-08-27T18:04:37Z' },
+        }),
+      );
+      expectFederatedAPIsGetRequest([fakeFederatedAPI()]);
+
+      expect(await componentHarness.getTable()).not.toBeNull();
+      expect(await componentHarness.rowsNumber()).toEqual(1);
+      expect(await componentHarness.getPendingJobBanner()).not.toBeNull();
+
+      discardPeriodicTasks();
+    }));
+
+    it('should display correct number of rows', fakeAsync(async (): Promise<void> => {
+      await init();
+      tick(1);
       expectIntegrationGetRequest();
       expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
 
       const rows: number = await componentHarness.rowsNumber();
       expect(rows).toEqual(4);
-    });
+    }));
 
-    it('pagination should request proper url', async () => {
+    it('pagination should request proper url', fakeAsync(async () => {
+      await init();
+      tick(1);
       expectIntegrationGetRequest();
-
       expectFederatedAPIsGetRequest([fakeFederatedAPI()], 1, 10);
 
       const pagination: MatPaginatorHarness = await componentHarness.getPagination();
 
       await pagination.setPageSize(5);
+      tick(300);
       expectFederatedAPIsGetRequest([fakeFederatedAPI()], 1, 5);
-
-      pagination.getPageSize().then((value) => {
-        expect(value).toEqual(5);
-      });
+      expect(await pagination.getPageSize()).toEqual(5);
 
       await pagination.setPageSize(25);
+      tick(300);
       expectFederatedAPIsGetRequest([fakeFederatedAPI()], 1, 25);
+      expect(await pagination.getPageSize()).toEqual(25);
 
-      pagination.getPageSize().then((value) => {
-        expect(value).toEqual(25);
-      });
-    });
+      discardPeriodicTasks();
+    }));
+  });
+
+  describe('discover', () => {
+    it('button should be disabled when agent "DISCONNECTED"', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.DISCONNECTED }));
+      expectFederatedAPIsGetRequest();
+
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      expect(await discoverBtn.isDisabled()).toBe(true);
+    }));
+
+    it('button should be active when agent "CONNECTED"', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: AgentStatus.CONNECTED }));
+      expectFederatedAPIsGetRequest();
+
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      expect(await discoverBtn.isDisabled()).toBe(false);
+    }));
   });
 
   function expectIntegrationGetRequest(integrationMock: Integration = fakeIntegration()): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
     req.flush(integrationMock);
-    expect(req.request.method).toEqual('GET');
   }
 
   function expectFederatedAPIsGetRequest(
     federatedAPIs: FederatedAPI[] = [fakeFederatedAPI(), fakeFederatedAPI()],
     page = 1,
     perPage = 10,
+    totalCount = federatedAPIs.length,
   ): void {
     const req: TestRequest = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/apis?page=${page}&perPage=${perPage}`,
@@ -248,10 +255,10 @@ describe('IntegrationOverviewComponent', () => {
       pagination: {
         page,
         perPage,
+        totalCount,
       },
     };
 
     req.flush(res);
-    expect(req.request.method).toEqual('GET');
   }
 });

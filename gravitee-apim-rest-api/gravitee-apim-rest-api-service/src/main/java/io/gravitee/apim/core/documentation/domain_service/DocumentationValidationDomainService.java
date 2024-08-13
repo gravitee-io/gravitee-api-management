@@ -17,6 +17,8 @@ package io.gravitee.apim.core.documentation.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
@@ -33,13 +35,14 @@ import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @DomainService
 public class DocumentationValidationDomainService {
@@ -73,7 +76,9 @@ public class DocumentationValidationDomainService {
 
     public void validateContent(String content, String apiId, String organizationId) {
         this.validateContentIsSafe(content);
-        this.validateTemplate(content, apiId, organizationId);
+        if (apiId != null) {
+            this.validateTemplate(content, apiId, organizationId);
+        }
     }
 
     public void validateContentIsSafe(String content) {
@@ -84,24 +89,29 @@ public class DocumentationValidationDomainService {
     }
 
     public void validateTemplate(String pageContent, String apiId, String organizationId) {
-        var metadata =
-            this.apiMetadataQueryService.findApiMetadata(apiId)
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
-                    )
-                );
+        try {
+            Api exitingApi = this.apiCrudService.get(apiId);
+            var metadata =
+                this.apiMetadataQueryService.findApiMetadata(apiId)
+                    .entrySet()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
+                        )
+                    );
 
-        var api = new ApiFreemarkerTemplate(
-            this.apiCrudService.get(apiId),
-            metadata,
-            apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId)
-        );
+            var api = new ApiFreemarkerTemplate(
+                exitingApi,
+                metadata,
+                apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId)
+            );
 
-        this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", api));
+            this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", api));
+        } catch (ApiNotFoundException e) {
+            log.debug("api doesn't exist [{}]. Template will not be validated", apiId);
+        }
     }
 
     public void parseOpenApiContent(String content) {
@@ -124,6 +134,7 @@ public class DocumentationValidationDomainService {
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         validatePageContent(organizationId, sanitizedPage);
+        pageSourceDomainService.validatePageSource(sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);
@@ -140,6 +151,7 @@ public class DocumentationValidationDomainService {
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         validatePageContent(organizationId, sanitizedPage);
+        pageSourceDomainService.validatePageSource(sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);

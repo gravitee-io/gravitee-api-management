@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
@@ -49,12 +50,15 @@ class ValidateCRDDomainServiceTest {
 
     ValidateResourceDomainService resourceValidator = mock(ValidateResourceDomainService.class);
 
+    ValidatePagesDomainService pagesValidator = mock(ValidatePagesDomainService.class);
+
     ValidateCRDDomainService cut = new ValidateCRDDomainService(
         categoryIdsValidator,
         pathValidator,
         membersValidator,
         groupsValidator,
-        resourceValidator
+        resourceValidator,
+        pagesValidator
     );
 
     @BeforeEach
@@ -78,6 +82,9 @@ class ValidateCRDDomainServiceTest {
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(ENV_ID, spec.getId(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();

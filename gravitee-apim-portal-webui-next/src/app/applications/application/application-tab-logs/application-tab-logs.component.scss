@@ -15,6 +15,8 @@
  */
 @use '../../../../scss/theme';
 
+$form-field-hint-height: 16px;
+
 :host {
   display: flex;
   flex-flow: column;
@@ -45,6 +47,56 @@
       display: flex;
       align-items: center;
       gap: 4px;
+    }
+  }
+}
+
+.filters {
+  --mat-form-field-subscript-text-line-height: 0;
+
+  &__row-one {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    &__select-filters {
+      display: inline-flex;
+      min-width: 0;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    &__separator {
+      border-left: 1px solid var(--mdc-filled-button-disabled-label-text-color);
+      margin-bottom: $form-field-hint-height;
+    }
+
+    &__btn {
+      display: flex;
+      margin-bottom: $form-field-hint-height;
+      gap: 16px;
+    }
+  }
+
+  &__row-two {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__filter-summary {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 8px;
+
+      &__chips {
+        display: flex;
+        flex: 1;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
     }
   }
 }

@@ -224,7 +224,7 @@ export class SubscribeToApiComponent implements OnInit {
   }
 
   private getApplicationsData$(page: number, subscriptionsResponse: SubscriptionsResponse): Observable<ApplicationsData> {
-    return this.applicationService.list({ page, size: 9, forSubscriptions: true }).pipe(
+    return this.applicationService.list(page, 9, true).pipe(
       map(response => ({
         applications: this.addApplicationDisabledState(response, subscriptionsResponse),
         pagination: {
