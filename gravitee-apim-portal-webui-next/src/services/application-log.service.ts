@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { LogsResponse } from '../entities/log/log';
+import { Log, LogsResponse } from '../entities/log/log';
 
 /* eslint-disable no-useless-escape */
 
@@ -86,6 +86,10 @@ export class ApplicationLogService {
     }
 
     return this.http.get<LogsResponse>(`${this.configService.baseURL}/applications/${applicationId}/logs?${paramsList.join('&')}`);
+  }
+
+  get(applicationId: string, logId: string, timestamp: string): Observable<Log> {
+    return this.http.get<Log>(`${this.configService.baseURL}/applications/${applicationId}/logs/${logId}?timestamp=${timestamp}`);
   }
 
   private serializeLogListQuery(params: ApplicationLogsListParameters): string {
