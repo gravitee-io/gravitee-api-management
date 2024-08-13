@@ -423,20 +423,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Then, if user is subscribing to an oauth2 or jwt plan.
                 // Check that there is no existing subscription based on an OAuth2 or JWT plan
                 if (planSecurityType == PlanSecurityType.OAUTH2 || planSecurityType == PlanSecurityType.JWT) {
-                    long count = subscriptions
-                        .stream()
-                        .filter(onlyValidSubs)
-                        .map(Subscription::getPlan)
-                        .distinct()
-                        .map(plan1 -> planSearchService.findById(executionContext, plan1))
-                        .filter(subPlan -> subPlan.getPlanMode() == PlanMode.STANDARD)
-                        .filter(subPlan -> {
-                            PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
-                            PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
-                            return subPlanSecurityType == PlanSecurityType.OAUTH2 || subPlanSecurityType == PlanSecurityType.JWT;
-                        })
-                        .count();
-
+                    long count = countSubscriptionMatchingPredicate(
+                        executionContext,
+                        subscriptions,
+                        onlyValidSubs,
+                        subPlanSecurityType -> subPlanSecurityType == PlanSecurityType.OAUTH2 || subPlanSecurityType == PlanSecurityType.JWT
+                    );
                     if (count > 0) {
                         throw new PlanOAuth2OrJWTAlreadySubscribedException(
                             "An other OAuth2 or JWT plan is already subscribed by the same application."
@@ -445,20 +437,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
 
                 if (planSecurityType == PlanSecurityType.API_KEY && applicationEntity.hasApiKeySharedMode()) {
-                    long count = subscriptions
-                        .stream()
-                        .filter(onlyValidSubs)
-                        .map(Subscription::getPlan)
-                        .distinct()
-                        .map(plan1 -> planSearchService.findById(executionContext, plan1))
-                        .filter(subPlan -> subPlan.getPlanMode() == PlanMode.STANDARD)
-                        .filter(subPlan -> {
-                            PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
-                            PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
-                            return subPlanSecurityType == PlanSecurityType.API_KEY;
-                        })
-                        .count();
-
+                    final long count = countSubscriptionMatchingPredicate(
+                        executionContext,
+                        subscriptions,
+                        onlyValidSubs,
+                        subPlanSecurityType -> subPlanSecurityType == PlanSecurityType.API_KEY
+                    );
                     if (count > 0) {
                         throw new PlanNotSubscribableWithSharedApiKeyException();
                     }
@@ -568,6 +552,27 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to subscribe to the plan %s", plan), ex);
         }
+    }
+
+    private long countSubscriptionMatchingPredicate(
+        ExecutionContext executionContext,
+        List<Subscription> subscriptions,
+        Predicate<Subscription> onlyValidSubs,
+        Predicate<PlanSecurityType> subscriptionPlanSecurityTypePredicate
+    ) {
+        return subscriptions
+            .stream()
+            .filter(onlyValidSubs)
+            .map(Subscription::getPlan)
+            .distinct()
+            .map(plan -> planSearchService.findById(executionContext, plan))
+            .filter(subPlan -> subPlan.getPlanMode() == PlanMode.STANDARD)
+            .filter(subPlan -> {
+                PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
+                PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
+                return subscriptionPlanSecurityTypePredicate.test(subPlanSecurityType);
+            })
+            .count();
     }
 
     private void updateApplicationApiKeyMode(
