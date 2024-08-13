@@ -334,6 +334,26 @@ class VerifyApiPathDomainServiceTest {
     }
 
     @Test
+    public void should_ignore_if_path_already_used_by_api_v4_with_different_host() {
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.net", "/path/")))));
+
+        var paths = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(Path.builder().host("domain.com").path("/path/").build())
+                )
+            )
+            .map(VerifyApiPathDomainService.Input::paths)
+            .value();
+
+        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
+    }
+
+    @Test
     public void should_ignore_path_used_by_same_api_v4_with_host() {
         givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 

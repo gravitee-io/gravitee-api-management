@@ -144,9 +144,12 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
                 var paths = sanitizedBuilder.stream().map(Path.PathBuilder::build).toList();
                 var pathsWithHost = getPathsWithHost(paths);
                 var existingPathsWithHost = getPathsWithHost(existingPaths);
+
                 pathsWithHost.forEach((host, hostPaths) ->
-                    hostPaths.forEach(hostPath -> findConflictingPathError(hostPath, existingPathsWithHost.get(host)).ifPresent(errors::add)
-                    )
+                    hostPaths.forEach(hostPath -> {
+                        var existingHostPaths = existingPathsWithHost.getOrDefault(host, List.of());
+                        findConflictingPathError(hostPath, existingHostPaths).ifPresent(errors::add);
+                    })
                 );
 
                 var pathsWithoutHosts = getPathsWithoutHost(paths);
