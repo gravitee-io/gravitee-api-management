@@ -21,10 +21,13 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
+import java.util.Optional;
 
 public interface SharedPolicyGroupHistoryRepository extends CrudRepository<SharedPolicyGroup, String> {
     Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
         throws TechnicalException;
 
     Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException;
+
+    Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) throws TechnicalException;
 }

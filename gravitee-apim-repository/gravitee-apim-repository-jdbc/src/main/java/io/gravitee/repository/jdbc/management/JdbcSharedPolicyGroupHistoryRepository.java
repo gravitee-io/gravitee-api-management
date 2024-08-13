@@ -216,4 +216,33 @@ public class JdbcSharedPolicyGroupHistoryRepository
             throw new TechnicalException("Failed to search for SharedPolicyGroups", ex);
         }
     }
+
+    @Override
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
+        throws TechnicalException {
+        Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
+        Objects.requireNonNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
+        LOGGER.debug("JdbcSharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId({}, {})", environmentId, sharedPolicyGroupId);
+
+        try {
+            StringJoiner andWhere = new StringJoiner(" AND ");
+            List<Object> andWhereParams = new ArrayList<>();
+
+            andWhere.add("environment_id = ?");
+            andWhereParams.add(environmentId);
+            andWhere.add("id = ?");
+            andWhereParams.add(sharedPolicyGroupId);
+
+            var result = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE " + andWhere + " ORDER BY updated_at DESC " + createPagingClause(1, 0),
+                getOrm().getRowMapper(),
+                andWhereParams.toArray()
+            );
+
+            return Optional.ofNullable(result.isEmpty() ? null : result.get(0));
+        } catch (Exception ex) {
+            LOGGER.error("Failed to search for SharedPolicyGroupHistory:", ex);
+            throw new TechnicalException("Failed to search for SharedPolicyGroupHistory", ex);
+        }
+    }
 }

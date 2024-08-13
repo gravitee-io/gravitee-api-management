@@ -259,6 +259,22 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         assertThat(page.getTotalElements()).isEqualTo(0);
     }
 
+    @Test
+    public void should_getLatestBySharedPolicyGroupId() throws TechnicalException {
+        final var sharedPolicyGroup = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId(
+            "environmentId",
+            "sharedPolicyGroupId_1"
+        );
+        assertThat(sharedPolicyGroup).isPresent();
+        assertThat(sharedPolicyGroup.get().getName()).isEqualTo("Name changed 9 times");
+    }
+
+    @Test
+    public void should_getLatestBySharedPolicyGroupId_with_no_result() throws TechnicalException {
+        final var sharedPolicyGroup = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId("environmentId", "unknown");
+        assertThat(sharedPolicyGroup).isEmpty();
+    }
+
     private static SharedPolicyGroup.SharedPolicyGroupBuilder getDefaultSharedPolicyGroupBuilder(String id) {
         return SharedPolicyGroup
             .builder()

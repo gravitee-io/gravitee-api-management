@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCrit
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.SharedPolicyGroup;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -40,5 +41,11 @@ public class NoOpSharedPolicyGroupHistoryRepository
     @Override
     public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
         return new Page<>(List.of(), 0, 0, 0L);
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
+        throws TechnicalException {
+        return Optional.empty();
     }
 }

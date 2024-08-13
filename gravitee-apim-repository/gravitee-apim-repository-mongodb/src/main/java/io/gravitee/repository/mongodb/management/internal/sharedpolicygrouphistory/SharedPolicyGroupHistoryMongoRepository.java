@@ -16,9 +16,15 @@
 package io.gravitee.repository.mongodb.management.internal.sharedpolicygrouphistory;
 
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupHistoryMongo;
+import java.util.Optional;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SharedPolicyGroupHistoryMongoRepository
-    extends MongoRepository<SharedPolicyGroupHistoryMongo, String>, SharedPolicyGroupHistoryMongoRepositoryCustom {}
+    extends MongoRepository<SharedPolicyGroupHistoryMongo, String>, SharedPolicyGroupHistoryMongoRepositoryCustom {
+    // Get SPG binding by environmentId and sharedPolicyGroupId sorted by deployedAt limit 1
+    @Aggregation(pipeline = { "{$match: { environmentId : ?0, 'id' : ?1 }}", "{$sort: {updatedAt: -1}}", "{$limit: 1}" })
+    Optional<SharedPolicyGroupHistoryMongo> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId);
+}
