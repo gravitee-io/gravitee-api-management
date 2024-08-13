@@ -26,4 +26,5 @@ public enum MembershipReferenceType {
     ENVIRONMENT,
     ORGANIZATION,
     PLATFORM,
+    INTEGRATION,
 }
