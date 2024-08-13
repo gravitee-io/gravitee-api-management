@@ -42,4 +42,8 @@ public enum PlanSecurityType {
      * Plan which is using a JWT security authentication type for incoming HTTP requests.
      */
     JWT,
+    /**
+     * Plan which is using a mTLS security authentication type for incoming HTTP requests.
+     */
+    MTLS,
 }

@@ -98,6 +98,7 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
+import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
@@ -418,6 +419,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 if (subscriptionCount > 0) {
                     throw new PlanAlreadySubscribedException(plan);
+                }
+
+                // Check that there is no existing subscription based on an mtls plan
+                if (planSecurityType == PlanSecurityType.MTLS) {
+                    long count = countSubscriptionMatchingPredicate(
+                        executionContext,
+                        subscriptions,
+                        onlyValidSubs,
+                        subPlanSecurityType -> subPlanSecurityType == PlanSecurityType.MTLS
+                    );
+                    if (count > 0) {
+                        throw new PlanMtlsAlreadySubscribedException("An other mTLS plan is already subscribed by the same application.");
+                    }
                 }
 
                 // Then, if user is subscribing to an oauth2 or jwt plan.
