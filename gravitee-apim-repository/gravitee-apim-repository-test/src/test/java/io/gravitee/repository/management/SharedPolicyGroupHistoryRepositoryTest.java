@@ -64,40 +64,24 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_create() throws Exception {
-        var date = new Date();
-        final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup
-            .builder()
-            .id("id_create_test")
-            .name("name")
-            .version(1)
-            .description("description")
-            .prerequisiteMessage("prerequisiteMessage")
-            .crossId("crossId")
-            .apiType(ApiType.PROXY)
-            .phase(SharedPolicyGroup.ExecutionPhase.REQUEST)
-            .definition("definition")
-            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .environmentId("environmentId")
-            .organizationId("organizationId")
-            .deployedAt(date)
-            .createdAt(date)
-            .updatedAt(date)
-            .build();
+        final SharedPolicyGroup sharedPolicyGroupV1 = getDefaultSharedPolicyGroupBuilder("id_create_test").name("Name v1").build();
+        sharedPolicyGroupHistoryRepository.create(sharedPolicyGroupV1);
 
-        final SharedPolicyGroup create = sharedPolicyGroupHistoryRepository.create(sharedPolicyGroup);
+        final SharedPolicyGroup sharedPolicyGroupV2 = getDefaultSharedPolicyGroupBuilder("id_create_test").name("Name v2").build();
+        final SharedPolicyGroup create = sharedPolicyGroupHistoryRepository.create(sharedPolicyGroupV2);
 
-        assertThat(create.getName()).isEqualTo(sharedPolicyGroup.getName());
-        assertThat(create.getVersion()).isEqualTo(sharedPolicyGroup.getVersion());
-        assertThat(create.getDescription()).isEqualTo(sharedPolicyGroup.getDescription());
-        assertThat(create.getPrerequisiteMessage()).isEqualTo(sharedPolicyGroup.getPrerequisiteMessage());
-        assertThat(create.getCrossId()).isEqualTo(sharedPolicyGroup.getCrossId());
-        assertThat(create.getApiType()).isEqualTo(sharedPolicyGroup.getApiType());
-        assertThat(create.getPhase()).isEqualTo(sharedPolicyGroup.getPhase());
-        assertThat(create.getDefinition()).isEqualTo(sharedPolicyGroup.getDefinition());
-        assertThat(create.getLifecycleState()).isEqualTo(sharedPolicyGroup.getLifecycleState());
-        assertThat(create.getEnvironmentId()).isEqualTo(sharedPolicyGroup.getEnvironmentId());
-        assertThat(create.getOrganizationId()).isEqualTo(sharedPolicyGroup.getOrganizationId());
-        assertThat(create.getDeployedAt()).isEqualTo(sharedPolicyGroup.getDeployedAt());
+        assertThat(create.getName()).isEqualTo(sharedPolicyGroupV2.getName());
+        assertThat(create.getVersion()).isEqualTo(sharedPolicyGroupV2.getVersion());
+        assertThat(create.getDescription()).isEqualTo(sharedPolicyGroupV2.getDescription());
+        assertThat(create.getPrerequisiteMessage()).isEqualTo(sharedPolicyGroupV2.getPrerequisiteMessage());
+        assertThat(create.getCrossId()).isEqualTo(sharedPolicyGroupV2.getCrossId());
+        assertThat(create.getApiType()).isEqualTo(sharedPolicyGroupV2.getApiType());
+        assertThat(create.getPhase()).isEqualTo(sharedPolicyGroupV2.getPhase());
+        assertThat(create.getDefinition()).isEqualTo(sharedPolicyGroupV2.getDefinition());
+        assertThat(create.getLifecycleState()).isEqualTo(sharedPolicyGroupV2.getLifecycleState());
+        assertThat(create.getEnvironmentId()).isEqualTo(sharedPolicyGroupV2.getEnvironmentId());
+        assertThat(create.getOrganizationId()).isEqualTo(sharedPolicyGroupV2.getOrganizationId());
+        assertThat(create.getDeployedAt()).isEqualTo(sharedPolicyGroupV2.getDeployedAt());
         assertThat(create.getCreatedAt()).isEqualTo(create.getCreatedAt());
         assertThat(create.getUpdatedAt()).isEqualTo(create.getUpdatedAt());
     }
