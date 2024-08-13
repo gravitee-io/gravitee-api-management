@@ -1,0 +1,122 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="navigate-back m3-title-small" i18n="@@applicationLogGoBack" [routerLink]="['../']" queryParamsHandling="preserve">
+  <mat-icon>arrow_backward</mat-icon>
+  Back to Search
+</div>
+<div class="application-log__container">
+  @if (log$ | async; as log) {
+    <mat-card class="main">
+      <mat-card-content class="application-log__container__column__content">
+        <div class="m3-body-medium application-log__container__column__content__panel">
+          <div>
+            <span class="m3-title-small" i18n="@@applicationLogTimestamp">Timestamp</span>:
+            {{ log.timestamp | date: 'YYYY-MM-dd HH:mm:ss.SSS' }}
+          </div>
+          <div><span class="m3-title-small" i18n="@@applicationLogApi">API</span>: {{ log.apiName }}</div>
+          <div><span class="m3-title-small" i18n="@@applicationLogPlan">Plan</span>: {{ log.planName }}</div>
+        </div>
+      </mat-card-content></mat-card
+    >
+    <div class="application-log__container__row-two">
+      <mat-card appearance="outlined" class="application-log__container__column">
+        <mat-card-content class="application-log__container__column__content">
+          <div class="m3-title-medium" i18n="@@applicationLogRequest">Request</div>
+          <div class="m3-body-medium application-log__container__column__content__panel">
+            <div><span class="m3-title-small" i18n="@@applicationLogRequestId">Request ID</span>: {{ log.id }}</div>
+            <div><span class="m3-title-small" i18n="@@applicationLogRequestMethod">Method</span>: {{ log.method }}</div>
+            <div><span class="m3-title-small" i18n="@@applicationLogRequestPath">Path</span>: {{ log.path }}</div>
+            <div>
+              <span class="m3-title-small" i18n="@@applicationLogContentLength">Content Length</span>: {{ log.requestContentLength }}
+            </div>
+          </div>
+          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Request Headers">
+            <mat-expansion-panel-header>
+              <mat-panel-title i18n="@@applicationLogHeaders">Headers</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="m3-body-medium application-log__container__column__content__panel">
+              @for (header of log.requestHeaders; track header) {
+                <div>
+                  <span class="m3-title-small">{{ header.key }}: </span>{{ header.value }}
+                </div>
+              } @empty {
+                <span i18n="@@applicationLogNoHeaders">No headers logged.</span>
+              }
+            </div>
+          </mat-expansion-panel>
+          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Request Body">
+            <mat-expansion-panel-header>
+              <mat-panel-title i18n="@@applicationLogBody">Body</mat-panel-title>
+            </mat-expansion-panel-header>
+            @if (log.request?.body) {
+              <app-copy-code class="m3-body-medium" [text]="log.request?.body ?? ''" />
+            } @else {
+              <div class="m3-body-medium" i18n="@@applicationLogNoBody">No content logged.</div>
+            }
+          </mat-expansion-panel>
+        </mat-card-content>
+      </mat-card>
+      <mat-card appearance="outlined" class="application-log__container__column">
+        <mat-card-content class="application-log__container__column__content">
+          <div class="m3-title-medium" i18n="@@applicationLogResponse">Response</div>
+          <div class="m3-body-medium application-log__container__column__content__panel">
+            <div><span class="m3-title-small" i18n="@@applicationLogTransactionId">Transaction ID</span>: {{ log.id }}</div>
+            <div><span class="m3-title-small" i18n="@@applicationLogStatus">Status</span>: {{ log.status }}</div>
+            <div>
+              <span class="m3-title-small" i18n="@@applicationLogResponseTime">Response Time</span>: {{ log.responseTime
+              }}<span i18n="@@applicationLogMillisecond">ms</span>
+            </div>
+            <div>
+              <span class="m3-title-small" i18n="@@applicationLogContentLength">Content Length</span>: {{ log.responseContentLength }}
+            </div>
+          </div>
+          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Response Headers">
+            <mat-expansion-panel-header>
+              <mat-panel-title i18n="@@applicationLogHeaders">Headers</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="m3-body-medium application-log__container__column__content__panel">
+              @for (header of log.responseHeaders; track header) {
+                <div>
+                  <span class="m3-title-small">{{ header.key }}: </span>{{ header.value }}
+                </div>
+              } @empty {
+                <span i18n="@@applicationLogNoHeaders">No headers logged.</span>
+              }
+            </div>
+          </mat-expansion-panel>
+          <mat-expansion-panel [expanded]="false" class="mat-elevation-z0" aria-label="Response Body">
+            <mat-expansion-panel-header>
+              <mat-panel-title i18n="@@applicationLogBody">Body</mat-panel-title>
+            </mat-expansion-panel-header>
+            @if (log.response?.body) {
+              <app-copy-code class="m3-body-medium" [text]="log.response?.body ?? ''" />
+            } @else {
+              <div class="m3-body-medium" i18n="@@applicationLogNoBody">No content logged.</div>
+            }
+          </mat-expansion-panel>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  } @else if (error) {
+    <div class="m3-title-medium" i18n="@@applicationLogErrorMessage" aria-label="Log error">
+      The log could not be loaded. Try again, and if the issue persists, contact your portal administrator.
+    </div>
+  } @else {
+    <app-loader />
+  }
+</div>

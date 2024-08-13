@@ -37,3 +37,7 @@ mat-dialog-container {
 mat-form-field {
   --mdc-filled-text-field-container-color: var(--mdc-outlined-card-container-color);
 }
+
+mat-expansion-panel {
+  --mat-expansion-container-background-color: #{theme.$card-background-color};
+}
