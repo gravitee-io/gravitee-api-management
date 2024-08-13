@@ -187,16 +187,16 @@ describe('SharedPolicyGroupsStudioComponent', () => {
     );
   });
 
-  it.each([
-    <Partial<SharedPolicyGroup>>{ lifecycleState: 'UNDEPLOYED' },
-    <Partial<SharedPolicyGroup>>{ lifecycleState: 'DEPLOYED', updatedAt: new Date(2023, 2, 22), deployedAt: new Date(2023, 2, 21) },
-  ])('should display Deploy button: %p', async (modifier: Partial<SharedPolicyGroup>) => {
-    expectSharedPolicyGroup(modifier);
-    expectGetPolicies();
-    const deployButton = await componentHarness.getDeployButton();
+  it.each([<Partial<SharedPolicyGroup>>{ lifecycleState: 'UNDEPLOYED' }, <Partial<SharedPolicyGroup>>{ lifecycleState: 'PENDING' }])(
+    'should display Deploy button: %p',
+    async (modifier: Partial<SharedPolicyGroup>) => {
+      expectSharedPolicyGroup(modifier);
+      expectGetPolicies();
+      const deployButton = await componentHarness.getDeployButton();
 
-    expect(await deployButton.isDisabled()).toEqual(false);
-  });
+      expect(await deployButton.isDisabled()).toEqual(false);
+    },
+  );
 
   it('should deploy shared policy group', async () => {
     expectSharedPolicyGroup({ lifecycleState: 'UNDEPLOYED' });
@@ -208,16 +208,16 @@ describe('SharedPolicyGroupsStudioComponent', () => {
     expectSharedPolicyGroup();
   });
 
-  it.each([
-    <Partial<SharedPolicyGroup>>{ lifecycleState: 'DEPLOYED' },
-    <Partial<SharedPolicyGroup>>{ lifecycleState: 'UNDEPLOYED', updatedAt: new Date(2023, 2, 22), deployedAt: new Date(2023, 2, 21) },
-  ])('should display Undeploy button: %p', async (modifier: Partial<SharedPolicyGroup>) => {
-    expectSharedPolicyGroup(modifier);
-    expectGetPolicies();
-    const undeployButton = await componentHarness.getUndeployButton();
+  it.each([<Partial<SharedPolicyGroup>>{ lifecycleState: 'DEPLOYED' }, <Partial<SharedPolicyGroup>>{ lifecycleState: 'PENDING' }])(
+    'should display Undeploy button: %p',
+    async (modifier: Partial<SharedPolicyGroup>) => {
+      expectSharedPolicyGroup(modifier);
+      expectGetPolicies();
+      const undeployButton = await componentHarness.getUndeployButton();
 
-    expect(await undeployButton.isDisabled()).toEqual(false);
-  });
+      expect(await undeployButton.isDisabled()).toEqual(false);
+    },
+  );
 
   it('should undeploy shared policy group', async () => {
     expectSharedPolicyGroup({ lifecycleState: 'DEPLOYED' });

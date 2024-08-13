@@ -36,12 +36,13 @@ import {
   SharedPolicyGroupAddEditDialogData,
   SharedPolicyGroupAddEditDialogResult,
 } from './shared-policy-groups-add-edit-dialog/shared-policy-groups-add-edit-dialog.component';
+import { SharedPolicyGroupsStateBadgeComponent } from './shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
 
 import { SharedPolicyGroupsService } from '../../../services-ngx/shared-policy-groups.service';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { ApiV4, SharedPolicyGroupsSortByParam } from '../../../entities/management-api-v2';
+import { ApiV4, SharedPolicyGroup, SharedPolicyGroupsSortByParam } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -50,6 +51,7 @@ type PageTableVM = {
     id: string;
     name: string;
     description: string;
+    lifecycleState: SharedPolicyGroup['lifecycleState'];
     apiType: ApiV4['type'];
     phase: string;
     updatedAt: Date;
@@ -76,6 +78,7 @@ type PageTableVM = {
     GioIconsModule,
     GioPermissionModule,
     GioTableWrapperModule,
+    SharedPolicyGroupsStateBadgeComponent,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,6 +125,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
             id: sharedPolicyGroup.id,
             name: sharedPolicyGroup.name,
             description: sharedPolicyGroup.description,
+            lifecycleState: sharedPolicyGroup.lifecycleState,
             apiType: sharedPolicyGroup.apiType,
             phase: sharedPolicyGroup.phase,
             updatedAt: sharedPolicyGroup.updatedAt,

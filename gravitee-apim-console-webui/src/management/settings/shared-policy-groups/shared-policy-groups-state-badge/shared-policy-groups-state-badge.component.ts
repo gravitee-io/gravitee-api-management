@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { ApiType, StepV4 } from '../api';
-import { ExecutionPhase } from '../plugin';
+import { SharedPolicyGroup } from '../../../../entities/management-api-v2';
 
-export interface SharedPolicyGroup {
-  id: string;
-  crossId: string;
-  name: string;
-  description?: string;
-  lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
-  version?: string;
-  apiType: ApiType;
-  phase: ExecutionPhase;
-  steps?: StepV4[];
-  deployedAt?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+@Component({
+  selector: 'shared-policy-groups-state-badge',
+  standalone: true,
+  imports: [MatTooltipModule],
+  templateUrl: './shared-policy-groups-state-badge.component.html',
+  styleUrl: './shared-policy-groups-state-badge.component.scss',
+})
+export class SharedPolicyGroupsStateBadgeComponent {
+  @Input()
+  lifecycleState: SharedPolicyGroup['lifecycleState'];
 }

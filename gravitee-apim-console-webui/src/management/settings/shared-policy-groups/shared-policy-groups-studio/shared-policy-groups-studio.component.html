@@ -24,25 +24,37 @@
   @if (sharedPolicyGroup(); as sharedPolicyGroup) {
     <mat-card-header>
       <mat-card-title
-        >{{ sharedPolicyGroup.name }} <span class="gio-badge-success">{{ sharedPolicyGroup.apiType }}</span
-        ><span class="gio-badge-success">{{ sharedPolicyGroup.phase }}</span></mat-card-title
-      >
+        >{{ sharedPolicyGroup.name }}
+        <span class="gio-badge-accent">{{ sharedPolicyGroup.apiType }}</span>
+        <span class="gio-badge-accent">{{ sharedPolicyGroup.phase }}</span>
+        <shared-policy-groups-state-badge [lifecycleState]="sharedPolicyGroup.lifecycleState"></shared-policy-groups-state-badge>
+      </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
       <div class="shared-policy-groups-studio__headerRightBtn">
         @if (!isReadOnly) {
-          <button mat-stroked-button (click)="onEdit()">
+          <button mat-stroked-button (click)="onEdit()" matTooltip="Edit genral info">
             <mat-icon svgIcon="gio:edit-pencil">edit</mat-icon>
           </button>
-          <button [disabled]="!canUndeploy()" mat-stroked-button (click)="onUndeploy()">
+          <button
+            [disabled]="sharedPolicyGroup.lifecycleState === 'UNDEPLOYED'"
+            matTooltip="Undeploy"
+            mat-stroked-button
+            (click)="onUndeploy()"
+          >
             <mat-icon svgIcon="gio:cloud-unpublished">undeploy</mat-icon>
           </button>
         }
-        <button *gioPermission="{ anyOf: ['environment-shared_policy_group-d'] }" mat-stroked-button (click)="onDelete()">
+        <button
+          *gioPermission="{ anyOf: ['environment-shared_policy_group-d'] }"
+          matTooltip="Delete"
+          mat-stroked-button
+          (click)="onDelete()"
+        >
           <mat-icon svgIcon="gio:trash">delete</mat-icon>
         </button>
         @if (!isReadOnly) {
           <button [disabled]="!enableSaveButton" color="primary" mat-flat-button (click)="onSave()">Save</button>
-          <button [disabled]="!canDeploy()" color="primary" mat-flat-button (click)="onDeploy()">
+          <button [disabled]="sharedPolicyGroup.lifecycleState === 'DEPLOYED'" color="primary" mat-flat-button (click)="onDeploy()">
             <mat-icon svgIcon="gio:rocket">deploy</mat-icon>Deploy
           </button>
         }

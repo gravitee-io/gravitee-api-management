@@ -47,7 +47,13 @@
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="name">Name</th>
           <td mat-cell *matCellDef="let element">
-            <div>{{ element.name }}</div>
+            <div>
+              <div class="name">{{ element.name }}</div>
+              <shared-policy-groups-state-badge
+                class="lifecycleStateBadge"
+                [lifecycleState]="element.lifecycleState"
+              ></shared-policy-groups-state-badge>
+            </div>
             <div>{{ element.description }}</div>
           </td>
         </ng-container>

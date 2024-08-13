@@ -29,6 +29,7 @@ import {
 } from '@gravitee/ui-policy-studio-angular';
 import { filter, map } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltip } from '@angular/material/tooltip';
 
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
@@ -42,6 +43,7 @@ import {
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { removeSharedPolicyGroup } from '../shared-policy-groups.component';
+import { SharedPolicyGroupsStateBadgeComponent } from '../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
 
 @Component({
   selector: 'shared-policy-groups-studio',
@@ -57,6 +59,8 @@ import { removeSharedPolicyGroup } from '../shared-policy-groups.component';
     GioPolicyStudioComponent,
     GioPermissionModule,
     GioPolicyGroupStudioComponent,
+    MatTooltip,
+    SharedPolicyGroupsStateBadgeComponent,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -185,26 +189,5 @@ export class SharedPolicyGroupsStudioComponent {
         this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
       },
     );
-  }
-
-  public canDeploy(): boolean {
-    const sharedPolicyGroup = this.sharedPolicyGroup();
-    return (
-      sharedPolicyGroup.lifecycleState === 'UNDEPLOYED' ||
-      (sharedPolicyGroup.lifecycleState === 'DEPLOYED' && this.hasBeenUpdatedAfterDeployment())
-    );
-  }
-
-  public canUndeploy(): boolean {
-    const sharedPolicyGroup = this.sharedPolicyGroup();
-    return (
-      sharedPolicyGroup.lifecycleState === 'DEPLOYED' ||
-      (sharedPolicyGroup.lifecycleState === 'UNDEPLOYED' && this.hasBeenUpdatedAfterDeployment())
-    );
-  }
-
-  private hasBeenUpdatedAfterDeployment(): boolean {
-    const sharedPolicyGroup = this.sharedPolicyGroup();
-    return sharedPolicyGroup.deployedAt < sharedPolicyGroup.updatedAt;
   }
 }
