@@ -19,7 +19,7 @@ import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
-import { BehaviorSubject, catchError, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
@@ -80,6 +80,7 @@ export class CatalogComponent {
   private apiService = inject(ApiService);
   private categoriesService = inject(CategoriesService);
   private page$ = new BehaviorSubject(1);
+  private initialLoad: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -129,7 +130,18 @@ export class CatalogComponent {
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.apiService.search(currentPage, this.filter, this.query ?? '')),
+      switchMap(currentPage => {
+        if (this.initialLoad) {
+          this.initialLoad = false;
+          return of({ page: currentPage, size: 18 });
+        } else if (currentPage === 2) {
+          this.page$.next(3);
+          return EMPTY;
+        } else {
+          return of({ page: currentPage, size: 9 });
+        }
+      }),
+      switchMap(({ page, size }) => this.apiService.search(page, this.filter, this.query ?? '', size)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
