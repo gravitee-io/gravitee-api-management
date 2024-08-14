@@ -24,6 +24,7 @@ import java.util.Set;
 public interface RoleQueryService {
     Optional<Role> findApiRole(String name, ReferenceContext referenceContext);
     Optional<Role> findApplicationRole(String name, ReferenceContext referenceContext);
+    Optional<Role> findIntegrationRole(String name, ReferenceContext referenceContext);
     Set<Role> findByIds(Set<String> ids);
 
     default Role getApiRole(String name, ReferenceContext referenceContext) {

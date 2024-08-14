@@ -15,10 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.CreateIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationsUseCase;
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
@@ -66,8 +64,10 @@ public class IntegrationsResource extends AbstractResource {
         var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration);
         newIntegrationEntity.setEnvironmentId(environmentId);
 
+        var auditInfo = getAuditInfo();
+
         var createdIntegration = createIntegrationUsecase
-            .execute(new CreateIntegrationUseCase.Input(newIntegrationEntity, GraviteeContext.getCurrentOrganization()))
+            .execute(new CreateIntegrationUseCase.Input(newIntegrationEntity, auditInfo))
             .createdIntegration();
 
         return Response

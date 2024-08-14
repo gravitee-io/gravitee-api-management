@@ -47,6 +47,10 @@ public class RoleFixtures {
         return "app-po-id-" + organizationId;
     }
 
+    public static String integrationPrimaryOwnerRoleId(String integrationId) {
+        return "int-po-id-" + integrationId;
+    }
+
     public static Role anOrganizationAdminRole(String organizationId) {
         return systemRoleBuilder()
             .id(organizationAdminRoleId(organizationId))
@@ -94,6 +98,16 @@ public class RoleFixtures {
             .referenceId(organizationId)
             .referenceType(ReferenceType.ORGANIZATION)
             .scope(Role.Scope.APPLICATION)
+            .build();
+    }
+
+    public static Role anIntegrationPrimaryOwnerRole(String organizationId) {
+        return systemRoleBuilder()
+            .id(integrationPrimaryOwnerRoleId(organizationId))
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .referenceId(organizationId)
+            .referenceType(ReferenceType.ORGANIZATION)
+            .scope(Role.Scope.INTEGRATION)
             .build();
     }
 
