@@ -33,6 +33,9 @@ export class SharedPolicyGroupsAddEditDialogHarness extends ComponentHarness {
   protected _actions = this.locatorForOptional(MatDialogSection.ACTIONS);
   protected nameInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="name"]' }));
   protected descriptionInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+  protected prerequisiteMessageInput = this.locatorForOptional(
+    MatInputHarness.with({ selector: '[formControlName="prerequisiteMessage"]' }),
+  );
   protected phaseToggleGroup = this.locatorForOptional(MatButtonToggleGroupHarness.with({ selector: '[formControlName="phase"]' }));
 
   public async getTitleText(): Promise<string> {
@@ -69,6 +72,13 @@ export class SharedPolicyGroupsAddEditDialogHarness extends ComponentHarness {
   }
   public async getDescription() {
     return await this.descriptionInput().then((input) => input.getValue());
+  }
+
+  public async setPrerequisiteMessage(text: string) {
+    await this.prerequisiteMessageInput().then((input) => input.setValue(text));
+  }
+  public async getPrerequisiteMessage() {
+    return await this.prerequisiteMessageInput().then((input) => input.getValue());
   }
 
   public async setPhase(text: string) {

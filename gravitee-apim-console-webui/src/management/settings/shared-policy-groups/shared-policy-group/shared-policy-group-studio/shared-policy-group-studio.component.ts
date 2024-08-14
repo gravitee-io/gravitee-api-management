@@ -108,6 +108,7 @@ export class SharedPolicyGroupStudioComponent {
           this.sharedPolicyGroupsService.update(sharedPolicyGroup.id, {
             name: payload.name,
             description: payload.description,
+            prerequisiteMessage: payload.prerequisiteMessage,
           }),
         ),
         takeUntilDestroyed(this.destroyRef),

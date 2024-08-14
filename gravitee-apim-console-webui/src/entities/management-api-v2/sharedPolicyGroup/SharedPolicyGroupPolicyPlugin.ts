@@ -22,6 +22,7 @@ export interface SharedPolicyGroupPolicyPlugin {
   policyId: string;
   name: string;
   description?: string;
+  prerequisiteMessage?: string;
   version?: string;
   apiType: ApiType;
   phase: ExecutionPhase;

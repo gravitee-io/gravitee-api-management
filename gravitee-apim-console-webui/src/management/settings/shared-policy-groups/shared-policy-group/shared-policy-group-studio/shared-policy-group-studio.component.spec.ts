@@ -111,10 +111,12 @@ describe('SharedPolicyGroupStudioComponent', () => {
 
     expect(await addDialog.getName()).toEqual('Shared Policy Group');
     expect(await addDialog.getDescription()).toEqual('');
+    expect(await addDialog.getPrerequisiteMessage()).toEqual('');
     expect(await addDialog.getPhase()).toEqual('Request');
 
     await addDialog.setName('New name');
     await addDialog.setDescription('New description');
+    await addDialog.setPrerequisiteMessage('New prerequisite message');
     await addDialog.save();
 
     expectUpdateSharedPolicyGroupRequest(
@@ -123,6 +125,7 @@ describe('SharedPolicyGroupStudioComponent', () => {
       fakeUpdateSharedPolicyGroup({
         name: 'New name',
         description: 'New description',
+        prerequisiteMessage: 'New prerequisite message',
       }),
     );
 

@@ -22,6 +22,7 @@ export interface SharedPolicyGroup {
   crossId: string;
   name: string;
   description?: string;
+  prerequisiteMessage?: string;
   lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
   version?: string;
   apiType: ApiType;

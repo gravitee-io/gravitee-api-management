@@ -35,7 +35,9 @@ export type SharedPolicyGroupAddEditDialogData =
       sharedPolicyGroup: SharedPolicyGroup;
     };
 
-export type SharedPolicyGroupAddEditDialogResult = undefined | { name: string; description?: string; phase: ExecutionPhase };
+export type SharedPolicyGroupAddEditDialogResult =
+  | undefined
+  | { name: string; description?: string; prerequisiteMessage?: string; phase: ExecutionPhase };
 
 const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
   PROXY: ['REQUEST', 'RESPONSE'],
@@ -61,7 +63,12 @@ const PHASE_BY_API_TYPE: Record<ApiV4['type'], ExecutionPhase[]> = {
 export class SharedPolicyGroupsAddEditDialogComponent {
   protected apiTypeLabel: string;
 
-  protected formGroup: FormGroup<{ name: FormControl<string>; description: FormControl<string>; phase: FormControl<ExecutionPhase> }>;
+  protected formGroup: FormGroup<{
+    name: FormControl<string>;
+    description: FormControl<string>;
+    prerequisiteMessage: FormControl<string>;
+    phase: FormControl<ExecutionPhase>;
+  }>;
   protected isValid$: Observable<boolean>;
 
   protected phases: { name: string; value: ExecutionPhase }[];
@@ -81,6 +88,7 @@ export class SharedPolicyGroupsAddEditDialogComponent {
     this.formGroup = new FormGroup({
       name: new FormControl(isEdit(data) ? data.sharedPolicyGroup.name : '', Validators.required),
       description: new FormControl(isEdit(data) ? data.sharedPolicyGroup.description : ''),
+      prerequisiteMessage: new FormControl(isEdit(data) ? data.sharedPolicyGroup.prerequisiteMessage : ''),
       phase: new FormControl(
         isEdit(data) ? { disabled: true, value: data.sharedPolicyGroup.phase } : this.phases[0].value,
         Validators.required,
@@ -100,6 +108,7 @@ export class SharedPolicyGroupsAddEditDialogComponent {
     this.dialogRef.close({
       name: this.formGroup.get('name').value,
       description: this.formGroup.get('description').value,
+      prerequisiteMessage: this.formGroup.get('prerequisiteMessage').value,
       phase: this.formGroup.get('phase').value,
     });
   }

@@ -21,6 +21,7 @@ export interface CreateSharedPolicyGroup {
   name: string;
   crossId?: string;
   description?: string;
+  prerequisiteMessage?: string;
   apiType: ApiType;
   phase: ExecutionPhase;
   policies?: StepV4[];

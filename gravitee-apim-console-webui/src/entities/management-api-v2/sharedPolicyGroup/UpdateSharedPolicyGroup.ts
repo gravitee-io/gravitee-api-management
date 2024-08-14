@@ -20,5 +20,6 @@ export interface UpdateSharedPolicyGroup {
   crossId?: string;
   name?: string;
   description?: string;
+  prerequisiteMessage?: string;
   steps?: StepV4[];
 }
