@@ -1,0 +1,48 @@
+@use '../../../../scss/gio-layout' as gio-layout;
+
+.card {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    &__title {
+      width: 50%;
+    }
+
+    &__actions {
+      display: flex;
+      width: 50%;
+      justify-content: flex-end;
+      align-self: center;
+
+      &__button {
+        margin: 0 6px;
+      }
+    }
+  }
+
+  &__enable-notification-toggle {
+    width: 100%;
+  }
+
+  &__table {
+    width: 100%;
+
+    .mat-column-picture {
+      text-align: center;
+      width: 24px;
+      padding-right: 8px;
+    }
+
+    .primary-owner-name {
+      font-weight: bold;
+    }
+
+    .action-cell {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+  }
+}

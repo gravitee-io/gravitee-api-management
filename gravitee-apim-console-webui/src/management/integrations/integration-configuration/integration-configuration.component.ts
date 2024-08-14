@@ -36,7 +36,7 @@ export class IntegrationConfigurationComponent {
       displayName: 'User Permissions',
       routerLink: 'members',
       routerLinkActiveOptions: { exact: true },
-      disabled: true,
+      disabled: false,
     },
     // Uncomment when page ready
     // {
