@@ -17,8 +17,8 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,7 +57,11 @@ public interface SubscriptionService {
 
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription);
 
-    SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription, String clientId);
+    SubscriptionEntity update(
+        ExecutionContext executionContext,
+        UpdateSubscriptionEntity updateSubscription,
+        Consumer<Subscription> subscriptionTransformer
+    );
 
     SubscriptionEntity update(
         ExecutionContext executionContext,

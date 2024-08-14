@@ -135,6 +135,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -648,7 +649,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Override
     public SubscriptionEntity update(final ExecutionContext executionContext, UpdateSubscriptionEntity updateSubscription) {
-        return update(executionContext, updateSubscription, null);
+        return update(executionContext, updateSubscription, s -> {});
     }
 
     @Override
@@ -755,7 +756,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     public SubscriptionEntity update(
         final ExecutionContext executionContext,
         UpdateSubscriptionEntity updateSubscription,
-        String clientId
+        Consumer<Subscription> subscriptionTransformer
     ) {
         try {
             logger.debug("Update subscription {}", updateSubscription.getId());
@@ -781,9 +782,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setEndingAt(updateSubscription.getEndingAt());
                 // Reset info about pre expiration notification as the expiration date has changed
                 subscription.setDaysToExpirationOnLastNotification(null);
-                if (clientId != null && subscription.getClientId() != null) {
-                    subscription.setClientId(clientId);
-                }
+                subscriptionTransformer.accept(subscription);
 
                 subscription = subscriptionRepository.update(subscription);
                 createAudit(

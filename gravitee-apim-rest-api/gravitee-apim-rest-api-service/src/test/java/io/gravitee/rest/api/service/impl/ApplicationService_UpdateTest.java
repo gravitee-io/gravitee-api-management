@@ -33,6 +33,7 @@ import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
@@ -60,10 +61,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
@@ -635,7 +638,143 @@ public class ApplicationService_UpdateTest {
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
-        verify(subscriptionService, times(2)).update(any(), any(UpdateSubscriptionEntity.class), eq(CLIENT_ID));
+        ArgumentCaptor<Consumer<Subscription>> subscriptionModifierCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(subscriptionService, times(2)).update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
+
+        // Verify the function called to modify the subscription has been modifying its client id
+        Subscription fakeSubscription = new Subscription();
+        subscriptionModifierCaptor.getValue().accept(fakeSubscription);
+        Assertions.assertThat(fakeSubscription.getClientId()).isEqualTo(CLIENT_ID);
+    }
+
+    @Test
+    public void should_update_client_certificate_of_subscriptions() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        SubscriptionEntity subscription1 = new SubscriptionEntity();
+        subscription1.setId("sub-1");
+        subscription1.setClientCertificate("old cert");
+
+        SubscriptionEntity subscription2 = new SubscriptionEntity();
+        subscription2.setId("sub-2");
+        subscription2.setClientCertificate("old cert");
+
+        List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
+            .thenReturn(subscriptions);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        ArgumentCaptor<Consumer<Subscription>> subscriptionModifierCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(subscriptionService, times(2)).update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
+
+        // Verify the function called to modify the subscription has been modifying its client id
+        Subscription fakeSubscription = new Subscription();
+        subscriptionModifierCaptor
+            .getAllValues()
+            .forEach(subModifier -> {
+                subModifier.accept(fakeSubscription);
+                Assertions.assertThat(fakeSubscription.getClientId()).isNull();
+                Assertions
+                    .assertThat(fakeSubscription.getClientCertificate())
+                    .isEqualTo(Base64.getEncoder().encodeToString(VALID_PEM_1.trim().getBytes()));
+            });
+    }
+
+    @Test
+    public void should_update_both_client_id_and_client_certificate_of_subscriptions() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        SubscriptionEntity subscription1 = new SubscriptionEntity();
+        subscription1.setId("sub-1");
+        subscription1.setClientId("old client id");
+        subscription1.setClientCertificate("old cert");
+
+        SubscriptionEntity subscription2 = new SubscriptionEntity();
+        subscription2.setId("sub-2");
+        subscription2.setClientId("old client id");
+        subscription2.setClientCertificate("old cert");
+
+        List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
+            .thenReturn(subscriptions);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        ArgumentCaptor<Consumer<Subscription>> subscriptionModifierCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(subscriptionService, times(2)).update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
+
+        // Verify the function called to modify the subscription has been modifying its client id
+        Subscription fakeSubscription = new Subscription();
+        subscriptionModifierCaptor
+            .getAllValues()
+            .forEach(subModifier -> {
+                subModifier.accept(fakeSubscription);
+                Assertions.assertThat(fakeSubscription.getClientId()).isEqualTo(CLIENT_ID);
+                Assertions
+                    .assertThat(fakeSubscription.getClientCertificate())
+                    .isEqualTo(Base64.getEncoder().encodeToString(VALID_PEM_1.trim().getBytes()));
+            });
     }
 
     @Test
