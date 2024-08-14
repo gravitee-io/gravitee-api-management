@@ -23,7 +23,11 @@
   <div class="api-tab-documentation__page-content">
     @if (selectedPageData$ | async; as selectedPageData) {
       @if (selectedPageData.result) {
-        <app-page [page]="selectedPageData.result" [apiPages]="pages" [apiId]="apiId"></app-page>
+        <app-page
+          class="api-tab-documentation__page-content__container"
+          [page]="selectedPageData.result"
+          [apiPages]="pages"
+          [apiId]="apiId"></app-page>
       }
       @if (selectedPageData.error) {
         <div i18n="@@apiDocumentationError">An error has occurred.</div>
