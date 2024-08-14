@@ -40,10 +40,6 @@ export interface Application {
   origin?: string;
 }
 
-export interface AdditionalClientMetadata {
-  [key: string]: string;
-}
-
 export interface ApplicationSettings {
   app?: {
     client_id?: string;
@@ -57,7 +53,7 @@ export interface ApplicationSettings {
     application_type?: string;
     redirect_uris?: string[];
     renew_client_secret_supported?: boolean;
-    additional_client_metadata?: AdditionalClientMetadata;
+    additional_client_metadata?: Record<string, string>;
   };
   tls?: {
     client_certificate?: string;

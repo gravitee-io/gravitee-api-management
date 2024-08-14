@@ -22,6 +22,7 @@ import {
   GioClipboardModule,
   GioFormFilePickerModule,
   GioFormFocusInvalidModule,
+  GioFormHeadersModule,
   GioFormSlideToggleModule,
   GioFormTagsInputModule,
   GioSaveBarModule,
@@ -72,6 +73,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
     ReactiveFormsModule,
     RouterModule,
+    GioFormHeadersModule,
   ],
 })
 export class ApplicationGeneralModule {}

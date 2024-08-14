@@ -16,15 +16,21 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY } from 'rxjs';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GIO_DIALOG_WIDTH, GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+  Header,
+} from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { Application, ApplicationType } from '../../../../entities/application/Application';
+import { toDictionary, toGioFormHeader } from '../../../../util/gio-form-header.util';
 
 @Component({
   selector: 'application-general',
@@ -124,6 +130,10 @@ export class ApplicationGeneralComponent implements OnInit {
                   : undefined,
                 disabled: this.isReadOnly,
               }),
+              additional_client_metadata: new FormControl<Header[]>({
+                value: toGioFormHeader(this.initialApplication.settings?.oauth?.additional_client_metadata),
+                disabled: this.isReadOnly,
+              }),
             }),
           );
         }
@@ -164,6 +174,7 @@ export class ApplicationGeneralComponent implements OnInit {
               oauth: {
                 ...this.initialApplication.settings.oauth,
                 ...this.applicationForm.getRawValue().OpenIDForm,
+                additional_client_metadata: toDictionary(this.applicationForm.getRawValue().OpenIDForm.additional_client_metadata),
                 application_type: 'NATIVE',
               },
               tls: {

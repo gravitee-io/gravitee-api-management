@@ -30,6 +30,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -127,6 +128,7 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.Base64;
@@ -743,6 +745,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         );
                         metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
                         metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
+                        metadata.put(
+                            METADATA_ADDITIONAL_CLIENT_METADATA,
+                            mapper.writeValueAsString(updateApplicationEntity.getSettings().getOAuthClient().getAdditionalClientMetadata())
+                        );
                     } catch (Exception e) {
                         LOGGER.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
                         metadata.put(METADATA_CLIENT_ID, applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
@@ -1345,6 +1351,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         clientSettings.setResponseTypes(registrationResponse.getResponseTypes());
                         clientSettings.setRedirectUris(registrationResponse.getRedirectUris());
                         clientSettings.setGrantTypes(registrationResponse.getGrantTypes());
+                    }
+
+                    final String additionalClientMetadata = application.getMetadata().get(METADATA_ADDITIONAL_CLIENT_METADATA);
+                    if (additionalClientMetadata != null) {
+                        clientSettings.setAdditionalClientMetadata(mapper.readValue(additionalClientMetadata, new TypeReference<>() {}));
                     }
 
                     Iterator<ClientRegistrationProviderEntity> clientRegistrationProviderIte = clientRegistrationService

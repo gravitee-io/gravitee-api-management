@@ -22,6 +22,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -493,10 +495,7 @@ public class ApplicationService_CreateTest {
 
     @Test
     public void shouldHandleAdditionalClientMetadata() throws TechnicalException {
-        // Mock additionalClientMetadata
-        JsonNode additionalClientMetadata = mock(JsonNode.class);
-        when(additionalClientMetadata.has("policy_uri")).thenReturn(true);
-        when(additionalClientMetadata.get("policy_uri")).thenReturn(new TextNode("http://policy.url"));
+        var additionalClientMetadata = Map.of("policy_uri", "http://example.com/policy");
 
         // Mock OAuthClientSettings
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();

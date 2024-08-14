@@ -24,7 +24,12 @@ export type AppFormType = FormGroup<{
   tls: FormGroup<{ client_certificate: FormControl<string> }>;
 }> | null;
 export type OAuthFormType = FormGroup<{
-  oauth: FormGroup<{ redirect_uris: FormArray; grant_types: FormArray; application_type: FormControl<string> }>;
+  oauth: FormGroup<{
+    redirect_uris: FormArray;
+    grant_types: FormArray;
+    application_type: FormControl<string>;
+    additionalClientMetadata: FormArray;
+  }>;
   tls: FormGroup<{ client_certificate: FormControl<string> }>;
 }>;
 
@@ -75,6 +80,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
         redirect_uris: new FormArray([], null),
         grant_types: new FormArray([], [Validators.required]),
         application_type: new FormControl(null, [Validators.required]),
+        additionalClientMetadata: new FormArray([]),
       }),
       tls: this.formBuilder.group({
         client_certificate: new FormControl(''),
@@ -176,5 +182,22 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
         event.target.value = '';
       }
     }
+  }
+
+  addMetadata() {
+    this.oauthForm.controls.oauth.controls.additionalClientMetadata.push(
+      this.formBuilder.group({
+        key: new FormControl('', Validators.required),
+        value: new FormControl('', Validators.required),
+      }),
+    );
+  }
+
+  removeMetadata(i: number) {
+    this.oauthForm.controls.oauth.controls.additionalClientMetadata.removeAt(i);
+  }
+
+  get metadataControls() {
+    return this.oauthForm.controls.oauth.controls.additionalClientMetadata.controls as FormGroup[];
   }
 }

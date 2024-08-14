@@ -610,6 +610,14 @@
       "title": "Native"
     },
     "security": {
+      "additionalClientMetadata": {
+        "add": "Add Client Metadata",
+        "description": "Additional metadata key to be sent to the authorization server (eg. policy_uri, tos_uri, ...)",
+        "key": "Metadata key",
+        "remove": "Remove this metadata",
+        "value": "Metadata value",
+        "valueDescription": "Value of the metadata key"
+      },
       "authorization_code": {
         "description": " ",
         "title": "Authorization code"

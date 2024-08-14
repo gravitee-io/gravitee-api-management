@@ -16,15 +16,19 @@
 package io.gravitee.rest.api.service.impl.configuration.application.registration;
 
 import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface ClientRegistrationMapper {
     ClientRegistrationMapper INSTANCE = Mappers.getMapper(ClientRegistrationMapper.class);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
     @Mapping(source = "settings.OAuthClient.applicationType", target = "applicationType")
     @Mapping(source = "settings.OAuthClient.clientUri", target = "clientUri")
@@ -32,5 +36,21 @@ public interface ClientRegistrationMapper {
     @Mapping(source = "settings.OAuthClient.logoUri", target = "logoUri")
     @Mapping(source = "settings.OAuthClient.redirectUris", target = "redirectUris")
     @Mapping(source = "settings.OAuthClient.responseTypes", target = "responseTypes")
-    ClientRegistrationRequest toClientRegistrationRequest(NewApplicationEntity application);
+    ClientRegistrationRequest toClientRegistrationRequest(
+        @MappingTarget ClientRegistrationRequest target,
+        NewApplicationEntity application
+    );
+
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
+    @Mapping(source = "name", target = "clientName")
+    @Mapping(source = "settings.OAuthClient.applicationType", target = "applicationType")
+    @Mapping(source = "settings.OAuthClient.clientUri", target = "clientUri")
+    @Mapping(source = "settings.OAuthClient.grantTypes", target = "grantTypes")
+    @Mapping(source = "settings.OAuthClient.logoUri", target = "logoUri")
+    @Mapping(source = "settings.OAuthClient.redirectUris", target = "redirectUris")
+    @Mapping(source = "settings.OAuthClient.responseTypes", target = "responseTypes")
+    void toClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, UpdateApplicationEntity application);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
+    void mergeClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, ClientRegistrationRequest source);
 }

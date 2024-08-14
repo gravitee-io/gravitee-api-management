@@ -31,6 +31,7 @@ import io.gravitee.repository.management.api.ClientRegistrationProviderRepositor
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
@@ -51,6 +52,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -333,23 +335,14 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         return registrationProviderClient.register(clientRegistrationRequest);
     }
 
-    private static ClientRegistrationRequest convert(NewApplicationEntity application) {
-        var mapped = ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(application);
-        var objectMapper = new ObjectMapper();
-        ObjectNode mappedJsonNode = objectMapper.valueToTree(mapped);
+    private ClientRegistrationRequest convert(NewApplicationEntity application) {
+        Map<String, String> metadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
+        if (metadata != null) {
+            ClientRegistrationRequest request = mapper.convertValue(metadata, ClientRegistrationRequest.class);
 
-        var additionalClientMetadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
-        if (additionalClientMetadata instanceof ObjectNode additionalClientMetadataNode) {
-            var result = additionalClientMetadataNode.deepCopy();
-            result.setAll(mappedJsonNode);
-            try {
-                return objectMapper.treeToValue(result, ClientRegistrationRequest.class);
-            } catch (JsonProcessingException e) {
-                LOGGER.warn("Failed to merge additional client metadata with the mapped client registration request", e);
-            }
+            return ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(request, application);
         }
-
-        return mapped;
+        return ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(new ClientRegistrationRequest(), application);
     }
 
     private DynamicClientRegistrationProviderClient getDCRClient(
@@ -498,13 +491,12 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
-        request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getOauth().getApplicationType());
-        request.setClientUri(application.getSettings().getOauth().getClientUri());
-        request.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
-        request.setLogoUri(application.getSettings().getOauth().getLogoUri());
-        request.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
+        ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(request, application);
+        Map<String, String> clientMetadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
+        if (clientMetadata != null) {
+            ClientRegistrationRequest additionalMetadata = mapper.convertValue(clientMetadata, ClientRegistrationRequest.class);
+            ClientRegistrationMapper.INSTANCE.mergeClientRegistrationRequest(request, additionalMetadata);
+        }
 
         return request;
     }
