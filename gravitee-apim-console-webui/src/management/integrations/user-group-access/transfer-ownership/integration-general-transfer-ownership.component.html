@@ -1,0 +1,91 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="transfer-ownership">
+  <div class="transfer-ownership__header">
+    <div>
+      <div class="transfer-ownership__header__title">Transfer ownership</div>
+      <div class="transfer-ownership__header__subtitle">Transfer ownership and grant access to your API to another user</div>
+    </div>
+  </div>
+
+  <form [formGroup]="form" *ngIf="form" (ngSubmit)="onSubmit()">
+    <ng-container *ngIf="mode && mode !== 'GROUP'">
+      <p>Select your preferred method for granting complete API access</p>
+      <mat-button-toggle-group
+        aria-label="Select User or Group"
+        class="transfer-ownership__body__userOrGroup__toggle-group"
+        formControlName="userOrGroup"
+      >
+        <mat-button-toggle class="transfer-ownership__body__userOrGroup__toggle-group__toggle" value="apiMember">
+          API member
+        </mat-button-toggle>
+        <mat-button-toggle class="transfer-ownership__body__userOrGroup__toggle-group__toggle" value="user"> Other user </mat-button-toggle>
+        <mat-button-toggle *ngIf="mode === 'HYBRID'" class="transfer-ownership__body__userOrGroup__toggle-group__toggle" value="group">
+          Primary owner group
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </ng-container>
+
+    <div class="transfer-ownership__body__userOrGroup" *ngIf="form.get('userOrGroup').value === 'apiMember'">
+      <mat-form-field class="transfer-ownership__body__userOrGroup__field">
+        <mat-label>Select API member</mat-label>
+        <mat-select formControlName="user">
+          <mat-option *ngFor="let member of apiMembers" [value]="member">{{ member.displayName }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="transfer-ownership__body__userOrGroup" *ngIf="form.get('userOrGroup').value === 'user'">
+      <gio-form-user-autocomplete class="transfer-ownership__body__userOrGroup__field" formControlName="user"></gio-form-user-autocomplete>
+    </div>
+    <div *ngIf="form.get('userOrGroup').value === 'group'" class="transfer-ownership__body__userOrGroup">
+      <gio-banner-warning *ngIf="warnUseGroupAsPrimaryOwner">
+        You can't set a group as primary owner. To set a group as a primary owner, the group must contain a member with a primary owner API
+        role.
+      </gio-banner-warning>
+
+      <mat-form-field class="transfer-ownership__body__userOrGroup__field">
+        <mat-label>Select a primary owner group</mat-label>
+        <mat-select formControlName="groupId">
+          <mat-option *ngFor="let group of poGroups" [value]="group.id">{{ group.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="form.get('user').value || form.get('groupId').value" class="transfer-ownership__body__userOrGroup">
+      <mat-form-field class="transfer-ownership__body__userOrGroup__field">
+        <mat-label>New role for current Primary Owner</mat-label>
+        <mat-select formControlName="roleId">
+          <mat-option *ngFor="let role of poRoles" [value]="role.name">{{ role.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <gio-banner-warning *ngIf="form.valid">
+      <div class="transfer-ownership__body__new-role">
+        This action cannot be undone. If you are the primary owner of this API, your role will be set to
+        <code>{{ form.get('roleId').value }}</code
+        >.
+      </div>
+    </gio-banner-warning>
+
+    <div class="transfer-ownership__actions">
+      <button mat-raised-button color="primary" [disabled]="!form.valid">Transfer</button>
+    </div>
+  </form>
+</div>

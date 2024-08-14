@@ -1,0 +1,132 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form [formGroup]="form" *ngIf="form">
+  <mat-card>
+    <mat-card-content>
+      <div class="card__header">
+        <div class="card__header__title">
+          <h3>Members</h3>
+          <p>Manage who can interact with your integration</p>
+        </div>
+        <div class="card__header__actions">
+          <!-- toDo: change [disabled]="isReadOnly" when transfer ownership is ready   -->
+          <button
+            *ngIf="canTransferOwnership"
+            class="card__header__actions__button"
+            [disabled]="true"
+            mat-raised-button
+            (click)="transferOwnership()"
+            type="button"
+          >
+            Transfer ownership
+          </button>
+          <button
+            class="card__header__actions__button"
+            aria-label="Manage groups"
+            *gioPermission="{ anyOf: ['environment-integration-r'] }"
+            mat-raised-button
+            (click)="updateGroups()"
+            [disabled]="this.groups?.length === 0"
+            type="button"
+          >
+            Manage groups
+          </button>
+          <button
+            class="card__header__actions__button"
+            *gioPermission="{ anyOf: ['environment-integration-c'] }"
+            [disabled]="isReadOnly"
+            mat-raised-button
+            type="button"
+            (click)="addMember()"
+            color="primary"
+          >
+            Add members
+          </button>
+        </div>
+      </div>
+
+      <gio-form-slide-toggle class="card__enable-notification-toggle">
+        Notify members when they are added to the integration
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="isNotificationsEnabled"
+          aria-label="Enable notifications when members are added to the integration"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </mat-card-content>
+
+    <table
+      mat-table
+      *ngIf="dataSource"
+      [dataSource]="dataSource"
+      class="card__table"
+      formGroupName="members"
+      aria-label="Direct members table"
+    >
+      <ng-container matColumnDef="picture">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let member">
+          <gio-avatar [src]="member.picture" [name]="member.displayName" [size]="24" [roundedBorder]="true"></gio-avatar>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="displayName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
+          {{ member.displayName }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Role</th>
+        <td mat-cell *matCellDef="let member">
+          <mat-form-field>
+            <mat-select [formControlName]="member.id">
+              <mat-option *ngFor="let roleName of roleNames" [value]="roleName" [disabled]="roleName === 'PRIMARY_OWNER'">{{
+                roleName
+              }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('members').get(member.id).hasError('required')"> Role is required. </mat-error>
+          </mat-form-field>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let member">
+          <div class="action-cell" *ngIf="member.role !== 'PRIMARY_OWNER'">
+            <button type="button" mat-icon-button (click)="removeMember(member)">
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </mat-card>
+
+<!--  <div *ngIf="groupData">-->
+<!--    <ng-container *ngFor="let group of groupData">-->
+<!--      <integration-general-group-members-->
+<!--        *ngIf="group.isVisible"-->
+<!--        [groupData]="group"-->
+<!--        (destroy)="group.isVisible = false"-->
+<!--      ></integration-general-group-members>-->
+<!--    </ng-container>-->
+<!--  </div>-->
+
+  <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
+</form>
