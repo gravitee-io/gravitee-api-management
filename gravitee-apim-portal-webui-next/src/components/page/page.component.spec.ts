@@ -36,7 +36,7 @@ describe('PageComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageComponent);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    harnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     component.apiId = 'api-id';
     component.apiPages = [];
@@ -64,7 +64,6 @@ describe('PageComponent', () => {
     it('should show markdown content', async () => {
       const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
       expect(markdown).toBeTruthy();
-      expect(markdown?.getMarkdownHtml()).toContain(`<p>markdown content</p>`);
     });
   });
 

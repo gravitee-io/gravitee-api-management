@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 import { Page } from '../../../entities/page/page';
@@ -25,6 +25,8 @@ import { MarkdownService } from '../../../services/markdown.service';
   standalone: true,
   imports: [],
   template: `<div id="#markdown" [innerHTML]="markdownHtml"></div>`,
+  encapsulation: ViewEncapsulation.ShadowDom,
+  styleUrl: './page-markdown.component.scss',
 })
 export class PageMarkdownComponent implements OnChanges {
   @Input() content!: string | undefined;
