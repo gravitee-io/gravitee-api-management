@@ -46,7 +46,7 @@ import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApplicationLogService, HttpMethodVM } from '../../../../../services/application-log.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 import { ApplicationTabLogsService, HttpStatusVM, PeriodVM, ResponseTimeVM } from '../application-tab-logs.service';
-import { MoreFiltersDialogComponent, MoreFiltersDialogData } from '../components/more-filters-dialog/more-filters-dialog.component';
+import { MoreFiltersDialogComponent, MoreFiltersDialogData } from '../more-filters-dialog/more-filters-dialog.component';
 
 interface LogVM {
   id: string;
