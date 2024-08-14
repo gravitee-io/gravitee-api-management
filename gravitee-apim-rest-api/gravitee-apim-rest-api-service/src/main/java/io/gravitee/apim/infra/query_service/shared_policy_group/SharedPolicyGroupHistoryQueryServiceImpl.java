@@ -63,7 +63,8 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
         } catch (TechnicalException e) {
             logger.error("An error occurred while streaming all last shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
-                "An error occurred while trying to stream all last shared policy groups by environment ID: " + environmentId + e
+                "An error occurred while trying to stream all last shared policy groups by environment ID: " + environmentId,
+                e
             );
         }
     }
@@ -94,10 +95,11 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
                 e
             );
             throw new TechnicalDomainException(
-                "An error occurred while trying to search shared policy group histories by environment ID: " +
-                environmentId +
-                " and sharedPolicyGroupId: " +
-                sharedPolicyGroupId +
+                String.format(
+                    "An error occurred while trying to search shared policy group histories by environment ID: %s and sharedPolicyGroupId: %s",
+                    environmentId,
+                    sharedPolicyGroupId
+                ),
                 e
             );
         }
@@ -119,10 +121,11 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
                 e
             );
             throw new TechnicalDomainException(
-                "An error occurred while trying to get the latest shared policy group by environment ID: " +
-                environmentId +
-                " and sharedPolicyGroupId: " +
-                sharedPolicyGroupId +
+                String.format(
+                    "An error occurred while trying to get the latest shared policy group by environment ID: %s and sharedPolicyGroupId: %s",
+                    environmentId,
+                    sharedPolicyGroupId
+                ),
                 e
             );
         }
