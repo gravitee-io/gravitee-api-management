@@ -24,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 
-import { ApplicationTabLogsService, HttpStatusVM } from '../../application-tab-logs.service';
+import { ApplicationTabLogsService, HttpStatusVM } from '../application-tab-logs.service';
 
 export interface MoreFiltersDialogData {
   startDate?: number;

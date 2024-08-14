@@ -33,8 +33,8 @@ import { fakeLogListItem, fakeLogsResponse } from '../../../../../entities/log/l
 import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
-import { MoreFiltersDialogComponent } from '../components/more-filters-dialog/more-filters-dialog.component';
-import { MoreFiltersDialogHarness } from '../components/more-filters-dialog/more-filters-dialog.harness';
+import { MoreFiltersDialogComponent } from '../more-filters-dialog/more-filters-dialog.component';
+import { MoreFiltersDialogHarness } from '../more-filters-dialog/more-filters-dialog.harness';
 
 /* eslint-disable no-useless-escape */
 
