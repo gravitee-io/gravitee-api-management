@@ -90,6 +90,9 @@ public class SubscriptionEntity {
     @JsonProperty("client_id")
     private String clientId;
 
+    @JsonProperty("client_certificate")
+    private String clientCertificate;
+
     private List<String> keys;
 
     private String security;
@@ -248,6 +251,14 @@ public class SubscriptionEntity {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getClientCertificate() {
+        return clientCertificate;
+    }
+
+    public void setClientCertificate(String clientCertificate) {
+        this.clientCertificate = clientCertificate;
     }
 
     public Date getPausedAt() {
