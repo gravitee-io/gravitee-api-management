@@ -81,7 +81,7 @@ describe('ApplicationsComponent', () => {
             },
           },
         }),
-        2,
+        3,
         9,
       );
 
@@ -143,12 +143,12 @@ describe('ApplicationsComponent', () => {
           data: [fakeApplication({ id: 'second-page-app' })],
           metadata: {
             pagination: {
-              current_page: 2,
-              total_pages: 2,
+              current_page: 3,
+              total_pages: 3,
             },
           },
         }),
-        2,
+        3,
         9,
       );
       fixture.detectChanges();
