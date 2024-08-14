@@ -44,6 +44,7 @@ export class ApplicationsComponent {
 
   private applicationService = inject(ApplicationService);
   private page$ = new BehaviorSubject(1);
+  private initialLoad = true;
 
   constructor() {
     this.applicationPaginator$ = this.loadApplications$();
@@ -60,7 +61,11 @@ export class ApplicationsComponent {
   private loadApplications$(): Observable<ApplicationPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.applicationService.list(currentPage, 9)),
+      switchMap(currentPage => {
+        const pageSize = this.initialLoad ? 18 : 9;
+        this.initialLoad = false;
+        return this.applicationService.list(currentPage, pageSize);
+      }),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({
