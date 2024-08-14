@@ -70,7 +70,7 @@ describe('CatalogComponent', () => {
           },
         }),
         1,
-        9,
+        18,
         '',
       );
     });
@@ -104,12 +104,12 @@ describe('CatalogComponent', () => {
           data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
           metadata: {
             pagination: {
-              current_page: 2,
-              total_pages: 2,
+              current_page: 3,
+              total_pages: 3,
             },
           },
         }),
-        2,
+        3,
         9,
         '',
       );
@@ -135,12 +135,12 @@ describe('CatalogComponent', () => {
           data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
           metadata: {
             pagination: {
-              current_page: 2,
-              total_pages: 2,
+              current_page: 3,
+              total_pages: 5,
             },
           },
         }),
-        2,
+        3,
         9,
         '',
       );
@@ -158,12 +158,12 @@ describe('CatalogComponent', () => {
           data: [fakeApi({ id: 'second-page-api' })],
           metadata: {
             pagination: {
-              current_page: 2,
-              total_pages: 2,
+              current_page: 3,
+              total_pages: 3,
             },
           },
         }),
-        2,
+        3,
         9,
         '',
       );
@@ -180,7 +180,7 @@ describe('CatalogComponent', () => {
 
   describe('empty component', () => {
     it('should show empty API list', async () => {
-      expectApiList(fakeApisResponse({ data: [] }), 1, 9, '');
+      expectApiList(fakeApisResponse({ data: [] }), 1, 18, '');
       const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
       expect(noApiCard).toBeTruthy();
       expect(await noApiCard.getText()).toContain(
@@ -190,7 +190,7 @@ describe('CatalogComponent', () => {
     });
   });
 
-  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 9, q: string = '') {
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 18, q: string = '') {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=&size=${size}&q=${q}`).flush(apisResponse);
   }
 
