@@ -102,12 +102,13 @@ describe('SharedPolicyGroupsComponent', () => {
 
     await addDialog.setName('test');
     await addDialog.setDescription('test');
+    await addDialog.setPrerequisiteMessage('test');
     await addDialog.setPhase('Response');
     await addDialog.save();
 
     expectCreateSharedPolicyGroupRequest(
       httpTestingController,
-      fakeCreateSharedPolicyGroup({ name: 'test', description: 'test', phase: 'RESPONSE' }),
+      fakeCreateSharedPolicyGroup({ name: 'test', description: 'test', prerequisiteMessage: 'test', phase: 'RESPONSE' }),
     );
     expectListSharedPolicyGroupsRequest(httpTestingController);
   });

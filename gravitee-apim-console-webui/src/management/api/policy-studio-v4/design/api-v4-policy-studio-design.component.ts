@@ -147,6 +147,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           id: plugin.id,
           name: plugin.name,
           description: plugin.description,
+          prerequisiteMessage: plugin.prerequisiteMessage,
           policyId: plugin.policyId,
           phase: plugin.phase,
           apiType: plugin.apiType,

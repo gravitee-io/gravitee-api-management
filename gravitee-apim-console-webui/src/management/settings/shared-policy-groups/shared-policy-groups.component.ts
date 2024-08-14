@@ -168,6 +168,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
           this.sharedPolicyGroupsService.create({
             name: payload.name,
             description: payload.description,
+            prerequisiteMessage: payload.prerequisiteMessage,
             apiType,
             phase: payload.phase,
           }),

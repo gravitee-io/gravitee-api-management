@@ -48,8 +48,21 @@
           <mat-icon svgIcon="gio:trash">delete</mat-icon>
         </button>
         @if (!isReadOnly) {
-          <button [disabled]="!enableSaveButton" color="primary" mat-flat-button (click)="onSave()">Save</button>
-          <button [disabled]="sharedPolicyGroup.lifecycleState === 'DEPLOYED'" color="primary" mat-flat-button (click)="onDeploy()">
+          <button
+            [disabled]="!enableSaveButton"
+            color="primary"
+            mat-flat-button
+            (click)="onSave()"
+            matTooltip="Don't forget to ensure that the Prerequisite message is updated with the latest changes."
+          >
+            Save
+          </button>
+          <button
+            [disabled]="sharedPolicyGroup.lifecycleState === 'DEPLOYED' || enableSaveButton"
+            color="primary"
+            mat-flat-button
+            (click)="onDeploy()"
+          >
             <mat-icon svgIcon="gio:rocket">deploy</mat-icon>Deploy
           </button>
         }
