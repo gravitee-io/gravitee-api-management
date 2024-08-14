@@ -44,6 +44,11 @@ public class SharedPolicyGroupPolicyPlugin {
      */
     private String description;
     /**
+     * The shared policy group prerequisite message.
+     * This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+     */
+    private String prerequisiteMessage;
+    /**
      * Tha API type compatible with the shared policy group
      */
     private ApiType apiType;
@@ -65,6 +70,7 @@ public class SharedPolicyGroupPolicyPlugin {
             .id(sharedPolicyGroup.getCrossId())
             .name(sharedPolicyGroup.getName())
             .description(sharedPolicyGroup.getDescription())
+            .prerequisiteMessage(sharedPolicyGroup.getPrerequisiteMessage())
             .apiType(sharedPolicyGroup.getApiType())
             .phase(sharedPolicyGroup.getPhase())
             .build();

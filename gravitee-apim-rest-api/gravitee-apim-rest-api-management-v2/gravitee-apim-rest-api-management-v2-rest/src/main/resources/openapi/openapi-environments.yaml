@@ -230,6 +230,11 @@ components:
               description: The description of the shared policy group
               example: This is a shared policy group
               maxLength: 1024
+            prerequisiteMessage:
+              type: string
+              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+              example: The resource cache "my-cache" is required
+              maxLength: 1024
             apiType:
               $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
             phase:
@@ -258,6 +263,11 @@ components:
               description: The description of the shared policy group
               example: This is a shared policy group
               maxLength: 1024
+            prerequisiteMessage:
+              type: string
+              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+              example: The resource cache "my-cache" is required
+              maxLength: 1024
             steps:
               type: array
               description: The list of steps (policies) in the shared policy group
@@ -283,6 +293,11 @@ components:
               type: string
               description: The description of the shared policy group
               example: This is a shared policy group
+              maxLength: 1024
+            prerequisiteMessage:
+              type: string
+              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+              example: The resource cache "my-cache" is required
               maxLength: 1024
             version:
               type: number
@@ -333,6 +348,11 @@ components:
               type: string
               description: The description of the shared policy group
               example: This is a shared policy group
+              maxLength: 1024
+            prerequisiteMessage:
+              type: string
+              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+              example: The resource cache "my-cache" is required
               maxLength: 1024
             apiType:
               $ref: "./openapi-apis.yaml#/components/schemas/ApiType"

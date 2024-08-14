@@ -42,6 +42,11 @@ public class UpdateSharedPolicyGroup {
      */
     private String description;
     /**
+     * The shared policy group prerequisite message.
+     * This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+     */
+    private String prerequisiteMessage;
+    /**
      * The shared policy group steps
      */
     private List<Step> steps;
