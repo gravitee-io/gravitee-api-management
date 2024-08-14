@@ -12,6 +12,7 @@
     "processedBy": "user1",
     "subscribedBy": "user2",
     "clientId": "my-client-id",
+    "clientCertificate": "my-client-certificate",
     "startingAt": 1439022010883,
     "endingAt": 1449022010883,
     "createdAt": 1459022010883,
