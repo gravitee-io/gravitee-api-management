@@ -102,6 +102,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
+            .prerequisiteMessage("new-prerequisite-message")
             .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
             .build();
         var updatedSharedPolicyGroup = updateSharedPolicyGroupUseCase.execute(
@@ -114,6 +115,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
+            .prerequisiteMessage("new-prerequisite-message")
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING)
             .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))

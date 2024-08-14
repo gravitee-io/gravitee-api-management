@@ -61,6 +61,11 @@ public class SharedPolicyGroup {
      */
     private String description;
     /**
+     * The shared policy group prerequisite message.
+     * This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+     */
+    private String prerequisiteMessage;
+    /**
      * The shared policy group version.
      */
     private Integer version;
@@ -143,6 +148,7 @@ public class SharedPolicyGroup {
             .crossId(createSharedPolicyGroup.getCrossId() == null ? UuidString.generateRandom() : createSharedPolicyGroup.getCrossId())
             .name(createSharedPolicyGroup.getName())
             .description(createSharedPolicyGroup.getDescription())
+            .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
             .apiType(createSharedPolicyGroup.getApiType())
             .phase(createSharedPolicyGroup.getPhase())
             .steps(createSharedPolicyGroup.getSteps())
@@ -155,6 +161,11 @@ public class SharedPolicyGroup {
             .name(updateSharedPolicyGroup.getName() == null ? this.getName() : updateSharedPolicyGroup.getName())
             .description(
                 updateSharedPolicyGroup.getDescription() == null ? this.getDescription() : updateSharedPolicyGroup.getDescription()
+            )
+            .prerequisiteMessage(
+                updateSharedPolicyGroup.getPrerequisiteMessage() == null
+                    ? this.getPrerequisiteMessage()
+                    : updateSharedPolicyGroup.getPrerequisiteMessage()
             )
             .steps(updateSharedPolicyGroup.getSteps() == null ? this.getSteps() : updateSharedPolicyGroup.getSteps())
             .updatedAt(TimeProvider.now())

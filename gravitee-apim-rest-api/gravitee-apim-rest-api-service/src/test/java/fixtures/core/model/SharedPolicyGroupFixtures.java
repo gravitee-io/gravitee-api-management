@@ -39,6 +39,7 @@ public class SharedPolicyGroupFixtures {
             .crossId("crossId")
             .name("name")
             .description("description")
+            .prerequisiteMessage("prerequisiteMessage")
             .version(1)
             .apiType(ApiType.MESSAGE)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
