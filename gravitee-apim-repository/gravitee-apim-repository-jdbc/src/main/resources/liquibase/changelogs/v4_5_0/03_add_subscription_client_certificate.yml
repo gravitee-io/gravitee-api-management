@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.0_add_subscription_client_certificate
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: client_certificate
+                  type: clob
+                  constraints:
+                    nullable: true

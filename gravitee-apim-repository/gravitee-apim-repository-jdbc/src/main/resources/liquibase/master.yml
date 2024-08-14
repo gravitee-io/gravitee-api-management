@@ -197,3 +197,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_5_0/01_add_integration_jobs_table.yml
   - include:
       - file: liquibase/changelogs/v4_5_0/02_add_shared_policy_group.yml
+  - include:
+      - file: liquibase/changelogs/v4_5_0/03_add_subscription_client_certificate.yml

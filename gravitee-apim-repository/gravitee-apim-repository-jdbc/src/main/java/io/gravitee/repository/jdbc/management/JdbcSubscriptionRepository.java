@@ -97,6 +97,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("processed_by", Types.NVARCHAR, String.class)
             .addColumn("subscribed_by", Types.NVARCHAR, String.class)
             .addColumn("client_id", Types.NVARCHAR, String.class)
+            .addColumn("client_certificate", Types.NVARCHAR, String.class)
             .addColumn("request", Types.NVARCHAR, String.class)
             .addColumn("reason", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
