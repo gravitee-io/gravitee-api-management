@@ -47,27 +47,56 @@ describe('ApplicationsComponent', () => {
     httpTestingController.verify();
   });
 
+  describe('initial load of applications', () => {
+    it('should load 18 applications initially and then 9 on scroll', async () => {
+      expectApplicationList(
+        fakeApplicationsResponse({
+          data: Array.from({ length: 18 }, (_, index) => fakeApplication({ id: `${index + 1}` })),
+          metadata: {
+            pagination: {
+              current_page: 1,
+              total_pages: 3,
+            },
+          },
+        }),
+        1,
+        18,
+      );
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      let appCards = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
+      expect(appCards.length).toEqual(18);
+
+      document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
+
+      expectApplicationList(
+        fakeApplicationsResponse({
+          data: Array.from({ length: 9 }, (_, index) => fakeApplication({ id: `${19 + index}` })),
+          metadata: {
+            pagination: {
+              current_page: 2,
+              total_pages: 3,
+            },
+          },
+        }),
+        2,
+        9,
+      );
+
+      fixture.detectChanges();
+
+      appCards = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
+      expect(appCards.length).toEqual(27);
+    });
+  });
+
   describe('populated application list', () => {
     beforeEach(() => {
       expectApplicationList(
         fakeApplicationsResponse({
-          data: [
-            fakeApplication({
-              id: '1',
-              name: 'Test Application',
-              description: 'A sample application for testing purposes.',
-              owner: {
-                id: 'owner1',
-                first_name: 'John',
-                last_name: 'Doe',
-                display_name: 'John Doe',
-                email: 'john.doe@example.com',
-                editable_profile: true,
-                customFields: { city: 'City', job_position: 'Developer' },
-                _links: { avatar: '', notifications: '', self: '' },
-              },
-            }),
-          ],
+          data: Array.from({ length: 18 }, (_, index) => fakeApplication({ id: `${index + 1}` })),
           metadata: {
             pagination: {
               current_page: 1,
@@ -76,7 +105,7 @@ describe('ApplicationsComponent', () => {
           },
         }),
         1,
-        9,
+        18,
       );
     });
 
@@ -101,12 +130,12 @@ describe('ApplicationsComponent', () => {
 
       const ownerElement = fixture.nativeElement.querySelector('.m3-body-medium');
       expect(ownerElement).toBeDefined();
-      expect(ownerElement.textContent).toEqual('Owner: John Doe');
+      expect(ownerElement.textContent).toEqual('Owner: Admin master');
     });
 
     it('should not call page if on last page', async () => {
       const appCard = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
-      expect(appCard.length).toEqual(1);
+      expect(appCard.length).toEqual(18);
 
       document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
       expectApplicationList(
@@ -125,7 +154,7 @@ describe('ApplicationsComponent', () => {
       fixture.detectChanges();
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
-      expect(allHarnesses.length).toEqual(2);
+      expect(allHarnesses.length).toEqual(19);
 
       document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
       httpTestingController.expectNone(`${TESTING_BASE_URL}/applications?page=3&size=9`);
@@ -134,7 +163,7 @@ describe('ApplicationsComponent', () => {
 
   describe('empty component', () => {
     it('should show empty Application list', async () => {
-      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 9);
+      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 18);
       const noAppCard = await harnessLoader.getHarness(MatCardHarness.with({ text: /Sorry, there are no applications yet\./ }));
       expect(noAppCard).toBeTruthy();
     });
@@ -143,7 +172,7 @@ describe('ApplicationsComponent', () => {
   function expectApplicationList(
     applicationsResponse: ApplicationsResponse = fakeApplicationsResponse(),
     page: number = 1,
-    size: number = 9,
+    size: number = 18,
   ) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=${size}`).flush(applicationsResponse);
   }
