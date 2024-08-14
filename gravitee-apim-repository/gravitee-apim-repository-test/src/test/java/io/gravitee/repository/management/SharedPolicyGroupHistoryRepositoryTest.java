@@ -64,7 +64,10 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_create() throws Exception {
-        final SharedPolicyGroup sharedPolicyGroupV1 = getDefaultSharedPolicyGroupBuilder("id_create_test").name("Name v1").build();
+        final SharedPolicyGroup sharedPolicyGroupV1 = getDefaultSharedPolicyGroupBuilder("id_create_test")
+            .name("Name v1")
+            .updatedAt(new Date(172321739410L))
+            .build();
         sharedPolicyGroupHistoryRepository.create(sharedPolicyGroupV1);
 
         final SharedPolicyGroup sharedPolicyGroupV2 = getDefaultSharedPolicyGroupBuilder("id_create_test").name("Name v2").build();
