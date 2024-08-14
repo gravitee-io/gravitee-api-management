@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, reusable, workflow, Workflow } from '@circleci/circleci-config-sdk';
 
 import { CircleCIEnvironment } from '../pipelines';
 import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
@@ -49,6 +49,7 @@ import {
   PortalWebuiBuildJob,
   WebuiLintTestJob,
 } from '../jobs';
+import { orbs } from '../orbs';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
@@ -75,7 +76,27 @@ export class PullRequestsWorkflow {
     filterJobs: boolean,
     addValidationJob: boolean,
   ): workflow.WorkflowJob[] {
-    const jobs: workflow.WorkflowJob[] = [];
+    dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
+
+    const jobs: workflow.WorkflowJob[] = [
+      new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
+        context: config.jobContext,
+        preSteps: [
+          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+            'secret-url': config.secrets.aquaKey,
+            'var-name': 'AQUA_KEY',
+          }),
+          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+            'secret-url': config.secrets.aquaSecret,
+            'var-name': 'AQUA_SECRET',
+          }),
+          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+            'secret-url': config.secrets.githubApiToken,
+            'var-name': 'GITHUB_TOKEN',
+          }),
+        ],
+      }),
+    ];
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
