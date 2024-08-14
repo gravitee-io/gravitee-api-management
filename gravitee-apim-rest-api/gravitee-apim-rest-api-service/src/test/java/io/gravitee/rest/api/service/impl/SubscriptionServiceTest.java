@@ -84,6 +84,7 @@ import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
@@ -122,6 +123,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -498,6 +500,79 @@ public class SubscriptionServiceTest {
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
+    }
+
+    @Test
+    public void shouldCreateWithClientCertificateForMtlsPlan() throws Exception {
+        // Prepare data
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        planEntity.setSecurity(PlanSecurityType.MTLS);
+        application.setSettings(ApplicationSettings.builder().tls(TlsSettings.builder().clientCertificate("certificate").build()).build());
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity
+        );
+
+        // Verify
+        ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository, times(1)).create(subscriptionArgumentCaptor.capture());
+        verify(subscriptionRepository, never()).update(any(Subscription.class));
+        verifyNoInteractions(rejectSubscriptionDomainService, acceptSubscriptionDomainService);
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
+        assertThat(subscriptionEntity.getId()).isNotNull();
+        assertThat(subscriptionEntity.getApplication()).isNotNull();
+        assertThat(subscriptionEntity.getCreatedAt()).isNotNull();
+        assertThat(subscriptionEntity.getClientCertificate()).isEqualTo("certificate");
+        assertThat(subscriptionArgumentCaptor.getValue().getClientCertificate())
+            .isEqualTo(Base64.getEncoder().encodeToString("certificate".getBytes()));
+    }
+
+    @Test
+    public void shouldCreateWithClientCertificateWithoutSavingCertificateForOtherPlanThanMtls() throws Exception {
+        // Prepare data
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        application.setSettings(ApplicationSettings.builder().tls(TlsSettings.builder().clientCertificate("certificate").build()).build());
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity
+        );
+
+        // Verify
+        ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository, times(1)).create(subscriptionArgumentCaptor.capture());
+        verify(subscriptionRepository, never()).update(any(Subscription.class));
+        verifyNoInteractions(rejectSubscriptionDomainService, acceptSubscriptionDomainService);
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
+        assertThat(subscriptionEntity.getId()).isNotNull();
+        assertThat(subscriptionEntity.getApplication()).isNotNull();
+        assertThat(subscriptionEntity.getCreatedAt()).isNotNull();
+        assertThat(subscriptionEntity.getClientCertificate()).isNull();
+        assertThat(subscriptionArgumentCaptor.getValue().getClientCertificate()).isNull();
     }
 
     @Test

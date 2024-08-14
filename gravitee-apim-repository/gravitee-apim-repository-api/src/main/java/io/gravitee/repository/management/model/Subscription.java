@@ -71,6 +71,10 @@ public class Subscription implements Serializable {
      */
     private String clientId;
     /**
+     * The clientCertificate linked to the subscription
+     */
+    private String clientCertificate;
+    /**
      * Vhen the subscription have been processed.
      */
     private Date processedAt;
@@ -137,6 +141,7 @@ public class Subscription implements Serializable {
         this.plan = cloned.plan;
         this.application = cloned.application;
         this.clientId = cloned.clientId;
+        this.clientCertificate = cloned.clientCertificate;
         this.processedAt = cloned.processedAt;
         this.request = cloned.request;
         this.reason = cloned.reason;

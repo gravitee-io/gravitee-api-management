@@ -73,6 +73,7 @@ import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
@@ -101,6 +102,7 @@ import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionExcep
 import io.gravitee.rest.api.service.exceptions.PlanMtlsAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
+import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithoutClientCertificateException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanOAuth2OrJWTAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
@@ -125,6 +127,7 @@ import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -484,6 +487,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
+            String clientCertificate = null;
+            if (planSecurityType == PlanSecurityType.MTLS) {
+                clientCertificate =
+                    extractAndEncodeClientCertificate(applicationEntity)
+                        .orElseThrow(PlanNotSubscribableWithoutClientCertificateException::new);
+            }
+
             updateApplicationApiKeyMode(executionContext, planSecurityType, applicationEntity, newSubscriptionEntity.getApiKeyMode());
 
             Subscription subscription = new Subscription();
@@ -497,6 +507,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setRequest(newSubscriptionEntity.getRequest());
             subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
             subscription.setClientId(clientId);
+            subscription.setClientCertificate(clientCertificate);
             subscription.setMetadata(newSubscriptionEntity.getMetadata());
 
             setSubscriptionConfig(newSubscriptionEntity.getConfiguration(), subscription);
@@ -566,6 +577,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.error("An error occurs while trying to subscribe to the plan {}", plan, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to subscribe to the plan %s", plan), ex);
         }
+    }
+
+    private Optional<String> extractAndEncodeClientCertificate(ApplicationEntity applicationEntity) {
+        final ApplicationSettings settings = applicationEntity.getSettings();
+        if (settings == null || settings.getTls() == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().getBytes()));
     }
 
     private long countSubscriptionMatchingPredicate(
@@ -1642,6 +1662,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setSubscribedBy(subscription.getSubscribedBy());
         entity.setClosedAt(subscription.getClosedAt());
         entity.setClientId(subscription.getClientId());
+        if (subscription.getClientCertificate() != null) {
+            entity.setClientCertificate(new String(Base64.getDecoder().decode(subscription.getClientCertificate())));
+        }
         entity.setPausedAt(subscription.getPausedAt());
         entity.setConsumerPausedAt(subscription.getConsumerPausedAt());
         entity.setDaysToExpirationOnLastNotification(subscription.getDaysToExpirationOnLastNotification());
