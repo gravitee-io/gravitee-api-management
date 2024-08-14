@@ -65,6 +65,11 @@ public class SubscriptionMongo extends Auditable {
     private String clientId;
 
     /**
+     * The clientCertificate linked to the subscription
+     */
+    private String clientCertificate;
+
+    /**
      * PENDING, ACCEPTED, REJECTED
      */
     private String status;
