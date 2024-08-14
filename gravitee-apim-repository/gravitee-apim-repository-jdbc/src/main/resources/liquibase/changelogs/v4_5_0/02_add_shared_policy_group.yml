@@ -69,6 +69,10 @@ databaseChangeLog:
               - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}sharedpolicygrouphistories
+            columnNames: id, updated_at
+            tableName: ${gravitee_prefix}sharedpolicygrouphistories
         - createIndex:
             tableName: ${gravitee_prefix}sharedpolicygrouphistories
             indexName: idx_${gravitee_prefix}environment_id

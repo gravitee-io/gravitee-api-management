@@ -105,7 +105,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
     @Override
     public Optional<SharedPolicyGroup> findById(String id) throws TechnicalException {
-        return super.findById(id);
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
