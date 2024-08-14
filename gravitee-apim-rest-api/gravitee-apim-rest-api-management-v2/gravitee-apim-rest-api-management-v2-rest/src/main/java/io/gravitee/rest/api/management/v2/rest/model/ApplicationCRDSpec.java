@@ -44,7 +44,7 @@ public class ApplicationCRDSpec {
     private Set<String> groups;
     private String status;
     private String pictureUrl;
-    private boolean disableMembershipNotifications;
+    private boolean notifyMembers;
     private String background;
     private Origin origin;
     private PrimaryOwnerEntity primaryOwner;
