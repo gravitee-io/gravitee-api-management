@@ -18,10 +18,12 @@ package io.gravitee.apim.core.integration.use_case;
 import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicenseForFederation;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerFactory;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import lombok.Builder;
@@ -35,14 +37,23 @@ public class CreateIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
     private final LicenseDomainService licenseDomainService;
+    private final IntegrationPrimaryOwnerFactory integrationPrimaryOwnerFactory;
+    private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
 
-    public CreateIntegrationUseCase(IntegrationCrudService integrationCrudService, LicenseDomainService licenseDomainService) {
+    public CreateIntegrationUseCase(
+        IntegrationCrudService integrationCrudService,
+        LicenseDomainService licenseDomainService,
+        IntegrationPrimaryOwnerFactory integrationPrimaryOwnerFactory,
+        IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService
+    ) {
         this.integrationCrudService = integrationCrudService;
         this.licenseDomainService = licenseDomainService;
+        this.integrationPrimaryOwnerFactory = integrationPrimaryOwnerFactory;
+        this.integrationPrimaryOwnerDomainService = integrationPrimaryOwnerDomainService;
     }
 
     public Output execute(Input input) {
-        if (!licenseDomainService.isFederationFeatureAllowed(input.organizationId())) {
+        if (!licenseDomainService.isFederationFeatureAllowed(input.auditInfo.organizationId())) {
             throw noLicenseForFederation();
         }
 
@@ -61,11 +72,23 @@ public class CreateIntegrationUseCase {
 
         Integration integrationCreated = integrationCrudService.create(integrationToCreate);
 
+        var primaryOwner = integrationPrimaryOwnerFactory.createForNewIntegration(
+            input.auditInfo.organizationId(),
+            input.auditInfo.environmentId(),
+            input.auditInfo.actor().userId()
+        );
+
+        integrationPrimaryOwnerDomainService.createIntegrationPrimaryOwnerMembership(
+            integrationCreated.getId(),
+            primaryOwner,
+            input.auditInfo
+        );
+
         return new Output(integrationCreated);
     }
 
     @Builder
-    public record Input(Integration integration, String organizationId) {}
+    public record Input(Integration integration, AuditInfo auditInfo) {}
 
     public record Output(Integration createdIntegration) {}
 }

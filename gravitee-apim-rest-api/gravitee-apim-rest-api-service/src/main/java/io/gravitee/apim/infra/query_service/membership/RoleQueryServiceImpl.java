@@ -73,6 +73,22 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     }
 
     @Override
+    public Optional<Role> findIntegrationRole(String name, ReferenceContext referenceContext) {
+        try {
+            return roleRepository
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                    RoleScope.INTEGRATION,
+                    name,
+                    referenceContext.getReferenceId(),
+                    RoleReferenceType.valueOf(referenceContext.getReferenceType().name())
+                )
+                .map(RoleAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find integration role", e);
+        }
+    }
+
+    @Override
     public Set<Role> findByIds(Set<String> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return Set.of();

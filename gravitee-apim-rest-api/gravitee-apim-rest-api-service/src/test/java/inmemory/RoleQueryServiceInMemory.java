@@ -18,11 +18,7 @@ package inmemory;
 import fixtures.core.model.RoleFixtures;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ReferenceContext;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +34,6 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlternative<Role> {
-
-    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
 
     private final List<Role> storage = new ArrayList<>();
 
@@ -59,6 +53,17 @@ public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlter
         return storage
             .stream()
             .filter(role -> role.getScope().equals(Role.Scope.APPLICATION))
+            .filter(role -> role.getReferenceType().name().equals(referenceContext.getReferenceType().name()))
+            .filter(role -> role.getReferenceId().equals(referenceContext.getReferenceId()))
+            .filter(role -> role.getName().equals(name))
+            .findFirst();
+    }
+
+    @Override
+    public Optional<Role> findIntegrationRole(String name, ReferenceContext referenceContext) {
+        return storage
+            .stream()
+            .filter(role -> role.getScope().equals(Role.Scope.INTEGRATION))
             .filter(role -> role.getReferenceType().name().equals(referenceContext.getReferenceType().name()))
             .filter(role -> role.getReferenceId().equals(referenceContext.getReferenceId()))
             .filter(role -> role.getName().equals(name))
@@ -86,6 +91,8 @@ public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlter
         this.storage.add(RoleFixtures.anApplicationPrimaryOwnerRole(organizationId));
         // Group Admin
         this.storage.add(RoleFixtures.aGroupAdminRole(organizationId));
+        //Integration Primary Owner
+        this.storage.add(RoleFixtures.anIntegrationPrimaryOwnerRole(organizationId));
     }
 
     @Override

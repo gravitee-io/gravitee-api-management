@@ -35,7 +35,6 @@ import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
@@ -234,6 +233,98 @@ class RoleQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to find application role");
+        }
+    }
+
+    @Nested
+    class FindIntegrationRole {
+
+        @Test
+        @SneakyThrows
+        void should_query_for_integration_role() {
+            // Given
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                .thenAnswer(invocation -> Optional.empty());
+
+            // When
+            service.findIntegrationRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
+
+            // Then
+            verify(roleRepository)
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                    RoleScope.INTEGRATION,
+                    "role-name",
+                    "organization-id",
+                    RoleReferenceType.ORGANIZATION
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_requested_role_and_adapt_it() {
+            // Given
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                .thenAnswer(invocation ->
+                    Optional.of(
+                        Role
+                            .builder()
+                            .id("role-id")
+                            .name(invocation.getArgument(1))
+                            .referenceId(invocation.getArgument(2))
+                            .referenceType(invocation.getArgument(3))
+                            .scope(invocation.getArgument(0))
+                            .createdAt(Date.from(INSTANT_NOW))
+                            .updatedAt(Date.from(INSTANT_NOW))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] { 1, 2, 3 })
+                            .build()
+                    )
+                );
+
+            // When
+            var result = service.findIntegrationRole(
+                "role-name",
+                new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id")
+            );
+
+            // Then
+            Assertions
+                .assertThat(result)
+                .contains(
+                    io.gravitee.apim.core.membership.model.Role
+                        .builder()
+                        .id("role-id")
+                        .name("role-name")
+                        .referenceId("organization-id")
+                        .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                        .scope(io.gravitee.apim.core.membership.model.Role.Scope.INTEGRATION)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .description("role description")
+                        .defaultRole(true)
+                        .system(true)
+                        .permissions(new int[] { 1, 2, 3 })
+                        .build()
+                );
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                .thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() ->
+                service.findIntegrationRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"))
+            );
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find integration role");
         }
     }
 
