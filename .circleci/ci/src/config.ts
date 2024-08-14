@@ -80,6 +80,7 @@ const maven = {
 };
 
 const orbs = {
+  aquasec: '1.0.0',
   artifactory: '1.0.1',
   awsCli: '2.0.6',
   awsS3: '3.0.0',
@@ -91,6 +92,9 @@ const orbs = {
 };
 
 const secrets = {
+  aquaKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key',
+  aquaSecret: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret',
+  aquaScannerKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken',
   artifactoryApiKey: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password',
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
   awsAccessKeyId: 'keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password',
