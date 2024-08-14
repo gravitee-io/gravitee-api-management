@@ -80,6 +80,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertTrue("Subscription paused at", compareDate(1479022010883L, subscription.getPausedAt().getTime()));
         assertTrue("Subscription consumer paused at", compareDate(1479022010883L, subscription.getConsumerPausedAt().getTime()));
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
+        assertEquals("Subscription client certficate", "my-client-certificate", subscription.getClientCertificate());
         assertTrue("Subscription GCU accepted", subscription.getGeneralConditionsAccepted());
         assertEquals("Subscription GCU content pageId", "ref", subscription.getGeneralConditionsContentPageId());
         assertEquals("Subscription GCU content revision", Integer.valueOf(2), subscription.getGeneralConditionsContentRevision());
@@ -193,6 +194,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertTrue("Subscription updated at", compareDate(1469022010883L, subscription.getUpdatedAt().getTime()));
         assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
+        assertEquals("Subscription client certificate", "my-client-certificate", subscription.getClientCertificate());
     }
 
     @Test
