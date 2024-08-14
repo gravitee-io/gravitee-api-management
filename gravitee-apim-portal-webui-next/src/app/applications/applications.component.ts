@@ -17,7 +17,8 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
-import { BehaviorSubject, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApplicationCardComponent } from '../../components/application-card/application-card.component';
@@ -62,10 +63,17 @@ export class ApplicationsComponent {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
       switchMap(currentPage => {
-        const pageSize = this.initialLoad ? 18 : 9;
-        this.initialLoad = false;
-        return this.applicationService.list(currentPage, pageSize);
+        if (this.initialLoad) {
+          this.initialLoad = false;
+          return of({ page: currentPage, size: 18 });
+        } else if (currentPage === 2) {
+          this.page$.next(3);
+          return EMPTY;
+        } else {
+          return of({ page: currentPage, size: 9 });
+        }
       }),
+      switchMap(({ page, size }) => this.applicationService.list(page, size)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({
