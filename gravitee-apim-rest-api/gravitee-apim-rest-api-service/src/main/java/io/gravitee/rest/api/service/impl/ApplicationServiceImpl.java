@@ -45,6 +45,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -139,6 +140,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -767,17 +769,36 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             SubscriptionQuery subQuery = new SubscriptionQuery();
             subQuery.setApplication(applicationId);
             subQuery.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
+
             String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
+            String clientCertificate = application.getMetadata().get(METADATA_CLIENT_CERTIFICATE);
+
+            Consumer<Subscription> clientIdSubscriptionModifier = s -> {
+                s.setClientId(clientId);
+            };
+            Consumer<Subscription> clientCertificateSubscriptionModifier = s -> {
+                s.setClientCertificate(clientCertificate);
+            };
+
             subscriptionService
                 .search(executionContext, subQuery)
                 .forEach(subscriptionEntity -> {
-                    if (StringUtils.isNotEmpty(subscriptionEntity.getClientId()) && StringUtils.isNotEmpty(clientId)) {
+                    Consumer<Subscription> subscriptionModifier = null;
+                    if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
+                        subscriptionModifier = clientIdSubscriptionModifier;
+                    }
+                    if (areNotEmptyAndDifferent(clientCertificate, subscriptionEntity.getClientCertificate())) {
+                        subscriptionModifier =
+                            subscriptionModifier == null
+                                ? clientCertificateSubscriptionModifier
+                                : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
+                    }
+                    if (subscriptionModifier != null) {
                         UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
                         updateSubscriptionEntity.setId(subscriptionEntity.getId());
                         updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
                         updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
-
-                        subscriptionService.update(executionContext, updateSubscriptionEntity, clientId);
+                        subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
                     }
                 });
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
@@ -788,6 +809,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 ex
             );
         }
+    }
+
+    private static boolean areNotEmptyAndDifferent(String applicationField, String subscriptionField) {
+        return (
+            StringUtils.isNotEmpty(subscriptionField) &&
+            StringUtils.isNotEmpty(applicationField) &&
+            !subscriptionField.equals(applicationField)
+        );
     }
 
     @Override

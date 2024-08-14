@@ -133,6 +133,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -1040,7 +1041,15 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Run
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, "my-client-id");
+        subscriptionService.update(
+            GraviteeContext.getExecutionContext(),
+            updatedSubscription,
+            s -> {
+                if (s.getClientId() != null) {
+                    s.setClientId("my-client-id");
+                }
+            }
+        );
 
         // Verify
         verify(subscriptionRepository, times(1)).update(argThat(s -> "my-client-id".equals(s.getClientId())));
@@ -1059,7 +1068,7 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Run
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, null);
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
 
         // Verify
         verify(subscriptionRepository, times(1)).update(any());
@@ -1078,7 +1087,7 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Run
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, null);
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
 
         // Verify
         verify(subscriptionRepository, times(1)).update(any());
@@ -2230,7 +2239,15 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Run
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscription, updatedClientId);
+        subscriptionService.update(
+            GraviteeContext.getExecutionContext(),
+            updateSubscription,
+            s -> {
+                if (updatedClientId != null && s.getClientId() != null) {
+                    s.setClientId(updatedClientId);
+                }
+            }
+        );
 
         verify(subscriptionRepository, times(1)).update(argThat(sub -> Objects.equals(sub.getClientId(), expectedClientId)));
     }
