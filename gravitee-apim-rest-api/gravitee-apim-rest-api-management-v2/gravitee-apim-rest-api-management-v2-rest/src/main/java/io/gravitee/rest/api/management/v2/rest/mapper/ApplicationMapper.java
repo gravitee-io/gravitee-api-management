@@ -36,5 +36,6 @@ public interface ApplicationMapper {
     List<BaseApplication> mapToBaseApplicationList(Collection<ApplicationListItem> applications);
 
     @Mapping(target = "picture", source = "pictureUrl")
+    @Mapping(target = "disableMembershipNotifications", expression = "java(!spec.isNotifyMembers())")
     ApplicationCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec spec);
 }
