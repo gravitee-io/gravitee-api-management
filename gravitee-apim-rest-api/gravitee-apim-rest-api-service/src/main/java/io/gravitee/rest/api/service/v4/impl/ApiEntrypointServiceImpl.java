@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -51,10 +53,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
     private final ParameterService parameterService;
     private final EntrypointService entrypointService;
+    private final AccessPointQueryService accessPointQueryService;
 
-    public ApiEntrypointServiceImpl(final ParameterService parameterService, final EntrypointService entrypointService) {
+    public ApiEntrypointServiceImpl(
+        final ParameterService parameterService,
+        final EntrypointService entrypointService,
+        final AccessPointQueryService accessPointQueryService
+    ) {
         this.parameterService = parameterService;
         this.entrypointService = entrypointService;
+        this.accessPointQueryService = accessPointQueryService;
     }
 
     @Override
@@ -78,7 +86,14 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
                 if (tagEntrypoints.size() == entrypoint.getTags().length) {
                     apiEntrypoints.addAll(
-                        getEntrypoints(genericApiEntity, entrypointScheme, entrypointValue, defaultTcpPort, tagEntrypoints)
+                        getEntrypoints(
+                            genericApiEntity,
+                            entrypointScheme,
+                            entrypointValue,
+                            defaultTcpPort,
+                            tagEntrypoints,
+                            executionContext.getEnvironmentId()
+                        )
                     );
                 }
             });
@@ -94,7 +109,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             );
             final String defaultScheme = getScheme(defaultEntrypoint);
 
-            apiEntrypoints.addAll(getEntrypoints(genericApiEntity, defaultScheme, defaultEntrypoint, defaultTcpPort, null));
+            apiEntrypoints.addAll(
+                getEntrypoints(
+                    genericApiEntity,
+                    defaultScheme,
+                    defaultEntrypoint,
+                    defaultTcpPort,
+                    null,
+                    executionContext.getEnvironmentId()
+                )
+            );
         }
 
         return apiEntrypoints;
@@ -105,7 +129,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String entrypointScheme,
         final String entrypointHost,
         final String tcpPort,
-        final Set<String> tagEntrypoints
+        final Set<String> tagEntrypoints,
+        final String environmentId
     ) {
         if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
             return Collections.emptyList();
@@ -117,15 +142,17 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 .getProxy()
                 .getVirtualHosts()
                 .stream()
-                .map(virtualHost ->
+                .flatMap(virtualHost ->
                     getHttpApiEntrypointEntity(
                         entrypointScheme,
                         entrypointHost,
                         virtualHost.getHost(),
                         virtualHost.getPath(),
                         virtualHost.isOverrideEntrypoint(),
-                        tagEntrypoints
+                        tagEntrypoints,
+                        environmentId
                     )
+                        .stream()
                 )
                 .toList();
         } else {
@@ -138,15 +165,17 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                         return httpListener
                             .getPaths()
                             .stream()
-                            .map(path ->
+                            .flatMap(path ->
                                 getHttpApiEntrypointEntity(
                                     entrypointScheme,
                                     entrypointHost,
                                     path.getHost(),
                                     path.getPath(),
                                     path.isOverrideAccess(),
-                                    tagEntrypoints
+                                    tagEntrypoints,
+                                    environmentId
                                 )
+                                    .stream()
                             );
                     } else if (listener instanceof TcpListener tcpListener) {
                         return tcpListener
@@ -159,23 +188,48 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
     }
 
-    private ApiEntrypointEntity getHttpApiEntrypointEntity(
+    private List<ApiEntrypointEntity> getHttpApiEntrypointEntity(
         final String defaultScheme,
         final String entrypointValue,
         final String host,
         final String path,
         final boolean isOverride,
-        final Set<String> tags
+        final Set<String> tags,
+        final String environmentId
     ) {
-        String targetHost = (host == null || !isOverride) ? entrypointValue : host;
-        if (!targetHost.toLowerCase().startsWith("http")) {
-            targetHost = defaultScheme + "://" + targetHost;
+        List<ApiEntrypointEntity> entrypoints = new ArrayList<>();
+
+        if (host == null || !isOverride) {
+            List<AccessPoint> accessPoints = this.accessPointQueryService.getGatewayAccessPoints(environmentId);
+            if (accessPoints.isEmpty()) {
+                entrypoints.add(createApiEntrypointEntity(defaultScheme, entrypointValue, path, tags, host));
+            } else {
+                for (AccessPoint accessPoint : accessPoints) {
+                    String targetHost = accessPoint.getHost();
+                    String scheme = accessPoint.isSecured() ? "https" : "http";
+                    entrypoints.add(createApiEntrypointEntity(scheme, targetHost, path, tags, targetHost));
+                }
+            }
+        } else {
+            entrypoints.add(createApiEntrypointEntity(defaultScheme, host, path, tags, host));
         }
-        return new ApiEntrypointEntity(
-            tags,
-            DUPLICATE_SLASH_REMOVER.matcher(targetHost + URI_PATH_SEPARATOR + path).replaceAll(URI_PATH_SEPARATOR),
-            host
-        );
+
+        return entrypoints;
+    }
+
+    private ApiEntrypointEntity createApiEntrypointEntity(
+        String defaultScheme,
+        String host,
+        String path,
+        Set<String> tags,
+        String originalHost
+    ) {
+        if (!host.toLowerCase().startsWith("http")) {
+            host = defaultScheme + "://" + host;
+        }
+
+        String url = DUPLICATE_SLASH_REMOVER.matcher(host + URI_PATH_SEPARATOR + path).replaceAll(URI_PATH_SEPARATOR);
+        return new ApiEntrypointEntity(tags, url, originalHost);
     }
 
     private ApiEntrypointEntity getTcpApiEntrypointEntity(
