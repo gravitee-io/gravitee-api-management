@@ -17,7 +17,6 @@ package io.gravitee.plugin.endpoint.http.proxy.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpHeader;
-import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.definition.model.v4.http.HttpProxyOptions;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorSharedConfiguration;

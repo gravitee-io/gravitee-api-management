@@ -16,7 +16,6 @@
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -42,7 +41,9 @@ public class HttpClientFactory {
             synchronized (this) {
                 // Double-checked locking.
                 if (httpClientCreated.compareAndSet(false, true)) {
-                    httpClient = buildHttpClient(ctx, configuration, sharedConfiguration).build().createHttpClient();
+                    VertxHttpClient vertxHttpClient = buildHttpClient(ctx, configuration, sharedConfiguration).build();
+
+                    httpClient = vertxHttpClient.createHttpClient();
                 }
             }
         }

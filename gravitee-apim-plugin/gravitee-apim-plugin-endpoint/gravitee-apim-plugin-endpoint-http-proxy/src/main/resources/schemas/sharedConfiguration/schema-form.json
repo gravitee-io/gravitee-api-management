@@ -103,6 +103,17 @@
             "description":"Maximum pool size for connections.",
             "default":20
         },
+        "http2MultiplexingLimit":{
+            "type":"integer",
+            "title":"Max concurrent stream for an HTTP/2 connection",
+            "default":-1,
+            "gioConfig": {
+                "banner": {
+                    "title": "Max concurrent stream for an HTTP/2 connection",
+                    "text": "Limit of the number concurrent streams for each HTTP/2 connection. The effective number of streams for a connection is the min of this value and the server's initial settings. Setting the value to -1 means to use the value sent by the server's initial settings. -1 is the default value."
+                }
+            }
+        },
         "http":{
             "type":"object",
             "title":"Security configuration",
@@ -190,6 +201,9 @@
                         },
                         "maxConcurrentConnections":{
                             "$ref":"#/definitions/maxConcurrentConnections"
+                        },
+                        "http2MultiplexingLimit":{
+                            "$ref":"#/definitions/http2MultiplexingLimit"
                         }
                     },
                     "required":[

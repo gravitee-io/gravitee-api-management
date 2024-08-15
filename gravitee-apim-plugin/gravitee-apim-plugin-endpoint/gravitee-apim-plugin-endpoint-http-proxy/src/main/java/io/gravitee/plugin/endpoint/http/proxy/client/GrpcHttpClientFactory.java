@@ -15,10 +15,9 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
-import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpClientOptions;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 
