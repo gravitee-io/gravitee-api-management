@@ -20,6 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -60,11 +62,14 @@ class ApiEntrypointServiceImplTest {
     @Mock
     private EntrypointService entrypointService;
 
+    @Mock
+    private AccessPointQueryService accessPointQueryService;
+
     private ApiEntrypointService apiEntrypointService;
 
     @BeforeEach
     public void before() {
-        apiEntrypointService = new ApiEntrypointServiceImpl(parameterService, entrypointService);
+        apiEntrypointService = new ApiEntrypointServiceImpl(parameterService, entrypointService, accessPointQueryService);
     }
 
     @Test
@@ -270,5 +275,50 @@ class ApiEntrypointServiceImplTest {
         String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
 
         assertThat(apiEntrypointListener).isEqualTo("SUBSCRIPTION");
+    }
+
+    @Test
+    void shouldReturnAccessPointEntrypointsApiv4() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        apiEntity.setListeners(List.of(httpListener));
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+            .thenReturn(
+                List.of(
+                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+                )
+            );
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://ap1Host/path");
+        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("http://ap2Host/path");
+    }
+
+    @Test
+    void shouldReturnAccessPointEntrypointsApiv2() {
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost();
+        virtualHost.setHost("host");
+        virtualHost.setPath("path");
+        proxy.setVirtualHosts(List.of(virtualHost));
+        apiEntity.setProxy(proxy);
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+            .thenReturn(
+                List.of(
+                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+                )
+            );
+
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://ap1Host/path");
+        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("http://ap2Host/path");
     }
 }
