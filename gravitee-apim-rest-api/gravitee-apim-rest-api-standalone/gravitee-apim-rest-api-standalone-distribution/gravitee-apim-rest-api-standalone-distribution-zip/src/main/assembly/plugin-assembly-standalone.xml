@@ -136,6 +136,7 @@
             <unpack>false</unpack>
             <includes>
                 <include>io.gravitee.*:*:jar</include>
+                <include>com.graviteesource.*:*:jar</include>
             </includes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>644</fileMode>
