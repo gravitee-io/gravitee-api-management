@@ -471,7 +471,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
-        application.setId(UuidString.generateRandom());
+        if (newApplicationEntity.getId() != null) {
+            application.setId(newApplicationEntity.getId());
+        } else {
+            application.setId(UuidString.generateRandom());
+        }
         application.setStatus(ApplicationStatus.ACTIVE);
         metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 

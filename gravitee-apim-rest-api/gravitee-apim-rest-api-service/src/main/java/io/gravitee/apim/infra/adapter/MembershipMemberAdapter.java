@@ -15,26 +15,19 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.api.model.import_definition.ApiMember;
-import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
-import io.gravitee.apim.core.member.model.Member;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import java.util.List;
-import java.util.Set;
+import io.gravitee.apim.core.member.model.MembershipMember;
+import io.gravitee.rest.api.service.MembershipService;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
+/**
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Mapper
-public interface MemberAdapter {
-    MemberAdapter INSTANCE = Mappers.getMapper(MemberAdapter.class);
+public interface MembershipMemberAdapter {
+    MembershipMemberAdapter INSTANCE = Mappers.getMapper(MembershipMemberAdapter.class);
 
-    MemberEntity toEntity(ApiMember member);
-    Set<MemberEntity> toEntities(Set<ApiMember> members);
-
-    RoleEntity toEntity(ApiMemberRole role);
-    List<RoleEntity> toEntities(List<ApiMemberRole> roles);
-
-    Member toMember(MemberEntity member);
-    MemberEntity toMemberEntity(Member member);
+    MembershipMember map(MembershipService.MembershipMember member);
+    MembershipService.MembershipMember map(MembershipMember member);
 }

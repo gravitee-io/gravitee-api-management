@@ -51,6 +51,7 @@ import inmemory.IntegrationJobCrudServiceInMemory;
 import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MemberQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
@@ -294,6 +295,11 @@ public class InMemoryConfiguration {
     @Bean
     public MembershipQueryServiceInMemory membershipQueryService(MembershipCrudServiceInMemory membershipCrudService) {
         return new MembershipQueryServiceInMemory(membershipCrudService);
+    }
+
+    @Bean
+    public MemberQueryServiceInMemory memberQueryService() {
+        return new MemberQueryServiceInMemory();
     }
 
     @Bean

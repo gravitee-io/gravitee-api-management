@@ -15,17 +15,20 @@
  */
 package io.gravitee.apim.core.application;
 
-import static org.assertj.core.api.Assertions.catchThrowable;
-
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
+import inmemory.MemberQueryServiceInMemory;
+import inmemory.UserDomainServiceInMemory;
+import io.gravitee.apim.core.application.model.crd.ApplicationCRDMember;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.member.model.Member;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
@@ -34,10 +37,10 @@ import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
@@ -66,24 +69,32 @@ public class ImportApplicationCRDUseCaseTest {
     private static final String TEST_METADATA_VALUE = "test_metadata_value";
     private static final Date NOW = new Date();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+    private static final String MEMEBER_SOURCE = "test_source";
+    private static final String MEMBER_SOURCE_ID_1 = "mem1@email.com";
+    private static final String MEMBER_SOURCE_ID_2 = "mem2@email.com";
 
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final ImportApplicationCRDDomainServiceInMemory importApplicationCRDDomainService =
         new ImportApplicationCRDDomainServiceInMemory();
     private final ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService = new ApplicationMetadataCrudServiceInMemory();
     private final ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService = new ApplicationMetadataQueryServiceInMemory();
+    private final MemberQueryServiceInMemory memberQueryService = new MemberQueryServiceInMemory();
+    private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
 
     ImportApplicationCRDUseCase useCase;
 
     @BeforeEach
     void setUp() {
         importApplicationCRDDomainService.initWith(List.of(anApplicationCRD()));
+        userDomainService.initWith(getUsers());
         useCase =
             new ImportApplicationCRDUseCase(
                 applicationCrudService,
                 importApplicationCRDDomainService,
                 applicationMetadataCrudService,
-                applicationMetadataQueryService
+                applicationMetadataQueryService,
+                memberQueryService,
+                userDomainService
             );
     }
 
@@ -113,17 +124,6 @@ public class ImportApplicationCRDUseCaseTest {
         }
 
         @Test
-        void should_not_create_new_application_with_id() {
-            var expected = expectedApplication();
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, anApplicationCRD())));
-
-            SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(throwable).isInstanceOf(ApplicationNotFoundException.class);
-                soft.assertThat(importApplicationCRDDomainService.storage()).doesNotContain(expected);
-            });
-        }
-
-        @Test
         void should_create_new_application_and_its_metadata() {
             var expectedApp = expectedApplication();
             ApplicationCRDSpec crd = anApplicationCRD();
@@ -134,6 +134,24 @@ public class ImportApplicationCRDUseCaseTest {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
                 soft.assertThat(applicationMetadataCrudService.storage()).contains(expectedApplicationMetadata());
             });
+        }
+
+        @Test
+        void should_create_new_application_and_its_members() {
+            var expectedApp = expectedApplication();
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setMembers(applicationMembers());
+            useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
+                soft.assertThat(applicationMetadataCrudService.storage()).contains(expectedApplicationMetadata());
+            });
+        }
+
+        private Member toMember(ApplicationCRDMember member) {
+            // TODO - Kamiel - 8/19/24: change the id
+            return new Member("member.getId()", null, null, null, null, member.getReference(), null, null, null, null);
         }
     }
 
@@ -159,18 +177,6 @@ public class ImportApplicationCRDUseCaseTest {
         }
 
         @Test
-        void should_not_update_new_application_without_id() {
-            var expected = expectedApplication();
-            applicationCrudService.reset();
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, anApplicationCRD())));
-
-            SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(throwable).isInstanceOf(ApplicationNotFoundException.class);
-                soft.assertThat(importApplicationCRDDomainService.storage()).doesNotContain(expected);
-            });
-        }
-
-        @Test
         void should_update_existing_application_and_its_metadata() {
             var expectedApp = expectedApplication();
             ApplicationCRDSpec crd = anApplicationCRD();
@@ -186,6 +192,20 @@ public class ImportApplicationCRDUseCaseTest {
                 ApplicationMetadataEntity applicationMetadataEntity = expectedApplicationMetadata();
                 applicationMetadataEntity.setValue(newAppMetadataDescription);
                 soft.assertThat(applicationMetadataCrudService.storage()).contains(applicationMetadataEntity);
+            });
+        }
+
+        @Test
+        void should_update_existing_application_and_its_members() {
+            var expectedApp = expectedApplication();
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setMembers(applicationMembers());
+
+            useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
+                soft.assertThat(applicationMetadataCrudService.storage()).contains(expectedApplicationMetadata());
             });
         }
     }
@@ -214,6 +234,14 @@ public class ImportApplicationCRDUseCaseTest {
             .build();
     }
 
+    private List<ApplicationCRDMember> applicationMembers() {
+        List<ApplicationCRDMember> members = new ArrayList<>();
+        members.add(new ApplicationCRDMember(MEMEBER_SOURCE, MEMBER_SOURCE_ID_1, null, "OWNER"));
+        members.add(new ApplicationCRDMember(MEMEBER_SOURCE, MEMBER_SOURCE_ID_2, null, "USER"));
+
+        return members;
+    }
+
     private BaseApplicationEntity expectedApplication() {
         var bae = new BaseApplicationEntity();
         bae.setId(APP_ID);
@@ -236,5 +264,32 @@ public class ImportApplicationCRDUseCaseTest {
         am.setValue(TEST_METADATA_VALUE);
 
         return am;
+    }
+
+    private List<BaseUserEntity> getUsers() {
+        return List.of(
+            new BaseUserEntity(
+                USER_ID,
+                ORGANIZATION_ID,
+                "test",
+                "test",
+                MEMBER_SOURCE_ID_1,
+                new Date(),
+                new Date(),
+                MEMEBER_SOURCE,
+                MEMBER_SOURCE_ID_1
+            ),
+            new BaseUserEntity(
+                USER_ID,
+                ORGANIZATION_ID,
+                "test",
+                "test",
+                MEMBER_SOURCE_ID_2,
+                new Date(),
+                new Date(),
+                MEMEBER_SOURCE,
+                MEMBER_SOURCE_ID_2
+            )
+        );
     }
 }

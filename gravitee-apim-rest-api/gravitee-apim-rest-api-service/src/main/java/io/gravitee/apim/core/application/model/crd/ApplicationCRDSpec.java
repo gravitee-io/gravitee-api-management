@@ -43,9 +43,11 @@ import lombok.experimental.SuperBuilder;
 public class ApplicationCRDSpec extends ApplicationEntity {
 
     private List<ApplicationMetadataCRD> metadata;
+    private List<ApplicationCRDMember> members;
 
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();
+        nae.setId(getId());
         nae.setName(getName());
         nae.setDescription(getDescription());
         nae.setType(getType());
