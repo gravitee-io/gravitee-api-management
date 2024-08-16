@@ -17,12 +17,73 @@
 -->
 
 <mat-card>
-  <mat-card-header>
-    <mat-card-title>Hello shared-policy-group-history !</mat-card-title>
-    <mat-card-subtitle>Add a description here</mat-card-subtitle>
-    <div class="shared-policy-group-history__headerRightBtn">
-      <button mat-button>Right button</button>
-    </div>
-  </mat-card-header>
-  <mat-card-content> Put your card content here ! 👀 </mat-card-content>
+  @if (sharedPolicyGroup(); as sharedPolicyGroup) {
+    <mat-card-header>
+      <mat-card-title
+        >Versions of {{ sharedPolicyGroup.name }}
+        <span class="gio-badge-accent" matTooltip="API type">{{ sharedPolicyGroup.apiType | titlecase }}</span>
+        <span class="gio-badge-accent" matTooltip="Phase">{{ toReadableExecutionPhase(sharedPolicyGroup.phase) }}</span>
+        <shared-policy-groups-state-badge [lifecycleState]="sharedPolicyGroup.lifecycleState"></shared-policy-groups-state-badge>
+      </mat-card-title>
+      <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
+    </mat-card-header>
+  }
+
+  @if (pageTableVM$ | async; as pageTableVM) {
+    <gio-table-wrapper
+      class="table"
+      [disableSearchInput]="true"
+      [filters]="filters"
+      [length]="pageTableVM.totalItems"
+      [paginationPageSizeOptions]="[25, 50, 100]"
+      (filtersChange)="onFiltersChanged($event)"
+    >
+      <table mat-table matSort [dataSource]="pageTableVM.items" aria-label="Shared Policy Group">
+        <ng-container matColumnDef="version">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="version">Version</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.version }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let element">
+            <div class="cell">
+              <div class="cell__nameDescription">
+                <div class="cell__nameDescription__name mat-body-strong">{{ element.name }}</div>
+                <div>{{ element.description }}</div>
+              </div>
+              <shared-policy-groups-state-badge [lifecycleState]="element.lifecycleState"></shared-policy-groups-state-badge>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastDeploy">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="deployedAt">Deployed At</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.deployedAt | date: 'medium' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <div class="actions_btn"></div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            <div *ngIf="!pageTableVM.isLoading" class="mat-body">No Shared Policy Group</div>
+            <div *ngIf="pageTableVM.isLoading" class="mat-body">Loading...</div>
+          </td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  }
 </mat-card>

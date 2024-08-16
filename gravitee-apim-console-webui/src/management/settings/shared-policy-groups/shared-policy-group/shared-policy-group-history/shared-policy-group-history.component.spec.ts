@@ -15,28 +15,73 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
 
 import { SharedPolicyGroupHistoryComponent } from './shared-policy-group-history.component';
 import { SharedPolicyGroupHistoryHarness } from './shared-policy-group-history.harness';
 
+import {
+  expectGetSharedPolicyGroupRequest,
+  expectListSharedPolicyGroupHistoriesRequest,
+} from '../../../../../services-ngx/shared-policy-groups.service.spec';
+import { GioTestingModule } from '../../../../../shared/testing';
+import { fakeSharedPolicyGroup } from '../../../../../entities/management-api-v2';
+
 describe('SharedPolicyGroupHistoryComponent', () => {
-  let component: SharedPolicyGroupHistoryComponent;
+  const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
   let fixture: ComponentFixture<SharedPolicyGroupHistoryComponent>;
   let componentHarness: SharedPolicyGroupHistoryHarness;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedPolicyGroupHistoryComponent],
+      imports: [NoopAnimationsModule, SharedPolicyGroupHistoryComponent, GioTestingModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { sharedPolicyGroupId: SHARED_POLICY_GROUP_ID } } },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SharedPolicyGroupHistoryComponent);
-    component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SharedPolicyGroupHistoryHarness);
-    fixture.detectChanges();
+    expectGetSharedPolicyGroupRequest(
+      httpTestingController,
+      fakeSharedPolicyGroup({
+        id: SHARED_POLICY_GROUP_ID,
+      }),
+    );
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-    expect(componentHarness).toBeTruthy();
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('should display resources table', async () => {
+    const table = await componentHarness.getTable();
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID);
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([['1', 'Shared policy group', expect.any(String), '']]);
+  });
+
+  it('should refresh the table when filters change', async () => {
+    const table = await componentHarness.getTable();
+    const getTableWrapper = await componentHarness.getTableWrapper();
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+    expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID);
+
+    await (await getTableWrapper.getPaginator()).setPageSize(50);
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
+
+    expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID, '?page=1&perPage=50');
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([['1', 'Shared policy group', expect.any(String), '']]);
   });
 });

@@ -24,6 +24,7 @@ export function fakeSharedPolicyGroup(
   const base: SharedPolicyGroup = {
     id: '1',
     crossId: '1',
+    version: 1,
     name: 'Shared policy group',
     phase: 'REQUEST',
     apiType: 'PROXY',

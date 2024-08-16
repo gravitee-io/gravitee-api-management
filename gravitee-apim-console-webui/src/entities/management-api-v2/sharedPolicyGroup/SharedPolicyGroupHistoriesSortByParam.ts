@@ -13,13 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
-
-import { GioTableWrapperHarness } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
-
-export class SharedPolicyGroupHistoryHarness extends ComponentHarness {
-  static readonly hostSelector = 'shared-policy-group-history';
-  public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Shared Policy Group"]' }));
-  public getTableWrapper = this.locatorFor(GioTableWrapperHarness);
-}
+export type SharedPolicyGroupHistoriesSortByParam = 'version' | '-version' | 'updatedAt' | '-updatedAt' | 'deployedAt' | '-deployedAt';

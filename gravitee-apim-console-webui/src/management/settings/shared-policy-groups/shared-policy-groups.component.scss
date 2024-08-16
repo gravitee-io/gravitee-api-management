@@ -34,13 +34,20 @@
 }
 
 .mat-column-name {
-  .name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 400px;
-  }
-  .lifecycleStateBadge {
-    float: right;
+  .cell {
+    display: flex;
+    align-items: center;
+
+    &__nameDescription {
+      align-items: center;
+      justify-content: space-between;
+
+      &__name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 500px;
+      }
+    }
   }
 }

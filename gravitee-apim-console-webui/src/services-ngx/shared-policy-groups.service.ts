@@ -24,6 +24,7 @@ import {
   SharedPolicyGroup,
   SharedPolicyGroupsSortByParam,
   PagedResult,
+  SharedPolicyGroupHistoriesSortByParam,
 } from '../entities/management-api-v2';
 import { SharedPolicyGroupPolicyPlugin } from '../entities/management-api-v2/sharedPolicyGroup/SharedPolicyGroupPolicyPlugin';
 
@@ -78,5 +79,23 @@ export class SharedPolicyGroupsService {
 
   getSharedPolicyGroupPolicyPlugin(): Observable<SharedPolicyGroupPolicyPlugin[]> {
     return this.http.get<SharedPolicyGroupPolicyPlugin[]>(`${this.constants.env.v2BaseURL}/shared-policy-groups/policy-plugins`);
+  }
+
+  listHistories(
+    id: string,
+    sortBy?: SharedPolicyGroupHistoriesSortByParam,
+    page = 1,
+    perPage = 25,
+  ): Observable<PagedResult<SharedPolicyGroup>> {
+    let params = new HttpParams();
+    params = params.append('page', page);
+    params = params.append('perPage', perPage);
+    if (sortBy) {
+      params = params.append('sortBy', sortBy);
+    }
+
+    return this.http.get<PagedResult<SharedPolicyGroup>>(`${this.constants.env.v2BaseURL}/shared-policy-groups/${id}/histories`, {
+      params,
+    });
   }
 }
