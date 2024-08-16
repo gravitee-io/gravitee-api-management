@@ -130,6 +130,17 @@ describe('SharedPolicyGroupsService', () => {
       expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
     });
   });
+
+  describe('listHistories', () => {
+    it('should call the API', (done) => {
+      service.listHistories('spgId').subscribe((SPGs) => {
+        expect(SPGs.data.length).toEqual(1);
+        done();
+      });
+
+      expectListSharedPolicyGroupHistoriesRequest(httpTestingController, fakePagedResult([fakeSharedPolicyGroup()]));
+    });
+  });
 });
 
 export const expectListSharedPolicyGroupsRequest = (
@@ -207,4 +218,17 @@ export const expectGetSharedPolicyGroupPolicyPluginRequest = (
   const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/policy-plugins`);
   expect(req.request.method).toEqual('GET');
   req.flush(sharedPolicyGroupPolicyPlugin);
+};
+
+export const expectListSharedPolicyGroupHistoriesRequest = (
+  httpTestingController: HttpTestingController,
+  sharedPolicyGroupHistories: PagedResult<SharedPolicyGroup> = fakePagedResult([fakeSharedPolicyGroup()]),
+  sharedPolicyGroupId: string = 'spgId',
+  queryParams: string = '?page=1&perPage=25',
+) => {
+  const req = httpTestingController.expectOne(
+    `${CONSTANTS_TESTING.env.v2BaseURL}/shared-policy-groups/${sharedPolicyGroupId}/histories${queryParams}`,
+  );
+  expect(req.request.method).toEqual('GET');
+  req.flush(sharedPolicyGroupHistories);
 };

@@ -24,7 +24,7 @@ export interface SharedPolicyGroup {
   description?: string;
   prerequisiteMessage?: string;
   lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
-  version?: string;
+  version?: number;
   apiType: ApiType;
   phase: ExecutionPhase;
   steps?: StepV4[];

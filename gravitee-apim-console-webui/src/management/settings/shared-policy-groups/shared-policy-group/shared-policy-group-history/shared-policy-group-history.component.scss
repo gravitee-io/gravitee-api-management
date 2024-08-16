@@ -18,11 +18,41 @@
 @use 'src/scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-layout.gio-responsive-margin-container;
+  @include gio-layout.gio-responsive-content-container;
 }
 
 .shared-policy-group-history {
   &__headerRightBtn {
     margin-left: auto;
+  }
+}
+
+.mat-column-version {
+  width: 0;
+}
+.mat-column-actions {
+  width: 0;
+  .actions_btn {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.mat-column-name {
+  .cell {
+    display: flex;
+    align-items: center;
+
+    &__nameDescription {
+      align-items: center;
+      justify-content: space-between;
+
+      &__name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 500px;
+      }
+    }
   }
 }
