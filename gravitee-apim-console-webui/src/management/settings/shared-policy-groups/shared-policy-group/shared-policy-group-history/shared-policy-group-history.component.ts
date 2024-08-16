@@ -34,6 +34,11 @@ import {
   HistoryJsonDialogData,
   HistoryJsonDialogResult,
 } from './history-json-dialog/history-json-dialog.component';
+import {
+  HistoryStudioDialogComponent,
+  HistoryStudioDialogData,
+  HistoryStudioDialogResult,
+} from './history-studio-dialog/history-studio-dialog.component';
 
 import { GioTableWrapperFilters, Sort } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SharedPolicyGroupsStateBadgeComponent } from '../../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
@@ -151,6 +156,19 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
   protected onShowJsonSource(sharedPolicyGroup: SharedPolicyGroup): void {
     this.matDialog
       .open<HistoryJsonDialogComponent, HistoryJsonDialogData, HistoryJsonDialogResult>(HistoryJsonDialogComponent, {
+        data: {
+          sharedPolicyGroup,
+        },
+        width: GIO_DIALOG_WIDTH.LARGE,
+        role: 'dialog',
+      })
+      .afterClosed()
+      .subscribe();
+  }
+
+  protected onShowStudio(sharedPolicyGroup: SharedPolicyGroup): void {
+    this.matDialog
+      .open<HistoryStudioDialogComponent, HistoryStudioDialogData, HistoryStudioDialogResult>(HistoryStudioDialogComponent, {
         data: {
           sharedPolicyGroup,
         },
