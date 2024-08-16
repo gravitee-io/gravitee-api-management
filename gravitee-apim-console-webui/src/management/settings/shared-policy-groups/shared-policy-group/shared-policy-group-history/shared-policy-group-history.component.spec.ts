@@ -20,18 +20,21 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { SharedPolicyGroupHistoryComponent } from './shared-policy-group-history.component';
 import { SharedPolicyGroupHistoryHarness } from './shared-policy-group-history.harness';
 import { HistoryJsonDialogHarness } from './history-json-dialog/history-json-dialog.harness';
 import { HistoryStudioDialogHarness } from './history-studio-dialog/history-studio-dialog.harness';
+import { HistoryCompareDialogHarness } from './history-compare-dialog/history-compare-dialog.harness';
 
 import {
   expectGetSharedPolicyGroupRequest,
   expectListSharedPolicyGroupHistoriesRequest,
 } from '../../../../../services-ngx/shared-policy-groups.service.spec';
-import { GioTestingModule } from '../../../../../shared/testing';
-import { fakeSharedPolicyGroup } from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { fakePagedResult, fakePoliciesPlugin, fakePolicyPlugin, fakeSharedPolicyGroup } from '../../../../../entities/management-api-v2';
 
 describe('SharedPolicyGroupHistoryComponent', () => {
   const SHARED_POLICY_GROUP_ID = 'sharedPolicyGroupId';
@@ -49,7 +52,14 @@ describe('SharedPolicyGroupHistoryComponent', () => {
           useValue: { snapshot: { params: { sharedPolicyGroupId: SHARED_POLICY_GROUP_ID } } },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(SharedPolicyGroupHistoryComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -73,7 +83,7 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     expect(await table.getCellTextByIndex()).toStrictEqual([['Loading...']]);
     expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID);
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['1', 'Shared policy group', expect.any(String), '']]);
+    expect(await table.getCellTextByIndex()).toStrictEqual([['', '1', 'Shared policy group', expect.any(String), 'codeeye']]);
   });
 
   it('should refresh the table when filters change', async () => {
@@ -88,7 +98,7 @@ describe('SharedPolicyGroupHistoryComponent', () => {
 
     expectListSharedPolicyGroupHistoriesRequest(httpTestingController, undefined, SHARED_POLICY_GROUP_ID, '?page=1&perPage=50');
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['1', 'Shared policy group', expect.any(String), '']]);
+    expect(await table.getCellTextByIndex()).toStrictEqual([['', '1', 'Shared policy group', expect.any(String), 'codeeye']]);
   });
 
   it('should display the JSON dialog', async () => {
@@ -118,8 +128,45 @@ describe('SharedPolicyGroupHistoryComponent', () => {
           .getCells({ columnName: 'actions' })
           .then((cells) => cells[0].getHarness(MatButtonHarness.with({ text: 'eye' })).then((button) => button.click())),
       );
+    expectGetPolicies();
     const dialog = await rootLoader.getHarness(HistoryStudioDialogHarness);
 
     expect(await dialog.getTitleText()).toEqual('Version 1 details');
   });
+
+  it('should display compare dialog', async () => {
+    expectListSharedPolicyGroupHistoriesRequest(
+      httpTestingController,
+      fakePagedResult([
+        fakeSharedPolicyGroup({
+          version: 2,
+        }),
+        fakeSharedPolicyGroup({ version: 1 }),
+      ]),
+      SHARED_POLICY_GROUP_ID,
+    );
+
+    const table = await componentHarness.getTable();
+    const rows = await table.getRows();
+    await rows[0]
+      .getCells({ columnName: 'checkbox' })
+      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+    await rows[1]
+      .getCells({ columnName: 'checkbox' })
+      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+
+    await componentHarness.compareTwoSPGButton().then((button) => button.click());
+
+    const dialog = await rootLoader.getHarness(HistoryCompareDialogHarness);
+    expect(await dialog.getTitleText()).toEqual('Comparing version 2 with version 1');
+  });
+
+  function expectGetPolicies() {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`,
+        method: 'GET',
+      })
+      .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
+  }
 });

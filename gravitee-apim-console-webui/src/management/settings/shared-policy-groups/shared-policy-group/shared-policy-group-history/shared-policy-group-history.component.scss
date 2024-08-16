@@ -23,10 +23,18 @@
 
 .shared-policy-group-history {
   &__headerRightBtn {
-    margin-left: auto;
+    margin: auto 0 auto auto;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 8px;
   }
 }
 
+.mat-column-checkbox {
+  width: 0%;
+  white-space: nowrap;
+}
 .mat-column-version {
   width: 0;
 }

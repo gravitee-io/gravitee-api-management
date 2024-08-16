@@ -26,6 +26,22 @@
         <shared-policy-groups-state-badge [lifecycleState]="sharedPolicyGroup.lifecycleState"></shared-policy-groups-state-badge>
       </mat-card-title>
       <mat-card-subtitle>{{ sharedPolicyGroup.description }}</mat-card-subtitle>
+      <div class="shared-policy-group-history__headerRightBtn">
+        <button
+          mat-stroked-button
+          matTooltip="Compare last selected version with the current Pending one"
+          [disabled]="sharedPolicyGroup.lifecycleState !== 'PENDING' || disableComparePendingSPG"
+          (click)="openComparePendingSPGDialog()"
+        >
+          <mat-icon svgIcon="gio:git-pull-request">comparePendingSPG</mat-icon>
+          {{ comparePendingSPGLabel }}
+        </button>
+        <span [matTooltip]="compareSPG ? 'Compare selected versions' : 'Select two versions to compare'">
+          <button mat-stroked-button [disabled]="disableCompareTwoSPG" (click)="openCompareTwoSPGDialog()">
+            <mat-icon svgIcon="gio:git-pull-request">compareTwoSPG</mat-icon> {{ compareTwoSPGLabel }}
+          </button>
+        </span>
+      </div>
     </mat-card-header>
   }
 
@@ -39,10 +55,17 @@
       (filtersChange)="onFiltersChanged($event)"
     >
       <table mat-table matSort [dataSource]="pageTableVM.items" aria-label="Shared Policy Group">
+        <ng-container matColumnDef="checkbox">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <mat-checkbox [(ngModel)]="element.selected" (click)="selectRow(element)"></mat-checkbox>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="version">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="version">Version</th>
           <td mat-cell *matCellDef="let element">
-            {{ element.version }}
+            {{ element.sharedPolicyGroup.version }}
           </td>
         </ng-container>
 
@@ -51,10 +74,12 @@
           <td mat-cell *matCellDef="let element">
             <div class="cell">
               <div class="cell__nameDescription">
-                <div class="cell__nameDescription__name mat-body-strong">{{ element.name }}</div>
-                <div>{{ element.description }}</div>
+                <div class="cell__nameDescription__name mat-body-strong">{{ element.sharedPolicyGroup.name }}</div>
+                <div>{{ element.sharedPolicyGroup.description }}</div>
               </div>
-              <shared-policy-groups-state-badge [lifecycleState]="element.lifecycleState"></shared-policy-groups-state-badge>
+              <shared-policy-groups-state-badge
+                [lifecycleState]="element.sharedPolicyGroup.lifecycleState"
+              ></shared-policy-groups-state-badge>
             </div>
           </td>
         </ng-container>
@@ -62,7 +87,7 @@
         <ng-container matColumnDef="lastDeploy">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="deployedAt">Deployed At</th>
           <td mat-cell *matCellDef="let element">
-            {{ element.deployedAt | date: 'medium' }}
+            {{ element.sharedPolicyGroup.deployedAt | date: 'medium' }}
           </td>
         </ng-container>
 
