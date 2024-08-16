@@ -69,7 +69,16 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element">
-            <div class="actions_btn"></div>
+            <div class="actions_btn">
+              <button
+                mat-button
+                aria-label="Button show source"
+                matTooltip="Show JSON source"
+                (click)="onShowJsonSource(element.sharedPolicyGroup)"
+              >
+                <mat-icon svgIcon="gio:code">code</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
 
