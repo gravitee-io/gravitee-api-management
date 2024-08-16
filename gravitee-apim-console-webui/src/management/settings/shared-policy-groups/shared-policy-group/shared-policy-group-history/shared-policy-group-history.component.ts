@@ -24,10 +24,12 @@ import { BehaviorSubject, switchMap } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { debounceTime, map, tap } from 'rxjs/operators';
-import { isEqual } from 'lodash';
+import { isEqual, isNil } from 'lodash';
 import { MatIcon } from '@angular/material/icon';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 
 import {
   HistoryJsonDialogComponent,
@@ -39,6 +41,11 @@ import {
   HistoryStudioDialogData,
   HistoryStudioDialogResult,
 } from './history-studio-dialog/history-studio-dialog.component';
+import {
+  HistoryCompareDialogComponent,
+  HistoryCompareDialogData,
+  HistoryCompareDialogResult,
+} from './history-compare-dialog/history-compare-dialog.component';
 
 import { GioTableWrapperFilters, Sort } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SharedPolicyGroupsStateBadgeComponent } from '../../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
@@ -53,12 +60,8 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
 
 type PageTableVM = {
   items: {
-    version: number;
-    name: string;
-    description: string;
-    lifecycleState: SharedPolicyGroup['lifecycleState'];
-    updatedAt: Date;
-    deployedAt: Date;
+    _id: string;
+    selected: boolean;
     sharedPolicyGroup: SharedPolicyGroup;
   }[];
   totalItems: number;
@@ -80,6 +83,8 @@ type PageTableVM = {
     GioTableWrapperModule,
     SharedPolicyGroupsStateBadgeComponent,
     MatIcon,
+    MatCheckbox,
+    FormsModule,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -94,7 +99,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
 
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
-  protected displayedColumns = ['version', 'name', 'lastDeploy', 'actions'];
+  protected displayedColumns = ['checkbox', 'version', 'name', 'lastDeploy', 'actions'];
   protected filters: GioTableWrapperFilters = {
     searchTerm: '',
     pagination: {
@@ -102,13 +107,34 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       size: 25,
     },
   };
-
   protected pageTableVM$: BehaviorSubject<PageTableVM> = new BehaviorSubject({
     items: [],
     totalItems: 0,
     isLoading: true,
   });
   protected readonly toReadableExecutionPhase = toReadableExecutionPhase;
+  protected compareSPG?: [PageTableVM['items'][number], PageTableVM['items'][number]] = [null, null];
+  protected get compareTwoSPGLabel(): string {
+    if (this.compareSPG[0] === null) {
+      return 'Select two versions to compare';
+    }
+    if (this.compareSPG[1] === null) {
+      return `Select another version to compare`;
+    }
+    return `Compare version ${this.compareSPG[0].sharedPolicyGroup.version} with ${this.compareSPG[1].sharedPolicyGroup.version}`;
+  }
+  protected get disableCompareTwoSPG(): boolean {
+    return this.compareSPG.filter((e) => !isNil(e)).length < 2;
+  }
+  protected get comparePendingSPGLabel(): string {
+    const lastSelected = this.compareSPG.filter((e) => !isNil(e))?.pop();
+    return lastSelected
+      ? `Compare version ${lastSelected.sharedPolicyGroup.version} with Pending`
+      : 'Select a version to compare with Pending version';
+  }
+  protected get disableComparePendingSPG(): boolean {
+    return this.compareSPG.filter((e) => !isNil(e)).length < 1;
+  }
 
   ngOnInit() {
     this.refreshPageTableVM$
@@ -124,15 +150,15 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
           ),
         ),
         map((pagedResult) => {
-          const items: PageTableVM['items'] = pagedResult.data.map((sharedPolicyGroup) => ({
-            version: sharedPolicyGroup.version,
-            name: sharedPolicyGroup.name,
-            description: sharedPolicyGroup.description,
-            lifecycleState: sharedPolicyGroup.lifecycleState,
-            updatedAt: sharedPolicyGroup.updatedAt,
-            deployedAt: sharedPolicyGroup.deployedAt,
-            sharedPolicyGroup,
-          }));
+          const items: PageTableVM['items'] = pagedResult.data.map((sharedPolicyGroup) => {
+            const id = `${sharedPolicyGroup.version}-${sharedPolicyGroup.updatedAt.toString()}`;
+
+            return {
+              _id: id,
+              selected: this.getSelected(id),
+              sharedPolicyGroup,
+            };
+          });
 
           this.pageTableVM$.next({
             items,
@@ -177,6 +203,63 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       })
       .afterClosed()
       .subscribe();
+  }
+
+  protected openCompareTwoSPGDialog() {
+    this.matDialog
+      .open<HistoryCompareDialogComponent, HistoryCompareDialogData, HistoryCompareDialogResult>(HistoryCompareDialogComponent, {
+        data: {
+          left: this.compareSPG[0]?.sharedPolicyGroup,
+          right: this.compareSPG[1]?.sharedPolicyGroup,
+        },
+        width: GIO_DIALOG_WIDTH.LARGE,
+        role: 'dialog',
+      })
+      .afterClosed()
+      .subscribe();
+  }
+
+  protected openComparePendingSPGDialog() {
+    const spg = this.sharedPolicyGroup();
+    this.matDialog
+      .open<HistoryCompareDialogComponent, HistoryCompareDialogData, HistoryCompareDialogResult>(HistoryCompareDialogComponent, {
+        data: {
+          left: this.compareSPG[0]?.sharedPolicyGroup,
+          right: spg,
+          rightIsPending: true,
+        },
+        width: GIO_DIALOG_WIDTH.LARGE,
+        role: 'dialog',
+      })
+      .afterClosed()
+      .subscribe();
+  }
+
+  protected selectRow(spg: PageTableVM['items'][number]) {
+    if (this.compareSPG[0] === null) {
+      this.compareSPG[0] = spg;
+    } else if (this.compareSPG[0]._id === spg._id) {
+      this.compareSPG = [this.compareSPG[1], null];
+    } else if (this.compareSPG[1] !== null && this.compareSPG[1]._id === spg._id) {
+      this.compareSPG[1] = null;
+    } else {
+      this.compareSPG[1] = spg;
+    }
+
+    this.pageTableVM$.next({
+      ...this.pageTableVM$.value,
+      items: this.pageTableVM$.getValue().items.map((spg) => {
+        spg.selected = this.getSelected(spg._id);
+        return spg;
+      }),
+    });
+  }
+
+  private getSelected(spgId: string): boolean {
+    return this.compareSPG
+      .filter((e) => !isNil(e))
+      .map((e) => e._id)
+      .includes(spgId);
   }
 }
 
