@@ -25,6 +25,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { debounceTime, map, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { MatIcon } from '@angular/material/icon';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
+
+import {
+  HistoryJsonDialogComponent,
+  HistoryJsonDialogData,
+  HistoryJsonDialogResult,
+} from './history-json-dialog/history-json-dialog.component';
 
 import { GioTableWrapperFilters, Sort } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SharedPolicyGroupsStateBadgeComponent } from '../../shared-policy-groups-state-badge/shared-policy-groups-state-badge.component';
@@ -45,6 +54,7 @@ type PageTableVM = {
     lifecycleState: SharedPolicyGroup['lifecycleState'];
     updatedAt: Date;
     deployedAt: Date;
+    sharedPolicyGroup: SharedPolicyGroup;
   }[];
   totalItems: number;
   isLoading: boolean;
@@ -64,6 +74,7 @@ type PageTableVM = {
     GioPermissionModule,
     GioTableWrapperModule,
     SharedPolicyGroupsStateBadgeComponent,
+    MatIcon,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,6 +83,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
+  private readonly matDialog = inject(MatDialog);
 
   protected sharedPolicyGroup = toSignal(this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId));
 
@@ -114,6 +126,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
             lifecycleState: sharedPolicyGroup.lifecycleState,
             updatedAt: sharedPolicyGroup.updatedAt,
             deployedAt: sharedPolicyGroup.deployedAt,
+            sharedPolicyGroup,
           }));
 
           this.pageTableVM$.next({
@@ -133,6 +146,19 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
     }
     this.filters = $event;
     this.refreshPageTableVM$.next();
+  }
+
+  protected onShowJsonSource(sharedPolicyGroup: SharedPolicyGroup): void {
+    this.matDialog
+      .open<HistoryJsonDialogComponent, HistoryJsonDialogData, HistoryJsonDialogResult>(HistoryJsonDialogComponent, {
+        data: {
+          sharedPolicyGroup,
+        },
+        width: GIO_DIALOG_WIDTH.LARGE,
+        role: 'dialog',
+      })
+      .afterClosed()
+      .subscribe();
   }
 }
 
