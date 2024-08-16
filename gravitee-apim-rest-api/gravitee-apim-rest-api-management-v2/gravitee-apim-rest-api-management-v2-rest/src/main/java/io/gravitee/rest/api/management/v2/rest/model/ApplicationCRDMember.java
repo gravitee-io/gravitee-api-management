@@ -15,40 +15,32 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
-import io.gravitee.definition.model.Origin;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class ApplicationCRDSpec {
-
-    private String id;
+public class ApplicationCRDMember {
 
     @NotNull
     @NotEmpty
-    private String name;
+    private String source;
 
     @NotNull
     @NotEmpty
-    private String description;
+    private String sourceId;
 
-    private String domain;
-    private Set<String> groups;
-    private String status;
-    private String pictureUrl;
-    private boolean notifyMembers;
-    private String background;
-    private Origin origin;
-    private PrimaryOwnerEntity primaryOwner;
-    private ApplicationCRDSettings settings;
-    private List<ApplicationCRDMetadata> metadata;
-    private List<ApplicationCRDMember> members;
+    private String reference;
+
+    @NotNull
+    @NotEmpty
+    private String role;
 }

@@ -31,6 +31,8 @@ import java.util.Set;
  */
 public class NewApplicationEntity {
 
+    private String id;
+
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
     @Schema(description = "Application's name. Duplicate names can exists.", example = "My App")
@@ -77,6 +79,14 @@ public class NewApplicationEntity {
     @JsonProperty(value = "origin")
     @Schema(description = "The origin used for creating this application.")
     private Origin origin = Origin.MANAGEMENT;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getDescription() {
         return description;
