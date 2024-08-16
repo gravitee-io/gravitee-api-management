@@ -17,7 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,78 +28,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}portalnotificationconfigs")
 public class PortalNotificationConfigMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private PortalNotificationConfigPkMongo id;
 
     private List<String> hooks;
     private Date createdAt;
     private Date updatedAt;
-
-    public PortalNotificationConfigPkMongo getId() {
-        return id;
-    }
-
-    public void setId(PortalNotificationConfigPkMongo id) {
-        this.id = id;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public List<String> getHooks() {
-        return hooks;
-    }
-
-    public void setHooks(List<String> hooks) {
-        this.hooks = hooks;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PortalNotificationConfigMongo)) return false;
-        PortalNotificationConfigMongo portalNotificationConfigMongo = (PortalNotificationConfigMongo) o;
-        return Objects.equals(id, portalNotificationConfigMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "PortalNotificationConfigMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
-            '\'' +
-            '}'
-        );
-    }
 }

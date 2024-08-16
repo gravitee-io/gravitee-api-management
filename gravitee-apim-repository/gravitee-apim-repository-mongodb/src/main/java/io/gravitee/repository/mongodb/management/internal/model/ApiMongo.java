@@ -17,8 +17,11 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -30,6 +33,10 @@ import org.springframework.data.mongodb.core.mapping.Field;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apis")
 public class ApiMongo extends Auditable {
 
@@ -97,196 +104,9 @@ public class ApiMongo extends Auditable {
 
     private String background;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(String visibility) {
-        this.visibility = visibility;
-    }
-
-    public String getLifecycleState() {
-        return lifecycleState;
-    }
-
-    public void setLifecycleState(String lifecycleState) {
-        this.lifecycleState = lifecycleState;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Date getDeployedAt() {
-        return deployedAt;
-    }
-
-    public void setDeployedAt(Date deployedAt) {
-        this.deployedAt = deployedAt;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public Set<String> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Set<String> groups) {
-        this.groups = groups;
-    }
-
-    public Set<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
-    }
-
-    public List<String> getLabels() {
-        return labels;
-    }
-
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
-    }
-
-    public List<ApiMetadataMongo> getMetadatas() {
-        return metadatas;
-    }
-
-    public void setMetadatas(List<ApiMetadataMongo> metadatas) {
-        this.metadatas = metadatas;
-    }
-
-    public String getApiLifecycleState() {
-        return apiLifecycleState;
-    }
-
-    public void setApiLifecycleState(String apiLifecycleState) {
-        this.apiLifecycleState = apiLifecycleState;
-    }
-
-    public boolean isDisableMembershipNotifications() {
-        return disableMembershipNotifications;
-    }
-
-    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
-        this.disableMembershipNotifications = disableMembershipNotifications;
-    }
-
-    public String getBackground() {
-        return background;
-    }
-
-    public void setBackground(String background) {
-        this.background = background;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
-
-    public String getIntegrationId() {
-        return integrationId;
-    }
-
     public ApiMongo setIntegrationId(String integrationId) {
         this.integrationId = integrationId;
         return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApiMongo api = (ApiMongo) o;
-        return Objects.equals(id, api.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Api{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", crossId='").append(crossId).append('\'');
-        sb.append(", origin='").append(crossId).append('\'');
-        sb.append(", mode='").append(crossId).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append(", environmentId='").append(environmentId).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append(", definitionVersion='").append(definitionVersion).append('\'');
-        sb.append(", state='").append(lifecycleState).append('\'');
-        sb.append(", visibility='").append(visibility).append('\'');
-        sb.append(", groups='").append(groups).append('\'');
-        sb.append(", metadatas='").append(metadatas).append('\'');
-        sb.append(", apiLifecycleState='").append(apiLifecycleState).append('\'');
-        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
-    public String getDefinitionVersion() {
-        return definitionVersion;
     }
 
     public ApiMongo setDefinitionVersion(final String definitionVersion) {
@@ -294,36 +114,8 @@ public class ApiMongo extends Auditable {
         return this;
     }
 
-    public String getType() {
-        return type;
-    }
-
     public ApiMongo setType(final String type) {
         this.type = type;
         return this;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getSyncFrom() {
-        return syncFrom;
-    }
-
-    public void setSyncFrom(String syncFrom) {
-        this.syncFrom = syncFrom;
     }
 }

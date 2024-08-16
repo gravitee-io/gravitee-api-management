@@ -17,12 +17,17 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AlertTrigger {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -31,6 +36,7 @@ public class AlertTrigger {
         ALERT_TRIGGER_DELETED,
     }
 
+    @EqualsAndHashCode.Include
     private String id;
 
     private String name;
@@ -60,137 +66,4 @@ public class AlertTrigger {
     private boolean template;
 
     private String environmentId;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public String getSeverity() {
-        return severity;
-    }
-
-    public void setSeverity(String severity) {
-        this.severity = severity;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public boolean isTemplate() {
-        return template;
-    }
-
-    public void setTemplate(boolean template) {
-        this.template = template;
-    }
-
-    public List<AlertEventRule> getEventRules() {
-        return eventRules;
-    }
-
-    public void setEventRules(List<AlertEventRule> eventRules) {
-        this.eventRules = eventRules;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AlertTrigger that = (AlertTrigger) o;
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

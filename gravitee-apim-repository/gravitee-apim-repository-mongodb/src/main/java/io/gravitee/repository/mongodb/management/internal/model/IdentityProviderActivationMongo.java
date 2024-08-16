@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -22,32 +25,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}identity_provider_activations")
 public class IdentityProviderActivationMongo extends Auditable {
 
     @Id
     private IdentityProviderActivationPkMongo id;
-
-    public IdentityProviderActivationPkMongo getId() {
-        return id;
-    }
-
-    public void setId(IdentityProviderActivationPkMongo id) {
-        this.id = id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        IdentityProviderActivationMongo that = (IdentityProviderActivationMongo) o;
-
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
 }

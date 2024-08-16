@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -30,6 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}plans")
 @Getter
 @Setter
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 public class PlanMongo extends Auditable {
 
     @Id
@@ -104,19 +106,4 @@ public class PlanMongo extends Auditable {
     private Set<String> tags;
 
     private String selectionRule;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        PlanMongo planMongo = (PlanMongo) o;
-
-        return id.equals(planMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
 }

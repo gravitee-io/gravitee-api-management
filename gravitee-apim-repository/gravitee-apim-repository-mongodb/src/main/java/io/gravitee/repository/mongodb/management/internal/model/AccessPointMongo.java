@@ -19,6 +19,7 @@ import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import java.util.Date;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,9 +34,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AccessPointMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private AccessPointReferenceType referenceType;
@@ -46,19 +49,4 @@ public class AccessPointMongo {
     private boolean overriding;
     private Date updatedAt;
     private AccessPointStatus status;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AccessPointMongo that = (AccessPointMongo) o;
-
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
 }

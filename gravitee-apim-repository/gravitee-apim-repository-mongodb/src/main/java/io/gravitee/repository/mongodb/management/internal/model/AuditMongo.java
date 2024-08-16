@@ -17,6 +17,9 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Map;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,10 +27,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}audits")
 public class AuditMongo extends Auditable {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String organizationId;
@@ -38,89 +45,4 @@ public class AuditMongo extends Auditable {
     private String event;
     private Map<String, String> properties;
     private String patch;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
-
-    public String getPatch() {
-        return patch;
-    }
-
-    public void setPatch(String patch) {
-        this.patch = patch;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AuditMongo)) return false;
-        AuditMongo auditMongo = (AuditMongo) o;
-        return Objects.equals(id, auditMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

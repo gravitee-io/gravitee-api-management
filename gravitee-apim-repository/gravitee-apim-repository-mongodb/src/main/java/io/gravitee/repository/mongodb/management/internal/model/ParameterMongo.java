@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,45 +27,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}parameters")
 public class ParameterMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private ParameterPkMongo id;
 
     private String value;
-
-    public ParameterPkMongo getId() {
-        return id;
-    }
-
-    public void setId(ParameterPkMongo id) {
-        this.id = id;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ParameterMongo)) return false;
-        ParameterMongo that = (ParameterMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "ParameterMongo{" + "id='" + id + '\'' + ", value='" + value + '\'' + '}';
-    }
 }

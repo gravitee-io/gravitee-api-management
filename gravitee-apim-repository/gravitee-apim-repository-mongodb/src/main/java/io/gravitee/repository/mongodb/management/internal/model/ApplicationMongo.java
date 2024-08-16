@@ -19,6 +19,10 @@ import io.gravitee.definition.model.Origin;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -30,6 +34,10 @@ import org.springframework.data.mongodb.core.mapping.Field;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}applications")
 public class ApplicationMongo extends Auditable {
 
@@ -62,145 +70,4 @@ public class ApplicationMongo extends Auditable {
     private String apiKeyMode;
 
     private Origin origin;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Set<String> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Set<String> groups) {
-        this.groups = groups;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public boolean isDisableMembershipNotifications() {
-        return disableMembershipNotifications;
-    }
-
-    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
-        this.disableMembershipNotifications = disableMembershipNotifications;
-    }
-
-    public String getBackground() {
-        return background;
-    }
-
-    public void setBackground(String background) {
-        this.background = background;
-    }
-
-    public String getDomain() {
-        return domain;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public String getApiKeyMode() {
-        return apiKeyMode;
-    }
-
-    public void setApiKeyMode(String apiKeyMode) {
-        this.apiKeyMode = apiKeyMode;
-    }
-
-    public Origin getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(Origin origin) {
-        this.origin = origin;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApplicationMongo that = (ApplicationMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Application{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", environmentId='").append(environmentId).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append(", status='").append(status).append('\'');
-        sb.append(", groups='").append(groups).append('\'');
-        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
-        sb.append(", apiKeyMode='").append(apiKeyMode).append('\'');
-        sb.append(", origin='").append(origin).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
 }

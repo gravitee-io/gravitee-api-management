@@ -17,6 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.List;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,6 +28,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString(callSuper = true)
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}rating")
 public class RatingMongo extends Auditable {
 
@@ -43,112 +51,4 @@ public class RatingMongo extends Auditable {
     private String comment;
 
     private List<RatingAnswerMongo> answers;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public byte getRate() {
-        return rate;
-    }
-
-    public void setRate(byte rate) {
-        this.rate = rate;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public List<RatingAnswerMongo> getAnswers() {
-        return answers;
-    }
-
-    public void setAnswers(List<RatingAnswerMongo> answers) {
-        this.answers = answers;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RatingMongo)) return false;
-        RatingMongo that = (RatingMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "RatingMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", rate=" +
-            rate +
-            ", title='" +
-            title +
-            '\'' +
-            ", comment='" +
-            comment +
-            '\'' +
-            ", answers=" +
-            answers +
-            "} " +
-            super.toString()
-        );
-    }
 }

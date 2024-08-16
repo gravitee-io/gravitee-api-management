@@ -18,9 +18,11 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import java.io.Serializable;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -28,28 +30,12 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class LicensePkMongo implements Serializable {
 
     private String referenceId;
     private String referenceType;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof LicensePkMongo)) return false;
-        LicensePkMongo that = (LicensePkMongo) o;
-        return Objects.equals(referenceId, that.referenceId) && Objects.equals(referenceType, that.referenceType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceId, referenceType);
-    }
-
-    @Override
-    public String toString() {
-        return "LicensePkMongo{" + "referenceId='" + referenceId + '\'' + ", referenceType=" + referenceType + '}';
-    }
 }

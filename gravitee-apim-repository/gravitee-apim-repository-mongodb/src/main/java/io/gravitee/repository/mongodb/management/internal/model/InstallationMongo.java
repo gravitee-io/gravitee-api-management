@@ -17,6 +17,9 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,6 +27,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}installation")
 public class InstallationMongo extends Auditable {
 
@@ -31,22 +37,4 @@ public class InstallationMongo extends Auditable {
     private String id;
 
     private Map<String, String> additionalInformation = new HashMap<>();
-
-    public InstallationMongo() {}
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Map<String, String> getAdditionalInformation() {
-        return additionalInformation;
-    }
-
-    public void setAdditionalInformation(Map<String, String> additionalInformation) {
-        this.additionalInformation = additionalInformation;
-    }
 }

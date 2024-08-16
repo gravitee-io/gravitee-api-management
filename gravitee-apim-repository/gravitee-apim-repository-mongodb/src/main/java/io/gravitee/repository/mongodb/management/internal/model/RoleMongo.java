@@ -16,6 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,6 +26,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}roles")
 public class RoleMongo extends Auditable {
 
@@ -37,118 +43,4 @@ public class RoleMongo extends Auditable {
     private boolean defaultRole;
     private boolean system;
     private int[] permissions;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean isDefaultRole() {
-        return defaultRole;
-    }
-
-    public void setDefaultRole(boolean defaultRole) {
-        this.defaultRole = defaultRole;
-    }
-
-    public boolean isSystem() {
-        return system;
-    }
-
-    public void setSystem(boolean system) {
-        this.system = system;
-    }
-
-    public int[] getPermissions() {
-        return permissions;
-    }
-
-    public void setPermissions(int[] permissions) {
-        this.permissions = permissions;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RoleMongo)) return false;
-        RoleMongo roleMongo = (RoleMongo) o;
-        return Objects.equals(id, roleMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "RoleMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", scope='" +
-            scope +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", defaultRole='" +
-            defaultRole +
-            '\'' +
-            ", system='" +
-            system +
-            '\'' +
-            '}'
-        );
-    }
 }

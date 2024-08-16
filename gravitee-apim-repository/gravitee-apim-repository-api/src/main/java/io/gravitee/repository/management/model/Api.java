@@ -19,10 +19,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,6 +40,7 @@ import lombok.With;
 @Setter
 @ToString
 @With
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Api {
 
     /**
@@ -66,10 +67,13 @@ public class Api {
      * This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
      */
     public static final String MODE_API_DEFINITION_ONLY = "api_definition_only";
+
     /**
      * The api ID.
      */
+    @EqualsAndHashCode.Include
     private String id;
+
     /**
      * The ID of the environment the api is attached to
      */
@@ -184,19 +188,6 @@ public class Api {
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Api api = (Api) o;
-        return Objects.equals(id, api.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 
     public enum AuditEvent implements Audit.ApiAuditEvent {

@@ -16,55 +16,19 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.io.Serializable;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageRevisionPkMongo implements Serializable {
 
     private String pageId;
     private int revision;
-
-    public PageRevisionPkMongo(String pageId, int revision) {
-        this.pageId = pageId;
-        this.revision = revision;
-    }
-
-    public PageRevisionPkMongo() {}
-
-    public String getPageId() {
-        return pageId;
-    }
-
-    public void setPageId(String pageId) {
-        this.pageId = pageId;
-    }
-
-    public int getRevision() {
-        return revision;
-    }
-
-    public void setRevision(int revision) {
-        this.revision = revision;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PageRevisionPkMongo)) return false;
-        PageRevisionPkMongo that = (PageRevisionPkMongo) o;
-        return Objects.equals(pageId, that.pageId) && Objects.equals(revision, that.revision);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(pageId, revision);
-    }
-
-    @Override
-    public String toString() {
-        return "PageRevisionPkMongo{" + "pageId='" + pageId + '\'' + ", revision=" + revision + '}';
-    }
 }

@@ -16,7 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,10 +27,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}tokens")
 public class TokenMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String token;
@@ -37,110 +45,4 @@ public class TokenMongo {
     private Date expiresAt;
     private Date createdAt;
     private Date lastUseAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Date getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(Date expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getLastUseAt() {
-        return lastUseAt;
-    }
-
-    public void setLastUseAt(Date lastUseAt) {
-        this.lastUseAt = lastUseAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TokenMongo)) return false;
-        TokenMongo tokenMongo = (TokenMongo) o;
-        return Objects.equals(id, tokenMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "TokenMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", token='" +
-            token +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", expiresAt=" +
-            expiresAt +
-            ", createdAt=" +
-            createdAt +
-            ", lastUseAt=" +
-            lastUseAt +
-            '}'
-        );
-    }
 }

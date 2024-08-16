@@ -17,8 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -28,10 +30,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Setter
 @Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}themes")
 public class ThemeMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String referenceType;
@@ -59,49 +64,4 @@ public class ThemeMongo {
     private String loader;
 
     private String favicon;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ThemeMongo theme = (ThemeMongo) o;
-        return Objects.equals(id, theme.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "Theme{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
-            '\'' +
-            ", enabled='" +
-            enabled +
-            '\'' +
-            ", definition='" +
-            definition +
-            '\'' +
-            '}'
-        );
-    }
 }

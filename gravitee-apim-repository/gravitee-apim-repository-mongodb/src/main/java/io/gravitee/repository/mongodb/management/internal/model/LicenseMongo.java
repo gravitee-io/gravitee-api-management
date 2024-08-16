@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -27,25 +28,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class LicenseMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private LicensePkMongo id;
 
     private String license;
     private Date createdAt;
     private Date updatedAt;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof LicenseMongo)) return false;
-        LicenseMongo envMongo = (LicenseMongo) o;
-        return Objects.equals(id, envMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

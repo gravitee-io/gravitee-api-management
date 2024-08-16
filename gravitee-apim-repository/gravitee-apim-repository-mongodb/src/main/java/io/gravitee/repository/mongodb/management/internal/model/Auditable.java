@@ -16,30 +16,18 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 abstract class Auditable {
 
     private Date createdAt;
 
     private Date updatedAt;
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

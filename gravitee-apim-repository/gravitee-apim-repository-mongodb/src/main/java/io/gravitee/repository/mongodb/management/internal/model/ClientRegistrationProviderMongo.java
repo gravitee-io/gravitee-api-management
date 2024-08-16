@@ -17,9 +17,15 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.List;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@Setter
+@Getter
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}client_registration_providers")
 public class ClientRegistrationProviderMongo extends Auditable {
 
@@ -75,129 +81,4 @@ public class ClientRegistrationProviderMongo extends Auditable {
     private String renewClientSecretMethod;
 
     private String softwareId;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getDiscoveryEndpoint() {
-        return discoveryEndpoint;
-    }
-
-    public void setDiscoveryEndpoint(String discoveryEndpoint) {
-        this.discoveryEndpoint = discoveryEndpoint;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
-
-    public List<String> getScopes() {
-        return scopes;
-    }
-
-    public void setScopes(List<String> scopes) {
-        this.scopes = scopes;
-    }
-
-    public String getInitialAccessTokenType() {
-        return initialAccessTokenType;
-    }
-
-    public void setInitialAccessTokenType(String initialAccessTokenType) {
-        this.initialAccessTokenType = initialAccessTokenType;
-    }
-
-    public String getInitialAccessToken() {
-        return initialAccessToken;
-    }
-
-    public void setInitialAccessToken(String initialAccessToken) {
-        this.initialAccessToken = initialAccessToken;
-    }
-
-    public boolean isRenewClientSecretSupport() {
-        return renewClientSecretSupport;
-    }
-
-    public void setRenewClientSecretSupport(boolean renewClientSecretSupport) {
-        this.renewClientSecretSupport = renewClientSecretSupport;
-    }
-
-    public String getRenewClientSecretEndpoint() {
-        return renewClientSecretEndpoint;
-    }
-
-    public void setRenewClientSecretEndpoint(String renewClientSecretEndpoint) {
-        this.renewClientSecretEndpoint = renewClientSecretEndpoint;
-    }
-
-    public String getRenewClientSecretMethod() {
-        return renewClientSecretMethod;
-    }
-
-    public void setRenewClientSecretMethod(String renewClientSecretMethod) {
-        this.renewClientSecretMethod = renewClientSecretMethod;
-    }
-
-    public String getSoftwareId() {
-        return softwareId;
-    }
-
-    public void setSoftwareId(String softwareId) {
-        this.softwareId = softwareId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ClientRegistrationProviderMongo that = (ClientRegistrationProviderMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

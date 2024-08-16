@@ -17,79 +17,26 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
 public class IdentityProviderActivationPkMongo implements Serializable {
 
     private String identityProviderId;
     private String referenceId;
     private String referenceType;
-
-    public IdentityProviderActivationPkMongo() {}
-
-    public IdentityProviderActivationPkMongo(String identityProviderId, String referenceId, String referenceType) {
-        this.identityProviderId = identityProviderId;
-        this.referenceId = referenceId;
-        this.referenceType = referenceType;
-    }
-
-    public String getIdentityProviderId() {
-        return identityProviderId;
-    }
-
-    public void setIdentityProviderId(String identityProviderId) {
-        this.identityProviderId = identityProviderId;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof IdentityProviderActivationPkMongo)) return false;
-        IdentityProviderActivationPkMongo that = (IdentityProviderActivationPkMongo) o;
-        return (
-            Objects.equals(identityProviderId, that.identityProviderId) &&
-            Objects.equals(referenceId, that.referenceId) &&
-            referenceType == that.referenceType
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(identityProviderId, referenceId, referenceType);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "IdentityProviderActivationPkMongo{" +
-            "identityProviderId='" +
-            identityProviderId +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            '}'
-        );
-    }
 }
