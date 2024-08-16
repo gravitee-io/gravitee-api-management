@@ -16,38 +16,18 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 public class PageMediaMongo {
 
     private String mediaHash;
     private String mediaName;
     private Date attachedAt;
-
-    public String getMediaHash() {
-        return mediaHash;
-    }
-
-    public void setMediaHash(String mediaHash) {
-        this.mediaHash = mediaHash;
-    }
-
-    public String getMediaName() {
-        return mediaName;
-    }
-
-    public void setMediaName(String mediaName) {
-        this.mediaName = mediaName;
-    }
-
-    public Date getAttachedAt() {
-        return attachedAt;
-    }
-
-    public void setAttachedAt(Date attachedAt) {
-        this.attachedAt = attachedAt;
-    }
 }

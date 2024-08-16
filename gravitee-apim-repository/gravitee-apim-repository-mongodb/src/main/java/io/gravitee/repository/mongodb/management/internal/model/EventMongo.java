@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Map;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -28,10 +29,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}events")
 public class EventMongo extends Auditable {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private Set<String> environments;
@@ -40,19 +43,4 @@ public class EventMongo extends Auditable {
     private String payload;
     private String parentId;
     private Map<String, String> properties;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        EventMongo that = (EventMongo) o;
-
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
 }

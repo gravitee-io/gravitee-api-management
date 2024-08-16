@@ -15,24 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
 public class GroupEventRuleMongo {
 
     private String event;
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    @Override
-    public String toString() {
-        return "GroupEventRule{" + ", event='" + event + '\'' + "}";
-    }
 }

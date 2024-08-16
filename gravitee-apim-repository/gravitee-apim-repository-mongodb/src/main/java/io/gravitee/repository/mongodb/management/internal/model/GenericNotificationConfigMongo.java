@@ -18,7 +18,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -26,10 +29,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}genericnotificationconfigs")
 public class GenericNotificationConfigMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String name;
@@ -41,132 +49,4 @@ public class GenericNotificationConfigMongo {
     private List<String> hooks;
     private Date createdAt;
     private Date updatedAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public NotificationReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(NotificationReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getNotifier() {
-        return notifier;
-    }
-
-    public void setNotifier(String notifier) {
-        this.notifier = notifier;
-    }
-
-    public String getConfig() {
-        return config;
-    }
-
-    public void setConfig(String config) {
-        this.config = config;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public List<String> getHooks() {
-        return hooks;
-    }
-
-    public void setHooks(List<String> hooks) {
-        this.hooks = hooks;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isUseSystemProxy() {
-        return useSystemProxy;
-    }
-
-    public void setUseSystemProxy(boolean useSystemProxy) {
-        this.useSystemProxy = useSystemProxy;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GenericNotificationConfigMongo)) return false;
-        GenericNotificationConfigMongo that = (GenericNotificationConfigMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "GenericNotificationConfigMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", notifier='" +
-            notifier +
-            '\'' +
-            ", config='" +
-            config +
-            '\'' +
-            ", useSystemProxy='" +
-            useSystemProxy +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
-            '\'' +
-            '}'
-        );
-    }
 }

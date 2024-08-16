@@ -15,35 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AccessControlMongo {
 
     private String referenceId;
     private String referenceType;
-
-    public AccessControlMongo() {}
-
-    public AccessControlMongo(String referenceId, String referenceType) {
-        this.referenceId = referenceId;
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
 }

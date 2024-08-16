@@ -15,8 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
+@EqualsAndHashCode
 public class PromotionAuthorMongo {
 
     private String userId;
@@ -24,63 +29,4 @@ public class PromotionAuthorMongo {
     private String email;
     private String source;
     private String sourceId;
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getSourceId() {
-        return sourceId;
-    }
-
-    public void setSourceId(String sourceId) {
-        this.sourceId = sourceId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PromotionAuthorMongo that = (PromotionAuthorMongo) o;
-        return (
-            Objects.equals(userId, that.userId) &&
-            Objects.equals(displayName, that.displayName) &&
-            Objects.equals(email, that.email) &&
-            Objects.equals(source, that.source) &&
-            Objects.equals(sourceId, that.sourceId)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId, displayName, email, source, sourceId);
-    }
 }

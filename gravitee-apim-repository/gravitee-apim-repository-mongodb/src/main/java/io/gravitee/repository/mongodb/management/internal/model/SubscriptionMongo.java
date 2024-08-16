@@ -19,6 +19,7 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Date;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -31,6 +32,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}subscriptions")
 @Getter
 @Setter
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 public class SubscriptionMongo extends Auditable {
 
     /**
@@ -136,19 +138,4 @@ public class SubscriptionMongo extends Auditable {
      * STANDARD, SUBSCRIPTION
      */
     private String type;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        SubscriptionMongo that = (SubscriptionMongo) o;
-
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
 }

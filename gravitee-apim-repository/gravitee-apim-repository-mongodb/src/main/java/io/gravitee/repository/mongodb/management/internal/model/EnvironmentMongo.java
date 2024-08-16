@@ -31,11 +31,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}environments")
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
 public class EnvironmentMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String cockpitId;
@@ -47,17 +48,4 @@ public class EnvironmentMongo {
     private String description;
 
     private String organizationId;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof EnvironmentMongo)) return false;
-        EnvironmentMongo envMongo = (EnvironmentMongo) o;
-        return Objects.equals(id, envMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

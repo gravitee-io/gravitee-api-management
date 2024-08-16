@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.List;
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,9 +31,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class OrganizationMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String cockpitId;
@@ -46,17 +47,4 @@ public class OrganizationMongo {
     private String description;
 
     private String flowMode;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OrganizationMongo)) return false;
-        OrganizationMongo envMongo = (OrganizationMongo) o;
-        return Objects.equals(id, envMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

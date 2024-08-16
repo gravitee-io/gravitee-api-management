@@ -22,19 +22,17 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
 @DomainService
 public class GroupValidationService {
 
     private final GroupQueryService groupQueryService;
-
-    public GroupValidationService(final GroupQueryService groupQueryService) {
-        this.groupQueryService = groupQueryService;
-    }
 
     public Set<String> validateAndSanitize(final Set<String> groupIds, String environmentId, final PrimaryOwnerEntity primaryOwner) {
         if (groupIds == null || groupIds.isEmpty()) {

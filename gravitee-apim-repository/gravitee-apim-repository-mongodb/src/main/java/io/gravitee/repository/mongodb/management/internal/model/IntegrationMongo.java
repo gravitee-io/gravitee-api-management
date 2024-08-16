@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -26,6 +27,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}integrations")
 public class IntegrationMongo extends Auditable {
 
@@ -46,6 +48,4 @@ public class IntegrationMongo extends Auditable {
     private String environmentId;
 
     private AgentStatus agentStatus;
-
-    public IntegrationMongo() {}
 }

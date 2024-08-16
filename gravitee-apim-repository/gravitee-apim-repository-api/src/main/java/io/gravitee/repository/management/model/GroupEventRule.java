@@ -15,25 +15,24 @@
  */
 package io.gravitee.repository.management.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class GroupEventRule {
 
     private GroupEvent event;
 
-    public GroupEventRule() {}
-
-    public GroupEventRule(GroupEvent event) {
-        this.event = event;
-    }
-
-    public GroupEvent getEvent() {
-        return event;
-    }
-
-    public void setEvent(GroupEvent event) {
-        this.event = event;
+    public GroupEventRule(String event) {
+        this(GroupEvent.valueOf(event));
     }
 }

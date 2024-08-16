@@ -16,6 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,10 +27,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}tickets")
 public class TicketMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String fromUser;
@@ -35,100 +44,4 @@ public class TicketMongo {
     private String subject;
     private String content;
     private Date createdAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getFromUser() {
-        return fromUser;
-    }
-
-    public void setFromUser(String fromUser) {
-        this.fromUser = fromUser;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TicketMongo that = (TicketMongo) o;
-
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "TicketMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", fromUser='" +
-            fromUser +
-            '\'' +
-            ", api='" +
-            api +
-            '\'' +
-            ", application=" +
-            application +
-            ", subject=" +
-            subject +
-            ", content=" +
-            content +
-            ", createdAt=" +
-            createdAt +
-            '}'
-        );
-    }
 }

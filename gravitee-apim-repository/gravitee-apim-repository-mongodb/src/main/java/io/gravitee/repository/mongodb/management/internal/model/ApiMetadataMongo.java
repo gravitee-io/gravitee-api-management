@@ -16,6 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,45 +27,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}metadatas")
 public class ApiMetadataMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private String value;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ApiMetadataMongo)) return false;
-        ApiMetadataMongo that = (ApiMetadataMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "ApiMetadataMongo{" + "id='" + id + '\'' + ", value='" + value + '\'' + '}';
-    }
 }

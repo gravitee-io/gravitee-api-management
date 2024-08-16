@@ -17,8 +17,12 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@Setter
+@Getter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}commands")
 public class CommandMongo extends Auditable {
 
@@ -31,76 +35,4 @@ public class CommandMongo extends Auditable {
     private String content;
     private List<String> acknowledgments;
     private Date expiredAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public List<String> getAcknowledgments() {
-        return acknowledgments;
-    }
-
-    public void setAcknowledgments(List<String> acknowledgments) {
-        this.acknowledgments = acknowledgments;
-    }
-
-    public Date getExpiredAt() {
-        return expiredAt;
-    }
-
-    public void setExpiredAt(Date expiredAt) {
-        this.expiredAt = expiredAt;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
 }

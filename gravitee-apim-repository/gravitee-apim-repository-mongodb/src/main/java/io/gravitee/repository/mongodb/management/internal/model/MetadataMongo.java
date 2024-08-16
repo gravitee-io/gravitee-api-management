@@ -16,6 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,6 +27,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}metadata")
 public class MetadataMongo extends Auditable {
 
@@ -34,54 +42,4 @@ public class MetadataMongo extends Auditable {
     private String format;
 
     private String value;
-
-    public MetadataPkMongo getId() {
-        return id;
-    }
-
-    public void setId(MetadataPkMongo id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof MetadataMongo)) return false;
-        MetadataMongo that = (MetadataMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "MetadataMongo{" + "id=" + id + ", name='" + name + '\'' + ", format='" + format + '\'' + ", value='" + value + '\'' + '}';
-    }
 }

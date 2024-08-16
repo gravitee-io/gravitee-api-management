@@ -16,30 +16,18 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 public class DictionaryTriggerMongo {
 
     private long rate;
 
     private TimeUnit unit;
-
-    public long getRate() {
-        return rate;
-    }
-
-    public void setRate(long rate) {
-        this.rate = rate;
-    }
-
-    public TimeUnit getUnit() {
-        return unit;
-    }
-
-    public void setUnit(TimeUnit unit) {
-        this.unit = unit;
-    }
 }

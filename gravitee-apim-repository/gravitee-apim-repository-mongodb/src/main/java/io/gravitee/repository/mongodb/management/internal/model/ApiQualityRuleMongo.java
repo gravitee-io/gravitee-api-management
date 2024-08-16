@@ -15,8 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,6 +28,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@ToString
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apiqualityrules")
 public class ApiQualityRuleMongo extends Auditable {
 
@@ -31,38 +41,4 @@ public class ApiQualityRuleMongo extends Auditable {
     private ApiQualityRulePkMongo id;
 
     private boolean checked;
-
-    public ApiQualityRulePkMongo getId() {
-        return id;
-    }
-
-    public void setId(ApiQualityRulePkMongo id) {
-        this.id = id;
-    }
-
-    public boolean isChecked() {
-        return checked;
-    }
-
-    public void setChecked(boolean checked) {
-        this.checked = checked;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApiQualityRuleMongo that = (ApiQualityRuleMongo) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "ApiQualityRuleMongo{" + "id=" + id + ", checked=" + checked + '}';
-    }
 }

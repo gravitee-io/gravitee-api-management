@@ -16,7 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,45 +27,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "upgrades")
 public class UpgradeRecordMongo {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     private Date appliedAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Date getAppliedAt() {
-        return appliedAt;
-    }
-
-    public void setAppliedAt(Date appliedAt) {
-        this.appliedAt = appliedAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UpgradeRecordMongo)) return false;
-        UpgradeRecordMongo tagMongo = (UpgradeRecordMongo) o;
-        return Objects.equals(id, tagMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return ("UpgradeRecordMongo{" + "id='" + id + '\'' + ", appliedAt=" + appliedAt + '\'' + '}');
-    }
 }

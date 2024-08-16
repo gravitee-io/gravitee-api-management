@@ -15,28 +15,17 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 public class PageSourceMongo {
 
     private String type;
     private String configuration;
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
 }

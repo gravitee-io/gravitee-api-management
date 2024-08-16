@@ -19,8 +19,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -31,6 +33,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}keys")
 public class ApiKeyMongo {
 
@@ -40,6 +44,7 @@ public class ApiKeyMongo {
     @Setter
     @Getter
     @Id
+    @EqualsAndHashCode.Include
     private String id;
 
     /**
@@ -201,29 +206,5 @@ public class ApiKeyMongo {
     @Deprecated(since = "3.17.0", forRemoval = true)
     public void setApi(String api) {
         this.api = api;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApiKeyMongo key = (ApiKeyMongo) o;
-        return Objects.equals(this.id, key.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ApiKey{");
-        sb.append("name='").append(key).append('\'');
-        sb.append(", expiration=").append(expireAt).append('\'');
-        sb.append(", revoked=").append(revoked).append('\'');
-        sb.append(", revokedAt=").append(revokedAt);
-        sb.append('}');
-        return sb.toString();
     }
 }

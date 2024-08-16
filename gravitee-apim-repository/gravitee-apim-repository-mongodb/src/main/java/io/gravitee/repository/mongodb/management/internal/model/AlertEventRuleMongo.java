@@ -15,30 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class AlertEventRuleMongo {
 
     private String event;
-
-    public AlertEventRuleMongo() {}
-
-    public AlertEventRuleMongo(String event) {
-        this.event = event;
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    @Override
-    public String toString() {
-        return "AlertEventRuleMongo{" + ", event='" + event + '\'' + "}";
-    }
 }

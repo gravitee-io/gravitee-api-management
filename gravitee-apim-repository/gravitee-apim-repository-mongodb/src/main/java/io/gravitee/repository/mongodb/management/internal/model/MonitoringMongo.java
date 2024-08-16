@@ -16,6 +16,8 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,6 +25,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}node_monitoring")
 public class MonitoringMongo {
 
@@ -35,60 +39,4 @@ public class MonitoringMongo {
     private Date createdAt;
     private Date evaluatedAt;
     private Date updatedAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getNodeId() {
-        return nodeId;
-    }
-
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Date getEvaluatedAt() {
-        return evaluatedAt;
-    }
-
-    public void setEvaluatedAt(Date evaluatedAt) {
-        this.evaluatedAt = evaluatedAt;
-    }
 }

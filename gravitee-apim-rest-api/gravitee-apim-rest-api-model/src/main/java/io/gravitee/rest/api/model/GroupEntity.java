@@ -20,12 +20,13 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -36,9 +37,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class GroupEntity {
 
+    @EqualsAndHashCode.Include
     private String id;
+
     private String name;
 
     @JsonProperty("event_rules")
@@ -75,57 +80,4 @@ public class GroupEntity {
 
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GroupEntity group = (GroupEntity) o;
-        return Objects.equals(id, group.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "GroupEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", eventRules=" +
-            eventRules +
-            ", manageable=" +
-            manageable +
-            ", roles=" +
-            roles +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", maxInvitation=" +
-            maxInvitation +
-            ", lockApiRole=" +
-            lockApiRole +
-            ", lockApplicationRole=" +
-            lockApplicationRole +
-            ", systemInvitation=" +
-            systemInvitation +
-            ", emailInvitation=" +
-            emailInvitation +
-            ", disableMembershipNotifications=" +
-            disableMembershipNotifications +
-            ", apiPrimaryOwner=" +
-            apiPrimaryOwner +
-            ", primaryOwner=" +
-            primaryOwner +
-            '}'
-        );
-    }
 }

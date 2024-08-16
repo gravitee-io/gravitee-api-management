@@ -19,7 +19,9 @@ import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,6 +30,8 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Group {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -49,108 +53,4 @@ public class Group {
     private boolean emailInvitation;
     private boolean disableMembershipNotifications;
     private String apiPrimaryOwner;
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public List<GroupEventRule> getEventRules() {
-        return eventRules;
-    }
-
-    public void setEventRules(List<GroupEventRule> eventRules) {
-        this.eventRules = eventRules;
-    }
-
-    public Integer getMaxInvitation() {
-        return maxInvitation;
-    }
-
-    public void setMaxInvitation(Integer maxInvitation) {
-        this.maxInvitation = maxInvitation;
-    }
-
-    public boolean isLockApiRole() {
-        return lockApiRole;
-    }
-
-    public void setLockApiRole(boolean lockApiRole) {
-        this.lockApiRole = lockApiRole;
-    }
-
-    public boolean isLockApplicationRole() {
-        return lockApplicationRole;
-    }
-
-    public void setLockApplicationRole(boolean lockApplicationRole) {
-        this.lockApplicationRole = lockApplicationRole;
-    }
-
-    public boolean isSystemInvitation() {
-        return systemInvitation;
-    }
-
-    public void setSystemInvitation(boolean systemInvitation) {
-        this.systemInvitation = systemInvitation;
-    }
-
-    public boolean isEmailInvitation() {
-        return emailInvitation;
-    }
-
-    public void setEmailInvitation(boolean emailInvitation) {
-        this.emailInvitation = emailInvitation;
-    }
-
-    public boolean isDisableMembershipNotifications() {
-        return disableMembershipNotifications;
-    }
-
-    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
-        this.disableMembershipNotifications = disableMembershipNotifications;
-    }
-
-    public String getApiPrimaryOwner() {
-        return apiPrimaryOwner;
-    }
-
-    public void setApiPrimaryOwner(String apiPrimaryOwner) {
-        this.apiPrimaryOwner = apiPrimaryOwner;
-    }
 }
