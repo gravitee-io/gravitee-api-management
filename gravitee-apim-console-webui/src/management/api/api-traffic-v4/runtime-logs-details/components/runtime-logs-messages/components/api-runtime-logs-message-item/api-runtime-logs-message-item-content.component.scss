@@ -6,7 +6,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .tabs {
   &__body {
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
     padding: 12px 16px;
     white-space: pre-wrap;
   }

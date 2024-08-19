@@ -61,12 +61,12 @@ $typography: map.get(gio.$mat-theme, typography);
     padding-bottom: 8px;
 
     &__warn {
-      @include mat.typography-level($typography, 'caption');
+      @include mat.m2-typography-level($typography, 'caption');
     }
 
     &__hint {
       padding-left: 24px;
-      @include mat.typography-level($typography, 'caption');
+      @include mat.m2-typography-level($typography, 'caption');
     }
 
     &.policies-section {

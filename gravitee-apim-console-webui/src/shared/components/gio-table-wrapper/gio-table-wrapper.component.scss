@@ -9,7 +9,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
 :host {
   display: block;
-  border-top: 1px solid mat.get-color-from-palette($foreground, divider);
+  border-top: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 
   @include mat.elevation(3); // default elevation
 }
@@ -29,9 +29,9 @@ $typography: map.get(gio.$mat-theme, typography);
     justify-content: space-between;
     align-items: center;
     min-height: 56px;
-    background: mat.get-color-from-palette($background, 'card');
+    background: mat.m2-get-color-from-palette($background, 'card');
     padding: 0px 16px 0px 16px;
-    border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
+    border-bottom: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 
     &__search-field {
       @include gio-layout.large-desktop {
@@ -45,7 +45,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__footer-bar {
-    background-color: mat.get-color-from-palette($background, 'card');
+    background-color: mat.m2-get-color-from-palette($background, 'card');
     min-height: 12px;
 
     &__paginator {
@@ -64,7 +64,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
       .mat-mdc-header-row {
         height: 42px;
-        background-color: mat.get-color-from-palette($background, 'background');
+        background-color: mat.m2-get-color-from-palette($background, 'background');
       }
     }
   }

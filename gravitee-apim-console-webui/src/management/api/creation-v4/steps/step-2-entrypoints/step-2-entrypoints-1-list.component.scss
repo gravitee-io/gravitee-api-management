@@ -7,7 +7,7 @@
     display: none;
 
     border-radius: 4px;
-    background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
     height: 106px;
     margin: 24px 0;
 
@@ -18,7 +18,7 @@
       flex-direction: column-reverse;
     }
     &__title {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter10');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter10');
       width: 369px;
     }
     &__icon {

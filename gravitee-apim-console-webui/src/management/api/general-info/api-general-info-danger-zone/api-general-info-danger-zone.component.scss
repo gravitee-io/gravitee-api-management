@@ -7,10 +7,10 @@
 }
 
 .danger-card {
-  border: 1px solid mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
 
   &__title {
-    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
   }
 
   &__actions {

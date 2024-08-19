@@ -12,7 +12,7 @@ $typography: map.get(gio.$mat-theme, typography);
   z-index: 2;
   width: 400px;
   border-left: 1px solid map.get(gio.$mat-dove-palette, darker20);
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   transition: right 0.5s ease-in-out;
 
   &__hidden {
@@ -29,7 +29,7 @@ $typography: map.get(gio.$mat-theme, typography);
     border-bottom: 1px solid map.get(gio.$mat-dove-palette, darker20);
 
     &__title {
-      @include mat.typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-1);
     }
   }
 

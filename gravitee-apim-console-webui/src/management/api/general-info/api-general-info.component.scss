@@ -71,7 +71,7 @@ $typography: map.get(gio.$mat-theme, typography);
             height: 100%;
 
             &__text {
-              @include mat.typography-level($typography, caption);
+              @include mat.m2-typography-level($typography, caption);
               position: absolute;
               width: 100%;
               height: 114px;
@@ -101,7 +101,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
           &__btn {
             &__text {
-              @include mat.typography-level($typography, caption);
+              @include mat.m2-typography-level($typography, caption);
               display: flex;
               justify-content: center;
               align-items: center;

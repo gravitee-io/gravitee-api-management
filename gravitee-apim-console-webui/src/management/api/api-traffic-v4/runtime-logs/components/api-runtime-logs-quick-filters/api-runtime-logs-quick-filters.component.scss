@@ -8,9 +8,9 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   flex-direction: column;
 
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   padding: 16px 24px;
-  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker10);
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
 
   &__row {
     display: flex;
@@ -53,15 +53,15 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__chip {
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, darker10);
-    color: mat.get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
 
     &__key {
-      @include mat.typography-level($typography, body-2);
+      @include mat.m2-typography-level($typography, body-2);
     }
 
     &__value {
-      @include mat.typography-level($typography, subtitle-2);
+      @include mat.m2-typography-level($typography, subtitle-2);
       margin-left: 2px;
       white-space: nowrap;
       overflow: hidden;

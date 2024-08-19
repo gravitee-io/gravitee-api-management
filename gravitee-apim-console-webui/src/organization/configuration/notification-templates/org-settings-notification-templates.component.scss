@@ -29,7 +29,7 @@ $background: map.get(gio.$mat-theme, background);
       &__item {
         cursor: pointer !important;
         &:hover {
-          background-color: mat.get-color-from-palette($background, hover);
+          background-color: mat.m2-get-color-from-palette($background, hover);
         }
       }
     }

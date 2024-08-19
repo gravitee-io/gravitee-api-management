@@ -14,7 +14,7 @@
 
   &__row {
     display: flex;
-    border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
     & > div {
       flex: 1 1 100%;

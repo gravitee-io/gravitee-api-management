@@ -25,7 +25,7 @@ $cardIconWidth: 32px;
   align-items: center;
   padding: 8px 8px 8px 4px;
   border-radius: 8px;
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
 
   &.clickable.hover,
   &.clickable:hover {
@@ -39,7 +39,7 @@ $cardIconWidth: 32px;
   &.selected-content,
   &.selected-end {
     @include mat.elevation(3);
-    border: 1px solid mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
     padding: 7px 7px 7px 3px;
   }
 
@@ -48,11 +48,11 @@ $cardIconWidth: 32px;
   }
 
   &.color-green {
-    color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
   }
 
   &.color-blue {
-    color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
   }
 
   &__left {
@@ -79,8 +79,8 @@ $cardIconWidth: 32px;
     overflow: hidden;
 
     &__header-label {
-      @include mat.typography-level($typography, caption);
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, caption);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       overflow: hidden;
       text-overflow: ellipsis;
       margin: 4px 0;
@@ -98,17 +98,17 @@ $cardIconWidth: 32px;
     right: 4px;
 
     .error {
-      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
     }
 
     .skipped {
-      color: mat.get-color-from-palette(gio.$mat-basic-palette, 'disabled-contrast');
+      color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, 'disabled-contrast');
     }
   }
 
   &__time-label {
-    @include mat.typography-level($typography, caption);
-    color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+    @include mat.m2-typography-level($typography, caption);
+    color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
     position: absolute;
     bottom: 8px;
     right: 8px;

@@ -18,7 +18,7 @@
 
 .actions {
   &__importInvalid {
-    background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
-    color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
+    background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default-contrast);
   }
 }

@@ -73,7 +73,7 @@
 
     &__sublist {
       text-align: right;
-      color: mat.get-color-from-palette(gio.$mat-space-palette, default);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, default);
     }
   }
 

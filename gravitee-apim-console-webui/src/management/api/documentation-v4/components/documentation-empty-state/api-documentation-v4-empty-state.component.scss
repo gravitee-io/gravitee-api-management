@@ -10,7 +10,7 @@
   align-items: center;
 
   &__icon {
-    background: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+    background: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
     height: 80px;
     width: 80px;
     border-radius: 50%;

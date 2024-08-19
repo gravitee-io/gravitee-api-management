@@ -20,7 +20,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__card {
       flex: 1 1 40%;
-      border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+      border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
       border-radius: 8px;
 
       &__header {
@@ -67,13 +67,13 @@ $typography: map.get(gio.$mat-theme, typography);
 
     .api-v4-creation-card {
       &__img {
-        background-color: mat.get-color-from-palette(gio.$mat-cyan-palette, 'lighter60');
+        background-color: mat.m2-get-color-from-palette(gio.$mat-cyan-palette, 'lighter60');
       }
     }
 
     .api-designer-card {
       &__img {
-        background-color: mat.get-color-from-palette(gio.$mat-blue-palette, 'lighter60');
+        background-color: mat.m2-get-color-from-palette(gio.$mat-blue-palette, 'lighter60');
       }
     }
   }
@@ -86,7 +86,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__description {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
 
