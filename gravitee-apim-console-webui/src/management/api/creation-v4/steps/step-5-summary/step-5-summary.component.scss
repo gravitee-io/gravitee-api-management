@@ -23,7 +23,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__step {
     display: flex;
-    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     border-radius: 6px;
     padding: 16px;
     flex-direction: column;
@@ -41,14 +41,14 @@ $typography: map.get(gio.$mat-theme, typography);
       gap: 8px;
 
       &__key {
-        @include mat.typography-level($typography, body-2);
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        @include mat.m2-typography-level($typography, body-2);
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
         align-self: center;
       }
 
       &__value {
-        @include mat.typography-level($typography, subtitle-2);
-        color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+        @include mat.m2-typography-level($typography, subtitle-2);
+        color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'darker20');
       }
       &__row {
         display: flex;
@@ -65,7 +65,7 @@ $typography: map.get(gio.$mat-theme, typography);
             display: flex;
             flex: 0 0 calc(50% - 8px); // Half the size of the parent container - half the gap between cards
             flex-direction: column;
-            border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+            border: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
             border-radius: 4px;
             padding: 16px;
             min-width: 215px;
@@ -93,8 +93,8 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-top: 56px;
 
     &__message {
-      @include mat.typography-level($typography, body-2);
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
     &__actions {
       display: flex;

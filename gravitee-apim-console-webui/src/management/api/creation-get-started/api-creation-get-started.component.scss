@@ -22,7 +22,7 @@ $typography: map.get(gio.$mat-theme, typography);
       flex-direction: column;
       justify-content: space-between;
       flex: 1 1 40%;
-      border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+      border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
       border-radius: 8px;
       padding: 18px 14px;
 
@@ -54,7 +54,7 @@ $typography: map.get(gio.$mat-theme, typography);
       align-items: center;
 
       .mat-body {
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       }
     }
   }
@@ -67,7 +67,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__description {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
 

@@ -16,7 +16,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
     align-items: center;
     justify-content: space-between;
 
-    border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
+    border-bottom: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 
     margin-bottom: 12px;
   }

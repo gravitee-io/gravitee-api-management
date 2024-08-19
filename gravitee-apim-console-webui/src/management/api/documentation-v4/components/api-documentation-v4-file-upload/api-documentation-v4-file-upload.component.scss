@@ -35,14 +35,14 @@
         align-items: center;
 
         &__icon {
-          color: mat.get-color-from-palette(gio.$mat-space-palette);
+          color: mat.m2-get-color-from-palette(gio.$mat-space-palette);
         }
       }
     }
   }
 
   &__preview {
-    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     border-radius: 8px;
     padding: 24px;
   }

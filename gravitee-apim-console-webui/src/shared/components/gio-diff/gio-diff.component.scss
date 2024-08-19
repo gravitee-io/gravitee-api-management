@@ -10,13 +10,13 @@ gio-diff {
   }
 
   .gio-diff {
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
 
     &__header {
       display: flex;
       flex-direction: row;
 
-      border-top: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+      border-top: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
       align-items: center;
       padding: 8px;
 
@@ -32,7 +32,7 @@ gio-diff {
     }
 
     &__content {
-      background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+      background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
       &__row {
         display: flex;
 

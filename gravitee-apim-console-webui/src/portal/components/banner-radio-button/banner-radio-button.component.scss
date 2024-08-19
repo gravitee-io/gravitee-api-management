@@ -3,7 +3,7 @@
 
 .banner-radio-button {
   &__container {
-    border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    border: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
     border-radius: 8px;
     display: flex;
     justify-content: space-between;
@@ -12,6 +12,6 @@
 }
 
 .selected {
-  border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
-  color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+  border: 2px solid mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+  color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
 }

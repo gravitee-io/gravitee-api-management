@@ -31,13 +31,13 @@ $typography: map.get(gio.$mat-theme, typography);
   margin-bottom: 24px;
 
   .page-title {
-    @include mat.typography-level($typography, headline-6);
+    @include mat.m2-typography-level($typography, headline-6);
     margin: 0 0 4px 0;
   }
 
   .description {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.typography-level($typography, body-2);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.m2-typography-level($typography, body-2);
   }
 
   &__actions {
@@ -64,13 +64,13 @@ $typography: map.get(gio.$mat-theme, typography);
     padding: 12px 0 22px 0;
 
     .header {
-      @include mat.typography-level($typography, 'headline-6');
+      @include mat.m2-typography-level($typography, 'headline-6');
       align-self: center;
     }
 
     .description {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
       width: 343px;
       align-self: center;
       text-align: center;

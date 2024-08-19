@@ -21,8 +21,8 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
 
     &__title {
-      @include mat.typography-level($typography, subtitle-1);
-      border-bottom: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+      @include mat.m2-typography-level($typography, subtitle-1);
+      border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
       height: 52px;
       padding-right: 8px;
     }
@@ -42,21 +42,21 @@ $typography: map.get(gio.$mat-theme, typography);
       gap: 4px;
       display: flex;
       flex-direction: column;
-      border-top: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+      border-top: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
       padding: 4px 8px 4px 0;
       justify-content: center;
 
       &__label {
-        @include mat.typography-level($typography, 'caption');
+        @include mat.m2-typography-level($typography, 'caption');
       }
 
       &__value {
-        @include mat.typography-level($typography, 'body-1');
+        @include mat.m2-typography-level($typography, 'body-1');
       }
     }
 
     & + & {
-      border-left: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+      border-left: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
 
       .gio-request-stats__body__title,
       .gio-request-stats__body__row {

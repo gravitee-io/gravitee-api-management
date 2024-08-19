@@ -36,7 +36,7 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       .disabled {
-        color: mat.get-color-from-palette($foreground, disabled);
+        color: mat.m2-get-color-from-palette($foreground, disabled);
       }
     }
   }

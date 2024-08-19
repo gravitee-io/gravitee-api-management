@@ -5,7 +5,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -13,14 +13,14 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-inspector {
   &__header {
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+    border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     height: 56px;
     padding: 16px;
     display: flex;
     align-items: center;
 
-    @include mat.typography-level($typography, 'subtitle-2');
+    @include mat.m2-typography-level($typography, 'subtitle-2');
 
     > * {
       margin: 0;
@@ -43,7 +43,7 @@ $typography: map.get(gio.$mat-theme, typography);
         height: 50px;
         padding: 16px 0;
 
-        @include mat.typography-level($typography, 'subtitle-2');
+        @include mat.m2-typography-level($typography, 'subtitle-2');
 
         > * {
           flex: 1;
@@ -58,10 +58,10 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__tree-node {
-    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-top: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
     &__error-icon {
-      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
       margin-right: 5px;
     }
 
@@ -85,8 +85,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
 @mixin diff() {
   .added {
-    background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
-    color: mat.get-color-from-palette(gio.$mat-success-palette, 'darker');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'lighter');
+    color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'darker');
 
     .input {
       visibility: hidden;
@@ -94,15 +94,15 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   .deleted {
-    background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'lighter');
-    color: mat.get-color-from-palette(gio.$mat-error-palette, 'darker');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'lighter');
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'darker');
 
     .output {
       visibility: hidden;
     }
   }
   .updated {
-    background-color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter');
-    color: mat.get-color-from-palette(gio.$mat-warning-palette, 'darker');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
+    color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker');
   }
 }

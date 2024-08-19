@@ -13,19 +13,19 @@ $typography: map.get(gio.$mat-theme, typography);
       padding-bottom: 24px;
 
       &__step-number {
-        @include mat.typography-level($typography, 'body-1');
-        color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+        @include mat.m2-typography-level($typography, 'body-1');
+        color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
         padding-bottom: 20px;
       }
 
       &__subtitle {
-        @include mat.typography-level($typography, 'headline-6');
+        @include mat.m2-typography-level($typography, 'headline-6');
         margin-bottom: 8px;
       }
 
       &__paragraph-light {
-        @include mat.typography-level($typography, body-2);
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        @include mat.m2-typography-level($typography, body-2);
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
         margin-bottom: 8px;
       }
     }
@@ -50,7 +50,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__list-option {
     &__selected {
-      border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+      border: 2px solid mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
     }
   }
 
@@ -66,7 +66,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__form-container {
-    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
     border-radius: 8px;
     padding: 16px;
     margin-top: 16px;

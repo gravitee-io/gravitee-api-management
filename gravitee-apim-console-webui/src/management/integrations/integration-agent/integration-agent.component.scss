@@ -26,7 +26,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .body-strong {
-  @include mat.typography-level($typography, body-1);
+  @include mat.m2-typography-level($typography, body-1);
 }
 
 .integration-agent {
@@ -43,22 +43,22 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .page-header {
   &__page-title {
-    @include mat.typography-level($typography, headline-6);
+    @include mat.m2-typography-level($typography, headline-6);
     margin: 0 0 4px 0;
   }
 
   &__description {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }
 
 .card-header {
   padding: 16px;
-  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 
   &__title {
     h3 {
-      @include mat.typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-1);
       margin: 0;
     }
   }
@@ -87,7 +87,7 @@ gio-banner-error {
 .separator {
   height: 1px;
   align-self: stretch;
-  background: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 }
 
 .form {
@@ -101,7 +101,7 @@ gio-banner-error {
   }
 
   .hint {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }
 
@@ -128,7 +128,7 @@ gio-banner-error {
     .order {
       height: 32px;
       width: 32px;
-      border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+      border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
       border-radius: 50%;
 
       display: flex;
@@ -142,7 +142,7 @@ gio-banner-error {
       }
 
       &__desc {
-        color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+        color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
         margin-bottom: 0;
       }
     }
@@ -155,8 +155,8 @@ code {
 }
 
 .code-area {
-  background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-  color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
   border-radius: 8px;
   font-size: 12px;
 
@@ -180,7 +180,7 @@ code {
     display: grid;
     gap: 12px;
     grid-template-columns: 30px auto;
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
     @include gio.code-typography();
 
     &__number {

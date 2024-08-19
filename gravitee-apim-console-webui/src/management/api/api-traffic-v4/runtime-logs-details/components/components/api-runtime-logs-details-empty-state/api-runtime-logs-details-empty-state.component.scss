@@ -7,8 +7,8 @@
 
   .icon {
     border-radius: 30px;
-    background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
-    color: mat.get-color-from-palette(gio.$mat-primary-palette, 'darker20');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+    color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'darker20');
     height: 60px;
     width: 60px;
     padding: inherit;
@@ -22,7 +22,7 @@
     justify-content: center;
 
     &__subtitle {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       display: flex;
       justify-content: center;
       width: 60%;

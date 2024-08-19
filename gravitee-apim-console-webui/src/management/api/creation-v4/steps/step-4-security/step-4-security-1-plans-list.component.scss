@@ -13,7 +13,7 @@ $typography: map.get(gio.$mat-theme, typography);
     padding-bottom: 8px;
 
     &__title {
-      @include mat.typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-1);
     }
   }
   &__table {
