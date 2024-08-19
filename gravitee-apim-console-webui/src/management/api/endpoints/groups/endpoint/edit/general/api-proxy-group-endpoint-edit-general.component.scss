@@ -18,7 +18,7 @@ $typography: map.get(gio.$mat-theme, typography);
       flex: 1 1 auto;
 
       &__label {
-        @include mat.typography-level($typography, subtitle-2);
+        @include mat.m2-typography-level($typography, subtitle-2);
       }
 
       &__label,
@@ -48,12 +48,12 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       &__name {
-        @include mat.typography-level($typography, subtitle-2);
+        @include mat.m2-typography-level($typography, subtitle-2);
       }
 
       &__description {
         padding: 0 0.75em 0 0.75em;
-        @include mat.typography-level($typography, caption);
+        @include mat.m2-typography-level($typography, caption);
       }
     }
   }

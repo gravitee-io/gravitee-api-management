@@ -51,7 +51,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
         width: 100%;
 
         &__icon {
-          color: mat.get-color-from-palette($foreground, disabled);
+          color: mat.m2-get-color-from-palette($foreground, disabled);
         }
 
         &.margin-top {
@@ -63,7 +63,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       }
 
       &__label {
-        @include mat.typography-level($typography, subtitle-2);
+        @include mat.m2-typography-level($typography, subtitle-2);
 
         & ~ & {
           padding-top: 8px;

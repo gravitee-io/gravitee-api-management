@@ -21,12 +21,12 @@ $typography: map.get(gio.$mat-theme, typography);
     border-bottom: 1px solid map.get(gio.$mat-dove-palette, darker10);
 
     &__title {
-      @include mat.typography-level($typography, 'subtitle-1');
+      @include mat.m2-typography-level($typography, 'subtitle-1');
     }
 
     &__subtitle {
-      @include mat.typography-level($typography, 'body-2');
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, 'body-2');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
 
@@ -34,12 +34,12 @@ $typography: map.get(gio.$mat-theme, typography);
     width: 100%;
 
     &__label {
-      @include mat.typography-level($typography, 'body-2');
+      @include mat.m2-typography-level($typography, 'body-2');
     }
 
     &__description {
-      @include mat.typography-level($typography, 'body-2');
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, 'body-2');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       margin-bottom: 24px;
     }
   }

@@ -5,7 +5,7 @@
 @use '../../../../scss/gio-layout' as gio-layout;
 
 $background: map.get(gio.$mat-theme, background);
-$infoColor: mat.get-color-from-palette(gio.$mat-primary-palette, default);
+$infoColor: mat.m2-get-color-from-palette(gio.$mat-primary-palette, default);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -30,12 +30,12 @@ $infoColor: mat.get-color-from-palette(gio.$mat-primary-palette, default);
 
     .mat-mdc-table {
       .mat-mdc-header-row {
-        background-color: mat.get-color-from-palette($background, 'background');
+        background-color: mat.m2-get-color-from-palette($background, 'background');
       }
 
       .mat-column-permissionName {
         .permission-moved {
-          color: mat.get-color-from-palette(gio.$mat-warning-palette, darker);
+          color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, darker);
           font-style: italic;
         }
       }

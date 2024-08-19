@@ -40,11 +40,11 @@
       }
 
       .activeIcon {
-        color: mat.get-color-from-palette(gio.$mat-success-palette, darker20);
+        color: mat.m2-get-color-from-palette(gio.$mat-success-palette, darker20);
       }
 
       .revokedIcon {
-        color: mat.get-color-from-palette(gio.$mat-error-palette, default);
+        color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
       }
     }
   }

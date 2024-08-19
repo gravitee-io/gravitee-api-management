@@ -34,10 +34,10 @@ $typography: map.get(gio.$mat-theme, typography);
       text-transform: none;
       display: flex;
       align-items: center;
-      @include mat.typography-level($typography, 'subtitle-2');
+      @include mat.m2-typography-level($typography, 'subtitle-2');
 
       &__icon {
-        color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+        color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
         margin-left: 4px;
         height: 14px;
         width: 14px;
@@ -45,9 +45,9 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__subtitle {
-      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
       text-transform: none;
-      @include mat.typography-level($typography, 'caption');
+      @include mat.m2-typography-level($typography, 'caption');
     }
 
     &__field {
@@ -61,7 +61,7 @@ $typography: map.get(gio.$mat-theme, typography);
     &__field:focus-within {
       z-index: 100;
       height: auto;
-      background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+      background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
 
       * {
         max-height: none;
