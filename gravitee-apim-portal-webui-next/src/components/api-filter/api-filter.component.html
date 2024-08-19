@@ -16,7 +16,7 @@
 
 -->
 <mat-button-toggle-group class="api-filter" [formControl]="toggleControl" [value]="currentValue" (change)="onSelectedFilter($event.value)">
-  <mat-button-toggle [value]="'all'" class="api-filter__button" i18n="@@apiFilterDefaultOption">All</mat-button-toggle>
+  <mat-button-toggle [value]="''" class="api-filter__button" i18n="@@apiFilterDefaultOption">All</mat-button-toggle>
   @for (filter of filterList | slice: 0 : 4; track filter.id) {
     <mat-button-toggle [value]="filter.id" class="api-filter__button m3-label-large">
       {{ filter.name }}
