@@ -21,7 +21,7 @@
       flex: 0 1 356px;
       min-height: 100%;
 
-      border-right: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+      border-right: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     }
 
     &__response {

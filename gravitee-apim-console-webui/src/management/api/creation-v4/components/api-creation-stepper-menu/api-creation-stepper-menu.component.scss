@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   min-width: 273px;
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
 
   &__header {
     display: flex;
@@ -19,7 +19,7 @@
   }
 
   &__subtitle {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }
 

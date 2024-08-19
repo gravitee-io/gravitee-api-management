@@ -42,7 +42,7 @@ $typography: map.get(gio.$mat-theme, typography);
         display: flex;
         flex-direction: column;
         justify-content: center;
-        border-bottom: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+        border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
         flex: 1 1 100%;
 
         &:last-child {
@@ -50,11 +50,11 @@ $typography: map.get(gio.$mat-theme, typography);
         }
 
         &__label {
-          @include mat.typography-level($typography, 'caption');
+          @include mat.m2-typography-level($typography, 'caption');
         }
 
         &__value {
-          @include mat.typography-level($typography, 'headline-6');
+          @include mat.m2-typography-level($typography, 'headline-6');
         }
       }
     }

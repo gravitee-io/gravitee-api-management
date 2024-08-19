@@ -9,7 +9,7 @@ $typography: map.get(gio.$mat-theme, typography);
     &__title {
       width: 100%;
       margin-bottom: 16px;
-      @include mat.typography-level($typography, subtitle-2);
+      @include mat.m2-typography-level($typography, subtitle-2);
     }
 
     &__block {

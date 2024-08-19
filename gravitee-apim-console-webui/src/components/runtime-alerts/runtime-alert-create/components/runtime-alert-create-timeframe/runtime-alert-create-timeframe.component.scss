@@ -24,8 +24,8 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       &__subtitle {
-        @include mat.typography-level($typography, body-2);
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        @include mat.m2-typography-level($typography, body-2);
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       }
     }
   }
@@ -46,8 +46,8 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     .gio-form-slide-toggle__description {
-      @include mat.typography-level($typography, body-2);
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
 }

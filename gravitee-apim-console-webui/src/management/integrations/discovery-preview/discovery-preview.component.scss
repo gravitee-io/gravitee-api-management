@@ -48,7 +48,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .separator {
   height: 1px;
   align-self: stretch;
-  background: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
   margin: 16px -16px;
 }
 

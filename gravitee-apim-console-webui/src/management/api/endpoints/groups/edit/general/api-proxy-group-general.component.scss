@@ -8,7 +8,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__group-name,
   &__group-lb {
     &__label {
-      @include mat.typography-level($typography, subtitle-2);
+      @include mat.m2-typography-level($typography, subtitle-2);
     }
 
     &__label,

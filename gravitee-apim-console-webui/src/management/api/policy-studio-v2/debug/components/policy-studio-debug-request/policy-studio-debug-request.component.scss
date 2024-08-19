@@ -4,16 +4,16 @@
 
 .policy-studio-debug-request {
   // FIXME: To remove when HEADERS will be managed by a component coming from UI Particles
-  --gv-expandable--bdb: solid thin #{mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10')};
+  --gv-expandable--bdb: solid thin #{mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10')};
 
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   display: flex;
   flex-direction: column;
   height: 100%;
 
   &__header {
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+    border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     height: 56px;
     display: flex;
     align-items: center;
@@ -23,7 +23,7 @@
   }
 
   &__content {
-    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
     overflow-x: auto;
 

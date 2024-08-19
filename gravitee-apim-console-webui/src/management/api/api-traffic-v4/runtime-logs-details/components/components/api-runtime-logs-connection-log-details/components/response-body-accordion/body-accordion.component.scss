@@ -8,8 +8,8 @@ $typography: map.get(gio.$mat-theme, typography);
   display: block;
   padding: 0 12px;
   border-radius: 4px;
-  border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  @include mat.typography-level($typography, body-2);
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  @include mat.m2-typography-level($typography, body-2);
 
   &__header {
     display: flex;
@@ -20,7 +20,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__title {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 
   &__body {
@@ -28,6 +28,6 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-bottom: 12px;
     white-space: pre-wrap;
     word-break: break-all;
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
   }
 }

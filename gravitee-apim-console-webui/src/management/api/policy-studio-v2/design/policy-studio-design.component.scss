@@ -7,6 +7,6 @@
   flex-direction: column;
   background-color: white;
   width: 100%;
-  border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker20);
-  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker20);
+  border-top: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker20);
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker20);
 }

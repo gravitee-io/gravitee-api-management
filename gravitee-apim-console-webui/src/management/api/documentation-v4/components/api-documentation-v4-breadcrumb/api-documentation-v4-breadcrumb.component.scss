@@ -13,8 +13,8 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__item {
-    @include mat.typography-level($typography, 'subtitle-2');
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+    @include mat.m2-typography-level($typography, 'subtitle-2');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
     max-width: 250px;
     overflow: hidden;
     white-space: nowrap;
@@ -22,9 +22,9 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__item:last-of-type:not(:only-of-type) {
-    @include mat.typography-level($typography, 'subtitle-2');
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    @include mat.m2-typography-level($typography, 'subtitle-2');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
     max-width: 450px;
   }
 }

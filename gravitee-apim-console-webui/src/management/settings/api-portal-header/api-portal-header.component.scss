@@ -33,7 +33,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   mat-card-title {
-    @include mat.typography-level($typography, subtitle-1);
+    @include mat.m2-typography-level($typography, subtitle-1);
   }
 }
 
