@@ -271,7 +271,7 @@ public class GroupMembersResource extends AbstractResource {
                 RoleEntity apiRoleEntity = roleEntities.get(RoleScope.API);
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
                     String roleName = getRoleName(RoleScope.API, apiRoleEntity, groupEntity, GroupEntity::isLockApiRole, hasPermission);
-                    updateRole(RoleScope.API, roleName, previousApiRole, membership, executionContext);
+                    updatedMembership = updateRole(RoleScope.API, roleName, previousApiRole, membership, executionContext);
                     if (previousApiRole != null && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiPrimaryOwner(group, null);
                     } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
@@ -367,7 +367,7 @@ public class GroupMembersResource extends AbstractResource {
         return roleName;
     }
 
-    void updateRole(
+    MemberEntity updateRole(
         RoleScope scope,
         String newRoleName,
         RoleEntity previousRole,
@@ -389,6 +389,7 @@ public class GroupMembersResource extends AbstractResource {
                 previousRole.getId()
             );
         }
+        return updatedMembership;
     }
 
     @Path("{member}")
