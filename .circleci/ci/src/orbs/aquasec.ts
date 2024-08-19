@@ -33,3 +33,24 @@ aquasec.jobs.docker_image_scan = new orb.OrbRef(
   ]),
   aquasec,
 );
+
+aquasec.commands.install_billy = new orb.OrbRef(
+  'install_billy',
+  new parameters.CustomParametersList([new parameters.CustomParameter('bin_dir', 'string')]),
+  aquasec,
+);
+aquasec.commands.register_artifact = new orb.OrbRef(
+  'register_artifact',
+  new parameters.CustomParametersList([
+    new parameters.CustomParameter('built_docker_image_file', 'string'),
+    new parameters.CustomParameter('artifact_to_register', 'string'),
+    new parameters.CustomParameter('debug', 'boolean'),
+  ]),
+  aquasec,
+);
+aquasec.commands.pull_aqua_scanner_image = new orb.OrbRef('pull_aqua_scanner_image', new parameters.CustomParametersList(), aquasec);
+aquasec.commands.scan_docker_image = new orb.OrbRef(
+  'scan_docker_image',
+  new parameters.CustomParametersList([new parameters.CustomParameter('docker_image_to_scan', 'string')]),
+  aquasec,
+);
