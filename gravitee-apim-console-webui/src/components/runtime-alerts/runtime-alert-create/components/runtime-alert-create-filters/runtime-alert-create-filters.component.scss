@@ -21,8 +21,8 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__subtitle {
-      @include mat.typography-level($typography, body-2);
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
 
@@ -30,9 +30,9 @@ $typography: map.get(gio.$mat-theme, typography);
     width: 100%;
 
     &__th {
-      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
       text-transform: none;
-      @include mat.typography-level($typography, 'subtitle-2');
+      @include mat.m2-typography-level($typography, 'subtitle-2');
     }
   }
 }

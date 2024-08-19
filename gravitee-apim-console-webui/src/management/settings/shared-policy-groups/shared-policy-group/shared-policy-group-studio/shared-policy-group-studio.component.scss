@@ -36,7 +36,7 @@
   &__content {
     margin-top: 16px;
     padding: 16px;
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+    border-top: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
   }
 }

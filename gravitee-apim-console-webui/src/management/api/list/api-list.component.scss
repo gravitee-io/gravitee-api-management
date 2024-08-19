@@ -46,7 +46,7 @@
 .mat-column-access {
   .access {
     &__message {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       cursor: default;
     }
 
@@ -68,11 +68,11 @@
 
   .states {
     &__api-started {
-      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
     }
 
     &__api-not-started {
-      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
     }
 
     &__api-workflow-badge {
@@ -84,7 +84,7 @@
     }
 
     &__api-is-not-synced {
-      color: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
     }
   }
 }
@@ -100,18 +100,18 @@
   font-size: 0.8em;
 
   &__good {
-    color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
-    border-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
+    border-color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
   }
 
   &__bad {
-    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
-    border-color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+    border-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
   }
 
   &__medium {
-    color: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
-    border-color: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
+    border-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
   }
 }
 
@@ -120,7 +120,7 @@
   padding: 0 8px;
 
   .visibility {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }
 
@@ -131,5 +131,5 @@
 
 .provider {
   display: block;
-  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
 }

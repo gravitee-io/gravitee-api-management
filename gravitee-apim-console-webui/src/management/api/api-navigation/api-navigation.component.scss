@@ -49,7 +49,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     }
 
     &__title {
-      border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-space-palette, 'lighter80');
+      border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter80');
     }
 
     &__item {

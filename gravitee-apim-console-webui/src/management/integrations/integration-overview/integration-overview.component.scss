@@ -33,12 +33,12 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .page-header {
   &__page-title {
-    @include mat.typography-level($typography, headline-6);
+    @include mat.m2-typography-level($typography, headline-6);
     margin: 0 0 4px 0;
   }
 
   &__description {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }
 
@@ -53,12 +53,12 @@ $typography: map.get(gio.$mat-theme, typography);
     justify-content: center;
 
     h3 {
-      @include mat.typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-1);
       margin: 0;
     }
 
     .description {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       margin-bottom: 0;
     }
   }
@@ -72,8 +72,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
   .mat-mdc-card {
     padding: 20px;
-    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
-    box-shadow: 0 2px 4px 0 mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    box-shadow: 0 2px 4px 0 mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
   }
 }
 
@@ -96,7 +96,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   .border-right {
     padding-right: 20px;
-    border-right: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+    border-right: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
   }
 }
 
@@ -114,14 +114,14 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
 
     .header {
-      @include mat.typography-level($typography, 'headline-6');
+      @include mat.m2-typography-level($typography, 'headline-6');
       align-self: center;
       margin-bottom: 12px;
     }
 
     .description {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
       width: 400px;
       align-self: center;
       text-align: center;
@@ -135,7 +135,7 @@ gio-banner-error {
 }
 
 .body-strong {
-  @include mat.typography-level($typography, body-1);
+  @include mat.m2-typography-level($typography, body-1);
 }
 
 .background-circle {
@@ -145,7 +145,7 @@ gio-banner-error {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter80');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter80');
 }
 
 .loadingTemplate {
@@ -169,7 +169,7 @@ gio-table-wrapper {
 .separator-hr {
   margin-top: 16px;
   height: 1px;
-  background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 }
 
 .pending-job-banner {

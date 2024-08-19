@@ -27,11 +27,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .card-header {
   padding: 16px;
-  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 
   &__title {
     h3 {
-      @include mat.typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-1);
       margin: 0;
     }
   }
@@ -50,7 +50,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   .hint {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }
 
@@ -60,10 +60,10 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .danger-card {
-  border: 1px solid mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
 
   &__title {
-    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
   }
 
   &__actions {

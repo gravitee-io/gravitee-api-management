@@ -27,7 +27,7 @@ $background: map.get(gio.$mat-theme, background);
     margin-right: 6px;
 
     &__border {
-      border: solid 2px mat.get-color-from-palette($background, background);
+      border: solid 2px mat.m2-get-color-from-palette($background, background);
       border-radius: 50%;
       overflow: hidden;
       width: 24px;

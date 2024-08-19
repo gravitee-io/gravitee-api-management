@@ -41,13 +41,13 @@ $typography: map.get(gio.$mat-theme, typography);
       padding-left: 8px;
 
       &__label {
-        @include mat.typography-level($typography, 'subtitle-2');
+        @include mat.m2-typography-level($typography, 'subtitle-2');
         margin-bottom: 12px;
       }
 
       &__hint {
-        @include mat.typography-level($typography, caption);
-        color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker60');
+        @include mat.m2-typography-level($typography, caption);
+        color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker60');
         padding-left: 8px;
       }
     }
@@ -78,7 +78,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   .disabled {
-    color: mat.get-color-from-palette($foreground, disabled);
+    color: mat.m2-get-color-from-palette($foreground, disabled);
 
     .health-check-card__trigger__hint,
     .health-check-card__request__http-headers__hint {

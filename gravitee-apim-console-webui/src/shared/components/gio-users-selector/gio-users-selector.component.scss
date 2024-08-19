@@ -21,7 +21,7 @@ $background: map.get(gio.$mat-theme, background);
       align-items: center;
 
       &:hover {
-        background-color: mat.get-color-from-palette($background, hover);
+        background-color: mat.m2-get-color-from-palette($background, hover);
       }
 
       &__name {

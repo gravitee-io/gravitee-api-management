@@ -7,20 +7,20 @@ $foreground: map.get(gio.$mat-theme, foreground);
 
 :host {
   display: block;
-  border-top: 1px solid mat.get-color-from-palette($foreground, divider);
+  border-top: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 
   @include mat.elevation(3); // default elevation
 }
 
 .row {
   &__api-started {
-    background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'lighter');
   }
 
   &__api-deployed {
   }
 
   &__api-stopped {
-    background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'lighter');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'lighter');
   }
 }

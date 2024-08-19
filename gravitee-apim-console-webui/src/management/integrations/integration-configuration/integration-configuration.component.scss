@@ -33,12 +33,12 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .page-header {
   &__page-title {
-    @include mat.typography-level($typography, headline-6);
+    @include mat.m2-typography-level($typography, headline-6);
     margin: 0 0 4px 0;
   }
 
   &__description {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.typography-level($typography, body-1);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.m2-typography-level($typography, body-1);
   }
 }

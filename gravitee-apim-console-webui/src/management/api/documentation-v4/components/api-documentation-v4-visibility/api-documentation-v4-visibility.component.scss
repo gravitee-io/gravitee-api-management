@@ -5,12 +5,12 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .visibility {
-  @include mat.typography-level($typography, subtitle-2);
+  @include mat.m2-typography-level($typography, subtitle-2);
   padding-bottom: 8px;
 
   &__subtitle {
-    @include mat.typography-level($typography, body-2);
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.m2-typography-level($typography, body-2);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     padding-bottom: 16px;
   }
 }

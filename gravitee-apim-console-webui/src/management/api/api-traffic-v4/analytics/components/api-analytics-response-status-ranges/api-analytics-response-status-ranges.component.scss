@@ -9,9 +9,9 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .title {
-  @include mat.typography-level($typography, 'body-1');
+  @include mat.m2-typography-level($typography, 'body-1');
   padding: 16px;
-  border-bottom: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+  border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
 }
 
 .card {

@@ -60,7 +60,7 @@
     &__details {
       margin-top: 2px;
       font-size: 12px;
-      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker50');
+      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker50');
     }
 
     &__actions {
