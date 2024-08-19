@@ -33,6 +33,7 @@ public class SubscriptionMapper {
             subscription.setApi(subscriptionModel.getApi());
             subscription.setApplication(subscriptionModel.getApplication());
             subscription.setClientId(subscriptionModel.getClientId());
+            subscription.setClientCertificate(subscriptionModel.getClientCertificate());
             subscription.setStartingAt(subscriptionModel.getStartingAt());
             subscription.setEndingAt(subscriptionModel.getEndingAt());
             subscription.setId(subscriptionModel.getId());

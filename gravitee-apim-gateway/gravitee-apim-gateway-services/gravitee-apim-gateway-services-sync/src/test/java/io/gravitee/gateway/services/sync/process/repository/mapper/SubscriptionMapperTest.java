@@ -48,6 +48,7 @@ class SubscriptionMapperTest {
         subscription.setApi("api");
         subscription.setApplication("application");
         subscription.setClientId("clientId");
+        subscription.setClientCertificate("clientCertificate");
         subscription.setStartingAt(new Date());
         subscription.setEndingAt(new Date());
         subscription.setId("id");
@@ -66,6 +67,7 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getId()).isEqualTo(subscription.getId());
         assertThat(subscriptionMapped.getApplication()).isEqualTo(subscription.getApplication());
         assertThat(subscriptionMapped.getClientId()).isEqualTo(subscription.getClientId());
+        assertThat(subscriptionMapped.getClientCertificate()).isEqualTo(subscription.getClientCertificate());
         assertThat(subscriptionMapped.getStartingAt()).isEqualTo(subscription.getStartingAt());
         assertThat(subscriptionMapped.getEndingAt()).isEqualTo(subscription.getEndingAt());
         assertThat(subscriptionMapped.getId()).isEqualTo(subscription.getId());
