@@ -18,6 +18,7 @@ package io.gravitee.gateway.debug;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
@@ -269,7 +270,8 @@ public class DebugConfiguration {
         final ObjectMapper objectMapper,
         final VertxDebugHttpClientConfiguration debugHttpClientConfiguration,
         @Qualifier("debugReactorHandlerRegistry") final ReactorHandlerRegistry reactorHandlerRegistry,
-        final AccessPointManager accessPointManager
+        final AccessPointManager accessPointManager,
+        final DataEncryptor dataEncryptor
     ) {
         return new DebugReactorEventListener(
             vertx,
@@ -278,7 +280,8 @@ public class DebugConfiguration {
             objectMapper,
             debugHttpClientConfiguration,
             reactorHandlerRegistry,
-            accessPointManager
+            accessPointManager,
+            dataEncryptor
         );
     }
 
