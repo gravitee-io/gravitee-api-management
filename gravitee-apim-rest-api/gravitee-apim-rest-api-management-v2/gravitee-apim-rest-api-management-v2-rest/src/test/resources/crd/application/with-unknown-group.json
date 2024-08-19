@@ -1,0 +1,23 @@
+{
+  "name": "K8S-Application",
+  "description": "K8s Application 2",
+  "domain": "https://example.com",
+  "settings": {
+    "app": {
+      "type": "WEB"
+    }
+  },
+  "notifyMembers": false,
+  "metadata": [
+    {
+      "name": "test metadata 1",
+      "format": "STRING"
+    },
+    {
+      "name": "test metadata 2",
+      "format": "STRING"
+    }
+  ],
+  "origin": "kubernetes",
+  "groups":["unknown-group"]
+}

@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.application.model.crd;
 
+import io.gravitee.apim.core.validation.Validator;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +32,22 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class ApplicationCRDStatus {
 
+    @Builder
+    public record Errors(List<String> severe, List<String> warning) {
+        public static final Errors EMPTY = new Errors(List.of(), List.of());
+
+        public static Errors fromErrorList(List<Validator.Error> errors) {
+            return errors == null
+                ? null
+                : new Errors(
+                    errors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).sorted().toList(),
+                    errors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).sorted().toList()
+                );
+        }
+    }
+
     private String id;
     private String organizationId;
     private String environmentId;
+    private Errors errors;
 }

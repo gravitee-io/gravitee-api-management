@@ -41,6 +41,8 @@ import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateCRDUseCase;
+import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
+import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -434,6 +436,13 @@ public class ResourceContextConfiguration {
                 validateResourceDomainService,
                 new ValidatePagesDomainService(validationDomainService)
             )
+        );
+    }
+
+    @Bean
+    public ValidateApplicationCRDUseCase validateApplicationCRDUseCase(GroupQueryService groupQueryService) {
+        return new ValidateApplicationCRDUseCase(
+            new ValidateApplicationCRDDomainService(new ValidateGroupsDomainService(groupQueryService))
         );
     }
 
