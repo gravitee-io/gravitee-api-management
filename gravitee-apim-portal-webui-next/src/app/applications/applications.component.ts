@@ -45,7 +45,6 @@ export class ApplicationsComponent {
 
   private applicationService = inject(ApplicationService);
   private page$ = new BehaviorSubject(1);
-  private initialLoad = true;
 
   constructor() {
     this.applicationPaginator$ = this.loadApplications$();
@@ -63,8 +62,7 @@ export class ApplicationsComponent {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
       switchMap(currentPage => {
-        if (this.initialLoad) {
-          this.initialLoad = false;
+        if (currentPage === 1) {
           return of({ page: currentPage, size: 18 });
         } else if (currentPage === 2) {
           this.page$.next(3);
