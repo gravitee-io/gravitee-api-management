@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NgModule, NgZone } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { Router } from '@angular/router';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { Constants } from '../../entities/Constants';
 
@@ -53,18 +54,15 @@ export const CONSTANTS_TESTING: Constants = {
 };
 
 @NgModule({
-  imports: [
-    HttpClientTestingModule,
-    RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
-    MatIconTestingModule,
-    MatMomentDateModule,
-  ],
+  imports: [RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]), MatIconTestingModule, MatMomentDateModule],
   providers: [
     {
       provide: Constants,
       useValue: CONSTANTS_TESTING,
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
+    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClientTesting(),
   ],
 })
 export class GioTestingModule {

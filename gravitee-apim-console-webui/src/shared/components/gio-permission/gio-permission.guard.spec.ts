@@ -17,7 +17,8 @@ import { Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { GioPermissionService } from './gio-permission.service';
 import { PermissionGuard } from './gio-permission.guard';
@@ -44,7 +45,6 @@ describe('GioPermissionGuard', () => {
     TestBed.configureTestingModule({
       declarations: [TestRootComponent, TestComponent],
       imports: [
-        HttpClientTestingModule,
         RouterTestingModule.withRoutes([
           {
             path: 'test',
@@ -84,7 +84,12 @@ describe('GioPermissionGuard', () => {
           },
         ]),
       ],
-      providers: [GioPermissionService, { provide: Constants, useValue: CONSTANTS_TESTING }],
+      providers: [
+        GioPermissionService,
+        { provide: Constants, useValue: CONSTANTS_TESTING },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     });
     router = TestBed.inject(Router);
     ngZone = TestBed.inject(NgZone);
