@@ -5,8 +5,8 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-timeline-legend {
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
-  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+  border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
   height: 40px;
   display: flex;
   align-items: center;
@@ -15,7 +15,7 @@ $typography: map.get(gio.$mat-theme, typography);
     height: 24px;
     display: inline-flex;
     align-items: center;
-    background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+    background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
     margin-left: 4px;
     margin-right: 4px;
     padding: 3px 8px;
@@ -23,10 +23,10 @@ $typography: map.get(gio.$mat-theme, typography);
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
-    color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker70');
-    font-size: mat.font-size($typography, caption);
-    font-weight: mat.font-weight($typography, caption);
-    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker70');
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker70');
+    font-size: mat.m2-font-size($typography, caption);
+    font-weight: mat.m2-font-weight($typography, caption);
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker70');
     border-radius: 16px;
 
     .gio-left {
@@ -36,23 +36,23 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     .color-green {
-      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
     }
 
     .color-blue {
-      color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
     }
 
     .color-grey {
-      color: mat.get-color-from-palette(gio.$mat-basic-palette, 'disabled-contrast');
+      color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, 'disabled-contrast');
     }
 
     .color-red {
-      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
     }
 
     .color-black {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
     }
   }
 }

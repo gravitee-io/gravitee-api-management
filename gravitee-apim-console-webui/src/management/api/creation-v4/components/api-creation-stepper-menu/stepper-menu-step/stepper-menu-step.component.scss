@@ -5,7 +5,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .stepper-menu-step {
-  border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  border: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
   border-radius: 4px;
 
   &__header {
@@ -39,36 +39,36 @@ $typography: map.get(gio.$mat-theme, typography);
         border-radius: 20px;
 
         &-started {
-          background: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
-          color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+          background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+          color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
 
-          border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+          border: 2px solid mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'darker20');
         }
 
         &-not-started {
-          background: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-          color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+          background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+          color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
 
-          border-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+          border-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
         }
 
         &-invalid {
-          background: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-          color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
+          background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+          color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
 
-          border-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+          border-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
         }
       }
 
       &__title {
-        @include mat.typography-level($typography, subtitle-2);
+        @include mat.m2-typography-level($typography, subtitle-2);
 
         &-not-started {
-          color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+          color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
         }
 
         &-invalid {
-          color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
+          color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
         }
       }
     }
@@ -80,11 +80,11 @@ $typography: map.get(gio.$mat-theme, typography);
       align-items: center;
 
       &:has(&-done) {
-        border-left: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+        border-left: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
       }
 
       &-done {
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
 
         &.preview-open {
           transform: rotate(180deg);
@@ -98,7 +98,7 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       &-current {
-        color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+        color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'darker20');
       }
     }
   }
@@ -117,7 +117,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__wrapper {
-      border-top: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+      border-top: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
       padding: 16px;
     }
 

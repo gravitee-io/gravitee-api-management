@@ -5,9 +5,9 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .log {
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   border-radius: 4px;
-  border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 
   margin: 8px 0 8px 0;
 
@@ -15,18 +15,18 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     flex-direction: row;
     border-radius: 4px 4px 0 0;
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
     padding: 16px 24px;
 
     &__title {
-      @include mat.typography-level($typography, body-1);
+      @include mat.m2-typography-level($typography, body-1);
     }
   }
 
   &__data {
     &__tabs {
       &__body {
-        background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+        background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
         padding: 12px 16px;
         white-space: pre-wrap;
       }
@@ -51,13 +51,13 @@ $typography: map.get(gio.$mat-theme, typography);
     &__property {
       margin-right: 4px;
       white-space: nowrap;
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
     }
 
     &__value {
       word-break: break-all;
-      @include mat.typography-level($typography, body-2);
+      @include mat.m2-typography-level($typography, body-2);
     }
 
     &__accordion {

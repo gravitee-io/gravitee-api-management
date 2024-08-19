@@ -80,7 +80,7 @@ $typography: map.get(gio.$mat-theme, typography);
             height: 100%;
 
             &__text {
-              @include mat.typography-level($typography, caption);
+              @include mat.m2-typography-level($typography, caption);
               position: absolute;
               width: 100%;
               height: 114px;
@@ -110,7 +110,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
           &__btn {
             &__text {
-              @include mat.typography-level($typography, caption);
+              @include mat.m2-typography-level($typography, caption);
               display: flex;
               justify-content: center;
               align-items: center;
@@ -148,10 +148,10 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .danger-card {
-  border: 1px solid mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
 
   &__title {
-    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
   }
 
   &__actions {

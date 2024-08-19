@@ -40,7 +40,7 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: mat.get-color-from-palette(gio.$mat-accent-palette, 'lighter80');
+    background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'lighter80');
 
     animation: rotation 4s infinite linear;
   }

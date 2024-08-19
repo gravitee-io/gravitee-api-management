@@ -16,15 +16,15 @@ $typography: map.get(gio.$mat-theme, typography);
     justify-content: space-between;
     align-items: center;
     padding-bottom: 24px;
-    border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
+    border-bottom: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 
     &__title {
-      @include mat.typography-level($typography, subtitle-1);
+      @include mat.m2-typography-level($typography, subtitle-1);
     }
 
     &__subtitle {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-2);
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
     }
   }
 

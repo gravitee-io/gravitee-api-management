@@ -10,7 +10,7 @@
 .circular {
   &__circle-bg {
     fill: none;
-    stroke: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    stroke: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     stroke-width: 2.8;
   }
 
@@ -22,7 +22,7 @@
   }
 
   &__percentage {
-    fill: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    fill: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     font-family: sans-serif;
     font-size: 0.7em;
     text-anchor: middle;
@@ -30,28 +30,28 @@
 
   &.bad-color {
     .circular__circle {
-      stroke: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      stroke: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
     }
     .circular__percentage {
-      fill: mat.get-color-from-palette(gio.$mat-error-palette, 'darker40');
+      fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'darker40');
     }
   }
 
   &.medium-color {
     .circular__circle {
-      stroke: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+      stroke: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
     }
     .circular__percentage {
-      fill: mat.get-color-from-palette(gio.$mat-warning-palette, 'darker20');
+      fill: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker20');
     }
   }
 
   &.good-color {
     .circular__circle {
-      stroke: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+      stroke: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
     }
     .circular__percentage {
-      fill: mat.get-color-from-palette(gio.$mat-success-palette, 'darker60');
+      fill: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'darker60');
     }
   }
 }

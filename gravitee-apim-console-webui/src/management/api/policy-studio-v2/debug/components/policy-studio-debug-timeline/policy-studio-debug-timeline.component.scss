@@ -5,13 +5,13 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-timeline {
-  background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+  border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
   position: relative;
 
   &__header {
-    background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
-    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+    border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     height: 56px;
     display: flex;
     align-items: center;
@@ -33,7 +33,7 @@ $typography: map.get(gio.$mat-theme, typography);
       margin: 0 0 0 8px;
 
       &__title {
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
         margin: 0 2px 0 8px;
       }
     }
@@ -48,7 +48,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__background {
     position: absolute;
-    background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+    background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
     height: 24px;
     width: 100%;
     top: 94px;

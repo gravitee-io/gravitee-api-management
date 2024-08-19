@@ -28,15 +28,15 @@
 
   .state {
     &__instance-started {
-      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
     }
 
     &__instance-stopped {
-      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
     }
 
     &__instance-unknown {
-      color: mat.get-color-from-palette(gio.$mat-basic-palette, 'default');
+      color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, 'default');
     }
   }
 }

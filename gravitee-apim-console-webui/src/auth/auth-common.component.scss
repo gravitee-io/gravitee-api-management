@@ -25,7 +25,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__title {
-      @include mat.typography-level($typography, 'headline-6');
+      @include mat.m2-typography-level($typography, 'headline-6');
     }
 
     &__subtitle {
@@ -45,7 +45,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__error {
-      @include mat.typography-level($typography, 'caption');
+      @include mat.m2-typography-level($typography, 'caption');
       padding-bottom: 8px;
     }
 

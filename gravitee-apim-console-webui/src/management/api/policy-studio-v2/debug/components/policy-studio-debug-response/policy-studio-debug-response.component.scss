@@ -5,7 +5,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-response {
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -22,7 +22,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__icon {
       --gv-icon--s: 128px;
-      --gv-icon--c: #{mat.get-color-from-palette(gio.$mat-primary-palette, lighter)};
+      --gv-icon--c: #{mat.m2-get-color-from-palette(gio.$mat-primary-palette, lighter)};
     }
   }
 
@@ -53,8 +53,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__display-response {
     &__header {
-      background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-      border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+      background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+      border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
       height: 56px;
       display: flex;
       align-items: baseline;
@@ -70,15 +70,15 @@ $typography: map.get(gio.$mat-theme, typography);
 
       &__status,
       &__path {
-        @include mat.typography-level($typography, body-2);
+        @include mat.m2-typography-level($typography, body-2);
       }
 
       .status-success {
-        color: mat.get-color-from-palette(gio.$mat-success-palette, darker);
+        color: mat.m2-get-color-from-palette(gio.$mat-success-palette, darker);
       }
 
       .status-error {
-        color: mat.get-color-from-palette(gio.$mat-error-palette, darker);
+        color: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker);
       }
     }
   }

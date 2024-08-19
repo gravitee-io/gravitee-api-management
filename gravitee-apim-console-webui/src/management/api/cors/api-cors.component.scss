@@ -41,7 +41,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
     }
 
     &__label {
-      @include mat.typography-level($typography, subtitle-2);
+      @include mat.m2-typography-level($typography, subtitle-2);
     }
 
     &__form-field,
@@ -50,7 +50,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
     }
 
     &.disabled {
-      color: mat.get-color-from-palette($foreground, disabled);
+      color: mat.m2-get-color-from-palette($foreground, disabled);
     }
   }
 

@@ -36,7 +36,7 @@ $accent: map.get(gio.$mat-theme, accent);
   & > .lock-icon {
     opacity: 0;
     cursor: pointer;
-    color: mat.get-color-from-palette($accent);
+    color: mat.m2-get-color-from-palette($accent);
     background: #fff;
     position: absolute;
     right: 4px;
@@ -46,7 +46,7 @@ $accent: map.get(gio.$mat-theme, accent);
     width: 24px;
 
     &__disabled {
-      color: mat.get-color-from-palette($foreground, disabled);
+      color: mat.m2-get-color-from-palette($foreground, disabled);
       cursor: auto;
     }
   }
@@ -56,7 +56,7 @@ $accent: map.get(gio.$mat-theme, accent);
   }
 
   &.selected {
-    border: 1px solid mat.get-color-from-palette($accent);
+    border: 1px solid mat.m2-get-color-from-palette($accent);
     margin: 5px;
 
     & > .selection-icon {
@@ -65,8 +65,8 @@ $accent: map.get(gio.$mat-theme, accent);
   }
 
   &.disabled {
-    color: mat.get-color-from-palette($foreground, disabled);
-    border: 1px solid mat.get-color-from-palette($foreground, disabled);
+    color: mat.m2-get-color-from-palette($foreground, disabled);
+    border: 1px solid mat.m2-get-color-from-palette($foreground, disabled);
     cursor: auto;
   }
 

@@ -36,12 +36,12 @@
 
         &__red-icon {
           flex: 0 0 auto;
-          color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+          color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
         }
 
         &__green-icon {
           flex: 0 0 auto;
-          color: mat.get-color-from-palette(gio.$mat-success-palette, 'darker20');
+          color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'darker20');
         }
       }
     }

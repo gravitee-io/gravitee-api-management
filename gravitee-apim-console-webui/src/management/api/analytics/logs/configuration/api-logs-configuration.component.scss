@@ -47,18 +47,18 @@ $typography: map.get(gio.$mat-theme, typography);
           }
 
           &__title {
-            @include mat.typography-level($typography, subtitle-2);
+            @include mat.m2-typography-level($typography, subtitle-2);
           }
 
           &__description {
             max-width: 144px;
-            @include mat.typography-level($typography, caption);
+            @include mat.m2-typography-level($typography, caption);
           }
         }
       }
 
       .disabled {
-        color: mat.get-color-from-palette($foreground, disabled);
+        color: mat.m2-get-color-from-palette($foreground, disabled);
       }
     }
   }

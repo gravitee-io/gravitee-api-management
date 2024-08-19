@@ -18,7 +18,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 
 $textColor: map.get(gio.$mat-dove-palette, default);
-$borderColor: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter80');
+$borderColor: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter80');
 
 :host {
   width: 100%;

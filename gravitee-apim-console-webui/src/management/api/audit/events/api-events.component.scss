@@ -24,29 +24,29 @@
 
       .type {
         &__api-started {
-          color: mat.get-color-from-palette(gio.$mat-success-palette, 'darker40');
+          color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'darker40');
         }
 
         &__api-deployed {
-          color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+          color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
         }
 
         &__api-stopped {
-          color: mat.get-color-from-palette(gio.$mat-error-palette, 'darker40');
+          color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'darker40');
         }
       }
     }
 
     .row {
       &__api-started {
-        background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
+        background-color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'lighter');
       }
 
       &__api-deployed {
       }
 
       &__api-stopped {
-        background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'lighter');
+        background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'lighter');
       }
     }
 

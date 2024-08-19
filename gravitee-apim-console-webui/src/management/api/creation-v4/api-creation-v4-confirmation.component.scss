@@ -27,7 +27,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: mat.get-color-from-palette(gio.$mat-accent-palette, 'lighter80');
+        background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'lighter80');
       }
 
       h2 {
@@ -50,7 +50,7 @@
         flex-direction: row;
         justify-content: space-between;
         padding: 16px;
-        border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+        border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
         border-radius: 8px;
         align-items: center;
 
@@ -65,7 +65,7 @@
 
           &__subtitle {
             padding-right: 30px;
-            color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+            color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
           }
         }
       }
