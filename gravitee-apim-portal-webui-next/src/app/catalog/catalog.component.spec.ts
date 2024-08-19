@@ -18,7 +18,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
@@ -34,14 +35,19 @@ describe('CatalogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CatalogComponent, AppTestingModule, RouterModule.forRoot([])],
+      imports: [CatalogComponent, AppTestingModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { queryParams: of({ filter: '' }) },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CatalogComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
-    fixture.componentInstance.filter = 'all';
     fixture.detectChanges();
   });
 
@@ -73,12 +79,13 @@ describe('CatalogComponent', () => {
         18,
         '',
       );
+      expectCategoriesList(fakeCategoriesResponse());
+      fixture.detectChanges();
     });
 
     it('should render banner text', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       expect(compiled.querySelector('app-banner')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
-      expectCategoriesList(fakeCategoriesResponse());
     });
 
     it('should show API list', async () => {
@@ -89,7 +96,6 @@ describe('CatalogComponent', () => {
         'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
       );
       expect(await apiCard.getVersion()).toEqual('v.1.2');
-      expectCategoriesList(fakeCategoriesResponse());
     });
 
     it('should call second page after scrolled event', async () => {
@@ -99,6 +105,8 @@ describe('CatalogComponent', () => {
       expect(await apiCard[0].getTitle()).toEqual('Test title');
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      fixture.detectChanges();
+
       expectApiList(
         fakeApisResponse({
           data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
@@ -114,7 +122,6 @@ describe('CatalogComponent', () => {
         '',
       );
       fixture.detectChanges();
-      expectCategoriesList(fakeCategoriesResponse());
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(2);
@@ -130,6 +137,8 @@ describe('CatalogComponent', () => {
       expect(await apiCard[0].getTitle()).toEqual('Test title');
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      fixture.detectChanges();
+
       expectApiList(
         fakeApisResponse({
           data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
@@ -145,7 +154,6 @@ describe('CatalogComponent', () => {
         '',
       );
       fixture.detectChanges();
-      expectCategoriesList(fakeCategoriesResponse());
     });
 
     it('should not call page if on last page', async () => {
@@ -153,6 +161,8 @@ describe('CatalogComponent', () => {
       expect(apiCard.length).toEqual(1);
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      fixture.detectChanges();
+
       expectApiList(
         fakeApisResponse({
           data: [fakeApi({ id: 'second-page-api' })],
@@ -168,12 +178,13 @@ describe('CatalogComponent', () => {
         '',
       );
       fixture.detectChanges();
-      expectCategoriesList(fakeCategoriesResponse());
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(2);
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      fixture.detectChanges();
+
       httpTestingController.expectNone(`${TESTING_BASE_URL}/apis?page=3&size=9`);
     });
   });
@@ -181,12 +192,10 @@ describe('CatalogComponent', () => {
   describe('empty component', () => {
     it('should show empty API list', async () => {
       expectApiList(fakeApisResponse({ data: [] }), 1, 18, '');
+      expectCategoriesList(fakeCategoriesResponse());
       const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
       expect(noApiCard).toBeTruthy();
-      expect(await noApiCard.getText()).toContain(
-        `Your search didn't return any APIs. Please try again with different keywords or categories.`,
-      );
-      expectCategoriesList(fakeCategoriesResponse());
+      expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
     });
   });
 
