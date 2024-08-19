@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const aqua = {
+  scannerUrl: 'https://82fb8f75da.cloud.aquasec.com',
+};
+
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
 const cache = {
@@ -88,6 +92,7 @@ const orbs = {
   awsCli: '2.0.6',
   awsS3: '3.0.0',
   github: '1.0.5',
+  gravitee: 'dev:4.5.0',
   helm: '3.0.0',
   keeper: '0.6.3',
   slack: '4.12.5',
@@ -98,6 +103,8 @@ const secrets = {
   aquaKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key',
   aquaSecret: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret',
   aquaScannerKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken',
+  aquaRegistryUsername: 'keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login',
+  aquaRegistryPassword: 'keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password',
   artifactoryApiKey: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password',
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
   awsAccessKeyId: 'keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password',
@@ -145,6 +152,7 @@ const docker = {
 };
 
 export const config = {
+  aqua,
   artifactoryUrl,
   cache,
   dockerImages,
