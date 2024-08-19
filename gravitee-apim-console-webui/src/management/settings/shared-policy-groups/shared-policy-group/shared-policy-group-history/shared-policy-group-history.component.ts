@@ -18,12 +18,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, switchMap } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
-import { debounceTime, map, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { isEqual, isNil } from 'lodash';
 import { MatIcon } from '@angular/material/icon';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
@@ -57,6 +57,7 @@ import {
 } from '../../../../../entities/management-api-v2';
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 type PageTableVM = {
   items: {
@@ -92,8 +93,10 @@ type PageTableVM = {
 export class SharedPolicyGroupHistoryComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly sharedPolicyGroupsService = inject(SharedPolicyGroupsService);
   private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
 
   protected sharedPolicyGroup = toSignal(this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId));
 
@@ -192,7 +195,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       .subscribe();
   }
 
-  protected onShowStudio(sharedPolicyGroup: SharedPolicyGroup): void {
+  protected onShowDetailsOrRestore(sharedPolicyGroup: SharedPolicyGroup): void {
     this.matDialog
       .open<HistoryStudioDialogComponent, HistoryStudioDialogData, HistoryStudioDialogResult>(HistoryStudioDialogComponent, {
         data: {
@@ -202,7 +205,19 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
         role: 'dialog',
       })
       .afterClosed()
-      .subscribe();
+      .pipe(
+        filter((result) => result === 'RESTORE_VERSION'),
+        switchMap(() => this.sharedPolicyGroupsService.restore(sharedPolicyGroup)),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Version has been restored. Review changes and click ‘Deploy’ to finalize the restoration.');
+          this.router.navigate(['../'], { relativeTo: this.activatedRoute });
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group restore!');
+        },
+      });
   }
 
   protected openCompareTwoSPGDialog() {

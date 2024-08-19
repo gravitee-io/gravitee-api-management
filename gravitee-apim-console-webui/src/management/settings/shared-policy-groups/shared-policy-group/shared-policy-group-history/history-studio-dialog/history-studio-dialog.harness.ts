@@ -27,23 +27,23 @@ export class HistoryStudioDialogHarness extends ComponentHarness {
   }
 
   protected _title = this.locatorForOptional(MatDialogSection.TITLE);
-  protected _content = this.locatorForOptional(MatDialogSection.CONTENT);
-  protected _actions = this.locatorForOptional(MatDialogSection.ACTIONS);
+  protected _restoreVersionBtn = this.locatorForOptional(MatButtonHarness.with({ text: /Restore version/ }));
+  protected _restoreDialogSaveBtn = this.locatorForOptional(MatButtonHarness.with({ text: /Save/ }));
 
   public async getTitleText(): Promise<string> {
     return (await this._title())?.text() ?? '';
   }
 
-  public async getContentText(): Promise<string> {
-    return (await this._content())?.text() ?? '';
-  }
-
-  public async getActionsText(): Promise<string> {
-    return (await this._actions())?.text() ?? '';
-  }
-
   public async close(): Promise<void> {
     const closeButton = await this.locatorFor(MatButtonHarness.with({ text: /Close/ }))();
     await closeButton.click();
+  }
+
+  public async clickRestoreVersion(): Promise<void> {
+    const restoreVersionBtn = await this._restoreVersionBtn();
+    await restoreVersionBtn.click();
+
+    const restoreDialogSaveBtn = await this._restoreDialogSaveBtn();
+    await restoreDialogSaveBtn.click();
   }
 }

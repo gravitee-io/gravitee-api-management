@@ -141,6 +141,18 @@ describe('SharedPolicyGroupsService', () => {
       expectListSharedPolicyGroupHistoriesRequest(httpTestingController, fakePagedResult([fakeSharedPolicyGroup()]));
     });
   });
+
+  describe('restore', () => {
+    it('should call the API', (done) => {
+      service.restore(fakeSharedPolicyGroup()).subscribe((spg) => {
+        expect(spg).toBeTruthy();
+        done();
+      });
+
+      const sharedPolicyGroupToRestore = fakeSharedPolicyGroup();
+      expectUpdateSharedPolicyGroupRequest(httpTestingController, sharedPolicyGroupToRestore.id, sharedPolicyGroupToRestore);
+    });
+  });
 });
 
 export const expectListSharedPolicyGroupsRequest = (

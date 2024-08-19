@@ -98,4 +98,11 @@ export class SharedPolicyGroupsService {
       params,
     });
   }
+
+  restore(sharedPolicyGroupToRestore: SharedPolicyGroup) {
+    return this.http.put<SharedPolicyGroup>(
+      `${this.constants.env.v2BaseURL}/shared-policy-groups/${sharedPolicyGroupToRestore.id}`,
+      sharedPolicyGroupToRestore,
+    );
+  }
 }
