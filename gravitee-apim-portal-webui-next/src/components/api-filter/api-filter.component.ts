@@ -56,21 +56,19 @@ export class ApiFilterComponent {
   selectedFilter = output<string>();
 
   public selectedOption!: string | undefined;
-  public currentValue: string = 'all';
+  public currentValue: string = '';
   public isFilterOpen: boolean = false;
   public toggleControl = new FormControl(this.currentValue);
 
   constructor(private eRef: ElementRef) {
     effect(() => {
-      if (this.filterParam()) {
-        const currentParamValue = this.filterList.slice(4).filter(filter => filter.id === this.filterParam());
-        if (currentParamValue.length) {
-          this.selectedOption = currentParamValue[0].name;
-        } else {
-          this.currentValue = this.filterParam();
-          this.toggleControl.setValue(this.filterParam());
-          this.selectedOption = '';
-        }
+      const currentParamValue = this.filterList.slice(4).filter(filter => filter.id === this.filterParam());
+      if (currentParamValue.length) {
+        this.selectedOption = currentParamValue[0].name;
+      } else {
+        this.currentValue = this.filterParam();
+        this.toggleControl.setValue(this.filterParam());
+        this.selectedOption = '';
       }
     });
   }
@@ -86,11 +84,7 @@ export class ApiFilterComponent {
   }
 
   onSelectedFilter(filterId: string | undefined): void {
-    if (filterId) {
-      this.selectedFilter.emit(filterId);
-    } else {
-      this.toggleControl.setValue(this.currentValue);
-    }
+    this.selectedFilter.emit(filterId ?? '');
   }
 
   selectOption(option: Category): void {

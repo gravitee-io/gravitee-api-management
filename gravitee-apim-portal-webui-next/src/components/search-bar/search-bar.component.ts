@@ -35,9 +35,7 @@ export class SearchBarComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      if (this.searchParam()) {
-        this.searchControl.setValue(this.searchParam());
-      }
+      this.searchControl.setValue(this.searchParam());
     });
   }
 
