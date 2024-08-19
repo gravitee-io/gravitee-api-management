@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.application;
 
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
+import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
@@ -32,6 +33,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,36 +48,36 @@ public class ApplicationsResource extends AbstractResource {
     @Inject
     private ImportApplicationCRDUseCase importApplicationCRDUseCase;
 
+    @Inject
+    private ValidateApplicationCRDUseCase validateCRDUseCase;
+
     @PUT
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
-    public Response createApplicationWithCRD(@Valid ApplicationCRDSpec crd) {
+    public Response createApplicationWithCRD(@Valid ApplicationCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        return Response
-            .ok(
-                importApplicationCRDUseCase
-                    .execute(
-                        new ImportApplicationCRDUseCase.Input(
-                            AuditInfo
-                                .builder()
-                                .organizationId(executionContext.getOrganizationId())
-                                .environmentId(executionContext.getEnvironmentId())
-                                .actor(
-                                    AuditActor
-                                        .builder()
-                                        .userId(userDetails.getUsername())
-                                        .userSource(userDetails.getSource())
-                                        .userSourceId(userDetails.getSourceId())
-                                        .build()
-                                )
-                                .build(),
-                            ApplicationMapper.INSTANCE.map(crd)
-                        )
-                    )
-                    .status()
-            )
-            .build();
+
+        var input = new ImportApplicationCRDUseCase.Input(
+            AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build(),
+            ApplicationMapper.INSTANCE.map(crd)
+        );
+
+        return dryRun
+            ? Response.ok(validateCRDUseCase.execute(input).status()).build()
+            : Response.ok(importApplicationCRDUseCase.execute(input).status()).build();
     }
 }
