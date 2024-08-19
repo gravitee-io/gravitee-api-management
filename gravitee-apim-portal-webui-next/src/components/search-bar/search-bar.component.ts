@@ -19,7 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, skip } from 'rxjs';
 
 @Component({
   selector: 'app-search-bar',
@@ -35,14 +35,12 @@ export class SearchBarComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      if (this.searchParam()) {
-        this.searchControl.setValue(this.searchParam());
-      }
+      this.searchControl.setValue(this.searchParam());
     });
   }
 
   ngOnInit() {
-    this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(term => {
+    this.searchControl.valueChanges.pipe(debounceTime(300), skip(1), distinctUntilChanged()).subscribe(term => {
       this.searchTerm.emit(term);
     });
   }
