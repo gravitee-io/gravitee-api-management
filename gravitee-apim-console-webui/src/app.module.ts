@@ -16,7 +16,7 @@
 import * as angular from 'angular';
 
 import { CommonModule } from '@angular/common';
-import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration } from '@angular/common/http';
 import { ApplicationRef, DoBootstrap, importProvidersFrom, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -41,18 +41,9 @@ import { AuthModule } from './auth/auth.module';
     // /!\ This module must be importer only once in the application.
     BrowserModule,
     BrowserAnimationsModule,
-    HttpClientModule,
-
     CommonModule,
-    // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
-    HttpClientXsrfModule.withOptions({
-      cookieName: 'none',
-      headerName: 'none',
-    }),
     UpgradeModule,
-
     MatMomentDateModule,
-
     AppRoutingModule,
     GioPendoModule.forRoot(),
     GioMatConfigModule,
@@ -80,6 +71,13 @@ import { AuthModule } from './auth/auth.module';
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
     importProvidersFrom(GioFormJsonSchemaModule),
+    provideHttpClient(
+      withInterceptorsFromDi(),
+      withXsrfConfiguration({
+        cookieName: 'none',
+        headerName: 'none',
+      }),
+    ),
   ],
 })
 export class AppModule implements DoBootstrap {

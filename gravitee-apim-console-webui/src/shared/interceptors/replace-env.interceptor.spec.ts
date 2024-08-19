@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { ReplaceEnvInterceptor } from './replace-env.interceptor';
 
@@ -27,8 +27,12 @@ describe('ReplaceEnvInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioTestingModule, HttpClientTestingModule],
-      providers: [{ provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true }],
+      imports: [GioTestingModule],
+      providers: [
+        { provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     });
 
     httpClient = TestBed.inject(HttpClient);

@@ -9,5 +9,4 @@ export default {
       proxyReq.setHeader('origin', target);
     },
   },
-  logLevel: 'debug',
 };

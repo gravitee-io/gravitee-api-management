@@ -16,7 +16,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import { PortalThemeComponent } from './portal-theme.component';
@@ -36,7 +35,7 @@ describe('PortalThemeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PortalSettingsModule, HttpClientModule, GioTestingModule],
+      imports: [NoopAnimationsModule, PortalSettingsModule, GioTestingModule],
     }).compileComponents();
     httpTestingController = TestBed.inject(HttpTestingController);
 

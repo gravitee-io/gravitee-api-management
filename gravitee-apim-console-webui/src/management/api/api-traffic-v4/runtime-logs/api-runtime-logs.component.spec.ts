@@ -15,13 +15,14 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import moment from 'moment';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { ActivatedRoute, Router } from '@angular/router';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
@@ -95,7 +96,6 @@ describe('ApiRuntimeLogsComponent', () => {
       imports: [
         ApiRuntimeLogsModule,
         NoopAnimationsModule,
-        HttpClientTestingModule,
         MatIconTestingModule,
         GioTestingModule,
         OwlDateTimeModule,
@@ -104,6 +104,8 @@ describe('ApiRuntimeLogsComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID }, queryParams: queryParams } } },
         QuickFiltersStoreService,
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
     });
 

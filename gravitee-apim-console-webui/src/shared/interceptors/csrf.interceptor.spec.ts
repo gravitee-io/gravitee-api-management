@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration } from '@angular/common/http';
 import { catchError, switchMap } from 'rxjs/operators';
 
 import { CsrfInterceptor } from './csrf.interceptor';
@@ -28,15 +28,19 @@ describe('CsrfInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
-        HttpClientXsrfModule.withOptions({
-          cookieName: 'none',
-          headerName: 'none',
-        }),
+      providers: [
+        { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
+        provideHttpClient(
+          withInterceptorsFromDi(),
+          // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
+          withXsrfConfiguration({
+            cookieName: 'none',
+            headerName: 'none',
+          }),
+        ),
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
-      providers: [{ provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true }],
     });
 
     httpClient = TestBed.inject(HttpClient);
