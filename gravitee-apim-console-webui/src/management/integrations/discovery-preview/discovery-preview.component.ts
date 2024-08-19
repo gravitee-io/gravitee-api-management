@@ -14,39 +14,44 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup } from '@angular/forms';
-import { MatTableDataSource } from '@angular/material/table';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { IntegrationPreview, IntegrationPreviewApis, IntegrationPreviewApisState } from '../integrations.model';
-import { fieldIsSet, fieldSet, fieldUnSet } from '../../../shared/utils';
+import { IntegrationPreview, IntegrationPreviewApisState } from '../integrations.model';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 @Component({
   selector: 'app-discovery-preview',
   templateUrl: './discovery-preview.component.html',
   styleUrls: ['./discovery-preview.component.scss'],
 })
-export class DiscoveryPreviewComponent implements OnInit {
+export class DiscoveryPreviewComponent {
   IntegrationPreviewApisState = IntegrationPreviewApisState;
   private destroyRef: DestroyRef = inject(DestroyRef);
 
-  private static readonly NEW_BITFIELD_VALUE = 0b01;
-  private static readonly UPDATE_BITFIELD_VALUE = 0b10;
+  private selectToIngest = new Set<IntegrationPreviewApisState>([IntegrationPreviewApisState.NEW, IntegrationPreviewApisState.UPDATE]);
 
   public displayedColumns = ['name', 'state'];
   public isLoadingPreview = true;
   public integrationPreview: IntegrationPreview = null;
-  public ingestParametersForm = new FormGroup({
-    ingestNewApis: new FormControl(false),
-    ingestUpdateApis: new FormControl(false),
+  public ingestParametersForm: FormGroup<Record<IntegrationPreviewApisState, FormControl<boolean | null>>> = new FormGroup({
+    NEW: new FormControl(false),
+    UPDATE: new FormControl(false),
   });
-  public tableData = new MatTableDataSource<IntegrationPreviewApis>();
+  public nbTotalInstances = -1;
+  public filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+    sort: { active: 'name', direction: 'asc' },
+  };
+  public apisFiltered: IntegrationPreview['apis'] = [];
 
   private integrationId = this.activatedRoute.snapshot.params.integrationId;
 
@@ -57,7 +62,7 @@ export class DiscoveryPreviewComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngOnInit(): void {
+  ngAfterViewInit() {
     this.getIntegration();
     this.getPreview();
   }
@@ -87,17 +92,11 @@ export class DiscoveryPreviewComponent implements OnInit {
       .subscribe({
         next: (integrationPreview) => {
           this.integrationPreview = integrationPreview;
-          this.tableData.data = this.integrationPreview.apis;
-          this.tableData.filterPredicate = (api, filter) => {
-            const filterValues = parseInt(filter, 10);
-            return (
-              (fieldIsSet(filterValues, DiscoveryPreviewComponent.NEW_BITFIELD_VALUE) && api.state === IntegrationPreviewApisState.NEW) ||
-              (fieldIsSet(filterValues, DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE) &&
-                api.state === IntegrationPreviewApisState.UPDATE)
-            );
-          };
-          this.setupForm('ingestNewApis', this.integrationPreview.newCount);
-          this.setupForm('ingestUpdateApis', this.integrationPreview.updateCount);
+          this.nbTotalInstances = integrationPreview.totalCount;
+          this.apisFiltered = this.integrationPreview.apis;
+          this.setupForm(IntegrationPreviewApisState.NEW, this.integrationPreview.newCount);
+          this.setupForm(IntegrationPreviewApisState.UPDATE, this.integrationPreview.updateCount);
+          this.runFilters(this.filters);
           this.isLoadingPreview = false;
         },
       });
@@ -111,7 +110,7 @@ export class DiscoveryPreviewComponent implements OnInit {
     this.integrationsService
       .ingest(
         this.integrationId,
-        this.tableData.filteredData.map((api) => api.id),
+        this.apiToIngest().map((api) => api.id),
       )
       .subscribe((response) => {
         switch (response.status) {
@@ -126,16 +125,32 @@ export class DiscoveryPreviewComponent implements OnInit {
       });
   }
 
-  private setupForm(controlName: 'ingestUpdateApis' | 'ingestNewApis', value: number) {
+  public apiToIngest(): IntegrationPreview['apis'] {
+    return this.integrationPreview?.apis?.filter((api) => this.selectToIngest.has(api.state)) ?? [];
+  }
+
+  private setupForm(controlName: IntegrationPreviewApisState, value: number) {
     if (value <= 0) {
       this.ingestParametersForm.controls[controlName].disable({ onlySelf: true });
+      this.selectToIngest.delete(controlName);
     } else {
       this.ingestParametersForm.controls[controlName].setValue(value > 0);
+      this.selectToIngest.add(controlName);
     }
-    const state =
-      controlName === 'ingestNewApis' ? DiscoveryPreviewComponent.NEW_BITFIELD_VALUE : DiscoveryPreviewComponent.UPDATE_BITFIELD_VALUE;
     this.ingestParametersForm.controls[controlName].valueChanges.subscribe((selected) => {
-      this.tableData.filter = (selected ? fieldSet(this.tableData.filter, state) : fieldUnSet(this.tableData.filter, state)).toString();
+      if (selected) {
+        this.selectToIngest.add(controlName);
+      } else {
+        this.selectToIngest.delete(controlName);
+      }
+      this.runFilters(this.filters);
     });
+  }
+
+  public runFilters(filters: GioTableWrapperFilters): void {
+    this.filters = { ...this.filters, ...filters };
+    const filtered = gioTableFilterCollection(this.apiToIngest(), filters);
+    this.apisFiltered = filtered.filteredCollection;
+    this.nbTotalInstances = filtered.unpaginatedLength;
   }
 }
