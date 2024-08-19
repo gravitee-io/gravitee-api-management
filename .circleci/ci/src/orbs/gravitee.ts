@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { aquasec } from './aquasec';
-import { artifactory } from './artifactory';
-import { awsCli } from './aws-cli';
-import { awsS3 } from './aws-s3';
-import { github } from './github';
-import { gravitee } from './gravitee';
-import { helm } from './helm';
-import { keeper } from './keeper';
-import { slack } from './slack';
-import { snyk } from './snyk';
+import { orb, parameters } from '@circleci/circleci-config-sdk';
+import { config } from '../config';
 
-export const orbs = {
-  aquasec,
-  artifactory,
-  awsCli,
-  awsS3,
-  github,
+export const gravitee = new orb.OrbImport('gravitee', 'gravitee-io', 'gravitee', config.orbs.gravitee);
+gravitee.commands['docker-load-image-from-workspace'] = new orb.OrbRef(
+  'docker-load-image-from-workspace',
+  new parameters.CustomParametersList([
+    new parameters.CustomParameter('directory', 'string'),
+    new parameters.CustomParameter('filename', 'string'),
+  ]),
   gravitee,
-  helm,
-  keeper,
-  slack,
-  snyk,
-};
+);
