@@ -17,7 +17,7 @@ import { ChangeDetectionStrategy, Component, inject, Inject } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { AsyncPipe } from '@angular/common';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyGroupStudioComponent, PolicyDocumentationFetcher, PolicySchemaFetcher } from '@gravitee/ui-policy-studio-angular';
 import { map } from 'rxjs/operators';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -32,7 +32,7 @@ export interface HistoryStudioDialogData {
   sharedPolicyGroup: SharedPolicyGroup;
 }
 
-export type HistoryStudioDialogResult = boolean;
+export type HistoryStudioDialogResult = false | 'RESTORE_VERSION';
 
 @Component({
   selector: 'history-studio-dialog',
@@ -52,6 +52,7 @@ export type HistoryStudioDialogResult = boolean;
     MatInput,
     MatLabel,
     ReactiveFormsModule,
+    GioBannerModule,
   ],
 })
 export class HistoryStudioDialogComponent {
@@ -65,10 +66,15 @@ export class HistoryStudioDialogComponent {
   protected policies$ = this.policyV2Service
     .list()
     .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
+  protected startRestore = false;
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: HistoryStudioDialogData,
     public dialogRef: MatDialogRef<HistoryStudioDialogComponent, HistoryStudioDialogResult>,
   ) {}
+
+  protected onRestore(): void {
+    this.dialogRef.close('RESTORE_VERSION');
+  }
 }

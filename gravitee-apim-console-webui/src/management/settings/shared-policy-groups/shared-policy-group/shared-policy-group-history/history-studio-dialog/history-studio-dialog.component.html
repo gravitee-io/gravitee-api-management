@@ -51,5 +51,18 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  @if (startRestore) {
+    <gio-banner-info class="restore-banner">
+      You are about to apply a previous version.
+      <span gioBannerBody
+        >By clicking on Save, you will overwrite any pending changes and apply the modifications. Are you sure you want to continue?</span
+      >
+      <div gioBannerAction>
+        <button mat-raised-button color="primary" (click)="onRestore()">Save</button>
+      </div>
+    </gio-banner-info>
+  } @else {
+    <button mat-flat-button color="primary" (click)="startRestore = true">Restore version</button>
+  }
   <button mat-flat-button cdkFocusInitial [mat-dialog-close]="false">Close</button>
 </mat-dialog-actions>

@@ -94,7 +94,7 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element">
-            <div class="actions_btn">
+            <div class="actions-btn">
               <button
                 mat-button
                 aria-label="Button show source"
@@ -105,11 +105,14 @@
               </button>
               <button
                 mat-button
-                aria-label="Button show details"
-                matTooltip="Show details"
-                (click)="onShowStudio(element.sharedPolicyGroup)"
+                aria-label="Button show details or restore version"
+                matTooltip="Show details or restore version"
+                (click)="onShowDetailsOrRestore(element.sharedPolicyGroup)"
               >
-                <mat-icon svgIcon="gio:eye-empty">eye</mat-icon>
+                <div class="actions-btn__show-or-restore">
+                  <mat-icon svgIcon="gio:eye-empty">eye</mat-icon>
+                  <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>
+                </div>
               </button>
             </div>
           </td>

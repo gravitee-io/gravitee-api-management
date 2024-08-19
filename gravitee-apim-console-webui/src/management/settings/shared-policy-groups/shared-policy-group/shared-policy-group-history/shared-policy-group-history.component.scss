@@ -40,9 +40,15 @@
 }
 .mat-column-actions {
   width: 0;
-  .actions_btn {
+  .actions-btn {
     display: flex;
     justify-content: flex-end;
+
+    &__show-or-restore {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   }
 }
 
