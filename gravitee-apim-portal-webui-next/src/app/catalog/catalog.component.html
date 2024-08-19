@@ -30,16 +30,13 @@
 
 @if (filterList$ | async; as filterList) {
   <div class="catalog__filters">
-    <app-api-filter
-      (selectedFilter)="onFilterSelection($event, filterList)"
-      [filterList]="filterList"
-      [filterParam]="filter"></app-api-filter>
+    <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList" [filterParam]="filter()" />
     <div class="catalog__filters__bottom-row">
       <div class="catalog__filters__bottom-row__filter-labels">
-        @if (selectedCategory) {
-          <div class="m3-headline-medium">{{ selectedCategory.name }}</div>
-          @if (selectedCategory.description) {
-            <div class="m3-label-large">{{ selectedCategory.description }}</div>
+        @if (filterAsCategory(); as category) {
+          <div class="m3-headline-medium">{{ category.name }}</div>
+          @if (category.description) {
+            <div class="m3-label-large">{{ category.description }}</div>
           }
         } @else {
           <div class="m3-headline-medium" i18n="@@allApisLabel">All</div>
@@ -56,7 +53,7 @@
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
         <div>
-          @if (query || filter) {
+          @if (query || filter()) {
             <p i18n="@@noFilteredApisAvailable">
               Your search didn't return any APIs. Please try again with different keywords or categories.
             </p>

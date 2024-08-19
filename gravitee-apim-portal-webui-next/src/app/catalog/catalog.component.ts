@@ -15,11 +15,12 @@
  */
 
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal, WritableSignal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
-import { BehaviorSubject, catchError, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
@@ -65,26 +66,28 @@ export interface ApiPaginatorVM {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent {
-  @Input() query!: string;
-  @Input() filter: string = 'all';
-
-  apiPaginator$: Observable<ApiPaginatorVM>;
+  apiPaginator$: Observable<ApiPaginatorVM> = of();
   filterList$: Observable<Category[]> = of([]);
   loadingPage$ = new BehaviorSubject(true);
 
   showBanner: boolean;
   bannerTitle: string;
   bannerSubtitle: string;
-  selectedCategory: Category | undefined;
 
-  private apiService = inject(ApiService);
-  private categoriesService = inject(CategoriesService);
-  private page$ = new BehaviorSubject(1);
+  query: string = '';
+  filter = signal('');
+  filterAsCategory = computed(() => this.categories().find(cat => cat.id === this.filter()));
+  private categories: WritableSignal<Category[]> = signal([]);
+
+  private page = signal(1);
+  private page$ = toObservable(this.page);
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private configService: ConfigService,
+    private apiService: ApiService,
+    private categoriesService: CategoriesService,
   ) {
     this.showBanner = this.configService.configuration?.portalNext?.banner?.enabled ?? false;
     this.bannerTitle = this.configService.configuration?.portalNext?.banner?.title ?? '';
@@ -98,48 +101,53 @@ export class CatalogComponent {
       return;
     }
 
-    this.page$.next(paginator.page + 1);
+    this.page.set(paginator.page + 1);
   }
 
-  public onFilterSelection(event: string, categories: Category[]) {
-    this.filter = event;
-    this.selectedCategory = this.filter === 'all' ? undefined : categories.find(cat => cat.id === event);
+  public onFilterSelection(categoryId: string) {
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {
-        filter: this.filter === 'all' ? '' : this.filter,
+        filter: categoryId,
         query: this.query,
       },
     });
-    this.page$.next(1);
   }
 
   public onSearchResults(searchInput: string) {
-    this.query = searchInput;
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {
-        filter: this.filter,
-        query: this.query,
+        filter: this.filter(),
+        query: searchInput,
       },
     });
-    this.page$.next(1);
   }
 
   private loadApis$(): Observable<ApiPaginatorVM> {
-    return this.page$.pipe(
+    return this.route.queryParams.pipe(
+      tap(_ => {
+        this.page.set(1);
+      }),
+      combineLatestWith(this.page$),
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => {
+      switchMap(([queryParams, currentPage]) => {
+        const category = queryParams['filter'];
+        const query = queryParams['query'];
+
+        this.filter.set(category ?? '');
+        this.query = query;
+
         if (currentPage === 1) {
-          return of({ page: currentPage, size: 18 });
+          return of({ page: currentPage, size: 18, category, query });
         } else if (currentPage === 2) {
-          this.page$.next(3);
+          this.page.set(3);
           return EMPTY;
         } else {
-          return of({ page: currentPage, size: 9 });
+          return of({ page: currentPage, size: 9, category, query });
         }
       }),
-      switchMap(({ page, size }) => this.apiService.search(page, this.filter, this.query ?? '', size)),
+      switchMap(({ page, size, category, query }) => this.apiService.search(page, category, query ?? '', size)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
@@ -168,6 +176,7 @@ export class CatalogComponent {
     return this.categoriesService.categories().pipe(
       map(response => response.data ?? []),
       catchError(_ => of([])),
+      tap(categories => this.categories.set(categories)),
     );
   }
 
