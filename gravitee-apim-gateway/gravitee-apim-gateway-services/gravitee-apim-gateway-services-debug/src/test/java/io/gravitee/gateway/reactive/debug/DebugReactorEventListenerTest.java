@@ -34,8 +34,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.event.impl.SimpleEvent;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -54,6 +57,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +101,9 @@ class DebugReactorEventListenerTest {
     @Mock
     private Vertx vertx;
 
+    @Mock
+    private DataEncryptor dataEncryptor;
+
     private VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
     private DebugReactorEventListener debugReactorEventListener;
     private EventManagerImpl eventManager;
@@ -114,7 +121,8 @@ class DebugReactorEventListenerTest {
                     objectMapper,
                     debugHttpClientConfiguration,
                     reactorHandlerRegistry,
-                    organizationManager
+                    organizationManager,
+                    dataEncryptor
                 )
             );
     }
@@ -128,8 +136,14 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    void should_debug_api_successfully() throws TechnicalException, JsonProcessingException {
+    void should_debug_api_successfully() throws TechnicalException, JsonProcessingException, GeneralSecurityException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+
+        Properties properties = new Properties();
+        properties.setProperties(List.of(new Property("key", "encrypted", true)));
+        debugApiModel.setProperties(properties);
+        when(dataEncryptor.decrypt(any())).thenReturn("decrypted");
+
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -159,6 +173,7 @@ class DebugReactorEventListenerTest {
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
+        verify(dataEncryptor, times(1)).decrypt("encrypted");
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
