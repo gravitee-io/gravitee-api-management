@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { ReCaptchaInterceptor } from './re-captcha.interceptor';
 
@@ -29,7 +29,7 @@ describe('ReCaptchaInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [],
       providers: [
         { provide: HTTP_INTERCEPTORS, useClass: ReCaptchaInterceptor, multi: true },
         {
@@ -40,6 +40,8 @@ describe('ReCaptchaInterceptor', () => {
             getCurrentToken: () => 'token',
           },
         },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
     });
 

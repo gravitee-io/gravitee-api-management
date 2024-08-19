@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { ApiAnalyticsMessageComponent } from './api-analytics-message.component';
 import { ApiAnalyticsMessageHarness } from './api-analytics-message.component.harness';
@@ -48,7 +49,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiAnalyticsMessageComponent, NoopAnimationsModule, HttpClientTestingModule, MatIconTestingModule, GioTestingModule],
+      imports: [ApiAnalyticsMessageComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -58,6 +59,8 @@ describe('ApiAnalyticsMessageComponent', () => {
             },
           },
         },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 

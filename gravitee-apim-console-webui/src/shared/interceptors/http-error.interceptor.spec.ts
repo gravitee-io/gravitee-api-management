@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { HttpErrorInterceptor } from './http-error.interceptor';
 
@@ -34,13 +34,15 @@ describe('HttpErrorInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, GioTestingModule],
+      imports: [GioTestingModule],
       providers: [
         { provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true },
         {
           provide: SnackBarService,
           useValue: fakeSnackBarService,
         },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
     });
 
