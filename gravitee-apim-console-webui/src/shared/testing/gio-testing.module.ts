@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { importProvidersFrom, NgModule, NgZone } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { Router } from '@angular/router';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { Constants } from '../../entities/Constants';
 import { GioFormJsonSchemaExtendedModule } from '../components/form-json-schema-extended/form-json-schema-extended.module';
@@ -56,7 +57,6 @@ export const CONSTANTS_TESTING: Constants = {
 
 @NgModule({
   imports: [
-    HttpClientTestingModule,
     RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]),
     MatIconTestingModule,
     MatMomentDateModule,
@@ -69,6 +69,8 @@ export const CONSTANTS_TESTING: Constants = {
     },
     provideMomentDateAdapter(undefined, { useUtc: true }),
     importProvidersFrom(GioFormJsonSchemaModule),
+    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClientTesting(),
   ],
 })
 export class GioTestingModule {

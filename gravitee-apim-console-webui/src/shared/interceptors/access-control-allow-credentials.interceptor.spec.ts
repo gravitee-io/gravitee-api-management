@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { AccessControlAllowCredentialsInterceptor } from './access-control-allow-credentials.interceptor';
 
@@ -27,8 +27,12 @@ describe('AccessControlAllowCredentialsInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [{ provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true }],
+      imports: [],
+      providers: [
+        { provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     });
 
     httpClient = TestBed.inject(HttpClient);
