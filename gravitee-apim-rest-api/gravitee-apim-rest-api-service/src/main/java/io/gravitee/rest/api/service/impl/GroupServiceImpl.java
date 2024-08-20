@@ -34,11 +34,28 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.repository.management.model.AccessControl;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.GroupEventRule;
+import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.AccessControlReferenceType;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.GroupEventRuleEntity;
+import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.model.InvitationReferenceType;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.NewGroupEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
@@ -57,7 +74,6 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNameAlreadyExistsException;
@@ -67,8 +83,20 @@ import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-import java.util.*;
-import java.util.function.Consumer;
+import io.reactivex.rxjava3.functions.Action;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -178,7 +206,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         )
                         .stream()
                         .map(MembershipEntity::getReferenceId)
-                        .collect(Collectors.toList());
+                        .toList();
                     groups.forEach(groupEntity -> groupEntity.setManageable(groupIds.contains(groupEntity.getId())));
                 }
             }
@@ -427,68 +455,44 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public void associate(final ExecutionContext executionContext, String groupId, String associationType) {
         try {
-            if ("api".equalsIgnoreCase(associationType)) {
-                apiRepository
-                    .search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        null,
-                        ApiFieldFilter.allFields()
-                    )
-                    .forEach(
-                        new Consumer<Api>() {
-                            @Override
-                            public void accept(Api api) {
-                                if (api.getGroups() == null) {
-                                    api.setGroups(new HashSet<>());
-                                }
+            switch (associationType.toLowerCase(Locale.ROOT)) {
+                case "api":
+                    apiRepository
+                        .search(
+                            new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                            null,
+                            ApiFieldFilter.allFields()
+                        )
+                        .filter(api -> api.addGroup(groupId))
+                        .forEach(api -> {
+                            runAndManageTechnicalException(() -> apiRepository.update(api));
+                            triggerUpdateNotification(executionContext, api);
+                        });
+                    break;
+                case "application":
+                    applicationRepository
+                        .findAllByEnvironment(executionContext.getEnvironmentId())
+                        .stream()
+                        .filter(application -> application.addGroup(groupId))
+                        .forEach(application -> runAndManageTechnicalException(() -> applicationRepository.update(application)));
 
-                                if (!api.getGroups().contains(groupId)) {
-                                    api.getGroups().add(groupId);
-                                    try {
-                                        apiRepository.update(api);
-                                        triggerUpdateNotification(executionContext, api);
-                                    } catch (TechnicalException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        }
+                    eventManager.publishEvent(
+                        ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+                        new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), Set.of(), Set.of(groupId))
                     );
-            } else if ("application".equalsIgnoreCase(associationType)) {
-                applicationRepository
-                    .findAllByEnvironment(executionContext.getEnvironmentId())
-                    .forEach(
-                        new Consumer<Application>() {
-                            @Override
-                            public void accept(Application application) {
-                                if (application.getGroups() == null) {
-                                    application.setGroups(new HashSet<>());
-                                }
-
-                                if (!application.getGroups().contains(groupId)) {
-                                    application.getGroups().add(groupId);
-                                    try {
-                                        applicationRepository.update(application);
-                                    } catch (TechnicalException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        }
-                    );
-
-                eventManager.publishEvent(
-                    ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-                    new ApplicationAlertMembershipEvent(
-                        executionContext.getOrganizationId(),
-                        Collections.emptySet(),
-                        Collections.singleton(groupId)
-                    )
-                );
+                    break;
             }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to associate group to all {}", associationType, ex);
             throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
+        }
+    }
+
+    private void runAndManageTechnicalException(Action action) {
+        try {
+            action.run();
+        } catch (Throwable e) {
+            logger.error("An error occurs while trying to update group", e);
         }
     }
 
