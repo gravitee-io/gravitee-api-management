@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,7 +27,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.MessageFlow;
@@ -411,16 +409,17 @@ class VertxHttpServerResponseTest {
         @Test
         void should_check_streaming_only_once() {
             requestUtilsMockedStatic
-                .when(() -> RequestUtils.isStreaming(any(Request.class), any(Response.class)))
+                .when(() -> RequestUtils.isStreaming(any(VertxHttpServerRequest.class), any(Response.class)))
                 .thenAnswer(invocation -> true);
 
-            cut = spy(new VertxHttpServerResponse(request));
-
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 2; i++) {
                 assertTrue(cut.isStreaming());
             }
 
-            requestUtilsMockedStatic.verify(() -> RequestUtils.isStreaming(any(Request.class), any(Response.class)), times(1));
+            requestUtilsMockedStatic.verify(
+                () -> RequestUtils.isStreaming(any(VertxHttpServerRequest.class), any(Response.class)),
+                times(1)
+            );
         }
     }
 
