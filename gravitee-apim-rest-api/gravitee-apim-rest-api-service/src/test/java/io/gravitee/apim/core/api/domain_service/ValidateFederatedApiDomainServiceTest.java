@@ -59,7 +59,7 @@ class ValidateFederatedApiDomainServiceTest {
     void should_return_the_api_when_valid() {
         var api = ApiFixtures.aFederatedApi();
 
-        var result = service.validateAndSanitizeForCreation(api);
+        var result = service.validateAndSanitizeForCreation(api, null);
 
         assertThat(result).isSameAs(api);
     }
@@ -68,7 +68,7 @@ class ValidateFederatedApiDomainServiceTest {
     void should_reset_lifecycle_state_when_defined() {
         var api = ApiFixtures.aFederatedApi().toBuilder().lifecycleState(Api.LifecycleState.STARTED).build();
 
-        var result = service.validateAndSanitizeForCreation(api);
+        var result = service.validateAndSanitizeForCreation(api, null);
 
         assertThat(result).extracting(Api::getLifecycleState).isNull();
     }
@@ -78,7 +78,7 @@ class ValidateFederatedApiDomainServiceTest {
     void should_throw_when_definition_version_is_incorrect(DefinitionVersion definitionVersion) {
         var api = ApiFixtures.aFederatedApi().toBuilder().definitionVersion(definitionVersion).build();
 
-        var throwable = catchThrowable(() -> service.validateAndSanitizeForCreation(api));
+        var throwable = catchThrowable(() -> service.validateAndSanitizeForCreation(api, null));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
     }

@@ -185,7 +185,7 @@ public class Api {
         this.lifecycleState = cloned.lifecycleState;
         this.picture = cloned.picture;
         this.background = cloned.background;
-        this.groups = cloned.groups;
+        this.groups = cloned.groups != null ? new HashSet<>(cloned.groups) : null;
         this.categories = cloned.categories;
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
@@ -212,6 +212,6 @@ public class Api {
     }
 
     public void setGroups(Collection<String> groups) {
-        this.groups = new HashSet<>(groups);
+        this.groups = groups != null ? new HashSet<>(groups) : null;
     }
 }
