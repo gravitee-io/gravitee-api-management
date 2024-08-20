@@ -34,6 +34,7 @@ import { PortalHeaderComponent } from '../../components/header/portal-header.com
 import { UiPortalThemeService } from '../../../services-ngx/ui-theme.service';
 import { ThemePortalNext, UpdateThemePortalNext } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 export interface ThemeVM {
   logo?: string[];
@@ -79,6 +80,7 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
   constructor(
     private readonly uiPortalThemeService: UiPortalThemeService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   private initialTheme: ThemePortalNext;
@@ -101,6 +103,7 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
   ];
 
   public portalThemeForm;
+  public isReadOnly: boolean = true;
 
   private unsubscribe$: Subject<void> = new Subject<void>();
 
@@ -147,6 +150,11 @@ export class PortalThemeComponent implements OnInit, OnDestroy {
               takeUntil(this.unsubscribe$),
             )
             .subscribe();
+
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-theme-u']);
+          if (this.isReadOnly) {
+            this.portalThemeForm.disable();
+          }
         }),
         takeUntil(this.unsubscribe$),
       )

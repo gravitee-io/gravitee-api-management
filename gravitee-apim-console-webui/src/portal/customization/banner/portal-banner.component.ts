@@ -34,6 +34,7 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { BannerRadioButtonComponent } from '../../components/banner-radio-button/banner-radio-button.component';
 import { PortalHeaderComponent } from '../../components/header/portal-header.component';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface BannerForm {
   enabled: FormControl<boolean>;
@@ -75,6 +76,7 @@ export class PortalBannerComponent implements OnInit {
   constructor(
     private readonly portalSettingsService: PortalSettingsService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
@@ -98,6 +100,11 @@ export class PortalBannerComponent implements OnInit {
       subTitleText: new FormControl<string>(this.settings.portalNext.banner?.subtitle, [Validators.required]),
     });
     this.formInitialValues = this.form.getRawValue();
+
+    const isReadOnly = !this.permissionService.hasAnyMatching(['environment-settings-u']);
+    if (isReadOnly) {
+      this.form.disable();
+    }
   }
 
   reset() {

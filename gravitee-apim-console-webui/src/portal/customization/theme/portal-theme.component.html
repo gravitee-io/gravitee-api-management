@@ -25,7 +25,13 @@
     <mat-card class="portal-theme__left__form">
       <div class="portal-theme__left__form__header">
         <span class="gio-badge-accent"><mat-icon svgIcon="gio:chat-lines"></mat-icon>&nbsp;Applies to new portal only</span>
-        <button mat-stroked-button type="button" (click)="restoreDefaultValues()" matTooltip="Restore default values">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="restoreDefaultValues()"
+          [disabled]="isReadOnly"
+          matTooltip="Restore default values"
+        >
           <mat-icon svgIcon="gio:refresh-ccw"></mat-icon>
         </button>
       </div>
