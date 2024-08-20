@@ -392,6 +392,8 @@ public enum Key {
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
     FEDERATION_ENABLED("integration.enabled", "false", Set.of(SYSTEM)),
 
+    SCORING_ENABLED("scoring.enabled", "false", Set.of(SYSTEM)),
+
     INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
     TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM)),
 

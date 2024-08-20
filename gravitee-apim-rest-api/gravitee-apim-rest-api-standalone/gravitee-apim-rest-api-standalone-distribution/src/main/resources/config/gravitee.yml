@@ -712,3 +712,7 @@ api:
   properties:
     encryption:
       secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+
+# Scoring
+scoring:
+  enabled: false
