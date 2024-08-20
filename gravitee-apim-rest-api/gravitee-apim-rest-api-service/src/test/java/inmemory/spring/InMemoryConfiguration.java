@@ -431,4 +431,9 @@ public class InMemoryConfiguration {
     public ScoringProviderInMemory scoringProviderInMemory() {
         return new ScoringProviderInMemory();
     }
+
+    @Bean
+    public PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService() {
+        return new PortalMenuLinkCrudServiceInMemory();
+    }
 }
