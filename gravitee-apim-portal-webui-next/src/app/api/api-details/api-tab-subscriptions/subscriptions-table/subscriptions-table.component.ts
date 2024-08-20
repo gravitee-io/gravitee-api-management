@@ -58,6 +58,7 @@ export class SubscriptionsTableComponent implements OnInit {
   public subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
   public subscriptionsStatus: FormControl<SubscriptionStatusEnum[] | null> = new FormControl<SubscriptionStatusEnum[]>([]);
   public subscriptionsList$!: Observable<Subscription[]>;
+  public subscriptionsExist: boolean = false;
 
   constructor(
     private capitalizeFirstPipe: CapitalizeFirstPipe,
@@ -77,6 +78,9 @@ export class SubscriptionsTableComponent implements OnInit {
       startWith(this.subscriptionsStatus.value),
       switchMap(status => this.subscriptionService.list({ apiId: this.apiId, statuses: status, size: -1 })),
       map(response => {
+        if (this.subscriptionsStatus.value?.length === 0 && response.data.length) {
+          this.subscriptionsExist = true;
+        }
         return response.data
           ? response.data.map(sub => ({
               ...sub,

@@ -50,6 +50,7 @@ describe('SubscriptionsTableComponent', () => {
     it('should show empty Subscription list', async () => {
       expectSubscriptionList(fakeSubscriptionResponse({ data: [] }), 'testId', '');
       expect(fixture.nativeElement.querySelector('#no-subscriptions')).toBeDefined();
+      expect(await getStatusSelectionOptional()).toEqual(null);
     });
   });
 
@@ -67,6 +68,7 @@ describe('SubscriptionsTableComponent', () => {
         plan: '-',
         status: 'Rejected',
       });
+      expect(await getStatusSelectionOptional()).toBeTruthy();
     });
 
     it('should show filtered subscription list', async () => {
@@ -83,5 +85,9 @@ describe('SubscriptionsTableComponent', () => {
     httpTestingController
       .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}${status ? '&statuses=' + `${status}` : ''}&size=-1`)
       .flush(subscriptionResponse);
+  }
+
+  async function getStatusSelectionOptional(): Promise<MatSelectHarness | null> {
+    return await harnessLoader.getHarnessOrNull(MatSelectHarness);
   }
 });
