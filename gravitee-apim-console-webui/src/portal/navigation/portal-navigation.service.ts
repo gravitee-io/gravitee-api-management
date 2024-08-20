@@ -15,6 +15,8 @@
  */
 import { Injectable } from '@angular/core';
 
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+
 export interface MenuItem {
   icon?: string;
   routerLink?: string;
@@ -32,28 +34,37 @@ export interface GroupItem {
   providedIn: 'root',
 })
 export class PortalNavigationService {
-  constructor() {}
+  constructor(private readonly permissionService: GioPermissionService) {}
 
   public getCustomizationRoutes(): GroupItem {
-    const items: MenuItem[] = [
-      {
-        displayName: 'Customization',
-        routerLink: 'customization',
-        icon: 'gio:palette',
-        children: [
-          {
-            displayName: 'Theme',
-            routerLink: 'theme',
-            icon: 'gio:color-picker',
-          },
-          {
-            displayName: 'Banner',
-            routerLink: 'banner',
-            icon: 'gio:chat-lines',
-          },
-        ],
-      },
-    ];
+    const items: MenuItem[] = [];
+
+    const customization: MenuItem = {
+      displayName: 'Customization',
+      routerLink: 'customization',
+      icon: 'gio:palette',
+      children: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
+      customization.children.push({
+        displayName: 'Theme',
+        routerLink: 'theme',
+        icon: 'gio:color-picker',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
+      customization.children.push({
+        displayName: 'Banner',
+        routerLink: 'banner',
+        icon: 'gio:chat-lines',
+      });
+    }
+
+    if (customization.children.length) {
+      items.push(customization);
+    }
+
     return {
       title: 'Customization',
       subtitle: 'Customize the look, feel, and behavior of the new Developer Portal.',
