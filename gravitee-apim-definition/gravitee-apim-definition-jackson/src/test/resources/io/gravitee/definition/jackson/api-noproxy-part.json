@@ -1,4 +1,5 @@
 {
   "id": "my-api",
-  "name": "my-api"
+  "name": "my-api",
+  "gravitee": "2.0.0"
 }

@@ -1665,7 +1665,7 @@ class IngestFederatedApisUseCaseTest {
         );
         doThrow(new ValidationDomainException("validation failed"))
             .when(validateFederatedApiDomainService)
-            .validateAndSanitizeForCreation(argThat(api -> api.getName().equals("api-2")));
+            .validateAndSanitizeForCreation(argThat(api -> api.getName().equals("api-2")), any());
 
         // When
         useCase

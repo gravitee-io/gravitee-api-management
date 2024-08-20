@@ -19,16 +19,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PropertyEntity;
-import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
-import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

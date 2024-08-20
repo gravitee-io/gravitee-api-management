@@ -1,0 +1,9 @@
+{
+  "id": "0068af5c-b68c-3f33-a4b9-9e7ff435badb",
+  "providerId": "9fdee45mq6",
+  "name": "IrishUsagePlanAPI100",
+  "definitionVersion": "FEDERATED",
+  "server": {
+    "url": "https://9fdee45mq6.execute-api.eu-west-1.amazonaws.com/Test"
+  }
+}

@@ -32,7 +32,6 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +69,9 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             api.setName(nameNode.asText());
         }
 
+        // If no version provided, defaults to 1.0.0
+        api.setDefinitionVersion(foundDefinitionVersion(node));
+
         JsonNode versionNode = node.get("version");
         if (versionNode == null) {
             api.setVersion("undefined");
@@ -81,7 +83,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         JsonNode proxyNode = node.get("proxy");
         if (proxyNode != null) {
             api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
-        } else {
+        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             logger.error("A proxy property is required for {}", api.getName());
             throw JsonMappingException.from(ctxt, "A proxy property is required for " + api.getName());
         }
@@ -122,9 +124,6 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                     }
                 });
         }
-
-        // If no version provided, defaults to 1.0.0
-        api.setDefinitionVersion(DefinitionVersion.valueOfLabel(node.path("gravitee").asText(DefinitionVersion.V1.getLabel())));
 
         // If no flow mode provided, defaults to "default"
         api.setFlowMode(FlowMode.valueOf(node.path("flow_mode").asText(FlowMode.DEFAULT.name())));
@@ -244,5 +243,21 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         }
 
         return api;
+    }
+
+    private static DefinitionVersion foundDefinitionVersion(JsonNode node) {
+        try {
+            if (node.hasNonNull("definitionVersion")) {
+                JsonNode definitionVersion = node.get("definitionVersion");
+                return DefinitionVersion.valueOf(definitionVersion.asText());
+            }
+        } catch (IllegalArgumentException ignored) {}
+        try {
+            if (node.hasNonNull("gravitee")) {
+                JsonNode gravitee = node.get("gravitee");
+                return DefinitionVersion.valueOfLabel(gravitee.asText());
+            }
+        } catch (IllegalArgumentException ignored) {}
+        return DefinitionVersion.V1;
     }
 }
