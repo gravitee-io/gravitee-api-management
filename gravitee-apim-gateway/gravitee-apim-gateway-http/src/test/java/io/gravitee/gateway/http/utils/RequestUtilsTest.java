@@ -29,10 +29,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
-import io.reactivex.rxjava3.core.Flowable;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -189,7 +188,7 @@ class RequestUtilsTest {
     class StreamingResponseTest {
 
         @Mock
-        Request request;
+        VertxHttpServerRequest request;
 
         @Mock
         Response response;
@@ -204,6 +203,7 @@ class RequestUtilsTest {
 
         @Test
         void should_not_be_streaming_when_no_headers_nor_no_websocket() {
+            lenient().when(request.isWebSocketUpgraded()).thenReturn(false);
             assertFalse(RequestUtils.isStreaming(request, response));
         }
 
@@ -228,7 +228,7 @@ class RequestUtilsTest {
 
         @Test
         void should_be_streaming_request_when_websocket() {
-            lenient().when(request.isWebSocket()).thenReturn(true);
+            lenient().when(request.isWebSocketUpgraded()).thenReturn(true);
             assertTrue(RequestUtils.isStreaming(request, response));
         }
     }
