@@ -1,0 +1,42 @@
+[
+  {
+    "id": "menuLink1",
+    "environmentId": "environment1",
+    "name": "Menu one",
+    "type": "EXTERNAL",
+    "target": "https://env1.target.one",
+    "order": 1
+  },
+  {
+    "id": "menuLink2",
+    "environmentId": "environment1",
+    "name": "Menu two",
+    "type": "EXTERNAL",
+    "target": "https://env1.target.two",
+    "order": 3
+  },
+  {
+    "id": "menuLink3",
+    "environmentId": "environment2",
+    "name": "Menu one",
+    "type": "EXTERNAL",
+    "target": "https://env2.target.one",
+    "order": 1
+  },
+  {
+    "id": "menuLink4",
+    "environmentId": "environment3",
+    "name": "Menu one",
+    "type": "EXTERNAL",
+    "target": "https://env3.target.one",
+    "order": 1
+  },
+  {
+    "id": "menuLink5",
+    "environmentId": "environment1",
+    "name": "Menu three",
+    "type": "EXTERNAL",
+    "target": "https://env1.target.three",
+    "order": 2
+  }
+]
