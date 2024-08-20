@@ -199,3 +199,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_5_0/02_add_shared_policy_group.yml
   - include:
       - file: liquibase/changelogs/v4_5_0/03_add_subscription_client_certificate.yml
+  - include:
+      - file: liquibase/changelogs/v4_5_0/04_add_portal_menu_links_table.yml

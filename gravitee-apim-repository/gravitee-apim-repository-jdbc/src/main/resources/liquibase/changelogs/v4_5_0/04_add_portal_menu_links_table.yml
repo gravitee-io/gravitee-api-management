@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.0_add_portal_menu_links
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portal_menu_links
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_portal_menu_links } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target, type: nvarchar(256), constraints: { nullable: true } }
+              - column: {name: order, type: integer, constraints: { nullable: true } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_menu_links_environment_id_order
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+              - column:
+                  name: order
+                  type: integer
+            tableName: ${gravitee_prefix}portal_menu_links
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_menu_links_environment_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}portal_menu_links
