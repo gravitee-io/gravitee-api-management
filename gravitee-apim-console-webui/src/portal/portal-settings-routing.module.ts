@@ -30,24 +30,30 @@ const portalRoutes: Routes = [
   {
     path: '',
     component: PortalNavigationComponent,
-    canActivate: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard, EnvironmentGuard.initEnvConfigAndLoadPermissions],
+    canActivate: [EnvironmentGuard.initEnvConfigAndLoadPermissions],
+    canActivateChild: [HasLicenseGuard, PermissionGuard.checkRouteDataPermissions],
     children: [
       {
         path: 'customization',
         component: PortalCustomizationComponent,
-        data: {
-          permissions: {
-            anyOf: ['organization-settings-r'],
-          },
-        },
         children: [
           {
             path: 'banner',
             component: PortalBannerComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-settings-r', 'environment-settings-u'],
+              },
+            },
           },
           {
             path: 'theme',
             component: PortalThemeComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-theme-r', 'environment-theme-u'],
+              },
+            },
           },
           {
             path: '',

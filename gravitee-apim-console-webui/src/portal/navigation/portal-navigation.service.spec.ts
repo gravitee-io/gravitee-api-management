@@ -17,11 +17,13 @@ import { TestBed } from '@angular/core/testing';
 
 import { PortalNavigationService } from './portal-navigation.service';
 
+import { GioTestingModule } from '../../shared/testing';
+
 describe('PortalNavigationService', () => {
   let service: PortalNavigationService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ imports: [GioTestingModule] });
     service = TestBed.inject(PortalNavigationService);
   });
 
