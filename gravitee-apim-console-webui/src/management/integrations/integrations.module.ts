@@ -38,9 +38,12 @@ import {
   GioSaveBarModule,
   GioLicenseModule,
   GioFormSlideToggleModule,
+  GioCardEmptyStateModule,
+  GioIconsModule,
 } from '@gravitee/ui-particles-angular';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
+import { MatSortModule } from '@angular/material/sort';
 
 import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
@@ -57,7 +60,6 @@ import { IntegrationUserPermissionsComponent } from './integration-configuration
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
-import { ApiUserGroupModule } from '../api/user-group-access/api-user-group.module';
 
 @NgModule({
   declarations: [
@@ -111,6 +113,7 @@ import { ApiUserGroupModule } from '../api/user-group-access/api-user-group.modu
     MatTabNavPanel,
     MatTabLink,
     MatTabNav,
+    MatSortModule,
 
     CdkAccordion,
     CdkAccordionItem,
@@ -127,7 +130,8 @@ import { ApiUserGroupModule } from '../api/user-group-access/api-user-group.modu
     GioFormSlideToggleModule,
     GioTableWrapperModule,
 
-    ApiUserGroupModule,
+    GioIconsModule,
+    GioCardEmptyStateModule,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
