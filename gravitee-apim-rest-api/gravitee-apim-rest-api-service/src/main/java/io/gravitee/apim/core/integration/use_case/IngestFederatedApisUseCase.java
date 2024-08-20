@@ -121,7 +121,12 @@ public class IngestFederatedApisUseCase {
 
     private void createApi(Api federatedApi, IntegrationApi integrationApi, AuditInfo auditInfo, PrimaryOwnerEntity primaryOwner) {
         try {
-            createApiDomainService.create(federatedApi, primaryOwner, auditInfo, validateFederatedApi::validateAndSanitizeForCreation);
+            createApiDomainService.create(
+                federatedApi,
+                primaryOwner,
+                auditInfo,
+                newApi -> validateFederatedApi.validateAndSanitizeForCreation(newApi, primaryOwner)
+            );
 
             stream(integrationApi.plans())
                 .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))

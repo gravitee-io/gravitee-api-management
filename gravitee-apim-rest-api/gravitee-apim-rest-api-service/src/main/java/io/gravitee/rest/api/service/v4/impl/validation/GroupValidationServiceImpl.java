@@ -70,7 +70,7 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
             }
         }
 
-        // Add default group
+        // Add default group TODO
         Set<String> defaultGroups = groupService
             .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
             .stream()
