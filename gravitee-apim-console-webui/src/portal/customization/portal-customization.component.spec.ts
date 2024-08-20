@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PortalCustomizationComponent } from './portal-customization.component';
 
 import { GioTestingModule } from '../../shared/testing';
+import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
 describe('PortalCustomizationComponent', () => {
   let component: PortalCustomizationComponent;
@@ -26,6 +27,12 @@ describe('PortalCustomizationComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PortalCustomizationComponent, GioTestingModule],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-theme-u'],
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PortalCustomizationComponent);

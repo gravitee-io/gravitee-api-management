@@ -25,6 +25,7 @@ import { PortalBannerHarness } from './portal-banner.harness';
 
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('DeveloperPortalBannerComponent', () => {
   let fixture: ComponentFixture<PortalBannerComponent>;
@@ -37,6 +38,12 @@ describe('DeveloperPortalBannerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule, NoopAnimationsModule, PortalBannerComponent],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-settings-u'],
+        },
+      ],
     }).compileComponents();
 
     httpTestingController = TestBed.inject(HttpTestingController);
