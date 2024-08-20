@@ -20,27 +20,26 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
+import java.util.Set;
+import lombok.AllArgsConstructor;
 
 @DomainService
+@AllArgsConstructor
 public class ValidateFederatedApiDomainService {
 
-    private final CategoryDomainService categoryDomainService;
     private final GroupValidationService groupValidationService;
+    private final CategoryDomainService categoryDomainService;
 
-    public ValidateFederatedApiDomainService(GroupValidationService groupValidationService, CategoryDomainService categoryDomainService) {
-        this.groupValidationService = groupValidationService;
-        this.categoryDomainService = categoryDomainService;
-    }
-
-    public Api validateAndSanitizeForCreation(final Api api) {
-        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+    public Api validateAndSanitizeForCreation(final Api newApi, PrimaryOwnerEntity primaryOwner) {
+        if (newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             throw new ValidationDomainException("Definition version is unsupported, should be FEDERATED");
         }
+        newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner));
 
         // Reset lifecycle state as Federated API are not deployed on Gateway
-        api.setLifecycleState(null);
+        newApi.setLifecycleState(null);
 
-        return api;
+        return newApi;
     }
 
     public Api validateAndSanitizeForUpdate(final Api updateApi, final Api existingApi, PrimaryOwnerEntity primaryOwnerEntity) {

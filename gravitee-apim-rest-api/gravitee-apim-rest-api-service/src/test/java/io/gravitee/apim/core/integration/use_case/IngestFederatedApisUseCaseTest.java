@@ -440,6 +440,7 @@ class IngestFederatedApisUseCaseTest {
                             .server(Map.of("url", "https://example.com"))
                             .build()
                     )
+                    .groups(Set.of("group-1"))
                     .build();
                 soft.assertThat(apiCrudService.storage()).containsExactlyInAnyOrder(expectedApi);
                 soft
@@ -449,7 +450,7 @@ class IngestFederatedApisUseCaseTest {
                             expectedApi,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.of(),
-                            Collections.emptySet()
+                            Set.of()
                         )
                     );
             });
