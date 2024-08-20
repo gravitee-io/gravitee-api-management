@@ -25,7 +25,6 @@ import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscription;
@@ -152,7 +151,7 @@ public class VertxHttpServerResponse extends AbstractResponse {
     @Override
     public boolean isStreaming() {
         if (isStreaming == null) {
-            isStreaming = RequestUtils.isStreaming(vertxHttpServerRequest, this);
+            isStreaming = RequestUtils.isStreaming(this.vertxHttpServerRequest, this);
         }
         return isStreaming;
     }
