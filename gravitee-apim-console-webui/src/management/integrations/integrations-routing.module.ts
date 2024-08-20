@@ -93,7 +93,7 @@ const routes: Routes = [
             path: 'members',
             component: IntegrationUserPermissionsComponent,
           },
-          // toDo: uncomment when component ready
+          // Uncomment when component ready:
           // {
           //   path: 'discovery',
           //   component: ,

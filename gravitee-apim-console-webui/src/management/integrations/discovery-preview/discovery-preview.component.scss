@@ -28,6 +28,7 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  padding: 16px;
 
   &__title {
     display: flex;
@@ -49,19 +50,25 @@ $typography: map.get(gio.$mat-theme, typography);
   height: 1px;
   align-self: stretch;
   background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  margin: 16px -16px;
 }
 
-.preview-desc {
-  padding-top: 16px;
-  margin: 0;
-}
+.preview {
+  &__toggles {
+    padding: 16px;
+    .desc {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-1);
+      margin: 0;
+    }
+  }
 
-.preview-table {
-  margin: 16px -16px;
+  &__empty {
+    margin: 16px;
+  }
 }
 
 gio-loader {
+  margin-top: 16px;
   width: 24px;
   height: 24px;
 }

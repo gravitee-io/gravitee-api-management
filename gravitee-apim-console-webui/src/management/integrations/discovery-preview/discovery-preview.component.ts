@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
@@ -32,7 +32,7 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
   templateUrl: './discovery-preview.component.html',
   styleUrls: ['./discovery-preview.component.scss'],
 })
-export class DiscoveryPreviewComponent {
+export class DiscoveryPreviewComponent implements OnInit {
   IntegrationPreviewApisState = IntegrationPreviewApisState;
   private destroyRef: DestroyRef = inject(DestroyRef);
 
@@ -49,7 +49,7 @@ export class DiscoveryPreviewComponent {
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
-    sort: { active: 'name', direction: 'asc' },
+    sort: { active: null, direction: null },
   };
   public apisFiltered: IntegrationPreview['apis'] = [];
 
@@ -62,7 +62,7 @@ export class DiscoveryPreviewComponent {
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngAfterViewInit() {
+  ngOnInit() {
     this.getIntegration();
     this.getPreview();
   }
@@ -84,15 +84,13 @@ export class DiscoveryPreviewComponent {
   }
 
   private getPreview(): void {
-    const { integrationId } = this.activatedRoute.snapshot.params;
-
     this.integrationsService
-      .previewIntegration(integrationId)
+      .previewIntegration(this.integrationId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (integrationPreview) => {
           this.integrationPreview = integrationPreview;
-          this.nbTotalInstances = integrationPreview.totalCount;
+          this.nbTotalInstances = this.integrationPreview.totalCount;
           this.apisFiltered = this.integrationPreview.apis;
           this.setupForm(IntegrationPreviewApisState.NEW, this.integrationPreview.newCount);
           this.setupForm(IntegrationPreviewApisState.UPDATE, this.integrationPreview.updateCount);
