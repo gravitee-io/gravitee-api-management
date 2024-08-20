@@ -419,6 +419,9 @@
                   [routerLink]="[environmentRootRouterLink, '_portal']"
                   target="_blank"
                   class="new-developer-portal-actions__content"
+                  *gioPermission="{
+                    anyOf: ['environment-settings-u', 'environment-settings-r', 'environment-theme-u', 'environment-theme-r']
+                  }"
                 >
                   <div>Open Settings</div>
                   <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
