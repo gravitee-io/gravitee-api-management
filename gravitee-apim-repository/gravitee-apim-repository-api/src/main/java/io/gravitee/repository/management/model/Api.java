@@ -17,7 +17,9 @@ package io.gravitee.repository.management.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -188,6 +190,8 @@ public class Api {
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
+        this.integrationId = cloned.integrationId;
+        this.syncFrom = cloned.syncFrom;
     }
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -198,5 +202,16 @@ public class Api {
         API_LOGGING_ENABLED,
         API_LOGGING_DISABLED,
         API_LOGGING_UPDATED,
+    }
+
+    public boolean addGroup(String group) {
+        if (groups == null) {
+            groups = new HashSet<>();
+        }
+        return groups.add(group);
+    }
+
+    public void setGroups(Collection<String> groups) {
+        this.groups = new HashSet<>(groups);
     }
 }

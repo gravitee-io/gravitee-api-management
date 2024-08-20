@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.management.model;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.definition.model.Origin;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -34,12 +38,12 @@ import lombok.ToString;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder(toBuilder = true)
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
+@Builder(toBuilder = true)
+@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Application {
 
@@ -99,7 +103,7 @@ public class Application {
     /**
      * the application group
      */
-    private Set<String> groups;
+    private Set<String> groups = new HashSet<>();
 
     private ApplicationStatus status;
 
@@ -111,7 +115,6 @@ public class Application {
 
     private String background;
 
-    @Builder.Default
     private ApiKeyMode apiKeyMode = ApiKeyMode.UNSPECIFIED;
 
     private Origin origin;
@@ -123,7 +126,9 @@ public class Application {
         this.description = cloned.description;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
-        this.groups = cloned.groups;
+        if (!isEmpty(cloned.groups)) {
+            this.groups.addAll(cloned.groups);
+        }
         this.status = cloned.status;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
         this.background = cloned.background;
@@ -133,5 +138,20 @@ public class Application {
         this.type = cloned.type;
         this.origin = cloned.origin;
         this.metadata = cloned.metadata != null ? new HashMap<>(cloned.metadata) : null;
+    }
+
+    public boolean addGroup(String group) {
+        if (groups == null) {
+            groups = new HashSet<>();
+        }
+        return groups.add(group);
+    }
+
+    public Set<String> getGroups() {
+        return groups != null ? new HashSet<>(groups) : new HashSet<>();
+    }
+
+    public void setGroups(Collection<String> groups) {
+        this.groups = groups != null ? new HashSet<>(groups) : null;
     }
 }
