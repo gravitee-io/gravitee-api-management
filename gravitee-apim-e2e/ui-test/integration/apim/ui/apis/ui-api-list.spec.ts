@@ -152,7 +152,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
 
       it(`should switch view to 50 when 50 items per page selected`, function () {
         cy.getByDataTestId('paginator-header').within(() => {
-          cy.get('.mat-mdc-select-trigger').click();
+          cy.get('mat-select').click({ force: true });
         });
         cy.get('mat-option').contains('50').first().click();
         cy.url().should('include', 'size=50');
