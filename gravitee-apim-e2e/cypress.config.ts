@@ -7,7 +7,7 @@ export default defineConfig({
     gatewayServer: 'http://localhost:8082',
   },
   e2e: {
-    baseUrl: 'http://localhost:4200',
+    baseUrl: 'http://localhost:4000',
     watchForFileChanges: false,
     projectId: 'ui-test',
     specPattern: 'ui-test/integration/**/*.spec.ts',
