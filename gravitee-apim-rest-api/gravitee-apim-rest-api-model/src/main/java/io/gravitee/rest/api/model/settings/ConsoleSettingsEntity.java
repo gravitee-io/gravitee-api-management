@@ -47,6 +47,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private LicenseExpirationNotification licenseExpirationNotification;
     private TrialInstance trialInstance;
     private Federation federation;
+    private Scoring scoring;
 
     public ConsoleSettingsEntity() {
         super();
@@ -65,6 +66,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         licenseExpirationNotification = new LicenseExpirationNotification();
         trialInstance = new TrialInstance();
         federation = new Federation();
+        scoring = new Scoring();
     }
 
     //Classes
