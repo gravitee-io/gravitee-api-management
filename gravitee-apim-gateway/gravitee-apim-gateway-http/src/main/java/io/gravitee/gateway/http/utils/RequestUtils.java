@@ -15,15 +15,17 @@
  */
 package io.gravitee.gateway.http.utils;
 
-import static io.vertx.core.http.HttpHeaders.*;
+import static io.vertx.core.http.HttpHeaders.CONNECTION;
+import static io.vertx.core.http.HttpHeaders.CONTENT_LENGTH;
+import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
+import static io.vertx.core.http.HttpHeaders.UPGRADE;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.netty.handler.codec.http.HttpHeaderValues;
-import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
@@ -70,7 +72,7 @@ public final class RequestUtils {
     /**
      * Check if the given request is streaming
      *
-     * @param request
+     * @param request the request to test
      * @return <code>true</code> if the given request is streaming, <code>false</code> otherwise.
      */
     public static boolean isStreaming(final Request request) {
@@ -78,20 +80,21 @@ public final class RequestUtils {
     }
 
     /**
-     * Check if the given request/response is streaming
+     * Check if the given response is streaming
      *
-     * @param request
-     * @return <code>true</code> if the given request/response is streaming, <code>false</code> otherwise.
+     * @param request  the vertx http request
+     * @param response the http response
+     * @return <code>true</code> if the given response is streaming (websocket/gRPC/SEE...), <code>false</code> otherwise.
      */
-    public static boolean isStreaming(final Request request, final Response response) {
-        return hasStreamingContentType(response.headers()) || request.isWebSocket();
+    public static boolean isStreaming(VertxHttpServerRequest request, final Response response) {
+        return hasStreamingContentType(response.headers()) || request.isWebSocketUpgraded();
     }
 
     /**
-     * Check if the given requ
+     * Check if the given headers contains streaming information
      *
-     * @param httpHeaders
-     * @return <code>true</code> if the given request is websocket one, <code>false</code> otherwise.
+     * @param httpHeaders header to test
+     * @return true for gRPC, SSE, octet-stream
      */
     private static boolean hasStreamingContentType(final HttpHeaders httpHeaders) {
         String contentLengthHeaderValue = httpHeaders.get(CONTENT_LENGTH);
