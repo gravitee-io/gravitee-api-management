@@ -208,6 +208,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
 
+    @Inject
+    protected PortalMenuLinkRepository portalMenuLinkRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         if (object instanceof Application application) {
             applicationRepository.create(application);
@@ -323,6 +326,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             apiCategoryOrderRepository.create(apiCategoryOrder);
         } else if (object instanceof SharedPolicyGroup sharedPolicyGroup) {
             sharedPolicyGroupRepository.create(sharedPolicyGroup);
+        } else if (object instanceof PortalMenuLink portalMenuLink) {
+            portalMenuLinkRepository.create(portalMenuLink);
         }
     }
 
