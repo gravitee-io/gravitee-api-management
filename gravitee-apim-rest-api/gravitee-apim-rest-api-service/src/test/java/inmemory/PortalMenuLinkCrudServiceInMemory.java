@@ -54,6 +54,11 @@ public class PortalMenuLinkCrudServiceInMemory implements PortalMenuLinkCrudServ
     }
 
     @Override
+    public void delete(String portalMenuLinkId) {
+        storage.removeIf(menuLink -> portalMenuLinkId.equals(menuLink.getId()));
+    }
+
+    @Override
     public void initWith(List<PortalMenuLink> items) {
         storage.clear();
         storage.addAll(items);
