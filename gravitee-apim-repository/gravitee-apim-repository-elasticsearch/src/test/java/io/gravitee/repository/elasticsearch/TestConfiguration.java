@@ -43,7 +43,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 public class TestConfiguration {
 
     public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.8.0";
-    public static final String DEFAULT_OPENSEARCH_VERSION = "2.6.0";
+    public static final String DEFAULT_OPENSEARCH_VERSION = "2.16.0";
     private static final String DEFAULT_SEARCH_TYPE = "elasticsearch";
 
     public static final String CLUSTER_NAME = "gravitee_test";
@@ -113,6 +113,11 @@ public class TestConfiguration {
 
     private OpensearchContainer generateOpenSearchContainer() {
         final String dockerImage = "opensearchproject/opensearch:" + opensearchVersion;
-        return new OpensearchContainer(dockerImage);
+        OpensearchContainer opensearchContainer = new OpensearchContainer(dockerImage);
+        if (opensearchVersion.startsWith("2.16")) {
+            // https://github.com/opensearch-project/OpenSearch/issues/15169
+            opensearchContainer.withEnv("search.max_aggregation_rewrite_filters", "0");
+        }
+        return opensearchContainer;
     }
 }
