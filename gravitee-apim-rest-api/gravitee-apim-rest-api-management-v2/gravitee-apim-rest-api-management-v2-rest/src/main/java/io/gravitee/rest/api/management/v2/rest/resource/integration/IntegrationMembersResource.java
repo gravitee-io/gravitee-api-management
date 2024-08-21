@@ -58,7 +58,7 @@ public class IntegrationMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_MEMBER, acls = { RolePermissionAction.READ }) })
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_MEMBER, acls = { RolePermissionAction.READ }))
     public MembersResponse getIntegrationMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var members = membershipService
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.INTEGRATION, integrationId)
@@ -80,7 +80,7 @@ public class IntegrationMembersResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.CREATE) })
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.CREATE))
     public Response createIntegrationMembership(AddMember integrationMembership) {
         checkRoleIsNotPrimaryOwner(integrationMembership.getRoleName());
 
@@ -102,7 +102,7 @@ public class IntegrationMembersResource extends AbstractResource {
     @Path("/{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.UPDATE))
     public Response updateIntegrationMembership(@PathParam("memberId") String memberId, UpdateMember updateMember) {
         checkRoleIsNotPrimaryOwner(updateMember.getRoleName());
 
@@ -118,7 +118,7 @@ public class IntegrationMembersResource extends AbstractResource {
     @Path("/{memberId}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.DELETE) })
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.DELETE))
     public Response deleteIntegrationMembership(@PathParam("memberId") String memberId) {
         membershipService.deleteMemberForIntegration(GraviteeContext.getExecutionContext(), integrationId, memberId);
         return Response.noContent().build();

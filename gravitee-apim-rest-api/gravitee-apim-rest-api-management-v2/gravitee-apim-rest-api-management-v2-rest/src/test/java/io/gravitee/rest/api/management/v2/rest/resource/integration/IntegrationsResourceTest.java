@@ -36,7 +36,6 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
-import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -180,7 +179,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_when_incorrect_permission() {
             //Given
-            CreateIntegration createIntegration = new CreateIntegration().toBuilder().build();
+            CreateIntegration createIntegration = new CreateIntegration().toBuilder().name("Barbicha").build();
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
