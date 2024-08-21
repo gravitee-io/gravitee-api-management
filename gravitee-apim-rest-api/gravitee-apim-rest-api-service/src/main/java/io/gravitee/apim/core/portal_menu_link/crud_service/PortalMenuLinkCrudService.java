@@ -23,4 +23,6 @@ public interface PortalMenuLinkCrudService {
     PortalMenuLink update(PortalMenuLink portalMenuLink);
 
     PortalMenuLink getByIdAndEnvironmentId(String environmentId, String portalMenuLinkId);
+
+    void delete(String portalMenuLinkId);
 }

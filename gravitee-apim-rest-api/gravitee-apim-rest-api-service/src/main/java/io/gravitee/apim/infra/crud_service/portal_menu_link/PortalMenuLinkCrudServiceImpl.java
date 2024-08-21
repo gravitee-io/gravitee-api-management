@@ -83,4 +83,16 @@ public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService 
             );
         }
     }
+
+    @Override
+    public void delete(String portalMenuLinkId) {
+        try {
+            portalMenuLinkRepository.delete(portalMenuLinkId);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to delete the PortalMenuLink with id: %s", portalMenuLinkId),
+                e
+            );
+        }
+    }
 }

@@ -214,4 +214,25 @@ public class PortalMenuLinkCrudServiceImplTest {
                 .hasMessage("An error occurred while trying to update a PortalMenuLink with id: portalMenuLinkId");
         }
     }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_PortalMenuLink() throws TechnicalException {
+            var portalMenuLinkId = "portalMenuLink-id";
+            service.delete(portalMenuLinkId);
+            verify(repository).delete(portalMenuLinkId);
+        }
+
+        @Test
+        void should_throw_if_deletion_problem_occurs() throws TechnicalException {
+            var portalMenuLinkId = "portalMenuLink-id";
+            doThrow(new TechnicalException("exception")).when(repository).delete(portalMenuLinkId);
+            assertThatThrownBy(() -> service.delete(portalMenuLinkId))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to delete the PortalMenuLink with id: " + portalMenuLinkId);
+            verify(repository).delete(portalMenuLinkId);
+        }
+    }
 }
