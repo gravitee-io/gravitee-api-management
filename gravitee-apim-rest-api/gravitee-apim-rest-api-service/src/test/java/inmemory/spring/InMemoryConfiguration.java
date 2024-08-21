@@ -15,6 +15,8 @@
  */
 package inmemory.spring;
 
+import static org.mockito.Mockito.mock;
+
 import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCRDExportDomainServiceInMemory;
@@ -65,6 +67,8 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.PolicyPluginQueryServiceInMemory;
+import inmemory.PortalMenuLinkCrudServiceInMemory;
+import inmemory.PortalMenuLinkQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.ResourcePluginCrudServiceInMemory;
 import inmemory.ResourcePluginQueryServiceInMemory;
@@ -82,6 +86,8 @@ import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
+import io.gravitee.apim.core.portal_menu_link.crud_service.PortalMenuLinkCrudService;
+import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -435,5 +441,12 @@ public class InMemoryConfiguration {
     @Bean
     public PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService() {
         return new PortalMenuLinkCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService(
+        PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudServiceInMemory
+    ) {
+        return new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudServiceInMemory);
     }
 }
