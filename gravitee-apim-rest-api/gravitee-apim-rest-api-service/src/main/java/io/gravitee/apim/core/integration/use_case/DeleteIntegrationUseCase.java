@@ -22,19 +22,26 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.AssociatedApisFoundException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.membership.domain_service.DeleteMembershipDomainService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-@UseCase
 @Slf4j
+@UseCase
 public class DeleteIntegrationUseCase {
 
     IntegrationCrudService integrationCrudService;
+    DeleteMembershipDomainService deleteMembershipDomainService;
     ApiQueryService apiQueryService;
 
-    public DeleteIntegrationUseCase(IntegrationCrudService integrationCrudService, ApiQueryService apiQueryService) {
+    public DeleteIntegrationUseCase(
+        IntegrationCrudService integrationCrudService,
+        ApiQueryService apiQueryService,
+        DeleteMembershipDomainService deleteMembershipDomainService
+    ) {
         this.integrationCrudService = integrationCrudService;
         this.apiQueryService = apiQueryService;
+        this.deleteMembershipDomainService = deleteMembershipDomainService;
     }
 
     public void execute(Input input) {
@@ -53,7 +60,10 @@ public class DeleteIntegrationUseCase {
                     integrationCrudService
                         .findById(input.integrationId)
                         .ifPresentOrElse(
-                            integration -> integrationCrudService.delete(integration.getId()),
+                            integration -> {
+                                deleteMembershipDomainService.deleteIntegrationMemberships(input.integrationId);
+                                integrationCrudService.delete(integration.getId());
+                            },
                             () -> {
                                 throw new IntegrationNotFoundException(input.integrationId);
                             }

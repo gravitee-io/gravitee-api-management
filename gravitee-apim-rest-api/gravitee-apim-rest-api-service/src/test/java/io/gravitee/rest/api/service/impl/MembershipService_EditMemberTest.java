@@ -86,6 +86,7 @@ public class MembershipService_EditMemberTest {
     @Test
     public void shouldNotRemoveApiPrimaryOwner() throws TechnicalException {
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
+        when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(Optional.of(new RoleEntity()));
 
         Membership membership = new Membership();
         membership.setRoleId(API_PO_ROLE_ID);

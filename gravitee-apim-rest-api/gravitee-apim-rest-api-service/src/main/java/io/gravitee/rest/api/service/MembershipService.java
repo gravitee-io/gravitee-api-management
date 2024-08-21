@@ -234,6 +234,18 @@ public interface MembershipService {
 
     void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId);
 
+    MemberEntity createNewMembershipForIntegration(
+        ExecutionContext executionContext,
+        String integrationId,
+        String userId,
+        String externalReference,
+        String roleName
+    );
+
+    MemberEntity updateMembershipForIntegration(ExecutionContext executionContext, String integrationId, String memberId, String roleName);
+
+    void deleteMemberForIntegration(ExecutionContext executionContext, String integrationId, String memberId);
+
     class MembershipReference {
 
         private final MembershipReferenceType type;

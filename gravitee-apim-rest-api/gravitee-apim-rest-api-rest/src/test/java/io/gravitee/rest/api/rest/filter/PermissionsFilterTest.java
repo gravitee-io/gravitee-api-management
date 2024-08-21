@@ -18,10 +18,11 @@ package io.gravitee.rest.api.rest.filter;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.INTEGRATION_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ORGANIZATION_TENANT;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -37,13 +38,12 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Collections;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -52,13 +52,10 @@ import org.mockito.MockitoAnnotations;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class PermissionsFilterTest {
+public class PermissionsFilterTest {
 
     @InjectMocks
     protected PermissionsFilter permissionFilter;
-
-    @Mock
-    protected SecurityContext securityContext;
 
     @Mock
     protected PermissionService permissionService;
@@ -77,172 +74,195 @@ class PermissionsFilterTest {
 
     private static final String ORGANIZATION_ID = "ORG_ID";
 
-    @Before
+    private static final String INTEGRATION_ID = "INTEGRATION_ID";
+
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
 
-    /**
-     * API Tests
-     */
-    private void initApiMock() {
-        Permission perm = mock(Permission.class);
-        when(perm.value()).thenReturn(API_ANALYTICS);
-        when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
-        when(permissions.value()).thenReturn(new Permission[] { perm });
-        UriInfo uriInfo = mock(UriInfo.class);
-        MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-        map.put("api", Collections.singletonList(API_ID));
-        when(uriInfo.getPathParameters()).thenReturn(map);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-    }
+    @Nested
+    class Api {
 
-    @Test(expected = ForbiddenAccessException.class)
-    public void shouldThrowForbiddenExceptionWhenNoApiPermissions() {
-        initApiMock();
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+        @BeforeEach
+        public void initApiMock() {
+            Permission perm = mock(Permission.class);
+            when(perm.value()).thenReturn(API_ANALYTICS);
+            when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+            when(permissions.value()).thenReturn(new Permission[] { perm });
+            UriInfo uriInfo = mock(UriInfo.class);
+            MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
+            map.put("api", Collections.singletonList(API_ID));
+            when(uriInfo.getPathParameters()).thenReturn(map);
+            when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+        }
 
-        try {
+        @Test
+        public void shouldThrowForbiddenExceptionWhenNoApiPermissions() {
+            when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+
+            assertThrows(
+                ForbiddenAccessException.class,
+                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                "You do not have sufficient rights to access this resource"
+            );
+        }
+
+        @Test
+        public void shouldBeAuthorizedWhenApiPermissions() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
             verify(permissionService, times(1)).hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE));
-            throw e;
+        }
+    }
+
+    @Nested
+    class Application {
+
+        @BeforeEach
+        public void initApplicationMock() {
+            Permission perm = mock(Permission.class);
+            when(perm.value()).thenReturn(APPLICATION_ANALYTICS);
+            when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+            when(permissions.value()).thenReturn(new Permission[] { perm });
+            UriInfo uriInfo = mock(UriInfo.class);
+            MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
+            map.put("application", Collections.singletonList(APPLICATION_ID));
+            when(uriInfo.getPathParameters()).thenReturn(map);
+            when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
         }
 
-        Assert.fail("Should throw a ForbiddenAccessException");
-    }
+        @Test
+        public void shouldThrowForbiddenExceptionWhenNoApplicationPermissions() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-    @Test
-    public void shouldBeAuthorizedWhenApiPermissions() {
-        initApiMock();
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
-        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        verify(permissionService, times(1)).hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE));
-    }
+            assertThrows(
+                ForbiddenAccessException.class,
+                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                "You do not have sufficient rights to access this resource"
+            );
+        }
 
-    /**
-     * APPLICATION Tests
-     */
-    private void initApplicationMock() {
-        Permission perm = mock(Permission.class);
-        when(perm.value()).thenReturn(APPLICATION_ANALYTICS);
-        when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
-        when(permissions.value()).thenReturn(new Permission[] { perm });
-        UriInfo uriInfo = mock(UriInfo.class);
-        MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-        map.put("application", Collections.singletonList(APPLICATION_ID));
-        when(uriInfo.getPathParameters()).thenReturn(map);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-    }
+        @Test
+        public void shouldBeAuthorizedWhenApplicationPermissions() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
-    @Test(expected = ForbiddenAccessException.class)
-    public void shouldThrowForbiddenExceptionWhenNoApplicationPermissions() {
-        initApplicationMock();
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-
-        try {
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
+
             verify(permissionService, times(1)).hasPermission(any(), eq(APPLICATION_ANALYTICS), eq(APPLICATION_ID), eq(UPDATE));
-            throw e;
+        }
+    }
+
+    @Nested
+    class Environment {
+
+        @BeforeEach
+        public void initManagementMocks() {
+            Permission perm = mock(Permission.class);
+            when(perm.value()).thenReturn(ENVIRONMENT_API);
+            when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+            when(permissions.value()).thenReturn(new Permission[] { perm });
+            UriInfo uriInfo = mock(UriInfo.class);
+            when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
         }
 
-        Assert.fail("Should throw a ForbiddenAccessException");
-    }
+        @Test
+        public void shouldThrowForbiddenExceptionWhenNoEnvironmentPermissions() {
+            when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
 
-    @Test
-    public void shouldBeAuthorizedWhenApplicationPermissions() {
-        initApplicationMock();
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+            assertThrows(
+                ForbiddenAccessException.class,
+                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                "You do not have sufficient rights to access this resource"
+            );
+        }
 
-        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+        @Test
+        public void shouldBeAuthorizedWhenEnvironmentPermissions() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
-        verify(permissionService, times(1)).hasPermission(any(), eq(APPLICATION_ANALYTICS), eq(APPLICATION_ID), eq(UPDATE));
-    }
-
-    /**
-     * ENVIRONMENT Tests
-     */
-
-    private void initManagementMocks() {
-        Permission perm = mock(Permission.class);
-        when(perm.value()).thenReturn(ENVIRONMENT_API);
-        when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
-        when(permissions.value()).thenReturn(new Permission[] { perm });
-        UriInfo uriInfo = mock(UriInfo.class);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-    }
-
-    @Test(expected = ForbiddenAccessException.class)
-    public void shouldThrowForbiddenExceptionWhenNoManagementPermissions() {
-        initManagementMocks();
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
-
-        try {
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
+
             verify(permissionService, times(1)).hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT_ID), eq(UPDATE));
-            throw e;
+        }
+    }
+
+    @Nested
+    class Organization {
+
+        @BeforeEach
+        public void initOrganizationMocks() {
+            GraviteeContext.setCurrentEnvironment(null);
+
+            Permission perm = mock(Permission.class);
+            when(perm.value()).thenReturn(ORGANIZATION_TENANT);
+            when(perm.acls()).thenReturn(new RolePermissionAction[] { DELETE });
+            when(permissions.value()).thenReturn(new Permission[] { perm });
+            UriInfo uriInfo = mock(UriInfo.class);
+            when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
         }
 
-        Assert.fail("Should throw a ForbiddenAccessException");
-    }
+        @Test
+        public void shouldThrowForbiddenExceptionWhenNoOrganizationPermissions() {
+            when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
 
-    @Test
-    public void shouldBeAuthorizedWhenManagementPermissions() {
-        initManagementMocks();
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+            assertThrows(
+                ForbiddenAccessException.class,
+                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                "You do not have sufficient rights to access this resource"
+            );
+        }
 
-        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+        @Test
+        public void shouldBeAuthorizedWhenOrganizationPermissions() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
-        verify(permissionService, times(1)).hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT_ID), eq(UPDATE));
-    }
-
-    /**
-     * ORGANIZATION Tests
-     */
-
-    private void initOrganizationMocks() {
-        GraviteeContext.setCurrentEnvironment(null);
-
-        Permission perm = mock(Permission.class);
-        when(perm.value()).thenReturn(ORGANIZATION_TENANT);
-        when(perm.acls()).thenReturn(new RolePermissionAction[] { DELETE });
-        when(permissions.value()).thenReturn(new Permission[] { perm });
-        UriInfo uriInfo = mock(UriInfo.class);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-    }
-
-    @Test(expected = ForbiddenAccessException.class)
-    public void shouldThrowForbiddenExceptionWhenNoOrganizationPermissions() {
-        initOrganizationMocks();
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
-
-        try {
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
-            verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
-            throw e;
-        }
 
-        Assert.fail("Should throw a ForbiddenAccessException");
+            verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
+        }
     }
 
-    @Test
-    public void shouldBeAuthorizedWhenOrganizationPermissions() {
-        initOrganizationMocks();
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    @Nested
+    class Integration {
 
-        permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+        @BeforeEach
+        public void initIntegrationMock() {
+            Permission perm = mock(Permission.class);
+            when(perm.value()).thenReturn(INTEGRATION_DEFINITION);
+            when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+            when(permissions.value()).thenReturn(new Permission[] { perm });
+            UriInfo uriInfo = mock(UriInfo.class);
+            MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
+            map.put("integrationId", Collections.singletonList(INTEGRATION_ID));
+            when(uriInfo.getPathParameters()).thenReturn(map);
+            when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+        }
 
-        verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
+        @Test
+        public void shouldThrowForbiddenExceptionWhenNoIntegrationPermissions() {
+            when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+
+            assertThrows(
+                ForbiddenAccessException.class,
+                () -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()),
+                "You do not have sufficient rights to access this resource"
+            );
+        }
+
+        @Test
+        public void shouldBeAuthorizedWhenIntegrationPermissions() {
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+            verify(permissionService, times(1)).hasPermission(any(), eq(INTEGRATION_DEFINITION), eq(INTEGRATION_ID), eq(UPDATE));
+        }
     }
 
     @Test
