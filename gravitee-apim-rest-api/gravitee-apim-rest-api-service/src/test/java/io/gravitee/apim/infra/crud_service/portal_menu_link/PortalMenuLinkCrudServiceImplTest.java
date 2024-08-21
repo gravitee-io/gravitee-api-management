@@ -171,4 +171,47 @@ public class PortalMenuLinkCrudServiceImplTest {
                 );
         }
     }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_PortalMenuLink() {
+            PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink();
+            portalMenuLink.setName("newName");
+            service.update(portalMenuLink);
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.PortalMenuLink.class);
+            verify(repository).update(captor.capture());
+
+            assertThat(captor.getValue()).isEqualTo(mapper.toRepository(portalMenuLink));
+            assertThat(captor.getValue().getName()).isEqualTo("newName");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_the_updated_PortalMenuLink() {
+            when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var toUpdate = PortalMenuLinkFixtures.aPortalMenuLink();
+            var result = service.update(toUpdate);
+
+            assertThat(result).isEqualTo(toUpdate);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(repository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(PortalMenuLinkFixtures.aPortalMenuLink()));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to update a PortalMenuLink with id: portalMenuLinkId");
+        }
+    }
 }

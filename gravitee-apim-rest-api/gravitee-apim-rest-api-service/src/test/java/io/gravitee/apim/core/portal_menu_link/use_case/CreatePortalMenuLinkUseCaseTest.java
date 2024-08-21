@@ -40,7 +40,9 @@ public class CreatePortalMenuLinkUseCaseTest {
     private final String ENV_ID = PortalMenuLinkFixtures.aPortalMenuLink().getEnvironmentId();
 
     private final PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService = new PortalMenuLinkCrudServiceInMemory();
-    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory();
+    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory(
+        portalMenuLinkCrudService
+    );
     private CreatePortalMenuLinkUseCase createPortalMenuLinkUseCase;
 
     @BeforeAll

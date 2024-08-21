@@ -18,6 +18,7 @@ package fixtures.core.model;
 import io.gravitee.apim.core.portal_menu_link.model.CreatePortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkType;
+import io.gravitee.apim.core.portal_menu_link.model.UpdatePortalMenuLink;
 import java.util.function.Supplier;
 
 public class PortalMenuLinkFixtures {
@@ -47,5 +48,12 @@ public class PortalMenuLinkFixtures {
 
     public static CreatePortalMenuLink aCreatePortalMenuLink() {
         return CREATE_BASE.get().build();
+    }
+
+    private static final Supplier<UpdatePortalMenuLink.UpdatePortalMenuLinkBuilder> UPDATE_BASE = () ->
+        UpdatePortalMenuLink.builder().name("portalMenuLinkNameToUpdate").target("portalMenuLinkTargetToUpdate").order(100);
+
+    public static UpdatePortalMenuLink anUpdatePortalMenuLink() {
+        return UPDATE_BASE.get().build();
     }
 }

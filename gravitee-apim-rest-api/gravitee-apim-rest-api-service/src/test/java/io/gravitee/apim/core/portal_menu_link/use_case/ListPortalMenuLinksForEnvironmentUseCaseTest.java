@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import fixtures.core.model.PortalMenuLinkFixtures;
+import inmemory.PortalMenuLinkCrudServiceInMemory;
 import inmemory.PortalMenuLinkQueryServiceInMemory;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,10 @@ import org.junit.jupiter.api.Test;
 
 class ListPortalMenuLinksForEnvironmentUseCaseTest {
 
-    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory();
+    private final PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService = new PortalMenuLinkCrudServiceInMemory();
+    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory(
+        portalMenuLinkCrudService
+    );
     private ListPortalMenuLinksForEnvironmentUseCase listPortalMenuLinksForEnvironmentUseCase;
 
     @BeforeEach

@@ -28,6 +28,17 @@ public class PortalMenuLinkCrudServiceInMemory implements PortalMenuLinkCrudServ
     final ArrayList<PortalMenuLink> storage = new ArrayList<>();
 
     @Override
+    public PortalMenuLink update(PortalMenuLink portalMenuLink) {
+        OptionalInt index = this.findIndex(this.storage, menuLink -> menuLink.getId().equals(portalMenuLink.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), portalMenuLink);
+            return portalMenuLink;
+        }
+
+        throw new PortalMenuLinkNotFoundException(portalMenuLink.getId());
+    }
+
+    @Override
     public PortalMenuLink getByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) {
         return storage
             .stream()

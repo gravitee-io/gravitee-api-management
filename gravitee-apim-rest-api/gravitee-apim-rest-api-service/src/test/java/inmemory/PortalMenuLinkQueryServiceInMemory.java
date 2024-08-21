@@ -24,7 +24,11 @@ import java.util.List;
 
 public class PortalMenuLinkQueryServiceInMemory implements PortalMenuLinkQueryService, InMemoryAlternative<PortalMenuLink> {
 
-    final ArrayList<PortalMenuLink> storage = new ArrayList<>();
+    ArrayList<PortalMenuLink> storage;
+
+    public PortalMenuLinkQueryServiceInMemory(PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudServiceInMemory) {
+        storage = portalMenuLinkCrudServiceInMemory.storage;
+    }
 
     @Override
     public List<PortalMenuLink> findByEnvironmentIdSortByOrder(String environmentId) {
