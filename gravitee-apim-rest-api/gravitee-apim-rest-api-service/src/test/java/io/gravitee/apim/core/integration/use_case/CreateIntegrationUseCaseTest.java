@@ -87,7 +87,6 @@ public class CreateIntegrationUseCaseTest {
     UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
-    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     LicenseManager licenseManager = mock(LicenseManager.class);
@@ -130,7 +129,6 @@ public class CreateIntegrationUseCaseTest {
             membershipCrudServiceInMemory,
             roleQueryServiceInMemory,
             membershipQueryService,
-            groupQueryService,
             userCrudService
         );
 

@@ -72,7 +72,7 @@ public class GetIntegrationsUseCase {
                         .map(Optional::of)
                         .defaultIfEmpty(Optional.empty()),
                     integrationPrimaryOwnerDomainService
-                        .getApiPrimaryOwner(input.organizationId(), integration.getId())
+                        .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
                         .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
                         .defaultIfEmpty(Optional.empty()),
                     (agentStatus, pendingJob, primaryOwner) ->

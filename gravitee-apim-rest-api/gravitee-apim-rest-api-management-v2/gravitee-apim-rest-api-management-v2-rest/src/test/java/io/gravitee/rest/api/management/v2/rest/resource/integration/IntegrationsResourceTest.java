@@ -26,7 +26,7 @@ import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.LicenseCrudServiceInMemory;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.LicenseManager;
@@ -36,7 +36,9 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -204,6 +206,18 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         void setup() {
             var integration = IntStream.range(0, 15).mapToObj(i -> IntegrationFixture.anIntegration()).toList();
             integrationCrudServiceInMemory.initWith(integration);
+            membershipQueryServiceInMemory.initWith(
+                List.of(
+                    Membership
+                        .builder()
+                        .memberId(USER_NAME)
+                        .referenceId(INTEGRATION_ID)
+                        .roleId("int-po-id-fake-org")
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .memberType(Membership.Type.USER)
+                        .build()
+                )
+            );
         }
 
         @Test
@@ -283,6 +297,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                         .description(description)
                         .provider(provider)
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
+                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
                         .build()
                 );
         }

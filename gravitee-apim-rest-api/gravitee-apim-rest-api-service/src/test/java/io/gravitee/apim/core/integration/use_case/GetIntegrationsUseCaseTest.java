@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
+import static fixtures.core.model.RoleFixtures.integrationPrimaryOwnerRoleId;
 import static java.util.Optional.of;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
@@ -37,6 +38,8 @@ import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -52,6 +55,8 @@ public class GetIntegrationsUseCaseTest {
 
     private static final String ENV_ID = "my-env";
     private static final String ORGANIZATION_ID = "my-org";
+    private static final String INTEGRATION_ID = "integration-id";
+    private static final String USER_ID = "user-id";
     private static final int PAGE_NUMBER = 1;
     private static final int PAGE_SIZE = 5;
     private static final Pageable pageable = new PageableImpl(PAGE_NUMBER, PAGE_SIZE);
@@ -59,8 +64,7 @@ public class GetIntegrationsUseCaseTest {
     IntegrationJobQueryServiceInMemory integrationJobQueryService = new IntegrationJobQueryServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
-    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
-    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     IntegrationQueryServiceInMemory integrationQueryServiceInMemory = new IntegrationQueryServiceInMemory();
@@ -74,7 +78,6 @@ public class GetIntegrationsUseCaseTest {
             membershipCrudServiceInMemory,
             roleQueryServiceInMemory,
             membershipQueryService,
-            groupQueryService,
             userCrudService
         );
         usecase =
@@ -85,6 +88,23 @@ public class GetIntegrationsUseCaseTest {
                 integrationPrimaryOwnerDomainService,
                 integrationJobQueryService
             );
+
+        roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
+        givenExistingUsers(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
+        givenExistingMemberships(
+            List.of(
+                Membership
+                    .builder()
+                    .referenceType(Membership.ReferenceType.INTEGRATION)
+                    .referenceId(INTEGRATION_ID)
+                    .memberType(Membership.Type.USER)
+                    .memberId(USER_ID)
+                    .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                    .build()
+            )
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -117,7 +137,14 @@ public class GetIntegrationsUseCaseTest {
         assertThat(output.integrations())
             .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
             .containsExactly(
-                List.of(new IntegrationView(expected, IntegrationView.AgentStatus.CONNECTED)),
+                List.of(
+                    new IntegrationView(
+                        expected,
+                        IntegrationView.AgentStatus.CONNECTED,
+                        null,
+                        new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe")
+                    )
+                ),
                 PAGE_NUMBER,
                 output.integrations().getPageElements(),
                 (long) output.integrations().getContent().size()
@@ -140,7 +167,14 @@ public class GetIntegrationsUseCaseTest {
         assertThat(output.integrations())
             .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
             .containsExactly(
-                List.of(new IntegrationView(expected, IntegrationView.AgentStatus.CONNECTED)),
+                List.of(
+                    new IntegrationView(
+                        expected,
+                        IntegrationView.AgentStatus.CONNECTED,
+                        null,
+                        new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe")
+                    )
+                ),
                 PAGE_NUMBER,
                 output.integrations().getPageElements(),
                 (long) output.integrations().getContent().size()
@@ -157,5 +191,13 @@ public class GetIntegrationsUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
+    }
+
+    private void givenExistingUsers(List<BaseUserEntity> users) {
+        userCrudService.initWith(users);
+    }
+
+    private void givenExistingMemberships(List<Membership> memberships) {
+        membershipCrudServiceInMemory.initWith(memberships);
     }
 }

@@ -254,7 +254,7 @@ public class IntegrationResource extends AbstractResource {
     }
 
     @Path("/members")
-    public IntegrationMembersResource getApiMembersResource() {
+    public IntegrationMembersResource getIntegrationMembersResource() {
         return resourceContext.getResource(IntegrationMembersResource.class);
     }
 }

@@ -17,9 +17,9 @@ package io.gravitee.apim.core.membership.domain_service;
 
 import static fixtures.core.model.RoleFixtures.integrationPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AuditInfoFixtures;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -28,11 +28,13 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -55,7 +57,6 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
-    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     IntegrationPrimaryOwnerDomainService service;
@@ -75,32 +76,24 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
     @BeforeEach
     void setUp() {
         service =
-            new IntegrationPrimaryOwnerDomainService(
-                membershipCrudService,
-                roleQueryService,
-                membershipQueryService,
-                groupQueryService,
-                userCrudService
-            );
+            new IntegrationPrimaryOwnerDomainService(membershipCrudService, roleQueryService, membershipQueryService, userCrudService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(membershipCrudService, roleQueryService, membershipQueryService, groupQueryService, userCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(membershipCrudService, roleQueryService, membershipQueryService, userCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
-    class CreateApiPrimaryOwnerMembership {
+    class CreateIntegrationPrimaryOwnerMembership {
 
         @Nested
         class UserMode {
 
             @Test
-            void should_create_an_user_api_primary_owner_membership() {
+            void should_create_an_user_integration_primary_owner_membership() {
                 // When
                 service.createIntegrationPrimaryOwnerMembership(
                     INTEGRATION_ID,
@@ -131,31 +124,132 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
         class GroupMode {
 
             @Test
-            void should_create_a_group_api_primary_owner_membership() {
-                // When
-                service.createIntegrationPrimaryOwnerMembership(
-                    INTEGRATION_ID,
-                    PrimaryOwnerEntity.builder().id(GROUP_ID).type(PrimaryOwnerEntity.Type.GROUP).build(),
-                    AUDIT_INFO
-                );
-
-                // Then
-                assertThat(membershipCrudService.storage())
-                    .containsExactly(
-                        Membership
-                            .builder()
-                            .id("generated-id")
-                            .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
-                            .memberId(GROUP_ID)
-                            .memberType(Membership.Type.GROUP)
-                            .referenceId(INTEGRATION_ID)
-                            .referenceType(Membership.ReferenceType.INTEGRATION)
-                            .source("system")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build()
-                    );
+            void should_throw_error_when_create_group_integration_primary_owner_membership() {
+                assertThatThrownBy(() ->
+                        service.createIntegrationPrimaryOwnerMembership(
+                            INTEGRATION_ID,
+                            PrimaryOwnerEntity.builder().id(GROUP_ID).type(PrimaryOwnerEntity.Type.GROUP).build(),
+                            AUDIT_INFO
+                        )
+                    )
+                    .isInstanceOf(UnsupportedOperationException.class)
+                    .withFailMessage("Group Primary Owner is not supported for integrations. Integration id: my-integration");
             }
         }
+    }
+
+    @Nested
+    class GetIntegrationPrimaryOwner {
+
+        @Test
+        public void should_return_a_user_primary_owner_of_an_integration() {
+            givenExistingUsers(
+                List.of(BaseUserEntity.builder().id(MEMBER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+            );
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .referenceId(INTEGRATION_ID)
+                        .memberType(Membership.Type.USER)
+                        .memberId(MEMBER_ID)
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .build()
+                )
+            );
+
+            var result = service.getIntegrationPrimaryOwner(ORGANIZATION_ID, INTEGRATION_ID).test();
+
+            result.assertResult(
+                PrimaryOwnerEntity
+                    .builder()
+                    .id(MEMBER_ID)
+                    .displayName("Jane Doe")
+                    .email("jane.doe@gravitee.io")
+                    .type(PrimaryOwnerEntity.Type.USER)
+                    .build()
+            );
+        }
+
+        @Test
+        public void should_return_empty_for_group_primary_owner_of_an_integration() {
+            givenExistingUsers(
+                List.of(BaseUserEntity.builder().id(MEMBER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+            );
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .referenceId(INTEGRATION_ID)
+                        .memberType(Membership.Type.GROUP)
+                        .memberId(GROUP_ID)
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .build(),
+                    Membership
+                        .builder()
+                        .referenceType(Membership.ReferenceType.GROUP)
+                        .referenceId(GROUP_ID)
+                        .memberType(Membership.Type.USER)
+                        .memberId(MEMBER_ID)
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .build()
+                )
+            );
+
+            var result = service.getIntegrationPrimaryOwner(ORGANIZATION_ID, INTEGRATION_ID).test();
+
+            result.assertComplete().assertNoValues();
+        }
+
+        @Test
+        public void should_return_empty_for_group_primary_owner_with_no_email_when_group_has_no_users() {
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .referenceId(INTEGRATION_ID)
+                        .memberType(Membership.Type.GROUP)
+                        .memberId(GROUP_ID)
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .build()
+                )
+            );
+
+            var result = service.getIntegrationPrimaryOwner(ORGANIZATION_ID, INTEGRATION_ID).test();
+
+            result.assertComplete().assertNoValues();
+        }
+
+        @Test
+        public void should_return_empty_when_no_user_primary_owner_found() {
+            givenExistingUsers(List.of());
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId(INTEGRATION_ID)
+                        .memberType(Membership.Type.USER)
+                        .memberId(MEMBER_ID)
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .build()
+                )
+            );
+
+            var observer = service.getIntegrationPrimaryOwner(ORGANIZATION_ID, INTEGRATION_ID).test();
+
+            observer.assertComplete().assertNoValues();
+        }
+    }
+
+    private void givenExistingUsers(List<BaseUserEntity> users) {
+        userCrudService.initWith(users);
+    }
+
+    private void givenExistingMemberships(List<Membership> memberships) {
+        membershipQueryService.initWith(memberships);
     }
 }

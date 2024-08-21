@@ -17,16 +17,13 @@ package io.gravitee.apim.core.membership.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
-import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ReferenceContext;
@@ -35,7 +32,9 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @AllArgsConstructor
 @DomainService
 public class IntegrationPrimaryOwnerDomainService {
@@ -43,10 +42,15 @@ public class IntegrationPrimaryOwnerDomainService {
     private final MembershipCrudService membershipCrudService;
     private final RoleQueryService roleQueryService;
     private final MembershipQueryService membershipQueryService;
-    private final GroupQueryService groupQueryService;
     private final UserCrudService userCrudService;
 
     public void createIntegrationPrimaryOwnerMembership(String integrationId, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
+        if (primaryOwner.type() == PrimaryOwnerEntity.Type.GROUP) {
+            throw new UnsupportedOperationException(
+                String.format("Group Primary Owner is not supported for integrations. Integration id: %s", integrationId)
+            );
+        }
+
         findPrimaryOwnerRole(auditInfo.organizationId())
             .ifPresent(role -> {
                 var membership = Membership
@@ -64,8 +68,7 @@ public class IntegrationPrimaryOwnerDomainService {
             });
     }
 
-    public Maybe<PrimaryOwnerEntity> getApiPrimaryOwner(final String organizationId, String integrationId)
-        throws ApiPrimaryOwnerNotFoundException {
+    public Maybe<PrimaryOwnerEntity> getIntegrationPrimaryOwner(final String organizationId, String integrationId) {
         return Maybe
             .fromOptional(findPrimaryOwnerRole(organizationId))
             .flatMap(role ->
@@ -73,7 +76,10 @@ public class IntegrationPrimaryOwnerDomainService {
                     .flatMap(membership ->
                         switch (membership.getMemberType()) {
                             case USER -> findUserPrimaryOwner(membership);
-                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                            case GROUP -> {
+                                log.error("Can't have group primary owner for Integrations");
+                                yield Maybe.empty();
+                            }
                         }
                     )
             );
@@ -106,28 +112,5 @@ public class IntegrationPrimaryOwnerDomainService {
                     .type(PrimaryOwnerEntity.Type.USER)
                     .build()
             );
-    }
-
-    private Maybe<PrimaryOwnerEntity> findGroupPrimaryOwner(Membership membership, String primaryOwnerRoleId) {
-        var group = Maybe.fromOptional(groupQueryService.findById(membership.getMemberId()));
-        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId)
-            .flatMap(m -> userCrudService.findBaseUserById(m.getMemberId()));
-
-        return group.map(value ->
-            PrimaryOwnerEntity
-                .builder()
-                .id(value.getId())
-                .displayName(value.getName())
-                .type(PrimaryOwnerEntity.Type.GROUP)
-                .email(user.map(BaseUserEntity::getEmail).orElse(null))
-                .build()
-        );
-    }
-
-    private Optional<Membership> findPrimaryOwnerGroupMember(String groupId, String primaryOwnerRoleId) {
-        return membershipQueryService
-            .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, groupId, primaryOwnerRoleId)
-            .stream()
-            .findFirst();
     }
 }
