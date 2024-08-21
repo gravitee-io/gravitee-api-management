@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,13 +44,14 @@ import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -115,6 +116,7 @@ public class MembershipService_TransferOwnershipTest {
                 apiRepository,
                 null,
                 auditService,
+                null,
                 null
             );
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
@@ -227,6 +229,7 @@ public class MembershipService_TransferOwnershipTest {
         primaryOwnerRole.setScope(RoleScope.API);
         primaryOwnerRole.setName(SystemRole.PRIMARY_OWNER.name());
         when(roleService.findById(API_PRIMARY_OWNER_ROLE_ID)).thenReturn(primaryOwnerRole);
+        when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
         when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(primaryOwnerRole);
         when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
             .thenReturn(Optional.of(primaryOwnerRole));
@@ -238,30 +241,30 @@ public class MembershipService_TransferOwnershipTest {
         poMembership.setReferenceId(API_ID);
         poMembership.setMemberId(USER_ID);
         poMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
-            .thenReturn(Collections.singleton(poMembership));
+        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, List.of(GROUP_ID), null))
+            .thenReturn(Set.of(poMembership));
         when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID))
-            .thenReturn(Collections.singleton(poMembership));
+            .thenReturn(Set.of(poMembership));
 
-        this.membershipService.transferApiOwnership(
-                EXECUTION_CONTEXT,
-                API_ID,
-                new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
-                Collections.singletonList(newPrimaryOwnerRole)
-            );
+        membershipService.transferApiOwnership(
+            EXECUTION_CONTEXT,
+            API_ID,
+            new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
+            List.of(newPrimaryOwnerRole)
+        );
 
         ArgumentCaptor<Membership> membershipCaptor = ArgumentCaptor.forClass(Membership.class);
         verify(membershipRepository, times(2)).create(membershipCaptor.capture());
-        assertEquals(membershipCaptor.getAllValues().size(), 2);
+        assertThat(membershipCaptor.getAllValues()).hasSize(2);
 
         Membership createdPoMembership = membershipCaptor.getAllValues().get(0);
-        assertEquals(createdPoMembership.getRoleId(), API_PRIMARY_OWNER_ROLE_ID);
-        assertEquals(createdPoMembership.getMemberId(), GROUP_ID);
-        assertEquals(createdPoMembership.getReferenceId(), API_ID);
+        assertThat(createdPoMembership.getRoleId()).isEqualTo(API_PRIMARY_OWNER_ROLE_ID);
+        assertThat(createdPoMembership.getMemberId()).isEqualTo(GROUP_ID);
+        assertThat(createdPoMembership.getReferenceId()).isEqualTo(API_ID);
 
         Membership createdUserMembership = membershipCaptor.getAllValues().get(1);
-        assertEquals(createdUserMembership.getRoleId(), USER_ROLE_ID);
-        assertEquals(createdUserMembership.getMemberId(), USER_ID);
-        assertEquals(createdUserMembership.getReferenceId(), API_ID);
+        assertThat(createdUserMembership.getRoleId()).isEqualTo(USER_ROLE_ID);
+        assertThat(createdUserMembership.getMemberId()).isEqualTo(USER_ID);
+        assertThat(createdUserMembership.getReferenceId()).isEqualTo(API_ID);
     }
 }

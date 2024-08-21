@@ -31,7 +31,9 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -50,7 +52,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -96,9 +97,21 @@ public class MembershipService_IntegrationMembership {
     @Mock
     private ApiRepository apiRepository;
 
+    @Mock
+    private IntegrationRepository integrationRepository;
+
     @BeforeEach
     public void setUp() throws Exception {
-        reset(membershipRepository, apiSearchService, userService, auditService, roleService, identityService, apiRepository);
+        reset(
+            membershipRepository,
+            apiSearchService,
+            userService,
+            auditService,
+            roleService,
+            identityService,
+            apiRepository,
+            integrationRepository
+        );
 
         membershipService =
             new MembershipServiceImpl(
@@ -117,7 +130,8 @@ public class MembershipService_IntegrationMembership {
                 apiRepository,
                 null,
                 auditService,
-                null
+                null,
+                integrationRepository
             );
     }
 
@@ -140,6 +154,8 @@ public class MembershipService_IntegrationMembership {
             newMembership.setReferenceId(INTEGRATION_ID);
             newMembership.setMemberId(existingUserId);
             newMembership.setMemberType(MembershipMemberType.USER);
+
+            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -184,6 +200,8 @@ public class MembershipService_IntegrationMembership {
             )
                 .thenReturn(Set.of(existingMembership));
 
+            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
+
             assertThatThrownBy(() ->
                     membershipService.createNewMembershipForIntegration(
                         GraviteeContext.getExecutionContext(),
@@ -216,6 +234,8 @@ public class MembershipService_IntegrationMembership {
                 )
             )
                 .thenReturn(Set.of(newMembership));
+
+            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity createdMember = membershipService.createNewMembershipForIntegration(
                 GraviteeContext.getExecutionContext(),
@@ -269,6 +289,7 @@ public class MembershipService_IntegrationMembership {
                 .thenReturn(Optional.of(new RoleEntity()));
             when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
                 .thenReturn(Optional.of(new RoleEntity()));
+            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
                 GraviteeContext.getExecutionContext(),
@@ -292,7 +313,9 @@ public class MembershipService_IntegrationMembership {
                     INTEGRATION_ID
                 )
             )
-                .thenReturn(Collections.emptySet());
+                .thenReturn(Set.of());
+
+            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
                 GraviteeContext.getExecutionContext(),

@@ -113,6 +113,7 @@ public class MembershipService_FindUserMembershipMetadataTest {
                 mockApiRepository,
                 mockGroupService,
                 null,
+                null,
                 null
             );
         USER_MEMBERSHIP = new UserMembership();

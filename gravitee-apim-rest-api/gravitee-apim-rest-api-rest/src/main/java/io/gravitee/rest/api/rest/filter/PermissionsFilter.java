@@ -98,26 +98,17 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     private String getGroupId(ContainerRequestContext requestContext) {
         String groupId = getId(GROUP_ID_PARAM_V1, requestContext);
-        if (groupId == null) {
-            return getId(GROUP_ID_PARAM_V2, requestContext);
-        }
-        return groupId;
+        return groupId == null ? getId(GROUP_ID_PARAM_V2, requestContext) : groupId;
     }
 
     private String getApiId(ContainerRequestContext requestContext) {
         String apiId = getId(API_ID_PARAM_V1, requestContext);
-        if (apiId == null) {
-            return getId(API_ID_PARAM_V2, requestContext);
-        }
-        return apiId;
+        return apiId == null ? getId(API_ID_PARAM_V2, requestContext) : apiId;
     }
 
     private String getApplicationId(ContainerRequestContext requestContext) {
         String applicationId = getId(APPLICATION_ID_PARAM_V1, requestContext);
-        if (applicationId == null) {
-            return getId(APPLICATION_ID_PARAM_V2, requestContext);
-        }
-        return applicationId;
+        return applicationId == null ? getId(APPLICATION_ID_PARAM_V2, requestContext) : applicationId;
     }
 
     private String getId(String key, ContainerRequestContext requestContext) {
