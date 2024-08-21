@@ -33,13 +33,13 @@ import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.ValidateCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
-import io.gravitee.apim.core.api.use_case.ValidateCRDUseCase;
+import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
@@ -419,7 +419,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ValidateCRDUseCase validateCRDUseCase(
+    public ValidateApiCRDUseCase validateApiCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
         UserDomainServiceInMemory userDomainService,
         VerifyApiPathDomainService verifyApiPathDomainService,
@@ -427,8 +427,8 @@ public class ResourceContextConfiguration {
         ValidateResourceDomainService validateResourceDomainService,
         DocumentationValidationDomainService validationDomainService
     ) {
-        return new ValidateCRDUseCase(
-            new ValidateCRDDomainService(
+        return new ValidateApiCRDUseCase(
+            new ValidateApiCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
                 new ValidateCRDMembersDomainService(userDomainService),
