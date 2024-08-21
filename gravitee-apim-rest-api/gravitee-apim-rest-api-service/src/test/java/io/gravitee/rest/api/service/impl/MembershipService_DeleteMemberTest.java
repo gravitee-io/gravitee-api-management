@@ -80,6 +80,7 @@ public class MembershipService_DeleteMemberTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID))

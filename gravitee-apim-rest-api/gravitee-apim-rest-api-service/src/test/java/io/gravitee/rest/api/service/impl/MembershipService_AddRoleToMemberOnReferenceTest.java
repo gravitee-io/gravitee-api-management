@@ -106,7 +106,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 null,
                 groupService,
                 auditService,
-                parameterService
+                parameterService,
+                null
             );
     }
 

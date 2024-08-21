@@ -16,10 +16,11 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
@@ -48,6 +49,9 @@ public class Integration {
 
     private Date updatedAt;
 
+    @Builder.Default
+    private Set<String> groups = new HashSet<>();
+
     /**
      * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
      */
@@ -63,5 +67,9 @@ public class Integration {
     public enum AgentStatus {
         CONNECTED,
         DISCONNECTED,
+    }
+
+    public boolean addGroup(String groupId) {
+        return groups.add(groupId);
     }
 }

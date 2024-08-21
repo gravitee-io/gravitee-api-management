@@ -16,11 +16,16 @@
 package io.gravitee.rest.api.model.permissions;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Schema(enumAsRef = true)
 public enum RolePermission {
     API_DEFINITION(RoleScope.API, ApiPermission.DEFINITION),
@@ -102,27 +107,6 @@ public enum RolePermission {
     INTEGRATION_DEFINITION(RoleScope.INTEGRATION, IntegrationPermission.DEFINITION),
     INTEGRATION_MEMBER(RoleScope.INTEGRATION, IntegrationPermission.MEMBER);
 
-    RoleScope scope;
-    Permission permission;
-
-    RolePermission(RoleScope scope, Permission permission) {
-        this.scope = scope;
-        this.permission = permission;
-    }
-
-    public RoleScope getScope() {
-        return scope;
-    }
-
-    public void setScope(RoleScope scope) {
-        this.scope = scope;
-    }
-
-    public Permission getPermission() {
-        return permission;
-    }
-
-    public void setPermission(Permission permission) {
-        this.permission = permission;
-    }
+    final RoleScope scope;
+    final Permission permission;
 }

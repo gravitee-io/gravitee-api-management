@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_CREATED;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_DELETED;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
@@ -30,6 +31,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -140,7 +142,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private final EventManager eventManager;
 
     private final PrimaryOwnerService primaryOwnerService;
-    private ParameterService parameterService;
+    private final ParameterService parameterService;
+
+    private final IntegrationRepository integrationRepository;
 
     public MembershipServiceImpl(
         @Autowired @Lazy IdentityService identityService,
@@ -158,7 +162,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired @Lazy ApiRepository apiRepository,
         @Autowired @Lazy GroupService groupService,
         @Autowired AuditService auditService,
-        @Autowired ParameterService parameterService
+        @Autowired ParameterService parameterService,
+        @Autowired @Lazy IntegrationRepository integrationRepository
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -176,6 +181,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.groupService = groupService;
         this.auditService = auditService;
         this.parameterService = parameterService;
+        this.integrationRepository = integrationRepository;
     }
 
     @Override
@@ -482,7 +488,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .filter(m -> m.getType() == MembershipMemberType.USER)
                 .map(MemberEntity::getId)
                 .collect(toList());
-            if (userIds != null && userIds.size() > 0) {
+            if (!userIds.isEmpty()) {
                 userEntities.addAll(userService.findByIds(executionContext, userIds, false));
             }
 
@@ -492,7 +498,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .filter(m -> m.getType() == MembershipMemberType.GROUP)
                 .map(MemberEntity::getId)
                 .collect(toSet());
-            if (groupsIds != null && groupsIds.size() > 0) {
+            if (!groupsIds.isEmpty()) {
                 groupEntities.addAll(groupService.findByIds(groupsIds));
             }
 
@@ -595,14 +601,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 throw new NotAuthorizedMembershipException(roleEntity.getName());
             } else if (roleEntity.getScope() == RoleScope.API) {
                 if (
-                    membershipRepository
+                    !membershipRepository
                         .findByReferenceAndRoleId(
                             io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
                             reference.getId(),
                             roleEntity.getId()
                         )
-                        .size() >
-                    0
+                        .isEmpty()
                 ) {
                     throw new NotAuthorizedMembershipException(roleEntity.getName());
                 }
@@ -1023,7 +1028,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     MemberEntity existingEntity = results.get(key);
                     if (existingEntity == null) {
                         results.put(key, member);
-                        existingEntity = member;
                     } else {
                         Set<RoleEntity> existingRoles = new HashSet<>(existingEntity.getRoles());
                         existingRoles.addAll(member.getRoles());
@@ -1247,7 +1251,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} {} and role", referenceType, referenceId, role, ex);
+            LOGGER.error("An error occurs while trying to get memberships for {} {} {} and role", referenceType, referenceId, role, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get memberships for " + referenceType + " " + referenceId + " and role " + role,
                 ex
@@ -1268,7 +1272,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} {} and role", referenceType, referenceIds, role, ex);
+            LOGGER.error("An error occurs while trying to get memberships for {} {} {} and role", referenceType, referenceIds, role, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get memberships for " + referenceType + " " + referenceIds + " and role " + role,
                 ex
@@ -1278,26 +1282,16 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public MembershipEntity getPrimaryOwner(final String organizationId, MembershipReferenceType referenceType, String referenceId) {
-        RoleScope poRoleScope;
-        if (referenceType == MembershipReferenceType.API) {
-            poRoleScope = RoleScope.API;
-        } else if (referenceType == MembershipReferenceType.APPLICATION) {
-            poRoleScope = RoleScope.APPLICATION;
-        } else {
-            throw new RoleNotFoundException(referenceType.name() + "_PRIMARY_OWNER");
-        }
+        RoleScope poRoleScope = roleService.findScopeByMembershipReferenceType(referenceType);
         RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, poRoleScope);
         if (poRole != null) {
             try {
-                Optional<io.gravitee.repository.management.model.Membership> poMember = membershipRepository
+                return membershipRepository
                     .findByReferenceAndRoleId(convert(referenceType), referenceId, poRole.getId())
                     .stream()
-                    .findFirst();
-                if (poMember.isPresent()) {
-                    return convert(poMember.get());
-                } else {
-                    return null;
-                }
+                    .findFirst()
+                    .map(this::convert)
+                    .orElse(null);
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to get primary owner for {} {} and role", referenceType, referenceId, ex);
                 throw new TechnicalManagementException(
@@ -1360,23 +1354,21 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
 
             //Get entity groups
-            Set<String> entityGroups = new HashSet<>();
-            switch (referenceType) {
-                case API:
-                    entityGroups = apiRepository.findById(referenceId).orElseThrow(() -> new ApiNotFoundException(referenceId)).getGroups();
-                    break;
-                case APPLICATION:
-                    entityGroups =
-                        applicationRepository
-                            .findById(referenceId)
-                            .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
-                            .getGroups();
-                    break;
-                default:
-                    break;
-            }
+            Set<String> entityGroups =
+                switch (referenceType) {
+                    case API -> apiRepository.findById(referenceId).orElseThrow(() -> new ApiNotFoundException(referenceId)).getGroups();
+                    case APPLICATION -> applicationRepository
+                        .findById(referenceId)
+                        .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
+                        .getGroups();
+                    case INTEGRATION -> integrationRepository
+                        .findById(referenceId)
+                        .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
+                        .getGroups();
+                    default -> Set.of();
+                };
 
-            if (userMemberships.isEmpty() && (entityGroups == null || entityGroups.isEmpty())) {
+            if (userMemberships.isEmpty() && isEmpty(entityGroups)) {
                 return null;
             }
 
@@ -1436,7 +1428,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             return memberEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get user member for {} {} {} {}", referenceType, referenceId, userId, ex);
+            LOGGER.error("An error occurs while trying to get user member for {} {} {}", referenceType, referenceId, userId, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to get roles for " + referenceType + " " + referenceId + " " + userId,
                 ex
@@ -1478,7 +1470,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
         Map<String, char[]> permissions = new HashMap<>(mergedPermissions.size());
         mergedPermissions.forEach((String k, Set<Character> v) -> {
-            Character[] characters = v.toArray(new Character[v.size()]);
+            Character[] characters = v.toArray(new Character[0]);
             char[] chars = new char[characters.length];
             for (int i = 0; i < characters.length; i++) {
                 chars[i] = characters[i];
@@ -1591,7 +1583,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membershipRepository.delete(oldMembershipId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to remove role {} {}", oldRoleId, ex);
+            LOGGER.error("An error occurs while trying to remove role {}", oldRoleId, ex);
             throw new TechnicalManagementException("An error occurs while trying to remove role " + oldRoleId, ex);
         }
     }

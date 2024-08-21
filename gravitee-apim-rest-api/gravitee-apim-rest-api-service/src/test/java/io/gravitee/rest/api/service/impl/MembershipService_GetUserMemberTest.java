@@ -73,6 +73,7 @@ public class MembershipService_GetUserMemberTest {
                 apiRepository,
                 null,
                 null,
+                null,
                 null
             );
     }
