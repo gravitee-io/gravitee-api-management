@@ -37,6 +37,12 @@ public class PortalMenuLinkCrudServiceInMemory implements PortalMenuLinkCrudServ
     }
 
     @Override
+    public PortalMenuLink create(PortalMenuLink portalMenuLink) {
+        storage.add(portalMenuLink);
+        return portalMenuLink;
+    }
+
+    @Override
     public void initWith(List<PortalMenuLink> items) {
         storage.clear();
         storage.addAll(items);

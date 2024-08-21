@@ -24,4 +24,5 @@ public interface PortalMenuLinkAdapter {
     PortalMenuLinkAdapter INSTANCE = Mappers.getMapper(PortalMenuLinkAdapter.class);
 
     PortalMenuLink toEntity(io.gravitee.repository.management.model.PortalMenuLink portalMenuLink);
+    io.gravitee.repository.management.model.PortalMenuLink toRepository(PortalMenuLink portalMenuLink);
 }
