@@ -34,7 +34,6 @@ import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionRespons
 import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -42,7 +41,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -94,7 +92,7 @@ public class IntegrationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getIntegrationById(@PathParam("integrationId") String integrationId) {
         var integration = getIntegrationUsecase
             .execute(new GetIntegrationUseCase.Input(integrationId, GraviteeContext.getCurrentOrganization()))
@@ -105,7 +103,7 @@ public class IntegrationResource extends AbstractResource {
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response updateIntegration(
         @PathParam("integrationId") String integrationId,
         @Valid @NotNull UpdateIntegration updateIntegration
@@ -117,7 +115,7 @@ public class IntegrationResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.DELETE }) })
     public void deleteIntegrationById(@PathParam("integrationId") String integrationId) {
         var input = DeleteIntegrationUseCase.Input.builder().integrationId(integrationId).build();
         deleteIntegrationUseCase.execute(input);
@@ -126,35 +124,12 @@ public class IntegrationResource extends AbstractResource {
     @POST
     @Path("/_ingest")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }),
-        }
-    )
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.CREATE }))
     public void ingestApis(
         @PathParam("integrationId") String integrationId,
         @Valid @NotNull ApisIngest apisIngest,
         @Suspended final AsyncResponse response
     ) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_INTEGRATION,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.READ
-            ) ||
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_API,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE
-            )
-        ) {
-            throw new ForbiddenAccessException();
-        }
-
         AuditInfo audit = getAuditInfo();
 
         startIngestIntegrationApisUseCase
@@ -168,25 +143,8 @@ public class IntegrationResource extends AbstractResource {
     @GET
     @Path("/_preview")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.CREATE }))
     public void previewNewIntegrationApis(@PathParam("integrationId") String integrationId, @Suspended final AsyncResponse response) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_INTEGRATION,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.READ
-            ) ||
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_API,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE
-            )
-        ) {
-            throw new ForbiddenAccessException();
-        }
-
         AuditInfo audit = getAuditInfo();
 
         discoveryUseCase
@@ -198,7 +156,7 @@ public class IntegrationResource extends AbstractResource {
     @GET
     @Path("/apis")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }) })
+    @Permissions(@Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.READ }))
     public IngestedApisResponse getIngestedApis(
         @PathParam("integrationId") String integrationId,
         @BeanParam @Valid PaginationParam paginationParam
@@ -222,29 +180,11 @@ public class IntegrationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(
         {
-            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.DELETE }),
+            @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.DELETE }),
+            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.DELETE }),
         }
     )
     public DeletedIngestedApisResponse deleteIngestedApis(@PathParam("integrationId") String integrationId) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_INTEGRATION,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.READ
-            ) ||
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_API,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.DELETE
-            )
-        ) {
-            throw new ForbiddenAccessException();
-        }
-
         AuditInfo audit = getAuditInfo();
 
         var input = DeleteIngestedApisUseCase.Input.builder().integrationId(integrationId).auditInfo(audit).build();

@@ -51,7 +51,6 @@ import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
-import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -232,8 +231,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
-                    eq(ENVIRONMENT),
+                    eq(RolePermission.INTEGRATION_DEFINITION),
+                    eq(INTEGRATION_ID),
                     eq(RolePermissionAction.READ)
                 )
             )
@@ -252,41 +251,19 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             target = rootTarget().path("_ingest");
         }
 
-        @ParameterizedTest(name = "[{index}] {arguments}")
-        @CsvSource(
-            delimiterString = "|",
-            useHeadersInDisplayName = true,
-            textBlock = """
-        ENVIRONMENT_INTEGRATION[READ] |  ENVIRONMENT_API[CREATE]
-        false                  |  false
-        true                   |  false
-        false                  |  true
-     """
-        )
-        public void should_get_error_if_user_does_not_have_correct_permissions(
-            boolean environmentIntegrationRead,
-            boolean environmentApiCreate
-        ) {
+        @Test
+        public void should_get_error_if_user_does_not_have_correct_permissions() {
             //Given
-            Entity<ApisIngest> entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
+            var entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_INTEGRATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.READ
-                )
-            )
-                .thenReturn(environmentIntegrationRead);
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
-                    ENVIRONMENT,
+                    RolePermission.INTEGRATION_DEFINITION,
+                    INTEGRATION_ID,
                     RolePermissionAction.CREATE
                 )
             )
-                .thenReturn(environmentApiCreate);
+                .thenReturn(false);
 
             final Response response = target.request().post(entity);
 
@@ -296,7 +273,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_error_when_integration_not_found() {
             //Given
-            Entity<ApisIngest> entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
+            var entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
 
             //When
             Response response = target.request().post(entity);
@@ -308,7 +285,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_success_when_ingestion_has_started() {
             //Given
-            Entity<ApisIngest> entity = Entity.entity(new ApisIngest().apiIds(List.of()), MediaType.APPLICATION_JSON_TYPE);
+            var entity = Entity.entity(new ApisIngest().apiIds(List.of()), MediaType.APPLICATION_JSON_TYPE);
             integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
             integrationAgentInMemory.configureApisNumberToIngest(INTEGRATION_ID, 10L);
 
@@ -382,8 +359,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
-                    eq(ENVIRONMENT),
+                    eq(RolePermission.INTEGRATION_DEFINITION),
+                    eq(INTEGRATION_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
             )
@@ -456,8 +433,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
-                    eq(ENVIRONMENT),
+                    eq(RolePermission.INTEGRATION_DEFINITION),
+                    eq(INTEGRATION_ID),
                     eq(RolePermissionAction.DELETE)
                 )
             )
@@ -547,8 +524,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
-                    eq(ENVIRONMENT),
+                    eq(RolePermission.INTEGRATION_DEFINITION),
+                    eq(INTEGRATION_ID),
                     eq(RolePermissionAction.READ)
                 )
             )
@@ -607,38 +584,38 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             delimiterString = "|",
             useHeadersInDisplayName = true,
             textBlock = """
-        ENVIRONMENT_INTEGRATION[READ] |  ENVIRONMENT_API[DELETE]
+        INTEGRATION_DEFINITION[DELETE] |  ENVIRONMENT_INTEGRATION[DELETE]
         false                  |  false
         true                   |  false
         false                  |  true
      """
         )
         public void should_get_error_if_user_does_not_have_correct_permissions(
-            boolean environmentIntegrationRead,
-            boolean environmentApiCreate
+            boolean integrationDefinitionDelete,
+            boolean environmentIntegrationDelete
         ) {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.INTEGRATION_DEFINITION,
+                    ENVIRONMENT,
+                    RolePermissionAction.DELETE
+                )
+            )
+                .thenReturn(integrationDefinitionDelete);
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
                     RolePermission.ENVIRONMENT_INTEGRATION,
                     ENVIRONMENT,
-                    RolePermissionAction.READ
-                )
-            )
-                .thenReturn(environmentIntegrationRead);
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
-                    ENVIRONMENT,
                     RolePermissionAction.DELETE
                 )
             )
-                .thenReturn(environmentApiCreate);
+                .thenReturn(environmentIntegrationDelete);
 
             final Response response = target.path("/apis").request().delete();
 
-            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(response).hasStatus(OK_200);
         }
     }
 
@@ -650,39 +627,17 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             target = rootTarget().path("_preview");
         }
 
-        @ParameterizedTest(name = "[{index}] {arguments}")
-        @CsvSource(
-            delimiterString = "|",
-            useHeadersInDisplayName = true,
-            textBlock = """
-        ENVIRONMENT_INTEGRATION[READ] |  ENVIRONMENT_API[CREATE]
-        false                  |  false
-        true                   |  false
-        false                  |  true
-     """
-        )
-        public void should_get_error_if_user_does_not_have_correct_permissions(
-            boolean environmentIntegrationRead,
-            boolean environmentApiCreate
-        ) {
+        @Test
+        public void should_get_error_if_user_does_not_have_correct_permissions() {
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_INTEGRATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.READ
-                )
-            )
-                .thenReturn(environmentIntegrationRead);
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
-                    ENVIRONMENT,
+                    RolePermission.INTEGRATION_DEFINITION,
+                    INTEGRATION_ID,
                     RolePermissionAction.CREATE
                 )
             )
-                .thenReturn(environmentApiCreate);
+                .thenReturn(false);
 
             final Response response = target.request().get();
 
