@@ -33,7 +33,6 @@ import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapter;
 import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapterImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
@@ -55,6 +54,47 @@ public class PortalMenuLinkCrudServiceImplTest {
         mapper = new PortalMenuLinkAdapterImpl();
 
         service = new PortalMenuLinkCrudServiceImpl(repository, mapper);
+    }
+
+    @Nested
+    class Create {
+
+        @Test
+        @SneakyThrows
+        void should_create_a_PortalMenuLink() {
+            // Given
+            var portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink();
+            when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            var result = service.create(portalMenuLink);
+
+            // Then
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getId()).isNotNull();
+                soft.assertThat(result.getName()).isEqualTo(portalMenuLink.getName());
+                soft.assertThat(result.getEnvironmentId()).isEqualTo(portalMenuLink.getEnvironmentId());
+                soft.assertThat(result.getTarget()).isEqualTo(portalMenuLink.getTarget());
+                soft.assertThat(result.getType()).isEqualTo(portalMenuLink.getType());
+                soft.assertThat(result.getOrder()).isEqualTo(portalMenuLink.getOrder());
+            });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_when_technical_exception_occurs() {
+            // Given
+            var portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink();
+            when(repository.create(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.create(portalMenuLink));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to create a PortalMenuLink with id: " + portalMenuLink.getId());
+        }
     }
 
     @Nested

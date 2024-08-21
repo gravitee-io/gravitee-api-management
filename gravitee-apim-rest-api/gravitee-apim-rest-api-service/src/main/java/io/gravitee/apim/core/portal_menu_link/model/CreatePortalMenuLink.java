@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_menu_link.crud_service;
+package io.gravitee.apim.core.portal_menu_link.model;
 
-import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface PortalMenuLinkCrudService {
-    PortalMenuLink create(PortalMenuLink portalMenuLink);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class CreatePortalMenuLink {
 
-    PortalMenuLink getByIdAndEnvironmentId(String environmentId, String portalMenuLinkId);
+    private String name;
+    private PortalMenuLinkType type;
+    private String target;
 }
