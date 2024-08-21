@@ -51,6 +51,13 @@ public class DeleteMembershipDomainService {
         });
     }
 
+    public void deleteIntegrationMemberships(String integrationId) {
+        var memberships = membershipQueryService.findByReference(Membership.ReferenceType.INTEGRATION, integrationId);
+        memberships.forEach(membership -> {
+            membershipCrudService.delete(membership.getId());
+        });
+    }
+
     private void createAuditLog(AuditInfo auditInfo, Membership membership, String apiId) {
         auditDomainService.createApiAuditLog(
             ApiAuditLogEntity

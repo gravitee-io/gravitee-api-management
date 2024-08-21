@@ -126,7 +126,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         Stream
-            .of(apiCrudServiceInMemory, integrationCrudServiceInMemory, integrationJobCrudServiceInMemory, integrationAgentInMemory)
+            .of(apiCrudServiceInMemory, integrationCrudServiceInMemory, integrationJobCrudServiceInMemory, membershipQueryServiceInMemory, integrationAgentInMemory)
             .forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
         reset(licenseManager);

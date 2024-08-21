@@ -675,6 +675,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
             RoleEntity applicationPORole = roleService
                 .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find Integration Primary Owner role"));
+            RoleEntity integrationPORole = roleService
+                .findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find Application Primary Owner role"));
             Set<io.gravitee.repository.management.model.Membership> memberships =
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -689,6 +692,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             if (MembershipReferenceType.APPLICATION.equals(referenceType)) {
                 assertNoPrimaryOwnerRemoval(applicationPORole, memberships);
+            }
+            if (MembershipReferenceType.INTEGRATION.equals(referenceType)) {
+                assertNoPrimaryOwnerRemoval(integrationPORole, memberships);
             }
 
             for (io.gravitee.repository.management.model.Membership membership : memberships) {
@@ -1750,6 +1756,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
 
+            RoleEntity integrationPORole = roleService
+                .findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find Integration Primary Owner role"));
+
             Set<io.gravitee.repository.management.model.Membership> existingMemberships =
                 this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                         member.getMemberId(),
@@ -1761,6 +1771,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             // If new roles do not contain PRIMARY_OWNER, check we are not removing PRIMARY_OWNER membership
             if (roles.stream().filter(role -> role.getName().equals(PRIMARY_OWNER.name())).findAny().isEmpty()) {
                 assertNoPrimaryOwnerRemoval(apiPORole, existingMemberships);
+                assertNoPrimaryOwnerRemoval(integrationPORole, existingMemberships);
             }
 
             if (existingMemberships != null && !existingMemberships.isEmpty()) {
@@ -1851,6 +1862,72 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId) {
         deleteReferenceMember(executionContext, MembershipReferenceType.APPLICATION, applicationId, MembershipMemberType.USER, memberId);
+    }
+
+    @Override
+    public MemberEntity createNewMembershipForIntegration(
+        ExecutionContext executionContext,
+        String integrationId,
+        String userId,
+        String externalReference,
+        String roleName
+    ) {
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
+            MembershipReferenceType.INTEGRATION,
+            integrationId
+        );
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(
+            userId,
+            externalReference,
+            MembershipMemberType.USER
+        );
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.INTEGRATION, roleName);
+
+        if (member.getMemberId() != null) {
+            MemberEntity userMember = getUserMember(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.INTEGRATION,
+                integrationId,
+                member.getMemberId()
+            );
+            if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+                throw new MembershipAlreadyExistsException(
+                    member.getMemberId(),
+                    MembershipMemberType.USER,
+                    integrationId,
+                    MembershipReferenceType.INTEGRATION
+                );
+            }
+        }
+        return addRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+    }
+
+    @Override
+    public MemberEntity updateMembershipForIntegration(ExecutionContext executionContext, String apiId, String memberId, String roleName) {
+        MemberEntity membership = null;
+        MemberEntity userMember = getUserMember(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.INTEGRATION,
+            apiId,
+            memberId
+        );
+
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
+            MembershipReferenceType.INTEGRATION,
+            apiId
+        );
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(memberId, null, MembershipMemberType.USER);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.INTEGRATION, roleName);
+
+        if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+            membership = updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+        }
+        return membership;
+    }
+
+    @Override
+    public void deleteMemberForIntegration(ExecutionContext executionContext, String integrationID, String memberId) {
+        deleteReferenceMember(executionContext, MembershipReferenceType.INTEGRATION, integrationID, MembershipMemberType.USER, memberId);
     }
 
     private boolean hasApiPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId) {

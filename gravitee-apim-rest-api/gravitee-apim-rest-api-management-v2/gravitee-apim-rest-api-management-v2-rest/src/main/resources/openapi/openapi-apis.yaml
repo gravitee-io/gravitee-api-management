@@ -66,6 +66,8 @@ tags:
       description: Everything about integration
     - name: Categories
       description: Everything about categories
+    - name: Integration Members
+      description: Everything about Integration members
 
 paths:
     # APIs
@@ -1263,10 +1265,10 @@ paths:
                 Ingest all APIs for a specific Integration.
             operationId: ingestIntegration
             requestBody:
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/ApisIngest"
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApisIngest"
             responses:
                 "200":
                     description: Ingestion successful
@@ -1335,7 +1337,104 @@ paths:
                     $ref: "#/components/responses/DeletedIngestedApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    # Integration Members
+    /environments/{envId}/integrations/{integrationId}/members:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Integration Members
+            summary: Get the Integration's members
+            description: |
+                List the members for a given Integration.
 
+                User must have the INTEGRATION_MEMBER[READ] permission.
+            operationId: listIntegrationMembers
+            responses:
+                "200":
+                    $ref: "#/components/responses/MembersResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - Integration Members
+            summary: Add a member to an Integration.
+            description: |
+                Add a new member to an Integration.
+
+                Returns a 400 HTTP Error:
+                - when the user tries to set a member as PrimaryOwner.
+
+                User must have the INTEGRATION_MEMBER[CREATE] permission.
+            operationId: addIntegrationMember
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AddIntegrationMember"
+                required: true
+            responses:
+                "201":
+                    description: Member successfully added
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Member"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{integrationId}/members/{memberId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/memberIdParam"
+        put:
+            tags:
+                - Integration Members
+            summary: Updates a member for an Integration.
+            description: |
+                Edit a member for an Integration.
+
+                Returns a 400 HTTP Error:
+                 - when the user tries to set a member as PrimaryOwner.
+
+                User must have the INTEGRATION_MEMBER[UPDATE] permission.
+            operationId: updateIntegrationMember
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateIntegrationMember"
+                required: true
+            responses:
+                "200":
+                    description: Membership successfully edited.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Member"
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - Integration Members
+            summary: Remove one Integration member
+            description: |
+                Remove an Integration member.
+
+                Returns a 400 HTTP Error:
+                 - when the user tries to remove a PrimaryOwner.
+
+                User must have the INTEGRATION_MEMBER[DELETE] permission.
+            operationId: removeIntegrationMember
+            responses:
+                "204":
+                    description: Integration member successfully removed
+                default:
+                    $ref: "#/components/responses/Error"
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:
         parameters:
@@ -4401,13 +4500,13 @@ components:
             required: [entrypointId]
 
         ApisIngest:
-          type: object
-          properties:
-            apiIds:
-              type: array
-              items:
-                type: string
-              description: The list of ids of APIs to ingest. If null or empty, ingest all.
+            type: object
+            properties:
+                apiIds:
+                    type: array
+                    items:
+                        type: string
+                    description: The list of ids of APIs to ingest. If null or empty, ingest all.
 
         CreateSubscription:
             type: object
@@ -4752,7 +4851,30 @@ components:
                     description: The name of the role
                     minLength: 1
             required: [roleName]
+        AddIntegrationMember:
+            type: object
+            description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
+            properties:
+                userId:
+                    type: string
+                    description: Technical identifier for existing user.
+                externalReference:
+                    type: string
+                    description: User's reference for user provided from an identity provider.
+                roleName:
+                    type: string
+                    description: The name of the role
+                    minLength: 1
+            required: [roleName]
         UpdateApiMember:
+            type: object
+            properties:
+                roleName:
+                    type: string
+                    description: The name of the role
+                    minLength: 1
+            required: [roleName]
+        UpdateIntegrationMember:
             type: object
             properties:
                 roleName:

@@ -50,6 +50,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private static final String GROUP_ID_PARAM_V1 = "group";
     private static final String API_ID_PARAM_V1 = "api";
     private static final String APPLICATION_ID_PARAM_V1 = "application";
+    private static final String INTEGRATION_ID_PARAM = "integrationId";
 
     @Context
     protected ResourceInfo resourceInfo;
@@ -78,22 +79,17 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
-        switch (permission.value().getScope()) {
-            case ORGANIZATION:
-                return hasPermission(executionContext, permission, executionContext.getOrganizationId());
-            case ENVIRONMENT:
-                return (
-                    executionContext.hasEnvironmentId() && hasPermission(executionContext, permission, executionContext.getEnvironmentId())
-                );
-            case APPLICATION:
-                return hasPermission(executionContext, permission, getApplicationId(requestContext));
-            case API:
-                return hasPermission(executionContext, permission, getApiId(requestContext));
-            case GROUP:
-                return hasPermission(executionContext, permission, getGroupId(requestContext));
-            default:
-                return false;
-        }
+        return switch (permission.value().getScope()) {
+            case ORGANIZATION -> hasPermission(executionContext, permission, executionContext.getOrganizationId());
+            case ENVIRONMENT -> (
+                executionContext.hasEnvironmentId() && hasPermission(executionContext, permission, executionContext.getEnvironmentId())
+            );
+            case APPLICATION -> hasPermission(executionContext, permission, getApplicationId(requestContext));
+            case API -> hasPermission(executionContext, permission, getApiId(requestContext));
+            case GROUP -> hasPermission(executionContext, permission, getGroupId(requestContext));
+            case INTEGRATION -> hasPermission(executionContext, permission, getId(INTEGRATION_ID_PARAM, requestContext));
+            case PLATFORM -> false;
+        };
     }
 
     private boolean hasPermission(final ExecutionContext executionContext, Permission permission, String referenceId) {

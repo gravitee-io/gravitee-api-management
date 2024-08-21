@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionRespons
 import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -54,7 +55,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,6 +67,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class IntegrationResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private GetIntegrationUseCase getIntegrationUsecase;
@@ -245,5 +251,10 @@ public class IntegrationResource extends AbstractResource {
         var output = deleteIngestedApisUseCase.execute(input);
 
         return new DeletedIngestedApisResponse().deleted(output.deleted()).skipped(output.skipped()).errors(output.errors());
+    }
+
+    @Path("/members")
+    public IntegrationMembersResource getApiMembersResource() {
+        return resourceContext.getResource(IntegrationMembersResource.class);
     }
 }

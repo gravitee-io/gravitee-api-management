@@ -26,7 +26,6 @@ import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
@@ -47,14 +46,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class MembershipService_DeleteMemberTest {
 
     private static final String ORG_ID = "DEFAULT";
-    private static final String ENV_ID = "DEFAULT";
     private static final String API_PO_ROLE_ID = "123";
     private static final String APPLICATION_PO_ROLE_ID = "222";
+    private static final String INTEGRATION_PO_ROLE_ID = "333";
     private static final String MEMBER_ID = "456";
     private static final String API_ID = "789";
     private static final String APPLICATION_ID = "app#1";
 
-    private static final UserEntity USER = UserEntity.builder().build();
     private MembershipService membershipService;
 
     @Mock
@@ -87,7 +85,9 @@ public class MembershipService_DeleteMemberTest {
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID))
             .thenReturn(primaryOwnerRole(RoleScope.API, API_PO_ROLE_ID));
         when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), ORG_ID))
-            .thenReturn(primaryOwnerRole(RoleScope.API, APPLICATION_PO_ROLE_ID));
+            .thenReturn(primaryOwnerRole(RoleScope.APPLICATION, APPLICATION_PO_ROLE_ID));
+        when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), ORG_ID))
+            .thenReturn(primaryOwnerRole(RoleScope.INTEGRATION, INTEGRATION_PO_ROLE_ID));
     }
 
     @Test
