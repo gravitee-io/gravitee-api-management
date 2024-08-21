@@ -36,6 +36,7 @@ import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.IntegrationJobCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.integration.model.IntegrationJob;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.LicenseManager;
@@ -50,6 +51,7 @@ import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -126,7 +128,13 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         Stream
-            .of(apiCrudServiceInMemory, integrationCrudServiceInMemory, integrationJobCrudServiceInMemory, membershipQueryServiceInMemory, integrationAgentInMemory)
+            .of(
+                apiCrudServiceInMemory,
+                integrationCrudServiceInMemory,
+                integrationJobCrudServiceInMemory,
+                membershipQueryServiceInMemory,
+                integrationAgentInMemory
+            )
             .forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
         reset(licenseManager);
@@ -134,6 +142,22 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Nested
     class GetIntegration {
+
+        @BeforeEach
+        void setup() {
+            membershipQueryServiceInMemory.initWith(
+                List.of(
+                    Membership
+                        .builder()
+                        .memberId(USER_NAME)
+                        .referenceId(INTEGRATION_ID)
+                        .roleId("int-po-id-fake-org")
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .memberType(Membership.Type.USER)
+                        .build()
+                )
+            );
+        }
 
         @Test
         public void should_get_integration() {
@@ -181,6 +205,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .description(integration.getDescription())
                         .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
+                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
                         .pendingJob(
                             io.gravitee.rest.api.management.v2.rest.model.IngestionJob
                                 .builder()
@@ -188,7 +213,6 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                                 .status(IngestionStatus.PENDING)
                                 .build()
                         )
-                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
                         .build()
                 );
         }

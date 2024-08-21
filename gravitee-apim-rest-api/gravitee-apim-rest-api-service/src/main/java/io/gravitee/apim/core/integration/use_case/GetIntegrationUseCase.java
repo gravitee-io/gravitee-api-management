@@ -61,7 +61,7 @@ public class GetIntegrationUseCase {
 
         var pendingJob = integrationJobQueryService.findPendingJobFor(integrationId);
         var primaryOwner = integrationPrimaryOwnerDomainService
-            .getApiPrimaryOwner(input.organizationId(), integration.getId())
+            .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
             .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
             .onErrorComplete()
             .blockingGet();

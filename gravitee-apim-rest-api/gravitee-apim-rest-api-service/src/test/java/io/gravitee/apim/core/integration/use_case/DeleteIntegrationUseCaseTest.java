@@ -22,6 +22,7 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationFixture;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.rest.api.service.AuditService;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,8 +70,16 @@ public class DeleteIntegrationUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        integrationCrudServiceInMemory.reset();
-        apiQueryServiceInMemory.reset();
+        Stream
+            .of(
+                integrationCrudServiceInMemory,
+                apiQueryServiceInMemory,
+                membershipCrudService,
+                membershipQueryService,
+                auditCrudService,
+                userCrudService
+            )
+            .forEach(InMemoryAlternative::reset);
     }
 
     @Test
