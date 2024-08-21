@@ -23,10 +23,10 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
-import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
-import io.gravitee.apim.core.api.use_case.ValidateCRDUseCase;
+import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -120,10 +120,10 @@ public class ApisResource extends AbstractResource {
     private CreateV4ApiUseCase createV4ApiUseCase;
 
     @Inject
-    private ImportCRDUseCase importCRDUseCase;
+    private ImportApiCRDUseCase importCRDUseCase;
 
     @Inject
-    private ValidateCRDUseCase validateCRDUseCase;
+    private ValidateApiCRDUseCase validateApiCRDUseCase;
 
     @Inject
     private ImportApiDefinitionUseCase importApiDefinitionUseCase;
@@ -201,7 +201,7 @@ public class ApisResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        var input = new ImportCRDUseCase.Input(
+        var input = new ImportApiCRDUseCase.Input(
             AuditInfo
                 .builder()
                 .organizationId(executionContext.getOrganizationId())
@@ -219,7 +219,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return dryRun
-            ? Response.ok(validateCRDUseCase.execute(input).status()).build()
+            ? Response.ok(validateApiCRDUseCase.execute(input).status()).build()
             : Response.ok(importCRDUseCase.execute(input).status()).build();
     }
 
