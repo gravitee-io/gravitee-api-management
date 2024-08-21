@@ -53,6 +53,19 @@ public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService 
     }
 
     @Override
+    public PortalMenuLink update(PortalMenuLink portalMenuLink) {
+        try {
+            var result = portalMenuLinkRepository.update(portalMenuLinkAdapter.toRepository(portalMenuLink));
+            return portalMenuLinkAdapter.toEntity(result);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to update a PortalMenuLink with id: %s", portalMenuLink.getId()),
+                e
+            );
+        }
+    }
+
+    @Override
     public PortalMenuLink getByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) {
         try {
             return portalMenuLinkRepository
