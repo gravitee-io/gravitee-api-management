@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.crd.MemberCRD;
+import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
