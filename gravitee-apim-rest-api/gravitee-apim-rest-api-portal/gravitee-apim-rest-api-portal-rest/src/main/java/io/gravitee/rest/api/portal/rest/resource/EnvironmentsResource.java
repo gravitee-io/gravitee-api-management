@@ -119,4 +119,9 @@ public class EnvironmentsResource extends AbstractResource {
     public NotifiersResource getNotifiersResource() {
         return resourceContext.getResource(NotifiersResource.class);
     }
+
+    @Path("portal-menu-links")
+    public PortalMenuLinksResource getPortalMenuLinksResource() {
+        return resourceContext.getResource(PortalMenuLinksResource.class);
+    }
 }

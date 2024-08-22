@@ -2912,6 +2912,29 @@ paths:
                                 $ref: "#/components/schemas/EntrypointsResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /portal-menu-links:
+        get:
+            tags:
+                - Portal
+            summary: Get the portal menu links for Portal NEXT.
+            operationId: getPortalNextLinks
+            description: |
+                Get all the links to be displayed in the header of portal next only.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List of Portal Menu Links
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/PortalMenuLink"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
 
 components:
     requestBodies:
@@ -4905,6 +4928,38 @@ components:
                 folder:
                     type: boolean
                     description: true if resourceType is 'page' and resourceRef is the id of a folder.
+        PortalMenuLink:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Portal menu link id
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Displayed name of the menu link
+                    example: My custom link
+                type:
+                    type: string
+                    description: type of the menu link
+                    enum:
+                        - external
+                    default: external
+                    example: external
+                target:
+                    type: string
+                    description: target of the menu link
+                    example: https://gravitee.io
+                order:
+                    type: integer
+                    description: The order of the menu link.
+                    example: 2
+            required:
+                - id
+                - name
+                - type
+                - order
+
         Notifier:
             properties:
                 id:
