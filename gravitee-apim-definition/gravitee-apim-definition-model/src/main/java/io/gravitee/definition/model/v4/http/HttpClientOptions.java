@@ -40,6 +40,9 @@ public class HttpClientOptions implements Serializable {
     private static final long serialVersionUID = -7061411805967594667L;
 
     @Builder.Default
+    private int http2MultiplexingLimit = -1;
+
+    @Builder.Default
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     @Builder.Default
