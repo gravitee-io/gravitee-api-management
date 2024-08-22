@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResou
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoryResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -64,6 +65,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/groups")
     public GroupsResource getGroupsResource() {
         return resourceContext.getResource(GroupsResource.class);
+    }
+
+    @Path("/ui/portal-menu-links")
+    public PortalMenuLinksResource getPortalMenuLinksResource() {
+        return resourceContext.getResource(PortalMenuLinksResource.class);
     }
 
     @Path("/ui/themes")
