@@ -11,7 +11,7 @@ info:
     version: 2.0.0
 
 servers:
-    - url: "{protocol}://{managementAPIHost}/management/v2"
+    - url: "{protocol}://{managementAPIHost}/management/v2/environments/{envId}"
       description: APIM Management API v2 - Default base URL
       variables:
           protocol:
@@ -23,6 +23,27 @@ servers:
           managementAPIHost:
               description: The domain of the server hosting your Management API
               default: localhost:8083
+          envId:
+              description: Id or Hrid (Human readable Id) of an environment
+              default: DEFAULT
+    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}/environments/{envId}"
+      description: APIM Management API v2 - Base URL to target specific organizations
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+          orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+          envId:
+              description: Id or Hrid (Human readable Id) of an environment
+              default: DEFAULT
 
 tags:
     - name: Management UI
@@ -103,37 +124,7 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/ui/themes:
-      servers:
-        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
-          description: APIM Management API v2 - Base URL to target specific organizations
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-            orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
-        - url: "{protocol}://{managementAPIHost}/management/v2"
-          description: APIM Management API v2 - Default base URL
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
+    /ui/themes:
       get:
         parameters:
           - $ref: "#/components/parameters/pageParam"
@@ -155,37 +146,7 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
-    /environments/{envId}/ui/themes/_default:
-      servers:
-        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
-          description: APIM Management API v2 - Base URL to target specific organizations
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-            orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
-        - url: "{protocol}://{managementAPIHost}/management/v2"
-          description: APIM Management API v2 - Default base URL
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
+    /ui/themes/_default:
       get:
         tags:
           - Management UI
@@ -208,37 +169,7 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
-    /environments/{envId}/ui/themes/_current:
-      servers:
-        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
-          description: APIM Management API v2 - Base URL to target specific organizations
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-            orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
-        - url: "{protocol}://{managementAPIHost}/management/v2"
-          description: APIM Management API v2 - Default base URL
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
+    /ui/themes/_current:
       get:
         tags:
           - Management UI
@@ -260,42 +191,12 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
-    /environments/{envId}/ui/themes/{themeId}:
-      servers:
-        - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
-          description: APIM Management API v2 - Base URL to target specific organizations
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
-            orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
-        - url: "{protocol}://{managementAPIHost}/management/v2"
-          description: APIM Management API v2 - Default base URL
-          variables:
-            protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                - https
-                - http
-            managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
+    /ui/themes/{themeId}:
       parameters:
-        - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/themeIdParam"
       put:
         tags:
           - Management UI
-        parameters:
-          - $ref: "#/components/parameters/themeIdParam"
         summary: Update theme by ID
         description: |
           Update either Portal or Portal Next theme.
@@ -323,9 +224,9 @@ components:
             type: object
             properties:
                 theme:
-                    $ref: '#/components/schemas/ConsoleTheme'
+                    $ref: "#/components/schemas/ConsoleTheme"
                 ctaConfiguration:
-                    $ref: '#/components/schemas/CtaConfiguration'
+                    $ref: "#/components/schemas/CtaConfiguration"
                 logo:
                     type: string
                     description: The logo that should be displayed in the console
@@ -404,6 +305,7 @@ components:
                                 example: updateApi.properties[0].key
                             invalidValue:
                                 description: The invalid value.
+
         GenericTheme:
           type: object
           title: "GenericTheme"
@@ -618,7 +520,7 @@ components:
             fontFamily:
               type: string
               description: Font-family used for Portal-Next
-              example: "\"Roboto\", sans-serif"
+                    example: '"Roboto", sans-serif'
 
         Theme:
           oneOf:
@@ -682,7 +584,6 @@ components:
                 definition:
                   $ref: "#/components/schemas/PortalNextDefinition"
 
-
         ThemeType:
           type: string
           description: Available theme types
@@ -690,7 +591,6 @@ components:
           enum:
             - PORTAL
             - PORTAL_NEXT
-
     parameters:
         enabledThemeParam:
           name: enabled
@@ -699,14 +599,6 @@ components:
           description: Filter for enabled themes.
           schema:
             type: boolean
-        envIdParam:
-          name: envId
-          in: path
-          required: true
-          description: Id or Hrid (Human readable Id) of an environment.
-          schema:
-            type: string
-            default: DEFAULT
         orgIdParam:
             name: orgId
             in: path
