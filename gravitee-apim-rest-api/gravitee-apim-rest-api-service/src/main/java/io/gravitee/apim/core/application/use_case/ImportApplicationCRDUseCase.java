@@ -18,6 +18,7 @@ package io.gravitee.apim.core.application.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.application.domain_service.ImportApplicationCRDDomainService;
+import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
@@ -25,15 +26,17 @@ import io.gravitee.apim.core.application_metadata.crud_service.ApplicationMetada
 import io.gravitee.apim.core.application_metadata.query_service.ApplicationMetadataQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
-import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -49,19 +52,22 @@ public class ImportApplicationCRDUseCase {
     private final ApplicationMetadataCrudService applicationMetadataCrudService;
     private final ApplicationMetadataQueryService applicationMetadataQueryService;
     private final CRDMembersDomainService membersDomainService;
+    private final ValidateApplicationCRDDomainService crdValidator;
 
     public ImportApplicationCRDUseCase(
         ApplicationCrudService applicationCrudService,
         ImportApplicationCRDDomainService importApplicationCRDDomainService,
         ApplicationMetadataCrudService applicationMetadataCrudService,
         ApplicationMetadataQueryService applicationMetadataQueryService,
-        CRDMembersDomainService membersDomainService
+        CRDMembersDomainService membersDomainService,
+        ValidateApplicationCRDDomainService crdValidator
     ) {
         this.applicationCrudService = applicationCrudService;
         this.importApplicationCRDDomainService = importApplicationCRDDomainService;
         this.applicationMetadataCrudService = applicationMetadataCrudService;
         this.applicationMetadataQueryService = applicationMetadataQueryService;
         this.membersDomainService = membersDomainService;
+        this.crdValidator = crdValidator;
     }
 
     public record Output(ApplicationCRDStatus status) {}
@@ -79,18 +85,29 @@ public class ImportApplicationCRDUseCase {
 
     private ApplicationCRDStatus create(Input input) {
         try {
-            var newApplicationEntity = input.crd.toNewApplicationEntity();
-            var newApplication = importApplicationCRDDomainService.create(newApplicationEntity, input.auditInfo);
+            var validationResult = validateAndSanitize(input);
 
-            createOrUpdateApplicationMetadata(input, newApplication);
+            var warnings = validationResult.warning().orElseGet(List::of);
 
-            membersDomainService.updateApplicationMembers(input.auditInfo.organizationId(), newApplication.getId(), input.crd.getMembers());
+            var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+
+            var newApplicationEntity = sanitizedInput.crd().toNewApplicationEntity();
+            var newApplication = importApplicationCRDDomainService.create(newApplicationEntity, sanitizedInput.auditInfo);
+
+            createOrUpdateApplicationMetadata(sanitizedInput, newApplication);
+
+            membersDomainService.updateApplicationMembers(
+                sanitizedInput.auditInfo.organizationId(),
+                newApplication.getId(),
+                sanitizedInput.crd.getMembers()
+            );
 
             return ApplicationCRDStatus
                 .builder()
                 .id(newApplication.getId())
-                .organizationId(input.auditInfo.organizationId())
-                .environmentId(input.auditInfo.environmentId())
+                .organizationId(sanitizedInput.auditInfo.organizationId())
+                .environmentId(sanitizedInput.auditInfo.environmentId())
+                .errors(ApplicationCRDStatus.Errors.fromErrorList(warnings))
                 .build();
         } catch (AbstractDomainException e) {
             throw e;
@@ -101,19 +118,26 @@ public class ImportApplicationCRDUseCase {
 
     private ApplicationCRDStatus update(Input input, BaseApplicationEntity application) {
         try {
-            var updateApplicationEntity = input.crd.toUpdateApplicationEntity();
+            var validationResult = validateAndSanitize(input);
+
+            var warnings = validationResult.warning().orElseGet(List::of);
+
+            var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+
+            var updateApplicationEntity = sanitizedInput.crd.toUpdateApplicationEntity();
+
             var updatedApplication = importApplicationCRDDomainService.update(
                 application.getId(),
                 updateApplicationEntity,
-                input.auditInfo
+                sanitizedInput.auditInfo
             );
 
-            createOrUpdateApplicationMetadata(input, updatedApplication);
+            createOrUpdateApplicationMetadata(sanitizedInput, updatedApplication);
 
             membersDomainService.updateApplicationMembers(
-                input.auditInfo.organizationId(),
+                sanitizedInput.auditInfo.organizationId(),
                 updatedApplication.getId(),
-                input.crd.getMembers()
+                sanitizedInput.crd.getMembers()
             );
 
             return ApplicationCRDStatus
@@ -121,12 +145,32 @@ public class ImportApplicationCRDUseCase {
                 .id(updatedApplication.getId())
                 .organizationId(input.auditInfo.organizationId())
                 .environmentId(input.auditInfo.environmentId())
+                .errors(ApplicationCRDStatus.Errors.fromErrorList(warnings))
                 .build();
         } catch (AbstractDomainException e) {
             throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
         }
+    }
+
+    private Validator.Result<ImportApplicationCRDUseCase.Input> validateAndSanitize(Input input) {
+        var validationResult = crdValidator
+            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(input.auditInfo(), input.crd()))
+            .map(sanitized -> new ImportApplicationCRDUseCase.Input(sanitized.auditInfo(), sanitized.spec()));
+
+        validationResult
+            .severe()
+            .ifPresent(errors -> {
+                throw new ValidationDomainException(
+                    String.format(
+                        "Unable to import because of errors [%s]",
+                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                    )
+                );
+            });
+
+        return validationResult;
     }
 
     private void createOrUpdateApplicationMetadata(Input input, BaseApplicationEntity application) {

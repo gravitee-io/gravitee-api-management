@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,8 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
 
     private final ValidateGroupsDomainService groupsValidator;
 
+    private final ValidateCRDMembersDomainService membersValidator;
+
     @Override
     public Result<ValidateApplicationCRDDomainService.Input> validateAndSanitize(ValidateApplicationCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
@@ -43,6 +46,10 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
         groupsValidator
             .validateAndSanitize(new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.spec().getGroups()))
             .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
+
+        membersValidator
+            .validateAndSanitize(new ValidateCRDMembersDomainService.Input(input.auditInfo.organizationId(), input.spec.getMembers()))
+            .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
         return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }

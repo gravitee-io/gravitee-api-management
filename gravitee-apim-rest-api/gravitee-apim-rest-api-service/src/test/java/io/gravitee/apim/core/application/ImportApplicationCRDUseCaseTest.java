@@ -20,12 +20,16 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
@@ -42,6 +46,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -80,6 +85,13 @@ public class ImportApplicationCRDUseCaseTest {
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
 
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    // Validation
+    private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
+        new ValidateGroupsDomainService(groupQueryService),
+        new ValidateCRDMembersDomainService(userDomainService)
+    );
+
     ImportApplicationCRDUseCase useCase;
 
     @BeforeEach
@@ -92,7 +104,8 @@ public class ImportApplicationCRDUseCaseTest {
                 importApplicationCRDDomainService,
                 applicationMetadataCrudService,
                 applicationMetadataQueryService,
-                membersDomainService
+                membersDomainService,
+                crdValidator
             );
     }
 
@@ -137,13 +150,20 @@ public class ImportApplicationCRDUseCaseTest {
         @Test
         void should_create_new_application_and_its_members() {
             var expectedApp = expectedApplication();
-            ApplicationCRDSpec crd = anApplicationCRD();
+            var expectedMembers = applicationMembers()
+                .stream()
+                .map(member -> member.toBuilder().id(USER_ID).build())
+                .collect(Collectors.toSet());
+
+            var crd = anApplicationCRD();
+
             crd.setMembers(applicationMembers());
+
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(applicationMembers());
+                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(expectedMembers);
             });
         }
     }
@@ -191,14 +211,20 @@ public class ImportApplicationCRDUseCaseTest {
         @Test
         void should_update_existing_application_and_its_members() {
             var expectedApp = expectedApplication();
-            ApplicationCRDSpec crd = anApplicationCRD();
+            var expectedMembers = applicationMembers()
+                .stream()
+                .map(member -> member.toBuilder().id(USER_ID).build())
+                .collect(Collectors.toSet());
+
+            var crd = anApplicationCRD();
+
             crd.setMembers(applicationMembers());
 
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(applicationMembers());
+                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(expectedMembers);
             });
         }
     }
