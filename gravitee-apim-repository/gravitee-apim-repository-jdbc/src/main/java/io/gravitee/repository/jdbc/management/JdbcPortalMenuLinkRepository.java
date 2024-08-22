@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.model.PortalMenuLink;
 import java.sql.Types;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +57,30 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
     @Override
     protected String getId(final PortalMenuLink item) {
         return item.getId();
+    }
+
+    @Override
+    public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcPortalMenuLinkRepository.findByIdAndEnvironmentId({})", environmentId);
+        try {
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ? ORDER BY " + escapeReservedWord("order"),
+                    getOrm().getRowMapper(),
+                    portalMenuLinkId,
+                    environmentId
+                )
+                .stream()
+                .findFirst();
+        } catch (final Exception ex) {
+            final String error = String.format(
+                "Failed to find portal menu links by id (%s) and environment id (%s)",
+                portalMenuLinkId,
+                environmentId
+            );
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
     }
 
     @Override

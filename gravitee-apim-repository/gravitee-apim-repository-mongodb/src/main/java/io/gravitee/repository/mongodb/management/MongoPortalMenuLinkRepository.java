@@ -74,6 +74,19 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
     }
 
     @Override
+    public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
+        logger.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
+
+        PortalMenuLinkMongo portalMenuLink = internalPortalMenuLinkRepo
+            .findByIdAndEnvironmentId(portalMenuLinkId, environmentId)
+            .orElse(null);
+        PortalMenuLink res = mapper.map(portalMenuLink);
+
+        logger.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
+        return Optional.ofNullable(res);
+    }
+
+    @Override
     public Optional<PortalMenuLink> findById(String portalMenuLinkId) throws TechnicalException {
         logger.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
 

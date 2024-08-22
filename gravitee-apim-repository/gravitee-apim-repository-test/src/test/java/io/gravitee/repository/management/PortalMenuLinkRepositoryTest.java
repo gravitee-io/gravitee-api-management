@@ -17,11 +17,13 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkType.EXTERNAL;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import io.gravitee.repository.management.model.PortalMenuLink;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.Test;
 
@@ -33,6 +35,20 @@ public class PortalMenuLinkRepositoryTest extends AbstractManagementRepositoryTe
     @Override
     protected String getTestCasesPath() {
         return "/data/portalmenulink-tests/";
+    }
+
+    @Test
+    public void shouldFindByIdAndEnvironment() throws Exception {
+        Optional<PortalMenuLink> portalLink = portalMenuLinkRepository.findByIdAndEnvironmentId("menuLink1", "environment1");
+
+        assertTrue(portalLink.isPresent());
+    }
+
+    @Test
+    public void shouldNotFindByIdAndEnvironment() throws Exception {
+        Optional<PortalMenuLink> portalLink = portalMenuLinkRepository.findByIdAndEnvironmentId("menuLink1", "environment2");
+
+        assertFalse(portalLink.isPresent());
     }
 
     @Test
