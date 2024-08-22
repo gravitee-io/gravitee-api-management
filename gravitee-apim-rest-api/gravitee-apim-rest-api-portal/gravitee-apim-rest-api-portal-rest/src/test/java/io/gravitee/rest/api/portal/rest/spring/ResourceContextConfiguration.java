@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
+import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -691,5 +692,10 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchSharedPolicyGroupHistoryUseCase searchSharedPolicyGroupHistoryUseCase() {
         return mock(SearchSharedPolicyGroupHistoryUseCase.class);
+    }
+
+    @Bean
+    public CRDMembersDomainServiceInMemory crdMembersDomainService() {
+        return new CRDMembersDomainServiceInMemory();
     }
 }

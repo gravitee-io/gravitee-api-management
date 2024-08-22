@@ -70,6 +70,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UndeploySharedPolicyGr
 import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
+import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -421,7 +422,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public CRDMembersDomainService crdMembersDomainService() {
+    public CRDMembersDomainServiceInMemory crdMembersDomainService() {
         return new CRDMembersDomainServiceInMemory();
     }
 
@@ -447,9 +448,15 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ValidateApplicationCRDUseCase validateApplicationCRDUseCase(GroupQueryService groupQueryService) {
+    public ValidateApplicationCRDUseCase validateApplicationCRDUseCase(
+        GroupQueryService groupQueryService,
+        UserDomainService userDomainService
+    ) {
         return new ValidateApplicationCRDUseCase(
-            new ValidateApplicationCRDDomainService(new ValidateGroupsDomainService(groupQueryService))
+            new ValidateApplicationCRDDomainService(
+                new ValidateGroupsDomainService(groupQueryService),
+                new ValidateCRDMembersDomainService(userDomainService)
+            )
         );
     }
 
