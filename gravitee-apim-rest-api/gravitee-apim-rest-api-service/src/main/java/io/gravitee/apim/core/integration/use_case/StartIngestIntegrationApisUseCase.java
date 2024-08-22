@@ -76,7 +76,8 @@ public class StartIngestIntegrationApisUseCase {
 
                         return IntegrationJob.Status.PENDING;
                     })
-            );
+            )
+            .doOnError(throwable -> log.error("Error to start ingest {}", integrationId, throwable));
     }
 
     public IntegrationJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {

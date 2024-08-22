@@ -23,7 +23,11 @@ export function fakeIntegration(attribute?: Partial<Integration>): Integration {
     name: 'test_name',
     description: 'test_description',
     provider: 'test_provider',
-    owner: 'test_owner',
+    primaryOwner: {
+      id: 'UnitTests',
+      email: 'jane.doe@gravitee.io',
+      displayName: 'Jane Doe',
+    },
   };
 
   return {

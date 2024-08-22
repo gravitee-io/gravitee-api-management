@@ -115,7 +115,8 @@ public class IngestFederatedApisUseCase {
                                 new FederatedApisIngestionCompleteHookContext(job.getSourceId())
                             );
                         }
-                    });
+                    })
+                    .doOnError(throwable -> log.error("Ingestion error job {}", ingestJobId, throwable));
             });
     }
 

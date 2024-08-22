@@ -51,6 +51,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -125,7 +126,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         Stream
-            .of(apiCrudServiceInMemory, integrationCrudServiceInMemory, integrationJobCrudServiceInMemory)
+            .of(apiCrudServiceInMemory, integrationCrudServiceInMemory, integrationJobCrudServiceInMemory, integrationAgentInMemory)
             .forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
         reset(licenseManager);
@@ -154,6 +155,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .description(integration.getDescription())
                         .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
+                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
                         .build()
                 );
         }
@@ -186,6 +188,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                                 .status(IngestionStatus.PENDING)
                                 .build()
                         )
+                        .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
                         .build()
                 );
         }

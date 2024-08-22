@@ -35,6 +35,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.CreateIntegrationUseCase.Input;
@@ -42,6 +43,8 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.node.api.license.LicenseManager;
@@ -83,6 +86,9 @@ public class CreateIntegrationUseCaseTest {
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     LicenseManager licenseManager = mock(LicenseManager.class);
 
@@ -122,7 +128,10 @@ public class CreateIntegrationUseCaseTest {
         );
         IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
             membershipCrudServiceInMemory,
-            roleQueryServiceInMemory
+            roleQueryServiceInMemory,
+            membershipQueryService,
+            groupQueryService,
+            userCrudService
         );
 
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
@@ -139,7 +148,17 @@ public class CreateIntegrationUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream
+            .of(
+                integrationCrudServiceInMemory,
+                membershipCrudServiceInMemory,
+                membershipQueryServiceInMemory,
+                parametersQueryServiceInMemory,
+                roleQueryServiceInMemory,
+                userCrudServiceInMemory,
+                groupQueryServiceInMemory
+            )
+            .forEach(InMemoryAlternative::reset);
         reset(licenseManager);
     }
 

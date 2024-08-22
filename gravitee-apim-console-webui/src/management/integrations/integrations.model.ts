@@ -36,8 +36,8 @@ export interface Integration {
   name: string;
   provider: string;
   description: string;
-  owner?: string;
   pendingJob?: IntegrationJob;
+  primaryOwner?: { id: string; displayName: string; email: string };
 }
 
 export interface IntegrationIngestionRequest {
