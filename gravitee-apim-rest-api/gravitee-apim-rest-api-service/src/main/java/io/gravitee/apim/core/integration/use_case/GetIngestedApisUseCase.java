@@ -23,15 +23,13 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.Optional;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
 @UseCase
+@RequiredArgsConstructor
 public class GetIngestedApisUseCase {
 
-    ApiQueryService apiQueryService;
-
-    public GetIngestedApisUseCase(ApiQueryService apiQueryService) {
-        this.apiQueryService = apiQueryService;
-    }
+    private final ApiQueryService apiQueryService;
 
     public Output execute(Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));

@@ -3594,6 +3594,8 @@ components:
                         - DISCONNECTED
                 pendingJob:
                     $ref: "#/components/schemas/IngestionJob"
+                primaryOwner:
+                  $ref: "#/components/schemas/PrimaryOwner"
 
         IngestionJob:
             type: object

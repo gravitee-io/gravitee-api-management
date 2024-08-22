@@ -38,7 +38,7 @@ export class IntegrationsComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading: boolean = false;
   public integrations: Integration[] = [];
-  public displayedColumns: string[] = ['name', 'provider', 'agent', 'action'];
+  public displayedColumns: string[] = ['name', 'provider', 'agent', 'owner', 'action'];
   public isFreeTier: boolean = false;
   public isFederationDisabled: boolean = false;
   public filters: GioTableWrapperFilters = {

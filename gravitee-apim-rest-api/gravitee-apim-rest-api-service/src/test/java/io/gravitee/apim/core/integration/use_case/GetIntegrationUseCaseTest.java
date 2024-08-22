@@ -23,20 +23,24 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.IntegrationJobFixture;
 import fixtures.core.model.LicenseFixtures;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.integration.model.IntegrationView;
-import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase.Input;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.node.api.license.LicenseManager;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -64,17 +68,30 @@ class GetIntegrationUseCaseTest {
     LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
+    MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
+    RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     GetIntegrationUseCase usecase;
 
     @BeforeEach
     void setUp() {
+        var integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
+            membershipCrudServiceInMemory,
+            roleQueryServiceInMemory,
+            membershipQueryService,
+            groupQueryService,
+            userCrudService
+        );
         usecase =
             new GetIntegrationUseCase(
                 integrationCrudServiceInMemory,
                 integrationJobQueryService,
                 new LicenseDomainService(licenseCrudService, licenseManager),
-                integrationAgent
+                integrationAgent,
+                integrationPrimaryOwnerDomainService
             );
         var integration = List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
@@ -84,7 +101,19 @@ class GetIntegrationUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(integrationCrudServiceInMemory, integrationJobQueryService, licenseCrudService).forEach(InMemoryAlternative::reset);
+        Stream
+            .of(
+                integrationCrudServiceInMemory,
+                integrationJobQueryService,
+                licenseCrudService,
+                integrationAgent,
+                membershipCrudServiceInMemory,
+                roleQueryServiceInMemory,
+                membershipQueryService,
+                groupQueryService,
+                userCrudService
+            )
+            .forEach(InMemoryAlternative::reset);
     }
 
     @Test

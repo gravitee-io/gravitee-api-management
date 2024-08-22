@@ -22,15 +22,21 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
+import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.model.IntegrationView;
-import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -50,6 +56,12 @@ public class GetIntegrationsUseCaseTest {
     private static final int PAGE_SIZE = 5;
     private static final Pageable pageable = new PageableImpl(PAGE_NUMBER, PAGE_SIZE);
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
+    IntegrationJobQueryServiceInMemory integrationJobQueryService = new IntegrationJobQueryServiceInMemory();
+    MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
+    RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     IntegrationQueryServiceInMemory integrationQueryServiceInMemory = new IntegrationQueryServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
@@ -58,12 +70,20 @@ public class GetIntegrationsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        IntegrationQueryService integrationQueryService = integrationQueryServiceInMemory;
+        var integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
+            membershipCrudServiceInMemory,
+            roleQueryServiceInMemory,
+            membershipQueryService,
+            groupQueryService,
+            userCrudService
+        );
         usecase =
             new GetIntegrationsUseCase(
-                integrationQueryService,
+                integrationQueryServiceInMemory,
                 new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-                integrationAgent
+                integrationAgent,
+                integrationPrimaryOwnerDomainService,
+                integrationJobQueryService
             );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
@@ -71,7 +91,7 @@ public class GetIntegrationsUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(integrationQueryServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream.of(integrationQueryServiceInMemory, integrationQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Test

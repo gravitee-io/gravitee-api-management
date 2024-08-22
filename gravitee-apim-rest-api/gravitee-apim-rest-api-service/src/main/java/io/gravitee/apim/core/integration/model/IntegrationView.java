@@ -37,6 +37,7 @@ public class IntegrationView extends Integration {
     AgentStatus agentStatus;
 
     IntegrationJob pendingJob;
+    PrimaryOwner primaryOwner;
 
     public enum AgentStatus {
         CONNECTED,
@@ -44,10 +45,10 @@ public class IntegrationView extends Integration {
     }
 
     public IntegrationView(Integration integration, AgentStatus agentStatus) {
-        this(integration, agentStatus, null);
+        this(integration, agentStatus, null, null);
     }
 
-    public IntegrationView(Integration integration, AgentStatus agentStatus, IntegrationJob pendingJob) {
+    public IntegrationView(Integration integration, AgentStatus agentStatus, IntegrationJob pendingJob, PrimaryOwner primaryOwner) {
         super(
             integration.getId(),
             integration.getName(),
@@ -59,9 +60,12 @@ public class IntegrationView extends Integration {
         );
         this.agentStatus = agentStatus;
         this.pendingJob = pendingJob;
+        this.primaryOwner = primaryOwner;
     }
 
     public Integration toIntegration() {
         return super.toBuilder().build();
     }
+
+    public record PrimaryOwner(String id, String email, String displayName) {}
 }

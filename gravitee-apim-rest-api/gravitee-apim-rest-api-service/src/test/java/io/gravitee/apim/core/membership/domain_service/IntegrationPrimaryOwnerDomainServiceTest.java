@@ -19,9 +19,12 @@ import static fixtures.core.model.RoleFixtures.integrationPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.AuditInfoFixtures;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -51,6 +54,9 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
 
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     IntegrationPrimaryOwnerDomainService service;
 
@@ -68,14 +74,23 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new IntegrationPrimaryOwnerDomainService(membershipCrudService, roleQueryService);
+        service =
+            new IntegrationPrimaryOwnerDomainService(
+                membershipCrudService,
+                roleQueryService,
+                membershipQueryService,
+                groupQueryService,
+                userCrudService
+            );
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(membershipCrudService, roleQueryService).forEach(InMemoryAlternative::reset);
+        Stream
+            .of(membershipCrudService, roleQueryService, membershipQueryService, groupQueryService, userCrudService)
+            .forEach(InMemoryAlternative::reset);
     }
 
     @Nested

@@ -25,31 +25,23 @@ import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
 @UseCase
+@RequiredArgsConstructor
 public class GetIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
     private final IntegrationJobQueryService integrationJobQueryService;
     private final LicenseDomainService licenseDomainService;
     private final IntegrationAgent integrationAgent;
-
-    public GetIntegrationUseCase(
-        IntegrationCrudService integrationCrudService,
-        IntegrationJobQueryService integrationJobQueryService,
-        LicenseDomainService licenseDomainService,
-        IntegrationAgent integrationAgent
-    ) {
-        this.integrationCrudService = integrationCrudService;
-        this.integrationJobQueryService = integrationJobQueryService;
-        this.licenseDomainService = licenseDomainService;
-        this.integrationAgent = integrationAgent;
-    }
+    private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
 
     public GetIntegrationUseCase.Output execute(GetIntegrationUseCase.Input input) {
         var integrationId = input.integrationId();
@@ -68,8 +60,13 @@ public class GetIntegrationUseCase {
             .blockingGet();
 
         var pendingJob = integrationJobQueryService.findPendingJobFor(integrationId);
+        var primaryOwner = integrationPrimaryOwnerDomainService
+            .getApiPrimaryOwner(input.organizationId(), integration.getId())
+            .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
+            .onErrorComplete()
+            .blockingGet();
 
-        return new GetIntegrationUseCase.Output(new IntegrationView(integration, agentStatus, pendingJob.orElse(null)));
+        return new GetIntegrationUseCase.Output(new IntegrationView(integration, agentStatus, pendingJob.orElse(null), primaryOwner));
     }
 
     @Builder
