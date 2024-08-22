@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.member.model.crd;
 
-import io.gravitee.apim.core.member.model.RoleScope;
-import io.gravitee.apim.core.membership.model.Role;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Mapper
-public interface RoleAdapter {
-    RoleAdapter INSTANCE = Mappers.getMapper(RoleAdapter.class);
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder(toBuilder = true)
+public class MemberCRD {
 
-    Role toEntity(io.gravitee.repository.management.model.Role role);
-
-    io.gravitee.rest.api.model.permissions.RoleScope mapScope(RoleScope scope);
+    private String id;
+    private String source;
+    private String sourceId;
+    private String displayName;
+    private String role;
 }

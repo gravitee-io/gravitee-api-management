@@ -15,9 +15,6 @@
  */
 package io.gravitee.apim.core.application.use_case;
 
-import static io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION;
-import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
-
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.application.domain_service.ImportApplicationCRDDomainService;
@@ -28,27 +25,15 @@ import io.gravitee.apim.core.application_metadata.crud_service.ApplicationMetada
 import io.gravitee.apim.core.application_metadata.query_service.ApplicationMetadataQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.AbstractDomainException;
-import io.gravitee.apim.core.member.model.Member;
-import io.gravitee.apim.core.member.model.MembershipMember;
-import io.gravitee.apim.core.member.model.MembershipMemberType;
-import io.gravitee.apim.core.member.model.MembershipReference;
-import io.gravitee.apim.core.member.model.MembershipReferenceType;
-import io.gravitee.apim.core.member.model.MembershipRole;
-import io.gravitee.apim.core.member.model.RoleScope;
-import io.gravitee.apim.core.member.query_service.MemberQueryService;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -63,23 +48,20 @@ public class ImportApplicationCRDUseCase {
     private final ImportApplicationCRDDomainService importApplicationCRDDomainService;
     private final ApplicationMetadataCrudService applicationMetadataCrudService;
     private final ApplicationMetadataQueryService applicationMetadataQueryService;
-    private final MemberQueryService memberQueryService;
-    private final UserDomainService userDomainService;
+    private final CRDMembersDomainService membersDomainService;
 
     public ImportApplicationCRDUseCase(
         ApplicationCrudService applicationCrudService,
         ImportApplicationCRDDomainService importApplicationCRDDomainService,
         ApplicationMetadataCrudService applicationMetadataCrudService,
         ApplicationMetadataQueryService applicationMetadataQueryService,
-        MemberQueryService memberQueryService,
-        UserDomainService userDomainService
+        CRDMembersDomainService membersDomainService
     ) {
         this.applicationCrudService = applicationCrudService;
         this.importApplicationCRDDomainService = importApplicationCRDDomainService;
         this.applicationMetadataCrudService = applicationMetadataCrudService;
         this.applicationMetadataQueryService = applicationMetadataQueryService;
-        this.memberQueryService = memberQueryService;
-        this.userDomainService = userDomainService;
+        this.membersDomainService = membersDomainService;
     }
 
     public record Output(ApplicationCRDStatus status) {}
@@ -102,15 +84,13 @@ public class ImportApplicationCRDUseCase {
 
             createOrUpdateApplicationMetadata(input, newApplication);
 
-            var crdMemberIds = addUpdateApplicationMembers(input, newApplication);
-            deleteOrphanApplicationMembers(newApplication.getId(), crdMemberIds);
+            membersDomainService.updateApplicationMembers(input.auditInfo.organizationId(), newApplication.getId(), input.crd.getMembers());
 
-            var ec = GraviteeContext.getExecutionContext();
             return ApplicationCRDStatus
                 .builder()
                 .id(newApplication.getId())
-                .organizationId(ec.getOrganizationId())
-                .environmentId(ec.getEnvironmentId())
+                .organizationId(input.auditInfo.organizationId())
+                .environmentId(input.auditInfo.environmentId())
                 .build();
         } catch (AbstractDomainException e) {
             throw e;
@@ -129,17 +109,18 @@ public class ImportApplicationCRDUseCase {
             );
 
             createOrUpdateApplicationMetadata(input, updatedApplication);
-            addUpdateApplicationMembers(input, updatedApplication);
 
-            var crdMemberIds = addUpdateApplicationMembers(input, updatedApplication);
-            deleteOrphanApplicationMembers(updatedApplication.getId(), crdMemberIds);
+            membersDomainService.updateApplicationMembers(
+                input.auditInfo.organizationId(),
+                updatedApplication.getId(),
+                input.crd.getMembers()
+            );
 
-            var ec = GraviteeContext.getExecutionContext();
             return ApplicationCRDStatus
                 .builder()
                 .id(updatedApplication.getId())
-                .organizationId(ec.getOrganizationId())
-                .environmentId(ec.getEnvironmentId())
+                .organizationId(input.auditInfo.organizationId())
+                .environmentId(input.auditInfo.environmentId())
                 .build();
         } catch (AbstractDomainException e) {
             throw e;
@@ -171,81 +152,6 @@ public class ImportApplicationCRDUseCase {
             // Get rid of deleted metadata
             exitingAppMetadata.forEach(applicationMetadataCrudService::delete);
         }
-    }
-
-    private ArrayList<String> addUpdateApplicationMembers(Input input, BaseApplicationEntity application) {
-        var members = new ArrayList<String>();
-        if (!CollectionUtils.isEmpty(input.crd.getMembers())) {
-            input.crd
-                .getMembers()
-                .forEach(crdMember -> {
-                    if (PRIMARY_OWNER.name().equals(crdMember.getRole())) {
-                        throw new SinglePrimaryOwnerException(APPLICATION);
-                    }
-
-                    var optionalBaseUser = userDomainService.findBySource(
-                        input.auditInfo.organizationId(),
-                        crdMember.getSource(),
-                        crdMember.getSourceId()
-                    );
-                    if (optionalBaseUser.isEmpty()) {
-                        log.warn(
-                            "member with source [{}] and source id [{}] doesn't exist. It will not be imported ...",
-                            crdMember.getSource(),
-                            crdMember.getSourceId()
-                        );
-                        return;
-                    }
-
-                    var user = optionalBaseUser.get();
-                    var reference = new MembershipReference(MembershipReferenceType.APPLICATION, application.getId());
-                    var member = new MembershipMember(user.getId(), crdMember.getReference(), MembershipMemberType.USER);
-                    var role = new MembershipRole(RoleScope.APPLICATION, crdMember.getRole());
-
-                    var userMember = memberQueryService.getUserMember(
-                        MembershipReferenceType.APPLICATION,
-                        application.getId(),
-                        user.getId()
-                    );
-                    if (userMember != null) {
-                        memberQueryService.updateRoleToMemberOnReference(reference, member, role);
-                    } else {
-                        memberQueryService.addRoleToMemberOnReference(reference, member, role);
-                    }
-
-                    members.add(user.getId());
-                });
-        }
-
-        return members;
-    }
-
-    private void deleteOrphanApplicationMembers(String applicationId, List<String> crdMemberIds) {
-        var existingApplicationMemberIds = memberQueryService
-            .getMembersByReference(MembershipReferenceType.APPLICATION, applicationId)
-            .stream()
-            .filter(member -> {
-                for (Member.Role role : member.getRoles()) {
-                    if (role.isPrimaryOwner()) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-            .map(Member::getId)
-            .collect(Collectors.toList());
-
-        crdMemberIds.forEach(existingApplicationMemberIds::remove);
-
-        // delete all un-linked members
-        existingApplicationMemberIds.forEach(memberId ->
-            memberQueryService.deleteReferenceMember(
-                MembershipReferenceType.APPLICATION,
-                applicationId,
-                MembershipMemberType.USER,
-                memberId
-            )
-        );
     }
 
     private NewApplicationMetadataEntity toNewApplicationMetadataEntity(ApplicationMetadataCRD crd) {

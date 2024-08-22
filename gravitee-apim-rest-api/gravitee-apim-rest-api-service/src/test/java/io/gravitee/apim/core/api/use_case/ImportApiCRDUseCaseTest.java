@@ -44,6 +44,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -69,7 +70,6 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
-import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -83,7 +83,6 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
-import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
@@ -103,12 +102,10 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
-import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
+import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
-import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
@@ -125,7 +122,6 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
-import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -148,7 +144,6 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -157,7 +152,6 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -210,9 +204,6 @@ class ImportApiCRDUseCaseTest {
     UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     CategoryQueryServiceInMemory categoryQueryService = new CategoryQueryServiceInMemory();
-    ApiImportDomainService apiImportDomainService = mock(ApiImportDomainServiceLegacyWrapper.class);
-    MembershipCrudService membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
-    MembershipQueryService membershipQueryServiceInMemory = new MembershipQueryServiceInMemory();
 
     ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
@@ -225,6 +216,7 @@ class ImportApiCRDUseCaseTest {
     VerifyApiPathDomainService verifyApiPathDomainService = mock(VerifyApiPathDomainService.class);
     ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
     DocumentationValidationDomainService validationDomainService = mock(DocumentationValidationDomainService.class);
+    CRDMembersDomainServiceInMemory crdMembersDomainService = new CRDMembersDomainServiceInMemory();
 
     ImportApiCRDUseCase useCase;
 
@@ -300,31 +292,8 @@ class ImportApiCRDUseCaseTest {
             userCrudService
         );
 
-        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+        var createApiDomainService = buildCreateApiDomainService(auditDomainService, membershipQueryService, metadataQueryService);
 
-        var createApiDomainService = new CreateApiDomainService(
-            apiCrudService,
-            auditDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
-                apiPrimaryOwnerDomainService,
-                apiCategoryQueryService,
-                indexer
-            ),
-            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
-            apiPrimaryOwnerDomainService,
-            flowCrudService,
-            notificationConfigCrudService,
-            parametersQueryService,
-            workflowCrudService
-        );
         updateApiDomainService = mock(UpdateApiDomainService.class);
         PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
         var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
@@ -379,10 +348,7 @@ class ImportApiCRDUseCaseTest {
                 subscriptionQueryService,
                 closeSubscriptionDomainService,
                 reorderPlanDomainService,
-                apiImportDomainService,
-                mock(ApiPrimaryOwnerDomainService.class),
-                membershipCrudServiceInMemory,
-                membershipQueryServiceInMemory,
+                crdMembersDomainService,
                 apiMetadataDomainService,
                 pageQueryService,
                 pageCrudService,
@@ -428,6 +394,38 @@ class ImportApiCRDUseCaseTest {
         );
 
         when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+    }
+
+    private CreateApiDomainService buildCreateApiDomainService(
+        AuditDomainService auditDomainService,
+        MembershipQueryServiceInMemory membershipQueryService,
+        ApiMetadataQueryServiceInMemory metadataQueryService
+    ) {
+        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+
+        return new CreateApiDomainService(
+            apiCrudService,
+            auditDomainService,
+            new ApiIndexerDomainService(
+                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
+                apiCategoryQueryService,
+                indexer
+            ),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
+            apiPrimaryOwnerDomainService,
+            flowCrudService,
+            notificationConfigCrudService,
+            parametersQueryService,
+            workflowCrudService
+        );
     }
 
     @AfterEach
@@ -558,28 +556,18 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
-        void should_create_members() {
-            MemberCRD member = new MemberCRD(UuidString.generateRandom(), USER_ENTITY_SOURCE, USER_ENTITY_SOURCE_ID, "test_member", "USER");
-            var membersCRD = Set.of(member);
-            var members = Set.of(toApiMember(member));
+        void should_sanitize_and_create_members() {
+            var member = MemberCRD
+                .builder()
+                .source(USER_ENTITY_SOURCE)
+                .sourceId(USER_ENTITY_SOURCE_ID)
+                .displayName("test_member")
+                .role("USER")
+                .build();
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of(member)).build()));
 
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
-        }
-
-        @Test
-        void should_create_members_with_source_id() {
-            MemberCRD member = new MemberCRD(null, USER_ENTITY_SOURCE, USER_ENTITY_SOURCE_ID, "test_member", "USER");
-            var membersCRD = Set.of(member);
-
-            ApiMember apiMember = toApiMember(member);
-            apiMember.setId(USER_ID);
-            var members = Set.of(apiMember);
-
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
-
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
+            assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
         }
 
         @Test
@@ -996,79 +984,6 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
-        void should_add_new_members() {
-            MemberCRD member1 = new MemberCRD(
-                UuidString.generateRandom(),
-                USER_ENTITY_SOURCE,
-                USER_ENTITY_SOURCE_ID,
-                "test_member_1",
-                "USER"
-            );
-            var membersCRD = new HashSet<>(Set.of(member1));
-            var members = new HashSet<>(Set.of(toApiMember(member1)));
-
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
-
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
-
-            reset(apiImportDomainService);
-
-            MemberCRD member2 = new MemberCRD(
-                UuidString.generateRandom(),
-                USER_ENTITY_SOURCE,
-                USER_ENTITY_SOURCE_ID,
-                "test_member_2",
-                "USER"
-            );
-            membersCRD.add(member2);
-            members.add(toApiMember(member2));
-
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
-        }
-
-        @Test
-        void should_delete_unused_members() {
-            MemberCRD member1 = new MemberCRD(
-                UuidString.generateRandom(),
-                USER_ENTITY_SOURCE,
-                USER_ENTITY_SOURCE_ID,
-                "test_member_1",
-                "USER"
-            );
-            var membersCRD = new HashSet<>(Set.of(member1));
-            var members = new HashSet<>(Set.of(toApiMember(member1)));
-
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
-
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
-
-            reset(apiImportDomainService);
-
-            MemberCRD member2 = new MemberCRD(
-                UuidString.generateRandom(),
-                USER_ENTITY_SOURCE,
-                USER_ENTITY_SOURCE_ID,
-                "test_member_2",
-                "USER"
-            );
-            membersCRD.add(member2);
-            members.add(toApiMember(member2));
-
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(membersCRD).build()));
-
-            verify(apiImportDomainService, times(1)).createMembers(members, API_ID);
-
-            reset(apiImportDomainService);
-
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(Set.of()).build()));
-
-            verify(apiImportDomainService, never()).createMembers(any(), eq(API_ID));
-
-            assertThat(membershipQueryServiceInMemory.findByReference(Membership.ReferenceType.API, API_ID)).isEmpty();
-        }
-
-        @Test
         void should_update_pages() {
             var pages = new HashMap<String, PageCRD>();
             var folder = getMarkdownsFolderPage();
@@ -1352,15 +1267,6 @@ class ImportApiCRDUseCaseTest {
             .name("markdowns")
             .type(PageCRD.Type.FOLDER)
             .visibility(PageCRD.Visibility.PUBLIC)
-            .build();
-    }
-
-    private ApiMember toApiMember(MemberCRD crd) {
-        return ApiMember
-            .builder()
-            .id(USER_ID)
-            .displayName(crd.getDisplayName())
-            .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
             .build();
     }
 }

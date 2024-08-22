@@ -40,6 +40,7 @@ public class ApplicationFixtures {
 
     public static ApplicationCRDSpec anApplicationCRDSpec() {
         var spec = new ApplicationCRDSpec();
+        spec.setId("application-id");
         spec.setName("test");
         spec.setDescription("description");
         spec.setSettings(new ApplicationCRDSettings(new ApplicationCRDSettings.SimpleApplicationSettings("WEB", "test"), null));

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model.crd;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;

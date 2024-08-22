@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.core.application.model.crd;
 
+import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -43,7 +45,7 @@ import lombok.experimental.SuperBuilder;
 public class ApplicationCRDSpec extends ApplicationEntity {
 
     private List<ApplicationMetadataCRD> metadata;
-    private List<ApplicationCRDMember> members;
+    private Set<MemberCRD> members;
 
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();

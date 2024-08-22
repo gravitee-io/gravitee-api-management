@@ -21,6 +21,7 @@ import io.gravitee.apim.core.member.model.MembershipMemberType;
 import io.gravitee.apim.core.member.model.MembershipReference;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.model.MembershipRole;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
 /**
@@ -34,7 +35,14 @@ public interface MemberQueryService {
 
     Member updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
 
-    void addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
+    void addRoleToMemberOnReference(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        io.gravitee.rest.api.model.MembershipMemberType memberType,
+        String memberId,
+        String role
+    );
 
     void deleteReferenceMember(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
 }

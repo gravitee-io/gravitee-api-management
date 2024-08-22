@@ -19,15 +19,14 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
-import inmemory.MemberQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
-import io.gravitee.apim.core.application.model.crd.ApplicationCRDMember;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.member.model.Member;
+import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Origin;
@@ -40,9 +39,9 @@ import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,7 +68,7 @@ public class ImportApplicationCRDUseCaseTest {
     private static final String TEST_METADATA_VALUE = "test_metadata_value";
     private static final Date NOW = new Date();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private static final String MEMEBER_SOURCE = "test_source";
+    private static final String MEMBER_SOURCE = "test_source";
     private static final String MEMBER_SOURCE_ID_1 = "mem1@email.com";
     private static final String MEMBER_SOURCE_ID_2 = "mem2@email.com";
 
@@ -78,8 +77,8 @@ public class ImportApplicationCRDUseCaseTest {
         new ImportApplicationCRDDomainServiceInMemory();
     private final ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService = new ApplicationMetadataCrudServiceInMemory();
     private final ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService = new ApplicationMetadataQueryServiceInMemory();
-    private final MemberQueryServiceInMemory memberQueryService = new MemberQueryServiceInMemory();
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
+    private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
 
     ImportApplicationCRDUseCase useCase;
 
@@ -93,8 +92,7 @@ public class ImportApplicationCRDUseCaseTest {
                 importApplicationCRDDomainService,
                 applicationMetadataCrudService,
                 applicationMetadataQueryService,
-                memberQueryService,
-                userDomainService
+                membersDomainService
             );
     }
 
@@ -145,13 +143,8 @@ public class ImportApplicationCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(applicationMetadataCrudService.storage()).contains(expectedApplicationMetadata());
+                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(applicationMembers());
             });
-        }
-
-        private Member toMember(ApplicationCRDMember member) {
-            // TODO - Kamiel - 8/19/24: change the id
-            return new Member("member.getId()", null, null, null, null, member.getReference(), null, null, null, null);
         }
     }
 
@@ -205,7 +198,7 @@ public class ImportApplicationCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(applicationMetadataCrudService.storage()).contains(expectedApplicationMetadata());
+                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(applicationMembers());
             });
         }
     }
@@ -234,12 +227,11 @@ public class ImportApplicationCRDUseCaseTest {
             .build();
     }
 
-    private List<ApplicationCRDMember> applicationMembers() {
-        List<ApplicationCRDMember> members = new ArrayList<>();
-        members.add(new ApplicationCRDMember(MEMEBER_SOURCE, MEMBER_SOURCE_ID_1, null, "OWNER"));
-        members.add(new ApplicationCRDMember(MEMEBER_SOURCE, MEMBER_SOURCE_ID_2, null, "USER"));
-
-        return members;
+    private Set<MemberCRD> applicationMembers() {
+        return Set.of(
+            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_1).role("OWNER").build(),
+            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_2).role("USER").build()
+        );
     }
 
     private BaseApplicationEntity expectedApplication() {
@@ -276,7 +268,7 @@ public class ImportApplicationCRDUseCaseTest {
                 MEMBER_SOURCE_ID_1,
                 new Date(),
                 new Date(),
-                MEMEBER_SOURCE,
+                MEMBER_SOURCE,
                 MEMBER_SOURCE_ID_1
             ),
             new BaseUserEntity(
@@ -287,7 +279,7 @@ public class ImportApplicationCRDUseCaseTest {
                 MEMBER_SOURCE_ID_2,
                 new Date(),
                 new Date(),
-                MEMEBER_SOURCE,
+                MEMBER_SOURCE,
                 MEMBER_SOURCE_ID_2
             )
         );

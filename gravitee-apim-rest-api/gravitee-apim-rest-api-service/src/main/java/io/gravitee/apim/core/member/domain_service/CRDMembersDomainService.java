@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.model.crd;
+package io.gravitee.apim.core.member.domain_service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import java.util.Set;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder(toBuilder = true)
-public class MemberCRD {
-
-    private String id;
-    private String source;
-    private String sourceId;
-    private String displayName;
-    private String role;
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface CRDMembersDomainService {
+    void updateApiMembers(String organizationId, String apiId, Set<MemberCRD> members);
+    void updateApplicationMembers(String organizationId, String applicationId, Set<MemberCRD> members);
 }
