@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,12 +43,14 @@ class SubscriptionCacheServiceTest {
     private static final String SUB_ID_2 = "my-test-subscription-id-2";
     private static final String API_KEY = "my-test-api-key";
     private static final String CLIENT_ID = "my-test-client-id";
+    private static final String CLIENT_CERTIFICATE = "my-test-client-certificate";
 
     @Mock
     private ApiKeyService apiKeyService;
 
     private SubscriptionCacheService subscriptionService;
     private Map<String, Subscription> cacheByApiClientId;
+    private Map<String, Subscription> cacheByApiClientCertificate;
     private Map<String, Subscription> cacheBySubscriptionId;
     private Map<String, Set<String>> cacheByApiId;
 
@@ -55,6 +58,8 @@ class SubscriptionCacheServiceTest {
     public void setup() throws Exception {
         subscriptionService = new SubscriptionCacheService(apiKeyService);
         cacheByApiClientId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientId");
+        cacheByApiClientCertificate =
+            (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientCertificate");
         cacheBySubscriptionId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheBySubscriptionId");
         cacheByApiId = (Map<String, Set<String>>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiId");
     }
@@ -63,8 +68,81 @@ class SubscriptionCacheServiceTest {
     class RegisterTest {
 
         @Test
+        void should_register_subscription_with_client_certificate() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(subscription);
+
+            Subscription byId = cacheBySubscriptionId.get(SUB_ID);
+            assertThat(byId).isNotNull();
+            assertThat(byId).isEqualTo(subscription);
+
+            // With plan key
+            String cacheKeyWithPlan = subscriptionService.buildClientCertificateCacheKey(subscription);
+            Subscription byClientIdWithPlan = cacheByApiClientCertificate.get(cacheKeyWithPlan);
+            assertThat(byClientIdWithPlan).isNotNull();
+            assertThat(byClientIdWithPlan).isEqualTo(subscription);
+
+            // Without plan key
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientCertificate(),
+                null
+            );
+            Subscription byClientIdWithoutPlan = cacheByApiClientCertificate.get(cacheKeyWithoutPlan);
+            assertThat(byClientIdWithoutPlan).isNotNull();
+            assertThat(byClientIdWithoutPlan).isEqualTo(subscription);
+
+            // By api
+            Set<String> byApiId = cacheByApiId.get(API_ID);
+            assertThat(byApiId.size()).isEqualTo(3);
+            assertThat(byApiId.contains(cacheKeyWithPlan)).isTrue();
+            assertThat(byApiId.contains(cacheKeyWithoutPlan)).isTrue();
+            assertThat(byApiId.contains(SUB_ID)).isTrue();
+        }
+
+        @Test
+        void should_register_subscription_with_new_client_certificate_when_already_registered() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(subscription);
+
+            Subscription originalSub = cacheBySubscriptionId.get(SUB_ID);
+            assertThat(originalSub).isNotNull();
+            assertThat(originalSub).isEqualTo(subscription);
+
+            Subscription subscriptionUpdated = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "client_id_updated", PLAN_ID);
+            subscriptionService.register(subscriptionUpdated);
+
+            Subscription byId = cacheBySubscriptionId.get(SUB_ID);
+            assertThat(byId).isNotNull();
+            assertThat(byId).isEqualTo(subscriptionUpdated);
+
+            // With plan key
+            String cacheKeyWithPlan = subscriptionService.buildClientCertificateCacheKey(subscriptionUpdated);
+            Subscription byClientIdWithPlan = cacheByApiClientCertificate.get(cacheKeyWithPlan);
+            assertThat(byClientIdWithPlan).isNotNull();
+            assertThat(byClientIdWithPlan).isEqualTo(subscriptionUpdated);
+
+            // Without plan key
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscriptionUpdated.getApi(),
+                subscriptionUpdated.getClientCertificate(),
+                null
+            );
+            Subscription byClientIdWithoutPlan = cacheByApiClientCertificate.get(cacheKeyWithoutPlan);
+            assertThat(byClientIdWithoutPlan).isNotNull();
+            assertThat(byClientIdWithoutPlan).isEqualTo(subscriptionUpdated);
+
+            // By api
+            Set<String> byApiId = cacheByApiId.get(API_ID);
+            assertThat(byApiId.size()).isEqualTo(3);
+            assertThat(byApiId.contains(cacheKeyWithPlan)).isTrue();
+            assertThat(byApiId.contains(cacheKeyWithoutPlan)).isTrue();
+            assertThat(byApiId.contains(SUB_ID)).isTrue();
+        }
+
+        @Test
         void should_register_subscription_with_client_id() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
 
             Subscription byId = cacheBySubscriptionId.get(SUB_ID);
@@ -78,7 +156,11 @@ class SubscriptionCacheServiceTest {
             assertThat(byClientIdWithPlan).isEqualTo(subscription);
 
             // Without plan key
-            String cacheKeyWithoutPlan = subscriptionService.buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientId(),
+                null
+            );
             Subscription byClientIdWithoutPlan = cacheByApiClientId.get(cacheKeyWithoutPlan);
             assertThat(byClientIdWithoutPlan).isNotNull();
             assertThat(byClientIdWithoutPlan).isEqualTo(subscription);
@@ -93,14 +175,14 @@ class SubscriptionCacheServiceTest {
 
         @Test
         void should_register_subscription_with_new_client_id_when_already_registered() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
 
             Subscription originalSub = cacheBySubscriptionId.get(SUB_ID);
             assertThat(originalSub).isNotNull();
             assertThat(originalSub).isEqualTo(subscription);
 
-            Subscription subscriptionUpdated = buildAcceptedSubscription(SUB_ID, API_ID, "client_id_updated", PLAN_ID);
+            Subscription subscriptionUpdated = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, "client_id_updated", PLAN_ID);
             subscriptionService.register(subscriptionUpdated);
 
             Subscription byId = cacheBySubscriptionId.get(SUB_ID);
@@ -114,7 +196,7 @@ class SubscriptionCacheServiceTest {
             assertThat(byClientIdWithPlan).isEqualTo(subscriptionUpdated);
 
             // Without plan key
-            String cacheKeyWithoutPlan = subscriptionService.buildClientIdCacheKey(
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
                 subscriptionUpdated.getApi(),
                 subscriptionUpdated.getClientId(),
                 null
@@ -159,7 +241,11 @@ class SubscriptionCacheServiceTest {
             assertThat(cacheByApiClientId.get(cacheKeyWithPlan)).isNull();
 
             // Without plan key
-            String cacheKeyWithoutPlan = subscriptionService.buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientId(),
+                null
+            );
             assertThat(cacheByApiClientId.get(cacheKeyWithoutPlan)).isNull();
 
             // By api
@@ -172,8 +258,40 @@ class SubscriptionCacheServiceTest {
     class UnregisterTest {
 
         @Test
+        void should_unregister_subscription_with_client_certificate() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(subscription);
+
+            Subscription byId = cacheBySubscriptionId.get(SUB_ID);
+            assertThat(byId).isNotNull();
+            assertThat(byId).isEqualTo(subscription);
+
+            subscriptionService.unregister(subscription);
+
+            assertThat(cacheBySubscriptionId.get(SUB_ID)).isNull();
+
+            // With plan key
+            String cacheKeyWithPlan = subscriptionService.buildClientCertificateCacheKey(subscription);
+            assertThat(cacheByApiClientId.get(cacheKeyWithPlan)).isNull();
+            assertThat(cacheByApiClientCertificate.get(cacheKeyWithPlan)).isNull();
+
+            // Without plan key
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientId(),
+                null
+            );
+            assertThat(cacheByApiClientId.get(cacheKeyWithoutPlan)).isNull();
+            assertThat(cacheByApiClientCertificate.get(cacheKeyWithoutPlan)).isNull();
+
+            // By api
+            Set<String> byApiId = cacheByApiId.get(API_ID);
+            assertThat(byApiId).isNull();
+        }
+
+        @Test
         void should_unregister_subscription_with_client_id() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
 
             Subscription byId = cacheBySubscriptionId.get(SUB_ID);
@@ -189,7 +307,11 @@ class SubscriptionCacheServiceTest {
             assertThat(cacheByApiClientId.get(cacheKeyWithPlan)).isNull();
 
             // Without plan key
-            String cacheKeyWithoutPlan = subscriptionService.buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientId(),
+                null
+            );
             assertThat(cacheByApiClientId.get(cacheKeyWithoutPlan)).isNull();
 
             // By api
@@ -210,7 +332,11 @@ class SubscriptionCacheServiceTest {
             assertThat(cacheByApiClientId.get(cacheKeyWithPlan)).isNull();
 
             // Without plan key
-            String cacheKeyWithoutPlan = subscriptionService.buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+            String cacheKeyWithoutPlan = subscriptionService.buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientId(),
+                null
+            );
             assertThat(cacheByApiClientId.get(cacheKeyWithoutPlan)).isNull();
 
             // By api
@@ -221,7 +347,7 @@ class SubscriptionCacheServiceTest {
         @Test
         void should_unregister_all_subscriptions_by_api() {
             for (int i = 0; i < 5; i++) {
-                Subscription subscription = buildAcceptedSubscription(SUB_ID + i, API_ID, CLIENT_ID, PLAN_ID);
+                Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID + i, API_ID, CLIENT_ID, PLAN_ID);
                 subscriptionService.register(subscription);
             }
             subscriptionService.unregisterByApiId(API_ID);
@@ -252,7 +378,7 @@ class SubscriptionCacheServiceTest {
 
         @Test
         void should_get_subscriptions_by_client_id() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
 
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
@@ -262,7 +388,7 @@ class SubscriptionCacheServiceTest {
 
         @Test
         void should_get_subscription_by_api_id_and_apiKey() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
             SecurityToken securityToken = SecurityToken.forApiKey("apiKeyValue");
             ApiKey apiKey = new ApiKey();
@@ -276,7 +402,7 @@ class SubscriptionCacheServiceTest {
 
         @Test
         void should_not_get_subscription_by_api_id_without_apiKey() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
             SecurityToken securityToken = SecurityToken.forApiKey("apiKeyValue");
             when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.empty());
@@ -287,7 +413,7 @@ class SubscriptionCacheServiceTest {
 
         @Test
         void should_get_subscription_by_api_id_and_clientId() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
             SecurityToken securityToken = SecurityToken.forClientId(CLIENT_ID);
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
@@ -297,7 +423,7 @@ class SubscriptionCacheServiceTest {
 
         @Test
         void should_not_get_subscription_by_api_id_and_unknown_security_token() {
-            Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
             SecurityToken securityToken = SecurityToken.builder().tokenValue("unknown").tokenType("unknown").build();
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
@@ -306,17 +432,33 @@ class SubscriptionCacheServiceTest {
     }
 
     private Subscription buildAcceptedSubscription(String id, String apiId) {
-        return buildSubscription(id, apiId, null, null, io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);
+        return buildSubscription(id, apiId, s -> {}, null, io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);
     }
 
-    private Subscription buildAcceptedSubscription(String id, String apiId, String clientId, String plan) {
-        return buildSubscription(id, apiId, clientId, plan, io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);
+    private Subscription buildAcceptedSubscriptionWithClientId(String id, String apiId, String clientId, String plan) {
+        return buildSubscription(
+            id,
+            apiId,
+            s -> s.setClientId(clientId),
+            plan,
+            io.gravitee.repository.management.model.Subscription.Status.ACCEPTED
+        );
+    }
+
+    private Subscription buildAcceptedSubscriptionWithClientCertificate(String id, String apiId, String clientCertificate, String plan) {
+        return buildSubscription(
+            id,
+            apiId,
+            s -> s.setClientCertificate(clientCertificate),
+            plan,
+            io.gravitee.repository.management.model.Subscription.Status.ACCEPTED
+        );
     }
 
     private Subscription buildSubscription(
         String id,
         String api,
-        String clientId,
+        Consumer<Subscription> subscriptionModifier,
         String plan,
         final io.gravitee.repository.management.model.Subscription.Status status
     ) {
@@ -324,7 +466,7 @@ class SubscriptionCacheServiceTest {
         subscription.setId(id);
         subscription.setApi(api);
         subscription.setPlan(plan);
-        subscription.setClientId(clientId);
+        subscriptionModifier.accept(subscription);
         subscription.setStatus(status.name());
         return subscription;
     }

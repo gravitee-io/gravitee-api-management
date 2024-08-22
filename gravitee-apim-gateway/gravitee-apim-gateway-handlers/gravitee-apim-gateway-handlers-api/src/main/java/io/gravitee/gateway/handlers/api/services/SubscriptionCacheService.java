@@ -39,6 +39,7 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     // Caches only contains active subscriptions
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
+    private final Map<String, Subscription> cacheByApiClientCertificate = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> cacheByApiId = new ConcurrentHashMap<>();
 
@@ -55,7 +56,7 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public Optional<Subscription> getByApiAndClientIdAndPlan(String api, String clientId, String plan) {
-        return Optional.ofNullable(cacheByApiClientId.get(buildClientIdCacheKey(api, clientId, plan)));
+        return Optional.ofNullable(cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, plan)));
     }
 
     @Override
@@ -66,7 +67,9 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void register(final Subscription subscription) {
         if (ACCEPTED.name().equals(subscription.getStatus())) {
-            if (subscription.getClientId() != null) {
+            if (subscription.getClientCertificate() != null) {
+                registerFromClientCertificate(subscription);
+            } else if (subscription.getClientId() != null) {
                 registerFromClientId(subscription);
             } else {
                 registerFromId(subscription);
@@ -76,11 +79,49 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
+    private void registerFromClientCertificate(final Subscription subscription) {
+        final String idKey = subscription.getId();
+        final String clientCertificateKey = buildClientCertificateCacheKey(subscription);
+        // Index the subscription without plan id to allow search without plan criteria.
+        final String clientCertificateKeyWithoutPlan = buildCacheKeyFromClientInfo(
+            subscription.getApi(),
+            subscription.getClientCertificate(),
+            null
+        );
+
+        Subscription cachedSubscription = cacheBySubscriptionId.get(idKey);
+
+        // remove previous subscription client_id from cache if client_id has changed
+        if (
+            cachedSubscription != null &&
+            cachedSubscription.getClientCertificate() != null &&
+            !cachedSubscription.getClientCertificate().equals(subscription.getClientCertificate())
+        ) {
+            unregisterFromClientCertificate(cachedSubscription);
+        }
+
+        log.debug(
+            "Load accepted subscription with client Id  [id: {}] [api: {}] [plan: {}] [application: {}]",
+            subscription.getId(),
+            subscription.getApi(),
+            subscription.getPlan(),
+            subscription.getApi()
+        );
+        // Update subscription
+        cacheBySubscriptionId.put(idKey, subscription);
+        addKeyForApi(subscription.getApi(), idKey);
+        // Put new client_id
+        cacheByApiClientCertificate.put(clientCertificateKey, subscription);
+        addKeyForApi(subscription.getApi(), clientCertificateKey);
+        cacheByApiClientCertificate.put(clientCertificateKeyWithoutPlan, subscription);
+        addKeyForApi(subscription.getApi(), clientCertificateKeyWithoutPlan);
+    }
+
     private void registerFromClientId(final Subscription subscription) {
         final String idKey = subscription.getId();
         final String clientIdKey = buildClientIdCacheKey(subscription);
         // Index the subscription without plan id to allow search without plan criteria.
-        final String clientIdKeyWithoutPlan = buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+        final String clientIdKeyWithoutPlan = buildCacheKeyFromClientInfo(subscription.getApi(), subscription.getClientId(), null);
 
         Subscription cachedSubscription = cacheBySubscriptionId.get(idKey);
 
@@ -157,9 +198,11 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (removeSubscription != null) {
             removeKeyForApi(subscription.getApi(), idKey);
             unregisterFromClientId(removeSubscription);
+            unregisterFromClientCertificate(removeSubscription);
         }
         // In case new one has different client id than the one in cache
         unregisterFromClientId(subscription);
+        unregisterFromClientCertificate(subscription);
     }
 
     private void unregisterFromClientId(final Subscription subscription) {
@@ -168,9 +211,26 @@ public class SubscriptionCacheService implements SubscriptionService {
             if (cacheByApiClientId.remove(clientIdKey) != null) {
                 removeKeyForApi(subscription.getApi(), clientIdKey);
             }
-            final String clientIdKeyWithoutPlan = buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+            final String clientIdKeyWithoutPlan = buildCacheKeyFromClientInfo(subscription.getApi(), subscription.getClientId(), null);
             if (cacheByApiClientId.remove(clientIdKeyWithoutPlan) != null) {
                 removeKeyForApi(subscription.getApi(), clientIdKeyWithoutPlan);
+            }
+        }
+    }
+
+    private void unregisterFromClientCertificate(final Subscription subscription) {
+        if (subscription.getClientCertificate() != null) {
+            final String clientCertificateKey = buildClientCertificateCacheKey(subscription);
+            if (cacheByApiClientCertificate.remove(clientCertificateKey) != null) {
+                removeKeyForApi(subscription.getApi(), clientCertificateKey);
+            }
+            final String clientCertificateKeyWithoutPlan = buildCacheKeyFromClientInfo(
+                subscription.getApi(),
+                subscription.getClientCertificate(),
+                null
+            );
+            if (cacheByApiClientCertificate.remove(clientCertificateKeyWithoutPlan) != null) {
+                removeKeyForApi(subscription.getApi(), clientCertificateKeyWithoutPlan);
             }
         }
     }
@@ -196,11 +256,15 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
-    String buildClientIdCacheKey(Subscription subscription) {
-        return buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), subscription.getPlan());
+    String buildClientCertificateCacheKey(Subscription subscription) {
+        return buildCacheKeyFromClientInfo(subscription.getApi(), subscription.getClientCertificate(), subscription.getPlan());
     }
 
-    String buildClientIdCacheKey(String api, String clientId, String plan) {
-        return String.format("%s.%s.%s", api, clientId, plan);
+    String buildClientIdCacheKey(Subscription subscription) {
+        return buildCacheKeyFromClientInfo(subscription.getApi(), subscription.getClientId(), subscription.getPlan());
+    }
+
+    String buildCacheKeyFromClientInfo(String api, String clientIdOrCertificate, String plan) {
+        return String.format("%s.%s.%s", api, clientIdOrCertificate, plan);
     }
 }
