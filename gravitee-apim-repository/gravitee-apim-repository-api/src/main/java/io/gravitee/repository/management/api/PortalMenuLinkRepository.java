@@ -18,11 +18,13 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalMenuLink;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
  */
 public interface PortalMenuLinkRepository extends CrudRepository<PortalMenuLink, String> {
+    Optional<PortalMenuLink> findByIdAndEnvironmentId(final String portalMenuLinkId, final String environmentId) throws TechnicalException;
     List<PortalMenuLink> findByEnvironmentIdSortByOrder(final String environmentId) throws TechnicalException;
     void deleteByEnvironmentId(final String environmentId) throws TechnicalException;
 }
