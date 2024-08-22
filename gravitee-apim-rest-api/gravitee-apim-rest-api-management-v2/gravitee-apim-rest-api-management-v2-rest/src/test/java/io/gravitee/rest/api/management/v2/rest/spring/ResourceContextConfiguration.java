@@ -20,6 +20,7 @@ import static org.mockito.Mockito.spy;
 
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
@@ -51,6 +52,7 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainSer
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -416,6 +418,11 @@ public class ResourceContextConfiguration {
     @Bean
     public GroupQueryServiceInMemory groupQueryService() {
         return new GroupQueryServiceInMemory();
+    }
+
+    @Bean
+    public CRDMembersDomainService crdMembersDomainService() {
+        return new CRDMembersDomainServiceInMemory();
     }
 
     @Bean

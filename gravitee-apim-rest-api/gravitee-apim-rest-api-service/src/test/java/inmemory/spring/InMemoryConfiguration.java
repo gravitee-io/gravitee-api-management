@@ -51,7 +51,6 @@ import inmemory.IntegrationJobCrudServiceInMemory;
 import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
-import inmemory.MemberQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
@@ -84,7 +83,6 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
-import io.gravitee.rest.api.service.ResourceService;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -295,11 +293,6 @@ public class InMemoryConfiguration {
     @Bean
     public MembershipQueryServiceInMemory membershipQueryService(MembershipCrudServiceInMemory membershipCrudService) {
         return new MembershipQueryServiceInMemory(membershipCrudService);
-    }
-
-    @Bean
-    public MemberQueryServiceInMemory memberQueryService() {
-        return new MemberQueryServiceInMemory();
     }
 
     @Bean

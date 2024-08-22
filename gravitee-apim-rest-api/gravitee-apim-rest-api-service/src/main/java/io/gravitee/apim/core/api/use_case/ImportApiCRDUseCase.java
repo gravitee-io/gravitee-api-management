@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
@@ -30,12 +29,9 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
-import io.gravitee.apim.core.api.model.crd.MemberCRD;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
-import io.gravitee.apim.core.api.model.import_definition.ApiMember;
-import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -47,12 +43,8 @@ import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
-import io.gravitee.apim.core.membership.model.Membership;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -61,13 +53,11 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
-import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.List;
@@ -99,10 +89,7 @@ public class ImportApiCRDUseCase {
     private final SubscriptionQueryService subscriptionQueryService;
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
     private final ReorderPlanDomainService reorderPlanDomainService;
-    private final ApiImportDomainService apiImportDomainService;
-    private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
-    private final MembershipCrudService membershipCrudService;
-    private final MembershipQueryService membershipQueryService;
+    private final CRDMembersDomainService membersDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
@@ -123,10 +110,7 @@ public class ImportApiCRDUseCase {
         SubscriptionQueryService subscriptionQueryService,
         CloseSubscriptionDomainService closeSubscriptionDomainService,
         ReorderPlanDomainService reorderPlanDomainService,
-        ApiImportDomainService apiImportDomainService,
-        ApiPrimaryOwnerDomainService primaryOwnerDomainService,
-        MembershipCrudService membershipCrudService,
-        MembershipQueryService membershipQueryService,
+        CRDMembersDomainService membersDomainService,
         ApiMetadataDomainService apiMetadataDomainService,
         PageQueryService pageQueryService,
         PageCrudService pageCrudService,
@@ -148,10 +132,7 @@ public class ImportApiCRDUseCase {
         this.subscriptionQueryService = subscriptionQueryService;
         this.closeSubscriptionDomainService = closeSubscriptionDomainService;
         this.reorderPlanDomainService = reorderPlanDomainService;
-        this.apiImportDomainService = apiImportDomainService;
-        this.primaryOwnerDomainService = primaryOwnerDomainService;
-        this.membershipCrudService = membershipCrudService;
-        this.membershipQueryService = membershipQueryService;
+        this.membersDomainService = membersDomainService;
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.pageQueryService = pageQueryService;
         this.pageCrudService = pageCrudService;
@@ -223,7 +204,8 @@ public class ImportApiCRDUseCase {
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            createMembers(sanitizedInput, createdApi.getId());
+            membersDomainService.updateApiMembers(organizationId, createdApi.getId(), sanitizedInput.spec().getMembers());
+
             createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
@@ -318,8 +300,7 @@ public class ImportApiCRDUseCase {
                 }
             }
 
-            createMembers(sanitizedInput, updatedApi.getId());
-            deleteOrphanMemberships(updatedApi.getId(), sanitizedInput);
+            membersDomainService.updateApiMembers(input.auditInfo.organizationId(), updatedApi.getId(), sanitizedInput.spec().getMembers());
 
             createOrUpdatePages(sanitizedInput.spec.getPages(), updatedApi.getId(), sanitizedInput.auditInfo);
             deleteRemovedPages(sanitizedInput.spec.getPages(), updatedApi.getId());
@@ -390,27 +371,6 @@ public class ImportApiCRDUseCase {
             .build();
     }
 
-    private void createMembers(Input input, String apiId) {
-        if (!CollectionUtils.isEmpty(input.spec.getMembers())) {
-            apiImportDomainService.createMembers(input.spec.getMembers().stream().map(this::initApiMemberFromCRD).collect(toSet()), apiId);
-        }
-    }
-
-    private void deleteOrphanMemberships(String apiId, Input input) {
-        PrimaryOwnerEntity po = primaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo.organizationId(), apiId);
-        Map<String, String> existingApiMembers = membershipQueryService
-            .findByReference(Membership.ReferenceType.API, apiId)
-            .stream()
-            .filter(m -> !m.getMemberId().equals(po.id()))
-            .collect(toMap(Membership::getMemberId, Membership::getId));
-
-        if (input.spec != null && input.spec.getMembers() != null) {
-            input.spec.getMembers().forEach(am -> existingApiMembers.remove(am.getId()));
-        }
-
-        existingApiMembers.forEach((k, v) -> membershipCrudService.delete(v));
-    }
-
     private void deleteRemovedPages(Map<String, PageCRD> pages, String apiId) {
         var existingPageIds = pageQueryService.searchByApiId(apiId).stream().map(Page::getId).collect(toSet());
         if (pages != null && !pages.isEmpty()) {
@@ -469,15 +429,6 @@ public class ImportApiCRDUseCase {
                     throw new InvalidPageParentException(parent.getId());
                 }
             });
-    }
-
-    private ApiMember initApiMemberFromCRD(MemberCRD crd) {
-        return ApiMember
-            .builder()
-            .id(crd.getId())
-            .displayName(crd.getDisplayName())
-            .roles(List.of(new ApiMemberRole(crd.getRole(), RoleScope.API)))
-            .build();
     }
 
     private static boolean shouldDeploy(ApiCRDSpec spec) {

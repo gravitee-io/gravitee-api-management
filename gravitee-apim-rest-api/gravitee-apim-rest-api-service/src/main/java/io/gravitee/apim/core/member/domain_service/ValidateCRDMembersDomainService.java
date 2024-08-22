@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.member.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.api.model.crd.MemberCRD;
+import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
