@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PortalMenuLinkMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ReferenceMetadataMapper;
