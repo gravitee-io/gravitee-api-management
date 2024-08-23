@@ -13,29 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.utils;
+package io.gravitee.repository.mongodb.utils;
 
 import java.util.Collection;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class CollectionUtils {
 
-    public static boolean isEmpty(Collection<?> collection) {
-        return collection == null || collection.isEmpty();
-    }
-
-    public static boolean isNotEmpty(Collection<?> collection) {
-        return !isEmpty(collection);
-    }
-
-    public static <T> Stream<T> stream(Iterable<T> iterable) {
-        return iterable == null ? Stream.empty() : StreamSupport.stream(iterable.spliterator(), false);
-    }
-
-    public static int size(Collection<?> collection) {
-        return collection == null ? 0 : collection.size();
+    public static <T> Stream<T> stream(Collection<T> collection) {
+        return collection != null ? collection.stream() : Stream.empty();
     }
 }
