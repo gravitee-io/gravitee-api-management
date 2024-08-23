@@ -25,6 +25,7 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiCRDAdapter;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -59,6 +60,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity());
         if (spec.getMembers() != null) {
             setMembersSourceId(spec.getMembers());
+            removePrimaryOwner(spec.getMembers());
         }
         if (spec.getGroups() != null) {
             spec.setGroups(getGroupNames(spec.getGroups()));
@@ -91,6 +93,17 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
             member.setSource(user.getSource());
             member.setId(null);
         });
+    }
+
+    private void removePrimaryOwner(Set<MemberCRD> members) {
+        var it = members.iterator();
+        while (it.hasNext()) {
+            var member = it.next();
+            if (SystemRole.PRIMARY_OWNER.name().equals(member.getRole())) {
+                it.remove();
+                return;
+            }
+        }
     }
 
     private Set<String> getGroupNames(Set<String> groups) {

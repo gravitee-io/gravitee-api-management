@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.mockito.Mockito.*;
 
 import inmemory.GroupQueryServiceInMemory;
@@ -35,13 +37,18 @@ import io.gravitee.integration.api.model.Page;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -59,6 +66,7 @@ class ApiCRDExportDomainServiceImplTest {
     private static final String ORG_ID = "org-id";
     private static final String ENV_ID = "env-id";
     private static final String USER_ID = "user-id";
+    private static final String PO_ID = "primary-owner-id";
     private static final String GROUP_ID = "group-id";
     private static final String GROUP_NAME = "developers";
     private static final String API_ID = "api-id";
@@ -77,7 +85,12 @@ class ApiCRDExportDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_ID).source("gravitee").sourceId("user").build()));
+        userCrudService.initWith(
+            List.of(
+                BaseUserEntity.builder().id(USER_ID).source("gravitee").sourceId("user").build(),
+                BaseUserEntity.builder().id(PO_ID).source("gravitee").sourceId("user").build()
+            )
+        );
         groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
         apiCRDExportDomainService =
             new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory);
@@ -99,7 +112,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         verify(apiCrudService, times(1)).update(argThat(api -> StringUtils.isNotBlank(api.getCrossId())));
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
             soft.assertThat(spec.getCrossId()).isNotBlank();
@@ -122,7 +135,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         verify(apiCrudService, never()).update(any());
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getName()).isEqualTo("api-name");
             soft.assertThat(spec.getCrossId()).isEqualTo("cross-id");
@@ -143,12 +156,30 @@ class ApiCRDExportDomainServiceImplTest {
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(spec.getMembers()).hasSize(1);
             var member = spec.getMembers().iterator().next();
             soft.assertThat(member.getSource()).isEqualTo("gravitee");
             soft.assertThat(member.getSourceId()).isEqualTo("user");
         });
+    }
+
+    @Test
+    void should_remove_primary_owner_member() {
+        var apiEntity = exportApiEntity(apiEntity().crossId("cross-id").build());
+        var membersWithPrimaryOwner = new HashSet<>(apiEntity.getMembers());
+        var poRole = RoleEntity.builder().name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        membersWithPrimaryOwner.add(MemberEntity.builder().id(PO_ID).roles(List.of(poRole)).build());
+        apiEntity.setMembers(membersWithPrimaryOwner);
+
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(apiEntity);
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        assertThat(spec.getMembers()).noneMatch(member -> member.getRole().equals("PRIMARY_OWNER"));
     }
 
     @Test
@@ -161,7 +192,7 @@ class ApiCRDExportDomainServiceImplTest {
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(spec.getGroups()).hasSize(1);
             var group = spec.getGroups().iterator().next();
             soft.assertThat(group).isEqualTo(GROUP_NAME);
@@ -178,7 +209,7 @@ class ApiCRDExportDomainServiceImplTest {
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(spec.getPages()).hasSize(1);
             soft.assertThat(spec.getPages().get("page-id")).isNotNull();
         });
@@ -187,7 +218,7 @@ class ApiCRDExportDomainServiceImplTest {
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
         return ExportApiEntity
             .builder()
-            .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().build())).build()))
+            .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().name("OWNER").build())).build()))
             .apiEntity(apiEntity)
             .pages(List.of(PageEntity.builder().id("page-id").name(null).build()))
             .plans(Set.of(PlanEntity.builder().name("plan-name").id("plan-id").security(new PlanSecurity("key-less", "{}")).build()))
