@@ -136,6 +136,30 @@ describe('ApplicationGeneralMembersComponent', () => {
       expect(confirmDialog).toBeTruthy();
       expect(applicationDetails.id).toEqual('61840ad7-7a93-4b5b-840a-d77a937b5bff');
     });
+
+    it('should disable button with kubernetes origin', async () => {
+      const applicationDetails = fakeApplication({ origin: 'KUBERNETES' });
+      const membersList = [fakeMembers({ role: 'USER' })];
+
+      expectRequests(applicationDetails, membersList);
+
+      const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete member"]` }));
+
+      const isDisabled = await button.isDisabled();
+      expect(isDisabled).toBe(true);
+    });
+
+    it('should not disable button with non kubernetes origin', async () => {
+      const applicationDetails = fakeApplication({ origin: '' });
+      const membersList = [fakeMembers({ role: 'USER' })];
+
+      expectRequests(applicationDetails, membersList);
+
+      const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete member"]` }));
+
+      const isDisabled = await button.isDisabled();
+      expect(isDisabled).toBe(false);
+    });
   });
 
   describe('Add a member', () => {

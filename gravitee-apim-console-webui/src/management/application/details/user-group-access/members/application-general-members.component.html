@@ -82,7 +82,7 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let member">
             <div class="action-cell" *ngIf="member.role !== 'PRIMARY_OWNER'">
-              <button type="button" mat-icon-button aria-label="Delete member" (click)="removeMember(member)">
+              <button type="button" mat-icon-button aria-label="Delete member" (click)="removeMember(member)" [disabled]="isReadOnly">
                 <mat-icon svgIcon="gio:trash"></mat-icon>
               </button>
             </div>
