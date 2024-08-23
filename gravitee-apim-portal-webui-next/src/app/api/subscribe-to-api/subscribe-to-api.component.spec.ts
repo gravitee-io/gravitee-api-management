@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatChipHarness } from '@angular/material/chips/testing';
 import { By } from '@angular/platform-browser';
 
 import { TermsAndConditionsDialogHarness } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.harness';
@@ -305,7 +306,7 @@ describe('SubscribeToApiComponent', () => {
           await step2.getPreviousPageOfApplications();
           expectGetApplications(1, fakeApplicationsResponse({ data: [] }));
 
-          expect(getSelectedApplicationName()).toEqual('App 10');
+          expect(await getSelectedApplicationName()).toEqual('App 10');
           await goToNextStep();
 
           expectGetApi();
@@ -984,8 +985,11 @@ describe('SubscribeToApiComponent', () => {
     return await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Next' }));
   }
 
-  function getSelectedApplicationName(): string | undefined {
-    return document.getElementById('selected-application')?.innerHTML;
+  async function getSelectedApplicationName(): Promise<string | null> {
+    return await harnessLoader
+      .getHarness(MatChipHarness)
+      .then(chip => chip.getText())
+      .catch(_ => null);
   }
 
   async function getSubscribeButton(): Promise<MatButtonHarness | null> {

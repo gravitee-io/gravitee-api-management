@@ -101,9 +101,14 @@
       @if (currentStep() < 3) {
         <div class="subscribe-to-api__actions__next">
           @if (currentApplication()) {
-            <div class="m3-body-medium">
-              <span i18n="@@subscribeToApiAppSelected">App selected</span>:
-              <span id="selected-application">{{ currentApplication()?.name }}</span>
+            <div class="m3-body-medium subscribe-to-api__actions__selected-application">
+              <div><span i18n="@@subscribeToApiAppSelected">Selected Application</span>:</div>
+              <mat-chip (removed)="currentApplication.set(undefined)"
+                >{{ currentApplication()?.name }}
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip>
             </div>
           }
           <button

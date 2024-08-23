@@ -15,29 +15,29 @@
     limitations under the License.
 
 -->
-<mat-card
-  (click)="onSelect()"
-  class="radio-card"
-  appearance="outlined"
-  [class.selected]="selected"
-  [class.disabled]="disabled"
-  [matTooltip]="disabled ? disabledMessage : ''">
+<mat-card (click)="onSelect()" class="radio-card" appearance="outlined" [class.selected]="selected" [class.disabled]="disabled">
   <mat-card-header class="radio-card__header">
     <div class="radio-card__header-content">
-      @if (displayPicture) {
-        <app-picture [hashValue]="pictureHashValue" [size]="40" [picture]="pictureUrl" />
+      <div class="radio-card__header-content__title">
+        @if (displayPicture) {
+          <app-picture [hashValue]="pictureHashValue" [size]="40" [picture]="pictureUrl" />
+        }
+        <div aria-label="Title" class="m3-title-medium">{{ title }}</div>
+      </div>
+      @if (disabled) {
+        <div class="radio-card__header-content__disable-icon">
+          <mat-icon [matTooltip]="disabledMessage">error</mat-icon>
+        </div>
       }
-      <div aria-label="Title" class="m3-title-medium">{{ title }}</div>
+      <mat-radio-group>
+        <mat-radio-button
+          class="radio-card__header-button"
+          (change)="onSelect()"
+          [value]="value"
+          [checked]="selected"
+          [disabled]="disabled" />
+      </mat-radio-group>
     </div>
-
-    <mat-radio-group>
-      <mat-radio-button
-        class="radio-card__header-button"
-        (change)="onSelect()"
-        [value]="value"
-        [checked]="selected"
-        [disabled]="disabled" />
-    </mat-radio-group>
   </mat-card-header>
   <mat-card-content>
     <ng-content />
