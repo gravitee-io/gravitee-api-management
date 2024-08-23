@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './createApiMember';
+export * from './addMember';
 export * from './member';
 export * from './membersResponse';
 export * from './role';
-export * from './updateApiMember';
+export * from './updateMember';

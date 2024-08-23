@@ -831,7 +831,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/AddApiMember"
+                            $ref: "#/components/schemas/AddMember"
                 required: true
             responses:
                 "201":
@@ -863,7 +863,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateApiMember"
+                            $ref: "#/components/schemas/UpdateMember"
                 required: true
             responses:
                 "200":
@@ -1375,7 +1375,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/AddIntegrationMember"
+                            $ref: "#/components/schemas/AddMember"
                 required: true
             responses:
                 "201":
@@ -1407,7 +1407,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateIntegrationMember"
+                            $ref: "#/components/schemas/UpdateMember"
                 required: true
             responses:
                 "200":
@@ -4836,7 +4836,7 @@ components:
                 - ORGANIZATION
                 - PLATFORM
                 - INTEGRATION
-        AddApiMember:
+        AddMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
             properties:
@@ -4851,30 +4851,7 @@ components:
                     description: The name of the role
                     minLength: 1
             required: [roleName]
-        AddIntegrationMember:
-            type: object
-            description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
-            properties:
-                userId:
-                    type: string
-                    description: Technical identifier for existing user.
-                externalReference:
-                    type: string
-                    description: User's reference for user provided from an identity provider.
-                roleName:
-                    type: string
-                    description: The name of the role
-                    minLength: 1
-            required: [roleName]
-        UpdateApiMember:
-            type: object
-            properties:
-                roleName:
-                    type: string
-                    description: The name of the role
-                    minLength: 1
-            required: [roleName]
-        UpdateIntegrationMember:
+        UpdateMember:
             type: object
             properties:
                 roleName:

@@ -31,13 +31,13 @@ import fixtures.core.model.LicenseFixtures;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AddIntegrationMember;
+import io.gravitee.rest.api.management.v2.rest.model.AddMember;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.Role;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegrationMember;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -132,13 +132,13 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().post(Entity.json(new AddIntegrationMember()));
+            final Response response = target.request().post(Entity.json(new AddMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
         @Test
         public void should_return_400_when_role_is_primary_owner() {
-            var newMembership = AddIntegrationMember.builder().roleName("PRIMARY_OWNER").build();
+            var newMembership = AddMember.builder().roleName("PRIMARY_OWNER").build();
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -148,14 +148,14 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_when_user_id_and_external_reference_is_empty() {
-            var newMembership = AddIntegrationMember.builder().roleName("OWNER").build();
+            var newMembership = AddMember.builder().roleName("OWNER").build();
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("Request must specify either userId or externalReference");
         }
 
         @Test
         public void should_create_an_integration_member() {
-            var newMembership = AddIntegrationMember.builder().roleName("OWNER").userId("userId").build();
+            var newMembership = AddMember.builder().roleName("OWNER").userId("userId").build();
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response)
                 .hasStatus(CREATED_201)
@@ -363,13 +363,13 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().put(Entity.json(new UpdateIntegrationMember()));
+            final Response response = target.request().put(Entity.json(new UpdateMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
         @Test
         public void should_return_400_when_editing_with_role_primary_owner() {
-            var newMembership = UpdateIntegrationMember.builder().roleName("PRIMARY_OWNER").build();
+            var newMembership = UpdateMember.builder().roleName("PRIMARY_OWNER").build();
 
             final Response response = target.request().put(Entity.json(newMembership));
 
@@ -381,7 +381,7 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_edit_a_membership() {
-            var newMembership = UpdateIntegrationMember.builder().roleName("OWNER").build();
+            var newMembership = UpdateMember.builder().roleName("OWNER").build();
 
             final Response response = target.request().put(Entity.json(newMembership));
 

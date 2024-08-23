@@ -17,7 +17,7 @@
 /**
  * Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
  */
-export interface CreateApiMember {
+export interface AddMember {
   /**
    * Technical identifier for existing user.
    */
