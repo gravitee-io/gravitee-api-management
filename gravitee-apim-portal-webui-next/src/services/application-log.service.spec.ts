@@ -85,7 +85,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(api:\\"${API_ID_1}\\" OR \\"${API_ID_2}\\")`,
+          `&query=api:(\\"${API_ID_1}\\" OR \\"${API_ID_2}\\")`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -105,7 +105,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(method:\\"${GET_METHOD.value}\\" OR \\"${POST_METHOD.value}\\")`,
+          `&query=method:(\\"${GET_METHOD.value}\\" OR \\"${POST_METHOD.value}\\")`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -125,7 +125,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(response-time:[${responseTimeOne}] OR [${responseTimeTwo}])`,
+          `&query=response-time:([${responseTimeOne}] OR [${responseTimeTwo}])`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -144,7 +144,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(_id:\\"${requestId}\\")`,
+          `&query=_id:\\"${requestId}\\"`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -163,7 +163,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(transaction:\\"${transactionId}\\")`,
+          `&query=transaction:\\"${transactionId}\\"`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -183,7 +183,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(status:\\"${OK}\\" OR \\"${NOT_FOUND}\\")`,
+          `&query=status:(\\"${OK}\\" OR \\"${NOT_FOUND}\\")`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -202,7 +202,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(body:*${messageText}*)`,
+          `&query=body:*${messageText}*`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -221,7 +221,7 @@ describe('ApplicationLogService', () => {
 
       const req = httpTestingController.expectOne(
         `${TESTING_BASE_URL}/applications/${APP_ID}/logs?page=1&size=10&from=${yesterdayInMilliseconds}&to=${currentDateInMilliseconds}&order=DESC&field=@timestamp` +
-          `&query=(uri:*${path}*)`,
+          `&query=uri:*${path}*`,
       );
       expect(req.request.method).toEqual('GET');
 

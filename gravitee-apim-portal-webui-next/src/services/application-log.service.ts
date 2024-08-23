@@ -142,7 +142,7 @@ export class ApplicationLogService {
 
   private createQuotationsQuerySegment(root: string, value?: string) {
     if (value && value.length) {
-      return this.createQuotationsListQuerySegment(root, [value]);
+      return `${root}\:\\"${value}\\"`;
     }
     return undefined;
   }
@@ -150,7 +150,7 @@ export class ApplicationLogService {
   private createQuotationsListQuerySegment(root: string, values?: string[]) {
     if (values?.length) {
       const queryContent = values.map(v => `\\"${v}\\"`).join(' OR ');
-      return `(${root}\:${queryContent})`;
+      return `${root}\:(${queryContent})`;
     }
     return undefined;
   }
@@ -158,7 +158,7 @@ export class ApplicationLogService {
   private createListQuerySegment(root: string, values?: string[]) {
     if (values?.length) {
       const queryContent = values.map(v => `[${v}]`).join(' OR ');
-      return `(${root}\:${queryContent})`;
+      return `${root}\:(${queryContent})`;
     }
     return undefined;
   }
@@ -166,7 +166,7 @@ export class ApplicationLogService {
   private createAsteriskQuerySegment(root: string, value?: string) {
     if (value && value.length) {
       const cleanValue = value.replace('/', '\\\\/');
-      return `(${root}\:*${cleanValue}*)`;
+      return `${root}\:*${cleanValue}*`;
     }
     return undefined;
   }
