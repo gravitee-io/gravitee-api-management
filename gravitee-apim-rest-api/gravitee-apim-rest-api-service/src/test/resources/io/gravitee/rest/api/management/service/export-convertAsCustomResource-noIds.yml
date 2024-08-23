@@ -15,10 +15,7 @@ spec:
   properties: []
   groups:
   - "developers"
-  members:
-  - source: "johndoe-source"
-    sourceId: "johndoe-sourceId"
-    role: "API_PRIMARY_OWNER"
+  members: []
   pages:
     My Folder:
       name: "My Folder"

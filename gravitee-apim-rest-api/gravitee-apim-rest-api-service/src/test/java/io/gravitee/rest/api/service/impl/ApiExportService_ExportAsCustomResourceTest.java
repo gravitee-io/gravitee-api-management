@@ -188,7 +188,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(List.of(folder));
 
         String poRoleId = "9ca07fdb-e143-45be-9c7d-44946a94968e";
-        String poRoleName = "API_PRIMARY_OWNER";
+        String poRoleName = "PRIMARY_OWNER";
 
         RoleEntity poRole = new RoleEntity();
         poRole.setName(poRoleName);

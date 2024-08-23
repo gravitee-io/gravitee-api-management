@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
@@ -161,15 +162,21 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             .stream()
             .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getName));
 
-        for (var member : members) {
+        var it = members.iterator();
+        while (it.hasNext()) {
+            var member = it.next();
             JsonNode roles = member.get("roles");
 
             // Can't be null. A member should always have a role
             JsonNode roleId = roles.iterator().next();
             var roleName = roleIdToName.get(roleId.asText());
 
-            ((ObjectNode) member).remove("roles");
-            ((ObjectNode) member).put("role", roleName);
+            if (SystemRole.PRIMARY_OWNER.name().equals(roleName)) {
+                it.remove();
+            } else {
+                ((ObjectNode) member).remove("roles");
+                ((ObjectNode) member).put("role", roleName);
+            }
         }
     }
 
