@@ -97,7 +97,7 @@ describe('SubscribeToApiComponent', () => {
         fakePlan({ id: API_KEY_PLAN_ID, security: 'API_KEY', comment_required: false, general_conditions: undefined }),
         fakePlan({ id: API_KEY_PLAN_ID_COMMENT_REQUIRED, security: 'API_KEY', comment_required: true, general_conditions: undefined }),
         fakePlan({ id: API_KEY_PLAN_ID_GENERAL_CONDITIONS, security: 'API_KEY', general_conditions: GENERAL_CONDITIONS_ID }),
-        fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2' }),
+        fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2', general_conditions: undefined }),
         fakePlan({ id: JWT_PLAN_ID, security: 'JWT' }),
       ],
     });
@@ -625,13 +625,153 @@ describe('SubscribeToApiComponent', () => {
       await init(true);
     });
     describe('Step 1 -- Choose a plan', () => {
-      it('should be disabled', async () => {
+      it('should be enabled', async () => {
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
         expect(step1).toBeTruthy();
 
         expect(await step1.isPlanSelected(OAUTH2_PLAN_ID)).toEqual(false);
-        expect(await step1.isPlanDisabled(OAUTH2_PLAN_ID)).toEqual(true);
-        expect(await canGoToNextStep()).toEqual(false);
+        expect(await step1.isPlanDisabled(OAUTH2_PLAN_ID)).toEqual(false);
+        await step1.selectPlanByPlanId(OAUTH2_PLAN_ID);
+
+        expect(await canGoToNextStep()).toEqual(true);
+      });
+    });
+
+    describe('Step 2 -- Choose an application', () => {
+      const APP_ID = 'app-id';
+      beforeEach(async () => {
+        await selectPlan(OAUTH2_PLAN_ID);
+      });
+
+      it('should disable application with existing subscription to plan', async () => {
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ status: 'ACCEPTED', plan: OAUTH2_PLAN_ID, application: APP_ID })],
+            metadata: {
+              [OAUTH2_PLAN_ID]: {
+                securityType: 'OAUTH2',
+              },
+            },
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+      it('should disable application with existing OAuth2 subscription to another plan', async () => {
+        const anotherOAuth2Plan = 'another-plan';
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ status: 'PENDING', plan: anotherOAuth2Plan, application: APP_ID })],
+            metadata: {
+              [anotherOAuth2Plan]: {
+                securityType: 'OAUTH2',
+              },
+            },
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+      it('should disable application with existing JWT subscription to another plan', async () => {
+        const anotherJWTPlan = 'another-plan';
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ status: 'PENDING', plan: anotherJWTPlan, application: APP_ID })],
+            metadata: {
+              [anotherJWTPlan]: {
+                securityType: 'JWT',
+              },
+            },
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+      it('should disable application missing a Client ID', async () => {
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [],
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1', hasClientId: false })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+      it('should select valid Application', async () => {
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ id: 'apikey-sub', plan: API_KEY_PLAN_ID, status: 'ACCEPTED' })],
+            metadata: {
+              [API_KEY_PLAN_ID]: {
+                planMode: 'STANDARD',
+                securityType: 'API_KEY',
+              },
+            },
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1', hasClientId: true })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(false);
+      });
+    });
+
+    describe('Step 3 -- Checkout', () => {
+      beforeEach(async () => {
+        await selectPlan(OAUTH2_PLAN_ID);
+        await selectApplication();
+
+        expectGetApi();
+        fixture.detectChanges();
+      });
+      it('should subscribe', async () => {
+        const subscribeButton = await getSubscribeButton();
+        expect(await subscribeButton?.isDisabled()).toEqual(false);
+        await subscribeButton?.click();
+
+        expectPostCreateSubscription({ plan: OAUTH2_PLAN_ID, application: 'app-id' });
       });
     });
   });
