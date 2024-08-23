@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static io.gravitee.repository.mongodb.utils.CollectionUtils.stream;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
@@ -66,7 +68,7 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
         logger.debug("Find groups by ids");
-        Set<Group> groups = internalRepository.findByIds(ids).stream().map(this::map).collect(Collectors.toSet());
+        Set<Group> groups = stream(internalRepository.findByIds(ids)).map(this::map).collect(Collectors.toSet());
         logger.debug("Find groups by ids - Found {}", groups);
         return groups;
     }
