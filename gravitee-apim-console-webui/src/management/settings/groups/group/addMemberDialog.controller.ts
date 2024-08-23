@@ -28,24 +28,31 @@ function DialogAddGroupMemberController(
   group: any,
   defaultApiRole: string,
   defaultApplicationRole: string,
+  defaultIntegrationRole: string,
   apiRoles: Role[],
   applicationRoles: Role[],
+  integrationRoles: Role[],
   canChangeDefaultApiRole,
   canChangeDefaultApplicationRole,
+  canChangeDefaultIntegrationRole,
   isApiRoleDisabled,
 ) {
   this.group = group;
   this.apiRoles = apiRoles;
   this.applicationRoles = applicationRoles;
+  this.integrationRoles = integrationRoles;
 
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
+  this.defaultIntegrationRole = defaultIntegrationRole;
   this.usersSelected = [];
   this.defaultApiRole = defaultApiRole ? defaultApiRole : find(apiRoles, { default: true })?.name;
   this.defaultApplicationRole = defaultApplicationRole ? defaultApplicationRole : find(applicationRoles, { default: true }).name;
+  this.defaultIntegrationRole = defaultIntegrationRole ? defaultIntegrationRole : find(integrationRoles, { default: true }).name;
 
   this.canChangeDefaultApiRole = canChangeDefaultApiRole;
   this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
+  this.canChangeDefaultIntegrationRole = canChangeDefaultIntegrationRole;
   this.isApiRoleDisabled = isApiRoleDisabled;
 
   this.hide = () => {
@@ -63,6 +70,7 @@ function DialogAddGroupMemberController(
         roles: {
           API: this.defaultApiRole,
           APPLICATION: this.defaultApplicationRole,
+          INTEGRATION: this.defaultIntegrationRole,
         },
       };
 
@@ -72,7 +80,7 @@ function DialogAddGroupMemberController(
   };
 
   this.invalid = (): boolean => {
-    return (!this.defaultApiRole && !this.defaultApplicationRole) || this.usersSelected.length === 0;
+    return (!this.defaultApiRole && !this.defaultApplicationRole && !this.defaultIntegrationRole) || this.usersSelected.length === 0;
   };
 
   this.hasPrimaryOwner = (): boolean => {
@@ -84,10 +92,13 @@ DialogAddGroupMemberController.$inject = [
   'group',
   'defaultApiRole',
   'defaultApplicationRole',
+  'defaultIntegrationRole',
   'apiRoles',
   'applicationRoles',
+  'integrationRoles',
   'canChangeDefaultApiRole',
   'canChangeDefaultApplicationRole',
+  'canChangeDefaultIntegrationRole',
   'isApiRoleDisabled',
 ];
 
