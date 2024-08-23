@@ -290,6 +290,22 @@ export class SubscribeToApiComponent implements OnInit {
           disabledMessage: 'This application uses shared API keys and a pending or accepted API Key subscription already exists',
         };
       }
+
+      if (this.existingValidOAuth2OrJWTSubscription(application, subscriptions)) {
+        return {
+          ...application,
+          disabled: true,
+          disabledMessage: 'Already subscribed to an OAuth2 or JWT plan for this API',
+        };
+      }
+
+      if (this.missingClientId(application)) {
+        return {
+          ...application,
+          disabled: true,
+          disabledMessage: 'Missing Client ID',
+        };
+      }
       return { ...application };
     });
   }
@@ -314,6 +330,23 @@ export class SubscribeToApiComponent implements OnInit {
         allValidApiSubscriptionsResponse.metadata[s.plan]?.planMode === 'STANDARD' &&
         allValidApiSubscriptionsResponse.metadata[s.plan]?.securityType === 'API_KEY',
     );
+  }
+
+  private existingValidOAuth2OrJWTSubscription(application: Application, allValidApiSubscriptionsResponse: SubscriptionsResponse): boolean {
+    if (this.currentPlan()?.security !== 'OAUTH2' && this.currentPlan()?.security !== 'JWT') {
+      return false;
+    }
+    return allValidApiSubscriptionsResponse.data.some(
+      s =>
+        s.application === application.id &&
+        (s.status === 'ACCEPTED' || s.status === 'PENDING' || s.status === 'PAUSED') &&
+        (allValidApiSubscriptionsResponse.metadata[s.plan]?.securityType === 'OAUTH2' ||
+          allValidApiSubscriptionsResponse.metadata[s.plan]?.securityType === 'JWT'),
+    );
+  }
+
+  private missingClientId(application: Application): boolean {
+    return (this.currentPlan()?.security === 'OAUTH2' || this.currentPlan()?.security === 'JWT') && application.hasClientId !== true;
   }
 
   private handleCheckoutData$(api: Api): Observable<CheckoutData> {
