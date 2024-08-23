@@ -400,7 +400,7 @@ describe('ApplicationLogTableComponent', () => {
               },
             }),
             1,
-            `(api:\\"${API_ID}\\")`,
+            `api:(\\"${API_ID}\\")`,
           );
           expectGetSubscriptions(
             fakeSubscriptionResponse({
@@ -452,7 +452,7 @@ describe('ApplicationLogTableComponent', () => {
               },
             }),
             1,
-            `(api:\\"${API_ID_1}\\" OR \\"${API_ID_2}\\")`,
+            `api:(\\"${API_ID_1}\\" OR \\"${API_ID_2}\\")`,
           );
           expectGetSubscriptions(
             fakeSubscriptionResponse({
@@ -489,7 +489,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ methods: [GET_METHOD] });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(method:\\"${GET_METHOD}\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `method:(\\"${GET_METHOD}\\")`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -522,7 +522,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(method:\\"${GET_METHOD}\\" OR \\"7\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `method:(\\"${GET_METHOD}\\" OR \\"7\\")`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
@@ -540,7 +540,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ responseTimes: RESPONSE_TIME });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(response-time:[${RESPONSE_TIME}])`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `response-time:([${RESPONSE_TIME}])`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -573,7 +573,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(response-time:[${RESPONSE_TIME}] OR [100 TO 200])`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `response-time:([${RESPONSE_TIME}] OR [100 TO 200])`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
@@ -906,7 +906,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ requestId: REQUEST_ID });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(_id:\\"${REQUEST_ID}\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `_id:\\"${REQUEST_ID}\\"`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -934,7 +934,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(_id:\\"new-request-id\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `_id:\\"new-request-id\\"`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
@@ -952,7 +952,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ transactionId: TRANSACTION_ID });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(transaction:\\"${TRANSACTION_ID}\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `transaction:\\"${TRANSACTION_ID}\\"`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -980,7 +980,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(transaction:\\"new-transaction-id\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `transaction:\\"new-transaction-id\\"`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
@@ -998,7 +998,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ httpStatuses: OK });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(status:\\"${OK}\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `status:(\\"${OK}\\")`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -1033,7 +1033,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(status:\\"${OK}\\" OR \\"404\\")`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `status:(\\"${OK}\\" OR \\"404\\")`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
@@ -1051,7 +1051,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ messageText: MESSAGE_TEXT });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(body:*${MESSAGE_TEXT}*)`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `body:*${MESSAGE_TEXT}*`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -1079,7 +1079,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(body:*actually find this*)`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `body:*actually find this*`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
@@ -1097,7 +1097,7 @@ describe('ApplicationLogTableComponent', () => {
         beforeEach(async () => {
           await init({ path: PATH });
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(uri:*${PATH}*)`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `uri:*${PATH}*`);
           expectGetSubscriptions(fakeSubscriptionResponse());
           fixture.detectChanges();
         });
@@ -1125,7 +1125,7 @@ describe('ApplicationLogTableComponent', () => {
           expect(await searchButton.isDisabled()).toEqual(false);
 
           await searchButton.click();
-          expectGetApplicationLogs(fakeLogsResponse(), 1, `(uri:*\\\\/different-path*)`);
+          expectGetApplicationLogs(fakeLogsResponse(), 1, `uri:*\\\\/different-path*`);
         });
         it('should reset filter', async () => {
           const resetButton = await getResetFilterButton();
