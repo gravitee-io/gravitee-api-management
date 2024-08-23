@@ -37,7 +37,21 @@
         <md-option ng-repeat="role in $ctrl.applicationRoles" ng-value="role.name" ng-disabled="role.system"> {{role.name}} </md-option>
       </md-select>
     </div>
-    <div ng-if="!$ctrl.defaultApiRole && !$ctrl.defaultApplicationRole" style="margin: 0 0 8px 0; text-align: right">
+    <div layout="row" layout-align="space-between center">
+      <span>Choose an Integration role</span>
+      <md-select
+        ng-model="$ctrl.defaultIntegrationRole"
+        aria-label="Integration Role"
+        class="md-no-underline"
+        ng-disabled="!$ctrl.canChangeDefaultIntegrationRole"
+      >
+        <md-option ng-repeat="role in $ctrl.integrationRoles" ng-value="role.name" ng-disabled="role.system"> {{role.name}} </md-option>
+      </md-select>
+    </div>
+    <div
+      ng-if="!$ctrl.defaultApiRole && !$ctrl.defaultApplicationRole && !$ctrl.defaultIntegrationRole"
+      style="margin: 0 0 8px 0; text-align: right"
+    >
       <em style="color: red">Select at least one role</em>
     </div>
     <form name="formMember" ng-submit="$event.preventDefault()">

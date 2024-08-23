@@ -33,6 +33,7 @@ interface IGroupDetailComponentScope extends ng.IScope {
   groupApplications: any[];
   selectedApiRole: string;
   selectedApplicationRole: string;
+  selectedIntegrationRole: string;
   currentTab: string;
   formGroup: any;
 }
@@ -85,17 +86,20 @@ const GroupComponentAjs: ng.IComponentOptions = {
             GroupService.get(this.activatedRoute?.snapshot?.params?.groupId),
             RoleService.list('API'),
             RoleService.list('APPLICATION'),
+            RoleService.list('INTEGRATION'),
             GroupService.getInvitations(this.activatedRoute?.snapshot?.params?.groupId),
           ])
-            .then(([groupsResponse, apiRolesResponse, applicationRolesResponse, invitationsResponse]) => {
+            .then(([groupsResponse, apiRolesResponse, applicationRolesResponse, integrationRolesResponse, invitationsResponse]) => {
               this.group = groupsResponse.data;
               this.apiRoles = [{ scope: 'API', name: '', system: false }].concat(apiRolesResponse);
               this.applicationRoles = [{ scope: 'APPLICATION', name: '', system: false }].concat(applicationRolesResponse);
+              this.integrationRoles = [{ scope: 'INTEGRATION', name: '', system: false }].concat(integrationRolesResponse);
               this.invitations = invitationsResponse.data;
 
               if (this.group.roles) {
                 this.selectedApiRole = this.group.roles.API;
                 this.selectedApplicationRole = this.group.roles.APPLICATION;
+                this.selectedIntegrationRole = this.group.roles.INTEGRATION;
               }
               this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
               this.applicationByDefault =
@@ -122,6 +126,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
         this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
         this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
         this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
+        this.canChangeDefaultIntegrationRole = this.isSuperAdmin;
 
         /*
         It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
@@ -247,11 +252,14 @@ const GroupComponentAjs: ng.IComponentOptions = {
             locals: {
               defaultApiRole: this.selectedApiRole,
               defaultApplicationRole: this.selectedApplicationRole,
+              defaultIntegrationRole: this.selectedIntegrationRole,
               group: this.group,
               apiRoles: this.apiRoles,
               applicationRoles: this.applicationRoles,
+              integrationRoles: this.integrationRoles,
               canChangeDefaultApiRole: this.canChangeDefaultApiRole,
               canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
+              canChangeDefaultIntegrationRole: this.canChangeDefaultIntegrationRole,
               isApiRoleDisabled: this.isApiRoleDisabled,
             },
           })
