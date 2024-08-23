@@ -16,6 +16,8 @@
 import { Header } from '@gravitee/ui-particles-angular';
 
 import { toGioFormHeader, toDictionary } from './gio-form-header.util';
+import { FormControl } from '@angular/forms';
+import { uniqueKeysValidator } from './gio-form-header.util';
 
 describe('toGioFormHeader', () => {
   it('should return an empty array when the input is undefined', () => {
@@ -69,5 +71,33 @@ describe('toDictionary', () => {
     };
     const result = toDictionary(input);
     expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe('uniqueKeysValidator', () => {
+  it('should return null if there are no headers', () => {
+    const control = new FormControl([]);
+    const result = uniqueKeysValidator()(control);
+    expect(result).toBeNull();
+  });
+
+  it('should return null if all keys are unique', () => {
+    const headers: Header[] = [
+      { key: 'key1', value: 'value1' },
+      { key: 'key2', value: 'value2' },
+    ];
+    const control = new FormControl(headers);
+    const result = uniqueKeysValidator()(control);
+    expect(result).toBeNull();
+  });
+
+  it('should return an error object if there are duplicate keys', () => {
+    const headers: Header[] = [
+      { key: 'key1', value: 'value1' },
+      { key: 'key1', value: 'value2' },
+    ];
+    const control = new FormControl(headers);
+    const result = uniqueKeysValidator()(control);
+    expect(result).toEqual({ nonUniqueKeys: true });
   });
 });

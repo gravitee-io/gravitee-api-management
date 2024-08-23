@@ -30,7 +30,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { Application, ApplicationType } from '../../../../entities/application/Application';
-import { toDictionary, toGioFormHeader } from '../../../../util/gio-form-header.util';
+import { toDictionary, toGioFormHeader, uniqueKeysValidator } from '../../../../util/gio-form-header.util';
 
 @Component({
   selector: 'application-general',
@@ -130,10 +130,13 @@ export class ApplicationGeneralComponent implements OnInit {
                   : undefined,
                 disabled: this.isReadOnly,
               }),
-              additional_client_metadata: new FormControl<Header[]>({
-                value: toGioFormHeader(this.initialApplication.settings?.oauth?.additional_client_metadata),
-                disabled: this.isReadOnly,
-              }),
+              additional_client_metadata: new FormControl<Header[]>(
+                {
+                  value: toGioFormHeader(this.initialApplication.settings?.oauth?.additional_client_metadata),
+                  disabled: this.isReadOnly,
+                },
+                [uniqueKeysValidator()],
+              ),
             }),
           );
         }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Header } from '@gravitee/ui-particles-angular';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export function toGioFormHeader(record: Record<string, string> | undefined): Header[] {
   if (record === undefined) {
@@ -31,4 +32,18 @@ export function toDictionary(headers: Header[] | undefined): Record<string, stri
   }
 
   return headers.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
+}
+
+export function uniqueKeysValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const headers: Header[] = control.value;
+    if (!headers) {
+      return null;
+    }
+
+    const keys = headers.map((header) => header.key);
+    const uniqueKeys = new Set(keys);
+
+    return keys.length === uniqueKeys.size ? null : { nonUniqueKeys: true };
+  };
 }
