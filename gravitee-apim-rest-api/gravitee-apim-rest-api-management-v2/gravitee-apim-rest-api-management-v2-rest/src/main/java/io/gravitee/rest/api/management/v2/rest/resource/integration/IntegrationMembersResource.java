@@ -19,10 +19,10 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AddIntegrationMember;
+import io.gravitee.rest.api.management.v2.rest.model.AddMember;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegrationMember;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -81,7 +81,7 @@ public class IntegrationMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.CREATE) })
-    public Response createIntegrationMembership(AddIntegrationMember integrationMembership) {
+    public Response createIntegrationMembership(AddMember integrationMembership) {
         checkRoleIsNotPrimaryOwner(integrationMembership.getRoleName());
 
         if (integrationMembership.getUserId() == null && integrationMembership.getExternalReference() == null) {
@@ -103,14 +103,14 @@ public class IntegrationMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.INTEGRATION_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response updateIntegrationMembership(@PathParam("memberId") String memberId, UpdateIntegrationMember integrationMembership) {
-        checkRoleIsNotPrimaryOwner(integrationMembership.getRoleName());
+    public Response updateIntegrationMembership(@PathParam("memberId") String memberId, UpdateMember updateMember) {
+        checkRoleIsNotPrimaryOwner(updateMember.getRoleName());
 
         var updatedMembership = membershipService.updateMembershipForIntegration(
             GraviteeContext.getExecutionContext(),
             integrationId,
             memberId,
-            integrationMembership.getRoleName()
+            updateMember.getRoleName()
         );
         return Response.ok().entity(MemberMapper.INSTANCE.map(updatedMembership)).build();
     }

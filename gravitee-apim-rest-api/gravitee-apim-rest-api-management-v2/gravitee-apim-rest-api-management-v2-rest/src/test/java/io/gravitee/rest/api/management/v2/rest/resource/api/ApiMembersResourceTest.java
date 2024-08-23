@@ -29,13 +29,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AddApiMember;
+import io.gravitee.rest.api.management.v2.rest.model.AddMember;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.Role;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMember;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -116,20 +116,20 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().post(Entity.json(new AddApiMember()));
+            final Response response = target.request().post(Entity.json(new AddMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
         @Test
         public void should_return_400_when_role_is_primary_owner() {
-            var newMembership = AddApiMember.builder().roleName("PRIMARY_OWNER").build();
+            var newMembership = AddMember.builder().roleName("PRIMARY_OWNER").build();
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("An API must always have only one PRIMARY_OWNER !");
         }
 
         @Test
         public void should_create_an_api_member() {
-            var newMembership = AddApiMember.builder().roleName("OWNER").userId("userId").build();
+            var newMembership = AddMember.builder().roleName("OWNER").userId("userId").build();
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response)
                 .hasStatus(CREATED_201)
@@ -331,13 +331,13 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = target.request().put(Entity.json(new UpdateApiMember()));
+            final Response response = target.request().put(Entity.json(new UpdateMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
         @Test
         public void should_return_400_when_editing_with_role_primary_owner() {
-            var newMembership = UpdateApiMember.builder().roleName("PRIMARY_OWNER").build();
+            var newMembership = UpdateMember.builder().roleName("PRIMARY_OWNER").build();
 
             final Response response = target.request().put(Entity.json(newMembership));
 
@@ -346,7 +346,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_edit_a_membership() {
-            var newMembership = UpdateApiMember.builder().roleName("OWNER").build();
+            var newMembership = UpdateMember.builder().roleName("OWNER").build();
 
             final Response response = target.request().put(Entity.json(newMembership));
 

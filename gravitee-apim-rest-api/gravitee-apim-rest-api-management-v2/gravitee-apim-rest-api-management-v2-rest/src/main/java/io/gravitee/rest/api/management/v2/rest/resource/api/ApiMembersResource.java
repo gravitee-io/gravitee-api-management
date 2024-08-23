@@ -19,10 +19,10 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AddApiMember;
+import io.gravitee.rest.api.management.v2.rest.model.AddMember;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMember;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -38,8 +38,6 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
@@ -74,7 +72,7 @@ public class ApiMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE) })
-    public Response createApiMembership(AddApiMember apiMembership) {
+    public Response createApiMembership(AddMember apiMembership) {
         checkRoleIsNotPrimaryOwner(apiMembership.getRoleName());
 
         if (apiMembership.getUserId() == null && apiMembership.getExternalReference() == null) {
@@ -96,7 +94,7 @@ public class ApiMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiMembership(@PathParam("memberId") String memberId, UpdateApiMember apiMembership) {
+    public Response updateApiMembership(@PathParam("memberId") String memberId, UpdateMember apiMembership) {
         checkRoleIsNotPrimaryOwner(apiMembership.getRoleName());
 
         var updatedMembership = membershipService.updateMembershipForApi(

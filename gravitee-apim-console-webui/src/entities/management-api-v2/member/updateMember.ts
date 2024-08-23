@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export interface UpdateApiMember {
+export interface UpdateMember {
   /**
    * Technical identifier for existing user.
    */

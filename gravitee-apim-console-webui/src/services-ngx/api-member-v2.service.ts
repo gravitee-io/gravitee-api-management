@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { CreateApiMember, Member, MembersResponse, UpdateApiMember } from '../entities/management-api-v2';
+import { AddMember, Member, MembersResponse, UpdateMember } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -33,11 +33,11 @@ export class ApiMemberV2Service {
     return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/apis/${api}/members`);
   }
 
-  addMember(api: string, membership: CreateApiMember): Observable<Member> {
+  addMember(api: string, membership: AddMember): Observable<Member> {
     return this.http.post<Member>(`${this.constants.env.v2BaseURL}/apis/${api}/members`, membership);
   }
 
-  updateMember(api: string, membership: UpdateApiMember): Observable<Member> {
+  updateMember(api: string, membership: UpdateMember): Observable<Member> {
     return this.http.put<Member>(`${this.constants.env.v2BaseURL}/apis/${api}/members/${membership.memberId}`, membership);
   }
 

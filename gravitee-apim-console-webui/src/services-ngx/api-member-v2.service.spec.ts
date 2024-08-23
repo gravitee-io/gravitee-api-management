@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiMemberV2Service } from './api-member-v2.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
-import { CreateApiMember, Member, MembersResponse, UpdateApiMember } from '../entities/management-api-v2';
+import { AddMember, Member, MembersResponse, UpdateMember } from '../entities/management-api-v2';
 
 describe('ApiMemberV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -66,7 +66,7 @@ describe('ApiMemberV2Service', () => {
   describe('add member', () => {
     it('should call the API', (done) => {
       const apiId = 'fox';
-      const membership: CreateApiMember = { userId: '1', roleName: 'king', externalReference: 'ref' };
+      const membership: AddMember = { userId: '1', roleName: 'king', externalReference: 'ref' };
       apiMemberService.addMember(apiId, membership).subscribe(() => {
         done();
       });
@@ -82,7 +82,7 @@ describe('ApiMemberV2Service', () => {
   describe('update member', () => {
     it('should call the API', (done) => {
       const apiId = 'fox';
-      const membership: UpdateApiMember = { memberId: '1', roleName: 'king' };
+      const membership: UpdateMember = { memberId: '1', roleName: 'king' };
       apiMemberService.updateMember(apiId, membership).subscribe(() => {
         done();
       });
