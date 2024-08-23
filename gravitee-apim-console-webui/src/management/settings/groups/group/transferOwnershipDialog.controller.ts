@@ -36,10 +36,8 @@ class DialogTransferOwnershipController {
     private members: Member[],
     private group: any,
     private transferType: ApiOwnershipTransferType,
-    private primaryOwnerWithScopes,
   ) {
     this.usersSelected = [];
-    this.primaryOwnerWithScopes = primaryOwnerWithScopes;
     this.userFilterFn = this.userFilterFn.bind(this);
   }
 
@@ -68,6 +66,6 @@ class DialogTransferOwnershipController {
     return this.transferType === ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER;
   }
 }
-DialogTransferOwnershipController.$inject = ['$mdDialog', 'primaryOwner', 'members', 'group', 'transferType', 'primaryOwnerWithScopes'];
+DialogTransferOwnershipController.$inject = ['$mdDialog', 'primaryOwner', 'members', 'group', 'transferType'];
 
 export default DialogTransferOwnershipController;

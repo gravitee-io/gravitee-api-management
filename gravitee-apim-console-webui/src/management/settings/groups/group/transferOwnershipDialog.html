@@ -17,18 +17,12 @@
 -->
 <md-dialog aria-label="Add member" layout-padding flex="30">
   <md-dialog-content class="searchMembers">
-    <p ng-if="!$ctrl.isPromotion()">You need to transfer roles before going further.</p>
-    <div ng-repeat="primaryOwnerWithScope in $ctrl.primaryOwnerWithScopes">
-      <h4>Transfer {{primaryOwnerWithScope.roleScope}} Primary Ownership for {{$ctrl.group.name}}</h4>
-      <p>
-        User <code>{{primaryOwnerWithScope.member.displayName}}</code> has role
-        <code>{{primaryOwnerWithScope.roleScope}} Primary Owner</code>.
-      </p>
-      <p ng-if="$ctrl.isPromotion()">
-        If you go further, <code>{{primaryOwnerWithScope.member.displayName}}</code> will be demoted to the role
-        <code>{{primaryOwnerWithScope.roleScope}} Owner</code>.
-      </p>
-    </div>
+    <h4>Transfer API Primary Ownership for {{$ctrl.group.name}}</h4>
+    <p>User <code>{{$ctrl.primaryOwner.displayName}}</code> has role <code>API Primary Owner</code>.</p>
+    <p ng-if="!$ctrl.isPromotion()">You need to transfer this role before going further.</p>
+    <p ng-if="$ctrl.isPromotion()">
+      If you go further, <code>{{$ctrl.primaryOwner.displayName}}</code> will be demoted to the role <code>API Owner</code>.
+    </p>
     <form name="formMember" ng-submit="$event.preventDefault()" ng-if="!$ctrl.isPromotion()">
       <gv-user-autocomplete
         users-selected="$ctrl.usersSelected"

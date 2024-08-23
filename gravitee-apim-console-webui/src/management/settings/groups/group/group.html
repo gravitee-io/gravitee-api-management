@@ -203,80 +203,64 @@
             <md-table-container ng-if="$ctrl.membersLoaded" ng-cloak>
               <table md-table ng-init="orderGrp = 'displayName'">
                 <thead md-head md-order="orderGrp">
-                  <tr md-row>
-                    <th md-column width="18%" md-order-by="displayName">Name</th>
-                    <th md-column width="18%">Group Admin</th>
-                    <th md-column width="18%">API Role</th>
-                    <th md-column width="18%">Application Role</th>
-                    <th md-column width="18%">Integration Role</th>
-                    <th md-column width="10%"></th>
-                  </tr>
+                <tr md-row>
+                  <th md-column width="22%" md-order-by="displayName">Name</th>
+                  <th md-column width="22%">Group Admin</th>
+                  <th md-column width="22%">API Role</th>
+                  <th md-column width="22%">Application Role</th>
+                  <th md-column width="12%"></th>
+                </tr>
                 </thead>
                 <tbody md-body>
-                  <tr style="height: 30px" ng-if="$ctrl.members.length === 0">
-                    <td md-cell style="text-align: center" colspan="5">None.</td>
-                  </tr>
-                  <tr md-row ng-repeat="member in $ctrl.members | orderBy: orderGrp">
-                    <td md-cell>{{member.displayName}}</td>
-                    <td md-cell>
-                      <md-checkbox
-                        ng-model="member.roles['GROUP']"
-                        ng-true-value="'ADMIN'"
-                        ng-false-value="''"
-                        ng-change="$ctrl.updateRole(member)"
-                        aria-label="Administrator of this group"
-                        ng-disabled="!ctrl.isSuperAdmin && !($ctrl.group.manageable && $ctrl.group.system_invitation)"
+                <tr style="height: 30px" ng-if="$ctrl.members.length === 0">
+                  <td md-cell style="text-align: center" colspan="5">None.</td>
+                </tr>
+                <tr md-row ng-repeat="member in $ctrl.members | orderBy: orderGrp">
+                  <td md-cell>{{member.displayName}}</td>
+                  <td md-cell>
+                    <md-checkbox
+                      ng-model="member.roles['GROUP']"
+                      ng-true-value="'ADMIN'"
+                      ng-false-value="''"
+                      ng-change="$ctrl.updateRole(member)"
+                      aria-label="Administrator of this group"
+                      ng-disabled="!ctrl.isSuperAdmin && !($ctrl.group.manageable && $ctrl.group.system_invitation)"
+                    >
+                    </md-checkbox>
+                  </td>
+                  <td md-cell>
+                    <md-select
+                      ng-model="member.roles['API']"
+                      aria-label="API Role"
+                      ng-change="$ctrl.updateRole(member)"
+                      ng-disabled="!$ctrl.canChangeDefaultApiRole"
+                    >
+                      <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
+                      >{{role.name}}</md-option
                       >
-                      </md-checkbox>
-                    </td>
-                    <td md-cell>
-                      <md-select
-                        ng-model="member.roles['API']"
-                        aria-label="API Role"
-                        ng-change="$ctrl.updateRole(member, 'API')"
-                        ng-disabled="!$ctrl.canChangeDefaultApiRole"
+                    </md-select>
+                  </td>
+                  <td md-cell>
+                    <md-select
+                      ng-model="member.roles['APPLICATION']"
+                      aria-label="Application Role"
+                      ng-change="$ctrl.updateRole(member)"
+                      ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
+                    >
+                      <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
+                      >{{role.name}}</md-option
                       >
-                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
-                          >{{role.name}}</md-option
-                        >
-                      </md-select>
-                    </td>
-                    <td md-cell>
-                      <md-select
-                        ng-model="member.roles['APPLICATION']"
-                        aria-label="Application Role"
-                        ng-change="$ctrl.updateRole(member, 'APPLICATION')"
-                        ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
-                      >
-                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
-                          >{{role.name}}</md-option
-                        >
-                      </md-select>
-                    </td>
-                    <td md-cell>
-                      <md-select
-                        ng-model="member.roles['INTEGRATION']"
-                        aria-label="Integration Role"
-                        ng-change="$ctrl.updateRole(member, 'INTEGRATION')"
-                        ng-disabled="!$ctrl.canChangeDefaultIntegrationRole"
-                      >
-                        <md-option
-                          ng-value="role.name"
-                          ng-repeat="role in $ctrl.integrationRoles"
-                          ng-disabled="$ctrl.isIntegrationRoleDisabled(role)"
-                          >{{role.name}}</md-option
-                        >
-                      </md-select>
-                    </td>
-                    <td md-cell ng-click="$event.stopPropagation()">
-                      <div layout="row" layout-align="end center">
+                    </md-select>
+                  </td>
+                  <td md-cell ng-click="$event.stopPropagation()">
+                    <div layout="row" layout-align="end center">
                         <span ng-if="$ctrl.isSuperAdmin || ($ctrl.group.manageable && $ctrl.currentUserId !== member.id)">
                           <md-tooltip md-direction="top">delete</md-tooltip>
                           <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
                         </span>
-                      </div>
-                    </td>
-                  </tr>
+                    </div>
+                  </td>
+                </tr>
                 </tbody>
               </table>
               <div ng-if="$ctrl.invitations.length > 0">
@@ -284,44 +268,44 @@
                 <h3 style="color: red">Pending invitations</h3>
                 <table md-table ng-init="orderInvitation = 'email'">
                   <thead md-head md-order="orderInvitation">
-                    <tr md-row>
-                      <th md-column md-order-by="email">Email</th>
-                      <th md-column>API Role</th>
-                      <th md-column>Application Role</th>
-                      <th md-column md-order-by="created_at">Invitation date</th>
-                      <th md-column></th>
-                    </tr>
+                  <tr md-row>
+                    <th md-column md-order-by="email">Email</th>
+                    <th md-column>API Role</th>
+                    <th md-column>Application Role</th>
+                    <th md-column md-order-by="created_at">Invitation date</th>
+                    <th md-column></th>
+                  </tr>
                   </thead>
                   <tbody md-body>
-                    <tr md-row ng-repeat="invitation in $ctrl.invitations | orderBy: orderInvitation">
-                      <td md-cell>{{invitation.email}}</td>
-                      <td md-cell>
-                        <md-select
-                          ng-model="invitation.api_role"
-                          aria-label="API Role"
-                          ng-change="$ctrl.updateInvitation(invitation)"
-                          ng-disabled="!$ctrl.canChangeDefaultApiRole"
+                  <tr md-row ng-repeat="invitation in $ctrl.invitations | orderBy: orderInvitation">
+                    <td md-cell>{{invitation.email}}</td>
+                    <td md-cell>
+                      <md-select
+                        ng-model="invitation.api_role"
+                        aria-label="API Role"
+                        ng-change="$ctrl.updateInvitation(invitation)"
+                        ng-disabled="!$ctrl.canChangeDefaultApiRole"
+                      >
+                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
+                        >{{role.name}}</md-option
                         >
-                          <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
-                            >{{role.name}}</md-option
-                          >
-                        </md-select>
-                      </td>
-                      <td md-cell>
-                        <md-select
-                          ng-model="invitation.application_role"
-                          aria-label="Application Role"
-                          ng-change="$ctrl.updateInvitation(invitation)"
-                          ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
+                      </md-select>
+                    </td>
+                    <td md-cell>
+                      <md-select
+                        ng-model="invitation.application_role"
+                        aria-label="Application Role"
+                        ng-change="$ctrl.updateInvitation(invitation)"
+                        ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
+                      >
+                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
+                        >{{role.name}}</md-option
                         >
-                          <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
-                            >{{role.name}}</md-option
-                          >
-                        </md-select>
-                      </td>
-                      <td md-cell>{{invitation.created_at | date}}</td>
-                      <td md-cell ng-click="$event.stopPropagation()">
-                        <div layout="row" layout-align="end center">
+                      </md-select>
+                    </td>
+                    <td md-cell>{{invitation.created_at | date}}</td>
+                    <td md-cell ng-click="$event.stopPropagation()">
+                      <div layout="row" layout-align="end center">
                           <span ng-if="$ctrl.group.manageable">
                             <md-tooltip md-direction="top">delete</md-tooltip>
                             <ng-md-icon
@@ -330,9 +314,9 @@
                               aria-label="delete-user"
                             ></ng-md-icon>
                           </span>
-                        </div>
-                      </td>
-                    </tr>
+                      </div>
+                    </td>
+                  </tr>
                   </tbody>
                 </table>
               </div>
@@ -355,25 +339,25 @@
             <md-table-container>
               <table md-table>
                 <thead md-head>
-                  <tr md-row>
-                    <th md-column>Name</th>
-                    <th md-column>Version</th>
-                    <th md-column>Visibility</th>
-                  </tr>
+                <tr md-row>
+                  <th md-column>Name</th>
+                  <th md-column>Version</th>
+                  <th md-column>Visibility</th>
+                </tr>
                 </thead>
                 <tbody md-body>
-                  <tr style="height: 30px" ng-if="groupApis.length === 0">
-                    <td md-cell style="text-align: center" colspan="3">None.</td>
-                  </tr>
-                  <tr ng-repeat="api in groupApis" md-row>
-                    <td md-cell>{{api.name}}</td>
-                    <td md-cell>{{api.version}}</td>
-                    <td md-cell>
-                      <ng-md-icon icon="{{api.visibility==='PUBLIC' ? 'public' : 'lock'}}" size="20" style="fill: #cdcdcd">
-                        <md-tooltip>{{api.visibility}}</md-tooltip>
-                      </ng-md-icon>
-                    </td>
-                  </tr>
+                <tr style="height: 30px" ng-if="groupApis.length === 0">
+                  <td md-cell style="text-align: center" colspan="3">None.</td>
+                </tr>
+                <tr ng-repeat="api in groupApis" md-row>
+                  <td md-cell>{{api.name}}</td>
+                  <td md-cell>{{api.version}}</td>
+                  <td md-cell>
+                    <ng-md-icon icon="{{api.visibility==='PUBLIC' ? 'public' : 'lock'}}" size="20" style="fill: #cdcdcd">
+                      <md-tooltip>{{api.visibility}}</md-tooltip>
+                    </ng-md-icon>
+                  </td>
+                </tr>
                 </tbody>
               </table>
             </md-table-container>
@@ -386,19 +370,19 @@
             <md-table-container>
               <table md-table>
                 <thead md-head>
-                  <tr md-row>
-                    <th md-column>Name</th>
-                    <th md-column>Type</th>
-                  </tr>
+                <tr md-row>
+                  <th md-column>Name</th>
+                  <th md-column>Type</th>
+                </tr>
                 </thead>
                 <tbody md-body>
-                  <tr style="height: 30px" ng-if="groupApplications.length === 0">
-                    <td md-cell style="text-align: center" colspan="2">None.</td>
-                  </tr>
-                  <tr ng-repeat="application in groupApplications" md-row>
-                    <td md-cell>{{application.name}}</td>
-                    <td md-cell>{{application.type}}</td>
-                  </tr>
+                <tr style="height: 30px" ng-if="groupApplications.length === 0">
+                  <td md-cell style="text-align: center" colspan="2">None.</td>
+                </tr>
+                <tr ng-repeat="application in groupApplications" md-row>
+                  <td md-cell>{{application.name}}</td>
+                  <td md-cell>{{application.type}}</td>
+                </tr>
                 </tbody>
               </table>
             </md-table-container>
@@ -423,7 +407,7 @@
     <!-- The button is always displayed, but is disabled if the current user is a group admin and the maximum number of members has been reached -->
     <md-button aria-label="menu" class="md-fab md-success" ng-disabled="!$ctrl.isSuperAdmin && $ctrl.isMaxInvitationReached()">
       <md-tooltip md-direction="top" md-visible="false"
-        >Add member{{!$ctrl.isSuperAdmin && $ctrl.isMaxInvitationReached() ? " is not available because maximum number of members has been
+      >Add member{{!$ctrl.isSuperAdmin && $ctrl.isMaxInvitationReached() ? " is not available because maximum number of members has been
         reached" : ""}}</md-tooltip
       >
       <ng-md-icon icon="add"></ng-md-icon>

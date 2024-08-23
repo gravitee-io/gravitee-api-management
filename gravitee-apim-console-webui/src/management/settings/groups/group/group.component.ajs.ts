@@ -33,7 +33,6 @@ interface IGroupDetailComponentScope extends ng.IScope {
   groupApplications: any[];
   selectedApiRole: string;
   selectedApplicationRole: string;
-  selectedIntegrationRole: string;
   currentTab: string;
   formGroup: any;
 }
@@ -86,20 +85,17 @@ const GroupComponentAjs: ng.IComponentOptions = {
             GroupService.get(this.activatedRoute?.snapshot?.params?.groupId),
             RoleService.list('API'),
             RoleService.list('APPLICATION'),
-            RoleService.list('INTEGRATION'),
             GroupService.getInvitations(this.activatedRoute?.snapshot?.params?.groupId),
           ])
-            .then(([groupsResponse, apiRolesResponse, applicationRolesResponse, integrationResponse, invitationsResponse]) => {
+            .then(([groupsResponse, apiRolesResponse, applicationRolesResponse, invitationsResponse]) => {
               this.group = groupsResponse.data;
               this.apiRoles = [{ scope: 'API', name: '', system: false }].concat(apiRolesResponse);
               this.applicationRoles = [{ scope: 'APPLICATION', name: '', system: false }].concat(applicationRolesResponse);
-              this.integrationRoles = [{ scope: 'INTEGRATION', name: '', system: false }].concat(integrationResponse);
               this.invitations = invitationsResponse.data;
 
               if (this.group.roles) {
                 this.selectedApiRole = this.group.roles.API;
                 this.selectedApplicationRole = this.group.roles.APPLICATION;
-                this.selectedIntegrationRole = this.group.roles.INTEGRATION;
               }
               this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
               this.applicationByDefault =
@@ -126,7 +122,6 @@ const GroupComponentAjs: ng.IComponentOptions = {
         this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
         this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
         this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
-        this.canChangeDefaultIntegrationRole = this.isSuperAdmin;
 
         /*
         It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
@@ -142,11 +137,11 @@ const GroupComponentAjs: ng.IComponentOptions = {
         this.loadGroupApis();
       };
 
-      this.updateRole = (member: any, scope: RoleScope) => {
-        if (this.membershipState.isPrimaryOwnerDemotion(member, scope)) {
-          this.demotePrimaryOwner(this.membershipState.stateOf(member), scope);
-        } else if (this.membershipState.isPrimaryOwnerPromotion(member, scope)) {
-          this.promoteNewPrimaryOwner(this.membershipState.stateOf(member), [scope]);
+      this.updateRole = (member: any) => {
+        if (this.membershipState.isPrimaryOwnerDemotion(member)) {
+          this.demotePrimaryOwner(this.membershipState.stateOf(member));
+        } else if (this.membershipState.isPrimaryOwnerPromotion(member)) {
+          this.promoteNewPrimaryOwner(this.membershipState.stateOf(member));
         } else {
           GroupService.addOrUpdateMember(this.group.id, [member]).then(() => {
             NotificationService.show('Member successfully updated');
@@ -192,12 +187,6 @@ const GroupComponentAjs: ng.IComponentOptions = {
             delete roles.APPLICATION;
           }
 
-          if (this.selectedIntegrationRole) {
-            roles.INTEGRATION = this.selectedIntegrationRole;
-          } else {
-            delete roles.INTEGRATION;
-          }
-
           this.group.roles = roles;
 
           GroupService.update(this.group).then((response) => {
@@ -217,19 +206,16 @@ const GroupComponentAjs: ng.IComponentOptions = {
         ev.stopPropagation();
 
         const memberState = this.membershipState.stateOf(member);
-        const primaryOwnerScopes = memberState.getPrimaryOwnerScopes();
-        if (primaryOwnerScopes.length > 0) {
-          this.showTransferOwnershipModal(
-            member,
-            ApiOwnershipTransferType.DELETE_PRIMARY_OWNER,
-            this.membershipState.primaryOwnerWithScopes(primaryOwnerScopes),
-          ).then(({ newPrimaryOwnerRef, primaryOwner }) => {
-            this.deleteMember(primaryOwner).then(() => {
-              const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
-              memberState.getPrimaryOwnerScopes().forEach((scope: RoleScope) => (newPrimaryOwner.roles[scope] = 'PRIMARY_OWNER'));
-              this.updateRole(newPrimaryOwner);
-            });
-          });
+        if (memberState.wasPrimaryOwner()) {
+          this.showTransferOwnershipModal(member, ApiOwnershipTransferType.DELETE_PRIMARY_OWNER).then(
+            ({ newPrimaryOwnerRef, primaryOwner }) => {
+              this.deleteMember(primaryOwner).then(() => {
+                const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
+                newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
+                this.updateRole(newPrimaryOwner);
+              });
+            },
+          );
         } else {
           $mdDialog
             .show({
@@ -261,32 +247,26 @@ const GroupComponentAjs: ng.IComponentOptions = {
             locals: {
               defaultApiRole: this.selectedApiRole,
               defaultApplicationRole: this.selectedApplicationRole,
-              defaultIntegrationRole: this.selectedIntegrationRole,
               group: this.group,
               apiRoles: this.apiRoles,
               applicationRoles: this.applicationRoles,
-              integrationRoles: this.integrationRoles,
               canChangeDefaultApiRole: this.canChangeDefaultApiRole,
               canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
-              canChangeDefaultIntegrationRole: this.canChangeDefaultIntegrationRole,
               isApiRoleDisabled: this.isApiRoleDisabled,
-              isIntegrationRoleDisabled: this.isIntegrationRoleDisabled,
             },
           })
           .then(
             (members = []) => {
               if (members.length > 0) {
-                const memberState = this.membershipState.stateOf(members[0]);
-                const primaryOwnerScopes = memberState.getPrimaryOwnerScopes();
-                if (this.membershipState.isPrimaryOwnerPromotion(members[0], primaryOwnerScopes[0])) {
-                  this.promoteNewPrimaryOwner(memberState, primaryOwnerScopes);
+                if (this.membershipState.isPrimaryOwnerPromotion(members[0])) {
+                  this.promoteNewPrimaryOwner(this.membershipState.stateOf(members[0]));
                 } else {
                   GroupService.addOrUpdateMember(this.group.id, members)
                     .then(() => {
                       NotificationService.show('Member(s) successfully added');
                       members
-                        .filter((member) => this.membershipState.isPrimaryOwnerDemotion(member, primaryOwnerScopes[0]))
-                        .forEach((member) => this.demotePrimaryOwner(this.membershipState.stateOf(member), primaryOwnerScopes[0]));
+                        .filter((member) => this.membershipState.isPrimaryOwnerDemotion(member))
+                        .forEach((member) => this.demotePrimaryOwner(this.membershipState.stateOf(member)));
                     })
                     .finally(() => this.getMembersPage());
                 }
@@ -298,32 +278,30 @@ const GroupComponentAjs: ng.IComponentOptions = {
           );
       };
 
-      this.showTransferOwnershipModal = (primaryOwner, transferType, primaryOwnerWithScopes): IPromise<OwnershipTransferResult> => {
+      this.showTransferOwnershipModal = (primaryOwner, transferType): IPromise<OwnershipTransferResult> => {
         const members = this.membershipState.findAll();
+
         return $mdDialog.show({
           controller: 'DialogTransferOwnershipController',
           controllerAs: '$ctrl',
           template: require('html-loader!./transferOwnershipDialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
           clickOutsideToClose: true,
           locals: {
-            primaryOwner,
-            members,
-            group: this.group,
             transferType,
-            primaryOwnerWithScopes: primaryOwnerWithScopes,
+            members,
+            primaryOwner,
+            group: this.group,
           },
         });
       };
 
-      this.demotePrimaryOwner = (memberState: MemberState, scope: RoleScope): void => {
-        this.showTransferOwnershipModal(memberState.getLastState(), ApiOwnershipTransferType.DEMOTE_PRIMARY_OWNER, [
-          { member: memberState.getLastState(), roleScope: scope },
-        ]).then(
+      this.demotePrimaryOwner = (memberState: MemberState): void => {
+        this.showTransferOwnershipModal(memberState.getLastState(), ApiOwnershipTransferType.DEMOTE_PRIMARY_OWNER).then(
           ({ newPrimaryOwnerRef }) => {
             const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
             const previousPrimaryOwner = memberState.getCurrentState();
 
-            newPrimaryOwner.roles[scope] = 'PRIMARY_OWNER';
+            newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
 
             GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
               .then(() => {
@@ -335,27 +313,20 @@ const GroupComponentAjs: ng.IComponentOptions = {
         );
       };
 
-      this.promoteNewPrimaryOwner = (memberState: MemberState, scopes: RoleScope[]): void => {
-        const primaryOwnersWithScopes = this.membershipState.primaryOwnerWithScopes(scopes);
-        this.showTransferOwnershipModal(
-          this.membershipState.getPrimaryOwner(scopes[0]),
-          ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER,
-          primaryOwnersWithScopes,
-        ).then(
+      this.promoteNewPrimaryOwner = (memberState: MemberState): void => {
+        this.showTransferOwnershipModal(this.membershipState.getPrimaryOwner(), ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER).then(
           () => {
-            primaryOwnersWithScopes.forEach((memberWithScope) => {
-              const previousPrimaryOwner = this.membershipState.getPrimaryOwner(memberWithScope.roleScope);
-              const newPrimaryOwner = memberState.getCurrentState();
+            const previousPrimaryOwner = this.membershipState.getPrimaryOwner();
+            const newPrimaryOwner = memberState.getCurrentState();
 
-              previousPrimaryOwner.roles[memberWithScope.roleScope] = RoleName.OWNER;
-              newPrimaryOwner.roles[memberWithScope.roleScope] = RoleName.PRIMARY_OWNER;
+            previousPrimaryOwner.roles[RoleScope.API] = RoleName.OWNER;
+            newPrimaryOwner.roles[RoleScope.API] = RoleName.PRIMARY_OWNER;
 
-              GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
-                .then(() => {
-                  NotificationService.show('Member successfully updated');
-                })
-                .finally(() => this.getMembersPage());
-            });
+            GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
+              .then(() => {
+                NotificationService.show('Member successfully updated');
+              })
+              .finally(() => this.getMembersPage());
           },
           () => this.getMembersPage(),
         );
@@ -534,13 +505,6 @@ const GroupComponentAjs: ng.IComponentOptions = {
       };
 
       this.isApiRoleDisabled = (role) => {
-        if (ApiPrimaryOwnerModeService.isUserOnly()) {
-          return role.name === 'PRIMARY_OWNER';
-        }
-        return role.system && role.name !== 'PRIMARY_OWNER';
-      };
-
-      this.isIntegrationRoleDisabled = (role) => {
         if (ApiPrimaryOwnerModeService.isUserOnly()) {
           return role.name === 'PRIMARY_OWNER';
         }
