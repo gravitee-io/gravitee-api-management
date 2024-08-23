@@ -28,17 +28,31 @@
 
   &__header {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
     padding-bottom: 16px;
   }
 
   &__header-content {
     display: flex;
+    min-width: 0;
     flex: 1 1 100%;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
+
+    &__title {
+      display: flex;
+      min-width: 0;
+      flex: 1 1 100%;
+      align-items: center;
+      gap: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    &__disable-icon {
+      display: flex;
+      align-items: center;
+      opacity: 100;
+    }
   }
 
   &__content {
@@ -53,5 +67,16 @@
 
 .radio-card.disabled {
   cursor: not-allowed;
-  opacity: 0.2;
+
+  .radio-card__header-content__title {
+    opacity: 0.2;
+  }
+
+  mat-radio-group {
+    opacity: 0.5;
+  }
+
+  mat-card-content {
+    opacity: 0.2;
+  }
 }

@@ -18,7 +18,9 @@ import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal 
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -75,6 +77,8 @@ interface CheckoutData {
     MatCardContent,
     MatButton,
     LoaderComponent,
+    MatChipsModule,
+    MatIcon,
   ],
   templateUrl: './subscribe-to-api.component.html',
   styleUrl: './subscribe-to-api.component.scss',

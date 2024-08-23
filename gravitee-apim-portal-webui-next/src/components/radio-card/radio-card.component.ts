@@ -15,6 +15,7 @@
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatTooltip } from '@angular/material/tooltip';
 
@@ -23,7 +24,7 @@ import { PictureComponent } from '../picture/picture.component';
 @Component({
   selector: 'app-radio-card',
   standalone: true,
-  imports: [MatCard, MatCardHeader, MatCardContent, MatTooltip, MatRadioButton, MatRadioGroup, PictureComponent],
+  imports: [MatCard, MatCardHeader, MatCardContent, MatTooltip, MatRadioButton, MatRadioGroup, PictureComponent, MatIcon],
   templateUrl: './radio-card.component.html',
   styleUrl: './radio-card.component.scss',
 })

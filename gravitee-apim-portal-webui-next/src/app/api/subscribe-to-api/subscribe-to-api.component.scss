@@ -35,6 +35,12 @@
     justify-content: space-between;
     padding: 24px 16px;
 
+    &__selected-application {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     &__next {
       display: flex;
       align-items: center;
