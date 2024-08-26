@@ -33,7 +33,7 @@
     <properties>
         <jolt-core.version>0.1.8</jolt-core.version>
         <json-utils.version>0.1.8</json-utils.version>
-        <awaitability.version>4.2.1</awaitability.version>
+        <awaitability.version>4.2.2</awaitability.version>
     </properties>
 
     <dependencies>
