@@ -25,7 +25,7 @@ import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -41,7 +41,7 @@ public class GetIntegrationUseCase {
     private final IntegrationJobQueryService integrationJobQueryService;
     private final LicenseDomainService licenseDomainService;
     private final IntegrationAgent integrationAgent;
-    private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
+    private final PrimaryOwnerDomainService primaryOwnerDomainService;
 
     public GetIntegrationUseCase.Output execute(GetIntegrationUseCase.Input input) {
         var integrationId = input.integrationId();
@@ -60,8 +60,8 @@ public class GetIntegrationUseCase {
             .blockingGet();
 
         var pendingJob = integrationJobQueryService.findPendingJobFor(integrationId);
-        var primaryOwner = integrationPrimaryOwnerDomainService
-            .getApiPrimaryOwner(input.organizationId(), integration.getId())
+        var primaryOwner = primaryOwnerDomainService
+            .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
             .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
             .onErrorComplete()
             .blockingGet();

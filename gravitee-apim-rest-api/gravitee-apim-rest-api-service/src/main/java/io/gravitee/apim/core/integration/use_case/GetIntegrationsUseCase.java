@@ -25,7 +25,7 @@ import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryServic
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -47,7 +47,7 @@ public class GetIntegrationsUseCase {
     private final IntegrationQueryService integrationQueryService;
     private final LicenseDomainService licenseDomainService;
     private final IntegrationAgent integrationAgent;
-    private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
+    private final PrimaryOwnerDomainService primaryOwnerDomainService;
     private final IntegrationJobQueryService integrationJobQueryService;
 
     public GetIntegrationsUseCase.Output execute(GetIntegrationsUseCase.Input input) {
@@ -71,8 +71,8 @@ public class GetIntegrationsUseCase {
                         .fromOptional(integrationJobQueryService.findPendingJobFor(integration.getId()))
                         .map(Optional::of)
                         .defaultIfEmpty(Optional.empty()),
-                    integrationPrimaryOwnerDomainService
-                        .getApiPrimaryOwner(input.organizationId(), integration.getId())
+                    primaryOwnerDomainService
+                        .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
                         .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
                         .defaultIfEmpty(Optional.empty()),
                     (agentStatus, pendingJob, primaryOwner) ->

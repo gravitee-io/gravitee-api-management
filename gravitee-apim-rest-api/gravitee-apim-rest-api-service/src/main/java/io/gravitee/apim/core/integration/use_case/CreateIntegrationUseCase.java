@@ -22,8 +22,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import lombok.Builder;
@@ -40,7 +40,7 @@ public class CreateIntegrationUseCase {
     private final IntegrationCrudService integrationCrudService;
     private final LicenseDomainService licenseDomainService;
     private final IntegrationPrimaryOwnerFactory integrationPrimaryOwnerFactory;
-    private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
+    private final PrimaryOwnerDomainService primaryOwnerDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isFederationFeatureAllowed(input.auditInfo.organizationId())) {
@@ -68,11 +68,7 @@ public class CreateIntegrationUseCase {
             input.auditInfo.actor().userId()
         );
 
-        integrationPrimaryOwnerDomainService.createIntegrationPrimaryOwnerMembership(
-            integrationCreated.getId(),
-            primaryOwner,
-            input.auditInfo
-        );
+        primaryOwnerDomainService.createIntegrationPrimaryOwnerMembership(integrationCreated.getId(), primaryOwner, input.auditInfo);
 
         return new Output(integrationCreated);
     }

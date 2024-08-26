@@ -19,7 +19,8 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.IntegrationNotificationTemplateData;
@@ -52,7 +53,7 @@ public class TemplateDataFetcher {
     private final SubscriptionRepository subscriptionRepository;
     private final IntegrationRepository integrationRepository;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
-    private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
+    private final PrimaryOwnerDomainService primaryOwnerDomainService;
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
 
     public TemplateDataFetcher(
@@ -62,7 +63,7 @@ public class TemplateDataFetcher {
         @Lazy SubscriptionRepository subscriptionRepository,
         @Lazy IntegrationRepository integrationRepository,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService,
+        PrimaryOwnerDomainService primaryOwnerDomainService,
         ApiMetadataDecoderDomainService apiMetadataDecoderDomainService
     ) {
         this.apiRepository = apiRepository;
@@ -71,7 +72,7 @@ public class TemplateDataFetcher {
         this.subscriptionRepository = subscriptionRepository;
         this.integrationRepository = integrationRepository;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
-        this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
+        this.primaryOwnerDomainService = primaryOwnerDomainService;
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
     }
 
@@ -161,14 +162,20 @@ public class TemplateDataFetcher {
             return applicationRepository
                 .findById(applicationId)
                 .map(application -> {
-                    var primaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(organizationId, applicationId);
+                    var primaryOwner = primaryOwnerDomainService
+                        .getApplicationPrimaryOwner(organizationId, applicationId)
+                        .map(PrimaryOwnerNotificationTemplateData::from)
+                        .blockingGet();
+                    if (primaryOwner == null) {
+                        throw new ApplicationPrimaryOwnerNotFoundException(applicationId);
+                    }
                     return ApplicationNotificationTemplateData
                         .builder()
                         .name(application.getName())
                         .type(application.getType().name())
                         .description(application.getDescription())
                         .status(application.getStatus().name())
-                        .primaryOwner(PrimaryOwnerNotificationTemplateData.from(primaryOwner))
+                        .primaryOwner(primaryOwner)
                         .createdAt(application.getCreatedAt())
                         .updatedAt(application.getUpdatedAt())
                         .apiKeyMode(application.getApiKeyMode().name())

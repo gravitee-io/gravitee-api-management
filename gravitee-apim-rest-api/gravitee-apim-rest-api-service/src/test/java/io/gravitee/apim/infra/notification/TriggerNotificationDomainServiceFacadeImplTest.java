@@ -19,7 +19,6 @@ import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMember
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static fixtures.repository.ApiFixtures.anApi;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -38,7 +37,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
@@ -71,7 +70,6 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -156,10 +154,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         roleQueryService,
                         userCrudService
                     ),
-                    new ApplicationPrimaryOwnerDomainService(
-                        new GroupQueryServiceInMemory(),
-                        membershipQueryService,
+                    new PrimaryOwnerDomainService(
+                        membershipCrudService,
                         roleQueryService,
+                        membershipQueryService,
+                        new GroupQueryServiceInMemory(),
                         userCrudService
                     ),
                     new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor())

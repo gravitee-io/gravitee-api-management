@@ -36,7 +36,7 @@ import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -70,7 +70,7 @@ public class GetIntegrationsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
+        var integrationPrimaryOwnerDomainService = new PrimaryOwnerDomainService(
             membershipCrudServiceInMemory,
             roleQueryServiceInMemory,
             membershipQueryService,

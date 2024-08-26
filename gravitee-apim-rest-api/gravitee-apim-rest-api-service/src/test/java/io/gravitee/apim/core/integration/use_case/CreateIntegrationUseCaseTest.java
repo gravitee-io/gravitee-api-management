@@ -35,16 +35,13 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.CreateIntegrationUseCase.Input;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
-import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.node.api.license.LicenseManager;
@@ -126,7 +123,7 @@ public class CreateIntegrationUseCaseTest {
             userCrudServiceInMemory,
             groupQueryServiceInMemory
         );
-        IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
+        PrimaryOwnerDomainService primaryOwnerDomainService = new PrimaryOwnerDomainService(
             membershipCrudServiceInMemory,
             roleQueryServiceInMemory,
             membershipQueryService,
@@ -140,7 +137,7 @@ public class CreateIntegrationUseCaseTest {
                 integrationCrudService,
                 new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
                 integrationPrimaryOwnerFactory,
-                integrationPrimaryOwnerDomainService
+                primaryOwnerDomainService
             );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());

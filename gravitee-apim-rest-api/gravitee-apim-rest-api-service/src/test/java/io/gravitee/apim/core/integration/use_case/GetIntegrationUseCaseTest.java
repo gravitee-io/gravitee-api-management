@@ -40,7 +40,7 @@ import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase.Input;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.PrimaryOwnerDomainService;
 import io.gravitee.node.api.license.LicenseManager;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -78,7 +78,7 @@ class GetIntegrationUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
+        var integrationPrimaryOwnerDomainService = new PrimaryOwnerDomainService(
             membershipCrudServiceInMemory,
             roleQueryServiceInMemory,
             membershipQueryService,

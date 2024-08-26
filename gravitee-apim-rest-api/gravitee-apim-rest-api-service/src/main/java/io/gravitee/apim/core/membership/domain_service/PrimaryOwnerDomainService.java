@@ -19,7 +19,6 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
-import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
@@ -34,11 +33,14 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @AllArgsConstructor
 @DomainService
-public class IntegrationPrimaryOwnerDomainService {
+public class PrimaryOwnerDomainService {
 
     private final MembershipCrudService membershipCrudService;
     private final RoleQueryService roleQueryService;
@@ -47,13 +49,14 @@ public class IntegrationPrimaryOwnerDomainService {
     private final UserCrudService userCrudService;
 
     public void createIntegrationPrimaryOwnerMembership(String integrationId, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
-        findPrimaryOwnerRole(auditInfo.organizationId())
+        var type = Membership.ReferenceType.INTEGRATION;
+        findPrimaryOwnerRole(type, auditInfo.organizationId())
             .ifPresent(role -> {
                 var membership = Membership
                     .builder()
                     .id(UuidString.generateRandom())
                     .referenceId(integrationId)
-                    .referenceType(Membership.ReferenceType.INTEGRATION)
+                    .referenceType(type)
                     .roleId(role.getId())
                     .memberId(primaryOwner.id())
                     .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
@@ -64,12 +67,19 @@ public class IntegrationPrimaryOwnerDomainService {
             });
     }
 
-    public Maybe<PrimaryOwnerEntity> getApiPrimaryOwner(final String organizationId, String integrationId)
-        throws ApiPrimaryOwnerNotFoundException {
+    public Maybe<PrimaryOwnerEntity> getApplicationPrimaryOwner(final String organizationId, String applicationId) {
+        return getPrimaryOwner(Membership.ReferenceType.APPLICATION, organizationId, applicationId);
+    }
+
+    public Maybe<PrimaryOwnerEntity> getIntegrationPrimaryOwner(final String organizationId, String integrationId) {
+        return getPrimaryOwner(Membership.ReferenceType.INTEGRATION, organizationId, integrationId);
+    }
+
+    private Maybe<PrimaryOwnerEntity> getPrimaryOwner(Membership.ReferenceType type, final String organizationId, String integrationId) {
         return Maybe
-            .fromOptional(findPrimaryOwnerRole(organizationId))
+            .fromOptional(findPrimaryOwnerRole(type, organizationId))
             .flatMap(role ->
-                findApiPrimaryOwnerMembership(integrationId, role)
+                findPrimaryOwnerMembership(type, integrationId, role)
                     .flatMap(membership ->
                         switch (membership.getMemberType()) {
                             case USER -> findUserPrimaryOwner(membership);
@@ -79,19 +89,25 @@ public class IntegrationPrimaryOwnerDomainService {
             );
     }
 
-    private Optional<Role> findPrimaryOwnerRole(String organizationId) {
-        return roleQueryService.findIntegrationRole(
+    private Optional<Role> findPrimaryOwnerRole(Membership.ReferenceType type, String organizationId) {
+        BiFunction<String, ReferenceContext, Optional<Role>> find =
+            switch (type) {
+                case INTEGRATION -> roleQueryService::findIntegrationRole;
+                case APPLICATION -> roleQueryService::findApplicationRole;
+                case API -> roleQueryService::findApiRole;
+                default -> {
+                    log.warn("Find primary role for {} isn't managed", type);
+                    yield (a, b) -> Optional.empty();
+                }
+            };
+        return find.apply(
             SystemRole.PRIMARY_OWNER.name(),
             ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
         );
     }
 
-    private Maybe<Membership> findApiPrimaryOwnerMembership(String integrationId, Role role) {
-        return Flowable
-            .fromIterable(
-                membershipQueryService.findByReferenceAndRoleId(Membership.ReferenceType.INTEGRATION, integrationId, role.getId())
-            )
-            .firstElement();
+    private Maybe<Membership> findPrimaryOwnerMembership(Membership.ReferenceType type, String referenceId, Role role) {
+        return Flowable.fromIterable(membershipQueryService.findByReferenceAndRoleId(type, referenceId, role.getId())).firstElement();
     }
 
     private Maybe<PrimaryOwnerEntity> findUserPrimaryOwner(Membership membership) {
