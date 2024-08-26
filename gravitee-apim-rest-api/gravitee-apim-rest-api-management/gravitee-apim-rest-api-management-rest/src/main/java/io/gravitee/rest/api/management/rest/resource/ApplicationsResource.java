@@ -50,7 +50,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -218,7 +217,7 @@ public class ApplicationsResource extends AbstractResource {
         // To preserve backward compatibility, ensure that we have at least default settings for simple application type
         if (
             application.getSettings() == null ||
-            (application.getSettings().getOAuthClient() == null && application.getSettings().getApp() == null)
+            (application.getSettings().getOauth() == null && application.getSettings().getApp() == null)
         ) {
             ApplicationSettings settings = new ApplicationSettings();
             SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();

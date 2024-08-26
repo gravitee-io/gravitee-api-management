@@ -31,18 +31,18 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class ApplicationSettings {
 
-    public ApplicationSettings(SimpleApplicationSettings simpleApplicationSettings, OAuthClientSettings oAuthClient) {
-        this.app = simpleApplicationSettings;
-        this.oAuthClient = oAuthClient;
-        this.tls = null;
-    }
-
     @JsonProperty("app")
     private SimpleApplicationSettings app;
 
     @JsonProperty("oauth")
-    private OAuthClientSettings oAuthClient;
+    private OAuthClientSettings oauth;
 
     @JsonProperty("tls")
     private TlsSettings tls;
+
+    public ApplicationSettings(SimpleApplicationSettings simpleApplicationSettings, OAuthClientSettings oauth) {
+        this.app = simpleApplicationSettings;
+        this.oauth = oauth;
+        this.tls = null;
+    }
 }

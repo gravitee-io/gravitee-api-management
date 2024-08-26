@@ -28,7 +28,6 @@ import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -118,7 +117,7 @@ public class ApplicationMapper {
                 );
                 application.setHasClientId(simpleAppEntitySettings.getClientId() != null);
             } else {
-                final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getOAuthClient();
+                final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getOauth();
 
                 appSettings.oauth(
                     new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
@@ -194,9 +193,7 @@ public class ApplicationMapper {
             settings != null &&
             (
                 (
-                    settings.getOAuthClient() != null &&
-                    settings.getOAuthClient().getClientId() != null &&
-                    !settings.getOAuthClient().getClientId().isEmpty()
+                    settings.getOauth() != null && settings.getOauth().getClientId() != null && !settings.getOauth().getClientId().isEmpty()
                 ) ||
                 (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
             )

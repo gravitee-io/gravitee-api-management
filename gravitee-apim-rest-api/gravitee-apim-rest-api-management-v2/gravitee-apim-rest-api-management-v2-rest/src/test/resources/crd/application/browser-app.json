@@ -1,0 +1,18 @@
+{
+  "name": "with-invalid-grand-type",
+  "description": "SPA with invalid grand type",
+  "domain": "test-domain",
+  "settings": {
+    "oauth": {
+      "applicationType": "BROWSER",
+      "grantTypes": [
+        "authorization_code"
+      ],
+      "redirectUris": [
+        "https://my-redirect-url.com"
+      ]
+    }
+  },
+  "metadata": [],
+  "origin": "kubernetes"
+}

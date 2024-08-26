@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -421,7 +420,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 registrationResponse.getRegistrationAccessToken(),
                 registrationResponse.getRegistrationClientUri(),
                 convert(registrationRequest, application),
-                application.getSettings().getOAuthClient().getClientId()
+                application.getSettings().getOauth().getClientId()
             );
         } catch (JsonProcessingException ex) {
             LOGGER.error("Unexpected error while updating a client", ex);
@@ -480,12 +479,12 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
         request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getOAuthClient().getApplicationType());
-        request.setClientUri(application.getSettings().getOAuthClient().getClientUri());
-        request.setGrantTypes(application.getSettings().getOAuthClient().getGrantTypes());
-        request.setLogoUri(application.getSettings().getOAuthClient().getLogoUri());
-        request.setRedirectUris(application.getSettings().getOAuthClient().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getOAuthClient().getResponseTypes());
+        request.setApplicationType(application.getSettings().getOauth().getApplicationType());
+        request.setClientUri(application.getSettings().getOauth().getClientUri());
+        request.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
+        request.setLogoUri(application.getSettings().getOauth().getLogoUri());
+        request.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
+        request.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
 
         return request;
     }
@@ -494,12 +493,12 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         ClientRegistrationRequest request = new ClientRegistrationRequest();
 
         request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getOAuthClient().getApplicationType());
-        request.setClientUri(application.getSettings().getOAuthClient().getClientUri());
-        request.setGrantTypes(application.getSettings().getOAuthClient().getGrantTypes());
-        request.setLogoUri(application.getSettings().getOAuthClient().getLogoUri());
-        request.setRedirectUris(application.getSettings().getOAuthClient().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getOAuthClient().getResponseTypes());
+        request.setApplicationType(application.getSettings().getOauth().getApplicationType());
+        request.setClientUri(application.getSettings().getOauth().getClientUri());
+        request.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
+        request.setLogoUri(application.getSettings().getOauth().getLogoUri());
+        request.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
+        request.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
 
         return request;
     }
