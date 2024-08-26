@@ -129,10 +129,10 @@ public class ApplicationResource extends AbstractResource {
                 sas.setType(application.getSettings().getApp().getType());
                 settings.setApp(sas);
             } else if (application.getSettings().getOauth() != null) {
-                OAuthClientSettings oacs = appEntity.getSettings().getOAuthClient();
+                OAuthClientSettings oacs = appEntity.getSettings().getOauth();
                 oacs.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
                 oacs.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-                settings.setOAuthClient(oacs);
+                settings.setOauth(oacs);
             }
             if (application.getSettings().getTls() != null) {
                 settings.setTls(TlsSettings.builder().clientCertificate(application.getSettings().getTls().getClientCertificate()).build());

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
+import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -61,6 +63,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGrou
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
@@ -68,6 +71,7 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
@@ -693,5 +697,24 @@ public class ResourceContextConfiguration {
     @Bean
     public CRDMembersDomainServiceInMemory crdMembersDomainService() {
         return new CRDMembersDomainServiceInMemory();
+    }
+
+    @Bean
+    public ApplicationCrudServiceInMemory applicationCrudService() {
+        return new ApplicationCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApplicationRepository applicationRepository() {
+        return mock(ApplicationRepository.class);
+    }
+
+    @Bean
+    public ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService(
+        ApplicationRepository applicationRepository,
+        ApplicationTypeService applicationTypeService,
+        ParameterService parameterService
+    ) {
+        return new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, applicationTypeService, parameterService);
     }
 }

@@ -46,8 +46,8 @@ public class ApplicationCRDSettings {
     @NoArgsConstructor
     public static class OAuthClientSettings {
 
-        private List<String> responseTypes;
         private List<String> grantTypes;
+        private List<String> redirectUris;
         private String applicationType;
     }
 }

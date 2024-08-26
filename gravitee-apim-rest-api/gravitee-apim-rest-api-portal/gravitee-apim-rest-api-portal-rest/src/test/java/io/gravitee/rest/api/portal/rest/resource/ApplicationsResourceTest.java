@@ -37,7 +37,6 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -406,7 +405,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final ApplicationSettings settings = value.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        assertNull(settings.getOAuthClient());
+        assertNull(settings.getOauth());
         assertEquals(ApiKeyMode.UNSPECIFIED, value.getApiKeyMode());
 
         Application createdApp = response.readEntity(Application.class);
@@ -444,7 +443,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final ApplicationSettings settings = value.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        assertNull(settings.getOAuthClient());
+        assertNull(settings.getOauth());
         assertEquals(ApiKeyMode.SHARED, value.getApiKeyMode());
 
         Application createdApp = response.readEntity(Application.class);
@@ -483,7 +482,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNotNull(app);
         assertEquals(APPLICATION, app.getClientId());
         assertEquals(APPLICATION, app.getType());
-        assertNull(settings.getOAuthClient());
+        assertNull(settings.getOauth());
 
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);
@@ -527,7 +526,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final ApplicationSettings settings = value.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
-        final io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings = settings.getOAuthClient();
+        final io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings = settings.getOauth();
         assertNotNull(oauthClientSettings);
         assertEquals(APPLICATION, oauthClientSettings.getApplicationType());
         final List<String> grantTypes = oauthClientSettings.getGrantTypes();

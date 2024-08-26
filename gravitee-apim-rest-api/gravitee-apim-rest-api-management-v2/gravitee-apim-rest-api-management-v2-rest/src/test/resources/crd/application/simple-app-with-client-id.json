@@ -1,0 +1,12 @@
+{
+  "name": "with-client-id",
+  "description": "Simple app with client ID",
+  "domain": "my-domain",
+  "settings": {
+    "app": {
+      "clientId": "test-client-id"
+    }
+  },
+  "metadata": [],
+  "origin": "kubernetes"
+}

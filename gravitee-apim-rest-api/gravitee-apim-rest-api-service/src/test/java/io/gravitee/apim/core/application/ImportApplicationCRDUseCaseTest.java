@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.application;
 
 import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
+import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
@@ -37,14 +38,19 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Origin;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -58,6 +64,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -90,13 +97,16 @@ public class ImportApplicationCRDUseCaseTest {
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
+    private final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
+    private final ParameterService parameterService = mock(ParameterService.class);
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     // Validation
     private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
         new ValidateGroupsDomainService(groupQueryService),
-        new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService)
+        new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
+        new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, new ApplicationTypeServiceImpl(), parameterService)
     );
 
     ImportApplicationCRDUseCase useCase;

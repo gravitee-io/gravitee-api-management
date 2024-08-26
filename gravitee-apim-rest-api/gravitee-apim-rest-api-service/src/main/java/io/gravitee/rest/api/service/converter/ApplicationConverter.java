@@ -61,7 +61,7 @@ public class ApplicationConverter {
                 application.setType(ApplicationType.SIMPLE);
             } else {
                 application.setType(
-                    ApplicationType.valueOf(newApplicationEntity.getSettings().getOAuthClient().getApplicationType().toUpperCase())
+                    ApplicationType.valueOf(newApplicationEntity.getSettings().getOauth().getApplicationType().toUpperCase())
                 );
             }
         }

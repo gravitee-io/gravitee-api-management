@@ -199,7 +199,7 @@ public class ApplicationMapperTest {
         oAuthClientEntitySettings.setRenewClientSecretSupported(true);
         oAuthClientEntitySettings.setResponseTypes(Arrays.asList(APPLICATION_OAUTH_RESPONSE_TYPE));
 
-        settings.setOAuthClient(oAuthClientEntitySettings);
+        settings.setOauth(oAuthClientEntitySettings);
         applicationEntity.setSettings(settings);
 
         Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);

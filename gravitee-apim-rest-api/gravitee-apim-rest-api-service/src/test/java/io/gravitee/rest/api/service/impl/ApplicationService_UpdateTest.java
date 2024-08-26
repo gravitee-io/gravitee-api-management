@@ -387,7 +387,7 @@ public class ApplicationService_UpdateTest {
 
         // oauth app settings
         ApplicationSettings settings = new ApplicationSettings();
-        settings.setOAuthClient(new OAuthClientSettings());
+        settings.setOauth(new OAuthClientSettings());
         when(updateApplication.getSettings()).thenReturn(settings);
 
         // client registration is disabled
@@ -452,7 +452,7 @@ public class ApplicationService_UpdateTest {
 
         // oauth app settings doesn't contain grant types
         ApplicationSettings settings = new ApplicationSettings();
-        settings.setOAuthClient(new OAuthClientSettings());
+        settings.setOauth(new OAuthClientSettings());
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
@@ -507,7 +507,7 @@ public class ApplicationService_UpdateTest {
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
         oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
-        settings.setOAuthClient(oAuthClientSettings);
+        settings.setOauth(oAuthClientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
         ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
@@ -568,7 +568,7 @@ public class ApplicationService_UpdateTest {
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
         oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
-        settings.setOAuthClient(oAuthClientSettings);
+        settings.setOauth(oAuthClientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
         ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();

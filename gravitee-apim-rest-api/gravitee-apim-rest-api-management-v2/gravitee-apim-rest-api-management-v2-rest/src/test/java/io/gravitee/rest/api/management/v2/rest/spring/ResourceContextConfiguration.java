@@ -20,6 +20,7 @@ import static org.mockito.Mockito.spy;
 
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -44,6 +45,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
+import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -54,7 +56,6 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainSer
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
-import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -73,16 +74,19 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGrou
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
+import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MediaService;
@@ -95,6 +99,8 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -126,6 +132,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiRepository apiRepository() {
         return mock(ApiRepository.class);
+    }
+
+    @Bean
+    public ApplicationRepository applicationRepository() {
+        return mock(ApplicationRepository.class);
     }
 
     @Bean
@@ -456,14 +467,35 @@ public class ResourceContextConfiguration {
         GroupQueryService groupQueryService,
         UserDomainService userDomainService,
         RoleQueryServiceInMemory roleQueryService,
-        MembershipQueryServiceInMemory membershipQueryService
+        MembershipQueryServiceInMemory membershipQueryService,
+        ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService
     ) {
         return new ValidateApplicationCRDUseCase(
             new ValidateApplicationCRDDomainService(
                 new ValidateGroupsDomainService(groupQueryService),
-                new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService)
+                new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
+                validateApplicationSettingsDomainService
             )
         );
+    }
+
+    @Bean
+    public ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService(
+        ApplicationRepository applicationRepository,
+        ApplicationTypeService applicationTypeService,
+        ParameterService parameterService
+    ) {
+        return new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, applicationTypeService, parameterService);
+    }
+
+    @Bean
+    public ConfigService configService() {
+        return mock(ConfigService.class);
+    }
+
+    @Bean
+    public ApplicationTypeService applicationTypeService() {
+        return new ApplicationTypeServiceImpl();
     }
 
     @Bean
@@ -509,5 +541,10 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchSharedPolicyGroupHistoryUseCase searchSharedPolicyGroupHistoryUseCase() {
         return mock(SearchSharedPolicyGroupHistoryUseCase.class);
+    }
+
+    @Bean
+    public ApplicationCrudServiceInMemory applicationCrudService() {
+        return new ApplicationCrudServiceInMemory();
     }
 }

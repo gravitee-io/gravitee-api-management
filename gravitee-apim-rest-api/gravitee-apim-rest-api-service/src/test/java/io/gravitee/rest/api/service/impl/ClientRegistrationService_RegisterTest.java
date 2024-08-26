@@ -73,7 +73,7 @@ public class ClientRegistrationService_RegisterTest {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
-        applicationSettings.setOAuthClient(new OAuthClientSettings());
+        applicationSettings.setOauth(new OAuthClientSettings());
         application.setSettings(applicationSettings);
 
         ClientRegistrationProvider provider = new ClientRegistrationProvider();

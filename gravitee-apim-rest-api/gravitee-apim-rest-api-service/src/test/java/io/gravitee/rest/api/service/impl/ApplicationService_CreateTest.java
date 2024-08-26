@@ -145,7 +145,7 @@ public class ApplicationService_CreateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setClientId(CLIENT_ID);
-        settings.setOAuthClient(clientSettings);
+        settings.setOauth(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
         when(
@@ -166,7 +166,7 @@ public class ApplicationService_CreateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setApplicationType("web");
-        settings.setOAuthClient(clientSettings);
+        settings.setOauth(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
         when(
             parameterService.findAsBoolean(
@@ -185,7 +185,7 @@ public class ApplicationService_CreateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setApplicationType("web");
-        settings.setOAuthClient(clientSettings);
+        settings.setOauth(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
         when(
             parameterService.findAsBoolean(
@@ -214,7 +214,7 @@ public class ApplicationService_CreateTest {
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setApplicationType("web");
         clientSettings.setGrantTypes(Arrays.asList("foobar"));
-        settings.setOAuthClient(clientSettings);
+        settings.setOauth(clientSettings);
         ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
         when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
         when(newApplication.getSettings()).thenReturn(settings);
@@ -245,7 +245,7 @@ public class ApplicationService_CreateTest {
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setApplicationType("web");
         clientSettings.setGrantTypes(Arrays.asList("foobar"));
-        settings.setOAuthClient(clientSettings);
+        settings.setOauth(clientSettings);
         ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
         ApplicationGrantTypeEntity foobar = new ApplicationGrantTypeEntity();
         foobar.setType("foobar");
@@ -427,7 +427,7 @@ public class ApplicationService_CreateTest {
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
         oAuthClientSettings.setApplicationType("BROWSER");
-        settings.setOAuthClient(oAuthClientSettings);
+        settings.setOauth(oAuthClientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
         // mock application type service

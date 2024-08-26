@@ -119,7 +119,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
                 ocs.setApplicationType(oauthAppInput.getApplicationType());
                 ocs.setGrantTypes(oauthAppInput.getGrantTypes());
                 ocs.setRedirectUris(oauthAppInput.getRedirectUris());
-                newApplicationEntitySettings.setOAuthClient(ocs);
+                newApplicationEntitySettings.setOauth(ocs);
             }
 
             final TlsClientSettings tlsAppInput = settings.getTls();

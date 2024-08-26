@@ -401,12 +401,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
 
         // Check that only one settings is defined
-        if (newApplicationEntity.getSettings().getApp() != null && newApplicationEntity.getSettings().getOAuthClient() != null) {
+        if (newApplicationEntity.getSettings().getApp() != null && newApplicationEntity.getSettings().getOauth() != null) {
             throw new InvalidApplicationTypeException();
         }
 
         // Check that a type is defined
-        if (newApplicationEntity.getSettings().getApp() == null && newApplicationEntity.getSettings().getOAuthClient() == null) {
+        if (newApplicationEntity.getSettings().getApp() == null && newApplicationEntity.getSettings().getOauth() == null) {
             throw new InvalidApplicationTypeException();
         }
 
@@ -446,12 +446,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Check that client registration is enabled
             checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
 
-            String appType = newApplicationEntity.getSettings().getOAuthClient().getApplicationType();
+            String appType = newApplicationEntity.getSettings().getOauth().getApplicationType();
             // Check that the application_type is allowed
             if (!isApplicationTypeAllowed(executionContext, appType, executionContext.getEnvironmentId())) {
                 throw new IllegalStateException("Application type '" + appType + "' is not allowed");
             }
-            checkAndSanitizeOAuthClientSettings(newApplicationEntity.getSettings().getOAuthClient());
+            checkAndSanitizeOAuthClientSettings(newApplicationEntity.getSettings().getOauth());
 
             // Create an OAuth client
             ClientRegistrationResponse registrationResponse = clientRegistrationService.register(executionContext, newApplicationEntity);
@@ -680,12 +680,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             // Check that only one settings is defined
-            if (updateApplicationEntity.getSettings().getApp() != null && updateApplicationEntity.getSettings().getOAuthClient() != null) {
+            if (updateApplicationEntity.getSettings().getApp() != null && updateApplicationEntity.getSettings().getOauth() != null) {
                 throw new InvalidApplicationTypeException();
             }
 
             // Check that a type is defined
-            if (updateApplicationEntity.getSettings().getApp() == null && updateApplicationEntity.getSettings().getOAuthClient() == null) {
+            if (updateApplicationEntity.getSettings().getApp() == null && updateApplicationEntity.getSettings().getOauth() == null) {
                 throw new InvalidApplicationTypeException();
             }
 
@@ -725,7 +725,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
-                checkAndSanitizeOAuthClientSettings(updateApplicationEntity.getSettings().getOAuthClient());
+                checkAndSanitizeOAuthClientSettings(updateApplicationEntity.getSettings().getOauth());
 
                 // Update an OAuth client
                 final String registrationPayload = applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
@@ -926,8 +926,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // Check that the application can be updated with a new client secret
             if (
-                applicationEntity.getSettings().getOAuthClient() != null &&
-                applicationEntity.getSettings().getOAuthClient().isRenewClientSecretSupported()
+                applicationEntity.getSettings().getOauth() != null &&
+                applicationEntity.getSettings().getOauth().isRenewClientSecretSupported()
             ) {
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
                     executionContext,
@@ -1352,7 +1352,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     LOGGER.error("An error occurred while reading client settings");
                 }
             }
-            settings.setOAuthClient(clientSettings);
+            settings.setOauth(clientSettings);
         }
 
         if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE)) {

@@ -32,7 +32,7 @@ public class ApplicationModelFixtures {
     protected static final ApplicationSettings.ApplicationSettingsBuilder APPLICATION_SETTINGS_BUILDER = ApplicationSettings
         .builder()
         .app(SimpleApplicationSettings.builder().clientId("clientId").build())
-        .oAuthClient(OAuthClientSettings.builder().clientId("clientId").build());
+        .oauth(OAuthClientSettings.builder().clientId("clientId").build());
 
     private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM = ApplicationListItem
         .builder()
