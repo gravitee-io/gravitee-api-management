@@ -153,6 +153,34 @@ describe('PageService', () => {
     });
   });
 
+  describe('listByEnvironment', () => {
+    it('should return pages with default query parameters', done => {
+      const pagesResponse: PagesResponse = fakePagesResponse();
+
+      service.listByEnvironment().subscribe(response => {
+        expect(response).toMatchObject(pagesResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/pages?page=1&size=-1`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(pagesResponse);
+    });
+
+    it('should return pages with custom query parameters', done => {
+      const pagesResponse: PagesResponse = fakePagesResponse();
+
+      service.listByEnvironment(2, 1).subscribe(response => {
+        expect(response).toMatchObject(pagesResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/pages?page=2&size=1`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(pagesResponse);
+    });
+  });
+
   describe('getByApiIdAndId', () => {
     it('should return page with specified api id and id', done => {
       const page = fakePage({ id: 'page-id' });
@@ -162,7 +190,21 @@ describe('PageService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages/${page.id}`);
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages/${page.id}?include=content`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(page);
+    });
+  });
+  describe('getById', () => {
+    it('should return page with specified api id and id', done => {
+      const page = fakePage({ id: 'page-id' });
+
+      service.getById(page.id).subscribe(response => {
+        expect(response).toMatchObject(page);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/pages/${page.id}?include=content`);
       expect(req.request.method).toEqual('GET');
       req.flush(page);
     });
