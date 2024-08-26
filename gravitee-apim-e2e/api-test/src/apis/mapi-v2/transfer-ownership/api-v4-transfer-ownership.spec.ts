@@ -202,7 +202,7 @@ describe('API - V4 - Transfer Ownership', () => {
       v2ApiMembersResourceAsApiPublisher.addApiMember({
         envId,
         apiId: importedApi.id,
-        addApiMember: {
+        addMember: {
           userId: user.id,
           externalReference: user.referenceId,
           roleName: 'USER',
