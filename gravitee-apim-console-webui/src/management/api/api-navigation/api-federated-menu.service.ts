@@ -38,7 +38,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
   } {
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
-      this.addApiScoreMenuEntry(),
+      ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addConsumersMenuEntry(),
       this.addDocumentationMenuEntry(),
     ];
@@ -89,8 +89,6 @@ export class ApiFederatedMenuService implements ApiMenuService {
   }
 
   private addApiScoreMenuEntry(): MenuItem {
-    const tabs: MenuItem[] = [];
-
     return {
       displayName: 'API Score',
       icon: 'shield-check',
@@ -98,7 +96,6 @@ export class ApiFederatedMenuService implements ApiMenuService {
       header: {
         title: 'API Score',
       },
-      tabs: tabs,
     };
   }
 

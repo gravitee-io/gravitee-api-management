@@ -20,34 +20,40 @@ import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { ApiFederatedMenuService } from './api-federated-menu.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { Constants } from '../../../entities/Constants';
 
+const DEFAULT_PERMISSIONS: GioTestingPermission = ['api-member-r', 'api-audit-r', 'api-documentation-r', 'api-metadata-r', 'api-plan-r'];
+const DEFAULT_SETTINGS: ConsoleSettings = { scoring: { enabled: true } };
+
 describe('ApiFederatedMenuService', () => {
-  beforeEach(async () => {
+  const init = async (
+    { permissions, settings } = {
+      permissions: DEFAULT_PERMISSIONS,
+      settings: DEFAULT_SETTINGS,
+    },
+  ) => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule],
       providers: [
         { provide: ApiFederatedMenuService },
+        { provide: Constants, useValue: { ...CONSTANTS_TESTING, org: { settings } } },
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['api-member-r', 'api-audit-r', 'api-documentation-r', 'api-metadata-r', 'api-plan-r'],
+          useValue: permissions,
         },
-        { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
       ],
     }).compileComponents();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  };
 
   describe('getMenu', () => {
-    it('should return items for Federated API with expected permission and license', () => {
-      const items = TestBed.inject(ApiFederatedMenuService).getMenu();
+    it('should return items for Federated API with expected permission and license', async () => {
+      await init();
+      const service = TestBed.inject(ApiFederatedMenuService);
 
-      expect(items).toEqual({
+      expect(service.getMenu()).toEqual({
         subMenuItems: [
           {
             displayName: 'Configuration',
@@ -87,7 +93,6 @@ describe('ApiFederatedMenuService', () => {
             header: {
               title: 'API Score',
             },
-            tabs: [],
           },
           {
             displayName: 'Consumers',
@@ -139,11 +144,11 @@ describe('ApiFederatedMenuService', () => {
       });
     });
 
-    it('should hide elements when not enough permissions', () => {
-      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: [] });
-      const items = TestBed.inject(ApiFederatedMenuService).getMenu();
+    it('should hide elements when not enough permissions', async () => {
+      await init({ permissions: [], settings: DEFAULT_SETTINGS });
+      const service = TestBed.inject(ApiFederatedMenuService);
 
-      expect(items).toEqual({
+      expect(service.getMenu()).toEqual({
         subMenuItems: [
           {
             displayName: 'Configuration',
@@ -170,7 +175,6 @@ describe('ApiFederatedMenuService', () => {
             header: {
               title: 'API Score',
             },
-            tabs: [],
           },
           {
             displayName: 'Consumers',
@@ -200,6 +204,15 @@ describe('ApiFederatedMenuService', () => {
         ],
         groupItems: [],
       });
+    });
+
+    it('should hide scoring elements when feature is disabled', async () => {
+      await init({ permissions: DEFAULT_PERMISSIONS, settings: { scoring: { enabled: false } } });
+      const service = TestBed.inject(ApiFederatedMenuService);
+
+      const menu = service.getMenu();
+
+      expect(menu.subMenuItems.find((item) => item.displayName === 'API Score')).toBeUndefined();
     });
   });
 });
