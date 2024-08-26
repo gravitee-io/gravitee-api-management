@@ -46,6 +46,13 @@ export class PortalNavigationService {
       children: [],
     };
 
+    if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
+      customization.children.push({
+        displayName: 'Top Bar',
+        routerLink: 'top-bar',
+        icon: 'gio:top-bar',
+      });
+    }
     if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
       customization.children.push({
         displayName: 'Theme',

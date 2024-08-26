@@ -1,0 +1,51 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="back-button">
+  <a mat-button [routerLink]="'../'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Top Bar Menu</a>
+</div>
+
+<mat-card class="menu-link-edit">
+  <form [formGroup]="menuLinkEditForm">
+    <mat-card-content class="menu-link-edit__content">
+      <div class="menu-link-edit__content__header">
+        <div class="menu-link-edit__content__header__title">
+          <h3>Edit Link</h3>
+          @if (readableMenuLinkType) {
+            <span class="gio-badge-neutral">{{ readableMenuLinkType }}</span>
+          }
+        </div>
+        <div class="menu-link-edit__content__header__description">Edit the link details that will be displayed in the top menu bar</div>
+      </div>
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" required />
+        @if (menuLinkEditForm.controls.name.hasError('required')) {
+          <mat-error>Name is required.</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Target</mat-label>
+        <input matInput formControlName="target" required />
+        @if (menuLinkEditForm.controls.target.hasError('required')) {
+          <mat-error>Target is required.</mat-error>
+        }
+      </mat-form-field>
+    </mat-card-content>
+  </form>
+</mat-card>
+<gio-save-bar [form]="menuLinkEditForm" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
