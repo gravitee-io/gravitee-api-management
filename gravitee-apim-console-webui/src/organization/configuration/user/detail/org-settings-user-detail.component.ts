@@ -46,6 +46,7 @@ import { UserHelper } from '../../../../entities/user/userHelper';
 import { Token } from '../../../../entities/user/userTokens';
 import { UsersTokenService } from '../../../../services-ngx/users-token.service';
 import { Constants } from '../../../../entities/Constants';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -130,6 +131,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject<boolean>();
 
+  public isReadOnly = false;
+
   constructor(
     private readonly usersService: UsersService,
     private readonly usersTokenService: UsersTokenService,
@@ -140,9 +143,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['organization-user-u']);
+
     combineLatest([
       this.usersService.get(this.ajsStateParams.userId),
       this.environmentService.list(),
@@ -459,7 +465,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   private initOrganizationRolesForm() {
     const organizationRoles = this.user.roles.filter((r) => r.scope === 'ORGANIZATION');
 
-    this.organizationRolesControl = new FormControl({ value: organizationRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' });
+    this.organizationRolesControl = new FormControl({
+      value: organizationRoles.map((r) => r.id),
+      disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+    });
 
     this.organizationRolesControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       this.toggleSaveBar(true);
@@ -473,7 +482,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
         return {
           ...result,
-          [environment.id]: new FormControl({ value: userEnvRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' }),
+          [environment.id]: new FormControl({
+            value: userEnvRoles.map((r) => r.id),
+            disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+          }),
         };
       }, {}),
     );
@@ -506,9 +518,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           ...result,
           [group.id]: new FormGroup(
             {
-              GROUP: new FormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' }),
-              API: new FormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' }),
-              APPLICATION: new FormControl({ value: group.roles['APPLICATION'], disabled: this.user.status !== 'ACTIVE' }),
+              GROUP: new FormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
+              API: new FormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
+              APPLICATION: new FormControl({
+                value: group.roles['APPLICATION'],
+                disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+              }),
             },
             [leastOneGroupRoleIsRequiredValidator],
           ),
