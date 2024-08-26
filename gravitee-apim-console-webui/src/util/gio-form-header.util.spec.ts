@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 import { Header } from '@gravitee/ui-particles-angular';
-
-import { toGioFormHeader, toDictionary } from './gio-form-header.util';
 import { FormControl } from '@angular/forms';
-import { uniqueKeysValidator } from './gio-form-header.util';
+
+import { toGioFormHeader, toDictionary, uniqueKeysValidator } from './gio-form-header.util';
 
 describe('toGioFormHeader', () => {
   it('should return an empty array when the input is undefined', () => {
