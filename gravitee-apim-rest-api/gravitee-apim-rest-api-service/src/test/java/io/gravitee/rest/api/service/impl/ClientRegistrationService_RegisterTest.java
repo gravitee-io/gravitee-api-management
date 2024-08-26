@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +41,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author GraviteeSource Team
@@ -70,10 +73,41 @@ public class ClientRegistrationService_RegisterTest {
 
     @Test
     public void shouldRegisterProvider() throws TechnicalException {
+        NewApplicationEntity application = setupApplicationAndProvider(new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}");
+
+        ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
+            GraviteeContext.getExecutionContext(),
+            application
+        );
+        assertNotNull("Result is null", clientRegistration);
+
+        assertEquals(clientRegistration.getClientName(), "gravitee");
+    }
+
+    @Test
+    public void shouldRegisterProvider_withAdditionalClientMetadata() throws TechnicalException {
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        Map<String, String> additionalClientMetadata = new HashMap<>();
+        additionalClientMetadata.put("policy_uri", "https://example.com/policy");
+        oAuthClientSettings.setAdditionalClientMetadata(additionalClientMetadata);
+
+        NewApplicationEntity application = setupApplicationAndProvider(oAuthClientSettings, "{ \"client_name\": \"gravitee\", \"policy_uri\": \"https://example.com/policy\"}");
+
+        ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
+            GraviteeContext.getExecutionContext(),
+            application
+        );
+        assertNotNull("Result is null", clientRegistration);
+
+        assertEquals(clientRegistration.getClientName(), "gravitee");
+        assertEquals("https://example.com/policy", clientRegistration.getPolicyUri());
+    }
+
+    private @NotNull NewApplicationEntity setupApplicationAndProvider(OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse) throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
-        applicationSettings.setOauth(new OAuthClientSettings());
+        applicationSettings.setOauth(oAuthClientSettings);
         application.setSettings(applicationSettings);
 
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
@@ -90,24 +124,17 @@ public class ClientRegistrationService_RegisterTest {
                     aResponse()
                         .withBody(
                             "{\"token_endpoint\": \"http://localhost:" +
-                            wireMockServer.port() +
-                            "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                            wireMockServer.port() +
-                            "/registrationEp\"}"
+                                wireMockServer.port() +
+                                "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
+                                wireMockServer.port() +
+                                "/registrationEp\"}"
                         )
                 )
         );
         wireMockServer.stubFor(
             post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
         );
-        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
-
-        ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
-            GraviteeContext.getExecutionContext(),
-            application
-        );
-        assertNotNull("Result is null", clientRegistration);
-
-        assertEquals(clientRegistration.getClientName(), "gravitee");
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody(registrationEndpointResponse)));
+        return application;
     }
 }
