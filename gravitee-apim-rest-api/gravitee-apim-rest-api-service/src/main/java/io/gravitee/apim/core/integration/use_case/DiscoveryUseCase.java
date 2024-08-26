@@ -35,7 +35,9 @@ import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @UseCase
 @RequiredArgsConstructor
 public class DiscoveryUseCase {
@@ -61,7 +63,12 @@ public class DiscoveryUseCase {
             .flatMapPublisher(integration -> integrationAgent.discoverApis(integration.getId()))
             .map(discoveredApi -> new Output.PreviewApi(discoveredApi, computeState.apply(discoveredApi)))
             .toList()
-            .map(Output::new);
+            .map(Output::new)
+            .doOnError(throwable -> {
+                if (!(throwable instanceof IntegrationNotFoundException)) {
+                    log.error("Error during discovery on integration {}", integrationId, throwable);
+                }
+            });
     }
 
     private Function<IntegrationApi, Output.State> apiStateComputing(String environmentId, String integrationId) {

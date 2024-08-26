@@ -24,17 +24,14 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @UseCase
 public class UpdateIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
     private final LicenseDomainService licenseDomainService;
-
-    public UpdateIntegrationUseCase(IntegrationCrudService integrationCrudService, LicenseDomainService licenseDomainService) {
-        this.integrationCrudService = integrationCrudService;
-        this.licenseDomainService = licenseDomainService;
-    }
 
     public Output execute(Input input) {
         if (!licenseDomainService.isFederationFeatureAllowed(input.organizationId())) {

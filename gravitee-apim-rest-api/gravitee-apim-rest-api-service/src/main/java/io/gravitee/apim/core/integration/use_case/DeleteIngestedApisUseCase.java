@@ -41,53 +41,27 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @UseCase
+@RequiredArgsConstructor
 public class DeleteIngestedApisUseCase {
 
-    ApiQueryService apiQueryService;
-    PlanQueryService planQueryService;
-    SubscriptionQueryService subscriptionQueryService;
-    CloseSubscriptionDomainService closeSubscriptionDomainService;
-    DeleteSubscriptionDomainService deleteSubscriptionDomainService;
-    DeletePlanDomainService deletePlanDomainService;
-    PageQueryService pageQueryService;
-    DeleteApiDocumentationDomainService deleteApiDocumentationDomainService;
-    AuditDomainService auditDomainService;
-    ApiMetadataDomainService apiMetadataDomainService;
-    DeleteMembershipDomainService deleteMembershipDomainService;
-    ApiCrudService apiCrudService;
-    ApiIndexerDomainService apiIndexerDomainService;
-
-    public DeleteIngestedApisUseCase(
-        ApiQueryService apiQueryService,
-        PlanQueryService planQueryService,
-        SubscriptionQueryService subscriptionQueryService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService,
-        DeleteSubscriptionDomainService deleteSubscriptionDomainService,
-        DeletePlanDomainService deletePlanDomainService,
-        PageQueryService pageQueryService,
-        DeleteApiDocumentationDomainService deleteApiDocumentationDomainService,
-        AuditDomainService auditDomainService,
-        ApiMetadataDomainService apiMetadataDomainService,
-        DeleteMembershipDomainService deleteMembershipDomainService,
-        ApiCrudService apiCrudService,
-        ApiIndexerDomainService apiIndexerDomainService
-    ) {
-        this.apiQueryService = apiQueryService;
-        this.planQueryService = planQueryService;
-        this.subscriptionQueryService = subscriptionQueryService;
-        this.closeSubscriptionDomainService = closeSubscriptionDomainService;
-        this.deleteSubscriptionDomainService = deleteSubscriptionDomainService;
-        this.deletePlanDomainService = deletePlanDomainService;
-        this.pageQueryService = pageQueryService;
-        this.deleteApiDocumentationDomainService = deleteApiDocumentationDomainService;
-        this.auditDomainService = auditDomainService;
-        this.apiMetadataDomainService = apiMetadataDomainService;
-        this.deleteMembershipDomainService = deleteMembershipDomainService;
-        this.apiCrudService = apiCrudService;
-        this.apiIndexerDomainService = apiIndexerDomainService;
-    }
+    private final ApiQueryService apiQueryService;
+    private final PlanQueryService planQueryService;
+    private final SubscriptionQueryService subscriptionQueryService;
+    private final CloseSubscriptionDomainService closeSubscriptionDomainService;
+    private final DeleteSubscriptionDomainService deleteSubscriptionDomainService;
+    private final DeletePlanDomainService deletePlanDomainService;
+    private final PageQueryService pageQueryService;
+    private final DeleteApiDocumentationDomainService deleteApiDocumentationDomainService;
+    private final AuditDomainService auditDomainService;
+    private final ApiMetadataDomainService apiMetadataDomainService;
+    private final DeleteMembershipDomainService deleteMembershipDomainService;
+    private final ApiCrudService apiCrudService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
 
     public Output execute(Input input) {
         var skippedCounter = new AtomicInteger();
@@ -113,7 +87,10 @@ public class DeleteIngestedApisUseCase {
                         deletedCounter.incrementAndGet();
                     }
                 },
-                exception -> errorCounter.incrementAndGet()
+                exception -> {
+                    log.error("Error to delete ingested APi", exception);
+                    errorCounter.incrementAndGet();
+                }
             )
             .dispose();
 
