@@ -41,8 +41,21 @@ export class PageService {
     });
   }
 
-  getByApiIdAndId(apiId: string, pageId: string, withContent: boolean = false) {
+  listByEnvironment(page = 1, size = -1): Observable<PagesResponse> {
+    return this.http.get<PagesResponse>(`${this.configService.baseURL}/pages`, {
+      params: {
+        page,
+        size,
+      },
+    });
+  }
+
+  getByApiIdAndId(apiId: string, pageId: string, withContent: boolean = true) {
     return this.http.get<Page>(`${this.configService.baseURL}/apis/${apiId}/pages/${pageId}${withContent ? '?include=content' : ''}`);
+  }
+
+  getById(pageId: string, withContent: boolean = true): Observable<Page> {
+    return this.http.get<Page>(`${this.configService.baseURL}/pages/${pageId}${withContent ? '?include=content' : ''}`);
   }
 
   mapToPageTreeNode(root: string | undefined, pages: Page[]): PageTreeNode[] {
@@ -54,9 +67,5 @@ export class PageService {
         name: p.name,
         children: this.mapToPageTreeNode(p.id, pages),
       }));
-  }
-
-  content(apiId: string, detailsId: string): Observable<Page> {
-    return this.http.get<Page>(`${this.configService.baseURL}/apis/${apiId}/pages/${detailsId}?include=content`);
   }
 }

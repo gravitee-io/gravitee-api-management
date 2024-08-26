@@ -55,7 +55,7 @@ export class ApiTabDetailsComponent implements OnInit {
     this.homepageData$ = this.pageService.listByApiId(this.api.id, true).pipe(
       switchMap(pageResponse => {
         if (pageResponse.data?.length) {
-          return this.pageService.content(this.api.id, pageResponse.data[0].id).pipe(
+          return this.pageService.getByApiIdAndId(this.api.id, pageResponse.data[0].id, true).pipe(
             map(result => ({ result })),
             catchError(error => of({ error })),
           );
