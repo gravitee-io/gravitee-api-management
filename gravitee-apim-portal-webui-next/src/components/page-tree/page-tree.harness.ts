@@ -19,6 +19,7 @@ import { MatTreeNodeHarness } from '@angular/material/tree/testing';
 export class PageTreeHarness extends ComponentHarness {
   public static hostSelector = 'app-page-tree';
   protected locateActiveNode = this.locatorFor(MatTreeNodeHarness.with({ selector: '.active' }));
+  protected locateNodes = this.locatorForAll(MatTreeNodeHarness);
 
   public async getActivePageName(): Promise<string> {
     const activeNode = await this.locateActiveNode();
@@ -29,6 +30,12 @@ export class PageTreeHarness extends ComponentHarness {
     return await this.locateNode(pageName)
       .then(node => node.host())
       .then(host => host.click());
+  }
+
+  public async displayedItems(): Promise<string[]> {
+    return await this.locateNodes().then(nodes => {
+      return Promise.all(nodes.map(async n => await n.getText()));
+    });
   }
 
   protected locateNode = (text: string) => this.locatorFor(MatTreeNodeHarness.with({ text }))();

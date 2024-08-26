@@ -19,6 +19,7 @@
   <app-company-title [title]="siteTitle" [logo]="logo()" />
   <div class="menu-items">
     <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
+    <app-nav-bar-button i18n="@@guides" [path]="['guides']">Guides</app-nav-bar-button>
     @if (!isEmpty(currentUser())) {
       <app-nav-bar-button i18n="@@applications" [path]="['applications']">Applications</app-nav-bar-button>
     }
