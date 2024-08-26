@@ -19,7 +19,7 @@
   <div class="api-details__tab-details-content">
     @if (homepageData$ | async; as homepageData) {
       @if (homepageData.result) {
-        <app-page [page]="homepageData.result" [apiPages]="pages" [apiId]="api.id" />
+        <app-page [page]="homepageData.result" [pages]="pages" [apiId]="api.id" />
       } @else {
         <div class="m3-body-large" i18n="@@apiDetailsNotAvailable">No details available</div>
         <div class="m3-body-medium" i18n="@@apiDetailsNotAvailableExplanation">

@@ -20,7 +20,7 @@
     <app-page-swagger [page]="page" />
   }
   @case ('MARKDOWN') {
-    <app-page-markdown [apiPages]="apiPages" [content]="page.content" [apiId]="apiId" />
+    <app-page-markdown [pages]="pages" [content]="page.content" [apiId]="apiId" />
   }
   @case ('ASCIIDOC') {
     <app-page-asciidoc [content]="page.content" />

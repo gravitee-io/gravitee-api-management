@@ -39,7 +39,7 @@ describe('PageComponent', () => {
     harnessLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     component.apiId = 'api-id';
-    component.apiPages = [];
+    component.pages = [];
   });
 
   describe('swagger', () => {
