@@ -46,6 +46,7 @@ import { UserHelper } from '../../../../entities/user/userHelper';
 import { Token } from '../../../../entities/user/userTokens';
 import { UsersTokenService } from '../../../../services-ngx/users-token.service';
 import { Constants } from '../../../../entities/Constants';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -131,6 +132,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject<boolean>();
 
+  public isReadOnly = false;
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly usersService: UsersService,
@@ -141,9 +144,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
     @Inject(Constants) private readonly constants: Constants,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['organization-user-u']);
+
     combineLatest([
       this.usersService.get(this.activatedRoute.snapshot.params.userId),
       this.environmentService.list(),
@@ -465,7 +471,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
     this.organizationRolesControl = new UntypedFormControl({
       value: organizationRoles.map((r) => r.id),
-      disabled: this.user.status !== 'ACTIVE',
+      disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
     });
 
     this.organizationRolesControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
@@ -480,7 +486,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
         return {
           ...result,
-          [environment.id]: new UntypedFormControl({ value: userEnvRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' }),
+          [environment.id]: new UntypedFormControl({
+            value: userEnvRoles.map((r) => r.id),
+            disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+          }),
         };
       }, {}),
     );
@@ -513,9 +522,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           ...result,
           [group.id]: new UntypedFormGroup(
             {
-              GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' }),
-              API: new UntypedFormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' }),
-              APPLICATION: new UntypedFormControl({ value: group.roles['APPLICATION'], disabled: this.user.status !== 'ACTIVE' }),
+              GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
+              API: new UntypedFormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
+              APPLICATION: new UntypedFormControl({
+                value: group.roles['APPLICATION'],
+                disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
+              }),
             },
             [leastOneGroupRoleIsRequiredValidator],
           ),
