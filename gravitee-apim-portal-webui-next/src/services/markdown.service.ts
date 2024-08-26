@@ -63,6 +63,9 @@ export class MarkdownService {
         const parsedSettingsUrl = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         const parsedApisUrl = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
         const parsedRelativeDocApiUrl = /\/#!\/documentation\/api\/(.*)#([MARKDOWN|SWAGGER|OPENAPI|ASYNCAPI|ASCIIDOC]+)/g.exec(href);
+        const parsedRelativeDocEnvUrl = /\/#!\/documentation\/environment\/(.*)#([MARKDOWN|SWAGGER|OPENAPI|ASYNCAPI|ASCIIDOC]+)/g.exec(
+          href,
+        );
 
         let pageId: string | undefined;
 
@@ -71,7 +74,9 @@ export class MarkdownService {
         } else if (parsedApisUrl) {
           pageId = parsedApisUrl[1];
         } else if (parsedRelativeDocApiUrl) {
-          pageId = pageIdFromParsedRelativeDocApiUrl(parsedRelativeDocApiUrl, pages);
+          pageId = pageIdFromParsedRelativeDocUrl(parsedRelativeDocApiUrl, pages);
+        } else if (parsedRelativeDocEnvUrl) {
+          pageId = pageIdFromParsedRelativeDocUrl(parsedRelativeDocEnvUrl, pages);
         }
 
         if (pageBaseUrl && pageId) {
@@ -113,16 +118,16 @@ const INTERNAL_LINK_CLASSNAME = 'internal-link';
  * Find the page ID from the parsed url.
  * If the page is not found, the page name is returned.
  *
- * @param parsedDocApiUrl - ex. ['/#!/documentation/api/my/doc%20page#MARKDOWN', 'my/doc%20page', 'MARKDOWN']
+ * @param parsedDocUrl - ex. ['/#!/documentation/api/my/doc%20page#MARKDOWN', 'my/doc%20page', 'MARKDOWN']
  * @param pages - pages to search for locating the relative documentation
  */
-const pageIdFromParsedRelativeDocApiUrl = (parsedDocApiUrl: RegExpExecArray, pages: Page[]) => {
-  const pagePath = parsedDocApiUrl[1];
+const pageIdFromParsedRelativeDocUrl = (parsedDocUrl: RegExpExecArray, pages: Page[]) => {
+  const pagePath = parsedDocUrl[1];
   const pathWithSpaces = pagePath.replace(/%20/g, ' ');
   const splitPath = pathWithSpaces.split('/');
   const pageName = splitPath[splitPath.length - 1];
 
-  const pageType = parsedDocApiUrl[2] === 'OPENAPI' ? 'SWAGGER' : parsedDocApiUrl[2];
+  const pageType = parsedDocUrl[2] === 'OPENAPI' ? 'SWAGGER' : parsedDocUrl[2];
 
   const pageId = findPageId(pageType, undefined, 0, splitPath, pages);
   return pageId ?? pageName;
