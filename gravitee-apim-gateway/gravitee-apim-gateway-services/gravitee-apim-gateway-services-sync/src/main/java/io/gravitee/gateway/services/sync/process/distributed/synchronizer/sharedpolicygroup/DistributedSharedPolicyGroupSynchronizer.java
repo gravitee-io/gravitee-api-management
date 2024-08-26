@@ -66,6 +66,6 @@ public class DistributedSharedPolicyGroupSynchronizer
 
     @Override
     public int order() {
-        return 2;
+        return 50;
     }
 }
