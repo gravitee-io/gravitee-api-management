@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
+import java.util.List;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -51,6 +52,10 @@ public interface ClientRegistrationMapper {
     @Mapping(source = "settings.OAuthClient.responseTypes", target = "responseTypes")
     void toClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, UpdateApplicationEntity application);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
     void mergeClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, ClientRegistrationRequest source);
+
+    default String map(List<String> value) {
+        return value != null ? String.join(ClientRegistrationRequest.SCOPE_DELIMITER, value) : null;
+    }
 }

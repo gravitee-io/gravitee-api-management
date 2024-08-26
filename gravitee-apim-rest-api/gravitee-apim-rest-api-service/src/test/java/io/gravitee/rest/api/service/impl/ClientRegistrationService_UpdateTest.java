@@ -15,19 +15,32 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.Options;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
@@ -36,6 +49,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationProviderNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.EmptyInitialAccessTokenException;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
@@ -44,7 +61,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.context.event.annotation.AfterTestMethod;
 
 /**
  * @author GraviteeSource Team
@@ -96,9 +112,9 @@ public class ClientRegistrationService_UpdateTest {
         when(
             mockClientRegistrationProviderRepository.update(
                 argThat(p ->
-                    p.getId() == existingPayload.getId() &&
-                    p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() &&
-                    p.getName() == providerPayload.getName() &&
+                    Objects.equals(p.getId(), existingPayload.getId()) &&
+                    Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                    Objects.equals(p.getName(), providerPayload.getName()) &&
                     p.getUpdatedAt() != null
                 )
             )
@@ -136,11 +152,7 @@ public class ClientRegistrationService_UpdateTest {
 
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
-        ClientRegistrationProviderEntity providerUpdated = clientRegistrationService.update(
-            GraviteeContext.getExecutionContext(),
-            existingPayload.getId(),
-            providerPayload
-        );
+        clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
 
         verify(mockAuditService, never())
             .createAuditLog(
@@ -166,5 +178,73 @@ public class ClientRegistrationService_UpdateTest {
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
         clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
+    }
+
+    @Test
+    public void shouldUpdateApplication_withAdditionalClientMetadata() throws TechnicalException, JsonProcessingException {
+        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        Map<String, String> additionalClientMetadata = new HashMap<>();
+        additionalClientMetadata.put("policy_uri", "https://example.com/policy");
+        oAuthClientSettings.setAdditionalClientMetadata(additionalClientMetadata);
+
+        ApplicationSettings applicationSettings = new ApplicationSettings();
+        applicationSettings.setOAuthClient(oAuthClientSettings);
+        updateApplicationEntity.setSettings(applicationSettings);
+
+        ClientRegistrationResponse existingPayload = new ClientRegistrationResponse();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setRegistrationAccessToken("registrationAccessToken");
+        existingPayload.setRegistrationClientUri("http://localhost:" + wireMockServer.port() + "/registration");
+
+        wireMockServer.stubFor(
+            put(urlEqualTo("/registration"))
+                .willReturn(
+                    aResponse()
+                        .withBody(
+                            "{\"client_id\": \"clientId\",\"client_secret\": \"clientSecret\", \"policy_uri\": \"https://example.com/policy\"}"
+                        )
+                )
+        );
+
+        ClientRegistrationProvider provider = new ClientRegistrationProvider();
+        provider.setId(existingPayload.getId());
+        provider.setName("name");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(provider));
+        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+            .thenReturn(newSet(provider));
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am"))
+                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+        );
+
+        ClientRegistrationProvider providerUpdatedMock = new ClientRegistrationProvider();
+        providerUpdatedMock.setId(provider.getId());
+        providerUpdatedMock.setName(provider.getName());
+        when(
+            mockClientRegistrationProviderRepository.update(
+                argThat(p ->
+                    p.getId().equals(provider.getId()) &&
+                    p.getEnvironmentId().equals(GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                    p.getName().equals(provider.getName()) &&
+                    p.getUpdatedAt() != null
+                )
+            )
+        )
+            .thenReturn(providerUpdatedMock);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        ClientRegistrationResponse providerUpdated = clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            mapper.writeValueAsString(existingPayload),
+            updateApplicationEntity
+        );
+        assertNotNull("Result is null", providerUpdated);
+
+        assertEquals("https://example.com/policy", providerUpdated.getPolicyUri());
     }
 }
