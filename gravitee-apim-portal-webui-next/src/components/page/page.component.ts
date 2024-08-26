@@ -32,7 +32,7 @@ export class PageComponent {
   @Input()
   page!: Page;
   @Input()
-  apiPages: Page[] = []; // Used to create links in Markdown to an API's other pages
+  pages: Page[] = []; // Used to create links in Markdown to other pages within the scope
   @Input()
-  apiId!: string;
+  apiId?: string;
 }

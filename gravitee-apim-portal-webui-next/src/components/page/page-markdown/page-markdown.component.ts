@@ -30,8 +30,8 @@ import { MarkdownService } from '../../../services/markdown.service';
 })
 export class PageMarkdownComponent implements OnChanges {
   @Input() content!: string | undefined;
-  @Input() apiPages: Page[] = [];
-  @Input() apiId!: string;
+  @Input() pages: Page[] = [];
+  @Input() apiId?: string;
   markdownHtml!: SafeHtml;
 
   constructor(
@@ -41,11 +41,20 @@ export class PageMarkdownComponent implements OnChanges {
   ) {}
 
   ngOnChanges(): void {
-    const renderedContent = this.content
-      ? this.markdownService.render(this.content, this.configuration.baseURL, `/catalog/api/${this.apiId}/documentation`, this.apiPages)
-      : '';
+    const renderedContent = this.getRenderedContent();
     const parser = new DOMParser();
     const document = parser.parseFromString(renderedContent, 'text/html');
     this.markdownHtml = this.domSanitizer.bypassSecurityTrustHtml(document.body.outerHTML);
+  }
+
+  private getRenderedContent(): string {
+    if (!this.content) {
+      return '';
+    }
+    if (this.apiId) {
+      return this.markdownService.render(this.content, this.configuration.baseURL, `/catalog/api/${this.apiId}/documentation`, this.pages);
+    }
+
+    return this.markdownService.render(this.content, this.configuration.baseURL, `/guides`, this.pages);
   }
 }
