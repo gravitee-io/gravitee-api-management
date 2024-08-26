@@ -97,7 +97,6 @@
         <dozer.version>7.0.0</dozer.version>
         <flexmark.version>0.64.8</flexmark.version>
         <freemarker.version>2.3.33</freemarker.version>
-        <gatling-charts-highcharts.version>3.11.5</gatling-charts-highcharts.version>
         <gson.version>2.11.0</gson.version>
         <guava.version>33.2.1-jre</guava.version>
         <hazelcast.version>5.4.0</hazelcast.version>
@@ -152,7 +151,6 @@
         <wiremock.version>3.8.0</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
-        <gatling-maven-plugin.version>4.9.5</gatling-maven-plugin.version>
         <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
         <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
         <maven-clean-plugin.version>3.4.0</maven-clean-plugin.version>
@@ -689,13 +687,6 @@
             </dependency>
 
             <dependency>
-                <groupId>io.gatling.highcharts</groupId>
-                <artifactId>gatling-charts-highcharts</artifactId>
-                <version>${gatling-charts-highcharts.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>io.github.classgraph</groupId>
                 <artifactId>classgraph</artifactId>
                 <version>${classgraph.version}</version>
@@ -1212,14 +1203,6 @@
                             </configuration>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>io.gatling</groupId>
-                    <artifactId>gatling-maven-plugin</artifactId>
-                    <version>${gatling-maven-plugin.version}</version>
-                    <configuration>
-                        <simulationClass>io.gravitee.rest.api.gatling.Apis3xSimulation</simulationClass>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
