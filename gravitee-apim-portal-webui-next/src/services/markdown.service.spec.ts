@@ -87,68 +87,73 @@ describe('MarkdownService', () => {
     },
   ];
 
-  beforeEach(() => {
+  const init = (pageBaseUrl = PAGE_BASE_URL) => {
     TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([]), AppTestingModule],
     });
     service = TestBed.inject(MarkdownService);
-    renderer = service.renderer(BASE_URL, PAGE_BASE_URL, PAGES);
-  });
+    renderer = service.renderer(BASE_URL, pageBaseUrl, PAGES);
+  };
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+  describe('Legacy support', () => {
+    beforeEach(() => {
+      init();
+    });
 
-  it('should use correct portal media url', () => {
-    // @ts-expect-error possibly undefined
-    const renderedImage = renderer.image(
-      'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
-      'title',
-      'text',
-    );
+    it('should use correct portal media url', () => {
+      // @ts-expect-error possibly undefined
+      const renderedImage = renderer.image(
+        'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
+        'title',
+        'text',
+      );
 
-    expect(renderedImage).toBeDefined();
-    expect(renderedImage).toEqual(`<img alt="text" title="title" src="${BASE_URL}/media/123456789" />`);
-  });
+      expect(renderedImage).toBeDefined();
+      expect(renderedImage).toEqual(`<img alt="text" title="title" src="${BASE_URL}/media/123456789" />`);
+    });
 
-  it('should use correct api media url', () => {
-    // @ts-expect-error possibly undefined
-    const renderedImage = renderer.image(
-      'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789',
-      'title',
-      'text',
-    );
+    it('should use correct api media url', () => {
+      // @ts-expect-error possibly undefined
+      const renderedImage = renderer.image(
+        'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789',
+        'title',
+        'text',
+      );
 
-    expect(renderedImage).not.toBeNull();
-    expect(renderedImage).toEqual(`<img alt="text" title="title" src="${BASE_URL}/apis/1A2Z3E4R5T6Y/media/123456789" />`);
-  });
+      expect(renderedImage).not.toBeNull();
+      expect(renderedImage).toEqual(`<img alt="text" title="title" src="${BASE_URL}/apis/1A2Z3E4R5T6Y/media/123456789" />`);
+    });
 
-  it('should use a.internal-link for render an portal page link', () => {
-    // @ts-expect-error possibly undefined
-    const renderedLink = renderer.link('/#!/settings/pages/123456789', 'title', 'text');
+    it('should use a.internal-link for render an portal page link', () => {
+      // @ts-expect-error possibly undefined
+      const renderedLink = renderer.link('/#!/settings/pages/123456789', 'title', 'text');
 
-    expect(renderedLink).not.toBeNull();
-    expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
-  });
+      expect(renderedLink).not.toBeNull();
+      expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
+    });
 
-  it('should use a.internal-link for render an api page link', () => {
-    // @ts-expect-error possibly undefined
-    const renderedLink = renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
+    it('should use a.internal-link for render an api page link', () => {
+      // @ts-expect-error possibly undefined
+      const renderedLink = renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
 
-    expect(renderedLink).not.toBeNull();
-    expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
-  });
+      expect(renderedLink).not.toBeNull();
+      expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
+    });
 
-  it('should use a.anchor for render an anchor', () => {
-    // @ts-expect-error possibly undefined
-    const renderedLink = renderer.link('#anchor', 'Anchor', '');
+    it('should use a.anchor for render an anchor', () => {
+      // @ts-expect-error possibly undefined
+      const renderedLink = renderer.link('#anchor', 'Anchor', '');
 
-    expect(renderedLink).not.toBeNull();
-    expect(renderedLink).toEqual('<a class="anchor" href="#anchor"></a>');
+      expect(renderedLink).not.toBeNull();
+      expect(renderedLink).toEqual('<a class="anchor" href="#anchor"></a>');
+    });
   });
 
   describe('Relative link -- /#!/documentation', () => {
     describe('within Api scope -- /api', () => {
+      beforeEach(() => {
+        init();
+      });
       it('should find page by its name', () => {
         // @ts-expect-error possibly undefined
         const renderedLink = renderer.link('/#!/documentation/api/myPage#MARKDOWN', 'title', 'text');
@@ -225,6 +230,95 @@ describe('MarkdownService', () => {
         'Bad format path: %s -- should return original link',
         async (path: string) => {
           const link = `/documentation/api/${path}`;
+          // @ts-expect-error possibly undefined
+          const renderedLink = renderer.link(link, 'title', 'text');
+
+          expect(renderedLink).not.toBeNull();
+          expect(renderedLink).toEqual(`<a href="${link}" title="title">text</a>`);
+        },
+      );
+    });
+
+    describe('within Guides scope -- /guides', () => {
+      beforeEach(() => {
+        init('/guides');
+      });
+      it('should find page by its name', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/myPage#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=123456789">text</a>');
+      });
+
+      it('should find page by its name and file type', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/myPage#SWAGGER', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=22">text</a>');
+      });
+
+      it('should find SWAGGER page by OPENAPI file reference', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/myPage#OPENAPI', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=22">text</a>');
+      });
+
+      it('should find page by its name with spaces', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/my%20Page#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=33">text</a>');
+      });
+
+      it('should find page by its name and path', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/parent/myPage#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=44">text</a>');
+      });
+
+      it('should find page with multi layer path with spaces', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/grand%20parent/my%20parent/my%20page#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=55">text</a>');
+      });
+
+      it('should find page with symbols its name', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/my#$%^&*(){}?>.\\|éàêcrazy@%20page#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=66">text</a>');
+      });
+
+      it('should return link with file name even if not found', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/doesNotExist#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=doesNotExist">text</a>');
+      });
+
+      it('should return link with file name even if parent id invalid', () => {
+        // @ts-expect-error possibly undefined
+        const renderedLink = renderer.link('/#!/documentation/environment/doesNotExist/myPage#MARKDOWN', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/guides?page=myPage">text</a>');
+      });
+
+      it.each(['myPage#typeDoesNotExist', 'myPage', 'myPage#', '#MARKDOWN', '#', 'parent#FOLDER'])(
+        'Bad format path: %s -- should return original link',
+        async (path: string) => {
+          const link = `/documentation/guides/${path}`;
           // @ts-expect-error possibly undefined
           const renderedLink = renderer.link(link, 'title', 'text');
 
