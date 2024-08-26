@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
+import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -56,6 +57,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 public class ApiResource_UpdateApiTest extends ApiResourceTest {
@@ -65,6 +68,11 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis";
+    }
+
+    @AfterEach
+    public void tearDown() {
+        Stream.of(membershipQueryServiceInMemory, groupQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Test
