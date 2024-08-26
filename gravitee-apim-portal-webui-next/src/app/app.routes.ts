@@ -31,6 +31,7 @@ import { ApplicationTabSubscriptionsComponent } from './applications/application
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
 import { CatalogComponent } from './catalog/catalog.component';
+import { GuidesComponent } from './guides/guides.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
@@ -147,6 +148,10 @@ export const routes: Routes = [
         ],
       },
     ],
+  },
+  {
+    path: 'guides',
+    component: GuidesComponent,
   },
   { path: 'log-in', component: LogInComponent, canActivate: [redirectGuard, anonymousGuard] },
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },

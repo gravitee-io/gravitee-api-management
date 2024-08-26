@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card appearance="outlined">
+  <mat-card-content class="guides">
+    @if (pagesData$ | async; as pagesData) {
+      @if (pagesData.pages.length) {
+        <div class="guides__side-bar">
+          <app-page-tree
+            class="guides__side-bar__tree"
+            [activePage]="selectedPageId()"
+            [pages]="pagesData.nodes"
+            (openFile)="showPage($event)" />
+        </div>
+
+        <div class="guides__page-content">
+          @if (selectedPageData$ | async; as selectedPageData) {
+            @if (loadingPage()) {
+              <app-loader />
+            } @else if (selectedPageData.result) {
+              <app-page class="guides__page-content__container" [page]="selectedPageData.result" [pages]="pagesData.pages" />
+            } @else if (selectedPageData.error) {
+              <div i18n="@@apiDocumentationError">An error has occurred.</div>
+            }
+          } @else {
+            <app-loader />
+          }
+        </div>
+      } @else {
+        <div class="guides__empty">
+          <div class="m3-body-large" i18n="@@guidesNoPagesTitle">Sorry, there are no guides listed yet.</div>
+          <div class="m3-body-medium" i18n="@@guidesNoPagesSubtitle">Please check back later for more content.</div>
+        </div>
+      }
+    } @else {
+      <app-loader />
+    }
+  </mat-card-content>
+</mat-card>
