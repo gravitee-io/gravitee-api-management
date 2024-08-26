@@ -121,8 +121,6 @@ public class UpdateApplicationEntity {
     @Getter
     private String background;
 
-    private JsonNode additionalClientMetadata;
-
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);
     }
