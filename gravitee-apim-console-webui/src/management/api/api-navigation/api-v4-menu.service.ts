@@ -40,6 +40,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
+      ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addEntrypointsMenuEntry(hasTcpListeners),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
@@ -114,6 +115,17 @@ export class ApiV4MenuService implements ApiMenuService {
         subtitle: 'Manage general settings, user permissions, properties, and resources, and track changes to your API',
       },
       tabs: tabs,
+    };
+  }
+
+  private addApiScoreMenuEntry(): MenuItem {
+    return {
+      displayName: 'API Score',
+      icon: 'shield-check',
+      routerLink: 'api-score',
+      header: {
+        title: 'API Score',
+      },
     };
   }
 
