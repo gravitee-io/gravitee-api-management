@@ -26,6 +26,7 @@ export class DocumentationComponent implements OnInit {
   pages: Page[];
   rootDir: string;
   fragment: string;
+  pageBaseUrl: string = '/documentation/root';
 
   constructor(private portalService: PortalService, private activeRoute: ActivatedRoute) {}
 
