@@ -21,6 +21,9 @@ import { PortalNavigationComponent } from './navigation/portal-navigation.compon
 import { PortalCustomizationComponent } from './customization/portal-customization.component';
 import { PortalBannerComponent } from './customization/banner/portal-banner.component';
 import { PortalThemeComponent } from './customization/theme/portal-theme.component';
+import { PortalTopBarComponent } from './customization/top-bar/portal-top-bar.component';
+import { MenuLinkEditComponent } from './customization/top-bar/menu-link-edit/menu-link-edit.component';
+import { MenuLinkListComponent } from './customization/top-bar/menu-link-list/menu-link-list.component';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
@@ -37,6 +40,35 @@ const portalRoutes: Routes = [
         path: 'customization',
         component: PortalCustomizationComponent,
         children: [
+          {
+            path: 'top-bar',
+            component: PortalTopBarComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-settings-r', 'environment-settings-u'],
+              },
+            },
+            children: [
+              {
+                path: '',
+                component: MenuLinkListComponent,
+                data: {
+                  permissions: {
+                    anyOf: ['environment-settings-r', 'environment-settings-u'],
+                  },
+                },
+              },
+              {
+                path: ':menuLinkId',
+                component: MenuLinkEditComponent,
+                data: {
+                  permissions: {
+                    anyOf: ['environment-settings-u'],
+                  },
+                },
+              },
+            ],
+          },
           {
             path: 'banner',
             component: PortalBannerComponent,
@@ -58,7 +90,7 @@ const portalRoutes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: 'theme',
+            redirectTo: 'top-bar',
           },
         ],
       },
