@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +36,7 @@ import lombok.ToString;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,14 +45,12 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 public class UpdateApplicationEntity {
 
-    @Getter
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
     @Schema(description = "Application's name. Duplicate names can exists.", example = "My App")
     @ToString.Include
     private String name;
 
-    @Getter
     @NotNull(message = "Application's description must not be null")
     @Schema(
         description = "Application's description. A short description of your App.",
@@ -62,26 +60,21 @@ public class UpdateApplicationEntity {
     private String description;
 
     @Setter
-    @Getter
     @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 
     @Setter
-    @Getter
     private String picture;
 
     @Setter
-    @Getter
     @JsonProperty("picture_url")
     private String pictureUrl;
 
     @Setter
-    @Getter
     @NotNull(message = "Application's settings must not be null")
     private ApplicationSettings settings;
 
     @Setter
-    @Getter
     @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
     @ToString.Include
     private Set<String> groups;
@@ -91,7 +84,6 @@ public class UpdateApplicationEntity {
      *             Will be remove in a future version.
      */
     @Setter
-    @Getter
     @Deprecated
     @Schema(description = "a string to describe the type of your app.", example = "iOS")
     private String type;
@@ -101,24 +93,20 @@ public class UpdateApplicationEntity {
      *             Will be remove in a future version.
      */
     @Setter
-    @Getter
     @Deprecated
     private String clientId;
 
     @Setter
-    @Getter
     @JsonProperty("disable_membership_notifications")
     @ToString.Include
     private boolean disableMembershipNotifications;
 
     @Setter
-    @Getter
     @JsonProperty("api_key_mode")
     @Schema(description = "The API Key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
     @Setter
-    @Getter
     private String background;
 
     public void setName(String name) {

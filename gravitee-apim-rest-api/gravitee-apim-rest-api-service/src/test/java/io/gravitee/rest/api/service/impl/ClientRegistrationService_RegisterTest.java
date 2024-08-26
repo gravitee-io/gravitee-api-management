@@ -15,10 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -29,10 +33,11 @@ import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
-import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -41,8 +46,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author GraviteeSource Team
@@ -55,9 +58,6 @@ public class ClientRegistrationService_RegisterTest {
 
     @Mock
     private ClientRegistrationProviderRepository mockClientRegistrationProviderRepository;
-
-    @Mock
-    private AuditService mockAuditService;
 
     private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
@@ -91,7 +91,10 @@ public class ClientRegistrationService_RegisterTest {
         additionalClientMetadata.put("policy_uri", "https://example.com/policy");
         oAuthClientSettings.setAdditionalClientMetadata(additionalClientMetadata);
 
-        NewApplicationEntity application = setupApplicationAndProvider(oAuthClientSettings, "{ \"client_name\": \"gravitee\", \"policy_uri\": \"https://example.com/policy\"}");
+        NewApplicationEntity application = setupApplicationAndProvider(
+            oAuthClientSettings,
+            "{ \"client_name\": \"gravitee\", \"policy_uri\": \"https://example.com/policy\"}"
+        );
 
         ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
             GraviteeContext.getExecutionContext(),
@@ -103,7 +106,10 @@ public class ClientRegistrationService_RegisterTest {
         assertEquals("https://example.com/policy", clientRegistration.getPolicyUri());
     }
 
-    private @NotNull NewApplicationEntity setupApplicationAndProvider(OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse) throws TechnicalException {
+    private @NotNull NewApplicationEntity setupApplicationAndProvider(
+        OAuthClientSettings oAuthClientSettings,
+        String registrationEndpointResponse
+    ) throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
@@ -124,10 +130,10 @@ public class ClientRegistrationService_RegisterTest {
                     aResponse()
                         .withBody(
                             "{\"token_endpoint\": \"http://localhost:" +
-                                wireMockServer.port() +
-                                "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                                wireMockServer.port() +
-                                "/registrationEp\"}"
+                            wireMockServer.port() +
+                            "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
+                            wireMockServer.port() +
+                            "/registrationEp\"}"
                         )
                 )
         );
