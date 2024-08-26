@@ -30,7 +30,6 @@ import io.gravitee.apim.core.portal_menu_link.exception.PortalMenuLinkNotFoundEx
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkType;
 import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapter;
-import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapterImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import java.util.Optional;
@@ -44,16 +43,13 @@ import org.mockito.ArgumentCaptor;
 public class PortalMenuLinkCrudServiceImplTest {
 
     PortalMenuLinkRepository repository;
-    PortalMenuLinkAdapter mapper;
     PortalMenuLinkCrudServiceImpl service;
 
     @BeforeEach
     void setUp() {
         repository = mock(PortalMenuLinkRepository.class);
 
-        mapper = new PortalMenuLinkAdapterImpl();
-
-        service = new PortalMenuLinkCrudServiceImpl(repository, mapper);
+        service = new PortalMenuLinkCrudServiceImpl(repository);
     }
 
     @Nested
@@ -185,7 +181,7 @@ public class PortalMenuLinkCrudServiceImplTest {
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.PortalMenuLink.class);
             verify(repository).update(captor.capture());
 
-            assertThat(captor.getValue()).isEqualTo(mapper.toRepository(portalMenuLink));
+            assertThat(captor.getValue()).isEqualTo(PortalMenuLinkAdapter.INSTANCE.toRepository(portalMenuLink));
             assertThat(captor.getValue().getName()).isEqualTo("newName");
         }
 

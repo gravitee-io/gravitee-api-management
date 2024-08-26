@@ -29,14 +29,10 @@ import org.springframework.stereotype.Component;
 public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService {
 
     private final PortalMenuLinkRepository portalMenuLinkRepository;
-    private final PortalMenuLinkAdapter portalMenuLinkAdapter;
+    private final PortalMenuLinkAdapter portalMenuLinkAdapter = PortalMenuLinkAdapter.INSTANCE;
 
-    public PortalMenuLinkCrudServiceImpl(
-        @Lazy PortalMenuLinkRepository portalMenuLinkRepository,
-        PortalMenuLinkAdapter portalMenuLinkAdapter
-    ) {
+    public PortalMenuLinkCrudServiceImpl(@Lazy PortalMenuLinkRepository portalMenuLinkRepository) {
         this.portalMenuLinkRepository = portalMenuLinkRepository;
-        this.portalMenuLinkAdapter = portalMenuLinkAdapter;
     }
 
     @Override

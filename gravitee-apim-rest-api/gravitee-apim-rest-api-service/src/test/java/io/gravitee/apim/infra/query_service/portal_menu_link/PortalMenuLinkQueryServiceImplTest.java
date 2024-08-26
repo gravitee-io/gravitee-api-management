@@ -21,8 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapter;
-import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapterImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.model.PortalMenuLink;
@@ -35,14 +33,12 @@ import org.junit.jupiter.api.Test;
 class PortalMenuLinkQueryServiceImplTest {
 
     PortalMenuLinkRepository repository;
-    PortalMenuLinkAdapter mapper;
     PortalMenuLinkQueryServiceImpl service;
 
     @BeforeEach
     void setUp() {
         repository = mock(PortalMenuLinkRepository.class);
-        mapper = new PortalMenuLinkAdapterImpl();
-        service = new PortalMenuLinkQueryServiceImpl(repository, mapper);
+        service = new PortalMenuLinkQueryServiceImpl(repository);
     }
 
     @Nested

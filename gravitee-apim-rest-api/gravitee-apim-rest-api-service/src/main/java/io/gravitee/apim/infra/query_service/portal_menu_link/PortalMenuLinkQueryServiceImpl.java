@@ -31,15 +31,11 @@ import org.springframework.stereotype.Service;
 public class PortalMenuLinkQueryServiceImpl implements PortalMenuLinkQueryService {
 
     private final PortalMenuLinkRepository portalMenuLinkRepository;
-    private final PortalMenuLinkAdapter portalMenuLinkAdapter;
+    private final PortalMenuLinkAdapter portalMenuLinkAdapter = PortalMenuLinkAdapter.INSTANCE;
     private static final Logger logger = LoggerFactory.getLogger(PortalMenuLinkQueryServiceImpl.class);
 
-    public PortalMenuLinkQueryServiceImpl(
-        @Lazy final PortalMenuLinkRepository portalMenuLinkRepository,
-        PortalMenuLinkAdapter portalMenuLinkAdapter
-    ) {
+    public PortalMenuLinkQueryServiceImpl(@Lazy final PortalMenuLinkRepository portalMenuLinkRepository) {
         this.portalMenuLinkRepository = portalMenuLinkRepository;
-        this.portalMenuLinkAdapter = portalMenuLinkAdapter;
     }
 
     @Override
