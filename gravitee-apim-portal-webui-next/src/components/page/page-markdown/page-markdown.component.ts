@@ -16,6 +16,7 @@
 import { Component, Input, OnChanges, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
+import { InnerLinkDirective } from '../../../directives/inner-link.directive';
 import { Page } from '../../../entities/page/page';
 import { ConfigService } from '../../../services/config.service';
 import { MarkdownService } from '../../../services/markdown.service';
@@ -23,8 +24,8 @@ import { MarkdownService } from '../../../services/markdown.service';
 @Component({
   selector: 'app-page-markdown',
   standalone: true,
-  imports: [],
-  template: `<div id="#markdown" [innerHTML]="markdownHtml"></div>`,
+  imports: [InnerLinkDirective],
+  template: `<div id="#markdown" [innerHTML]="markdownHtml" appInnerLink></div>`,
   encapsulation: ViewEncapsulation.ShadowDom,
   styleUrl: './page-markdown.component.scss',
 })
