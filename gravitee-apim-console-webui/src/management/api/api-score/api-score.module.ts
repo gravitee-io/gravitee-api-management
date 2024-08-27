@@ -27,6 +27,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { RouterLink } from '@angular/router';
 
 import { ApiScoreComponent } from './api-score.component';
+import { ApiScoreService } from './api-score.service';
 import { ApiScoreListComponent } from './api-score-list/api-score-list.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -50,6 +51,7 @@ import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.
     MapProviderNamePipe,
     GioCardEmptyStateModule,
   ],
+  providers: [ApiScoreService],
   exports: [ApiScoreComponent],
 })
 export class ApiScoreModule {}

@@ -21,12 +21,15 @@ import { MatTableHarness } from '@angular/material/table/testing';
 export class ApiScoreHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-api-score';
 
+  private evaluateButtonLocator = this.locatorFor("[data-testid='evaluate-button']");
   private accordionLocator = this.locatorForAll(MatAccordionHarness);
   private tablesLocator = this.locatorForOptional(MatTableHarness);
 
   public getAccordion = async () => {
     return await this.accordionLocator();
   };
+
+  public clickEvaluate = () => this.evaluateButtonLocator().then((button) => button.click());
 
   public getTables = async () => {
     return await this.tablesLocator();

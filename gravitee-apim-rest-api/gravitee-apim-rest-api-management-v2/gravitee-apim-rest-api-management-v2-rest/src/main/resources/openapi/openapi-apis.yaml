@@ -2381,6 +2381,28 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # API Scoring
+    /environments/{envId}/apis/{apiId}/_score:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - API Scoring
+        summary: Trigger API Scoring
+        description: |-
+          Trigger API Scoring.
+        operationId: triggerApiScoring
+        responses:
+          "202":
+            description: API Scoring trigger response
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiScoringTriggerResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
     # Categories
 
     /environments/{envId}/categories/{categoryIdOrKey}/apis:
@@ -6733,6 +6755,26 @@ components:
                     maxLength: 250
             required:
                 - name
+
+        # API Scoring
+        ApiScoringTriggerResponse:
+          type: object
+          properties:
+            status:
+              $ref: "#/components/schemas/ScoringStatus"
+            message:
+              type: string
+              description: Api Scoring message.
+              example: API Scoring triggered successfully.
+
+        ScoringStatus:
+          type: string
+          description: API Scoring status.
+          example: SUCCESS
+          enum:
+            - SUCCESS
+            - PENDING
+            - ERROR
 
     parameters:
         #############

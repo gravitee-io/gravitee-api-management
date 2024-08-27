@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 
-import { ApiScore } from '../management/api/api-score/api-score.model';
+import { ApiScore, ApiScoringTriggerResponse } from './api-score.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+import { Constants } from '../../../entities/Constants';
+
+@Injectable()
 export class ApiScoreService {
   private apiScoreWithIssues: ApiScore = {
     all: 10,
@@ -119,7 +120,10 @@ export class ApiScoreService {
     ],
   };
 
-  constructor() {}
+  constructor(
+    private readonly httpClient: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   public getWithIssues(): Observable<ApiScore> {
     return of(this.apiScoreWithIssues);
@@ -129,7 +133,7 @@ export class ApiScoreService {
     return of(this.apiScoreAllClear);
   }
 
-  public evaluate(): Observable<null> {
-    return of(null);
+  public evaluate(apiId: string): Observable<ApiScoringTriggerResponse> {
+    return this.httpClient.post<ApiScoringTriggerResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_score`, null);
   }
 }

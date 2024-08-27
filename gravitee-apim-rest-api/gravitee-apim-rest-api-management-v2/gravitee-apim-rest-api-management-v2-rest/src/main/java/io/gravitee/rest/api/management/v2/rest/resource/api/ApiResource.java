@@ -45,10 +45,12 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
@@ -589,12 +591,16 @@ public class ApiResource extends AbstractResource {
 
     @POST
     @Path("/_score")
+    @Produces(MediaType.APPLICATION_JSON)
     public void scoreAPI(@PathParam("apiId") String apiId, @Suspended final AsyncResponse response) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         scoreApiRequestUseCase
             .execute(new ScoreApiRequestUseCase.Input(apiId, executionContext.getEnvironmentId(), executionContext.getOrganizationId()))
-            .subscribe(() -> response.resume(Response.noContent().build()), response::resume);
+            .subscribe(
+                () -> response.resume(Response.accepted(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build()).build()),
+                response::resume
+            );
     }
 
     @POST

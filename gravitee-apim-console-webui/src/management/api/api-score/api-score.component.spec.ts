@@ -14,130 +14,42 @@
  * limitations under the License.
  */
 
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatAccordionHarness } from '@angular/material/expansion/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiScoreComponent } from './api-score.component';
 import { ApiScoreHarness } from './api-score.harness';
 import { ApiScoreModule } from './api-score.module';
-import { ApiScore, ScoreIssue } from './api-score.model';
+import { fakeApiScoringTriggerResponse } from './api-score.fixture';
 
-import { GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakeApiFederated } from '../../../entities/management-api-v2';
 
 describe('ApiScoreComponent', () => {
+  const API_ID = 'api-id';
+
   let fixture: ComponentFixture<ApiScoreComponent>;
   let componentHarness: ApiScoreHarness;
-  // let httpTestingController: HttpTestingController;
+  let httpTestingController: HttpTestingController;
 
-  const scoreIssues: ScoreIssue[] = [
-    {
-      severity: 'warning',
-      location: '9:134',
-      recommendation: 'Operation “description” must be present and non-empty string.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '10:137',
-      recommendation: 'Info object must have “contact” object.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '10:130',
-      recommendation: 'Operation “description” must be present and non-empty string.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '10:155',
-      recommendation: 'Operation mush have non-empty “tags” array.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '9:1',
-      recommendation: 'Operation “description” must be present and non-empty string.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '10:1300',
-      recommendation: 'Info object must have “contact” object.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '1:0',
-      recommendation: 'Operation “description” must be present and non-empty string.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '10:3',
-      recommendation: 'Operation mush have non-empty “tags” array.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '9:16',
-      recommendation: 'Operation “description” must be present and non-empty string.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '100:13',
-      recommendation: 'Info object must have “contact” object.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '160:13',
-      recommendation: 'Operation “description” must be present and non-empty string.',
-      path: 'paths/.get',
-    },
-    {
-      severity: 'warning',
-      location: '170:13',
-      recommendation: 'Operation mush have non-empty “tags” array.',
-      path: 'paths/.get',
-    },
-  ];
-
-  const init = async (
-    apiScore: ApiScore = {
-      all: 0,
-      errors: 0,
-      warnings: 0,
-      infos: 0,
-      hints: 0,
-      lastEvaluation: 1,
-      scoreLists: [
-        {
-          name: 'API Definition',
-          source: 'Gravitee API definition',
-          issues: [...scoreIssues],
-        },
-        {
-          name: 'Documentation page name one',
-          source: 'Swagger',
-          issues: [...scoreIssues],
-        },
-        {
-          name: 'Documentation page name two',
-          source: 'AsyncAPI',
-          issues: [...scoreIssues],
-        },
-      ],
-    },
-  ) => {
+  const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiScoreComponent],
       imports: [ApiScoreModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
-      providers: [],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+            },
+          },
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -148,22 +60,39 @@ describe('ApiScoreComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(ApiScoreComponent);
-    // httpTestingController = TestBed.inject(HttpTestingController);
+    httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreHarness);
-    fixture.componentInstance.apiScore = apiScore;
+
+    expectApiGetRequest(API_ID);
     fixture.detectChanges();
   };
 
   describe('ApiScoreComponent', () => {
-    describe('apis lists', () => {
-      beforeEach(() => {
-        init();
-      });
+    describe('evaluate', () => {
+      beforeEach(() => init());
 
-      it('should display lists with api scores', async () => {
-        const lists: MatAccordionHarness[] = await componentHarness.getAccordion();
-        expect(lists).toHaveLength(3);
+      it('should trigger API scoring on click', async () => {
+        await componentHarness.clickEvaluate();
+
+        expectApiScorePostRequest('api-id');
       });
     });
   });
+
+  function expectApiGetRequest(apiId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`,
+        method: 'GET',
+      })
+      .flush(fakeApiFederated({ id: apiId }));
+  }
+
+  function expectApiScorePostRequest(apiId: string) {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_score`,
+      method: 'POST',
+    });
+    req.flush(fakeApiScoringTriggerResponse());
+  }
 });

@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-import { TestBed } from '@angular/core/testing';
+import { ApiScoringTriggerResponse, ScoringStatus } from './api-score.model';
 
-import { ApiScoreService } from './api-score.service';
+export const fakeApiScoringTriggerResponse = (attributes?: Partial<ApiScoringTriggerResponse>) => {
+  const base: ApiScoringTriggerResponse = {
+    status: ScoringStatus.PENDING,
+  };
 
-xdescribe('ApiScoreService', () => {
-  let service: ApiScoreService;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(ApiScoreService);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
+  return {
+    ...base,
+    ...attributes,
+  };
+};
