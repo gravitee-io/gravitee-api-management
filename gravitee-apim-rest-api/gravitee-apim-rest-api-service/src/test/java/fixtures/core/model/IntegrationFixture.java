@@ -18,6 +18,7 @@ package fixtures.core.model;
 import io.gravitee.apim.core.integration.model.Integration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class IntegrationFixture {
@@ -32,6 +33,7 @@ public class IntegrationFixture {
             .description("integration-description")
             .provider("test-provider")
             .environmentId("my-env")
+            .groups(Set.of())
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 

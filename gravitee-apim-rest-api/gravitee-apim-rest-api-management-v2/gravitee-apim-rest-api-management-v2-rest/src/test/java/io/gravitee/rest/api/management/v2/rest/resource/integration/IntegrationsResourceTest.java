@@ -297,6 +297,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                         .provider(provider)
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
+                        .groups(List.of())
                         .build()
                 );
         }

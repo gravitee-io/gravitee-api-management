@@ -2383,25 +2383,25 @@ paths:
 
     # API Scoring
     /environments/{envId}/apis/{apiId}/_score:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      post:
-        tags:
-          - API Scoring
-        summary: Trigger API Scoring
-        description: |-
-          Trigger API Scoring.
-        operationId: triggerApiScoring
-        responses:
-          "202":
-            description: API Scoring trigger response
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ApiScoringTriggerResponse"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Scoring
+            summary: Trigger API Scoring
+            description: |-
+                Trigger API Scoring.
+            operationId: triggerApiScoring
+            responses:
+                "202":
+                    description: API Scoring trigger response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiScoringTriggerResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # Categories
 
@@ -3716,8 +3716,15 @@ components:
                 pendingJob:
                     $ref: "#/components/schemas/IngestionJob"
                 primaryOwner:
-                  $ref: "#/components/schemas/PrimaryOwner"
-
+                    $ref: "#/components/schemas/PrimaryOwner"
+                groups:
+                    type: array
+                    description: A list of group ids
+                    example:
+                        - 3dc1bc32-1411-4262-b3a2-058222569670
+                        - 63cd7036-694f-4c40-833f-84c4a5d39544
+                    items:
+                        type: string
         IngestionJob:
             type: object
             properties:
@@ -6753,28 +6760,36 @@ components:
                     description: Updated description of the integration
                     minLength: 0
                     maxLength: 250
+                groups:
+                    type: array
+                    description: Update integration's groups
+                    example:
+                        - MY_GROUP1
+                        - MY_GROUP2
+                    items:
+                        type: string
             required:
                 - name
 
         # API Scoring
         ApiScoringTriggerResponse:
-          type: object
-          properties:
-            status:
-              $ref: "#/components/schemas/ScoringStatus"
-            message:
-              type: string
-              description: Api Scoring message.
-              example: API Scoring triggered successfully.
+            type: object
+            properties:
+                status:
+                    $ref: "#/components/schemas/ScoringStatus"
+                message:
+                    type: string
+                    description: Api Scoring message.
+                    example: API Scoring triggered successfully.
 
         ScoringStatus:
-          type: string
-          description: API Scoring status.
-          example: SUCCESS
-          enum:
-            - SUCCESS
-            - PENDING
-            - ERROR
+            type: string
+            description: API Scoring status.
+            example: SUCCESS
+            enum:
+                - SUCCESS
+                - PENDING
+                - ERROR
 
     parameters:
         #############

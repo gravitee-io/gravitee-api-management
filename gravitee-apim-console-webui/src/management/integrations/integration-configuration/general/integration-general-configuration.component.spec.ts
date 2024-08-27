@@ -147,6 +147,7 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
       expectIntegrationPutRequest(fakeIntegration(), {
         description: 'Description',
         name: 'Test Title',
+        groups: [],
       });
       expectIntegrationGetRequest(fakeIntegration());
     });

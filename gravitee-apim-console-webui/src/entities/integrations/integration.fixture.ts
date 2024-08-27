@@ -28,6 +28,7 @@ export function fakeIntegration(attribute?: Partial<Integration>): Integration {
       email: 'jane.doe@gravitee.io',
       displayName: 'Jane Doe',
     },
+    groups: [],
   };
 
   return {
