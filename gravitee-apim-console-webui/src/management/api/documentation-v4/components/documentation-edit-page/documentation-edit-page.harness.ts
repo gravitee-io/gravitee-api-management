@@ -15,78 +15,29 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-
-import { ApiDocumentationV4VisibilityHarness } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
+import { MatTabHarness } from '@angular/material/tabs/testing';
 
 export class DocumentationEditPageHarness extends ComponentHarness {
   public static hostSelector = 'documentation-edit-page';
 
-  private nextButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Next' }));
-  private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Delete page' }));
-  private nameInputLocator = this.locatorFor(MatInputHarness);
-  private visibilityHarness = this.locatorFor(ApiDocumentationV4VisibilityHarness);
-  private selectAccessGroupsHarness = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="accessControlGroups"]' }));
-  private toggleExcludeGroups = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="excludeGroups"]' }));
-  private sourceSelectionInlineHarness = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source' }));
-  private httpUrlLocator = this.locatorFor(MatInputHarness.with({ selector: '[id*="url"]' }));
+  private locateDeleteButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Delete page' }));
+  private locatePublishChangesButton = this.locatorFor(MatButtonHarness.with({ text: 'Publish changes' }));
+  private locateConfigurePageTab = this.locatorFor(MatTabHarness.with({ label: 'Configure Page' }));
+  private locateContentTab = this.locatorFor(MatTabHarness.with({ label: 'Content' }));
 
-  async getNextButton() {
-    return this.nextButtonLocator();
+  async getDeleteButton(): Promise<MatButtonHarness | undefined> {
+    return await this.locateDeleteButton();
   }
 
-  async getDeleteButton() {
-    return this.deleteButtonLocator().catch((_) => undefined);
+  async getPublishChangesButton(): Promise<MatButtonHarness> {
+    return await this.locatePublishChangesButton();
   }
 
-  async getName(): Promise<string> {
-    return this.nameInputLocator().then((input) => input.getValue());
+  async openConfigurePageTab(): Promise<void> {
+    return await this.locateConfigurePageTab().then((tab) => tab.select());
   }
 
-  async setName(name: string) {
-    return this.nameInputLocator().then((input) => input.setValue(name));
-  }
-
-  async nameIsDisabled(): Promise<boolean> {
-    return this.nameInputLocator().then((input) => input.isDisabled());
-  }
-
-  async checkVisibility(visibility: 'PRIVATE' | 'PUBLIC') {
-    const visibilityHarness = await this.visibilityHarness();
-    await visibilityHarness.select(visibility);
-  }
-
-  async getVisibility() {
-    return this.visibilityHarness().then((harness) => harness.getValue());
-  }
-
-  async visibilityIsDisabled(): Promise<boolean> {
-    return this.visibilityHarness().then((harness) => harness.formIsDisabled());
-  }
-
-  async getAccessControlGroups(): Promise<MatSelectHarness | null> {
-    return this.selectAccessGroupsHarness().catch((_) => null);
-  }
-  async getExcludeGroups(): Promise<MatSlideToggleHarness | null> {
-    return this.toggleExcludeGroups().catch((_) => null);
-  }
-
-  async getSourceSelectionInlineHarness() {
-    return await this.sourceSelectionInlineHarness();
-  }
-
-  async getHttpUrlHarness() {
-    return await this.httpUrlLocator();
-  }
-
-  async getSourceOptions() {
-    return Promise.all(await this.sourceSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
-  }
-
-  async selectSource(value: string) {
-    return this.sourceSelectionInlineHarness().then((radioGroup) => radioGroup.select(value));
+  async openContentTab(): Promise<void> {
+    return await this.locateContentTab().then((tab) => tab.select());
   }
 }
