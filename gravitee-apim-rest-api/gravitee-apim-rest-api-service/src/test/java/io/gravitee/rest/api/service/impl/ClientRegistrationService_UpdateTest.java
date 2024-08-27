@@ -212,7 +212,6 @@ public class ClientRegistrationService_UpdateTest {
         provider.setName("name");
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
-        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(provider));
         when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
             .thenReturn(newSet(provider));
 
@@ -220,21 +219,6 @@ public class ClientRegistrationService_UpdateTest {
             get(urlEqualTo("/am"))
                 .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
         );
-
-        ClientRegistrationProvider providerUpdatedMock = new ClientRegistrationProvider();
-        providerUpdatedMock.setId(provider.getId());
-        providerUpdatedMock.setName(provider.getName());
-        when(
-            mockClientRegistrationProviderRepository.update(
-                argThat(p ->
-                    p.getId().equals(provider.getId()) &&
-                    p.getEnvironmentId().equals(GraviteeContext.getExecutionContext().getEnvironmentId()) &&
-                    p.getName().equals(provider.getName()) &&
-                    p.getUpdatedAt() != null
-                )
-            )
-        )
-            .thenReturn(providerUpdatedMock);
 
         ObjectMapper mapper = new ObjectMapper();
 
