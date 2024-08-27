@@ -19,10 +19,10 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiScore } from './api-score.model';
+import { ApiScoreService } from './api-score.service';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
-import { ApiScoreService } from '../../../services-ngx/api-score.service';
 
 @Component({
   selector: 'app-api-score',
@@ -63,6 +63,6 @@ export class ApiScoreComponent implements OnInit {
   }
 
   public evaluate() {
-    this.apiScoreService.evaluate().subscribe();
+    this.apiScoreService.evaluate(this.api.id).subscribe();
   }
 }

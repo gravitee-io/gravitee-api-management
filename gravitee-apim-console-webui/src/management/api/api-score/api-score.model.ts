@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+export interface ApiScoringTriggerResponse {
+  status: ScoringStatus;
+  message?: string;
+}
+
+export enum ScoringStatus {
+  SUCCESS = 'SUCCESS',
+  PENDING = 'PENDING',
+  ERROR = 'ERROR',
+}
+
 export interface ScoreIssue {
   severity: string;
   location: string;
