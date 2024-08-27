@@ -36,7 +36,6 @@ import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { Group, Member } from '../../../../entities/management-api-v2';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 import { Role } from '../../../../entities/role/role';
-import { GioRoleService } from '../../../../shared/components/gio-role/gio-role.service';
 import { IntegrationsService } from "../../../../services-ngx/integrations.service";
 import { Integration } from "../../integrations.model";
 import { IntegrationMemberService } from "../../../../services-ngx/integration-member.service";
@@ -78,7 +77,6 @@ export class IntegrationGeneralMembersComponent implements OnInit {
 
   dataSource: MemberDataSource[];
   integration: Integration;
-  canTransferOwnership: boolean;
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
@@ -91,7 +89,6 @@ export class IntegrationGeneralMembersComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly formBuilder: UntypedFormBuilder,
     private readonly matDialog: MatDialog,
-    private readonly gioRoleService: GioRoleService,
   ) {}
 
   ngOnInit(): void {
@@ -134,9 +131,6 @@ export class IntegrationGeneralMembersComponent implements OnInit {
           this.initForm();
         }
       });
-
-
-    this.canTransferOwnership = this.gioRoleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['environment-integration-u']);
   }
 
   public onSubmit() {
@@ -239,33 +233,6 @@ export class IntegrationGeneralMembersComponent implements OnInit {
     //       return api.definitionVersion === 'FEDERATED'
     //         ? throwError({ message: `You cannot modify a ${api.definitionVersion} API.` })
     //         : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
-    //     }),
-    //     takeUntilDestroyed(this.destroyRef),
-    //   )
-    //   .subscribe(() => this.ngOnInit());
-  }
-
-  public transferOwnership(): void {
-    // toDo: to implement with transfer ownership:
-    // this.matDialog
-    //   .open<IntegrationGeneralTransferOwnershipComponent, ApiOwnershipDialogData, ApiOwnershipDialogResult>(IntegrationGeneralTransferOwnershipComponent, {
-    //     width: GIO_DIALOG_WIDTH.MEDIUM,
-    //     role: 'alertdialog',
-    //     id: 'transferOwnershipDialog',
-    //     data: {
-    //       api: this.api,
-    //       groups: this.groups,
-    //       roles: this.roles,
-    //       members: this.members,
-    //     },
-    //   })
-    //   .afterClosed()
-    //   .pipe(
-    //     switchMap((apiDialogResult) => {
-    //       return this.apiService.transferOwnership(
-    //         this.apiId,
-    //         apiDialogResult.isUserMode ? apiDialogResult.transferOwnershipToUser : apiDialogResult.transferOwnershipToGroup,
-    //       );
     //     }),
     //     takeUntilDestroyed(this.destroyRef),
     //   )
