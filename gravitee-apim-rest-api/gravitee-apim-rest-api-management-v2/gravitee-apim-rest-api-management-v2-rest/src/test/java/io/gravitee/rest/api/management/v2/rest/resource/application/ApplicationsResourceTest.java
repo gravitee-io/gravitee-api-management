@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.application;
 
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static org.mockito.Mockito.doReturn;
 
 import inmemory.ApplicationCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -78,6 +80,18 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         void setUp() {
             target = rootTarget().path("/_import/crd");
             applicationCrudService.reset();
+            roleQueryService.initWith(
+                List.of(
+                    Role
+                        .builder()
+                        .name(PRIMARY_OWNER.name())
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("primary_owner_id")
+                        .scope(Role.Scope.APPLICATION)
+                        .build()
+                )
+            );
         }
 
         @Test

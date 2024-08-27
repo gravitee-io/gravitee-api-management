@@ -20,6 +20,7 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -85,8 +86,6 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
-import io.gravitee.apim.core.api.model.import_definition.ApiMember;
-import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -106,6 +105,7 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
@@ -324,7 +324,7 @@ class ImportApiCRDUseCaseTest {
         var crdValidator = new ValidateApiCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
-            new ValidateCRDMembersDomainService(userDomainService),
+            new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
             new ValidatePagesDomainService(validationDomainService)
@@ -557,6 +557,19 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_sanitize_and_create_members() {
+            roleQueryService.initWith(
+                List.of(
+                    Role
+                        .builder()
+                        .name("USER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .id("user_role_id")
+                        .scope(Role.Scope.API)
+                        .build()
+                )
+            );
+
             var member = MemberCRD
                 .builder()
                 .source(USER_ENTITY_SOURCE)

@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.member.model;
 
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.EnumSet;
 import lombok.RequiredArgsConstructor;
 
