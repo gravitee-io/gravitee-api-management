@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest, EMPTY, Observable, of } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { catchError, distinctUntilChanged, mergeMap, switchMap } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
@@ -27,7 +27,7 @@ import { IntegrationsService } from '../../services-ngx/integrations.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
-import { ConsoleSettingsService } from '../../services-ngx/console-settings.service';
+import { Constants } from '../../entities/Constants';
 
 @Component({
   selector: 'app-integrations',
@@ -52,18 +52,19 @@ export class IntegrationsComponent implements OnInit {
     public readonly integrationsService: IntegrationsService,
     private readonly snackBarService: SnackBarService,
     private readonly licenseService: GioLicenseService,
-    private readonly consoleSettingsService: ConsoleSettingsService,
+    @Inject(Constants) public readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.consoleSettingsService.get(), this.licenseService.getLicense$()])
+    this.isFederationDisabled = !this.constants.org.settings.federation?.enabled;
+    this.licenseService
+      .getLicense$()
       .pipe(
-        mergeMap(([settings, license]): Observable<null> | Observable<IntegrationResponse> => {
+        mergeMap((license): Observable<null> | Observable<IntegrationResponse> => {
           if (license.isExpired || license.tier === 'oss') {
             this.isFreeTier = true;
             return of(null);
           }
-          this.isFederationDisabled = !settings.federation?.enabled;
           this.isLoading = true;
           return this.initFilters();
         }),
