@@ -22,6 +22,7 @@ import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainSe
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
@@ -67,7 +68,14 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
 
         membersValidator
-            .validateAndSanitize(new ValidateCRDMembersDomainService.Input(input.auditInfo().organizationId(), input.spec().getMembers()))
+            .validateAndSanitize(
+                new ValidateCRDMembersDomainService.Input(
+                    input.auditInfo().organizationId(),
+                    input.spec.getId(),
+                    MembershipReferenceType.API,
+                    input.spec().getMembers()
+                )
+            )
             .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
         groupsValidator

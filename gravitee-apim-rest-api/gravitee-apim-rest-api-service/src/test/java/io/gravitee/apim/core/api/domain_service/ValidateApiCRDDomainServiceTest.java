@@ -23,6 +23,7 @@ import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainSe
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
+import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.Set;
@@ -76,7 +77,11 @@ class ValidateApiCRDDomainServiceTest {
         when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
             .thenReturn(Validator.Result.ofValue(new ValidateCategoryIdsDomainService.Input(ENV_ID, Set.of("id-1", "id-2"))));
 
-        when(membersValidator.validateAndSanitize(new ValidateCRDMembersDomainService.Input(ORG_ID, any())))
+        when(
+            membersValidator.validateAndSanitize(
+                new ValidateCRDMembersDomainService.Input(ORG_ID, spec.getId(), MembershipReferenceType.APPLICATION, any())
+            )
+        )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any())))

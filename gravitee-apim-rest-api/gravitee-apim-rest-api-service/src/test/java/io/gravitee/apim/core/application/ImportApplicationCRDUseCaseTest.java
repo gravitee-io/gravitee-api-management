@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.application;
 
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
+
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
@@ -22,6 +24,8 @@ import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
@@ -31,6 +35,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Origin;
@@ -83,13 +88,15 @@ public class ImportApplicationCRDUseCaseTest {
     private final ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService = new ApplicationMetadataCrudServiceInMemory();
     private final ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService = new ApplicationMetadataQueryServiceInMemory();
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
+    private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     // Validation
     private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
         new ValidateGroupsDomainService(groupQueryService),
-        new ValidateCRDMembersDomainService(userDomainService)
+        new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService)
     );
 
     ImportApplicationCRDUseCase useCase;
@@ -107,6 +114,34 @@ public class ImportApplicationCRDUseCaseTest {
                 membersDomainService,
                 crdValidator
             );
+        roleQueryService.initWith(
+            List.of(
+                Role
+                    .builder()
+                    .name(PRIMARY_OWNER.name())
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id("primary_owner_id")
+                    .scope(Role.Scope.APPLICATION)
+                    .build(),
+                Role
+                    .builder()
+                    .name("USER")
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id("user_role_id")
+                    .scope(Role.Scope.APPLICATION)
+                    .build(),
+                Role
+                    .builder()
+                    .name("OWNER")
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id("user_role_id")
+                    .scope(Role.Scope.APPLICATION)
+                    .build()
+            )
+        );
     }
 
     @BeforeAll
@@ -163,7 +198,7 @@ public class ImportApplicationCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(expectedMembers);
+                soft.assertThat(Set.copyOf(membersDomainService.getApplicationMembers(APP_ID))).isEqualTo(expectedMembers);
             });
         }
     }
@@ -224,7 +259,7 @@ public class ImportApplicationCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(membersDomainService.getApplicationMembers(APP_ID)).isEqualTo(expectedMembers);
+                soft.assertThat(Set.copyOf(membersDomainService.getApplicationMembers(APP_ID))).isEqualTo(expectedMembers);
             });
         }
     }
@@ -255,8 +290,8 @@ public class ImportApplicationCRDUseCaseTest {
 
     private Set<MemberCRD> applicationMembers() {
         return Set.of(
-            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_1).role("OWNER").build(),
-            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_2).role("USER").build()
+            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_2).role("USER").build(),
+            MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_1).role("OWNER").build()
         );
     }
 
@@ -289,8 +324,8 @@ public class ImportApplicationCRDUseCaseTest {
             new BaseUserEntity(
                 USER_ID,
                 ORGANIZATION_ID,
-                "test",
-                "test",
+                "test1",
+                "test1",
                 MEMBER_SOURCE_ID_1,
                 new Date(),
                 new Date(),
@@ -300,8 +335,8 @@ public class ImportApplicationCRDUseCaseTest {
             new BaseUserEntity(
                 USER_ID,
                 ORGANIZATION_ID,
-                "test",
-                "test",
+                "test2",
+                "test2",
                 MEMBER_SOURCE_ID_2,
                 new Date(),
                 new Date(),

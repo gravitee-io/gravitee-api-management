@@ -23,7 +23,9 @@ import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
@@ -433,13 +435,15 @@ public class ResourceContextConfiguration {
         VerifyApiPathDomainService verifyApiPathDomainService,
         GroupQueryService groupQueryService,
         ValidateResourceDomainService validateResourceDomainService,
-        DocumentationValidationDomainService validationDomainService
+        DocumentationValidationDomainService validationDomainService,
+        RoleQueryServiceInMemory roleQueryService,
+        MembershipQueryServiceInMemory membershipQueryService
     ) {
         return new ValidateApiCRDUseCase(
             new ValidateApiCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
-                new ValidateCRDMembersDomainService(userDomainService),
+                new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
                 new ValidateGroupsDomainService(groupQueryService),
                 validateResourceDomainService,
                 new ValidatePagesDomainService(validationDomainService)
@@ -450,12 +454,14 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidateApplicationCRDUseCase validateApplicationCRDUseCase(
         GroupQueryService groupQueryService,
-        UserDomainService userDomainService
+        UserDomainService userDomainService,
+        RoleQueryServiceInMemory roleQueryService,
+        MembershipQueryServiceInMemory membershipQueryService
     ) {
         return new ValidateApplicationCRDUseCase(
             new ValidateApplicationCRDDomainService(
                 new ValidateGroupsDomainService(groupQueryService),
-                new ValidateCRDMembersDomainService(userDomainService)
+                new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService)
             )
         );
     }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.application;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +28,7 @@ import fixtures.ApplicationFixtures;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
@@ -78,6 +80,18 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
         doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID);
 
         userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_NAME).build()));
+        roleQueryService.initWith(
+            List.of(
+                Role
+                    .builder()
+                    .name(PRIMARY_OWNER.name())
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION)
+                    .id("primary_owner_id")
+                    .scope(Role.Scope.APPLICATION)
+                    .build()
+            )
+        );
     }
 
     @Nested

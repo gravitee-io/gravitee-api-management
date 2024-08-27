@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.repository.management.model.Parameter;
@@ -489,6 +491,18 @@ class ApisResourceTest extends AbstractResourceTest {
                 List.of(Category.builder().id("category-id").build(), Category.builder().id("category-key").build())
             );
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            roleQueryService.initWith(
+                List.of(
+                    Role
+                        .builder()
+                        .name(PRIMARY_OWNER.name())
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .id("primary_owner_id")
+                        .scope(Role.Scope.API)
+                        .build()
+                )
+            );
         }
 
         @Test
@@ -538,7 +552,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .errors(
                                 ApiCRDStatus.Errors
                                     .builder()
-                                    .warning(List.of("Member [unknown] of source [memory] could not be found in organization [fake-org]"))
+                                    .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
                                     .severe(List.of())
                                     .build()
                             )
