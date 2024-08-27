@@ -37,7 +37,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { IntegrationGeneralGroupsComponent } from './groups/integration-general-groups.component';
 import { IntegrationGeneralMembersComponent } from './members/integration-general-members.component';
-import { IntegrationGeneralTransferOwnershipComponent } from './transfer-ownership/integration-general-transfer-ownership.component';
 import { IntegrationGeneralGroupMembersComponent } from './members/general-group-members/integration-general-group-members.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -50,9 +49,8 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     IntegrationGeneralGroupsComponent,
     IntegrationGeneralMembersComponent,
     IntegrationGeneralGroupMembersComponent,
-    IntegrationGeneralTransferOwnershipComponent,
   ],
-  exports: [IntegrationGeneralGroupsComponent, IntegrationGeneralMembersComponent, IntegrationGeneralTransferOwnershipComponent],
+  exports: [IntegrationGeneralGroupsComponent, IntegrationGeneralMembersComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

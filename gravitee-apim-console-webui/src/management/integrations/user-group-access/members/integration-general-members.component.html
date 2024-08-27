@@ -24,17 +24,6 @@
           <p>Manage who can interact with your integration</p>
         </div>
         <div class="card__header__actions">
-          <!-- toDo: change [disabled]="isReadOnly" when transfer ownership is ready   -->
-          <button
-            *ngIf="canTransferOwnership"
-            class="card__header__actions__button"
-            [disabled]="true"
-            mat-raised-button
-            (click)="transferOwnership()"
-            type="button"
-          >
-            Transfer ownership
-          </button>
           <button
             class="card__header__actions__button"
             aria-label="Manage groups"
