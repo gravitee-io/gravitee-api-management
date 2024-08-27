@@ -33,6 +33,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -217,6 +218,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     protected void givenExistingUsers(List<BaseUserEntity> users) {
         userCrudService.initWith(users);
+    }
+
+    protected void givenExistingGroup(List<Group> groups) {
+        groupQueryServiceInMemory.initWith(groups);
     }
 
     protected void enableApiPrimaryOwnerMode(String environmentId, ApiPrimaryOwnerMode mode) {

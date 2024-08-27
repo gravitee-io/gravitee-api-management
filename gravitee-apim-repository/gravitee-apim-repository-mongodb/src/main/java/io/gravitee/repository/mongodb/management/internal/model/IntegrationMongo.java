@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -48,4 +49,6 @@ public class IntegrationMongo extends Auditable {
     private String environmentId;
 
     private AgentStatus agentStatus;
+
+    private Set<String> groups;
 }

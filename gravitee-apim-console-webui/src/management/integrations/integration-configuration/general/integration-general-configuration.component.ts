@@ -93,7 +93,14 @@ export class IntegrationGeneralConfigurationComponent {
     this.isLoading = true;
     const { integrationId } = this.activatedRoute.snapshot.params;
     this.integrationsService
-      .updateIntegration(this.generalInformationForm.getRawValue(), integrationId)
+      .updateIntegration(
+        {
+          description: this.generalInformationForm.getRawValue().description,
+          name: this.generalInformationForm.getRawValue().name,
+          groups: this.integration.groups,
+        },
+        integrationId,
+      )
       .pipe(
         tap(() => {
           this.getIntegration();

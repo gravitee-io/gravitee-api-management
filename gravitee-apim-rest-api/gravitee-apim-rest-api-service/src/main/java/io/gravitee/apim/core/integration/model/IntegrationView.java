@@ -56,7 +56,8 @@ public class IntegrationView extends Integration {
             integration.getProvider(),
             integration.getEnvironmentId(),
             integration.getCreatedAt(),
-            integration.getUpdatedAt()
+            integration.getUpdatedAt(),
+            integration.getGroups()
         );
         this.agentStatus = agentStatus;
         this.pendingJob = pendingJob;

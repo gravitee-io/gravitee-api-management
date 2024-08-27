@@ -15,10 +15,9 @@
  */
 package io.gravitee.apim.core.integration.model;
 
-import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
@@ -43,4 +42,5 @@ public class Integration {
     String environmentId;
     ZonedDateTime createdAt;
     ZonedDateTime updatedAt;
+    Set<String> groups;
 }

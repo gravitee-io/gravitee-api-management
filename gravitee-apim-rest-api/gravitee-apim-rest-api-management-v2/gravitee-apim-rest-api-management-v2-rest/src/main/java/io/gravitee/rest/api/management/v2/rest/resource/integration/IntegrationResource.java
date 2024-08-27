@@ -108,8 +108,9 @@ public class IntegrationResource extends AbstractResource {
         @PathParam("integrationId") String integrationId,
         @Valid @NotNull UpdateIntegration updateIntegration
     ) {
+        AuditInfo auditInfo = getAuditInfo();
         var integrationToUpdate = IntegrationMapper.INSTANCE.map(updateIntegration).toBuilder().id(integrationId).build();
-        var input = new UpdateIntegrationUseCase.Input(integrationToUpdate, GraviteeContext.getCurrentOrganization());
+        var input = new UpdateIntegrationUseCase.Input(integrationToUpdate, auditInfo);
         var updatedIntegration = updateIntegrationUsecase.execute(input).integration();
         return Response.ok(IntegrationMapper.INSTANCE.map(updatedIntegration)).build();
     }

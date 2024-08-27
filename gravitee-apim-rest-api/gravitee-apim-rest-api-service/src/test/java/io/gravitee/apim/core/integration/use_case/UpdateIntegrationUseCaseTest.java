@@ -20,13 +20,19 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.exception.IntegrationGroupValidationException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase.Input;
@@ -38,12 +44,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class UpdateIntegrationUseCaseTest {
@@ -53,9 +61,13 @@ public class UpdateIntegrationUseCaseTest {
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String PROVIDER = "test-provider";
     private static final String ENV_ID = "my-env";
+    private static final String USER_ID = "my-user";
+    private static final String GROUP_ID = "group-id";
     private static final ZonedDateTime CREATED_DATE = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENV_ID, USER_ID);
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
+    GroupQueryServiceInMemory queryServiceInMemory = new GroupQueryServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
 
     UpdateIntegrationUseCase usecase;
@@ -70,10 +82,13 @@ public class UpdateIntegrationUseCaseTest {
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
         integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
 
+        var validateGroupDomainService = new ValidateGroupsDomainService(queryServiceInMemory);
+
         usecase =
             new UpdateIntegrationUseCase(
                 integrationCrudService,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                validateGroupDomainService
             );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
@@ -100,7 +115,7 @@ public class UpdateIntegrationUseCaseTest {
             .build();
 
         //When
-        var output = usecase.execute(new Input(updateIntegration, ORGANIZATION_ID));
+        var output = usecase.execute(new Input(updateIntegration, AUDIT_INFO));
 
         //Then
         assertThat(output.integration()).isNotNull();
@@ -120,6 +135,94 @@ public class UpdateIntegrationUseCaseTest {
             );
     }
 
+    @Nested
+    class ManageGroups {
+
+        @Test
+        public void should_add_group_to_an_integration() {
+            //Given
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
+            Integration updateIntegration = Integration
+                .builder()
+                .id(INTEGRATION_ID)
+                .name("updated-integration")
+                .description("updated-description")
+                .groups(Set.of("group-id"))
+                .build();
+
+            //When
+            var output = usecase.execute(new Input(updateIntegration, AUDIT_INFO));
+
+            //Then
+            assertThat(output.integration()).isNotNull();
+            assertThat(output.integration())
+                .isNotNull()
+                .isEqualTo(
+                    new Integration()
+                        .toBuilder()
+                        .id(INTEGRATION_ID)
+                        .name("updated-integration")
+                        .description("updated-description")
+                        .environmentId(ENV_ID)
+                        .provider(PROVIDER)
+                        .createdAt(CREATED_DATE)
+                        .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
+                        .groups(Set.of(GROUP_ID))
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_remove_group_from_an_integration() {
+            //Given
+            integrationCrudServiceInMemory.initWith(
+                List.of(IntegrationFixture.anIntegration().toBuilder().groups(Set.of(GROUP_ID)).build())
+            );
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
+            Integration updateIntegration = Integration
+                .builder()
+                .id(INTEGRATION_ID)
+                .name("updated-integration")
+                .description("updated-description")
+                .build();
+
+            //When
+            var output = usecase.execute(new Input(updateIntegration, AUDIT_INFO));
+
+            //Then
+            assertThat(output.integration()).isNotNull();
+            assertThat(output.integration())
+                .isNotNull()
+                .isEqualTo(
+                    new Integration()
+                        .toBuilder()
+                        .id(INTEGRATION_ID)
+                        .name("updated-integration")
+                        .description("updated-description")
+                        .environmentId(ENV_ID)
+                        .provider(PROVIDER)
+                        .createdAt(CREATED_DATE)
+                        .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_throw_an_exception_when_group_not_found() {
+            Integration updateIntegration = Integration
+                .builder()
+                .id(INTEGRATION_ID)
+                .name("updated-integration")
+                .description("updated-description")
+                .groups(Set.of("group-id"))
+                .build();
+
+            assertThatExceptionOfType(IntegrationGroupValidationException.class)
+                .isThrownBy(() -> usecase.execute(new Input(updateIntegration, AUDIT_INFO)))
+                .withMessage("Group validation failed during integration integration-id update");
+        }
+    }
+
     @Test
     public void should_throw_exception_when_integration_to_update_not_found() {
         var updateIntegration = Integration
@@ -130,7 +233,7 @@ public class UpdateIntegrationUseCaseTest {
             .build();
 
         assertThatExceptionOfType(IntegrationNotFoundException.class)
-            .isThrownBy(() -> usecase.execute(new Input(updateIntegration, ORGANIZATION_ID)))
+            .isThrownBy(() -> usecase.execute(new Input(updateIntegration, AUDIT_INFO)))
             .withMessage("Integration not found.");
     }
 
@@ -141,10 +244,14 @@ public class UpdateIntegrationUseCaseTest {
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            usecase.execute(new Input(Integration.builder().id(INTEGRATION_ID).build(), ORGANIZATION_ID))
+            usecase.execute(new Input(Integration.builder().id(INTEGRATION_ID).build(), AUDIT_INFO))
         );
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
+    }
+
+    private void givenExistingGroup(List<Group> groups) {
+        queryServiceInMemory.initWith(groups);
     }
 }

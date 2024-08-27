@@ -35,6 +35,7 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.IntegrationJobCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -179,6 +180,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
+                        .groups(List.of())
                         .build()
                 );
         }
@@ -212,6 +214,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                                 .status(IngestionStatus.PENDING)
                                 .build()
                         )
+                        .groups(List.of())
                         .build()
                 );
         }
@@ -331,6 +334,42 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .name(updatedName)
                         .description(updatedDescription)
                         .provider(INTEGRATION_PROVIDER)
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_update_integration_with_group() {
+            //Given
+            var groupId = "group-id";
+            var updatedName = "updated-name";
+            var updatedDescription = "updated-description";
+            var integration = List.of(IntegrationFixture.anIntegration());
+            integrationCrudServiceInMemory.initWith(integration);
+            givenExistingGroup(List.of(Group.builder().id(groupId).name("group-name").build()));
+
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
+                .builder()
+                .name(updatedName)
+                .description(updatedDescription)
+                .groups(List.of(groupId))
+                .build();
+
+            //When
+            Response response = target.request().put(Entity.json(updateIntegration));
+
+            //Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(Integration.class)
+                .isEqualTo(
+                    Integration
+                        .builder()
+                        .id(INTEGRATION_ID)
+                        .name(updatedName)
+                        .description(updatedDescription)
+                        .provider(INTEGRATION_PROVIDER)
+                        .groups(List.of(groupId))
                         .build()
                 );
         }
