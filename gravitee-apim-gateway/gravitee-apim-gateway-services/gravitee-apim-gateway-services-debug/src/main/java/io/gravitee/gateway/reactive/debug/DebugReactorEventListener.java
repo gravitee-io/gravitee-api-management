@@ -18,7 +18,10 @@ package io.gravitee.gateway.reactive.debug;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
@@ -39,6 +42,8 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.OpenSSLEngineOptions;
 import io.vertx.rxjava3.core.Vertx;
+import java.security.GeneralSecurityException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -58,6 +63,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
     private final VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
     private final ReactorHandlerRegistry reactorHandlerRegistry;
     private final OrganizationManager organizationManager;
+    private final DataEncryptor dataEncryptor;
 
     public DebugReactorEventListener(
         final Vertx vertx,
@@ -66,7 +72,8 @@ public class DebugReactorEventListener extends ReactorEventListener {
         final ObjectMapper objectMapper,
         final VertxDebugHttpClientConfiguration debugHttpClientConfiguration,
         final ReactorHandlerRegistry reactorHandlerRegistry,
-        OrganizationManager organizationManager
+        OrganizationManager organizationManager,
+        DataEncryptor dataEncryptor
     ) {
         super(eventManager, reactorHandlerRegistry);
         this.vertx = vertx;
@@ -76,6 +83,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         this.debugHttpClientConfiguration = debugHttpClientConfiguration;
         this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.organizationManager = organizationManager;
+        this.dataEncryptor = dataEncryptor;
     }
 
     @Override
@@ -148,6 +156,10 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 event.getPayload(),
                 io.gravitee.definition.model.debug.DebugApi.class
             );
+
+            if (null != eventDebugApi.getProperties()) {
+                decryptProperties(eventDebugApi.getProperties());
+            }
 
             eventDebugApi.setPlans(
                 eventDebugApi.getPlans().stream().filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus())).toList()
@@ -237,5 +249,19 @@ public class DebugReactorEventListener extends ReactorEventListener {
             .getProperties()
             .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
         eventRepository.update(debugEvent);
+    }
+
+    private void decryptProperties(final Properties properties) {
+        for (Property property : properties.getProperties()) {
+            if (property.isEncrypted()) {
+                try {
+                    property.setValue(dataEncryptor.decrypt(property.getValue()));
+                    property.setEncrypted(false);
+                    properties.getValues().put(property.getKey(), property.getValue());
+                } catch (GeneralSecurityException e) {
+                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                }
+            }
+        }
     }
 }
