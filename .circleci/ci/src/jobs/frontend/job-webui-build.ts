@@ -21,7 +21,6 @@ import { BuildUiImageCommand, NotifyOnFailureCommand, WebuiInstallCommand } from
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion } from '../../utils';
 import { config } from '../../config';
-import { SetupRemoteDockerCommand } from '../../commands/cmd-setup-remote-docker';
 
 export class WebuiBuildJob {
   private static jobName = 'job-webui-build';
@@ -47,7 +46,7 @@ export class WebuiBuildJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      SetupRemoteDockerCommand.get(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': '<< parameters.apim-ui-project >>' }),
       new commands.Run({
         name: 'Update Build version',

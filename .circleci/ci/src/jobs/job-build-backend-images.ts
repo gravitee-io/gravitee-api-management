@@ -21,7 +21,6 @@ import { CircleCIEnvironment } from '../pipelines';
 import { AddDockerImageInSnykCommand, CreateDockerContextCommand, DockerAzureLoginCommand, DockerAzureLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
 import { config } from '../config';
-import { SetupRemoteDockerCommand } from '../commands/cmd-setup-remote-docker';
 
 export class BuildBackendImagesJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -39,7 +38,7 @@ export class BuildBackendImagesJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      SetupRemoteDockerCommand.get(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(createDockerContextCmd),
       new reusable.ReusedCommand(dockerAzureLoginCmd),
       new commands.Run({
