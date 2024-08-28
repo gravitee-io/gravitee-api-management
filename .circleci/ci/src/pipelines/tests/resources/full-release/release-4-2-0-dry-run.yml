@@ -241,7 +241,7 @@ jobs:
       - attach_workspace:
           at: .
       - setup_remote_docker:
-          version: 20.10.6
+          version: default
       - cmd-webui-install:
           apim-ui-project: << parameters.apim-ui-project >>
       - run:
@@ -470,7 +470,7 @@ jobs:
     resource_class: medium
     steps:
       - setup_remote_docker:
-          version: 20.10.6
+          version: default
       - checkout
       - keeper/env-export:
           secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login

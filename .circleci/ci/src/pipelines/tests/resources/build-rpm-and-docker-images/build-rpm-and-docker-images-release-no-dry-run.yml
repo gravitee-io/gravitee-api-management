@@ -61,7 +61,7 @@ jobs:
     resource_class: medium
     steps:
       - setup_remote_docker:
-          version: 20.10.6
+          version: default
       - checkout
       - keeper/env-export:
           secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login

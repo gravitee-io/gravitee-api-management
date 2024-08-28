@@ -132,6 +132,10 @@ const ssh = {
   fingerprints: ['ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c'],
 };
 
+const docker = {
+  version: 'default',
+};
+
 export const config = {
   artifactoryUrl,
   cache,
@@ -144,4 +148,5 @@ export const config = {
   secrets,
   slack,
   ssh,
+  docker,
 };
