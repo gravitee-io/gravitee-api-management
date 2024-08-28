@@ -75,7 +75,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_create_portal_menu_link() {
+    void should_create_portal_menu_link_with_default_visibility() {
         // When
         var portalMenuLinkToCreate = CreatePortalMenuLink
             .builder()
@@ -95,6 +95,34 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("target", portalMenuLinkToCreate.getTarget())
             .hasFieldOrPropertyWithValue("name", portalMenuLinkToCreate.getName())
             .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
+            .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PRIVATE)
+            .hasFieldOrPropertyWithValue("order", 1);
+        assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_create_portal_menu_link_with_public_visibility() {
+        // When
+        var portalMenuLinkToCreate = CreatePortalMenuLink
+            .builder()
+            .name("new menu link")
+            .target("http://newTarget")
+            .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
+            .visibility(CreatePortalMenuLink.VisibilityEnum.PUBLIC)
+            .build();
+        final Response response = rootTarget().request().post(json(portalMenuLinkToCreate));
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(CREATED_201);
+        var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.class);
+
+        assertThat(result)
+            .isNotNull()
+            .hasFieldOrProperty("id")
+            .hasFieldOrPropertyWithValue("target", portalMenuLinkToCreate.getTarget())
+            .hasFieldOrPropertyWithValue("name", portalMenuLinkToCreate.getName())
+            .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
+            .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PUBLIC)
             .hasFieldOrPropertyWithValue("order", 1);
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(1);
     }

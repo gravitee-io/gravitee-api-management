@@ -19,7 +19,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule, Validators, FormControl, FormGroup } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormSelectionInlineModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatAnchor } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -27,7 +27,12 @@ import { tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { UiPortalMenuLinksService } from '../../../../services-ngx/ui-portal-menu-links.service';
-import { PortalMenuLink, toReadableMenuLinkType, UpdatePortalMenuLink } from '../../../../entities/management-api-v2';
+import {
+  PortalMenuLink,
+  PortalMenuLinkVisibility,
+  toReadableMenuLinkType,
+  UpdatePortalMenuLink,
+} from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -44,6 +49,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
     MatAnchor,
     MatIcon,
     RouterLink,
+    GioFormSelectionInlineModule,
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +58,7 @@ export class MenuLinkEditComponent implements OnInit {
   menuLinkEditForm = new FormGroup({
     name: new FormControl<string>('', { validators: Validators.required }),
     target: new FormControl<string>('', { validators: Validators.required }),
+    visibility: new FormControl<PortalMenuLinkVisibility>('PUBLIC', { validators: Validators.required }),
   });
 
   initialValue: PortalMenuLink;
@@ -81,12 +88,15 @@ export class MenuLinkEditComponent implements OnInit {
   reset() {
     this.menuLinkEditForm.controls.name.setValue(this.initialValue.name);
     this.menuLinkEditForm.controls.target.setValue(this.initialValue.target);
+    this.menuLinkEditForm.controls.visibility.setValue(this.initialValue.visibility);
+    this.menuLinkEditForm.markAsPristine();
   }
 
   submit() {
     const updatedPortalMenuLink: UpdatePortalMenuLink = {
       name: this.menuLinkEditForm.controls.name.value,
       target: this.menuLinkEditForm.controls.target.value,
+      visibility: this.menuLinkEditForm.controls.visibility.value,
       order: this.initialValue.order,
     };
     this.uiPortalMenuLinksService

@@ -62,6 +62,6 @@ describe('PortalMenuLinksService', () => {
 
     req.flush(linkLists);
 
-    expect(service.links).toEqual(linkLists);
+    expect(service.links()).toEqual(linkLists);
   });
 });

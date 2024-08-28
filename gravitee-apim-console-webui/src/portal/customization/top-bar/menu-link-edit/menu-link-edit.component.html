@@ -45,6 +45,22 @@
           <mat-error>Target is required.</mat-error>
         }
       </mat-form-field>
+
+      <gio-form-selection-inline id="visibility" formControlName="visibility">
+        <gio-form-selection-inline-card value="PUBLIC">
+          <gio-form-selection-inline-card-content icon="gio:language">
+            <gio-card-content-title>Public</gio-card-content-title>
+            <gio-card-content-subtitle>Every users can see public links in the Developer Portal.</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
+
+        <gio-form-selection-inline-card value="PRIVATE">
+          <gio-form-selection-inline-card-content icon="gio:lock">
+            <gio-card-content-title>Private</gio-card-content-title>
+            <gio-card-content-subtitle>Users must be authenticated in the Developer Portal to see private links.</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
+      </gio-form-selection-inline>
     </mat-card-content>
   </form>
 </mat-card>

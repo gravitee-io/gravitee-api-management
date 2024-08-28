@@ -24,7 +24,7 @@ import { AppComponent } from './app.component';
 import { CompanyTitleHarness } from '../components/company-title/company-title.harness';
 import { Configuration } from '../entities/configuration/configuration';
 import { ConfigService } from '../services/config.service';
-import { PortalMenuLink, PortalMenuLinksService } from '../services/portal-menu-links.service';
+import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('AppComponent', () => {
@@ -93,7 +93,7 @@ describe('AppComponent', () => {
   describe('custom links', () => {
     @Injectable()
     class PortalMenuLinksServiceStub {
-      links: PortalMenuLink[] = [
+      links = () => [
         {
           id: 'link-id-1',
           type: 'external',

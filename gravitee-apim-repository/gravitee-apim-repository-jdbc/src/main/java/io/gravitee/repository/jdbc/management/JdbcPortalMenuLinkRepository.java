@@ -49,6 +49,7 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, PortalMenuLink.PortalMenuLinkType.class)
+            .addColumn("visibility", Types.NVARCHAR, PortalMenuLink.PortalMenuLinkVisibility.class)
             .addColumn("target", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, int.class)
             .build();
@@ -91,6 +92,26 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
                 getOrm().getSelectAllSql() + " WHERE environment_id = ? ORDER BY " + escapeReservedWord("order"),
                 getOrm().getRowMapper(),
                 environmentId
+            );
+        } catch (final Exception ex) {
+            final String error = "Failed to find portal menu links by environment id: " + environmentId;
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
+        String environmentId,
+        PortalMenuLink.PortalMenuLinkVisibility visibility
+    ) throws TechnicalException {
+        LOGGER.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder({})", environmentId);
+        try {
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND visibility = ? ORDER BY " + escapeReservedWord("order"),
+                getOrm().getRowMapper(),
+                environmentId,
+                visibility.name()
             );
         } catch (final Exception ex) {
             final String error = "Failed to find portal menu links by environment id: " + environmentId;

@@ -74,6 +74,18 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
     }
 
     @Override
+    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
+        String environmentId,
+        PortalMenuLink.PortalMenuLinkVisibility visibility
+    ) throws TechnicalException {
+        List<PortalMenuLinkMongo> results = internalPortalMenuLinkRepo.findByEnvironmentIdAndVisibilitySortByOrder(
+            environmentId,
+            visibility.name()
+        );
+        return mapper.mapPortalMenuLinks(results);
+    }
+
+    @Override
     public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
         logger.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
 
@@ -123,12 +135,7 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
         }
 
         try {
-            portalMenuLinkMongo.setEnvironmentId(portalMenuLink.getEnvironmentId());
-            portalMenuLinkMongo.setName(portalMenuLink.getName());
-            portalMenuLinkMongo.setTarget(portalMenuLink.getTarget());
-            portalMenuLinkMongo.setType(portalMenuLinkMongo.getType());
-            portalMenuLinkMongo.setOrder(portalMenuLink.getOrder());
-
+            portalMenuLinkMongo = mapper.map(portalMenuLink);
             PortalMenuLinkMongo portalMenuLinkMongoUpdated = internalPortalMenuLinkRepo.save(portalMenuLinkMongo);
             return mapper.map(portalMenuLinkMongoUpdated);
         } catch (Exception e) {

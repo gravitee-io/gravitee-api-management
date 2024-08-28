@@ -10,6 +10,7 @@ databaseChangeLog:
               - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: visibility, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: target, type: nvarchar(256), constraints: { nullable: true } }
               - column: {name: order, type: integer, constraints: { nullable: true } }
 

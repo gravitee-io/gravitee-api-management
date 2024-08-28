@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -34,21 +34,17 @@ export interface PortalMenuLink {
   providedIn: 'root',
 })
 export class PortalMenuLinksService {
-  private _links: PortalMenuLink[] = [];
+  public links: WritableSignal<PortalMenuLink[]> = signal([]);
 
   constructor(
     private readonly http: HttpClient,
     private configService: ConfigService,
   ) {}
 
-  get links(): PortalMenuLink[] {
-    return this._links;
-  }
-
   loadCustomLinks(): Observable<unknown> {
     return this.http.get<PortalMenuLink[]>(`${this.configService.baseURL}/portal-menu-links`).pipe(
-      tap(value => (this._links = value)),
       catchError(_ => of([])),
+      tap(value => this.links.set(value)),
     );
   }
 }

@@ -35,9 +35,7 @@ export class NavBarComponent {
   @Input()
   siteTitle!: string;
 
-  @Input()
-  customLinks?: PortalMenuLink[];
-
+  customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   currentUser: InputSignal<User> = input({});
   logo: InputSignal<string> = input('');
   protected readonly isEmpty = isEmpty;

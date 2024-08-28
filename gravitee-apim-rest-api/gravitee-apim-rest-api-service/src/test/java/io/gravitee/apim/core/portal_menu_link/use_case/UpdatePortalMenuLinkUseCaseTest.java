@@ -70,6 +70,7 @@ public class UpdatePortalMenuLinkUseCaseTest {
         );
         assertThat(updatedPortalMenuLink.getName()).isEqualTo(portalMenuLinkToUpdate.getName());
         assertThat(updatedPortalMenuLink.getTarget()).isEqualTo(portalMenuLinkToUpdate.getTarget());
+        assertThat(updatedPortalMenuLink.getVisibility()).isEqualTo(portalMenuLinkToUpdate.getVisibility());
     }
 
     @Test

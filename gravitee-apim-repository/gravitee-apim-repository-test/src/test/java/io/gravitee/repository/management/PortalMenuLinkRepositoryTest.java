@@ -56,11 +56,28 @@ public class PortalMenuLinkRepositoryTest extends AbstractManagementRepositoryTe
         List<PortalMenuLink> portalLinks = portalMenuLinkRepository.findByEnvironmentIdSortByOrder("environment1");
 
         assertNotNull(portalLinks);
+        assertEquals(5, portalLinks.size());
+
+        assertEquals("menuLink1", portalLinks.get(0).getId());
+        assertEquals("menuLink6", portalLinks.get(1).getId());
+        assertEquals("menuLink2", portalLinks.get(2).getId());
+        assertEquals("menuLink5", portalLinks.get(3).getId());
+        assertEquals("menuLink7", portalLinks.get(4).getId());
+    }
+
+    @Test
+    public void shouldFindByEnvironmentAndVisibility() throws Exception {
+        List<PortalMenuLink> portalLinks = portalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder(
+            "environment1",
+            PortalMenuLink.PortalMenuLinkVisibility.PUBLIC
+        );
+
+        assertNotNull(portalLinks);
         assertEquals(3, portalLinks.size());
 
         assertEquals("menuLink1", portalLinks.get(0).getId());
-        assertEquals("menuLink5", portalLinks.get(1).getId());
-        assertEquals("menuLink2", portalLinks.get(2).getId());
+        assertEquals("menuLink2", portalLinks.get(1).getId());
+        assertEquals("menuLink5", portalLinks.get(2).getId());
     }
 
     @Test

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.model.PortalMenuLink;
@@ -95,7 +96,72 @@ class PortalMenuLinkQueryServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to search portal menu links by environment ID: environmentId");
+                .hasMessage("An error occurred while searching portal menu links by environment ID environmentId");
+        }
+    }
+
+    @Nested
+    class FindByEnvironmentIdAndVisibilitySortByOrder {
+
+        @Test
+        @SneakyThrows
+        void findByEnvironmentIdAndVisibility_should_return_empty_page() {
+            // Given
+            String environmentId = "environmentId";
+            when(repository.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLink.PortalMenuLinkVisibility.PUBLIC))
+                .thenReturn(List.of());
+
+            // When
+            var result = service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PUBLIC);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void findByEnvironmentIdAndVisibility_should_return_portal_menu_links() {
+            // Given
+            String environmentId = "environmentId";
+            when(repository.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLink.PortalMenuLinkVisibility.PUBLIC))
+                .thenReturn(
+                    List.of(aRepositoryPortalMenuLink("id", 1), aRepositoryPortalMenuLink("id2", 2), aRepositoryPortalMenuLink("id3", 3))
+                );
+
+            // When
+            var result = service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PUBLIC);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(3);
+            assertThat(result.get(0).getId()).isEqualTo("id");
+            assertThat(result.get(0).getOrder()).isEqualTo(1);
+            assertThat(result.get(0).getVisibility()).isEqualTo(PortalMenuLinkVisibility.PUBLIC);
+            assertThat(result.get(1).getId()).isEqualTo("id2");
+            assertThat(result.get(1).getOrder()).isEqualTo(2);
+            assertThat(result.get(1).getVisibility()).isEqualTo(PortalMenuLinkVisibility.PUBLIC);
+            assertThat(result.get(2).getId()).isEqualTo("id3");
+            assertThat(result.get(2).getOrder()).isEqualTo(3);
+            assertThat(result.get(2).getVisibility()).isEqualTo(PortalMenuLinkVisibility.PUBLIC);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            String environmentId = "environmentId";
+            when(repository.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLink.PortalMenuLinkVisibility.PRIVATE))
+                .thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() ->
+                service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PRIVATE)
+            );
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while searching portal menu links by environment ID environmentId and visibility PRIVATE");
         }
     }
 
@@ -107,6 +173,7 @@ class PortalMenuLinkQueryServiceImplTest {
             .name("name-" + order)
             .target("target-" + order)
             .type(PortalMenuLink.PortalMenuLinkType.EXTERNAL)
+            .visibility(PortalMenuLink.PortalMenuLinkVisibility.PUBLIC)
             .order(order)
             .build();
     }

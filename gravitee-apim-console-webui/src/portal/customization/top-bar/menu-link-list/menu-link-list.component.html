@@ -19,8 +19,8 @@
   <mat-card-content class="menu-link-list__content">
     <div class="menu-link-list__content__header">
       <div class="menu-link-list__content__header__title">
-        <h3>Menu links</h3>
-        <div class="menu-link-edit__content__header__description">Edit the link details that will be displayed in the top menu bar</div>
+        <h3>Menu Links</h3>
+        <div class="menu-link-list__content__header__description">Customize the Developer Portal top bar menu with up to 5 links.</div>
       </div>
       <div class="menu-link-list__header__action">
         <button
@@ -63,7 +63,7 @@
       <ng-container matColumnDef="type">
         <th mat-header-cell *matHeaderCellDef data-testid="link_type">Type</th>
         <td mat-cell *matCellDef="let element" data-testid="link_type_cell">
-          <span class="gio-badge-neutral">{{ toReadableMenuLinkType(element.type) }}</span>
+          <span class="gio-badge-neutral">{{ element.readableType }}</span>
         </td>
       </ng-container>
 
@@ -71,6 +71,14 @@
       <ng-container matColumnDef="target">
         <th mat-header-cell *matHeaderCellDef data-testid="link_target">Target</th>
         <td mat-cell *matCellDef="let element" data-testid="link_target_cell">{{ element.target }}</td>
+      </ng-container>
+
+      <!-- Target Visibility -->
+      <ng-container matColumnDef="visibility">
+        <th mat-header-cell *matHeaderCellDef data-testid="link_target">Visibility</th>
+        <td mat-cell *matCellDef="let element" data-testid="link_target_cell">
+          <span class="gio-badge-neutral">{{ element.readableVisibility }}</span>
+        </td>
       </ng-container>
 
       <!-- Actions Column -->
@@ -93,7 +101,7 @@
               type="button"
               class="delete-link"
               (click)="deleteLink(element)"
-              matTooltip="'Delete'"
+              matTooltip="Delete"
               data-testid="link_delete_button"
             >
               <mat-icon svgIcon="gio:trash"></mat-icon>

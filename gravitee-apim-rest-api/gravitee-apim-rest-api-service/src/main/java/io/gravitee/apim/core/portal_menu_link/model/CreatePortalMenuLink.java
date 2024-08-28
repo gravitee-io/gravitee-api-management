@@ -29,4 +29,5 @@ public class CreatePortalMenuLink {
     private String name;
     private PortalMenuLinkType type;
     private String target;
+    private PortalMenuLinkVisibility visibility;
 }

@@ -21,6 +21,7 @@ interface MenuLinkListHarnessData {
   name: string;
   type: string;
   target: string;
+  visibility: string;
   updateButton?: MatButtonHarness;
   deleteButton?: MatButtonHarness;
 }
@@ -57,22 +58,25 @@ export class MenuLinkListHarness extends ComponentHarness {
           row.getCells({ columnName: 'name' }),
           row.getCells({ columnName: 'type' }),
           row.getCells({ columnName: 'target' }),
+          row.getCells({ columnName: 'visibility' }),
           row.getCells({ columnName: 'actions' }),
         ]),
       )
-      .then(([names, types, target, actions]) =>
+      .then(([names, types, target, visibility, actions]) =>
         Promise.all([
           names[0].getText(),
           types[0].getText(),
           target[0].getText(),
+          visibility[0].getText(),
           actions[0].getHarness(MatButtonHarness.with({ selector: '.update-link' })).catch((_) => undefined),
           actions[0].getHarness(MatButtonHarness.with({ selector: '.delete-link' })).catch((_) => undefined),
         ]),
       )
-      .then(([name, type, target, updateButton, deleteButton]) => ({
+      .then(([name, type, target, visibility, updateButton, deleteButton]) => ({
         name,
         type,
         target,
+        visibility,
         updateButton,
         deleteButton,
       }));

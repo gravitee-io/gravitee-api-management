@@ -4,6 +4,7 @@
     "environmentId": "environment1",
     "name": "Menu one",
     "type": "EXTERNAL",
+    "visibility": "PUBLIC",
     "target": "https://env1.target.one",
     "order": 1
   },
@@ -12,6 +13,7 @@
     "environmentId": "environment1",
     "name": "Menu two",
     "type": "EXTERNAL",
+    "visibility": "PUBLIC",
     "target": "https://env1.target.two",
     "order": 3
   },
@@ -20,6 +22,7 @@
     "environmentId": "environment2",
     "name": "Menu one",
     "type": "EXTERNAL",
+    "visibility": "PUBLIC",
     "target": "https://env2.target.one",
     "order": 1
   },
@@ -28,6 +31,7 @@
     "environmentId": "environment3",
     "name": "Menu one",
     "type": "EXTERNAL",
+    "visibility": "PUBLIC",
     "target": "https://env3.target.one",
     "order": 1
   },
@@ -36,7 +40,26 @@
     "environmentId": "environment1",
     "name": "Menu three",
     "type": "EXTERNAL",
+    "visibility": "PUBLIC",
     "target": "https://env1.target.three",
+    "order": 4
+  },
+  {
+    "id": "menuLink6",
+    "environmentId": "environment1",
+    "name": "Menu six",
+    "type": "EXTERNAL",
+    "visibility": "PRIVATE",
+    "target": "https://env1.target.six",
     "order": 2
+  },
+  {
+    "id": "menuLink7",
+    "environmentId": "environment1",
+    "name": "Menu seven",
+    "type": "EXTERNAL",
+    "visibility": "PRIVATE",
+    "target": "https://env1.target.seven",
+    "order": 5
   }
 ]

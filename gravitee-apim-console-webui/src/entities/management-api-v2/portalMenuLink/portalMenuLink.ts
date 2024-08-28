@@ -22,7 +22,18 @@ export type PortalMenuLinkType = (typeof PORTAL_MENU_LINK_TYPES)[number];
 export const toReadableMenuLinkType = (menuLinkType: PortalMenuLinkType): string => {
   switch (menuLinkType) {
     case 'EXTERNAL':
-      return 'External';
+      return 'Link to a Website';
+  }
+};
+
+export const PORTAL_MENU_LINK_VISIBILITIES = ['PUBLIC', 'PRIVATE'] as const;
+export type PortalMenuLinkVisibility = (typeof PORTAL_MENU_LINK_VISIBILITIES)[number];
+export const toReadableMenuLinkVisibility = (menuLinkVisibility: PortalMenuLinkVisibility): string => {
+  switch (menuLinkVisibility) {
+    case 'PUBLIC':
+      return 'Public';
+    case 'PRIVATE':
+      return 'Private';
   }
 };
 
@@ -31,6 +42,7 @@ export interface PortalMenuLink {
   name: string;
   type: PortalMenuLinkType;
   target?: string;
+  visibility: PortalMenuLinkVisibility;
   order: number;
 }
 
@@ -44,10 +56,12 @@ export interface CreatePortalMenuLink {
   name: string;
   type: PortalMenuLinkType;
   target?: string;
+  visibility: PortalMenuLinkVisibility;
 }
 
 export interface UpdatePortalMenuLink {
   name: string;
   target?: string;
+  visibility: PortalMenuLinkVisibility;
   order: number;
 }

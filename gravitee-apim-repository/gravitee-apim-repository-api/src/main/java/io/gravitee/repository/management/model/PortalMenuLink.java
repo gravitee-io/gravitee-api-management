@@ -35,10 +35,16 @@ public class PortalMenuLink {
         EXTERNAL,
     }
 
+    public enum PortalMenuLinkVisibility {
+        PUBLIC,
+        PRIVATE,
+    }
+
     private String id;
     private String environmentId;
     private String name;
     private PortalMenuLinkType type;
+    private PortalMenuLinkVisibility visibility;
     private String target;
     private int order;
 }

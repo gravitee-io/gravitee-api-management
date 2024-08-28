@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.apim.core.portal_menu_link.use_case.ListPortalMenuLinksForEnvironmentUseCase;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
+import io.gravitee.apim.core.portal_menu_link.use_case.ListAllPortalMenuLinksForEnvironmentUseCase;
+import io.gravitee.apim.core.portal_menu_link.use_case.ListPublicPortalMenuLinksForEnvironmentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -27,25 +29,38 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PortalMenuLinksResource extends AbstractResource {
 
     @Inject
-    private ListPortalMenuLinksForEnvironmentUseCase listPortalMenuLinksForEnvironmentUseCase;
+    private ListAllPortalMenuLinksForEnvironmentUseCase listAllPortalMenuLinksForEnvironmentUseCase;
+
+    @Inject
+    private ListPublicPortalMenuLinksForEnvironmentUseCase listPublicPortalMenuLinksForEnvironmentUseCase;
 
     private final PortalMenuLinkMapper mapper = new PortalMenuLinkMapper();
 
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.READ }) })
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalMenuLinks() {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var portalMenuLinks = listPortalMenuLinksForEnvironmentUseCase
-            .execute(new ListPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
-            .portalMenuLinkList();
+        List<PortalMenuLink> portalMenuLinks;
+
+        if (isAuthenticated()) {
+            portalMenuLinks =
+                listAllPortalMenuLinksForEnvironmentUseCase
+                    .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+                    .portalMenuLinkList();
+        } else {
+            portalMenuLinks =
+                listPublicPortalMenuLinksForEnvironmentUseCase
+                    .execute(new ListPublicPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+                    .portalMenuLinkList();
+        }
 
         return Response.ok(mapper.map(portalMenuLinks)).build();
     }

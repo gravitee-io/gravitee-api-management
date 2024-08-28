@@ -28,16 +28,16 @@ import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.mapper.PortalMenuLinkMapper;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PortalMenuLinksResourceTest extends AbstractResourceTest {
+public class PortalMenuLinksResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "DEFAULT";
 
@@ -59,25 +59,27 @@ public class PortalMenuLinksResourceTest extends AbstractResourceTest {
         GraviteeContext.cleanContext();
     }
 
+    @Override
+    protected void decorate(ResourceConfig resourceConfig) {
+        resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
+    }
+
     @Test
-    public void should_list_portal_menu_links_for_environment() {
+    public void should_list_public_portal_menu_links_for_environment_only() {
         // Given
         PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures
             .aPortalMenuLink()
             .toBuilder()
-            .id("public")
             .visibility(PortalMenuLinkVisibility.PUBLIC)
             .environmentId(ENV_ID)
             .build();
         PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures
             .aPortalMenuLink()
             .toBuilder()
-            .id("private")
             .visibility(PortalMenuLinkVisibility.PRIVATE)
             .environmentId(ENV_ID)
             .build();
-        List<PortalMenuLink> links = List.of(publicPortalMenuLink, privatePortalMenuLink);
-        portalMenuLinkCrudServiceInMemory.initWith(links);
+        portalMenuLinkCrudServiceInMemory.initWith(List.of(publicPortalMenuLink, privatePortalMenuLink));
 
         // When
         final Response response = target().request().get();
@@ -88,19 +90,12 @@ public class PortalMenuLinksResourceTest extends AbstractResourceTest {
 
         assertThat(result)
             .isNotNull()
-            .hasSize(2)
-            .element(0)
+            .hasSize(1)
+            .first()
             .hasFieldOrPropertyWithValue("id", publicPortalMenuLink.getId())
             .hasFieldOrPropertyWithValue("target", publicPortalMenuLink.getTarget())
             .hasFieldOrPropertyWithValue("name", publicPortalMenuLink.getName())
             .hasFieldOrPropertyWithValue("type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
             .hasFieldOrPropertyWithValue("order", publicPortalMenuLink.getOrder());
-        assertThat(result)
-            .element(1)
-            .hasFieldOrPropertyWithValue("id", privatePortalMenuLink.getId())
-            .hasFieldOrPropertyWithValue("target", privatePortalMenuLink.getTarget())
-            .hasFieldOrPropertyWithValue("name", privatePortalMenuLink.getName())
-            .hasFieldOrPropertyWithValue("type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
-            .hasFieldOrPropertyWithValue("order", privatePortalMenuLink.getOrder());
     }
 }

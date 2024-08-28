@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.portal_menu_link.use_case;
 
-import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
@@ -25,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @UseCase
-public class ListPortalMenuLinksForEnvironmentUseCase {
+public class ListAllPortalMenuLinksForEnvironmentUseCase {
 
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
