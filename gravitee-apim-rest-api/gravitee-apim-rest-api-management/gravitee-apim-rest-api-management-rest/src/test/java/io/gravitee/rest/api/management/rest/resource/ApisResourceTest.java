@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.component.Lifecycle.State.STARTED;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,9 +30,12 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiListItem;
+import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.model.api.NewApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
@@ -194,6 +198,40 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(updatedApi, response.readEntity(ApiEntity.class));
+    }
+
+    @Test
+    public void put_import_crd_shouldImportApi_calling_apiDuplicator() {
+        reset(apiDuplicatorService);
+        String apiCRD =
+            """
+                {
+                    "id": "c4dc6225-715e-43e2-a15a-64313f25fbe1",
+                    "crossId": "ea1e3f3b-cf1d-4786-9c6d-349ae4d932e4",
+                    "name": "test",
+                    "description": "test",
+                    "version": "1.0"
+                }""";
+
+        ExecutionContext ec = GraviteeContext.getExecutionContext();
+        ApiCRDStatusEntity apiCRDStatus = new ApiCRDStatusEntity(
+            ec.getOrganizationId(),
+            ec.getEnvironmentId(),
+            "my-api-id",
+            "my-api-cross-id",
+            STARTED,
+            null,
+            null
+        );
+        doReturn(new ApiValidationResult<>(null, List.of(), List.of()))
+            .when(apiValidationService)
+            .validateAndSanitizeApiDefinitionCRD(eq(ec), any());
+        doReturn(apiCRDStatus).when(apiCRDService).importApiDefinitionCRD(eq(ec), any());
+
+        final Response response = envTarget().path("import-crd").request().put(Entity.json(apiCRD));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(apiCRDStatus, response.readEntity(ApiCRDStatusEntity.class));
     }
 
     @Test

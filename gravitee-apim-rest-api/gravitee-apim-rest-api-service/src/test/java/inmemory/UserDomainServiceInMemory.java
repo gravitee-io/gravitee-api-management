@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class UserDomainServiceInMemory implements UserDomainService {
+public class UserDomainServiceInMemory implements UserDomainService, InMemoryAlternative<BaseUserEntity> {
 
     private final List<BaseUserEntity> storage = new ArrayList<>();
 
@@ -40,5 +40,15 @@ public class UserDomainServiceInMemory implements UserDomainService {
 
     public void initWith(List<BaseUserEntity> users) {
         storage.addAll(users);
+    }
+
+    @Override
+    public void reset() {
+        this.storage.clear();
+    }
+
+    @Override
+    public List<BaseUserEntity> storage() {
+        return this.storage;
     }
 }

@@ -20,9 +20,11 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -36,10 +38,13 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.api.ApiCRDEntity;
+import io.gravitee.rest.api.model.api.ApiCRDStatusEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiListItem;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -48,8 +53,10 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.ApiCRDService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApiValidationService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SwaggerService;
@@ -91,6 +98,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -108,6 +116,13 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
+
+    @Inject
+    private ApiCRDService apiCRDService;
+
+    @Inject
+    @Qualifier("apiV2ValidationService")
+    private ApiValidationService apiValidationService;
 
     @Inject
     private SwaggerService swaggerService;
@@ -320,6 +335,62 @@ public class ApisResource extends AbstractResource {
         @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
+    }
+
+    @PUT
+    @Path("import-crd")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Create an API by importing an API CRD definition",
+        description = "Create an API by importing an API CRD definition"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response importApiDefinitionCrd(
+        @RequestBody(required = true) @Valid @NotNull ApiCRDEntity api,
+        @QueryParam("dryRun") boolean dryRun
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiValidationResult<ApiCRDEntity> validationResult = apiValidationService.validateAndSanitizeApiDefinitionCRD(
+            executionContext,
+            api
+        );
+
+        if (dryRun) {
+            return Response
+                .ok(
+                    new ApiCRDStatusEntity(
+                        executionContext.getOrganizationId(),
+                        executionContext.getEnvironmentId(),
+                        api.getId(),
+                        api.getCrossId(),
+                        api.getState(),
+                        validationResult,
+                        api.planIdMapping()
+                    )
+                )
+                .build();
+        }
+
+        if (CollectionUtils.isNotEmpty(validationResult.getSevere())) {
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(validationResult).build();
+        }
+
+        ApiCRDStatusEntity response = apiCRDService.importApiDefinitionCRD(executionContext, validationResult.getSanitizedApi());
+        response.setErrors(validationResult);
+
+        return Response.ok(response).build();
     }
 
     @Deprecated(since = "3.18.0", forRemoval = true)
