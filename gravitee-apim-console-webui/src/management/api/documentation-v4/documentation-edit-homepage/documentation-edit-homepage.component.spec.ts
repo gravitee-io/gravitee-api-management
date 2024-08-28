@@ -24,6 +24,7 @@ import { set } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
 import { GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { of } from 'rxjs';
 
 import { DocumentationEditHomepageComponent } from './documentation-edit-homepage.component';
 
@@ -35,18 +36,20 @@ import {
   fakeGroupsResponse,
   fakeGroup,
   Api,
-  fakeApiV2,
+  fakeApiV4,
 } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../entities/Constants';
 import { DocumentationEditPageHarness } from '../components/documentation-edit-page/documentation-edit-page.harness';
+import { DocumentationNewPageHarness } from '../components/documentation-new-page/documentation-new-page.harness';
+import { ApiDocumentationV4PageConfigurationHarness } from '../components/api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
 
 interface InitInput {
   pages?: Page[];
   breadcrumb?: Breadcrumb[];
   parentId?: string;
-  mode?: 'create' | 'edit';
+  pageId?: string;
 }
 
 describe('DocumentationEditHomepageComponent', () => {
@@ -54,13 +57,8 @@ describe('DocumentationEditHomepageComponent', () => {
   let harnessLoader: HarnessLoader;
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
-  let api = fakeApiV2({ id: API_ID, lifecycleState: 'PUBLISHED' });
-  api = {
-    ...api,
-    originContext: {
-      origin: 'KUBERNETES',
-    },
-  };
+  const api = fakeApiV4({ id: API_ID, lifecycleState: 'PUBLISHED' });
+
   const PAGE = fakeMarkdown({
     id: 'page_id',
     name: 'page-name',
@@ -82,7 +80,7 @@ describe('DocumentationEditHomepageComponent', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId, pageType: 'MARKDOWN' } } },
+          useValue: { params: of({ apiId: API_ID, pageId }), queryParams: of({ pageType: 'MARKDOWN' }) },
         },
         { provide: GioTestingPermissionProvider, useValue: apiPermissions },
         {
@@ -116,8 +114,9 @@ describe('DocumentationEditHomepageComponent', () => {
   };
 
   const initPageServiceRequests = (input: InitInput, page: Page = {}) => {
-    if (input.mode === 'edit') {
+    if (input.pageId) {
       expectGetPage(page);
+      fixture.detectChanges();
     }
     expectGetPages(input.pages, input.breadcrumb, input.parentId);
     expectGetGroups([fakeGroup({ id: 'group-1', name: 'group 1' }), fakeGroup({ id: 'group-2', name: 'group 2' })]);
@@ -128,25 +127,26 @@ describe('DocumentationEditHomepageComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('Homepage', () => {
+  describe('Create', () => {
     beforeEach(async () => {
       await init(undefined, undefined);
-      const editPage = await harnessLoader.getHarness(DocumentationEditPageHarness);
-      await editPage.setName('New page');
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined }, PAGE);
+
+      const editPage = await harnessLoader.getHarness(ApiDocumentationV4PageConfigurationHarness);
       await editPage.checkVisibility('PUBLIC');
 
-      await editPage.getNextButton().then(async (btn) => {
+      const harness = await harnessLoader.getHarness(DocumentationNewPageHarness);
+      await harness.getNextButton().then(async (btn) => {
         expect(await btn.isDisabled()).toEqual(false);
         return btn.click();
       });
 
-      await editPage.getNextButton().then(async (btn) => {
+      await harness.getNextButton().then(async (btn) => {
         expect(await btn.isDisabled()).toEqual(false);
         return btn.click();
       });
     });
     it('should save content', async () => {
-      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'create' }, PAGE);
       const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
       await editor.setValue('#TITLE \n This is the file content');
       const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
@@ -161,10 +161,51 @@ describe('DocumentationEditHomepageComponent', () => {
       req.flush({});
       expect(req.request.body).toEqual({
         type: 'MARKDOWN',
-        name: 'New page',
+        name: 'Homepage',
         visibility: 'PUBLIC',
         content: '#TITLE  This is the file content',
         parentId: 'ROOT',
+        accessControls: [],
+        excludedAccessControls: false,
+        homepage: true,
+      });
+    });
+  });
+
+  describe('Edit', () => {
+    beforeEach(async () => {
+      await init(undefined, PAGE.id);
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, pageId: PAGE.id }, PAGE);
+    });
+    it('should save content', async () => {
+      const editHarness = await harnessLoader.getHarness(DocumentationEditPageHarness);
+      await editHarness.openConfigurePageTab();
+      const editPage = await harnessLoader.getHarness(ApiDocumentationV4PageConfigurationHarness);
+      await editPage.checkVisibility('PUBLIC');
+      await editHarness.openContentTab();
+
+      const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+      await editor.setValue('New content');
+
+      const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Publish changes' }));
+      expect(await saveBtn.isDisabled()).toEqual(false);
+      await saveBtn.click();
+
+      expectGetPage(PAGE);
+      fixture.detectChanges();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+      });
+
+      req.flush({});
+      expect(req.request.body).toEqual({
+        ...PAGE,
+        type: 'MARKDOWN',
+        name: 'page-name',
+        visibility: 'PUBLIC',
+        content: 'New content',
         accessControls: [],
         excludedAccessControls: false,
         homepage: true,
