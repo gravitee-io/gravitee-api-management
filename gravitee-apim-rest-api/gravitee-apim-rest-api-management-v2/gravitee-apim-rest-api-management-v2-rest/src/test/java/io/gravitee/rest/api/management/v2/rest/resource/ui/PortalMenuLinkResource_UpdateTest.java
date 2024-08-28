@@ -88,7 +88,13 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
         portalMenuLinkCrudServiceInMemory.initWith(List.of(portalMenuLink));
 
         // When
-        var portalMenuLinkToUpdate = UpdatePortalMenuLink.builder().name("new menu link").target("http://newTarget").order(100).build();
+        var portalMenuLinkToUpdate = UpdatePortalMenuLink
+            .builder()
+            .name("new menu link")
+            .target("http://newTarget")
+            .visibility(UpdatePortalMenuLink.VisibilityEnum.PUBLIC)
+            .order(100)
+            .build();
         final Response response = rootTarget().request().put(json(portalMenuLinkToUpdate));
 
         // Then
@@ -101,6 +107,7 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("target", portalMenuLinkToUpdate.getTarget())
             .hasFieldOrPropertyWithValue("name", portalMenuLinkToUpdate.getName())
             .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
+            .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PUBLIC)
             .hasFieldOrPropertyWithValue("order", portalMenuLinkToUpdate.getOrder());
     }
 

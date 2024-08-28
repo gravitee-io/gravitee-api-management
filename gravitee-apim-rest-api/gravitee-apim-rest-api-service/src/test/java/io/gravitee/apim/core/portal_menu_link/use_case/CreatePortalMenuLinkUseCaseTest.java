@@ -22,6 +22,7 @@ import inmemory.PortalMenuLinkCrudServiceInMemory;
 import inmemory.PortalMenuLinkQueryServiceInMemory;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkType;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.List;
@@ -82,6 +83,7 @@ public class CreatePortalMenuLinkUseCaseTest {
             .name("portalMenuLinkNameToCreate")
             .target("portalMenuLinkTargetToCreate")
             .type(PortalMenuLinkType.EXTERNAL)
+            .visibility(PortalMenuLinkVisibility.PUBLIC)
             .order(1)
             .build();
         assertThat(createdPortalMenuLink.portalMenuLink()).isNotNull();
@@ -106,6 +108,7 @@ public class CreatePortalMenuLinkUseCaseTest {
             .name("portalMenuLinkNameToCreate")
             .target("portalMenuLinkTargetToCreate")
             .type(PortalMenuLinkType.EXTERNAL)
+            .visibility(PortalMenuLinkVisibility.PUBLIC)
             .order(2)
             .build();
         assertThat(createdPortalMenuLink.portalMenuLink()).isNotNull();
@@ -130,6 +133,7 @@ public class CreatePortalMenuLinkUseCaseTest {
             .name("portalMenuLinkNameToCreate")
             .target("portalMenuLinkTargetToCreate")
             .type(PortalMenuLinkType.EXTERNAL)
+            .visibility(PortalMenuLinkVisibility.PUBLIC)
             .order(1)
             .build();
         assertThat(createdPortalMenuLink.portalMenuLink()).isNotNull();

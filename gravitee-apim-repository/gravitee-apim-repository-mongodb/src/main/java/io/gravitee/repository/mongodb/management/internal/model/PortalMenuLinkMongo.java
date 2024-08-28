@@ -34,6 +34,7 @@ public class PortalMenuLinkMongo {
     private String environmentId;
     private String name;
     private String type;
+    private String visibility;
     private String target;
     private int order;
 }

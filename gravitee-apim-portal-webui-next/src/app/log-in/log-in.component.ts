@@ -26,6 +26,7 @@ import { switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
 
 @Component({
   selector: 'app-log-in',
@@ -45,6 +46,7 @@ export class LogInComponent {
   constructor(
     private authService: AuthService,
     private currentUserService: CurrentUserService,
+    private portalMenuLinksService: PortalMenuLinksService,
     private router: Router,
   ) {}
 
@@ -53,6 +55,7 @@ export class LogInComponent {
       .login(this.logInForm.value.username, this.logInForm.value.password)
       .pipe(
         switchMap(_ => this.currentUserService.loadUser()),
+        switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
         tap(_ => this.router.navigate([''])),
         takeUntilDestroyed(this.destroyRef),
       )

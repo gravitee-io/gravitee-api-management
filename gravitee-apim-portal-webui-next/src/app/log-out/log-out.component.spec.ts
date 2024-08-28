@@ -49,6 +49,7 @@ describe('LogOutComponent', () => {
     fixture.detectChanges();
 
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/logout`).flush({});
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-menu-links`).flush({});
     expect(router.navigate).toHaveBeenCalledTimes(1);
     expect(router.navigate).toHaveBeenCalledWith(['']);
     expect(currentUserService.user()).toEqual({});

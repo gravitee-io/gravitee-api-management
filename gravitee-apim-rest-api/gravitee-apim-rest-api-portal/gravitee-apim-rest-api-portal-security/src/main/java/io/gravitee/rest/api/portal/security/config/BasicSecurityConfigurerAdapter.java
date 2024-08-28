@@ -298,6 +298,9 @@ public class BasicSecurityConfigurerAdapter {
             // Categories
             .requestMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
             .permitAll()
+            // Portal Menu Links
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-menu-links")
+            .permitAll()
             /* Others requests
              * i.e. :
              *   - /auth/login

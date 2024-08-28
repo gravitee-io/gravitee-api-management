@@ -86,5 +86,6 @@ describe('LogInComponent', () => {
     await submitButton.click();
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush({});
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-menu-links`).flush({});
   });
 });

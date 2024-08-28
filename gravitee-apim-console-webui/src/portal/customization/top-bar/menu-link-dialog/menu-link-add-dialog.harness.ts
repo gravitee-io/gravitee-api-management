@@ -16,15 +16,16 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
+import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 
 export class MenuLinkAddDialogHarness extends ComponentHarness {
   public static hostSelector = 'menu-link-add-dialog';
 
   protected getNameField = this.locatorFor(MatInputHarness.with({ selector: '#name' }));
   protected getTargetField = this.locatorFor(MatInputHarness.with({ selector: '#target' }));
-  protected getTypeField = this.locatorFor(MatSelectHarness.with({ selector: '#type' }));
-
+  protected getTypeField = this.locatorFor(MatButtonToggleGroupHarness.with({ selector: '#type' }));
+  protected getVisibilitySelect = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '#visibility' }));
   protected getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Add Link' }));
 
   async saveButtonExists(): Promise<boolean> {
@@ -59,16 +60,24 @@ export class MenuLinkAddDialogHarness extends ComponentHarness {
       .catch(() => false);
   }
 
+  async visibilitySelectExists() {
+    return this.getVisibilitySelect()
+      .then(() => true)
+      .catch(() => false);
+  }
+
   async fillOutName(name: string) {
     return this.getNameField().then((input) => input.setValue(name));
   }
   async selectType(type: string) {
-    await this.getTypeField().then((select) => select.open());
     return this.getTypeField()
-      .then((select) => select.getOptions({ text: type }))
-      .then((options) => options[0].click());
+      .then((group) => group.getToggles({ text: type }))
+      .then((button) => button[0].toggle());
   }
   async fillOutTarget(target: string) {
     return this.getTargetField().then((input) => input.setValue(target));
+  }
+  async selectVisibility(visibility: string) {
+    await this.getVisibilitySelect().then((select) => select.select(visibility));
   }
 }

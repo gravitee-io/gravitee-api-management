@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +36,15 @@ public class PortalMenuLinkQueryServiceInMemory implements PortalMenuLinkQuerySe
         return storage
             .stream()
             .filter(menuLink -> environmentId.equals(menuLink.getEnvironmentId()))
+            .sorted(Comparator.comparingInt(PortalMenuLink::getOrder))
+            .toList();
+    }
+
+    @Override
+    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, PortalMenuLinkVisibility visibility) {
+        return storage
+            .stream()
+            .filter(menuLink -> environmentId.equals(menuLink.getEnvironmentId()) && visibility.equals(menuLink.getVisibility()))
             .sorted(Comparator.comparingInt(PortalMenuLink::getOrder))
             .toList();
     }

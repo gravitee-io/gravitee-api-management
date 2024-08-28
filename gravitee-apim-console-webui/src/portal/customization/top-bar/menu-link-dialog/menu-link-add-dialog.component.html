@@ -22,15 +22,14 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="menu-link-dialog__form">
-      <mat-form-field appearance="outline">
-        <mat-label>Type</mat-label>
-        <mat-select id="type" formControlName="type" data-testid="menu-link_dialog_type">
-          @for (linkType of linksType; track linkType.type) {
-            <mat-option [value]="linkType.type">{{ linkType.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
+      <div class="menu-link-dialog__form__title">Link Type</div>
+      <mat-button-toggle-group id="type" aria-label="Select Link type" formControlName="type" class="menu-link-dialog__form__types">
+        @for (linkType of linksType; track linkType.type) {
+          <mat-button-toggle class="menu-link-dialog__form__types__button" [value]="linkType.type" [disabled]="linkType.disabled">
+            {{ linkType.name }}
+          </mat-button-toggle>
+        }
+      </mat-button-toggle-group>
       <mat-form-field appearance="outline">
         <input id="name" type="text" matInput formControlName="name" data-testid="menu-link_dialog_name" />
         <mat-label>Name</mat-label>
@@ -40,6 +39,23 @@
         <input id="target" type="text" matInput formControlName="target" data-testid="menu-link_dialog_target" />
         <mat-label>Target</mat-label>
       </mat-form-field>
+
+      <div class="menu-link-dialog__form__title">Visibility</div>
+      <gio-form-selection-inline id="visibility" formControlName="visibility">
+        <gio-form-selection-inline-card value="PUBLIC">
+          <gio-form-selection-inline-card-content icon="gio:language">
+            <gio-card-content-title>Public</gio-card-content-title>
+            <gio-card-content-subtitle>Both authenticated and anonymous users can see public links</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
+
+        <gio-form-selection-inline-card value="PRIVATE">
+          <gio-form-selection-inline-card-content icon="gio:lock">
+            <gio-card-content-title>Private</gio-card-content-title>
+            <gio-card-content-subtitle>Only authenticated users can see private links</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
+      </gio-form-selection-inline>
     </div>
   </mat-dialog-content>
   <mat-dialog-actions align="end">

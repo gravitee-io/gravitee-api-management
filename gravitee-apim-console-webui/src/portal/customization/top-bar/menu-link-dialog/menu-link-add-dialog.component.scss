@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use 'sass:map';
+@use '@gravitee/ui-particles-angular' as gio;
+@use '@angular/material' as mat;
+
+$typography: map.get(gio.$mat-theme, typography);
+
 .menu-link-dialog {
   &__title {
     display: flex;
@@ -23,12 +29,20 @@
   &__form {
     display: flex;
     flex-direction: column;
+    gap: 8px;
 
-    &__row {
-      display: flex;
-      gap: 8px;
-      mat-form-field {
-        flex: 1 1 100%;
+    &__title {
+      @include mat.m2-typography-level($typography, subtitle-2);
+    }
+
+    &__types {
+      @include gio.gio-button-toggle-group();
+
+      margin-bottom: 0;
+      width: 100%;
+
+      &__button {
+        width: 100%;
       }
     }
   }

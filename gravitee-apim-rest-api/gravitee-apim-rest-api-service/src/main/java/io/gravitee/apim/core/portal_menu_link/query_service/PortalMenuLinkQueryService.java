@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.portal_menu_link.query_service;
 
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import java.util.List;
 
 public interface PortalMenuLinkQueryService {
     List<PortalMenuLink> findByEnvironmentIdSortByOrder(String environmentId);
+    List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, PortalMenuLinkVisibility visibility);
 }

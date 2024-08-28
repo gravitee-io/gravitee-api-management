@@ -30,6 +30,7 @@ public class PortalMenuLink {
     private String environmentId;
     private String name;
     private PortalMenuLinkType type;
+    private PortalMenuLinkVisibility visibility;
     private String target;
     private int order;
 
@@ -37,6 +38,7 @@ public class PortalMenuLink {
         return this.toBuilder()
             .name(updatePortalMenuLink.getName())
             .target(updatePortalMenuLink.getTarget())
+            .visibility(updatePortalMenuLink.getVisibility())
             .order(updatePortalMenuLink.getOrder())
             .build();
     }

@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
@@ -35,8 +35,18 @@ import {
   MenuLinkAddDialogResult,
 } from '../menu-link-dialog/menu-link-add-dialog.component';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { PortalMenuLink, toReadableMenuLinkType, UpdatePortalMenuLink } from '../../../../entities/management-api-v2';
+import {
+  PortalMenuLink,
+  toReadableMenuLinkType,
+  toReadableMenuLinkVisibility,
+  UpdatePortalMenuLink,
+} from '../../../../entities/management-api-v2';
 import { UiPortalMenuLinksService } from '../../../../services-ngx/ui-portal-menu-links.service';
+
+type PortalMenuLinkListVM = PortalMenuLink & {
+  readableType: string;
+  readableVisibility: string;
+};
 
 @Component({
   selector: 'menu-link-list',
@@ -60,13 +70,13 @@ import { UiPortalMenuLinksService } from '../../../../services-ngx/ui-portal-men
   ],
 })
 export class MenuLinkListComponent implements OnInit, OnDestroy {
-  @ViewChild('table', { static: true }) table: MatTable<PortalMenuLink>;
+  @ViewChild('table', { static: true }) table: MatTable<PortalMenuLinkListVM>;
 
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   canAddLink = true;
-  dataSource: PortalMenuLink[];
-  displayedColumns: string[] = ['order', 'name', 'type', 'target', 'actions'];
+  dataSource: PortalMenuLinkListVM[];
+  displayedColumns: string[] = ['order', 'name', 'type', 'target', 'visibility', 'actions'];
 
   constructor(
     private matDialog: MatDialog,
@@ -145,6 +155,7 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
     const linkToOrder: UpdatePortalMenuLink = {
       name: element.name,
       target: element.target,
+      visibility: element.visibility,
       order: event.currentIndex + 1,
     };
 
@@ -158,7 +169,7 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
         this.table.renderRows();
       },
       error: (error) => {
-        this.snackBarService.error(error?.message ? error.message : 'Error during creation');
+        this.snackBarService.error(error?.message ? error.message : 'Error during update');
         return EMPTY;
       },
     });
@@ -168,13 +179,20 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
     this.uiPortalMenuLinksService
       .list(1, 9999)
       .pipe(
-        tap((response) => {
-          this.dataSource = response.data;
+        map((response) =>
+          response.data.map((link) => {
+            return <PortalMenuLinkListVM>{
+              ...link,
+              readableType: toReadableMenuLinkType(link.type),
+              readableVisibility: toReadableMenuLinkVisibility(link.visibility),
+            };
+          }),
+        ),
+        tap((linkListVM) => {
+          this.dataSource = linkListVM;
           this.canAddLink = this.dataSource.length < 5;
         }),
       )
       .subscribe();
   }
-
-  protected readonly toReadableMenuLinkType = toReadableMenuLinkType;
 }

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_menu_link.crud_service.PortalMenuLinkCrudService;
 import io.gravitee.apim.core.portal_menu_link.model.CreatePortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -41,6 +42,7 @@ public class CreatePortalMenuLinkUseCase {
             .type(input.portalMenuLinkToCreate().getType())
             .name(input.portalMenuLinkToCreate().getName())
             .target(input.portalMenuLinkToCreate().getTarget())
+            .visibility(input.portalMenuLinkToCreate().getVisibility())
             .order(newOrder)
             .build();
 

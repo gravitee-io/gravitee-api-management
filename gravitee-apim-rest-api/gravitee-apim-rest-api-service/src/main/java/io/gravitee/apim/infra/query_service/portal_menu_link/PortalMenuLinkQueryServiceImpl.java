@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.portal_menu_link;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
+import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
 import io.gravitee.apim.infra.adapter.PortalMenuLinkAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -45,11 +46,29 @@ public class PortalMenuLinkQueryServiceImpl implements PortalMenuLinkQueryServic
 
             return result.stream().map(portalMenuLinkAdapter::toEntity).toList();
         } catch (TechnicalException e) {
-            logger.error("An error occurred while searching portal menu links by environment ID {}", environmentId, e);
-            throw new TechnicalDomainException(
-                "An error occurred while trying to search portal menu links by environment ID: " + environmentId,
-                e
+            String errorMessage = String.format("An error occurred while searching portal menu links by environment ID %s", environmentId);
+            logger.error(errorMessage, e);
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, PortalMenuLinkVisibility visibility) {
+        try {
+            var result = portalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder(
+                environmentId,
+                io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.valueOf(visibility.name())
             );
+
+            return result.stream().map(portalMenuLinkAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            String errorMessage = String.format(
+                "An error occurred while searching portal menu links by environment ID %s and visibility %s",
+                environmentId,
+                visibility
+            );
+            logger.error(errorMessage, e);
+            throw new TechnicalDomainException(errorMessage, e);
         }
     }
 }

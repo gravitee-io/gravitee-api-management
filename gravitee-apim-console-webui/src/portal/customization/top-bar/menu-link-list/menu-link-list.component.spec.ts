@@ -83,18 +83,20 @@ describe('MenuLinkListComponent', () => {
 
     expect(await harness.countRows()).toEqual(2);
     const row1 = await harness.getRowByIndex(0);
-    expect(row1.name).toEqual('name1');
-    expect(row1.type).toEqual('External');
+    expect(row1.name).toEqual('public');
+    expect(row1.type).toEqual('Link to a Website');
     expect(row1.target).toEqual('target1');
-    expect(row1.deleteButton).toBeTruthy();
+    expect(row1.visibility).toEqual('Public');
     expect(row1.updateButton).toBeTruthy();
+    expect(row1.deleteButton).toBeTruthy();
 
     const row2 = await harness.getRowByIndex(1);
-    expect(row2.name).toEqual('name2');
-    expect(row2.type).toEqual('External');
+    expect(row2.name).toEqual('private');
+    expect(row2.type).toEqual('Link to a Website');
     expect(row2.target).toEqual('target2');
-    expect(row2.deleteButton).toBeTruthy();
+    expect(row2.visibility).toEqual('Private');
     expect(row2.updateButton).toBeTruthy();
+    expect(row2.deleteButton).toBeTruthy();
   });
 
   it('should create a link, display a success notification, refresh the list', async () => {
@@ -109,10 +111,12 @@ describe('MenuLinkListComponent', () => {
     expect(await dia.nameFieldExists()).toBeTruthy();
     expect(await dia.typeFieldExists()).toBeTruthy();
     expect(await dia.targetFieldExists()).toBeTruthy();
+    expect(await dia.visibilitySelectExists()).toBeTruthy();
 
-    await dia.selectType('External');
+    await dia.selectType('Link to a Website');
     await dia.fillOutName('a name');
     await dia.fillOutTarget('https://my.target');
+    await dia.selectVisibility('PRIVATE');
     expect(await dia.saveButtonEnabled()).toEqual(true);
 
     await dia.clickSave();
@@ -125,6 +129,7 @@ describe('MenuLinkListComponent', () => {
       name: 'a name',
       type: 'EXTERNAL',
       target: 'https://my.target',
+      visibility: 'PRIVATE',
     };
     expect(req.request.body).toEqual(newLink);
 
@@ -186,7 +191,7 @@ describe('MenuLinkListComponent', () => {
       .flush(null);
 
     // Check that the snackbar has been displayed
-    expect(fakeSnackBarService.success).toHaveBeenCalledWith("Menu link 'name1' deleted successfully");
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith("Menu link 'public' deleted successfully");
     // Check that the table has been refreshed
     expectPortalMenuLinksRequest();
   });
@@ -212,10 +217,11 @@ describe('MenuLinkListComponent', () => {
     const updatedLink = {
       name: link2.name,
       target: link2.target,
+      visibility: link2.visibility,
       order: 1,
     };
     expect(req.request.body).toEqual(updatedLink);
-    req.flush(fakePortalMenuLink({ order: 1, ...link2 }));
+    req.flush(fakePortalMenuLink({ id: 'id2', name: 'Link 2️⃣', order: 1 }));
     fixture.detectChanges();
 
     row1 = await harness.getRowByIndex(0);
@@ -227,8 +233,8 @@ describe('MenuLinkListComponent', () => {
 
   function expectPortalMenuLinksRequest(
     data: PortalMenuLink[] = [
-      fakePortalMenuLink({ id: 'id1', name: 'name1', target: 'target1' }),
-      fakePortalMenuLink({ id: 'id2', name: 'name2', target: 'target2' }),
+      fakePortalMenuLink({ id: 'id1', name: 'public', target: 'target1', visibility: 'PUBLIC' }),
+      fakePortalMenuLink({ id: 'id2', name: 'private', target: 'target2', visibility: 'PRIVATE' }),
     ],
   ) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/ui/portal-menu-links?page=1&perPage=9999`);

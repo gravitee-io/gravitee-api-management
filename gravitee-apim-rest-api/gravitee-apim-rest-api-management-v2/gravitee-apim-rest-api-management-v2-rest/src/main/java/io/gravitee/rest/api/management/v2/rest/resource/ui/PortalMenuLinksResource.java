@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
 import io.gravitee.apim.core.portal_menu_link.use_case.CreatePortalMenuLinkUseCase;
-import io.gravitee.apim.core.portal_menu_link.use_case.ListPortalMenuLinksForEnvironmentUseCase;
+import io.gravitee.apim.core.portal_menu_link.use_case.ListAllPortalMenuLinksForEnvironmentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalMenuLinkMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalMenuLink;
@@ -50,7 +50,7 @@ public class PortalMenuLinksResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private ListPortalMenuLinksForEnvironmentUseCase listPortalMenuLinksForEnvironmentUseCase;
+    private ListAllPortalMenuLinksForEnvironmentUseCase listAllPortalMenuLinksForEnvironmentUseCase;
 
     @Inject
     private CreatePortalMenuLinkUseCase createPortalMenuLinkUseCase;
@@ -63,8 +63,8 @@ public class PortalMenuLinksResource extends AbstractResource {
     public Response getPortalMenuLinks(@BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var portalMenuLinks = listPortalMenuLinksForEnvironmentUseCase
-            .execute(new ListPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+        var portalMenuLinks = listAllPortalMenuLinksForEnvironmentUseCase
+            .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
             .portalMenuLinkList();
 
         var portalMenuLinksSubset = computePaginationData(portalMenuLinks, paginationParam);

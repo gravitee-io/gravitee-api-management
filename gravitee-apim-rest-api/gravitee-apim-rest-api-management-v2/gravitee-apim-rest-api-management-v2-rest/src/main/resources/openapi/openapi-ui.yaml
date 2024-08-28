@@ -376,6 +376,14 @@ components:
                     type: string
                     description: target of the menu link
                     example: https://gravitee.io
+                visibility:
+                    type: string
+                    description: visibility of the menu link
+                    enum:
+                        - PUBLIC
+                        - PRIVATE
+                    default: PRIVATE
+                    example: PUBLIC
             required:
                 - name
                 - type
@@ -626,6 +634,14 @@ components:
                     type: string
                     description: target of the menu link
                     example: https://gravitee.io
+                visibility:
+                    type: string
+                    description: visibility of the menu link
+                    enum:
+                        - PUBLIC
+                        - PRIVATE
+                    default: PRIVATE
+                    example: PRIVATE
                 order:
                     type: integer
                     description: The order of the menu link.
@@ -707,6 +723,13 @@ components:
                     type: string
                     description: target of the menu link
                     example: https://gravitee.io
+                visibility:
+                    type: string
+                    description: visibility of the menu link
+                    enum:
+                        - PUBLIC
+                        - PRIVATE
+                    example: PUBLIC
                 order:
                     type: integer
                     description: The order of the menu link.

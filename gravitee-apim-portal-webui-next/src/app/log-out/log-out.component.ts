@@ -16,10 +16,11 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
 
 @Component({
   selector: 'app-log-out',
@@ -33,6 +34,7 @@ export class LogOutComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private currentUserService: CurrentUserService,
+    private portalMenuLinksService: PortalMenuLinksService,
     private router: Router,
   ) {}
 
@@ -41,6 +43,7 @@ export class LogOutComponent implements OnInit {
       .logout()
       .pipe(
         tap(_ => this.currentUserService.clear()),
+        switchMap(_ => this.portalMenuLinksService.loadCustomLinks()),
         tap(_ => this.router.navigate([''])),
         takeUntilDestroyed(this.destroyRef),
       )

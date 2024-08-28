@@ -23,7 +23,7 @@
     @if (!isEmpty(currentUser())) {
       <app-nav-bar-button i18n="@@applications" [path]="['applications']">Applications</app-nav-bar-button>
     }
-    @for (link of customLinks; track link.id) {
+    @for (link of customLinks(); track link.id) {
       <a
         [href]="link.target"
         mat-stroked-button

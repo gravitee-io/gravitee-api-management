@@ -81,6 +81,7 @@ describe('MenuLinkEditComponent', () => {
     const updatedLink = {
       name: 'name',
       target: 'target',
+      visibility: 'PRIVATE',
       order: 1,
     };
     expect(req.request.body).toEqual(updatedLink);

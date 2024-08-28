@@ -24,6 +24,7 @@ export function fakeCreatePortalMenuLink(
     name: 'create - link name',
     target: 'create - link target',
     type: 'EXTERNAL',
+    visibility: 'PUBLIC',
   };
 
   if (isFunction(modifier)) {
@@ -42,6 +43,7 @@ export function fakeUpdatePortalMenuLink(
   const base: UpdatePortalMenuLink = {
     name: 'update - link name',
     target: 'update - link target',
+    visibility: 'PUBLIC',
     order: 1,
   };
 
@@ -57,10 +59,11 @@ export function fakeUpdatePortalMenuLink(
 
 export function fakePortalMenuLink(modifier?: Partial<PortalMenuLink> | ((base: PortalMenuLink) => PortalMenuLink)): PortalMenuLink {
   const base: PortalMenuLink = {
-    id: 'lind id',
+    id: 'link-id',
     name: 'link name',
     type: 'EXTERNAL',
     target: 'link target',
+    visibility: 'PRIVATE',
     order: 1,
   };
 

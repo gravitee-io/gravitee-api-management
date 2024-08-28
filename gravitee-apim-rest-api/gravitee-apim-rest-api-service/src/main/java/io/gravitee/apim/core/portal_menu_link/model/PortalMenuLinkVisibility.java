@@ -15,19 +15,7 @@
  */
 package io.gravitee.apim.core.portal_menu_link.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public class UpdatePortalMenuLink {
-
-    private String name;
-    private String target;
-    private PortalMenuLinkVisibility visibility;
-    private int order;
+public enum PortalMenuLinkVisibility {
+    PUBLIC,
+    PRIVATE,
 }

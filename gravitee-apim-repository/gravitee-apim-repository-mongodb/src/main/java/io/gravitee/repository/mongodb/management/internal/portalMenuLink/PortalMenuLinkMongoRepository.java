@@ -33,6 +33,9 @@ public interface PortalMenuLinkMongoRepository extends MongoRepository<PortalMen
     @Query(value = "{ 'environmentId': ?0 }", sort = "{ order : 1 }")
     List<PortalMenuLinkMongo> findByEnvironmentIdSortByOrder(String environmentId);
 
+    @Query(value = "{ 'environmentId': ?0, 'visibility': ?1 }", sort = "{ order : 1 }")
+    List<PortalMenuLinkMongo> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, String visibility);
+
     @Query("{ '_id': ?0, 'environmentId': ?1 }")
     Optional<PortalMenuLinkMongo> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId);
 }
