@@ -576,7 +576,7 @@ jobs:
       - attach_workspace:
           at: .
       - setup_remote_docker:
-          version: 20.10.6
+          version: default
       - cmd-webui-install:
           apim-ui-project: << parameters.apim-ui-project >>
       - run:
@@ -675,7 +675,7 @@ jobs:
       - attach_workspace:
           at: .
       - setup_remote_docker:
-          version: 20.10.6
+          version: default
       - cmd-create-docker-context
       - cmd-docker-azure-login
       - run:
