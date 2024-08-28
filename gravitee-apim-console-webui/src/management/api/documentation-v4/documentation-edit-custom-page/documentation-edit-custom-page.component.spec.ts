@@ -22,6 +22,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { DocumentationEditCustomPageComponent } from './documentation-edit-custom-page.component';
 
@@ -43,8 +44,6 @@ import { Constants } from '../../../../entities/Constants';
 interface InitInput {
   pages?: Page[];
   breadcrumb?: Breadcrumb[];
-  parentId?: string;
-  mode?: 'create' | 'edit';
 }
 
 describe('DocumentationEditCustomPageComponent', () => {
@@ -71,7 +70,7 @@ describe('DocumentationEditCustomPageComponent', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId, pageType: 'MARKDOWN' } } },
+          useValue: { params: of({ apiId: API_ID, pageId }), queryParams: of({ parentId, pageType: 'MARKDOWN' }) },
         },
         { provide: GioTestingPermissionProvider, useValue: apiPermissions },
         {
@@ -105,10 +104,11 @@ describe('DocumentationEditCustomPageComponent', () => {
   };
 
   const initPageServiceRequests = (input: InitInput, page: Page = {}) => {
-    if (input.mode === 'edit') {
+    if (page) {
       expectGetPage(page);
+      fixture.detectChanges();
     }
-    expectGetPages(input.pages, input.breadcrumb, input.parentId);
+    expectGetPages(input.pages, input.breadcrumb, page.parentId ?? 'ROOT');
     expectGetGroups([fakeGroup({ id: 'group-1', name: 'group 1' }), fakeGroup({ id: 'group-2', name: 'group 2' })]);
     fixture.detectChanges();
   };
@@ -120,7 +120,7 @@ describe('DocumentationEditCustomPageComponent', () => {
   describe('Header', () => {
     it('should display Open in Portal button', async () => {
       await init(undefined, PAGE.id);
-      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [] }, PAGE);
       const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
       expect(header).toBeDefined();
       const openInPortalBtn = await header.getOpenInPortalBtn();
@@ -130,7 +130,7 @@ describe('DocumentationEditCustomPageComponent', () => {
 
     it('should not display Open in Portal button if Portal url not defined', async () => {
       await init(undefined, PAGE.id, null);
-      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [] }, PAGE);
 
       const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
       expect(await header.getOpenInPortalBtn()).toEqual(null);

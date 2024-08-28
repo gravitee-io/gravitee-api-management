@@ -16,31 +16,58 @@
 import { Component, OnInit } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { map } from 'rxjs/operators';
 
-import { Api } from '../../../../entities/management-api-v2';
+import { Api, Page, PageType } from '../../../../entities/management-api-v2';
 import { DocumentationEditPageComponent } from '../components/documentation-edit-page/documentation-edit-page.component';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiDocumentationV4PageTitleComponent } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
+import { DocumentationNewPageComponent } from '../components/documentation-new-page/documentation-new-page.component';
+import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 
 @Component({
   selector: 'documentation-edit-custom-page',
   standalone: true,
   templateUrl: './documentation-edit-custom-page.component.html',
-  imports: [DocumentationEditPageComponent, MatCard, AsyncPipe, ApiDocumentationV4Module, ApiDocumentationV4PageTitleComponent],
+  imports: [
+    DocumentationEditPageComponent,
+    MatCard,
+    AsyncPipe,
+    ApiDocumentationV4Module,
+    ApiDocumentationV4PageTitleComponent,
+    DocumentationNewPageComponent,
+  ],
   styleUrl: './documentation-edit-custom-page.component.scss',
 })
 export class DocumentationEditCustomPageComponent implements OnInit {
-  api$: Observable<Api>;
+  data$: Observable<{ api: Api; edit?: { page: Page }; new?: { pageType: PageType; parentId: string } }> = of();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiV2Service: ApiV2Service,
+    private readonly apiDocumentationService: ApiDocumentationV2Service,
   ) {}
 
   ngOnInit() {
-    this.api$ = this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId);
+    this.data$ = combineLatest([this.activatedRoute.params, this.activatedRoute.queryParams]).pipe(
+      switchMap(([params, queryParams]) => {
+        const { apiId, pageId } = params;
+        const { pageType, parentId } = queryParams;
+
+        if (!apiId) {
+          return EMPTY;
+        }
+        return combineLatest([
+          this.apiV2Service.get(apiId),
+          pageId ? this.apiDocumentationService.getApiPage(apiId, pageId) : of(undefined),
+          of(pageType ?? 'MARKDOWN'),
+          of(parentId ?? 'ROOT'),
+        ]);
+      }),
+      map(([api, page, pageType, parentId]) => ({ api, edit: { page }, new: { pageType, parentId } })),
+    );
   }
 }

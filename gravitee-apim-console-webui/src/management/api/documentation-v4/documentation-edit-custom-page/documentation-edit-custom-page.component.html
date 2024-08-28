@@ -15,7 +15,18 @@
     limitations under the License.
 
 -->
-@if (api$ | async; as api) {
-  <api-documentation-page-title [api]="api"></api-documentation-page-title>
-  <documentation-edit-page [api]="api" [goBackRouterLink]="['../../']"></documentation-edit-page>
+
+@if (data$ | async; as data) {
+  <api-documentation-page-title [api]="data.api" />
+  @if (data.edit?.page) {
+    <documentation-edit-page [page]="data.edit.page" [api]="data.api" [goBackRouterLink]="['../../']" />
+  } @else if (data.new) {
+    <documentation-new-page
+      [createHomepage]="false"
+      [api]="data.api"
+      [pageType]="data.new.pageType"
+      [parentId]="data.new.parentId"
+      [goBackRouterLink]="['../../']"
+    />
+  }
 }
