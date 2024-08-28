@@ -142,6 +142,27 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         @Test
         @SneakyThrows
+        void should_validate_backend_to_backend_application_without_saving_if_dry_run() {
+            var crdStatus = doImport("/crd/application/backend-app.json", true);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        ApplicationCRDStatus
+                            .builder()
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .errors(ApplicationCRDStatus.Errors.builder().warning(List.of()).severe(List.of()).build())
+                            .build()
+                    );
+
+                soft.assertThat(applicationCrudService.storage()).isEmpty();
+            });
+        }
+
+        @Test
+        @SneakyThrows
         void should_return_client_id_error_in_status_without_saving_if_dry_run() {
             when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
                 .thenReturn(Set.of(Application.builder().id("conflicting-app-id").metadata(Map.of("client_id", "test-client-id")).build()));

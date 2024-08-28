@@ -1,0 +1,15 @@
+{
+  "name": "backend-app",
+  "description": "backend to backend application",
+  "domain": "test-domain",
+  "settings": {
+    "oauth": {
+      "applicationType": "BACKEND_TO_BACKEND",
+      "grantTypes": [
+        "client_credentials"
+      ]
+    }
+  },
+  "metadata": [],
+  "origin": "kubernetes"
+}

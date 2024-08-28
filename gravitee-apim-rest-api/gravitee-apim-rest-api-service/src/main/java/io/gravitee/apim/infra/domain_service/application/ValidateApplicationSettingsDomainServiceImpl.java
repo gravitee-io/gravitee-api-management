@@ -126,8 +126,13 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
 
     private List<Error> validateRedirectURIs(ApplicationTypeEntity type, OAuthClientSettings settings) {
         var redirectURIs = settings.getRedirectUris();
+
         if (Boolean.TRUE.equals(type.getRequires_redirect_uris()) && CollectionUtils.isEmpty(redirectURIs)) {
             return List.of(Error.severe("application type [%s] requires redirect URIs to be defined", type.getName()));
+        }
+
+        if (CollectionUtils.isEmpty(redirectURIs)) {
+            return List.of();
         }
 
         var errors = new ArrayList<Error>();

@@ -1,6 +1,6 @@
 {
-  "name": "with-invalid-grand-type",
-  "description": "SPA with invalid grand type",
+  "name": "browser-app",
+  "description": "Single Page Application",
   "domain": "test-domain",
   "settings": {
     "oauth": {
