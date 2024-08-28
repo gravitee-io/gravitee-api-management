@@ -15,31 +15,50 @@
  */
 import { MatCard } from '@angular/material/card';
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
+import { map } from 'rxjs/operators';
 
 import { DocumentationEditPageComponent } from '../components/documentation-edit-page/documentation-edit-page.component';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { Api } from '../../../../entities/management-api-v2';
+import { Api, Page, PageType } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { DocumentationNewPageComponent } from '../components/documentation-new-page/documentation-new-page.component';
+import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 
 @Component({
   selector: 'documentation-edit-homepage',
   standalone: true,
   templateUrl: './documentation-edit-homepage.component.html',
-  imports: [DocumentationEditPageComponent, MatCard, ApiDocumentationV4Module, AsyncPipe],
+  imports: [DocumentationEditPageComponent, MatCard, ApiDocumentationV4Module, AsyncPipe, DocumentationNewPageComponent],
   styleUrl: './documentation-edit-homepage.component.scss',
 })
 export class DocumentationEditHomepageComponent implements OnInit {
-  api$: Observable<Api>;
+  data$: Observable<{ api: Api; page?: Page; pageType?: PageType }> = of();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiV2Service: ApiV2Service,
+    private readonly apiDocumentationService: ApiDocumentationV2Service,
   ) {}
 
   ngOnInit() {
-    this.api$ = this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId);
+    this.data$ = combineLatest([this.activatedRoute.params, this.activatedRoute.queryParams]).pipe(
+      switchMap(([params, queryParams]) => {
+        const { apiId, pageId } = params;
+        const { pageType } = queryParams;
+
+        if (!apiId) {
+          return EMPTY;
+        }
+        return combineLatest([
+          this.apiV2Service.get(apiId),
+          pageId ? this.apiDocumentationService.getApiPage(apiId, pageId) : of(undefined),
+          of(pageType ?? 'MARKDOWN'),
+        ]);
+      }),
+      map(([api, page, pageType]) => ({ api, page, pageType })),
+    );
   }
 }
