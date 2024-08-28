@@ -19,7 +19,6 @@ import { NodeLtsExecutor } from '../../executors';
 import { BuildUiImageCommand, InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion } from '../../utils';
-import { SetupRemoteDockerCommand } from '../../commands/cmd-setup-remote-docker';
 import { config } from '../../config';
 
 export class ConsoleWebuiBuildJob {
@@ -43,7 +42,7 @@ export class ConsoleWebuiBuildJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      SetupRemoteDockerCommand.get(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.dockerImages.console.project}` }),
       new commands.Run({

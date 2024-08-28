@@ -21,7 +21,6 @@ import { config } from '../config';
 import { GraviteeioVersion, isBlank, parse } from '../utils';
 import { CreateDockerContextCommand } from '../commands';
 import { BaseExecutor } from '../executors';
-import { SetupRemoteDockerCommand } from '../commands/cmd-setup-remote-docker';
 
 export class PublishProdDockerImagesJob {
   private static jobName = 'job-publish-prod-docker-images';
@@ -34,7 +33,7 @@ export class PublishProdDockerImagesJob {
     const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
 
     const steps: Command[] = [
-      SetupRemoteDockerCommand.get(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new commands.Checkout(),
       new reusable.ReusedCommand(keeper.commands['env-export'], {
         'secret-url': config.secrets.dockerhubBotUserName,
