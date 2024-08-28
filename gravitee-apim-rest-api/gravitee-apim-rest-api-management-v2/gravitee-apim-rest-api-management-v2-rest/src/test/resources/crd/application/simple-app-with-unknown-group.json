@@ -1,6 +1,6 @@
 {
-  "name": "K8S-Application",
-  "description": "K8s Application 2",
+  "name": "with-unknown-group",
+  "description": "Application with unknown group",
   "domain": "https://example.com",
   "settings": {
     "app": {
@@ -8,16 +8,7 @@
     }
   },
   "notifyMembers": false,
-  "metadata": [
-    {
-      "name": "test metadata 1",
-      "format": "STRING"
-    },
-    {
-      "name": "test metadata 2",
-      "format": "STRING"
-    }
-  ],
+  "metadata": [],
   "origin": "kubernetes",
   "groups":["unknown-group"]
 }

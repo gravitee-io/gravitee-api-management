@@ -1,6 +1,6 @@
 {
-  "name": "with-invalid-grand-type",
-  "description": "SPA with invalid grand type",
+  "name": "with-missing-mandatory-grand-type",
+  "description": "SPA with missing mandatory grand type",
   "domain": "test-domain",
   "settings": {
     "oauth": {
