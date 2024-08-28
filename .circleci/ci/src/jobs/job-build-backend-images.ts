@@ -38,7 +38,7 @@ export class BuildBackendImagesJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      new commands.SetupRemoteDocker(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(createDockerContextCmd),
       new reusable.ReusedCommand(dockerAzureLoginCmd),
       new commands.Run({

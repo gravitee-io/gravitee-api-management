@@ -46,7 +46,7 @@ export class WebuiBuildJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      new commands.SetupRemoteDocker(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': '<< parameters.apim-ui-project >>' }),
       new commands.Run({
         name: 'Update Build version',

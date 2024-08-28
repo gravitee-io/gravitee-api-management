@@ -33,7 +33,7 @@ export class PublishProdDockerImagesJob {
     const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
 
     const steps: Command[] = [
-      new commands.SetupRemoteDocker(),
+      new commands.SetupRemoteDocker({ version: config.docker.version }),
       new commands.Checkout(),
       new reusable.ReusedCommand(keeper.commands['env-export'], {
         'secret-url': config.secrets.dockerhubBotUserName,
