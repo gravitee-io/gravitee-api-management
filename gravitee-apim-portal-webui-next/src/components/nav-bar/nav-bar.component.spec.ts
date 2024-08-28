@@ -47,4 +47,29 @@ describe('NavBarComponent', () => {
     logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Log in' }));
     expect(logInButton).toBeFalsy();
   });
+
+  it('should show custom links', async () => {
+    const customLinks = [
+      {
+        id: 'link-id-1',
+        type: 'external',
+        name: 'link-name-1',
+        target: 'link-target-1',
+        order: 1,
+      },
+      {
+        id: 'link-id-2',
+        type: 'external',
+        name: 'link-name-2',
+        target: 'link-target-2',
+        order: 2,
+      },
+    ];
+
+    componentRef.setInput('customLinks', customLinks);
+    const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+    expect(link1Anchor).toBeTruthy();
+    const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+    expect(link2Anchor).toBeTruthy();
+  });
 });

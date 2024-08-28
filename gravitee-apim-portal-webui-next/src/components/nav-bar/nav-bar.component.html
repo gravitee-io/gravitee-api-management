@@ -23,6 +23,16 @@
     @if (!isEmpty(currentUser())) {
       <app-nav-bar-button i18n="@@applications" [path]="['applications']">Applications</app-nav-bar-button>
     }
+    @for (link of customLinks; track link.id) {
+      <a
+        [href]="link.target"
+        mat-stroked-button
+        color="primary"
+        class="menu-items__custom_link"
+        [target]="link.type === 'external' ? '_blank' : ''">
+        {{ link.name }}
+      </a>
+    }
   </div>
 
   @if (!isEmpty(currentUser())) {

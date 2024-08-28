@@ -25,17 +25,28 @@ import { csrfInterceptor } from '../interceptors/csrf.interceptor';
 import { httpRequestInterceptor } from '../interceptors/http-request.interceptor';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
+import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
 
 function initApp(
   configService: ConfigService,
   themeService: ThemeService,
   currentUserService: CurrentUserService,
+  portalMenuLinksService: PortalMenuLinksService,
 ): () => Observable<unknown> {
   return () =>
     configService
       .initBaseURL()
-      .pipe(switchMap(_ => combineLatest([themeService.loadTheme(), currentUserService.loadUser(), configService.loadConfiguration()])));
+      .pipe(
+        switchMap(_ =>
+          combineLatest([
+            themeService.loadTheme(),
+            currentUserService.loadUser(),
+            configService.loadConfiguration(),
+            portalMenuLinksService.loadCustomLinks(),
+          ]),
+        ),
+      );
 }
 
 export const appConfig: ApplicationConfig = {
@@ -46,7 +57,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,
-      deps: [ConfigService, ThemeService, CurrentUserService],
+      deps: [ConfigService, ThemeService, CurrentUserService, PortalMenuLinksService],
       multi: true,
     },
     // Ripple does not work with hsl mixing

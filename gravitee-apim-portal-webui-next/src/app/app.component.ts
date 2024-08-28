@@ -22,6 +22,7 @@ import { FooterComponent } from '../components/footer/footer.component';
 import { NavBarComponent } from '../components/nav-bar/nav-bar.component';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
+import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
 
 @Component({
@@ -35,6 +36,7 @@ export class AppComponent {
   currentUser = inject(CurrentUserService).user;
   logo = inject(ThemeService).logo;
   favicon = inject(ThemeService).favicon;
+  customLinks = inject(PortalMenuLinksService).links;
   siteTitle: string;
 
   constructor(
