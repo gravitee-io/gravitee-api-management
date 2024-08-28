@@ -31,12 +31,12 @@ public interface ClientRegistrationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
-    @Mapping(source = "settings.OAuthClient.applicationType", target = "applicationType")
-    @Mapping(source = "settings.OAuthClient.clientUri", target = "clientUri")
-    @Mapping(source = "settings.OAuthClient.grantTypes", target = "grantTypes")
-    @Mapping(source = "settings.OAuthClient.logoUri", target = "logoUri")
-    @Mapping(source = "settings.OAuthClient.redirectUris", target = "redirectUris")
-    @Mapping(source = "settings.OAuthClient.responseTypes", target = "responseTypes")
+    @Mapping(source = "settings.oauth.applicationType", target = "applicationType")
+    @Mapping(source = "settings.oauth.clientUri", target = "clientUri")
+    @Mapping(source = "settings.oauth.grantTypes", target = "grantTypes")
+    @Mapping(source = "settings.oauth.logoUri", target = "logoUri")
+    @Mapping(source = "settings.oauth.redirectUris", target = "redirectUris")
+    @Mapping(source = "settings.oauth.responseTypes", target = "responseTypes")
     ClientRegistrationRequest toClientRegistrationRequest(
         @MappingTarget ClientRegistrationRequest target,
         NewApplicationEntity application
@@ -44,12 +44,12 @@ public interface ClientRegistrationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
-    @Mapping(source = "settings.OAuthClient.applicationType", target = "applicationType")
-    @Mapping(source = "settings.OAuthClient.clientUri", target = "clientUri")
-    @Mapping(source = "settings.OAuthClient.grantTypes", target = "grantTypes")
-    @Mapping(source = "settings.OAuthClient.logoUri", target = "logoUri")
-    @Mapping(source = "settings.OAuthClient.redirectUris", target = "redirectUris")
-    @Mapping(source = "settings.OAuthClient.responseTypes", target = "responseTypes")
+    @Mapping(source = "settings.oauth.applicationType", target = "applicationType")
+    @Mapping(source = "settings.oauth.clientUri", target = "clientUri")
+    @Mapping(source = "settings.oauth.grantTypes", target = "grantTypes")
+    @Mapping(source = "settings.oauth.logoUri", target = "logoUri")
+    @Mapping(source = "settings.oauth.redirectUris", target = "redirectUris")
+    @Mapping(source = "settings.oauth.responseTypes", target = "responseTypes")
     void toClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, UpdateApplicationEntity application);
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)

@@ -463,7 +463,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
                 metadata.put(
                     METADATA_ADDITIONAL_CLIENT_METADATA,
-                    mapper.writeValueAsString(newApplicationEntity.getSettings().getOAuthClient().getAdditionalClientMetadata())
+                    mapper.writeValueAsString(newApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
                 );
             } catch (JsonProcessingException e) {
                 LOGGER.error("An error has occurred while serializing registration response", e);
@@ -747,7 +747,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
                         metadata.put(
                             METADATA_ADDITIONAL_CLIENT_METADATA,
-                            mapper.writeValueAsString(updateApplicationEntity.getSettings().getOAuthClient().getAdditionalClientMetadata())
+                            mapper.writeValueAsString(updateApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
                         );
                     } catch (Exception e) {
                         LOGGER.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);

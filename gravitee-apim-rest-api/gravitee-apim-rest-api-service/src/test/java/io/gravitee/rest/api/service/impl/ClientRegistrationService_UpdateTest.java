@@ -189,7 +189,7 @@ public class ClientRegistrationService_UpdateTest {
         oAuthClientSettings.setAdditionalClientMetadata(additionalClientMetadata);
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
-        applicationSettings.setOAuthClient(oAuthClientSettings);
+        applicationSettings.setOauth(oAuthClientSettings);
         updateApplicationEntity.setSettings(applicationSettings);
 
         ClientRegistrationResponse existingPayload = new ClientRegistrationResponse();

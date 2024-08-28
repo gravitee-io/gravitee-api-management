@@ -505,7 +505,7 @@ public class ApplicationService_CreateTest {
 
         // Mock ApplicationSettings
         ApplicationSettings settings = new ApplicationSettings();
-        settings.setOAuthClient(oAuthClientSettings);
+        settings.setOauth(oAuthClientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
         // Mock other necessary methods

@@ -336,7 +336,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {
-        Map<String, String> metadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
+        Map<String, String> metadata = application.getSettings().getOauth().getAdditionalClientMetadata();
         if (metadata != null) {
             ClientRegistrationRequest request = mapper.convertValue(metadata, ClientRegistrationRequest.class);
 
@@ -492,7 +492,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
         ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(request, application);
-        Map<String, String> clientMetadata = application.getSettings().getOAuthClient().getAdditionalClientMetadata();
+        Map<String, String> clientMetadata = application.getSettings().getOauth().getAdditionalClientMetadata();
         if (clientMetadata != null) {
             ClientRegistrationRequest additionalMetadata = mapper.convertValue(clientMetadata, ClientRegistrationRequest.class);
             ClientRegistrationMapper.INSTANCE.mergeClientRegistrationRequest(request, additionalMetadata);
