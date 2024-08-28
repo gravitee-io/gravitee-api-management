@@ -23,7 +23,9 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Integration;
 import java.sql.Types;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,9 +35,11 @@ import org.springframework.stereotype.Repository;
 public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integration, String> implements IntegrationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIntegrationRepository.class);
+    private final String INTEGRATION_GROUPS;
 
     JdbcIntegrationRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "integrations");
+        INTEGRATION_GROUPS = getTableNameFor("integration_groups");
     }
 
     @Override
@@ -49,12 +53,70 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
                     getOrm().getRowMapper(),
                     environmentId
                 );
+
+            integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
             final String message = "Failed to find integrations of environment: " + environmentId;
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }
         return getResultAsPage(pageable, integrations);
+    }
+
+    @Override
+    public Optional<Integration> findById(String id) throws TechnicalException {
+        var integration = super.findById(id);
+        integration.ifPresent(this::addGroups);
+        return integration;
+    }
+
+    private void addGroups(Integration parent) {
+        List<String> groups = getGroups(parent.getId());
+        if (!groups.isEmpty()) {
+            parent.setGroups(new HashSet<>(groups));
+        }
+    }
+
+    private List<String> getGroups(String integrationId) {
+        return jdbcTemplate.queryForList(
+            "select group_id from " + INTEGRATION_GROUPS + " where integration_id = ?",
+            String.class,
+            integrationId
+        );
+    }
+
+    @Override
+    public Integration create(final Integration integration) throws TechnicalException {
+        storeGroups(integration, false);
+        return super.create(integration);
+    }
+
+    @Override
+    public Integration update(final Integration integration) throws TechnicalException {
+        storeGroups(integration, true);
+        return super.update(integration);
+    }
+
+    private void storeGroups(Integration integration, boolean deleteExistingGroups) {
+        if (integration == null) {
+            return;
+        }
+        if (deleteExistingGroups) {
+            jdbcTemplate.update("delete from " + INTEGRATION_GROUPS + " where integration_id = ?", integration.getId());
+        }
+        List<String> filteredGroups = getOrm().filterStrings(integration.getGroups());
+        if (!filteredGroups.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + INTEGRATION_GROUPS + " ( integration_id, group_id ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(integration.getId(), filteredGroups)
+            );
+        }
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        jdbcTemplate.update("delete from " + INTEGRATION_GROUPS + " where integration_id = ?", id);
+        super.delete(id);
     }
 
     @Override

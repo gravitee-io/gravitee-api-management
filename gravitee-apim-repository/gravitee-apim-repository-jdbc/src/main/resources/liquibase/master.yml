@@ -1,203 +1,205 @@
 databaseChangeLog:
-  - include:
-      - file: liquibase/changelogs/v1_14_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_15_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_16_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_16_0/schema-plans.yml
-  - include:
-      - file: liquibase/changelogs/v1_18_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_18_0/schema-plans.yml
-  - include:
-      - file: liquibase/changelogs/v1_18_0/schema-pages.yml
-  - include:
-      - file: liquibase/changelogs/v1_18_0/schema-pages-mssql.yml
-  - include:
-      - file: liquibase/changelogs/v1_18_0/schema-views.yml
-  - include:
-      - file: liquibase/changelogs/v1_18_0/schema-notification_config.yml
-  - include:
-      - file: liquibase/changelogs/v1_19_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_20_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_20_1/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_20_2/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_20_15/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_20_16/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_21_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_21_0/schema-media.yml
-  - include:
-      - file: liquibase/changelogs/v1_22_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_23_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_24_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_0/schema-applications-migration.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_3/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_2/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_3/dictionary-null-payload.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_4/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_25_23/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_26_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_27_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_3/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_6/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_4/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_0_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_0_2/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_13/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_13/schema-alerts.yml
-  - include:
-      - file: liquibase/changelogs/v3_0_4/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_1_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_1_2/schema.yml
-  - include:
-      - file: liquibase/changelogs/v1_30_17/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_1_3/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_2_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_3_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_4_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_5_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_5_1/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_5_14/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_6_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_7_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_8_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_9_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_10_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_10_4/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_11_2/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_12_1/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_14_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_15_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_15_3/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_15_14/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_15_20/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_15_21/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_16_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_17_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_18_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_18_0/schema_flows.yml
-  - include:
-      - file: liquibase/changelogs/v3_18_2/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_18_18/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_19_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_19_0/schema_gko.yml
-  - include:
-      - file: liquibase/changelogs/v3_19_17/schema_gko.yml
-  - include:
-      - file: liquibase/changelogs/v3_19_19/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_20_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_20_4/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_20_22/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_20_24/schema.yml
-  - include:
-      - file: liquibase/changelogs/v3_20_31/schema.yml
-  - include:
-      - file: liquibase/changelogs/v4_0_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v4_0_3/schema.yml
-  - include:
-      - file: liquibase/changelogs/v4_0_20/schema-dashboards.yml
-  - include:
-      - file: liquibase/changelogs/v4_0_22/schema-idp.yml
-  - include:
-      - file: liquibase/changelogs/v4_2_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v4_2_0/schema-quality-rules.yml
-  - include:
-      - file: liquibase/changelogs/v4_3_0/schema.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/00_add_new_integration_table.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/01_store_federated_apis.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/02_federated_apikeys.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/03_store_sync_from.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/04_add_theme_type.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/05_add_environment_id.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/06_add_new_api_category_order_table.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_0/06_update_access_points.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_2/00_add_event_organizations.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_2/01_federated_api_keys.yml
-  - include:
-      - file: liquibase/changelogs/v4_4_4/00_drop_not_null_constraint.yml
-  - include:
-      - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
-  - include:
-      - file: liquibase/changelogs/v4_5_0/01_add_integration_jobs_table.yml
-  - include:
-      - file: liquibase/changelogs/v4_5_0/02_add_shared_policy_group.yml
-  - include:
-      - file: liquibase/changelogs/v4_5_0/03_add_subscription_client_certificate.yml
-  - include:
-      - file: liquibase/changelogs/v4_5_0/04_add_portal_menu_links_table.yml
+    - include:
+          - file: liquibase/changelogs/v1_14_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_15_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_16_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_16_0/schema-plans.yml
+    - include:
+          - file: liquibase/changelogs/v1_18_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_18_0/schema-plans.yml
+    - include:
+          - file: liquibase/changelogs/v1_18_0/schema-pages.yml
+    - include:
+          - file: liquibase/changelogs/v1_18_0/schema-pages-mssql.yml
+    - include:
+          - file: liquibase/changelogs/v1_18_0/schema-views.yml
+    - include:
+          - file: liquibase/changelogs/v1_18_0/schema-notification_config.yml
+    - include:
+          - file: liquibase/changelogs/v1_19_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_20_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_20_1/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_20_2/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_20_15/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_20_16/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_21_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_21_0/schema-media.yml
+    - include:
+          - file: liquibase/changelogs/v1_22_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_23_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_24_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_0/schema-applications-migration.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_3/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_2/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_3/dictionary-null-payload.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_4/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_25_23/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_26_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_27_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_3/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_6/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_4/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_0_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_0_2/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_13/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_13/schema-alerts.yml
+    - include:
+          - file: liquibase/changelogs/v3_0_4/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_1_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_1_2/schema.yml
+    - include:
+          - file: liquibase/changelogs/v1_30_17/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_1_3/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_2_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_3_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_4_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_5_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_5_1/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_5_14/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_6_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_7_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_8_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_9_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_10_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_10_4/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_11_2/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_12_1/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_14_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_15_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_15_3/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_15_14/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_15_20/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_15_21/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_16_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_17_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_18_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_18_0/schema_flows.yml
+    - include:
+          - file: liquibase/changelogs/v3_18_2/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_18_18/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_19_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_19_0/schema_gko.yml
+    - include:
+          - file: liquibase/changelogs/v3_19_17/schema_gko.yml
+    - include:
+          - file: liquibase/changelogs/v3_19_19/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_20_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_20_4/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_20_22/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_20_24/schema.yml
+    - include:
+          - file: liquibase/changelogs/v3_20_31/schema.yml
+    - include:
+          - file: liquibase/changelogs/v4_0_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v4_0_3/schema.yml
+    - include:
+          - file: liquibase/changelogs/v4_0_20/schema-dashboards.yml
+    - include:
+          - file: liquibase/changelogs/v4_0_22/schema-idp.yml
+    - include:
+          - file: liquibase/changelogs/v4_2_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v4_2_0/schema-quality-rules.yml
+    - include:
+          - file: liquibase/changelogs/v4_3_0/schema.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/00_add_new_integration_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/01_store_federated_apis.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/02_federated_apikeys.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/03_store_sync_from.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/04_add_theme_type.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/05_add_environment_id.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/06_add_new_api_category_order_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_0/06_update_access_points.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_2/00_add_event_organizations.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_2/01_federated_api_keys.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_4/00_drop_not_null_constraint.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/01_add_integration_jobs_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/02_add_shared_policy_group.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/03_add_subscription_client_certificate.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/04_add_portal_menu_links_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_0/05_add_integration_groups_table.yml

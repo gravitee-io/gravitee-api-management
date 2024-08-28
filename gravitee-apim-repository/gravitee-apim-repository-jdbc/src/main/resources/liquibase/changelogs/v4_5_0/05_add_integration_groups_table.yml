@@ -1,0 +1,14 @@
+databaseChangeLog:
+    - changeSet:
+          id: 4.5.0_add_integration_groups
+          author: GraviteeSource Team
+          changes:
+              - createTable:
+                    tableName: ${gravitee_prefix}integration_groups
+                    columns:
+                        - column: { name: integration_id, type: nvarchar(64), constraints: { nullable: false } }
+                        - column: { name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+              - addPrimaryKey:
+                    constraintName: pk_${gravitee_prefix}integration_groups
+                    columnNames: integration_id, group_id
+                    tableName: ${gravitee_prefix}integration_groups

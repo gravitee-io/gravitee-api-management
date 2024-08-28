@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Integration;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 
 public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest {
@@ -65,6 +66,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .environmentId("my-env")
             .createdAt(date)
             .updatedAt(date)
+            .groups(Set.of("group-1"))
             .build();
     }
 
@@ -76,11 +78,23 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
 
         assertThat(integrations)
             .hasSize(3)
-            .extracting(Integration::getId, Integration::getName, Integration::getDescription, Integration::getEnvironmentId)
+            .extracting(
+                Integration::getId,
+                Integration::getName,
+                Integration::getDescription,
+                Integration::getEnvironmentId,
+                Integration::getGroups
+            )
             .contains(
-                tuple("cad107c9-27f2-40b2-9107-c927f2e0b2fc", "my-integration", "test-description", "my-env"),
-                tuple("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3", "my-another-integration", "test-description", "my-env"),
-                tuple("459a022c-e79c-4411-9a02-2ce79c141165", "my-yet-another-integration", "test-description", "my-env")
+                tuple("cad107c9-27f2-40b2-9107-c927f2e0b2fc", "my-integration", "test-description", "my-env", Set.of()),
+                tuple("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3", "my-another-integration", "test-description", "my-env", Set.of("group-1")),
+                tuple(
+                    "459a022c-e79c-4411-9a02-2ce79c141165",
+                    "my-yet-another-integration",
+                    "test-description",
+                    "my-env",
+                    Set.of("group-1", "group-2")
+                )
             );
     }
 
@@ -127,6 +141,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .environmentId("my-env")
             .createdAt(date)
             .updatedAt(updateDate)
+            .groups(Set.of("group-15"))
             .build();
 
         final Integration updatedIntegration = integrationRepository.update(integration);

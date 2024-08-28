@@ -139,6 +139,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flow_tags",
         "upgraders",
         "integrations",
+        "integration_groups",
         "integrationjobs",
         "api_category_orders",
         "sharedpolicygroups",
