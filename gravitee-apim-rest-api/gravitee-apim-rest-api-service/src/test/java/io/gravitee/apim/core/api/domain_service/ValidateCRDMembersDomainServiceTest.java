@@ -151,7 +151,7 @@ class ValidateCRDMembersDomainServiceTest {
         result.peek(
             sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
             errors ->
-                assertThat(errors).isEqualTo(List.of(Validator.Error.severe("you can not change primary owner once resource is created")))
+                assertThat(errors).isEqualTo(List.of(Validator.Error.severe("setting a member with the primary owner role is not allowed")))
         );
     }
 

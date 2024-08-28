@@ -160,7 +160,7 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         while (members.hasNext()) {
             var member = members.next();
             if (PRIMARY_OWNER.name().equals(member.getRole())) {
-                errors.add(Error.severe("you can not change primary owner once resource is created"));
+                errors.add(Error.severe("setting a member with the primary owner role is not allowed"));
                 members.remove();
             }
 
