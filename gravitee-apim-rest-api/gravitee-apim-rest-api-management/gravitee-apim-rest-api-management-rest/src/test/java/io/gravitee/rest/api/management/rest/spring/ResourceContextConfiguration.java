@@ -80,12 +80,14 @@ import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.AnalyticsService;
+import io.gravitee.rest.api.service.ApiCRDService;
 import io.gravitee.rest.api.service.ApiDefinitionContextService;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApiValidationService;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -160,6 +162,16 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiService apiService() {
         return mock(ApiService.class);
+    }
+
+    @Bean
+    public ApiCRDService apiCRDService() {
+        return mock(ApiCRDService.class);
+    }
+
+    @Bean
+    public ApiValidationService apiValidationService() {
+        return mock(ApiValidationService.class);
     }
 
     @Bean
