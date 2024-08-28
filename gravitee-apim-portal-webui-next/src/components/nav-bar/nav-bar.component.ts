@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 import { Component, Input, input, InputSignal } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';
 
 import { NavBarButtonComponent } from './nav-bar-button/nav-bar-button.component';
 import { User } from '../../entities/user/user';
+import { PortalMenuLink } from '../../services/portal-menu-links.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
 
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [MatButton, CompanyTitleComponent, RouterLink, NavBarButtonComponent, UserAvatarComponent],
+  imports: [MatButtonModule, CompanyTitleComponent, RouterLink, NavBarButtonComponent, UserAvatarComponent],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent {
   @Input()
   siteTitle!: string;
+
+  @Input()
+  customLinks?: PortalMenuLink[];
+
   currentUser: InputSignal<User> = input({});
   logo: InputSignal<string> = input('');
   protected readonly isEmpty = isEmpty;
