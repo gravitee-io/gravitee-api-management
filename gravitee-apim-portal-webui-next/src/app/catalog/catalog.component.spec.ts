@@ -18,28 +18,47 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
-import { ActivatedRoute } from '@angular/router';
+import { MatTabGroupHarness, MatTabHarness } from '@angular/material/tabs/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
-import { fakeCategoriesResponse } from '../../entities/categories/categories.fixture';
+import { Categories } from '../../entities/categories/categories';
+import { fakeCategoriesResponse, fakeCategory } from '../../entities/categories/categories.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('CatalogComponent', () => {
   let fixture: ComponentFixture<CatalogComponent>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
-  beforeEach(async () => {
+  const init = async (
+    params: Partial<{
+      apisResponse: ApisResponse;
+      page: number;
+      size: number;
+      query: string;
+      categoryId: string;
+      categoriesResponse: Categories;
+    }> = {
+      apisResponse: fakeApisResponse(),
+      page: 1,
+      size: 18,
+      query: '',
+      categoryId: '',
+      categoriesResponse: fakeCategoriesResponse(),
+    },
+  ) => {
     await TestBed.configureTestingModule({
       imports: [CatalogComponent, AppTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { queryParams: of({ filter: '' }) },
+          useValue: { queryParams: of({ filter: params.categoryId }) },
         },
       ],
     }).compileComponents();
@@ -47,18 +66,24 @@ describe('CatalogComponent', () => {
     fixture = TestBed.createComponent(CatalogComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
-  });
+
+    expectApiList(params.apisResponse, params.page, params.size, params.query, params.categoryId);
+    expectCategoriesList(params.categoriesResponse);
+    fixture.detectChanges();
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   describe('populated api list', () => {
-    beforeEach(() => {
-      expectApiList(
-        fakeApisResponse({
+    beforeEach(async () => {
+      await init({
+        apisResponse: fakeApisResponse({
           data: [
             fakeApi({
               id: '1',
@@ -75,12 +100,7 @@ describe('CatalogComponent', () => {
             },
           },
         }),
-        1,
-        18,
-        '',
-      );
-      expectCategoriesList(fakeCategoriesResponse());
-      fixture.detectChanges();
+      });
     });
 
     it('should render banner text', () => {
@@ -190,17 +210,83 @@ describe('CatalogComponent', () => {
   });
 
   describe('empty component', () => {
+    beforeEach(async () => {
+      await init({ apisResponse: fakeApisResponse({ data: [] }) });
+    });
+
     it('should show empty API list', async () => {
-      expectApiList(fakeApisResponse({ data: [] }), 1, 18, '');
-      expectCategoriesList(fakeCategoriesResponse());
       const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
       expect(noApiCard).toBeTruthy();
       expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
     });
   });
 
-  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 18, q: string = '') {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=&size=${size}&q=${q}`).flush(apisResponse);
+  describe('Category filters', () => {
+    const CATEGORY_1 = fakeCategory({ id: 'category-1', name: 'Category 1' });
+    const CATEGORY_2 = fakeCategory({ id: 'category-2', name: 'Category 2' });
+    describe('With no categories', () => {
+      beforeEach(async () => {
+        await init({ categoriesResponse: fakeCategoriesResponse({ data: [] }) });
+      });
+      it('should not show filters if no categories', async () => {
+        const categoryTabs = await harnessLoader.getHarnessOrNull(MatTabGroupHarness);
+        expect(categoryTabs).toBeNull();
+      });
+    });
+
+    describe('With no filter defined in params', () => {
+      beforeEach(async () => {
+        await init({ categoriesResponse: fakeCategoriesResponse({ data: [CATEGORY_1, CATEGORY_2] }) });
+      });
+      it('should categories + All as filters', async () => {
+        const tabs = await harnessLoader.getAllHarnesses(MatTabHarness);
+        expect(tabs).toHaveLength(3);
+        expect(await tabs[0].getLabel()).toEqual('All');
+        expect(await tabs[1].getLabel()).toEqual(CATEGORY_1.name);
+        expect(await tabs[2].getLabel()).toEqual(CATEGORY_2.name);
+      });
+      it('should navigate to category', async () => {
+        const category1Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_1.name }));
+        await category1Tab.select();
+
+        expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
+          queryParams: { filter: CATEGORY_1.id, query: undefined },
+          relativeTo: expect.anything(),
+        });
+      });
+    });
+
+    describe('With specified filter in params', () => {
+      beforeEach(async () => {
+        await init({ categoryId: CATEGORY_2.id, categoriesResponse: fakeCategoriesResponse({ data: [CATEGORY_1, CATEGORY_2] }) });
+      });
+
+      it('should navigate to All', async () => {
+        const allTab = await harnessLoader.getHarness(MatTabHarness.with({ label: 'All' }));
+        await allTab.select();
+
+        expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
+          queryParams: { filter: '', query: undefined },
+          relativeTo: expect.anything(),
+        });
+      });
+      it('should have category selected if query defined', async () => {
+        const category2Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_2.name }));
+        expect(await category2Tab.isSelected()).toEqual(true);
+      });
+    });
+  });
+
+  function expectApiList(
+    apisResponse: ApisResponse = fakeApisResponse(),
+    page: number = 1,
+    size: number = 18,
+    q: string = '',
+    category: string = '',
+  ) {
+    httpTestingController
+      .expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=${category}&size=${size}&q=${q}`)
+      .flush(apisResponse);
   }
 
   function expectCategoriesList(categoriesResponse = fakeCategoriesResponse()) {

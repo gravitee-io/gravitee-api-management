@@ -30,7 +30,15 @@
 
 @if (filterList$ | async; as filterList) {
   <div class="catalog__filters">
-    <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList" [filterParam]="filter()" />
+    @if (filterList.length) {
+      <mat-tab-group (selectedTabChange)="onFilterSelection($event)" [selectedIndex]="selectedFilterIndex()" [mat-stretch-tabs]="false">
+        <mat-tab label="All" />
+        @for (f of filterList; track f.id) {
+          <mat-tab [label]="f.name ?? ''" />
+        }
+      </mat-tab-group>
+    }
+
     <div class="catalog__filters__bottom-row">
       <div class="catalog__filters__bottom-row__filter-labels">
         @if (filterAsCategory(); as category) {

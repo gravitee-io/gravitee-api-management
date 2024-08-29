@@ -18,13 +18,13 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
-import { ApiFilterComponent } from '../../components/api-filter/api-filter.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
@@ -58,8 +58,8 @@ export interface ApiPaginatorVM {
     AsyncPipe,
     InfiniteScrollModule,
     LoaderComponent,
-    ApiFilterComponent,
     SearchBarComponent,
+    MatTabsModule,
   ],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
@@ -77,6 +77,10 @@ export class CatalogComponent {
   query: string = '';
   filter = signal('');
   filterAsCategory = computed(() => this.categories().find(cat => cat.id === this.filter()));
+  selectedFilterIndex = computed(() => {
+    const foundCategory = this.filterAsCategory();
+    return foundCategory ? this.categories().indexOf(foundCategory) + 1 : 0;
+  });
   private categories: WritableSignal<Category[]> = signal([]);
 
   private page = signal(1);
@@ -104,7 +108,9 @@ export class CatalogComponent {
     this.page.set(paginator.page + 1);
   }
 
-  public onFilterSelection(categoryId: string) {
+  public onFilterSelection($event: MatTabChangeEvent) {
+    const categoryId = this.categories().find(cat => cat.name === $event.tab.textLabel)?.id ?? '';
+
     this.router.navigate([''], {
       relativeTo: this.route,
       queryParams: {
