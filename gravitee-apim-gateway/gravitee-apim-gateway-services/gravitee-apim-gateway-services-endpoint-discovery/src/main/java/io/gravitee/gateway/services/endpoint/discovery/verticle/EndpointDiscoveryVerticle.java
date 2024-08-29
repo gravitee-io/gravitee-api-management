@@ -41,17 +41,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class EndpointDiscoveryVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryVerticle.class);
     private final Map<Api, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
 
     @Autowired
@@ -89,19 +88,19 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                     break;
             }
         } else {
-            LOGGER.warn("Endpoint discovery service is not compatible with api V4");
+            log.debug("Endpoint discovery service does not apply to V4 API which now uses a dedicated API service.");
         }
     }
 
     private void stopServiceDiscovery(Api api) {
         List<ServiceDiscovery> discoveries = apiServiceDiscoveries.remove(api);
         if (discoveries != null) {
-            LOGGER.info("Stop service discovery for API id[{}] name[{}]", api.getId(), api.getName());
+            log.info("Stop service discovery for API id[{}] name[{}]", api.getId(), api.getName());
             discoveries.forEach(serviceDiscovery -> {
                 try {
                     serviceDiscovery.stop();
                 } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while stopping service discovery", ex);
+                    log.error("Unexpected error while stopping service discovery", ex);
                 }
             });
         }
@@ -123,7 +122,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         final EndpointGroup group,
         final EndpointDiscoveryService discoveryService
     ) {
-        LOGGER.info(
+        log.info(
             "A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]",
             api.getId(),
             api.getName(),
@@ -144,7 +143,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                     group.setEndpoints(endpoints);
                 }
                 serviceDiscovery.listen(event -> {
-                    LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
+                    log.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
                     Endpoint endpoint = createEndpoint(event.service(), group);
                     switch (event.type()) {
                         case REGISTER:
@@ -156,10 +155,10 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                     }
                 });
             } catch (Exception ex) {
-                LOGGER.error("An errors occurs while starting to listen from service discovery provider", ex);
+                log.error("An errors occurs while starting to listen from service discovery provider", ex);
             }
         } else {
-            LOGGER.error(
+            log.error(
                 "No Service Discovery plugin found for type[{}] api[{}] group[{}]",
                 discoveryService.getProvider(),
                 api.getId(),

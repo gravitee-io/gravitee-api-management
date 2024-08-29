@@ -43,10 +43,12 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -129,7 +131,8 @@ class DebugCompletionProcessorTest {
 
         when(eventRepository.findById("event-id")).thenReturn(Optional.of(event));
 
-        debugCompletionProcessor.execute(debugCtx).test().assertResult();
+        TestObserver<Void> obs = debugCompletionProcessor.execute(debugCtx).test();
+        obs.awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository).update(captor.capture());
@@ -149,7 +152,8 @@ class DebugCompletionProcessorTest {
         when(eventRepository.findById("event-id")).thenReturn(Optional.of(event));
         when(eventRepository.update(any())).thenThrow(new TechnicalException("error")).thenAnswer(invocation -> invocation.getArgument(0));
 
-        debugCompletionProcessor.execute(debugCtx).test().assertResult();
+        TestObserver<Void> obs = debugCompletionProcessor.execute(debugCtx).test();
+        obs.awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository, times(2)).update(captor.capture());
@@ -162,7 +166,8 @@ class DebugCompletionProcessorTest {
     public void shouldDoNothingWithoutEvent() throws TechnicalException {
         when(eventRepository.findById("event-id")).thenReturn(Optional.empty());
 
-        debugCompletionProcessor.execute(debugCtx).test().assertResult();
+        TestObserver<Void> obs = debugCompletionProcessor.execute(debugCtx).test();
+        obs.awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
         verify(eventRepository, never()).update(any());
     }
