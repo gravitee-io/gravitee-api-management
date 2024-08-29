@@ -17,6 +17,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { combineLatest } from 'rxjs';
 
 import { ApiScore } from './api-score.model';
 import { ApiScoreService } from './api-score.service';
@@ -31,8 +32,10 @@ import { Api } from '../../../entities/management-api-v2';
 })
 export class ApiScoreComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
+  private apiId = this.activatedRoute.snapshot.params.apiId;
+
   public status = 'all';
-  public isLoading = false;
+  public isLoading = true;
   public apiScore: ApiScore;
   public api: Api;
 
@@ -43,21 +46,14 @@ export class ApiScoreComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.apiService
-      .get(this.activatedRoute.snapshot.params.apiId)
+    combineLatest([this.apiService.get(this.apiId), this.apiScoreService.getApiScoring(this.apiId)])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (api) => {
+        next: ([api, apiScore]) => {
           this.api = api;
-        },
-      });
-
-    this.apiScoreService
-      .getAllClear()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (apiScore) => {
           this.apiScore = apiScore;
+
+          this.isLoading = false;
         },
       });
   }

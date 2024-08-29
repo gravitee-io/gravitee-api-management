@@ -2402,6 +2402,26 @@ paths:
                                 $ref: "#/components/schemas/ApiScoringTriggerResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/scoring:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - API Scoring
+        summary: Get API Scoring
+        description: |-
+          Get API Scoring.
+        operationId: getApiScoring
+        responses:
+          "200":
+            description: API Scoring
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiScoring"
+          default:
+            $ref: "#/components/responses/Error"
 
     # Categories
 
@@ -6781,7 +6801,6 @@ components:
                     type: string
                     description: Api Scoring message.
                     example: API Scoring triggered successfully.
-
         ScoringStatus:
             type: string
             description: API Scoring status.
@@ -6791,6 +6810,103 @@ components:
                 - PENDING
                 - ERROR
 
+        ApiScoring:
+            type: object
+            properties:
+                all:
+                    type: integer
+                    description: The total number of violated rules for all assets.
+                    example: 100
+                errors:
+                    type: integer
+                    description: The total number of violated rules with severity ERROR for all assets.
+                    example: 10
+                warnings:
+                    type: integer
+                    description: The total number of violated rules with severity WARN for all assets.
+                    example: 20
+                infos:
+                    type: integer
+                    description: The total number of violated rules with severity INFO for all assets.
+                    example: 30
+                hints:
+                    type: integer
+                    description: The total number of violated rules with severity HINT for all assets.
+                    example: 40
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date when the scoring has been created.
+                    example: 2023-05-18T12:40:46.184Z
+                assets:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiScoringAsset"
+        ApiScoringAsset:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Asset name.
+                    example: Echo-oas.json
+                type:
+                    $ref: "#/components/schemas/ApiScoringAssetType"
+                diagnostics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiScoringDiagnostic"
+        ApiScoringAssetType:
+            type: string
+            description: The type of the asset.
+            example: SWAGGER
+            enum:
+                - ASYNCAPI
+                - GRAVITEE_DEFINITION
+                - SWAGGER
+        ApiScoringDiagnostic:
+            type: object
+            properties:
+                severity:
+                    $ref: "#/components/schemas/ApiScoringSeverity"
+                range:
+                    type: object
+                    properties:
+                        start:
+                            $ref: "#/components/schemas/ApiScoringPosition"
+                        end:
+                            $ref: "#/components/schemas/ApiScoringPosition"
+                rule:
+                    type: string
+                    description: The rule that has been violated.
+                    example: "operation-operationId"
+                message:
+                    type: string
+                    description: A string that contains a human-readable message describing the issue found.
+                    example: "Operation must have 'operationId'."
+                path:
+                    type: string
+                    description: A string that indicates the location within the analyzed document where the rule was triggered. It shows the "path" in the document structure to the issue.
+                    example: "paths./my-api.get"
+        ApiScoringSeverity:
+            type: string
+            description: An enum representing the severity level of the rule violation.
+            example: WARN
+            enum:
+                - ERROR
+                - HINT
+                - INFO
+                - WARN
+        ApiScoringPosition:
+            type: object
+            properties:
+                line:
+                    type: integer
+                    description: An integer that represents the line number within the line where the issue starts or ends. The value is zero indexed.
+                    example: 17
+                character:
+                    type: integer
+                    description: An integer that represents the character position within the line where the issue starts or ends. The value is zero indexed.
+                    example: 12
     parameters:
         #############
         # PathParam #

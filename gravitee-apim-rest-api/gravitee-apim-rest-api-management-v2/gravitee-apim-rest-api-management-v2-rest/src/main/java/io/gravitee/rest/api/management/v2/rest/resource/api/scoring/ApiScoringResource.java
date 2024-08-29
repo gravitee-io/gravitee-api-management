@@ -17,11 +17,20 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.scoring;
 
 import io.gravitee.apim.core.score.use_case.ScoreApiRequestUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAssetType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnostic;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringDiagnosticRange;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringPosition;
+import io.gravitee.rest.api.management.v2.rest.model.ApiScoringSeverity;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.scoring.api.model.diagnostic.AssetDiagnostic;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -29,6 +38,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
 public class ApiScoringResource extends AbstractResource {
 
@@ -50,5 +60,73 @@ public class ApiScoringResource extends AbstractResource {
                 () -> response.resume(Response.accepted(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build()).build()),
                 response::resume
             );
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApiScoring getApiScoring() {
+        return ApiScoring
+            .builder()
+            .all(3)
+            .errors(0)
+            .hints(1)
+            .infos(0)
+            .warnings(2)
+            .assets(
+                List.of(
+                    ApiScoringAsset
+                        .builder()
+                        .name("Echo-oas.json")
+                        .type(ApiScoringAssetType.SWAGGER)
+                        .diagnostics(
+                            List.of(
+                                ApiScoringDiagnostic
+                                    .builder()
+                                    .range(
+                                        ApiScoringDiagnosticRange
+                                            .builder()
+                                            .start(ApiScoringPosition.builder().line(9).character(9).build())
+                                            .end(ApiScoringPosition.builder().line(5).character(38).build())
+                                            .build()
+                                    )
+                                    .severity(ApiScoringSeverity.WARN)
+                                    .rule("info-contact")
+                                    .message("Info object must have \"contact\" object.")
+                                    .path("info")
+                                    .build(),
+                                ApiScoringDiagnostic
+                                    .builder()
+                                    .range(
+                                        ApiScoringDiagnosticRange
+                                            .builder()
+                                            .start(ApiScoringPosition.builder().line(17).character(12).build())
+                                            .end(ApiScoringPosition.builder().line(38).character(25).build())
+                                            .build()
+                                    )
+                                    .severity(ApiScoringSeverity.WARN)
+                                    .rule("operation-description")
+                                    .message("Operation \"description\" must be present and non-empty string.")
+                                    .path("paths./echo.get")
+                                    .build(),
+                                ApiScoringDiagnostic
+                                    .builder()
+                                    .range(
+                                        ApiScoringDiagnosticRange
+                                            .builder()
+                                            .start(ApiScoringPosition.builder().line(17).character(12).build())
+                                            .end(ApiScoringPosition.builder().line(38).character(25).build())
+                                            .build()
+                                    )
+                                    .severity(ApiScoringSeverity.HINT)
+                                    .rule("operation-tags")
+                                    .message("Operation must have non-empty \"tags\" array.")
+                                    .path("paths./echo.get")
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            )
+            .build();
     }
 }
