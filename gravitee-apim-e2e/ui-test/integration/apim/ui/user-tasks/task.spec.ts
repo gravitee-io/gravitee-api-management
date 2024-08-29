@@ -34,7 +34,7 @@ describe('Task screen', () => {
       cy.getByDataTestId('top-nav-user-menu-button').click();
       cy.getByDataTestId('user-menu-task-button').click();
       cy.url().should('include', 'tasks');
-      cy.get('.mat-h5').contains('Congratulations, you did all your tasks!');
+      cy.get('.mat-h5').contains('No tasks to display.');
       cy.get('mat-icon[svgicon="gio:sun"]').should('be.visible');
     });
   });
@@ -76,7 +76,7 @@ describe('Task screen', () => {
       });
 
       it('should create an API review entry in Tasks', () => {
-        cy.get('h2').contains('My tasks (1)');
+        cy.get('h2').contains('My Tasks (1)');
         cy.getByDataTestId('task-card')
           .should('contain', 'API review')
           .should('contain', `The API ${api.name} is ready to be reviewed`)
@@ -138,7 +138,7 @@ describe('Task screen', () => {
       });
 
       it('should create a validate subscription entry in Tasks', () => {
-        cy.get('h2').contains('My tasks (1)');
+        cy.get('h2').contains('My Tasks (1)');
         cy.getByDataTestId('task-card')
           .should('contain', 'Subscription')
           .should(
@@ -187,7 +187,7 @@ describe('Task screen', () => {
       });
 
       it('should create a user validation entry in Tasks', () => {
-        cy.get('h2').contains('My tasks (1)');
+        cy.get('h2').contains('My Tasks (1)');
         cy.getByDataTestId('task-card')
           .should('contain', 'User registration')
           .should('contain', `The registration of the user ${firstname} ${lastname} has to be validated`)
