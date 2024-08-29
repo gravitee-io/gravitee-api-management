@@ -63,7 +63,9 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
             .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
         settingsValidator
-            .validateAndSanitize(new ValidateApplicationSettingsDomainService.Input(input.auditInfo, input.spec.getSettings()))
+            .validateAndSanitize(
+                new ValidateApplicationSettingsDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getSettings())
+            )
             .peek(sanitized -> sanitizedBuilder.settings(sanitized.settings()), errors::addAll);
 
         return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);

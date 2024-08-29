@@ -175,6 +175,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id("app-id")
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
@@ -188,6 +189,31 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                                     )
                                     .build()
                             )
+                            .build()
+                    );
+
+                soft.assertThat(applicationCrudService.storage()).isEmpty();
+            });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_no_client_id_error_in_status_on_updates_without_saving_if_dry_run() {
+            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
+                .thenReturn(Set.of(Application.builder().id("app-id").metadata(Map.of("client_id", "test-client-id")).build()));
+
+            var crdStatus = doImport("/crd/application/simple-app-with-client-id.json", true);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        ApplicationCRDStatus
+                            .builder()
+                            .id("app-id")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .errors(ApplicationCRDStatus.Errors.builder().warning(List.of()).severe(List.of()).build())
                             .build()
                     );
 
