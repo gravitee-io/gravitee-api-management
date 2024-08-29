@@ -41,6 +41,7 @@ public class ReactorEventListenerTest {
         MockitoAnnotations.initMocks(this);
 
         reactorEventListener = new ReactorEventListener(eventManager, reactorHandlerRegistry);
+        reactorEventListener.start();
     }
 
     @Test
