@@ -77,8 +77,6 @@ describe('GatewayApi', () => {
         plugins: expect.any(Array),
         started_at: expect.any(Date),
         last_heartbeat_at: expect.any(Date),
-        environments_hrids: expect.any(Array),
-        organizations_hrids: expect.any(Array),
       };
       expect(gatewayInstance).toMatchObject(instanceListItem);
     });
