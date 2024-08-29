@@ -98,8 +98,8 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(create.getEnvironmentId()).isEqualTo(sharedPolicyGroup.getEnvironmentId());
         assertThat(create.getOrganizationId()).isEqualTo(sharedPolicyGroup.getOrganizationId());
         assertThat(create.getDeployedAt()).isEqualTo(sharedPolicyGroup.getDeployedAt());
-        assertThat(create.getCreatedAt()).isEqualTo(create.getCreatedAt());
-        assertThat(create.getUpdatedAt()).isEqualTo(create.getUpdatedAt());
+        assertThat(create.getCreatedAt()).isEqualTo(sharedPolicyGroup.getCreatedAt());
+        assertThat(create.getUpdatedAt()).isEqualTo(sharedPolicyGroup.getUpdatedAt());
     }
 
     @Test
