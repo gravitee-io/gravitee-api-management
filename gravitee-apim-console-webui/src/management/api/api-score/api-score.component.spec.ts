@@ -24,7 +24,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiScoreComponent } from './api-score.component';
 import { ApiScoreHarness } from './api-score.harness';
 import { ApiScoreModule } from './api-score.module';
-import { fakeApiScoringTriggerResponse } from './api-score.fixture';
+import { fakeApiScore, fakeApiScoringTriggerResponse } from './api-score.fixture';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
@@ -64,6 +64,7 @@ describe('ApiScoreComponent', () => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreHarness);
 
     expectApiGetRequest(API_ID);
+    expectApiScoreGetRequest(API_ID);
     fixture.detectChanges();
   };
 
@@ -86,6 +87,15 @@ describe('ApiScoreComponent', () => {
         method: 'GET',
       })
       .flush(fakeApiFederated({ id: apiId }));
+  }
+
+  function expectApiScoreGetRequest(apiId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/scoring`,
+        method: 'GET',
+      })
+      .flush(fakeApiScore());
   }
 
   function expectApiScorePostRequest(apiId: string) {

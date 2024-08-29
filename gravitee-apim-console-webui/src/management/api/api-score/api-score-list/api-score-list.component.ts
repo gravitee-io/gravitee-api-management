@@ -15,7 +15,7 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 
-import { ScoreList, ScoreIssue } from '../api-score.model';
+import { ScoringAsset, ScoringDiagnostic } from '../api-score.model';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -25,27 +25,32 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
   styleUrl: './api-score-list.component.scss',
 })
 export class ApiScoreListComponent implements OnInit {
-  @Input() scoreList: ScoreList;
+  @Input() asset: ScoringAsset;
   public displayedColumns: string[] = ['severity', 'location', 'recommendation', 'path'];
-  public isLoading = false;
-  public issuesFiltered: ScoreIssue[] = [];
+  public diagnosticsFiltered: ScoringDiagnostic[] = [];
 
   public filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 5 },
     searchTerm: '',
   };
-  public nbTotalInstances = 0;
+  public totalDiagnostics: number;
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.updateList();
+  }
 
-  public runFilters(filters: GioTableWrapperFilters): void {
+  public onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters = { ...this.filters, ...filters };
-    const filtered = gioTableFilterCollection(this.scoreList.issues, filters);
-    this.issuesFiltered = filtered.filteredCollection;
-    this.nbTotalInstances = filtered.unpaginatedLength;
+    this.updateList();
   }
 
   public openEditor(e: MouseEvent): void {
     e.stopPropagation();
+  }
+
+  private updateList() {
+    const filtered = gioTableFilterCollection(this.asset.diagnostics, this.filters);
+    this.diagnosticsFiltered = filtered.filteredCollection;
+    this.totalDiagnostics = filtered.unpaginatedLength;
   }
 }
