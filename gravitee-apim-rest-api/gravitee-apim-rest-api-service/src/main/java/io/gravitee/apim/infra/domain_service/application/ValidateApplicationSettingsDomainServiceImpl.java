@@ -68,29 +68,42 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         if (input.settings().getApp() != null) {
-            return Result.ofBoth(input, validateSimpleSettings(input.auditInfo().environmentId(), input.settings().getApp()));
+            return validateAndSanitizeSimpleSettings(input);
         }
-        return Result.ofBoth(input, validateOAuthSettings(input.auditInfo(), input.settings().getOauth()));
+        return validateOAuthSettings(input);
     }
 
-    private List<Error> validateSimpleSettings(String environmentId, SimpleApplicationSettings settings) {
-        if (StringUtils.isNotEmpty(settings.getClientId())) {
-            return validateClientId(environmentId, settings);
-        }
-        return List.of();
-    }
-
-    private List<Error> validateOAuthSettings(AuditInfo auditInfo, OAuthClientSettings settings) {
+    private Result<Input> validateAndSanitizeSimpleSettings(Input input) {
+        var sanitizedBuilder = input.settings().toBuilder();
+        var simpleSettings = input.settings().getApp();
         var errors = new ArrayList<Error>();
-        if (!isClientRegistrationEnabled(auditInfo.organizationId(), auditInfo.environmentId())) {
+
+        if (StringUtils.isNotEmpty(simpleSettings.getClientId())) {
+            errors.addAll(validateClientId(input.auditInfo().environmentId(), input.applicationId(), simpleSettings));
+        }
+
+        return Result.ofBoth(input.sanitized(sanitizedBuilder.app(simpleSettings).build()), errors);
+    }
+
+    private Result<Input> validateOAuthSettings(Input input) {
+        var sanitizedBuilder = input.settings().toBuilder();
+        var oauthSettings = input.settings().getOauth();
+        var errors = new ArrayList<Error>();
+
+        if (!isClientRegistrationEnabled(input.auditInfo())) {
             errors.add(
-                Error.severe("configuring OAuth requires client registration to be enabled on environment [%s]", auditInfo.environmentId())
+                Error.severe(
+                    "configuring OAuth requires client registration to be enabled on environment [%s]",
+                    input.auditInfo().environmentId()
+                )
             );
         }
-        var appType = applicationTypeService.getApplicationType(settings.getApplicationType());
-        errors.addAll(validateGrantTypes(appType, settings));
-        errors.addAll(validateRedirectURIs(appType, settings));
-        return errors;
+
+        var appType = applicationTypeService.getApplicationType(oauthSettings.getApplicationType());
+        errors.addAll(validateGrantTypes(appType, oauthSettings));
+        errors.addAll(validateRedirectURIs(appType, oauthSettings));
+
+        return Result.ofBoth(input.sanitized(sanitizedBuilder.oauth(oauthSettings).build()), errors);
     }
 
     private List<Error> validateGrantTypes(ApplicationTypeEntity type, OAuthClientSettings settings) {
@@ -160,19 +173,25 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             : type.getMandatory_grant_types().stream().map(ApplicationGrantTypeEntity::getType).toList();
     }
 
-    private boolean isClientRegistrationEnabled(String organizationId, String environmentId) {
+    private boolean isClientRegistrationEnabled(AuditInfo auditInfo) {
         return parameterService.findAsBoolean(
-            new ExecutionContext(organizationId, environmentId),
+            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
             Key.APPLICATION_REGISTRATION_ENABLED,
-            environmentId,
+            auditInfo.environmentId(),
             ParameterReferenceType.ENVIRONMENT
         );
     }
 
-    private List<Error> validateClientId(String environmentId, SimpleApplicationSettings settings) {
+    private List<Error> validateClientId(String environmentId, String applicationId, SimpleApplicationSettings settings) {
         try {
             var clientId = settings.getClientId();
-            var activeApps = applicationRepository.findAllByEnvironment(environmentId, ACTIVE);
+
+            var activeApps = applicationRepository
+                .findAllByEnvironment(environmentId, ACTIVE)
+                .stream()
+                .filter(app -> !app.getId().equals(applicationId))
+                .toList();
+
             for (var app : activeApps) {
                 if (app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID))) {
                     return List.of(

@@ -24,5 +24,9 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
  * @author GraviteeSource Team
  */
 public interface ValidateApplicationSettingsDomainService extends Validator<ValidateApplicationSettingsDomainService.Input> {
-    record Input(AuditInfo auditInfo, ApplicationSettings settings) implements Validator.Input {}
+    record Input(AuditInfo auditInfo, String applicationId, ApplicationSettings settings) implements Validator.Input {
+        public Input sanitized(ApplicationSettings sanitizedSettings) {
+            return new Input(auditInfo, applicationId, sanitizedSettings);
+        }
+    }
 }

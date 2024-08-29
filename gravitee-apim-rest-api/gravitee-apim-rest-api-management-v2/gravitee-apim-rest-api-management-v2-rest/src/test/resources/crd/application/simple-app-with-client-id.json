@@ -1,5 +1,6 @@
 {
   "name": "with-client-id",
+  "id": "app-id",
   "description": "Simple app with client ID",
   "domain": "my-domain",
   "settings": {
