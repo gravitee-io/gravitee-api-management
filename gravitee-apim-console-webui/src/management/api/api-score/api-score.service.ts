@@ -120,10 +120,7 @@ export class ApiScoreService {
     ],
   };
 
-  constructor(
-    private readonly httpClient: HttpClient,
-    @Inject(Constants) private readonly constants: Constants,
-  ) {}
+  constructor(private readonly httpClient: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   public getWithIssues(): Observable<ApiScore> {
     return of(this.apiScoreWithIssues);
@@ -134,6 +131,6 @@ export class ApiScoreService {
   }
 
   public evaluate(apiId: string): Observable<ApiScoringTriggerResponse> {
-    return this.httpClient.post<ApiScoringTriggerResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_score`, null);
+    return this.httpClient.post<ApiScoringTriggerResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring/_evaluate`, null);
   }
 }

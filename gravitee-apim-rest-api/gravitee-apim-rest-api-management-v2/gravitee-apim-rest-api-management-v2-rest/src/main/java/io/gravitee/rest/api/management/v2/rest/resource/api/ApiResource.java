@@ -64,6 +64,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.analytics.ApiAnalyti
 import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.event.ApiEventsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.scoring.ApiScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -589,18 +590,9 @@ public class ApiResource extends AbstractResource {
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
 
-    @POST
-    @Path("/_score")
-    @Produces(MediaType.APPLICATION_JSON)
-    public void scoreAPI(@PathParam("apiId") String apiId, @Suspended final AsyncResponse response) {
-        var executionContext = GraviteeContext.getExecutionContext();
-
-        scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(apiId, executionContext.getEnvironmentId(), executionContext.getOrganizationId()))
-            .subscribe(
-                () -> response.resume(Response.accepted(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build()).build()),
-                response::resume
-            );
+    @Path("/scoring")
+    public ApiScoringResource getApiScoringResource() {
+        return resourceContext.getResource(ApiScoringResource.class);
     }
 
     @POST

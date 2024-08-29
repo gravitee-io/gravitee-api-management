@@ -2382,7 +2382,7 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Scoring
-    /environments/{envId}/apis/{apiId}/_score:
+    /environments/{envId}/apis/{apiId}/scoring/_evaluate:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"

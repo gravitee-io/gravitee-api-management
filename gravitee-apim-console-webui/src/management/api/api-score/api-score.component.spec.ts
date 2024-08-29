@@ -90,7 +90,7 @@ describe('ApiScoreComponent', () => {
 
   function expectApiScorePostRequest(apiId: string) {
     const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_score`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/scoring/_evaluate`,
       method: 'POST',
     });
     req.flush(fakeApiScoringTriggerResponse());
