@@ -44,7 +44,7 @@ class TestComponent {
     name: GROUP_NAME,
   };
 }
-xdescribe('IntegrationGeneralGroupMembersComponent', () => {
+describe('IntegrationGeneralGroupMembersComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -74,7 +74,7 @@ xdescribe('IntegrationGeneralGroupMembersComponent', () => {
 
   it('should display group members tables', async () => {
     expectGroupsGetMembersRequest({
-      data: [fakeMember({ roles: [{ name: 'USER', scope: 'API' }] })],
+      data: [fakeMember({ roles: [{ name: 'USER', scope: 'INTEGRATION' }] })],
       metadata: { groupName: GROUP_NAME },
       pagination: { totalCount: 1 },
     });
@@ -87,7 +87,7 @@ xdescribe('IntegrationGeneralGroupMembersComponent', () => {
     expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', 'USER']]);
   });
 
-  it('should group members tables -- no API role', async () => {
+  it('should group members tables -- no Integration role', async () => {
     expectGroupsGetMembersRequest({
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'APPLICATION' }] })],
       metadata: { groupName: GROUP_NAME },
@@ -124,8 +124,8 @@ xdescribe('IntegrationGeneralGroupMembersComponent', () => {
       );
     fixture.detectChanges();
 
-    const apiGroupsMembersComponent = await loader.getHarness(IntegrationGeneralGroupMembersHarness);
-    expect(await apiGroupsMembersComponent.userCannotViewGroupMembers()).toEqual(true);
+    const integrationGroupsMembersComponent = await loader.getHarness(IntegrationGeneralGroupMembersHarness);
+    expect(await integrationGroupsMembersComponent.userCannotViewGroupMembers()).toEqual(true);
   });
 
   function expectGroupsGetMembersRequest(membersResponse: MembersResponse) {

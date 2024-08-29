@@ -18,13 +18,14 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Api, Group } from '../../../../entities/management-api-v2';
+import { Group } from '../../../../entities/management-api-v2';
+import { Integration } from '../../integrations.model';
 
-export interface ApiGroupsDialogData {
-  api: Api;
+export interface IntegrationGroupsDialogData {
+  integration: Integration;
   groups: Group[];
 }
-export interface ApiGroupsDialogResult {
+export interface IntegrationGroupsDialogResult {
   groups: string[];
 }
 
@@ -36,7 +37,7 @@ export interface ApiGroupsDialogResult {
 export class IntegrationGeneralGroupsComponent implements OnInit {
   public isReadOnly = true;
   public form: UntypedFormGroup;
-  public api: Api;
+  public integration: Integration;
   public groups: Group[];
   public readOnlyGroupList: string;
 
@@ -44,17 +45,17 @@ export class IntegrationGeneralGroupsComponent implements OnInit {
     private readonly permissionService: GioPermissionService,
     private readonly formBuilder: UntypedFormBuilder,
 
-    @Inject(MAT_DIALOG_DATA) dialogData: ApiGroupsDialogData,
-    public dialogRef: MatDialogRef<ApiGroupsDialogData, ApiGroupsDialogResult>,
+    @Inject(MAT_DIALOG_DATA) dialogData: IntegrationGroupsDialogData,
+    public dialogRef: MatDialogRef<IntegrationGroupsDialogData, IntegrationGroupsDialogResult>,
   ) {
-    this.api = dialogData.api;
+    this.integration = dialogData.integration;
     this.groups = dialogData.groups;
   }
 
   ngOnInit() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-integration-u']);
 
-    const userGroupList: Group[] = this.groups.filter((group) => this.api.groups?.includes(group.id));
+    const userGroupList: Group[] = this.groups.filter((group) => this.integration.groups?.includes(group.id));
     this.form = this.formBuilder.group({
       selectedGroups: {
         value: userGroupList.map((g) => g.id),

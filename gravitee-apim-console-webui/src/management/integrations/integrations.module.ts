@@ -57,8 +57,7 @@ import { IntegrationStatusComponent } from './components/integration-status/inte
 import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
 import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
 import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
-import { IntegrationUserGroupModule } from "./user-group-access/integration-user-group.module";
-
+import { IntegrationUserGroupModule } from './user-group-access/integration-user-group.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';

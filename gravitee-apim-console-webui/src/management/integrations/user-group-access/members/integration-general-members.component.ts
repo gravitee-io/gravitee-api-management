@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, OnInit } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { combineLatest, EMPTY, forkJoin, Observable } from 'rxjs';
-import { filter, tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { combineLatest, EMPTY, forkJoin, Observable, of } from 'rxjs';
+import { filter, switchMap, tap } from 'rxjs/operators';
 import { isEmpty, uniqueId } from 'lodash';
-
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
@@ -36,9 +35,14 @@ import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { Group, Member } from '../../../../entities/management-api-v2';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 import { Role } from '../../../../entities/role/role';
-import { IntegrationsService } from "../../../../services-ngx/integrations.service";
-import { Integration } from "../../integrations.model";
-import { IntegrationMemberService } from "../../../../services-ngx/integration-member.service";
+import { IntegrationsService } from '../../../../services-ngx/integrations.service';
+import { Integration } from '../../integrations.model';
+import { IntegrationMemberService } from '../../../../services-ngx/integration-member.service';
+import {
+  IntegrationGeneralGroupsComponent,
+  IntegrationGroupsDialogData,
+  IntegrationGroupsDialogResult,
+} from '../groups/integration-general-groups.component';
 
 interface MemberDataSource {
   id: string;
@@ -74,7 +78,6 @@ export class IntegrationGeneralMembersComponent implements OnInit {
   public groupData: GroupData[];
   public groups: Group[] = [];
 
-
   dataSource: MemberDataSource[];
   integration: Integration;
 
@@ -92,7 +95,7 @@ export class IntegrationGeneralMembersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-integration-u'])
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-integration-u']);
     this.integrationId = this.activatedRoute.snapshot.params.integrationId;
 
     if (this.permissionService.hasAnyMatching(['environment-integration-d']) && !this.displayedColumns.includes('delete')) {
@@ -103,43 +106,34 @@ export class IntegrationGeneralMembersComponent implements OnInit {
       this.integrationsService.getIntegration(this.integrationId),
       this.integrationMemberService.getMembers(this.integrationId),
       this.roleService.list('INTEGRATION'),
-      // this.groupService.list(1, 9999),
+      this.groupService.list(1, 9999),
     ])
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ([integration, members, roles]) => {
+        next: ([integration, members, roles, groups]) => {
           this.integration = integration;
 
-          // toDo: uncomment when integration has groups implemented
-          // this.groups = groups.data;
+          this.groups = groups.data;
 
           this.members = members.data;
           this.roles = roles;
           this.defaultRole = roles.find((role) => role.default);
           this.roleNames = roles.map((r) => r.name) ?? [];
 
-          // toDo: uncomment when integration has groups implemented
-          // this.groupData = integration.groups?.map((id) => ({
-          //   id,
-          //   name: groups.data.find((g) => g.id === id)?.name,
-          //   isVisible: true,
-          // }));
+          this.groupData = integration.groups?.map((id) => ({
+            id,
+            name: groups.data.find((g) => g.id === id)?.name,
+            isVisible: true,
+          }));
 
           this.initDataSource();
           this.initForm();
-        }
+        },
       });
   }
 
   public onSubmit() {
     const queries = [];
-
-    // toDo: uncomment when isNotificationsEnabled is implemented on integration
-    // if (this.form.controls['isNotificationsEnabled'].dirty) {
-    //   queries.push(this.getSaveChangeOnApiNotificationsQuery$());
-    // }
 
     if (this.form.controls['members'].dirty) {
       queries.push(
@@ -160,7 +154,7 @@ export class IntegrationGeneralMembersComponent implements OnInit {
         error: ({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
-        }
+        },
       });
   }
 
@@ -190,8 +184,8 @@ export class IntegrationGeneralMembersComponent implements OnInit {
   public removeMember(member: MemberDataSource) {
     const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
       data: {
-        title: `Remove API member`,
-        content: `Are you sure you want to remove "<b>${member.displayName}</b>" from this API members? <br>This action cannot be undone!`,
+        title: `Remove Integration member`,
+        content: `Are you sure you want to remove "<b>${member.displayName}</b>" from this Integration members? <br>This action cannot be undone!`,
         confirmButton: 'Remove',
       },
       role: 'alertdialog',
@@ -200,9 +194,7 @@ export class IntegrationGeneralMembersComponent implements OnInit {
 
     confirm
       .afterClosed()
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((shouldDeleteMember) => {
         if (shouldDeleteMember) {
           this.deleteMember(member);
@@ -211,32 +203,30 @@ export class IntegrationGeneralMembersComponent implements OnInit {
   }
 
   public updateGroups(): void {
-    // toDo: to implement with groups
-    // this.matDialog
-    //   .open<IntegrationGeneralGroupsComponent, ApiGroupsDialogData, ApiGroupsDialogResult>(IntegrationGeneralGroupsComponent, {
-    //     width: GIO_DIALOG_WIDTH.MEDIUM,
-    //     role: 'alertdialog',
-    //     id: 'addGroupsDialog',
-    //     data: {
-    //       api: this.api,
-    //       groups: this.groups,
-    //       isKubernetesOrigin: this.isKubernetesOrigin,
-    //     },
-    //   })
-    //   .afterClosed()
-    //   .pipe(
-    //     filter(() => !this.isKubernetesOrigin),
-    //     switchMap((apiDialogResult) => {
-    //       return combineLatest([of(apiDialogResult), this.apiService.get(this.apiId)]);
-    //     }),
-    //     switchMap(([apiDialogResult, api]) => {
-    //       return api.definitionVersion === 'FEDERATED'
-    //         ? throwError({ message: `You cannot modify a ${api.definitionVersion} API.` })
-    //         : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
-    //     }),
-    //     takeUntilDestroyed(this.destroyRef),
-    //   )
-    //   .subscribe(() => this.ngOnInit());
+    this.matDialog
+      .open<IntegrationGeneralGroupsComponent, IntegrationGroupsDialogData, IntegrationGroupsDialogResult>(
+        IntegrationGeneralGroupsComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          role: 'alertdialog',
+          id: 'addGroupsDialog',
+          data: {
+            integration: this.integration,
+            groups: this.groups,
+          },
+        },
+      )
+      .afterClosed()
+      .pipe(
+        switchMap((dialogResult) => {
+          return combineLatest([of(dialogResult), this.integrationsService.getIntegration(this.integrationId)]);
+        }),
+        switchMap(([dialogResult]) => {
+          return this.integrationsService.updateIntegration({ ...this.integration, groups: dialogResult?.groups }, this.integrationId);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   public onReset() {
@@ -246,9 +236,9 @@ export class IntegrationGeneralMembersComponent implements OnInit {
 
   private initDataSource() {
     this.dataSource = this.members?.map((member) => {
-      // The data structure for roles allows multiple role for one user, but at API level, we only manage one role per user. Throw error if data is incorrect
+      // The data structure for roles allows multiple role for one user, but at Integration level, we only manage one role per user. Throw error if data is incorrect
       if (member.roles.length !== 1) {
-        throw new Error('Cannot manage more than one role at API level');
+        throw new Error('Cannot manage more than one role at Integration level');
       }
       return {
         id: member.id,
@@ -345,23 +335,5 @@ export class IntegrationGeneralMembersComponent implements OnInit {
         externalReference: memberToAdd.reference,
       });
     }
-  }
-
-  private getSaveChangeOnApiNotificationsQuery$(): any {
-    // toDo: implement when isNotificationsEnabled is implemented on integration, remove v1,v2 items.
-    // return this.apiService.get(this.apiId).pipe(
-    //   switchMap((api) => {
-    //     if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
-    //       const updatedApi = {
-    //         ...api,
-    //         disableMembershipNotifications: !this.form.value.isNotificationsEnabled,
-    //       };
-    //       return this.apiService.update(api.id, updatedApi);
-    //     } else {
-    //       // Update V1 API is not supported
-    //       return EMPTY;
-    //     }
-    //   }),
-    // );
   }
 }

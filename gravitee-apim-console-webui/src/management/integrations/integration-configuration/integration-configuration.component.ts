@@ -38,13 +38,6 @@ export class IntegrationConfigurationComponent {
       routerLinkActiveOptions: { exact: true },
       disabled: false,
     },
-    // Uncomment when page ready
-    // {
-    //   displayName: 'Discovery',
-    //   routerLink: 'discovery',
-    //   routerLinkActiveOptions: { exact: true },
-    //   disabled: true,
-    // },
   ];
 
   constructor(public readonly integrationsService: IntegrationsService) {}

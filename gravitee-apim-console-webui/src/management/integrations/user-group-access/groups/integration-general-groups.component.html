@@ -15,14 +15,14 @@
     limitations under the License.
 
 -->
-<div class="api-portal-access-groups">
-  <div class="api-portal-access-groups__header">
-    <div class="api-portal-access-groups__header__title">Manage groups</div>
-    <div class="api-portal-access-groups__header__subtitle">Give groups access to your API through the API Management console</div>
+<div class="integration-access-groups">
+  <div class="integration-access-groups__header">
+    <div class="integration-access-groups__header__title">Manage groups</div>
+    <div class="integration-access-groups__header__subtitle">Give groups access to your integration through the API Management console</div>
   </div>
 
   <form *ngIf="form" [formGroup]="form">
-    <div class="api-portal-access-groups__body">
+    <div class="integration-access-groups__body">
       <mat-form-field *ngIf="!isReadOnly; else readOnlyGroups">
         <mat-label>Groups</mat-label>
         <mat-select formControlName="selectedGroups" multiple>
@@ -31,22 +31,15 @@
       </mat-form-field>
       <ng-template #readOnlyGroups>
         <div class="mat-h4">Groups</div>
-        <div class="api-portal-access-groups__body__read-only-groups">
+        <div class="integration-access-groups__body__read-only-groups">
           <div class="mat-subtitle-2">Associated groups</div>
           <span>{{ readOnlyGroupList }}</span>
         </div>
       </ng-template>
     </div>
 
-    <div class="api-portal-access-groups__actions">
-      <button
-        *ngIf="!isReadOnly"
-        color="primary"
-        aria-label="Save api groups"
-        mat-raised-button
-        [disabled]="form.invalid"
-        (click)="save()"
-      >
+    <div class="integration-access-groups__actions">
+      <button *ngIf="!isReadOnly" color="primary" aria-label="Save api groups" mat-raised-button [disabled]="form.invalid" (click)="save()">
         Save
       </button>
     </div>
