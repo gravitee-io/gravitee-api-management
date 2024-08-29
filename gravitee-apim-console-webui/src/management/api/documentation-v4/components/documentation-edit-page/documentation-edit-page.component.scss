@@ -11,30 +11,7 @@ $typography: map.get(gio.$mat-theme, typography);
   border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
   align-items: center;
 
-  &__information {
-    display: flex;
-    flex-flow: column;
-    gap: 8px;
-
-    &__title {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      margin: 0;
-    }
-
-    &__location {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-end;
-      gap: 2px;
-      grid-area: location;
-    }
-  }
-
   &__actions {
-    grid-area: actions;
-
     display: flex;
     justify-items: center;
     align-items: center;

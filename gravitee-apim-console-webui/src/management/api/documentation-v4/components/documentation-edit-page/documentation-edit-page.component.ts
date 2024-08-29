@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import {
   GioConfirmDialogComponent,
@@ -44,19 +44,8 @@ import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
-import {
-  AccessControl,
-  Api,
-  Breadcrumb,
-  EditDocumentation,
-  getLogoForPageType,
-  getTooltipForPageType,
-  Group,
-  Page,
-  PageSource,
-} from '../../../../../entities/management-api-v2';
+import { AccessControl, Api, Breadcrumb, EditDocumentation, Group, Page } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiDocumentationV4BreadcrumbComponent } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
@@ -66,6 +55,7 @@ import {
   PageConfigurationData,
   PageConfigurationForm,
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
+import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 
 interface EditPageForm {
   pageConfiguration: FormGroup<PageConfigurationForm>;
@@ -95,7 +85,6 @@ interface EditPageForm {
     ReactiveFormsModule,
     ApiDocumentationV4VisibilityComponent,
     MatTooltip,
-    ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4Module,
@@ -103,6 +92,7 @@ interface EditPageForm {
     MatTabGroup,
     MatTab,
     MatCardContent,
+    ApiDocumentationV4PageHeaderComponent,
   ],
   templateUrl: './documentation-edit-page.component.html',
   styleUrl: './documentation-edit-page.component.scss',
@@ -124,15 +114,12 @@ export class DocumentationEditPageComponent implements OnInit {
   source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
   formUnchanged: boolean;
-  iconUrl: string;
-  iconTooltip: string;
   isReadOnly: boolean = false;
   groups: Group[];
   pageConfigurationData: PageConfigurationData = undefined;
   isHomepage: boolean;
 
   name = signal<string | undefined>(undefined);
-  headerPageName = computed(() => this.name() ?? 'Add new page');
 
   pages: Page[] = [];
 
@@ -151,8 +138,6 @@ export class DocumentationEditPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.isHomepage = this.page.homepage === true;
-    this.iconUrl = getLogoForPageType(this.page.type);
-    this.iconTooltip = getTooltipForPageType(this.page.type);
     this.name.set(this.page.name);
     this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-documentation-u']);
 

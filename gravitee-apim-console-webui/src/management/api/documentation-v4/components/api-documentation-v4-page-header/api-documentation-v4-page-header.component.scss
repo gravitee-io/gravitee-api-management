@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
+}
+
+.page-header {
+  &__title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin: 0;
+  }
+
+  &__location {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 2px;
+  }
+}
