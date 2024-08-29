@@ -25,7 +25,7 @@ import lombok.ToString;
 @ToString
 public class SharedPolicyGroupCriteria {
 
-    private String name;
+    private String query;
 
     private String environmentId;
 

@@ -50,7 +50,7 @@ public class SharedPolicyGroupQueryServiceImpl implements SharedPolicyGroupQuery
     @Override
     public Page<SharedPolicyGroup> searchByEnvironmentId(String environmentId, String q, Pageable pageable, Sortable sortable) {
         try {
-            var criteria = SharedPolicyGroupCriteria.builder().name(q).environmentId(environmentId).build();
+            var criteria = SharedPolicyGroupCriteria.builder().query(q).environmentId(environmentId).build();
 
             var result = sharedPolicyGroupRepository.search(
                 criteria,

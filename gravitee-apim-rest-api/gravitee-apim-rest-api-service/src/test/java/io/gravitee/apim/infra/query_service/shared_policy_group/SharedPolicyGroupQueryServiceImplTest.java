@@ -65,7 +65,7 @@ class SharedPolicyGroupQueryServiceImplTest {
             String environmentId = "environmentId";
             when(
                 repository.search(
-                    argThat(criteria -> criteria.getName().equals(q) && criteria.getEnvironmentId().equals(environmentId)),
+                    argThat(criteria -> criteria.getQuery().equals(q) && criteria.getEnvironmentId().equals(environmentId)),
                     eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
                     eq(new SortableBuilder().field(null).setAsc(false).build())
                 )
@@ -90,7 +90,7 @@ class SharedPolicyGroupQueryServiceImplTest {
             String environmentId = "environmentId";
             when(
                 repository.search(
-                    argThat(criteria -> criteria.getName().equals(q) && criteria.getEnvironmentId().equals(environmentId)),
+                    argThat(criteria -> criteria.getQuery().equals(q) && criteria.getEnvironmentId().equals(environmentId)),
                     any(),
                     eq(new SortableBuilder().field("createdAt").setAsc(true).build())
                 )
