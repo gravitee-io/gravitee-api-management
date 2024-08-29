@@ -51,7 +51,7 @@ describe('ApiScoreService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_score`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/scoring/_evaluate`);
       req.flush(responsePayload);
     });
   });
