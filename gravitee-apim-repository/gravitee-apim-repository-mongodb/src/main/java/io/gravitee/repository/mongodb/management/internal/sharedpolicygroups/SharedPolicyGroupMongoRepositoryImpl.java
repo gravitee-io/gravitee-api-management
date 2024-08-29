@@ -25,6 +25,7 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 public class SharedPolicyGroupMongoRepositoryImpl implements SharedPolicyGroupMongoRepositoryCustom {
@@ -42,8 +43,11 @@ public class SharedPolicyGroupMongoRepositoryImpl implements SharedPolicyGroupMo
         if (criteria.getEnvironmentId() != null) {
             query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
         }
-        if (criteria.getName() != null) {
-            query.addCriteria(where("name").regex(criteria.getName(), "i"));
+        if (criteria.getQuery() != null) {
+            query.addCriteria(
+                new Criteria()
+                    .orOperator(where("name").regex(criteria.getQuery(), "i"), where("description").regex(criteria.getQuery(), "i"))
+            );
         }
         if (criteria.getLifecycleState() != null) {
             query.addCriteria(where("lifecycleState").is(criteria.getLifecycleState().name()));

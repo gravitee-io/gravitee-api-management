@@ -121,9 +121,10 @@ public class JdbcSharedPolicyGroupRepository
             andWhere.add("environment_id = ?");
             andWhereParams.add(criteria.getEnvironmentId());
 
-            if (criteria.getName() != null) {
-                andWhere.add("lower(name) like ?");
-                andWhereParams.add("%" + criteria.getName().toLowerCase() + "%");
+            if (criteria.getQuery() != null) {
+                andWhere.add("((lower(name) like ?) OR (lower(description) like ?))");
+                andWhereParams.add("%" + criteria.getQuery().toLowerCase() + "%");
+                andWhereParams.add("%" + criteria.getQuery().toLowerCase() + "%");
             }
             if (criteria.getLifecycleState() != null) {
                 andWhere.add("lifecycle_state = ?");
