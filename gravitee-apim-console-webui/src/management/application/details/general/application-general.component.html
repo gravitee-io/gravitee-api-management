@@ -189,6 +189,12 @@
               <gio-form-tags-input formControlName="redirect_uris" placeholder="Enter a redirect URI"> </gio-form-tags-input>
               <mat-hint align="start">URIs where the authorization server will send OAuth responses</mat-hint>
             </mat-form-field>
+            <gio-form-headers formControlName="additional_client_metadata" [autocompleteDisabled]="true">
+              <gio-form-headers-label>Additional Client Metadata (optional)</gio-form-headers-label>
+            </gio-form-headers>
+            <mat-error *ngIf="applicationForm.hasError('nonUniqueKeys', 'OpenIDForm.additional_client_metadata')"
+              >Keys must be unique</mat-error
+            >
           </div>
         </div>
       </mat-card-content>

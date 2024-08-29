@@ -99,6 +99,7 @@ describe('ApplicationCreationComponent', () => {
         domain: 'domain',
         settings: {
           oauth: {
+            additional_client_metadata: {},
             application_type: 'WEB',
             grant_types: ['authorization_code', 'refresh_token'],
             redirect_uris: ['redirectUri'],
@@ -129,6 +130,7 @@ describe('ApplicationCreationComponent', () => {
         domain: 'domain',
         settings: {
           oauth: {
+            additional_client_metadata: {},
             application_type: 'BACKEND_TO_BACKEND',
             grant_types: ['client_credentials'],
             redirect_uris: [],

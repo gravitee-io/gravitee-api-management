@@ -51,6 +51,7 @@ public class Application {
     public static final String METADATA_TYPE = "type";
     public static final String METADATA_REGISTRATION_PAYLOAD = "registration_payload";
     public static final String METADATA_CLIENT_CERTIFICATE = "client_certificate";
+    public static final String METADATA_ADDITIONAL_CLIENT_METADATA = "additional_client_metadata";
 
     public enum AuditEvent implements Audit.AuditEvent {
         APPLICATION_CREATED,

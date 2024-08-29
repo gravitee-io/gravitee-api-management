@@ -19,7 +19,14 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioBannerModule, GioFormSelectionInlineModule, GioFormTagsInputModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioFormHeadersModule,
+  GioFormSelectionInlineModule,
+  GioFormTagsInputModule,
+  GioIconsModule,
+  Header,
+} from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
 import { filter, map, share, startWith, tap } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
@@ -39,6 +46,8 @@ export type ApplicationForm = {
 
   oauthGrantTypes: FormControl<string[]>;
   oauthRedirectUris: FormControl<string[]>;
+
+  additionalClientMetadata: FormControl<Header[]>;
 };
 
 export type ApplicationCreationFormApplicationType = ApplicationType & {
@@ -61,6 +70,7 @@ export type ApplicationCreationFormApplicationType = ApplicationType & {
     GioIconsModule,
     GioFormTagsInputModule,
     GioBannerModule,
+    GioFormHeadersModule,
   ],
   standalone: true,
   styleUrls: ['./application-creation-form.component.scss'],

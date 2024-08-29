@@ -29,6 +29,7 @@ import { ApplicationCreationFormComponent, ApplicationForm } from './components/
 import { ApplicationTypesService } from '../../../services-ngx/application-types.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { toDictionary } from '../../../util/gio-form-header.util';
 
 const TYPES_INFOS = {
   SIMPLE: {
@@ -82,6 +83,7 @@ export class ApplicationCreationComponent {
 
     oauthGrantTypes: new FormControl(),
     oauthRedirectUris: new FormControl([]),
+    additionalClientMetadata: new FormControl([]),
   });
 
   public applicationTypes$ = this.applicationTypesService.getEnabledApplicationTypes().pipe(
@@ -136,6 +138,7 @@ export class ApplicationCreationComponent {
                   application_type: applicationPayload.type,
                   grant_types: applicationPayload.oauthGrantTypes ?? [],
                   redirect_uris: applicationPayload.oauthRedirectUris ?? [],
+                  additional_client_metadata: toDictionary(applicationPayload.additionalClientMetadata) ?? undefined,
                 },
               }),
           tls: {

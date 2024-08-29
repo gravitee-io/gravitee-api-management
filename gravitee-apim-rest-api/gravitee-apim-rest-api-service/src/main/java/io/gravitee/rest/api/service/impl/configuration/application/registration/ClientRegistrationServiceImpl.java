@@ -20,6 +20,7 @@ import static java.util.Collections.singletonMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.http.HttpMethod;
@@ -30,6 +31,7 @@ import io.gravitee.repository.management.api.ClientRegistrationProviderRepositor
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
@@ -50,6 +52,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +73,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(ClientRegistrationServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientRegistrationServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -332,6 +335,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         return registrationProviderClient.register(clientRegistrationRequest);
     }
 
+    private ClientRegistrationRequest convert(NewApplicationEntity application) {
+        Map<String, String> metadata = application.getSettings().getOauth().getAdditionalClientMetadata();
+        if (metadata != null) {
+            ClientRegistrationRequest request = mapper.convertValue(metadata, ClientRegistrationRequest.class);
+
+            return ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(request, application);
+        }
+        return ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(new ClientRegistrationRequest(), application);
+    }
+
     private DynamicClientRegistrationProviderClient getDCRClient(
         final boolean forceRefresh,
         final ClientRegistrationProviderEntity clientRegistrationProvider
@@ -478,27 +491,12 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
-        request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getOauth().getApplicationType());
-        request.setClientUri(application.getSettings().getOauth().getClientUri());
-        request.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
-        request.setLogoUri(application.getSettings().getOauth().getLogoUri());
-        request.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
-
-        return request;
-    }
-
-    private ClientRegistrationRequest convert(NewApplicationEntity application) {
-        ClientRegistrationRequest request = new ClientRegistrationRequest();
-
-        request.setClientName(application.getName());
-        request.setApplicationType(application.getSettings().getOauth().getApplicationType());
-        request.setClientUri(application.getSettings().getOauth().getClientUri());
-        request.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
-        request.setLogoUri(application.getSettings().getOauth().getLogoUri());
-        request.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-        request.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
+        ClientRegistrationMapper.INSTANCE.toClientRegistrationRequest(request, application);
+        Map<String, String> clientMetadata = application.getSettings().getOauth().getAdditionalClientMetadata();
+        if (clientMetadata != null) {
+            ClientRegistrationRequest additionalMetadata = mapper.convertValue(clientMetadata, ClientRegistrationRequest.class);
+            ClientRegistrationMapper.INSTANCE.mergeClientRegistrationRequest(request, additionalMetadata);
+        }
 
         return request;
     }

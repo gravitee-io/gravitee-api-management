@@ -26,23 +26,29 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class UpdateApplicationEntity {
 
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
     @Schema(description = "Application's name. Duplicate names can exists.", example = "My App")
+    @ToString.Include
     private String name;
 
     @NotNull(message = "Application's description must not be null")
@@ -50,26 +56,34 @@ public class UpdateApplicationEntity {
         description = "Application's description. A short description of your App.",
         example = "I can use a hundred characters to describe this App."
     )
+    @ToString.Include
     private String description;
 
+    @Setter
     @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 
+    @Setter
     private String picture;
 
+    @Setter
     @JsonProperty("picture_url")
     private String pictureUrl;
 
+    @Setter
     @NotNull(message = "Application's settings must not be null")
     private ApplicationSettings settings;
 
+    @Setter
     @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ToString.Include
     private Set<String> groups;
 
     /**
      * @deprecated Only for backward compatibility at the API level.
      *             Will be remove in a future version.
      */
+    @Setter
     @Deprecated
     @Schema(description = "a string to describe the type of your app.", example = "iOS")
     private String type;
@@ -78,122 +92,28 @@ public class UpdateApplicationEntity {
      * @deprecated Only for backward compatibility at the API level.
      *             Will be remove in a future version.
      */
+    @Setter
     @Deprecated
     private String clientId;
 
+    @Setter
     @JsonProperty("disable_membership_notifications")
+    @ToString.Include
     private boolean disableMembershipNotifications;
 
+    @Setter
     @JsonProperty("api_key_mode")
     @Schema(description = "The API Key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
+    @Setter
     private String background;
-
-    public String getName() {
-        return name;
-    }
 
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public void setDescription(String description) {
         this.description = HtmlSanitizer.sanitize(description);
-    }
-
-    public Set<String> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Set<String> groups) {
-        this.groups = groups;
-    }
-
-    public ApplicationSettings getSettings() {
-        return settings;
-    }
-
-    public void setSettings(ApplicationSettings settings) {
-        this.settings = settings;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public boolean isDisableMembershipNotifications() {
-        return disableMembershipNotifications;
-    }
-
-    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
-        this.disableMembershipNotifications = disableMembershipNotifications;
-    }
-
-    public String getBackground() {
-        return background;
-    }
-
-    public void setBackground(String background) {
-        this.background = background;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public String getDomain() {
-        return domain;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public ApiKeyMode getApiKeyMode() {
-        return apiKeyMode;
-    }
-
-    public void setApiKeyMode(ApiKeyMode apiKeyMode) {
-        this.apiKeyMode = apiKeyMode;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Application{");
-        sb.append("description='").append(description).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", groups='").append(groups).append('\'');
-        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications);
-        sb.append('}');
-        return sb.toString();
     }
 }

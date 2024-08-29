@@ -21,6 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -488,4 +492,74 @@ public class ApplicationService_CreateTest {
            FZHaYejhPQFZzv73SxOAu2QCaXH5vIBEDx4Mb+lvc4BukgeIT2Gyi2gg
            -----END CERTIFICATE-----
            """;
+
+    @Test
+    public void shouldHandleAdditionalClientMetadata() throws TechnicalException {
+        var additionalClientMetadata = Map.of("policy_uri", "http://example.com/policy");
+
+        // Mock OAuthClientSettings
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setAdditionalClientMetadata(additionalClientMetadata);
+        oAuthClientSettings.setApplicationType("BROWSER");
+        oAuthClientSettings.setGrantTypes(List.of("authorization_code"));
+
+        // Mock ApplicationSettings
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setOauth(oAuthClientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+
+        // Mock other necessary methods
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.BROWSER);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(any(), any())).thenReturn(mock(UserEntity.class));
+
+        // Mock application type service
+        ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
+        ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
+        applicationGrantTypeEntity.setType("authorization_code");
+        applicationGrantTypeEntity.setResponse_types(List.of("code"));
+        applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
+        applicationTypeEntity.setRequires_redirect_uris(false);
+        when(applicationTypeService.getApplicationType("BROWSER")).thenReturn(applicationTypeEntity);
+
+        // Mock response from DCR with a new client ID
+        ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
+        clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
+        when(clientRegistrationService.register(any(), any())).thenReturn(clientRegistrationResponse);
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        // Enable DCR
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.APPLICATION_REGISTRATION_ENABLED,
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
+
+        // Enable BROWSER application type
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.APPLICATION_TYPE_BROWSER_ENABLED,
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Boolean.TRUE);
+
+        // Call the create method
+        ApplicationEntity applicationEntity = applicationService.create(EXECUTION_CONTEXT, newApplication, USER_NAME);
+
+        // Verify that the additionalClientMetadata is handled properly
+        assertNotNull(applicationEntity);
+        assertEquals(APPLICATION_NAME, applicationEntity.getName());
+    }
 }

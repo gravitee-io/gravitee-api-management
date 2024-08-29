@@ -10,7 +10,7 @@
  */
 
 
-export interface OAuthClientSettings { 
+export interface OAuthClientSettings {
     client_secret?: string;
     client_id?: string;
     redirect_uris?: Array<string>;
@@ -20,5 +20,6 @@ export interface OAuthClientSettings {
     grant_types?: Array<string>;
     application_type?: string;
     renew_client_secret_supported?: boolean;
+    additional_client_metadata?: Record<string, string>
 }
 

@@ -60,11 +60,25 @@ type ApplicationFormType = FormGroup<{
   domain: FormControl<string>;
   picture: FormControl<string>;
   settings: FormControl<
-    ({ app: { type: string; client_id: string } } | { oauth: { redirect_uris: any[]; grant_types: any[]; application_type: string } }) & {
+    (
+      | { app: { type: string; client_id: string } }
+      | { oauth: { redirect_uris: any[]; grant_types: any[]; application_type: string; additionalClientMetadata: any[] } }
+    ) & {
       tls: { client_certificate: string };
     }
   >;
 }>;
+
+function mapToApplicationInput(rawValue): ApplicationInput {
+  const result = rawValue as ApplicationInput;
+  if (rawValue.oauth !== undefined) {
+    result.settings.oauth.additional_client_metadata = rawValue.oauth.additionalClientMetadata.reduce((acc, { key, value }) => {
+      acc[key] = value;
+      return acc;
+    }, {});
+  }
+  return result;
+}
 
 @Component({
   selector: 'app-application-creation',
@@ -371,7 +385,8 @@ export class ApplicationCreationComponent implements OnInit {
     this.creationError = false;
     this.creationInProgress = true;
     this.subscriptionErrors = [];
-    const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
+    const applicationInput = mapToApplicationInput(this.applicationForm.getRawValue());
+
     applicationInput.api_key_mode = this.apiKeyMode;
 
     this.applicationService

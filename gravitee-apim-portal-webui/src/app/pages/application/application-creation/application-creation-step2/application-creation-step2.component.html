@@ -95,6 +95,45 @@
             >{{ control.value }}
           </gv-tag>
         </div>
+        <ng-container>
+          <gv-button link (:gv-button:click)="addMetadata()" icon="code:plus">{{
+            'applicationType.security.additionalClientMetadata.add' | translate
+          }}</gv-button>
+          <md-table-container ng-if="oauthForm.controls['oauth'].controls['additionalClientMetadata'].controls.length > 0">
+            <table md-table class="gv-table-dense">
+              <thead md-head>
+                <tr md-row>
+                  <th md-column nowrap>{{ 'applicationType.security.additionalClientMetadata.key' | translate }}</th>
+                  <th md-column nowrap>{{ 'applicationType.security.additionalClientMetadata.value' | translate }}</th>
+                  <th md-column nowrap></th>
+                </tr>
+              </thead>
+              <tbody md-body formArrayName="additionalClientMetadata">
+                <tr md-row *ngFor="let metadataPair of metadataControls; let i = index" [formGroup]="metadataPair">
+                  <td md-cell>
+                    <gv-input
+                      [placeholder]="'applicationType.security.additionalClientMetadata.description' | translate"
+                      formControlName="key"
+                      ngDefaultControl
+                    ></gv-input>
+                  </td>
+                  <td md-cell>
+                    <gv-input
+                      [placeholder]="'applicationType.security.additionalClientMetadata.valueDescription' | translate"
+                      formControlName="value"
+                      ngDefaultControl
+                    ></gv-input>
+                  </td>
+                  <td md-cell>
+                    <gv-button link (:gv-button:click)="removeMetadata(i)" icon="general:close">{{
+                      'applicationType.security.additionalClientMetadata.remove' | translate
+                    }}</gv-button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </ng-container>
       </ng-container>
       <ng-container formGroupName="tls">
         <div class="form-control">

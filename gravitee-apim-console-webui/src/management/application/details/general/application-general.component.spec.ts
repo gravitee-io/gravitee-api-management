@@ -95,11 +95,14 @@ describe('ApplicationGeneralInfoComponent', () => {
         api_key_mode: 'UNSPECIFIED',
         background: null,
         description: 'My default application',
+        disable_membership_notifications: undefined,
+        domain: undefined,
         name: 'new test name',
         picture: null,
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
+            additional_client_metadata: {},
             application_type: 'NATIVE',
             client_id: 'test_client_id',
             client_secret: 'test_client_secret',
@@ -189,11 +192,14 @@ describe('ApplicationGeneralInfoComponent', () => {
         api_key_mode: 'UNSPECIFIED',
         background: null,
         description: 'My default application',
+        disable_membership_notifications: undefined,
+        domain: undefined,
         name: 'Default application',
         picture: null,
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
+            additional_client_metadata: {},
             application_type: 'NATIVE',
             client_id: '123',
             client_secret: 'test_client_secret',
