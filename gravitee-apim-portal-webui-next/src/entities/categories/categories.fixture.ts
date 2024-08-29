@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { Categories } from './categories';
+import { Categories, Category } from './categories';
 
 export function fakeCategoriesResponse(modifier?: Partial<Categories> | ((baseCategory: Categories) => Categories)): Categories {
   const base: Categories = {
@@ -43,8 +43,31 @@ export function fakeCategoriesResponse(modifier?: Partial<Categories> | ((baseCa
     return modifier(base);
   }
 
-  return {
-    ...base,
-    ...modifier,
+  return isFunction(modifier)
+    ? modifier(base)
+    : {
+        ...base,
+        ...modifier,
+      };
+}
+
+export function fakeCategory(modifier?: Partial<Category> | ((baseCategory: Category) => Category)): Category {
+  const base: Category = {
+    id: 'category-1',
+    name: 'Category 1',
+    description: 'My first category',
+    order: 0,
+    total_apis: 4,
+    _links: {
+      picture: 'test-picture',
+      background: 'test-background',
+    },
   };
+
+  return isFunction(modifier)
+    ? modifier(base)
+    : {
+        ...base,
+        ...modifier,
+      };
 }
