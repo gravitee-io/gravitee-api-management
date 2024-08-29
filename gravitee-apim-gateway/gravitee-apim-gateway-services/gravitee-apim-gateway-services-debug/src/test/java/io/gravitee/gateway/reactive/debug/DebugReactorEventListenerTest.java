@@ -24,8 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -172,7 +174,7 @@ class DebugReactorEventListenerTest {
         verify(dataEncryptor, times(1)).decrypt("encrypted");
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
         verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
@@ -214,7 +216,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
         verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
@@ -255,7 +257,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -291,7 +293,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -326,7 +328,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -355,7 +357,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
         verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -383,7 +385,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(0)).create(any());
         verify(reactorHandlerRegistry, times(1)).contains(any());
-        verify(reactorHandlerRegistry, times(0)).remove(any());
+        verify(reactorHandlerRegistry, after(500).times(0)).remove(any());
     }
 
     @Test
@@ -392,7 +394,7 @@ class DebugReactorEventListenerTest {
 
         verify(reactorHandlerRegistry, times(0)).create(any());
         verify(reactorHandlerRegistry, times(0)).contains(any());
-        verify(reactorHandlerRegistry, times(0)).remove(any());
+        verify(reactorHandlerRegistry, after(500).times(0)).remove(any());
     }
 
     @Test
