@@ -22,7 +22,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 export class IntegrationGeneralGroupsHarness extends ComponentHarness {
   static readonly hostSelector = 'integration-general-access-groups';
 
-  protected getReadOnlyGroups = this.locatorFor('.api-portal-access-groups__body__read-only-groups');
+  protected getReadOnlyGroups = this.locatorFor('.integration-access-groups__body__read-only-groups');
   protected getFillForm = this.locatorFor(MatFormFieldHarness);
   protected getGroupsList = this.locatorFor(MatSelectHarness);
   protected getSaveButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Save' }));

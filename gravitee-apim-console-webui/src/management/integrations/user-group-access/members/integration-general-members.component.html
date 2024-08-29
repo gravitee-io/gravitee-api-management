@@ -30,7 +30,7 @@
             *gioPermission="{ anyOf: ['environment-integration-r'] }"
             mat-raised-button
             (click)="updateGroups()"
-            [disabled]="this.groups?.length === 0"
+            [disabled]="false"
             type="button"
           >
             Manage groups
@@ -107,15 +107,15 @@
     </table>
   </mat-card>
 
-<!--  <div *ngIf="groupData">-->
-<!--    <ng-container *ngFor="let group of groupData">-->
-<!--      <integration-general-group-members-->
-<!--        *ngIf="group.isVisible"-->
-<!--        [groupData]="group"-->
-<!--        (destroy)="group.isVisible = false"-->
-<!--      ></integration-general-group-members>-->
-<!--    </ng-container>-->
-<!--  </div>-->
+  <div *ngIf="groupData">
+    <ng-container *ngFor="let group of groupData">
+      <integration-general-group-members
+        *ngIf="group.isVisible"
+        [groupData]="group"
+        (destroy)="group.isVisible = false"
+      ></integration-general-group-members>
+    </ng-container>
+  </div>
 
   <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
 </form>

@@ -25,15 +25,17 @@ import { IntegrationGeneralGroupsHarness } from './integration-general-groups.ha
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { IntegrationUserGroupModule } from '../integration-user-group.module';
-import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
+import { fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { IntegrationGeneralMembersComponent } from '../members/integration-general-members.component';
 import { IntegrationGeneralMembersHarness } from '../members/integration-general-members.harness';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
+import { Integration } from '../../integrations.model';
+import { fakeIntegration } from '../../../../entities/integrations/integration.fixture';
 
-xdescribe('IntegrationPortalGroupsComponent', () => {
-  const apiId = 'api-id';
+describe('IntegrationPortalGroupsComponent', () => {
+  const integrationId = 'integration-id';
   const groupId1 = 'group-1';
   const groupId2 = 'group-2';
   const defaultRoles: Role[] = [
@@ -51,7 +53,7 @@ xdescribe('IntegrationPortalGroupsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, IntegrationUserGroupModule, MatIconTestingModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: apiId } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { integrationId: integrationId } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     }).compileComponents();
@@ -70,15 +72,15 @@ xdescribe('IntegrationPortalGroupsComponent', () => {
 
   describe('Groups tab for user with writing rights', () => {
     beforeEach(async () => {
-      await init(['api-definition-u', 'api-member-u']);
+      await init(['environment-integration-r', 'environment-integration-u']);
     });
 
     it('should show groups', async () => {
-      const api = fakeApiV4({ id: apiId, groups: [] });
-      await expectGetRequests(api, [groupId1, groupId2]);
-      expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
-      expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      const integration = fakeIntegration({ id: integrationId, groups: [] });
+      await expectGetRequests(integration, [groupId1, groupId2]);
+      expect(await harness.getGroupsLength()).toStrictEqual(integration.groups.length);
+      expect(await harness.getGroupsNames()).toEqual(integration.groups.map((id) => `Group ${id}-name`));
+      integration.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
       const groupsHarness = await rootLoader.getHarness(IntegrationGeneralGroupsHarness);
@@ -91,9 +93,9 @@ xdescribe('IntegrationPortalGroupsComponent', () => {
     });
 
     it('should pre-select groups found in user + save new groups', async () => {
-      const api = fakeApiV4({ id: apiId, groups: [groupId1] });
-      await expectGetRequests(api, [groupId1, groupId2]);
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      const integration = fakeIntegration({ id: integrationId, groups: [groupId1] });
+      await expectGetRequests(integration, [groupId1, groupId2]);
+      integration.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
       const groupsHarness = await rootLoader.getHarness(IntegrationGeneralGroupsHarness);
@@ -118,38 +120,24 @@ xdescribe('IntegrationPortalGroupsComponent', () => {
 
       // expect save and after that reload of the component.
       // MatDialog close is not called in the unit test context, so we do the PUT request with the real saved data
-      expectApiGetRequest(api);
-      expectApiPutRequest({ ...api, groups: [] });
-      expectGetRequests({ ...api, groups: [] });
-    });
-
-    it('should be read-only for V1 API', async () => {
-      const api = fakeApiV1({ id: apiId, groups: [groupId1] });
-      await expectGetRequests(api, [groupId1]);
-      expectGetGroupMembersRequest(fakeGroup({ id: groupId1 }));
-
-      await harness.manageGroupsClick();
-
-      const groupsHarness = await rootLoader.getHarness(IntegrationGeneralGroupsHarness);
-      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(true);
-      expect(await groupsHarness.getReadOnlyGroupsText()).toContain(`${groupId1}-name`);
-      expect(await groupsHarness.isFillFormPresent()).toEqual(false);
-      expect(await groupsHarness.isSaveButtonVisible()).toEqual(false);
+      expectIntegrationGetRequest(integration);
+      expectIntegrationPutRequest({ ...integration, groups: [] });
+      expectGetRequests({ ...integration, groups: [] });
     });
   });
 
   describe('Groups tab for user with read-only rights', () => {
     beforeEach(async () => {
-      await init(['api-definition-r', 'api-member-r', 'api-gateway_definition-u']);
+      await init(['environment-integration-r']);
     });
 
     it('should display list of groups', async () => {
-      const api = fakeApiV4({ id: apiId, groups: [groupId1, groupId2] });
-      await expectGetRequests(api, [groupId1, groupId2]);
+      const integration = fakeIntegration({ id: integrationId, groups: [groupId1, groupId2] });
+      await expectGetRequests(integration, [groupId1, groupId2]);
 
-      expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
-      expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      expect(await harness.getGroupsNames()).toEqual(integration.groups.map((id) => `Group ${id}-name`));
+      expect(await harness.getGroupsLength()).toStrictEqual(integration.groups.length);
+      integration.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
 
@@ -161,20 +149,30 @@ xdescribe('IntegrationPortalGroupsComponent', () => {
     });
   });
 
-  async function expectGetRequests(api: Api, groups: string[] = [], members: MembersResponse = { data: [] }) {
-    expectApiGetRequest(api);
+  async function expectGetRequests(integration: Integration, groups: string[] = [], members: MembersResponse = { data: [] }) {
+    expectIntegrationGetRequest(integration);
     expectGetGroupsListRequest(groups);
-    expectApiMembersGetRequest(api, members);
-    expectApiRoleGetRequest();
+    expectIntegrationMembersGetRequest(integration, members);
+    expectIntegrationRoleGetRequest();
   }
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectIntegrationGetRequest(integration: Integration) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integration.id}`,
+        method: 'GET',
+      })
+      .flush(integration);
     fixture.detectChanges();
   }
 
-  function expectApiPutRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
+  function expectIntegrationPutRequest(integration: Integration) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integration.id}`,
+        method: 'PUT',
+      })
+      .flush(integration);
   }
 
   function expectGetGroupsListRequest(groups: string[]) {
@@ -184,21 +182,32 @@ xdescribe('IntegrationPortalGroupsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiMembersGetRequest(api: Api, members: MembersResponse = { data: [] }) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/members`, method: 'GET' }).flush(members);
+  function expectIntegrationMembersGetRequest(integration: Integration, members: MembersResponse = { data: [] }) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integration.id}/members`,
+        method: 'GET',
+      })
+      .flush(members);
     fixture.detectChanges();
   }
 
   function expectGetGroupMembersRequest(group: Group) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${group.id}/members?page=1&perPage=10`, method: 'GET' })
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${group.id}/members?page=1&perPage=10`,
+        method: 'GET',
+      })
       .flush({ data: [], metadata: { groupName: 'group1' }, pagination: {} });
     fixture.detectChanges();
   }
 
-  function expectApiRoleGetRequest(roles: Role[] = defaultRoles) {
+  function expectIntegrationRoleGetRequest(roles: Role[] = defaultRoles) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`, method: 'GET' })
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/INTEGRATION/roles`,
+        method: 'GET',
+      })
       .flush(roles);
     fixture.detectChanges();
   }
