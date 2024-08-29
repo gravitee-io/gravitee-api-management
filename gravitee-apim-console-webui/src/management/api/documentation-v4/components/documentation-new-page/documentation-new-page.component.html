@@ -17,19 +17,7 @@
 -->
 <mat-card>
   <div class="header">
-    <h3 class="header__title">
-      {{ headerPageName() }}
-      @if (iconUrl) {
-        <img [ngSrc]="iconUrl" height="24" width="24" alt="{{ iconTooltip }} logo" [matTooltip]="iconTooltip" />
-      }
-    </h3>
-
-    @if (!createHomepage) {
-      <div class="header__location">
-        In
-        <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false" />
-      </div>
-    }
+    <api-documentation-v4-page-header [pageType]="pageType" [name]="name()" [breadcrumbs]="breadcrumbs" [isHomepage]="createHomepage" />
 
     <div class="header__actions">
       <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="onGoBackRouterLink()">Exit without saving</button>

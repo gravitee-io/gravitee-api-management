@@ -17,20 +17,7 @@
 -->
 <mat-card>
   <div class="header">
-    <div class="header__information">
-      <h3 class="header__information__title">
-        {{ headerPageName() }}
-        @if (iconUrl) {
-          <img [ngSrc]="iconUrl" height="24" width="24" alt="{{ iconTooltip }} logo" [matTooltip]="iconTooltip" />
-        }
-      </h3>
-      @if (!isHomepage) {
-        <div class="header__information__location">
-          In
-          <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false"></api-documentation-breadcrumb>
-        </div>
-      }
-    </div>
+    <api-documentation-v4-page-header [pageType]="page.type" [name]="name()" [breadcrumbs]="breadcrumbs" [isHomepage]="isHomepage" />
 
     <div class="header__actions">
       <ng-container *gioPermission="{ anyOf: ['api-documentation-d'] }">

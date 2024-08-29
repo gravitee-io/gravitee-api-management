@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import { GioFormJsonSchemaModule, GioFormSelectionInlineModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
@@ -43,15 +43,12 @@ import {
   Breadcrumb,
   CreateDocumentation,
   CreateDocumentationType,
-  getLogoForPageType,
-  getTooltipForPageType,
   Group,
   Page,
   PageSource,
   PageType,
 } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiDocumentationV4BreadcrumbComponent } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import {
@@ -60,6 +57,7 @@ import {
   PageConfigurationData,
   PageConfigurationForm,
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
+import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 
 interface CreatePageForm {
   stepOne: FormGroup<PageConfigurationForm>;
@@ -92,10 +90,10 @@ interface CreatePageForm {
     ReactiveFormsModule,
     MatTooltip,
     ApiDocumentationV4VisibilityComponent,
-    ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4PageConfigurationComponent,
+    ApiDocumentationV4PageHeaderComponent,
   ],
   templateUrl: './documentation-new-page.component.html',
   styleUrl: './documentation-new-page.component.scss',
@@ -120,14 +118,11 @@ export class DocumentationNewPageComponent implements OnInit {
   source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
   page: Page;
-  iconUrl: string;
-  iconTooltip: string;
   isReadOnly: boolean = false;
   groups: Group[];
   stepOneData: PageConfigurationData = undefined;
 
   name = signal<string | undefined>(undefined);
-  headerPageName = computed(() => this.name() ?? 'Add new page');
 
   pages: Page[] = [];
 
@@ -170,9 +165,6 @@ export class DocumentationNewPageComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ([pagesResponse, groupsResponse]) => {
-          this.iconUrl = getLogoForPageType(this.pageType);
-          this.iconTooltip = getTooltipForPageType(this.pageType);
-
           this.breadcrumbs = pagesResponse.breadcrumb;
           this.pages = pagesResponse.pages;
 
