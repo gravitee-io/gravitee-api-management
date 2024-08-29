@@ -38,8 +38,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -48,9 +47,9 @@ import org.springframework.core.env.Environment;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class EndpointHealthcheckVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckVerticle.class);
     private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();
 
     @Autowired
@@ -97,7 +96,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                     break;
             }
         } else {
-            LOGGER.warn("Health check service is not compatible with api V4");
+            log.debug("Health check service does not apply to V4 API which now uses a dedicated API service.");
         }
     }
 
@@ -119,7 +118,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         // Configure handlers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
-            LOGGER.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
+            log.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiHandlers.put(api, new ArrayList<>());
             healthCheckEndpoints.forEach(rule -> addHandler(api, rule));
         }
@@ -142,21 +141,21 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
             apiHandlers.get(api).add(cronHandler);
 
-            LOGGER.debug(
+            log.debug(
                 "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
                 rule.endpoint().getName(),
                 rule.endpoint().getTarget(),
                 rule.schedule()
             );
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while creating an health-check runner", ex);
+            log.error("An error occurs while creating an health-check runner", ex);
         }
     }
 
     private void removeHandlers(Api api) {
         List<EndpointRuleCronHandler> handlers = apiHandlers.remove(api);
         if (handlers != null) {
-            LOGGER.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
+            log.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
             handlers.forEach(handler -> handler.cancel());
         }
     }
@@ -170,7 +169,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                 .findFirst();
 
             endpointCronHandler.ifPresent(handler -> {
-                LOGGER.debug(
+                log.debug(
                     "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
                     handler.getTimerId(),
                     endpoint.getName(),

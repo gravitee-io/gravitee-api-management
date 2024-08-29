@@ -28,12 +28,12 @@ import io.gravitee.gateway.reactor.ReactorEvent;
  */
 public class ReactorEventListener extends AbstractService<ReactorEventListener> implements EventListener<ReactorEvent, Reactable> {
 
-    private final ReactorHandlerRegistry reactorHandlerRegistry;
+    protected final EventManager eventManager;
+    protected final ReactorHandlerRegistry reactorHandlerRegistry;
 
     public ReactorEventListener(EventManager eventManager, ReactorHandlerRegistry reactorHandlerRegistry) {
+        this.eventManager = eventManager;
         this.reactorHandlerRegistry = reactorHandlerRegistry;
-
-        eventManager.subscribeForEvents(this, ReactorEvent.class);
     }
 
     @Override
@@ -54,12 +54,14 @@ public class ReactorEventListener extends AbstractService<ReactorEventListener> 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+        eventManager.subscribeForEvents(this, ReactorEvent.class);
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
 
+        eventManager.unsubscribeForEvents(this, ReactorEvent.class);
         reactorHandlerRegistry.clear();
     }
 }
