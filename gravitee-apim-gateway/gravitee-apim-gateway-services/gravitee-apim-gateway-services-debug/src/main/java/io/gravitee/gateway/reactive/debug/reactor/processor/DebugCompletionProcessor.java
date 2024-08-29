@@ -36,7 +36,10 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.rxjava3.core.Vertx;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,27 +70,32 @@ public class DebugCompletionProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.defer(() -> {
-            final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
-            final DebugApi debugApi = (DebugApi) debugContext.getComponent(Api.class);
+        return Completable
+            .defer(() -> {
+                final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
+                final DebugApi debugApi = (DebugApi) debugContext.getComponent(Api.class);
 
-            Optional<Event> eventOptional = eventRepository.findById(debugApi.getEventId());
-            if (eventOptional.isPresent()) {
-                final Event event = eventOptional.get();
-                return computeDebugApiEventPayload(debugContext, debugApi)
-                    .doOnSuccess(definitionDebugApi -> {
-                        event.setPayload(objectMapper.writeValueAsString(definitionDebugApi));
-                        updateEvent(event, ApiDebugStatus.SUCCESS);
-                    })
-                    .ignoreElement()
-                    .onErrorResumeNext(throwable -> {
-                        LOGGER.error("Error occurs while saving debug event", throwable);
-                        failEvent(event);
+                return Maybe
+                    .fromCallable(() -> eventRepository.findById(debugApi.getEventId()))
+                    .flatMapCompletable(eventOptional -> {
+                        if (eventOptional.isPresent()) {
+                            final Event event = eventOptional.get();
+                            return computeDebugApiEventPayload(debugContext, debugApi)
+                                .doOnSuccess(definitionDebugApi -> {
+                                    event.setPayload(objectMapper.writeValueAsString(definitionDebugApi));
+                                    updateEvent(event, ApiDebugStatus.SUCCESS);
+                                })
+                                .ignoreElement()
+                                .onErrorResumeNext(throwable -> {
+                                    LOGGER.error("Error occurs while saving debug event", throwable);
+                                    failEvent(event);
+                                    return Completable.complete();
+                                });
+                        }
                         return Completable.complete();
                     });
-            }
-            return Completable.complete();
-        });
+            })
+            .subscribeOn(Schedulers.io());
     }
 
     private Single<io.gravitee.definition.model.debug.DebugApi> computeDebugApiEventPayload(
