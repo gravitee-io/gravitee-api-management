@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.reactive.handlers.api;
 
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.API_VALIDATE_SUBSCRIPTION_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 
@@ -114,6 +116,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final String loggingMaxSize;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
     private final long pendingRequestsTimeout;
+    private final boolean validateSubscription;
     protected AnalyticsContext analyticsContext;
     protected SecurityChain securityChain;
 
@@ -162,7 +165,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
-
+        this.validateSubscription = configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, null);
         this.processorChainHooks = new ArrayList<>();
         this.invokerHooks = new ArrayList<>();
     }
@@ -195,6 +198,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, defaultInvoker);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        ctx.setInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscription);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {

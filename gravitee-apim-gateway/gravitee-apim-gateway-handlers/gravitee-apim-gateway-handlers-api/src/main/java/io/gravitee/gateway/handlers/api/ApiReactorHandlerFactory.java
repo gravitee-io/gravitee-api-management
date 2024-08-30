@@ -111,6 +111,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
+    public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
 
     protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
     protected final Node node;
