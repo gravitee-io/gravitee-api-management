@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,4 +31,5 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ComponentScan({ "io.gravitee.rest.api.portal.rest.mapper" })
 @Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class })
+@EnableAsync
 public class RestPortalConfiguration {}
