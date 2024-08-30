@@ -36,8 +36,8 @@ describe('Login Feature', () => {
     cy.getByDataTestId('sign-in-button').click();
     cy.url().should('contain', '/home/overview');
     cy.contains('Overview').should('be.visible');
-    cy.contains('APIs health-check').should('be.visible');
-    cy.contains('My tasks').should('be.visible');
+    cy.contains('API Health Check').should('be.visible');
+    cy.contains('Tasks').should('be.visible');
     cy.contains('h2', 'API Events').should('be.visible');
   });
 });

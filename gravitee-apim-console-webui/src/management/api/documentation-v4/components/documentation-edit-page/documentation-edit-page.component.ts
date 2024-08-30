@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Component, OnDestroy, OnInit } from '@angular/core';
-import { AsyncPipe, NgIf, NgOptimizedImage } from '@angular/common';
+import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import {
   GioConfirmDialogComponent,
   GioConfirmDialogData,
@@ -23,57 +23,43 @@ import {
   GioFormSlideToggleModule,
 } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
-import { MatCard } from '@angular/material/card';
+import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MatStep, MatStepLabel, MatStepper, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { combineLatest, EMPTY, Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { isEqual } from 'lodash';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
 import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { FetcherService } from '../../../../../services-ngx/fetcher.service';
 import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
-import {
-  AccessControl,
-  Api,
-  Breadcrumb,
-  CreateDocumentation,
-  CreateDocumentationType,
-  EditDocumentation,
-  getLogoForPageType,
-  getTooltipForPageType,
-  Group,
-  Page,
-  PageSource,
-  PageType,
-  Visibility,
-} from '../../../../../entities/management-api-v2';
+import { AccessControl, Api, Breadcrumb, EditDocumentation, Group, Page } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiDocumentationV4BreadcrumbComponent } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
+import {
+  ApiDocumentationV4PageConfigurationComponent,
+  INIT_PAGE_CONFIGURATION_FORM,
+  PageConfigurationData,
+  PageConfigurationForm,
+} from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
+import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 
 interface EditPageForm {
-  stepOne: FormGroup<{
-    name: FormControl<string>;
-    visibility: FormControl<Visibility>;
-    accessControlGroups: FormControl<string[]>;
-    excludeGroups: FormControl<boolean>;
-  }>;
+  pageConfiguration: FormGroup<PageConfigurationForm>;
   content: FormControl<string>;
-  source: FormControl<string>;
-  sourceConfiguration: FormControl<undefined | unknown>;
 }
 
 @Component({
@@ -95,56 +81,50 @@ interface EditPageForm {
     MatOption,
     MatSelect,
     MatSlideToggle,
-    MatStep,
-    MatStepLabel,
-    MatStepper,
-    MatStepperNext,
-    MatStepperPrevious,
-    NgIf,
     NgOptimizedImage,
     ReactiveFormsModule,
     ApiDocumentationV4VisibilityComponent,
     MatTooltip,
-    ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4Module,
+    ApiDocumentationV4PageConfigurationComponent,
+    MatTabGroup,
+    MatTab,
+    MatCardContent,
+    ApiDocumentationV4PageHeaderComponent,
   ],
   templateUrl: './documentation-edit-page.component.html',
   styleUrl: './documentation-edit-page.component.scss',
 })
-export class DocumentationEditPageComponent implements OnInit, OnDestroy {
+export class DocumentationEditPageComponent implements OnInit {
   @Input()
   goBackRouterLink: string[];
 
   @Input()
-  createHomepage: boolean;
-
-  @Input()
   api: Api;
 
-  form: FormGroup<EditPageForm>;
-  mode: 'create' | 'edit';
-  pageTitle = 'Add new page';
-  exitLabel = 'Exit without saving';
-  pageType: PageType;
-  step3Title: string;
+  @Input()
+  page: Page;
+
+  form: FormGroup<EditPageForm> = new FormGroup<EditPageForm>({
+    pageConfiguration: INIT_PAGE_CONFIGURATION_FORM(),
+    content: new FormControl<string>('', [Validators.required]),
+  });
   source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
   formUnchanged: boolean;
-  page: Page;
-  iconUrl: string;
-  iconTooltip: string;
   isReadOnly: boolean = false;
   groups: Group[];
+  pageConfigurationData: PageConfigurationData = undefined;
+  isHomepage: boolean;
 
-  schema$: Observable<any>;
-  private existingNames: string[] = [];
+  name = signal<string | undefined>(undefined);
+
+  pages: Page[] = [];
+
   private initialAccessControlGroups: string[] = [];
-  private unsubscribe$: Subject<void> = new Subject<void>();
-  private readonly httpFetcherName = 'http-fetcher';
-
-  private readonly httpValue = 'HTTP';
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -154,144 +134,67 @@ export class DocumentationEditPageComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
-    private readonly fetcherService: FetcherService,
   ) {}
 
   ngOnInit(): void {
-    this.form = new FormGroup<EditPageForm>({
-      stepOne: new FormGroup({
-        name: new FormControl<string>('', [Validators.required, this.pageNameUniqueValidator()]),
-        visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
-        accessControlGroups: new FormControl<string[]>([]),
-        excludeGroups: new FormControl<boolean>({ value: false, disabled: true }),
-      }),
-      content: new FormControl<string>('', [Validators.required]),
-      source: new FormControl<string>(this.source, [Validators.required]),
-      sourceConfiguration: new FormControl<undefined | unknown>({}),
-    });
+    this.isHomepage = this.page.homepage === true;
+    this.name.set(this.page.name);
+    this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-documentation-u']);
 
-    this.form.controls.stepOne.controls.accessControlGroups.valueChanges
+    if (this.isReadOnly) {
+      this.form.disable();
+    }
+
+    this.initialAccessControlGroups = this.page.accessControls
+      ? this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId)
+      : [];
+
+    this.pageConfigurationData = {
+      id: this.page.id,
+      name: this.page.name,
+      visibility: this.page.visibility,
+      excludedAccessControls: this.page.excludedAccessControls === true,
+      accessControlGroups: this.initialAccessControlGroups,
+    };
+
+    this.form.controls.content.setValue(this.page.content);
+
+    this.form.valueChanges
       .pipe(
         tap((value) => {
-          if (value.length === 0) {
-            this.form.controls.stepOne.controls.excludeGroups.setValue(false);
-            this.form.controls.stepOne.controls.excludeGroups.disable();
-          } else {
-            this.form.controls.stepOne.controls.excludeGroups.enable();
+          if (this.page) {
+            this.formUnchanged =
+              this.page.name === value.pageConfiguration?.name &&
+              this.page.visibility === value.pageConfiguration?.visibility &&
+              this.page.content === value.content &&
+              (this.page.excludedAccessControls === undefined ||
+                this.page.excludedAccessControls === value.pageConfiguration.excludeGroups ||
+                (value.pageConfiguration.excludeGroups === undefined && value.pageConfiguration.visibility === 'PUBLIC')) &&
+              isEqual(this.initialAccessControlGroups, value.pageConfiguration.accessControlGroups);
           }
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
-    if (this.activatedRoute.snapshot.params.pageId) {
-      this.mode = 'edit';
-      this.step3Title = 'Edit content';
-      this.source = 'FILL';
-
-      this.form.valueChanges
-        .pipe(
-          tap((value) => {
-            if (this.page) {
-              this.formUnchanged =
-                this.page.name === value.stepOne?.name &&
-                this.page.visibility === value.stepOne?.visibility &&
-                this.source === value.source &&
-                this.page.content === value.content &&
-                (this.page.excludedAccessControls === undefined || this.page.excludedAccessControls === value.stepOne.excludeGroups) &&
-                this.initialAccessControlGroups === value.stepOne.accessControlGroups;
-            }
-          }),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe();
-
-      if (!this.permissionService.hasAnyMatching(['api-documentation-u'])) {
-        this.form.disable();
-        this.exitLabel = 'Exit';
-      }
-    } else {
-      this.mode = 'create';
-      this.step3Title = this.source === 'IMPORT' ? 'Upload a file' : 'Add content';
-      this.pageType = this.activatedRoute.snapshot.queryParams.pageType;
-    }
-    this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
-    const prepareMode$ = this.mode === 'edit' ? this.loadEditPage() : of({});
-    combineLatest([prepareMode$, this.apiDocumentationService.getApiPages(this.api.id, this.getParentId()), this.groupService.list(1, 999)])
-      .pipe(takeUntil(this.unsubscribe$))
+    combineLatest([this.apiDocumentationService.getApiPages(this.api.id, this.page.parentId ?? 'ROOT'), this.groupService.list(1, 999)])
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ([_, pagesResponse, groupsResponse]) => {
-          this.iconUrl = getLogoForPageType(this.pageType);
-          this.iconTooltip = getTooltipForPageType(this.pageType);
-
+        next: ([pagesResponse, groupsResponse]) => {
           this.breadcrumbs = pagesResponse.breadcrumb;
-          this.existingNames = pagesResponse.pages
-            .filter((page) => page.id !== this.page?.id && page.type === this.pageType)
-            .map((page) => page.name.toLowerCase().trim());
-
+          this.pages = pagesResponse.pages;
           this.groups = groupsResponse?.data ?? [];
-
-          if (this.isReadOnly) {
-            this.form.disable({ emitEvent: false });
-          }
         },
       });
-
-    this.schema$ = this.fetcherService.getList().pipe(
-      map((list) => list.find((fetcher) => fetcher.id === this.httpFetcherName)?.schema),
-      map((schema) => JSON.parse(schema)),
-    );
-    this.form.controls.stepOne.controls.name.valueChanges
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((value) => (this.pageTitle = value || 'Add new page'));
-    this.form.controls.source.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
-      if (value === this.httpValue) {
-        this.form.controls.content.clearValidators();
-      } else {
-        this.form.controls.content.addValidators([Validators.required]);
-      }
-      this.form.controls.content.updateValueAndValidity();
-    });
   }
 
   onGoBackRouterLink(): void {
     this.router.navigate(this.goBackRouterLink, { relativeTo: this.activatedRoute });
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
-  }
-
-  create() {
-    this.createPage()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(() => {
-        this.snackBarService.success('Page created successfully');
-        this.goBackToPageList();
-      });
-  }
-
-  createAndPublish() {
-    this.createPage()
-      .pipe(
-        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe({
-        next: () => {
-          this.snackBarService.success('Page created and published successfully');
-          this.goBackToPageList();
-        },
-        error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
-        },
-      });
-  }
-
   update() {
     this.updatePage()
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.snackBarService.success('Page updated successfully');
@@ -304,7 +207,7 @@ export class DocumentationEditPageComponent implements OnInit, OnDestroy {
     this.updatePage()
       .pipe(
         switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: () => {
@@ -320,30 +223,23 @@ export class DocumentationEditPageComponent implements OnInit, OnDestroy {
 
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
-    return this.apiDocumentationService.getApiPage(this.api.id, this.activatedRoute.snapshot.params.pageId).pipe(
+    return this.apiDocumentationService.getApiPage(this.api.id, this.page.id).pipe(
       switchMap((page) => {
         const nonGroupAccessControls = page.accessControls ? page.accessControls.filter((ac) => ac.referenceType !== 'GROUP') : [];
-        const selectedGroupAccessControls: AccessControl[] = formValue.stepOne.accessControlGroups.map((referenceId) => ({
+        const selectedGroupAccessControls: AccessControl[] = formValue.pageConfiguration.accessControlGroups.map((referenceId) => ({
           referenceId,
           referenceType: 'GROUP',
         }));
 
         const updateDocumentation: EditDocumentation = {
           ...page,
-          name: formValue.stepOne.name,
-          visibility: formValue.stepOne.visibility,
+          name: formValue.pageConfiguration.name,
+          visibility: formValue.pageConfiguration.visibility,
           content: formValue.content,
-          excludedAccessControls: formValue.stepOne.excludeGroups,
+          excludedAccessControls: formValue.pageConfiguration.excludeGroups,
           accessControls: [...nonGroupAccessControls, ...selectedGroupAccessControls],
-          ...(formValue.source === this.httpValue && {
-            source: this.obtainSource(formValue.source, formValue.sourceConfiguration),
-          }),
         };
-        return this.apiDocumentationService.updateDocumentationPage(
-          this.api.id,
-          this.activatedRoute.snapshot.params.pageId,
-          updateDocumentation,
-        );
+        return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.page.id, updateDocumentation);
       }),
       catchError((err) => {
         this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
@@ -352,19 +248,10 @@ export class DocumentationEditPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  private obtainSource(sourceType: string, configuration: unknown | undefined): PageSource {
-    if (sourceType === this.httpValue) {
-      return {
-        type: this.httpFetcherName,
-        configuration,
-      };
-    }
-  }
-
   goBackToPageList() {
     this.router.navigate(['../../'], {
       relativeTo: this.activatedRoute,
-      queryParams: { parentId: this.getParentId() },
+      queryParams: { parentId: this.page.parentId ?? 'ROOT' },
     });
   }
 
@@ -380,8 +267,8 @@ export class DocumentationEditPageComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationService.deleteDocumentationPage(this.activatedRoute.snapshot.params.apiId, this.page?.id)),
-        takeUntil(this.unsubscribe$),
+        switchMap((_) => this.apiDocumentationService.deleteDocumentationPage(this.api.id, this.page.id)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (_) => {
@@ -392,68 +279,5 @@ export class DocumentationEditPageComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
         },
       });
-  }
-
-  private createPage(): Observable<Page> {
-    const formValue = this.form.getRawValue();
-    // Only Markdown, Swagger, and AsyncAPI pages can be created
-    if (this.pageType !== 'MARKDOWN' && this.pageType !== 'SWAGGER' && this.pageType !== 'ASYNCAPI') {
-      this.snackBarService.error(`Cannot create page with type [${this.pageType}]`);
-      return;
-    }
-    const createPage: CreateDocumentation = {
-      type: this.pageType as CreateDocumentationType,
-      name: formValue.stepOne.name,
-      visibility: formValue.stepOne.visibility,
-      homepage: this.createHomepage === true,
-      content: formValue.content,
-      parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
-      accessControls: formValue.stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),
-      excludedAccessControls: formValue.stepOne.excludeGroups,
-      ...(formValue.source === this.httpValue && {
-        source: this.obtainSource(formValue.source, formValue.sourceConfiguration),
-      }),
-    };
-    return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
-      catchError((err) => {
-        this.snackBarService.error(err?.error?.message ?? 'Cannot save page');
-        return EMPTY;
-      }),
-    );
-  }
-
-  private loadEditPage(): Observable<Page> {
-    return this.apiDocumentationService.getApiPage(this.api.id, this.activatedRoute.snapshot.params.pageId).pipe(
-      tap((page) => {
-        this.pageTitle = page.name;
-        this.page = page;
-        this.pageType = page.type;
-
-        this.form.controls.stepOne.controls.name.setValue(this.page.name);
-        this.form.controls.stepOne.controls.visibility.setValue(this.page.visibility);
-        if (this.page.accessControls) {
-          this.form.controls.stepOne.controls.accessControlGroups.setValue(
-            this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId),
-          );
-        }
-        this.initialAccessControlGroups = this.form.value.stepOne.accessControlGroups;
-        this.form.controls.stepOne.controls.excludeGroups.setValue(this.page.excludedAccessControls === true);
-        if (this.initialAccessControlGroups.length === 0) {
-          this.form.controls.stepOne.controls.excludeGroups.disable();
-        } else {
-          this.form.controls.stepOne.controls.excludeGroups.enable();
-        }
-        this.form.controls.content.setValue(this.page.content);
-      }),
-    );
-  }
-
-  private pageNameUniqueValidator(): ValidatorFn {
-    return (nameControl: AbstractControl): ValidationErrors | null =>
-      this.existingNames.includes(nameControl.value?.toLowerCase().trim()) ? { unique: true } : null;
-  }
-
-  private getParentId(): string {
-    return this.activatedRoute.snapshot.queryParams.parentId ?? this.page?.parentId ?? 'ROOT';
   }
 }

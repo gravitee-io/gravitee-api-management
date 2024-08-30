@@ -1,0 +1,115 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card>
+  <div class="header">
+    <api-documentation-v4-page-header [pageType]="pageType" [name]="name()" [breadcrumbs]="breadcrumbs" [isHomepage]="createHomepage" />
+
+    <div class="header__actions">
+      <button class="header__exit" [disabled]="isReadOnly" mat-stroked-button (click)="onGoBackRouterLink()">Exit without saving</button>
+    </div>
+  </div>
+  <div class="stepper">
+    <form [formGroup]="form">
+      <mat-stepper linear color="accent" [disableRipple]="true">
+        <mat-step>
+          <ng-template matStepLabel>Configure page</ng-template>
+          <div class="stepper__content">
+            <api-documentation-v4-page-configuration
+              [name]="name"
+              [pageType]="pageType"
+              [apiPages]="pages"
+              [data]="stepOneData"
+              [form]="form.controls.stepOne"
+              [groups]="groups"
+              [homepage]="createHomepage"
+            />
+          </div>
+          <div class="stepper__actions">
+            <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.stepOne.invalid">Next</button>
+          </div>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Determine source</ng-template>
+          <div class="stepper__content">
+            <div class="mat-subtitle-2">Page source</div>
+
+            <gio-form-selection-inline class="gio-radio-group stepper__content__source" formControlName="source">
+              <gio-form-selection-inline-card value="FILL">
+                <gio-form-selection-inline-card-content icon="gio:edit-pencil">
+                  <gio-card-content-title>Fill in the content myself</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+              <gio-form-selection-inline-card value="IMPORT">
+                <gio-form-selection-inline-card-content icon="gio:down-circle">
+                  <gio-card-content-title>Import from file</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+              <gio-form-selection-inline-card value="HTTP">
+                <gio-form-selection-inline-card-content icon="gio:language">
+                  <gio-card-content-title>Import from URL</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+            </gio-form-selection-inline>
+          </div>
+          <div class="stepper__actions">
+            <button mat-flat-button color="primary" matStepperNext>Next</button>
+            <button mat-stroked-button matStepperPrevious>Previous</button>
+          </div>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>{{ source === 'IMPORT' ? 'Upload a file' : 'Add content' }}</ng-template>
+          <div class="stepper__content">
+            @switch (form.value.source) {
+              @case ('FILL') {
+                <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="pageType" />
+              }
+              @case ('IMPORT') {
+                <api-documentation-file-upload formControlName="content" [pageType]="pageType" [disabled]="isReadOnly" />
+              }
+              @case ('HTTP') {
+                @if (schema$ | async; as schema) {
+                  <gio-form-json-schema formControlName="sourceConfiguration" [jsonSchema]="schema"></gio-form-json-schema>
+                }
+              }
+            }
+
+            @if (form.controls.content.errors?.required) {
+              <mat-error>Page content cannot be empty</mat-error>
+            }
+          </div>
+          <div class="stepper__actions">
+            <ng-container *gioPermission="{ anyOf: ['api-documentation-c'] }">
+              <button
+                *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                mat-flat-button
+                color="primary"
+                [disabled]="form.invalid || isReadOnly"
+                (click)="createAndPublish()"
+              >
+                Save and publish
+              </button>
+              <button mat-stroked-button [disabled]="form.invalid" (click)="create()">Save</button>
+            </ng-container>
+
+            <button mat-stroked-button matStepperPrevious>Previous</button>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </form>
+  </div>
+</mat-card>

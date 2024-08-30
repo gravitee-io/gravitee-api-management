@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -70,12 +71,12 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         if (input.settings().getApp() != null) {
             return validateAndSanitizeSimpleSettings(input);
         }
-        return validateOAuthSettings(input);
+        return validateAndSanitizeOAuthSettings(input);
     }
 
     private Result<Input> validateAndSanitizeSimpleSettings(Input input) {
         var sanitizedBuilder = input.settings().toBuilder();
-        var simpleSettings = input.settings().getApp();
+        var simpleSettings = input.settings().getApp().toBuilder().build();
         var errors = new ArrayList<Error>();
 
         if (StringUtils.isNotEmpty(simpleSettings.getClientId())) {
@@ -85,9 +86,9 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         return Result.ofBoth(input.sanitized(sanitizedBuilder.app(simpleSettings).build()), errors);
     }
 
-    private Result<Input> validateOAuthSettings(Input input) {
+    private Result<Input> validateAndSanitizeOAuthSettings(Input input) {
         var sanitizedBuilder = input.settings().toBuilder();
-        var oauthSettings = input.settings().getOauth();
+        var oauthSettings = input.settings().getOauth().toBuilder().build();
         var errors = new ArrayList<Error>();
 
         if (!isClientRegistrationEnabled(input.auditInfo())) {
@@ -102,7 +103,7 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         var appType = applicationTypeService.getApplicationType(oauthSettings.getApplicationType());
         errors.addAll(validateGrantTypes(appType, oauthSettings));
         errors.addAll(validateRedirectURIs(appType, oauthSettings));
-
+        oauthSettings.setResponseTypes(getResponseTypes(appType, oauthSettings));
         return Result.ofBoth(input.sanitized(sanitizedBuilder.oauth(oauthSettings).build()), errors);
     }
 
@@ -145,6 +146,7 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         }
 
         if (CollectionUtils.isEmpty(redirectURIs)) {
+            settings.setRedirectUris(List.of());
             return List.of();
         }
 
@@ -171,6 +173,17 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         return type.getMandatory_grant_types() == null
             ? List.of()
             : type.getMandatory_grant_types().stream().map(ApplicationGrantTypeEntity::getType).toList();
+    }
+
+    private List<String> getResponseTypes(ApplicationTypeEntity type, OAuthClientSettings settings) {
+        return type
+            .getAllowed_grant_types()
+            .stream()
+            .filter(grantType -> settings.getGrantTypes().contains(grantType.getType()))
+            .map(ApplicationGrantTypeEntity::getResponse_types)
+            .flatMap(Collection::stream)
+            .distinct()
+            .toList();
     }
 
     private boolean isClientRegistrationEnabled(AuditInfo auditInfo) {

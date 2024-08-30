@@ -19,13 +19,16 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 }
 
-.tab {
+.stepper {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
   &__content {
-    padding: 16px 0;
+    padding-bottom: 16px;
   }
 
   &__actions {
     padding-top: 16px;
+    border-top: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     display: flex;
     gap: 8px;
   }

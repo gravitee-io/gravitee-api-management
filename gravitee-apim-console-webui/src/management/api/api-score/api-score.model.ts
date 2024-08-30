@@ -24,18 +24,16 @@ export enum ScoringStatus {
   PENDING = 'PENDING',
   ERROR = 'ERROR',
 }
-
-export interface ScoreIssue {
-  severity: string;
-  location: string;
-  recommendation: string;
-  path: string;
+export enum ScoringAssetType {
+  ASYNCAPI = 'ASYNCAPI',
+  GRAVITEE_DEFINITION = 'GRAVITEE_DEFINITION',
+  SWAGGER = 'SWAGGER',
 }
-
-export interface ScoreList {
-  name: string;
-  source: string;
-  issues: ScoreIssue[];
+export enum ScoringSeverity {
+  ERROR = 'ERROR',
+  HINT = 'HINT',
+  INFO = 'INFO',
+  WARN = 'WARN',
 }
 
 export interface ApiScore {
@@ -44,6 +42,22 @@ export interface ApiScore {
   warnings: number;
   infos: number;
   hints: number;
-  lastEvaluation: number;
-  scoreLists: ScoreList[];
+  createdAt: Date;
+  assets: ScoringAsset[];
+}
+
+export interface ScoringAsset {
+  name: string;
+  type: ScoringAssetType;
+  diagnostics: ScoringDiagnostic[];
+}
+
+export interface ScoringDiagnostic {
+  severity: ScoringSeverity;
+  message: string;
+  range: {
+    start: { line: number; character: number };
+    end: { line: number; character: number };
+  };
+  path: string;
 }

@@ -15,53 +15,58 @@
     limitations under the License.
 
 -->
+@if (isLoading) {
+  <!-- Loading panel -->
+  <div class="loadingTemplate" data-testid="loader-spinner">
+    <gio-loader></gio-loader>
+  </div>
+} @else {
+  <mat-card class="mat-card">
+    <mat-card-header class="card-header">
+      <mat-card-title>
+        {{ api.name }}
+        @if (apiScore.all) {
+          <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>90%</span>
+          <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>
+        }
+      </mat-card-title>
 
-<mat-card class="mat-card">
-  <mat-card-header class="card-header">
-    <mat-card-title>
-      {{ api?.name }}
-      @if (!isLoading && apiScore.all) {
-        <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>90%</span>
-        <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>
+      @if (apiScore.createdAt) {
+        <mat-card-subtitle> Last evaluated at {{ apiScore.createdAt }}</mat-card-subtitle>
       }
-    </mat-card-title>
 
-    @if (apiScore.lastEvaluation) {
-      <mat-card-subtitle> Last evaluated {{ apiScore.lastEvaluation }} minute ago</mat-card-subtitle>
-    }
+      <div class="card-header__actions">
+        <button mat-raised-button color="primary" data-testid="evaluate-button" (click)="evaluate()">Evaluate</button>
+      </div>
+    </mat-card-header>
 
-    <div class="card-header__actions">
-      <button mat-raised-button color="primary" data-testid="evaluate-button" (click)="evaluate()">Evaluate</button>
-    </div>
-  </mat-card-header>
+    <div class="separator-hr"></div>
 
-  <div class="separator-hr"></div>
+    <mat-card-content class="card-content">
+      @if (apiScore.all !== 0) {
+        <section>
+          <mat-button-toggle-group class="gio-button-toggle-group" name="status" aria-label="" [value]="status">
+            <mat-button-toggle value="all">All ({{ apiScore.all }})</mat-button-toggle>
+            <mat-button-toggle value="errors">Errors ({{ apiScore.errors }})</mat-button-toggle>
+            <mat-button-toggle value="warnings">Warnings ({{ apiScore.warnings }})</mat-button-toggle>
+            <mat-button-toggle value="infos">Infos ({{ apiScore.infos }})</mat-button-toggle>
+            <mat-button-toggle value="hints">Hints ({{ apiScore.hints }})</mat-button-toggle>
+          </mat-button-toggle-group>
+        </section>
+      }
 
-  <mat-card-content class="card-content">
-    @if (apiScore.all !== 0) {
-      <section>
-        <mat-button-toggle-group class="gio-button-toggle-group" name="status" aria-label="" [value]="status">
-          <mat-button-toggle value="all">All ({{ apiScore.all }})</mat-button-toggle>
-          <mat-button-toggle value="errors">Errors ({{ apiScore.errors }})</mat-button-toggle>
-          <mat-button-toggle value="warnings">Warnings ({{ apiScore.warnings }})</mat-button-toggle>
-          <mat-button-toggle value="infos">Infos ({{ apiScore.infos }})</mat-button-toggle>
-          <mat-button-toggle value="hints">Hints ({{ apiScore.hints }})</mat-button-toggle>
-        </mat-button-toggle-group>
+      <section class="api-scores-lists">
+        @if (apiScore.all === 0) {
+          <gio-card-empty-state
+            icon="rocket"
+            title="All clear"
+            [subtitle]="'There is no recommendations or issues for your API. \n Everything looks great!'"
+          ></gio-card-empty-state>
+        }
+        @for (asset of apiScore.assets; track asset.name) {
+          <app-api-score-list [asset]="asset"></app-api-score-list>
+        }
       </section>
-    }
-
-    <section class="api-scores-lists">
-      @if (apiScore.all === 0) {
-        <gio-card-empty-state
-          icon="rocket"
-          title="All clear"
-          [subtitle]="'There is no recommendations or issues for your API. \n Everything looks great!'"
-        ></gio-card-empty-state>
-      }
-
-      @for (apiScoreItem of apiScore.scoreLists; track apiScoreItem.name) {
-        <app-api-score-list [scoreList]="apiScoreItem"></app-api-score-list>
-      }
-    </section>
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
+}
