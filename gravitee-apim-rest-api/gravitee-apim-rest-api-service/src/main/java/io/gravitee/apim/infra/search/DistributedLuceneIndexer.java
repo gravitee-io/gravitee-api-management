@@ -20,17 +20,22 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
 @Service
 public class DistributedLuceneIndexer implements Indexer {
 
     private final SearchEngineService searchEngineService;
+
+    public DistributedLuceneIndexer(@Lazy SearchEngineService searchEngineService) {
+        this.searchEngineService = searchEngineService;
+    }
 
     @Override
     public void index(IndexationContext context, Indexable indexable) {
