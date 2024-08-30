@@ -158,7 +158,34 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     await componentHarness.compareTwoSPGButton().then((button) => button.click());
 
     const dialog = await rootLoader.getHarness(HistoryCompareDialogHarness);
-    expect(await dialog.getTitleText()).toEqual('Comparing version 2 with version 1');
+    expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version 2');
+  });
+
+  it('should always compare older to newer', async () => {
+    expectListSharedPolicyGroupHistoriesRequest(
+      httpTestingController,
+      fakePagedResult([
+        fakeSharedPolicyGroup({
+          version: 2,
+        }),
+        fakeSharedPolicyGroup({ version: 1 }),
+      ]),
+      SHARED_POLICY_GROUP_ID,
+    );
+
+    const table = await componentHarness.getTable();
+    const rows = await table.getRows();
+    await rows[0]
+      .getCells({ columnName: 'checkbox' })
+      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+    await rows[1]
+      .getCells({ columnName: 'checkbox' })
+      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+
+    await componentHarness.compareTwoSPGButton().then((button) => button.click());
+
+    const dialog = await rootLoader.getHarness(HistoryCompareDialogHarness);
+    expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version 2');
   });
 
   it('should restore version', async () => {

@@ -221,11 +221,20 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
   }
 
   protected openCompareTwoSPGDialog() {
+    let left: SharedPolicyGroup;
+    let right: SharedPolicyGroup;
+    if (this.compareSPG[0].sharedPolicyGroup.version > this.compareSPG[1].sharedPolicyGroup.version) {
+      left = this.compareSPG[1].sharedPolicyGroup;
+      right = this.compareSPG[0].sharedPolicyGroup;
+    } else {
+      left = this.compareSPG[0].sharedPolicyGroup;
+      right = this.compareSPG[1].sharedPolicyGroup;
+    }
     this.matDialog
       .open<HistoryCompareDialogComponent, HistoryCompareDialogData, HistoryCompareDialogResult>(HistoryCompareDialogComponent, {
         data: {
-          left: this.compareSPG[0]?.sharedPolicyGroup,
-          right: this.compareSPG[1]?.sharedPolicyGroup,
+          left: left,
+          right: right,
         },
         width: GIO_DIALOG_WIDTH.LARGE,
         role: 'dialog',
