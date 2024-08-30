@@ -132,8 +132,8 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
   protected get comparePendingSPGLabel(): string {
     const lastSelected = this.compareSPG.filter((e) => !isNil(e))?.pop();
     return lastSelected
-      ? `Compare version ${lastSelected.sharedPolicyGroup.version} with Pending`
-      : 'Select a version to compare with Pending version';
+      ? `Compare version ${lastSelected.sharedPolicyGroup.version} with version to be deployed`
+      : 'Select a version to compare with version to be deployed';
   }
   protected get disableComparePendingSPG(): boolean {
     return this.compareSPG.filter((e) => !isNil(e)).length < 1;
