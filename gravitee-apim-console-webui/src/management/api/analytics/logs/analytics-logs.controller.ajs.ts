@@ -150,8 +150,12 @@ class ApiAnalyticsLogsControllerAjs {
   }
 
   goToLog(log: any) {
+    const fullUrl = window.location.href;
+    const index = fullUrl.indexOf('/#!');
+    const baseUrl = fullUrl.substring(0, index + 3);
+
     return (
-      '/#!' +
+      baseUrl +
       this.ngRouter.createUrlTree(['.', log.id], {
         relativeTo: this.activatedRoute,
         queryParams: {
