@@ -24,7 +24,6 @@ import { ApiDocumentationV2Service } from '../../../../services-ngx/api-document
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Page, PageType } from '../../../../entities/management-api-v2';
-
 @Component({
   selector: 'api-documentation-default-page',
   templateUrl: './api-documentation-v4-default-page.component.html',
@@ -34,7 +33,8 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
   private unsubscribe$: Subject<void> = new Subject<void>();
   api: Api;
   parentId: string;
-  page: Page;
+  pages: Page[];
+  homepage: Page;
   isLoading = false;
   isReadOnly = false;
 
@@ -58,14 +58,14 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
           this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
         }),
         switchMap(() => this.activatedRoute.queryParams),
-        switchMap((queryParams) => {
-          this.parentId = queryParams.parentId || 'ROOT';
-          return this.apiDocumentationV2Service.getApiPages(this.api.id, this.parentId);
+        switchMap(() => {
+          return this.apiDocumentationV2Service.getApiPages(this.api.id);
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe((res) => {
-        this.page = res.pages.find((p) => p.homepage === true);
+        this.pages = res.pages;
+        this.homepage = this.pages.find((p) => p.homepage === true);
         this.isLoading = false;
       });
   }
@@ -144,8 +144,8 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
-          title: 'Delete your page',
-          content: 'Are you sure you want to delete this page? This action is irreversible.',
+          title: 'Delete Homepage',
+          content: 'Are you sure you want to delete this page? This action is irreversible. Do you want to continue?',
           confirmButton: 'Delete',
         },
       })
@@ -157,12 +157,18 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
       )
       .subscribe({
         next: (_) => {
-          this.snackBarService.success('Page deleted successfully');
+          this.snackBarService.success('Homepage deleted successfully');
           this.ngOnInit();
         },
         error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
+          this.snackBarService.error(error?.error?.message ?? 'Error when deleting homepage');
         },
       });
+  }
+
+  chooseHomepage() {
+    this.router.navigate(['.', 'homepage', 'choose'], {
+      relativeTo: this.activatedRoute,
+    });
   }
 }

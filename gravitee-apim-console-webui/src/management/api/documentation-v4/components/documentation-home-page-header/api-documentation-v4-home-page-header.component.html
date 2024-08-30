@@ -16,11 +16,21 @@
 
 -->
 <h3 class="header__title">Homepage</h3>
-<div class="header__action" *gioPermission="{ anyOf: ['api-documentation-c'] }">
-  <button [disabled]="true" class="header__action__button" mat-stroked-button>Choose Existing Page</button>
-  <api-documentation-v4-add-page-button
-    [disabled]="hasPages"
-    (addPage)="addPage.emit($event)"
-    text="Create New Page"
-  ></api-documentation-v4-add-page-button>
-</div>
+@if (!hasHomepage) {
+  <div class="header__action" *gioPermission="{ anyOf: ['api-documentation-c'] }">
+    <button
+      [disabled]="noCustomPages || isReadOnly"
+      class="header__action__button"
+      mat-stroked-button
+      (click)="selectPage.emit()"
+      *gioPermission="{ anyOf: ['api-documentation-u'] }"
+    >
+      Choose Existing Page
+    </button>
+    <api-documentation-v4-add-page-button
+      [disabled]="isReadOnly"
+      (addPage)="addPage.emit($event)"
+      text="Create New Page"
+    ></api-documentation-v4-add-page-button>
+  </div>
+}

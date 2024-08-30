@@ -27,9 +27,11 @@ export class ApiDocumentationV4HomePageHeaderComponent {
   @Input()
   isReadOnly: boolean;
   @Input()
-  hasPages: boolean;
+  hasHomepage: boolean;
+  @Input()
+  noCustomPages: boolean;
   @Output()
   addPage = new EventEmitter<PageType>();
   @Output()
-  selectPage = new EventEmitter<string>();
+  selectPage = new EventEmitter<void>();
 }

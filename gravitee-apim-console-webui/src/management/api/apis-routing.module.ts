@@ -87,6 +87,7 @@ import { ApiScoreComponent } from './api-score/api-score.component';
 import { ApiDocumentationV4DefaultPageComponent } from './documentation-v4/documentation-default-page/api-documentation-v4-default-page.component';
 import { DocumentationEditCustomPageComponent } from './documentation-v4/documentation-edit-custom-page/documentation-edit-custom-page.component';
 import { DocumentationEditHomepageComponent } from './documentation-v4/documentation-edit-homepage/documentation-edit-homepage.component';
+import { ApiDocumentationChooseExistingPageComponent } from './documentation-v4/components/api-documentation-choose-existing-page/api-documentation-choose-existing-page.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -898,6 +899,16 @@ const apisRoutes: Routes = [
               },
             },
             component: DocumentationEditHomepageComponent,
+          },
+          {
+            path: 'main-pages/homepage/choose',
+            data: {
+              docs: null,
+              permissions: {
+                anyOf: ['api-documentation-c', 'api-documentation-u', 'api-documentation-r'],
+              },
+            },
+            component: ApiDocumentationChooseExistingPageComponent,
           },
           {
             path: 'main-pages/homepage/:pageId',
