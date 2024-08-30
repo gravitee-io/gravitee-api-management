@@ -21,6 +21,7 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration
 @Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class })
+@EnableAsync
 public class RestManagementConfiguration {
 
     @Bean
