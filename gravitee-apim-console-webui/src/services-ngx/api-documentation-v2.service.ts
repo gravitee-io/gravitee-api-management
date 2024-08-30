@@ -38,8 +38,12 @@ export class ApiDocumentationV2Service {
   createDocumentationPage(apiId: string, createDocumentation: CreateDocumentation): Observable<Page> {
     return this.http.post<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages`, createDocumentation);
   }
-  getApiPages(apiId: string, parentId: string): Observable<ApiDocumentationPageResult> {
-    return this.http.get<ApiDocumentationPageResult>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages?parentId=${parentId}`).pipe(
+  getApiPages(apiId: string, parentId?: string): Observable<ApiDocumentationPageResult> {
+    const url = parentId
+      ? `${this.constants.env.v2BaseURL}/apis/${apiId}/pages?parentId=${parentId}`
+      : `${this.constants.env.v2BaseURL}/apis/${apiId}/pages`;
+
+    return this.http.get<ApiDocumentationPageResult>(url).pipe(
       map((result: ApiDocumentationPageResult) => {
         // TODO: update this filter with new supported types
         const filteredResult: ApiDocumentationPageResult = {

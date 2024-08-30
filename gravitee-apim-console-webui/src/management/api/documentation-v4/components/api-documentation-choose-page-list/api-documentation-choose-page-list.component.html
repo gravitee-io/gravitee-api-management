@@ -1,0 +1,70 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="header">Name</div>
+<div class="scrollable-container">
+  <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="documentation-pages-list__tree">
+    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding (click)="onSelectPage(node)" class="documentation-pages-list__tree__node">
+      <div class="node-radio-container">
+        <mat-radio-group [(ngModel)]="selectedPageId">
+          <mat-radio-button [value]="node.id" (change)="onSelectPage(node)">
+            {{ node.name }}
+            <img
+              [ngSrc]="node.logoForPageType"
+              height="24"
+              width="24"
+              [alt]="node.titleForPageType"
+              [matTooltip]="node.tooltipForPageType"
+            />
+            @if (node.published) {
+              <span class="gio-badge-success"> Published </span>
+            } @else {
+              <span class="gio-badge-neutral"> Unpublished </span>
+            }
+            @if (node.visibility === 'PUBLIC') {
+              <span class="gio-badge-neutral"> Public </span>
+            }
+          </mat-radio-button>
+        </mat-radio-group>
+      </div>
+    </mat-tree-node>
+
+    <mat-tree-node
+      *matTreeNodeDef="let node; when: hasChild"
+      matTreeNodePadding
+      matTreeNodeToggle
+      (click)="onSelectPage(node)"
+      [cdkTreeNodeTypeaheadLabel]="node.name"
+      class="documentation-pages-list__tree__node"
+    >
+      <div class="node-tree-container">
+        <div class="left-content">
+          <mat-icon svgIcon="gio:folder"></mat-icon>
+          {{ node.name }}
+        </div>
+        @if (node.isLoading()) {
+          <mat-progress-bar mode="indeterminate" class="tree-progress-bar"></mat-progress-bar>
+        }
+        <button mat-icon-button [attr.aria-label]="'Toggle ' + node.name" matTreeNodeToggle>
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+          </mat-icon>
+        </button>
+      </div>
+    </mat-tree-node>
+  </mat-tree>
+</div>

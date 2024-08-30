@@ -18,14 +18,16 @@
 <mat-card>
   <api-documentation-home-page-header
     [isReadOnly]="isReadOnly"
-    [hasPages]="page != null"
+    [hasHomepage]="!!homepage"
+    [noCustomPages]="!pages?.length"
+    (selectPage)="chooseHomepage()"
     (addPage)="addPage($event)"
   ></api-documentation-home-page-header>
   <mat-card-content>
-    @if (page != null) {
+    @if (homepage) {
       <api-documentation-v4-pages-list
         mode="HOME_PAGE"
-        [pages]="[page]"
+        [pages]="[homepage]"
         [isReadOnly]="isReadOnly"
         (onEditPage)="editPage($event)"
         (onPublishPage)="publishPage($event)"

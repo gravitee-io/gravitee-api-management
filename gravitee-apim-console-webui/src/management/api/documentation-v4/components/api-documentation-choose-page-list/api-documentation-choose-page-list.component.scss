@@ -1,0 +1,88 @@
+/*
+ * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@use 'sass:map';
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
+  border-radius: 8px;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+
+.header {
+  padding: 20px;
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter80');
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
+}
+
+.documentation-pages-list {
+  &__tree {
+    &__node {
+      display: flex;
+      width: 100%;
+      cursor: pointer;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter80');
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+.tree-progress-bar {
+  margin-left: 30px;
+}
+
+.scrollable-container {
+  max-height: 530px;
+  overflow-y: scroll;
+}
+
+.node-radio-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  width: 100%;
+
+  .left-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.node-tree-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 30px;
+  width: 100%;
+
+  .left-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}

@@ -103,7 +103,7 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
       })
       .flush(fakeApiV4({ id: API_ID, lifecycleState: apiLifecycleStatus }));
 
-    expectGetPages(pages, breadcrumb, parentId);
+    expectGetPages(pages, breadcrumb);
   };
 
   afterEach(() => {
@@ -128,7 +128,7 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'homepage', 'new'], {
         relativeTo: expect.anything(),
-        queryParams: { parentId: 'ROOT', pageType: 'MARKDOWN', homepage: true },
+        queryParams: { parentId: undefined, pageType: 'MARKDOWN', homepage: true },
       });
     });
   });
@@ -152,10 +152,10 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
     });
   });
 
-  const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
+  const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[]) => {
     const req = httpTestingController.expectOne({
       method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages?parentId=${parentId}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
     });
 
     req.flush({ pages, breadcrumb });
