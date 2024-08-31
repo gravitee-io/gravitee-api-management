@@ -23,6 +23,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { Constants } from '../../../entities/Constants';
+import { fakeApiFederated } from '../../../entities/management-api-v2';
 
 const DEFAULT_PERMISSIONS: GioTestingPermission = ['api-member-r', 'api-audit-r', 'api-documentation-r', 'api-metadata-r', 'api-plan-r'];
 const DEFAULT_SETTINGS: ConsoleSettings = { scoring: { enabled: true } };
@@ -49,11 +50,11 @@ describe('ApiFederatedMenuService', () => {
   };
 
   describe('getMenu', () => {
-    it('should return items for Federated API with expected permission and license', async () => {
+    it('should return items for created Federated API with expected permission and license', async () => {
       await init();
       const service = TestBed.inject(ApiFederatedMenuService);
 
-      expect(service.getMenu()).toEqual({
+      expect(service.getMenu(fakeApiFederated({ lifecycleState: 'CREATED' }))).toEqual({
         subMenuItems: [
           {
             displayName: 'Configuration',
@@ -118,6 +119,12 @@ describe('ApiFederatedMenuService', () => {
             header: {
               title: 'Documentation',
               subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
+              action: {
+                disabled: true,
+                disabledTooltip: "Activate the Developer Portal by publishing your API under 'General > Info'",
+                targetUrl: undefined,
+                text: 'Open API in Developer Portal',
+              },
             },
             icon: 'book',
             routerLink: '',
@@ -144,11 +151,11 @@ describe('ApiFederatedMenuService', () => {
       });
     });
 
-    it('should hide elements when not enough permissions', async () => {
+    it('should hide elements for published API when not enough permissions', async () => {
       await init({ permissions: [], settings: DEFAULT_SETTINGS });
       const service = TestBed.inject(ApiFederatedMenuService);
 
-      expect(service.getMenu()).toEqual({
+      expect(service.getMenu(fakeApiFederated({ lifecycleState: 'PUBLISHED' }))).toEqual({
         subMenuItems: [
           {
             displayName: 'Configuration',
@@ -196,6 +203,12 @@ describe('ApiFederatedMenuService', () => {
             header: {
               subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
               title: 'Documentation',
+              action: {
+                disabled: false,
+                disabledTooltip: undefined,
+                targetUrl: undefined,
+                text: 'Open API in Developer Portal',
+              },
             },
             icon: 'book',
             routerLink: '',
@@ -210,7 +223,7 @@ describe('ApiFederatedMenuService', () => {
       await init({ permissions: DEFAULT_PERMISSIONS, settings: { scoring: { enabled: false } } });
       const service = TestBed.inject(ApiFederatedMenuService);
 
-      const menu = service.getMenu();
+      const menu = service.getMenu(fakeApiFederated());
 
       expect(menu.subMenuItems.find((item) => item.displayName === 'API Score')).toBeUndefined();
     });

@@ -19,9 +19,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { CreateDocumentation } from '../entities/management-api-v2/documentation/createDocumentation';
-import { Breadcrumb, Page } from '../entities/management-api-v2/documentation/page';
-import { EditDocumentation } from '../entities/management-api-v2/documentation/editDocumentation';
+import { CreateDocumentation, Breadcrumb, Page, EditDocumentation, ApiLifecycleState } from '../entities/management-api-v2';
 
 export interface ApiDocumentationPageResult {
   pages: Page[];
@@ -82,5 +80,30 @@ export class ApiDocumentationV2Service {
 
   deleteDocumentationPage(apiId: string, pageId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`, {});
+  }
+
+  getApiNotInPortalTooltip(apiLifecycleState: ApiLifecycleState): string {
+    switch (apiLifecycleState) {
+      case 'DEPRECATED':
+        return 'Deprecated APIs do not appear in the Developer Portal';
+      case 'ARCHIVED':
+        return 'Archived APIs do not appear in the Developer Portal';
+      case 'CREATED':
+      case 'UNPUBLISHED':
+        return "Activate the Developer Portal by publishing your API under 'General > Info'";
+      case 'PUBLISHED':
+      default:
+        return undefined;
+    }
+  }
+  getApiPortalUrl(apiId: string): string {
+    const portalUrl = this.constants.env.settings?.portal?.url;
+    if (apiId && portalUrl) {
+      const apiPath = 'catalog/api/' + apiId;
+      const connector = '/';
+
+      return portalUrl.endsWith(connector) ? portalUrl + apiPath : portalUrl + connector + apiPath;
+    }
+    return undefined;
   }
 }

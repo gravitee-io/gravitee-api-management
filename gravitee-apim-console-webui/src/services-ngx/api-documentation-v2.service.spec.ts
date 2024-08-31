@@ -19,24 +19,49 @@ import { TestBed } from '@angular/core/testing';
 import { ApiDocumentationV2Service } from './api-documentation-v2.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
-import { CreateDocumentation, CreateDocumentationFolder } from '../entities/management-api-v2/documentation/createDocumentation';
-import { Page } from '../entities/management-api-v2/documentation/page';
-import { EditDocumentationMarkdown } from '../entities/management-api-v2/documentation/editDocumentation';
-import { fakeAsyncApi, fakeFolder, fakeMarkdown, fakePage, fakeSwagger } from '../entities/management-api-v2/documentation/page.fixture';
+import {
+  CreateDocumentation,
+  CreateDocumentationFolder,
+  Page,
+  EditDocumentationMarkdown,
+  fakeAsyncApi,
+  fakeFolder,
+  fakeMarkdown,
+  fakePage,
+  fakeSwagger,
+} from '../entities/management-api-v2';
+import { Constants } from '../entities/Constants';
 
 describe('ApiDocumentationV2Service', () => {
   let httpTestingController: HttpTestingController;
   let service: ApiDocumentationV2Service;
   const API_ID = 'api-id';
 
-  beforeEach(() => {
+  const init = (portalUrl: string = undefined) => {
     TestBed.configureTestingModule({
       imports: [GioTestingModule],
+      providers: [
+        {
+          provide: Constants,
+          useValue: {
+            ...CONSTANTS_TESTING,
+            env: {
+              ...CONSTANTS_TESTING.env,
+              settings: {
+                ...CONSTANTS_TESTING.env.settings,
+                portal: {
+                  url: portalUrl,
+                },
+              },
+            },
+          },
+        },
+      ],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject<ApiDocumentationV2Service>(ApiDocumentationV2Service);
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
@@ -44,6 +69,7 @@ describe('ApiDocumentationV2Service', () => {
 
   describe('getPage', () => {
     const PAGE_ID = 'page-id';
+    beforeEach(() => init());
     it('should call the API', (done) => {
       const fakeResponse = fakeMarkdown();
 
@@ -62,6 +88,7 @@ describe('ApiDocumentationV2Service', () => {
   });
 
   describe('getApiPages', () => {
+    beforeEach(() => init());
     it('should call the API', (done) => {
       const fakeResponse = { pages: [], breadcrumb: [] };
 
@@ -143,6 +170,7 @@ describe('ApiDocumentationV2Service', () => {
   });
 
   describe('createDocumentation', () => {
+    beforeEach(() => init());
     it('should call the API to create folder', (done) => {
       const fakeResponse: Page = {};
       const createFolder: CreateDocumentationFolder = {
@@ -186,6 +214,7 @@ describe('ApiDocumentationV2Service', () => {
   });
 
   describe('updateDocumentation', () => {
+    beforeEach(() => init());
     const PAGE_ID = 'page-id';
     it('should call the API to update markdown page', (done) => {
       const fakeResponse: Page = {};
@@ -209,6 +238,7 @@ describe('ApiDocumentationV2Service', () => {
   });
 
   describe('publishPage', () => {
+    beforeEach(() => init());
     const PAGE_ID = 'page-id';
     it('should call the API to publish page', (done) => {
       const fakeResponse: Page = fakeMarkdown();
@@ -226,6 +256,7 @@ describe('ApiDocumentationV2Service', () => {
   });
 
   describe('unpublishPage', () => {
+    beforeEach(() => init());
     const PAGE_ID = 'page-id';
     it('should call the API to unpublish page', (done) => {
       const fakeResponse: Page = fakeMarkdown();
@@ -239,6 +270,36 @@ describe('ApiDocumentationV2Service', () => {
         method: 'POST',
       });
       req.flush(fakeResponse);
+    });
+  });
+
+  describe('getApiNotInPortalTooltip', () => {
+    beforeEach(() => init());
+    it('should return Created message', () => {
+      expect(service.getApiNotInPortalTooltip('CREATED')).toEqual(
+        "Activate the Developer Portal by publishing your API under 'General > Info'",
+      );
+    });
+    it('should return nothing if Published', () => {
+      expect(service.getApiNotInPortalTooltip('PUBLISHED')).toEqual(undefined);
+    });
+  });
+
+  describe('getApiPortalUrl', () => {
+    describe('With defined portal url', () => {
+      beforeEach(() => init('my-portal-url'));
+      it('should return complete portal url', () => {
+        expect(service.getApiPortalUrl('api-id')).toEqual('my-portal-url/catalog/api/api-id');
+      });
+      it('should return undefined if api id not specified', () => {
+        expect(service.getApiPortalUrl(undefined)).toEqual(undefined);
+      });
+    });
+    describe('With undefined portal url', () => {
+      beforeEach(() => init());
+      it('should return undefined', () => {
+        expect(service.getApiPortalUrl('api-id')).toEqual(undefined);
+      });
     });
   });
 });

@@ -24,12 +24,14 @@ import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV4 } from '../../../entities/management-api-v2';
+import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 
 @Injectable()
 export class ApiV4MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly gioLicenseService: GioLicenseService,
+    private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
   public getMenu(api: ApiV4): {
@@ -45,7 +47,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addEndpointsMenuEntry(api, hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addConsumersMenuEntry(hasTcpListeners),
-      this.addDocumentationMenuEntry(),
+      this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
       this.addApiTrafficMenuEntry(hasTcpListeners),
       this.addApiRuntimeAlertsMenuEntry(),
@@ -222,7 +224,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addDocumentationMenuEntry(): MenuItem {
+  private addDocumentationMenuEntry(api: ApiV4): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
@@ -255,6 +257,12 @@ export class ApiV4MenuService implements ApiMenuService {
       header: {
         title: 'Documentation',
         subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
+        action: {
+          text: 'Open API in Developer Portal',
+          targetUrl: this.apiDocumentationV2Service.getApiPortalUrl(api.id),
+          disabled: api.lifecycleState !== 'PUBLISHED',
+          disabledTooltip: this.apiDocumentationV2Service.getApiNotInPortalTooltip(api.lifecycleState),
+        },
       },
       tabs: tabs,
     };
