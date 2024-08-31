@@ -49,7 +49,6 @@ import { ApiDocumentationV4EditFolderDialog } from './dialog/documentation-edit-
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.component';
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
-import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/api-documentation-v4-metadata.component';
@@ -120,7 +119,6 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4FileUploadComponent,
-    ApiDocumentationV4PageTitleComponent,
   ],
 })
 export class ApiDocumentationV4Module {}

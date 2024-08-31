@@ -189,7 +189,10 @@ export class DocumentationEditPageComponent implements OnInit {
   }
 
   onGoBackRouterLink(): void {
-    this.router.navigate(this.goBackRouterLink, { relativeTo: this.activatedRoute });
+    this.router.navigate(this.goBackRouterLink, {
+      relativeTo: this.activatedRoute,
+      queryParams: { parentId: this.page.parentId ?? 'ROOT' },
+    });
   }
 
   update() {

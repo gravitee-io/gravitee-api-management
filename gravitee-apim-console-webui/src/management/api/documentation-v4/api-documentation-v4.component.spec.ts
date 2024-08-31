@@ -32,7 +32,6 @@ import { ApiDocumentationV4EmptyStateHarness } from './components/documentation-
 import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
 import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
 import { ApiDocumentationV4PagesListHarness } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.harness';
-import { ApiDocumentationV4PageTitleHarness } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
@@ -531,40 +530,6 @@ describe('ApiDocumentationV4', () => {
 
       expectGetApi();
       expectGetPages([], []);
-    });
-  });
-
-  describe('Header', () => {
-    describe('with Published API', () => {
-      it('should display Open in Portal button', async () => {
-        await init([], []);
-        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-        expect(header).toBeDefined();
-        const openInPortalBtn = await header.getOpenInPortalBtn();
-        expect(openInPortalBtn).toBeDefined();
-        expect(await openInPortalBtn.isDisabled()).toEqual(false);
-        expect(await header.getApiPortalUrl()).toEqual('portal.url/catalog/api/api-id');
-      });
-
-      it('should parse Portal url ending with "/"', async () => {
-        await init([], [], 'ROOT', 'portal.url/');
-        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-        expect(await header.getApiPortalUrl()).toEqual('portal.url/catalog/api/api-id');
-      });
-
-      it('should not display Open in Portal button if Portal url not defined', async () => {
-        await init([], [], 'ROOT', null);
-        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-        expect(await header.getOpenInPortalBtn()).toEqual(null);
-      });
-    });
-
-    describe('with Created API', () => {
-      it('should have disabled Open in Portal button', async () => {
-        await init([], [], 'ROOT', 'portal.url', 'CREATED');
-        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-        expect(await header.getOpenInPortalBtn().then((btn) => btn.isDisabled())).toEqual(true);
-      });
     });
   });
 

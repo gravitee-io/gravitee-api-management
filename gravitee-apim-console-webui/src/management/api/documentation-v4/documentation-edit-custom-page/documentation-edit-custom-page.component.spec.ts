@@ -38,8 +38,9 @@ import {
 } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 import { Constants } from '../../../../entities/Constants';
+import { DocumentationNewPageHarness } from '../components/documentation-new-page/documentation-new-page.harness';
+import { DocumentationEditPageHarness } from '../components/documentation-edit-page/documentation-edit-page.harness';
 
 interface InitInput {
   pages?: Page[];
@@ -103,12 +104,12 @@ describe('DocumentationEditCustomPageComponent', () => {
     fixture.detectChanges();
   };
 
-  const initPageServiceRequests = (input: InitInput, page: Page = {}) => {
+  const initPageServiceRequests = (input: InitInput, page: Page) => {
     if (page) {
       expectGetPage(page);
       fixture.detectChanges();
     }
-    expectGetPages(input.pages, input.breadcrumb, page.parentId ?? 'ROOT');
+    expectGetPages(input.pages, input.breadcrumb, page?.parentId ?? 'ROOT');
     expectGetGroups([fakeGroup({ id: 'group-1', name: 'group 1' }), fakeGroup({ id: 'group-2', name: 'group 2' })]);
     fixture.detectChanges();
   };
@@ -117,23 +118,25 @@ describe('DocumentationEditCustomPageComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('Header', () => {
-    it('should display Open in Portal button', async () => {
+  describe('Create', () => {
+    beforeEach(async () => {
+      await init(undefined, undefined);
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [] }, undefined);
+    });
+    it('should show create component if no page id found', async () => {
+      const newPageHarness = await harnessLoader.getHarnessOrNull(DocumentationNewPageHarness);
+      expect(newPageHarness).toBeTruthy();
+    });
+  });
+
+  describe('Edit', () => {
+    beforeEach(async () => {
       await init(undefined, PAGE.id);
       initPageServiceRequests({ pages: [PAGE], breadcrumb: [] }, PAGE);
-      const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-      expect(header).toBeDefined();
-      const openInPortalBtn = await header.getOpenInPortalBtn();
-      expect(openInPortalBtn).toBeTruthy();
-      expect(await openInPortalBtn.isDisabled()).toEqual(false);
     });
-
-    it('should not display Open in Portal button if Portal url not defined', async () => {
-      await init(undefined, PAGE.id, null);
-      initPageServiceRequests({ pages: [PAGE], breadcrumb: [] }, PAGE);
-
-      const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
-      expect(await header.getOpenInPortalBtn()).toEqual(null);
+    it('should show edit component if page id found', async () => {
+      const editPageHarness = await harnessLoader.getHarnessOrNull(DocumentationEditPageHarness);
+      expect(editPageHarness).toBeTruthy();
     });
   });
 
