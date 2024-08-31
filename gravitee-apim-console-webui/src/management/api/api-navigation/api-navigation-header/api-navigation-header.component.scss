@@ -22,11 +22,18 @@ $typography: map.get(gio.$mat-theme, typography);
 .header {
   display: flex;
   gap: 4px;
-  flex-flow: column;
   margin-bottom: 24px;
+  justify-content: space-between;
+  align-items: center;
 
-  &__subtitle {
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.m2-typography-level($typography, 'body-2');
+  &__information {
+    display: flex;
+    gap: 4px;
+    flex-flow: column;
+
+    &__subtitle {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, 'body-2');
+    }
   }
 }

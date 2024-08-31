@@ -15,11 +15,25 @@
     limitations under the License.
 
 -->
-<div class="header" *ngIf="menuItemHeader">
-  <div *ngIf="menuItemHeader.title">
-    <span class="mat-h2"> {{ menuItemHeader.title }}</span>
+@if (menuItemHeader) {
+  <div class="header">
+    <div class="header__information">
+      @if (menuItemHeader.title) {
+        <div class="mat-h2">{{ menuItemHeader.title }}</div>
+      }
+      @if (menuItemHeader.subtitle) {
+        <div class="header__information__subtitle">{{ menuItemHeader.subtitle }}</div>
+      }
+    </div>
+
+    @if (menuItemHeader.action) {
+      <div [matTooltip]="menuItemHeader.action.disabled ? menuItemHeader.action.disabledTooltip : ''">
+        @if (menuItemHeader.action.targetUrl) {
+          <a mat-raised-button [href]="menuItemHeader.action.targetUrl" target="_blank" [disabled]="menuItemHeader.action.disabled">{{
+            menuItemHeader.action.text
+          }}</a>
+        }
+      </div>
+    }
   </div>
-  <div *ngIf="menuItemHeader.subtitle">
-    <span class="header__subtitle"> {{ menuItemHeader.subtitle }} </span>
-  </div>
-</div>
+}
