@@ -17,7 +17,6 @@
 -->
 
 @if (data$ | async; as data) {
-  <api-documentation-page-title [api]="data.api" />
   @if (data.edit?.page) {
     <documentation-edit-page [page]="data.edit.page" [api]="data.api" [goBackRouterLink]="['../../']" />
   } @else if (data.new) {

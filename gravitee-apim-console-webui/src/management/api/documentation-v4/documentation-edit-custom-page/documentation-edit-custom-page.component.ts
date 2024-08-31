@@ -24,7 +24,6 @@ import { Api, Page, PageType } from '../../../../entities/management-api-v2';
 import { DocumentationEditPageComponent } from '../components/documentation-edit-page/documentation-edit-page.component';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiDocumentationV4PageTitleComponent } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { DocumentationNewPageComponent } from '../components/documentation-new-page/documentation-new-page.component';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 
@@ -32,14 +31,7 @@ import { ApiDocumentationV2Service } from '../../../../services-ngx/api-document
   selector: 'documentation-edit-custom-page',
   standalone: true,
   templateUrl: './documentation-edit-custom-page.component.html',
-  imports: [
-    DocumentationEditPageComponent,
-    MatCard,
-    AsyncPipe,
-    ApiDocumentationV4Module,
-    ApiDocumentationV4PageTitleComponent,
-    DocumentationNewPageComponent,
-  ],
+  imports: [DocumentationEditPageComponent, MatCard, AsyncPipe, ApiDocumentationV4Module, DocumentationNewPageComponent],
   styleUrl: './documentation-edit-custom-page.component.scss',
 })
 export class DocumentationEditCustomPageComponent implements OnInit {
