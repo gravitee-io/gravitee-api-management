@@ -23,16 +23,19 @@ import { ApiMenuService } from './ApiMenuService';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
+import { ApiFederated } from '../../../entities/management-api-v2';
+import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 
 @Injectable()
 export class ApiFederatedMenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly gioLicenseService: GioLicenseService,
+    private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public getMenu(): {
+  public getMenu(api: ApiFederated): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
@@ -40,7 +43,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
       this.addConfigurationMenuEntry(),
       ...(this.constants.org.settings?.scoring?.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addConsumersMenuEntry(),
-      this.addDocumentationMenuEntry(),
+      this.addDocumentationMenuEntry(api),
     ];
 
     return { subMenuItems, groupItems: [] };
@@ -128,7 +131,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
     };
   }
 
-  private addDocumentationMenuEntry(): MenuItem {
+  private addDocumentationMenuEntry(api: ApiFederated): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
@@ -161,6 +164,12 @@ export class ApiFederatedMenuService implements ApiMenuService {
       header: {
         title: 'Documentation',
         subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
+        action: {
+          text: 'Open API in Developer Portal',
+          targetUrl: this.apiDocumentationV2Service.getApiPortalUrl(api.id),
+          disabled: api.lifecycleState !== 'PUBLISHED',
+          disabledTooltip: this.apiDocumentationV2Service.getApiNotInPortalTooltip(api.lifecycleState),
+        },
       },
       tabs,
     };
