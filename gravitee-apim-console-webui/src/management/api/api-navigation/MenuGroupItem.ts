@@ -36,4 +36,12 @@ export interface MenuGroupItem {
 export interface MenuItemHeader {
   title?: string;
   subtitle?: string;
+  action?: MenuItemHeaderAction;
+}
+
+export interface MenuItemHeaderAction {
+  text: string;
+  targetUrl?: string;
+  disabled: boolean;
+  disabledTooltip?: string;
 }
