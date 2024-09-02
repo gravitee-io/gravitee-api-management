@@ -107,16 +107,19 @@ import io.gravitee.rest.api.service.configuration.application.ClientRegistration
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationArchivedException;
+import io.gravitee.rest.api.service.exceptions.ApplicationCertificateAlreadyUsedException;
+import io.gravitee.rest.api.service.exceptions.ApplicationCertificateAuthorityException;
 import io.gravitee.rest.api.service.exceptions.ApplicationClientIdException;
+import io.gravitee.rest.api.service.exceptions.ApplicationEmptyCertificateException;
 import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationInvalidCertificateException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
 import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
-import io.gravitee.rest.api.service.exceptions.InvalidApplicationCertificateException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
@@ -130,6 +133,7 @@ import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
@@ -518,21 +522,34 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return activeApplicationsForCurrentEnvironment;
     }
 
-    private static void validateAndEncodeClientCertificate(
+    private void validateAndEncodeClientCertificate(
         ApplicationSettings applicationSettings,
         Set<Application> activeApplicationsForCurrentEnvironment
     ) {
         if (applicationSettings.getTls() != null && !StringUtils.isBlank(applicationSettings.getTls().getClientCertificate())) {
             // validate certificate
+            final Certificate[] certificates;
             try {
-                final Certificate[] certificates = KeyStoreUtils.loadPemCertificates(applicationSettings.getTls().getClientCertificate());
-                // For some cases, KeyStoreUtils does not throw an exception but simply returns an empty array of certificates.
-                if (certificates.length == 0) {
-                    throw new InvalidApplicationCertificateException("An error has occurred while parsing client certificate");
-                }
+                certificates = KeyStoreUtils.loadPemCertificates(applicationSettings.getTls().getClientCertificate());
             } catch (Exception e) {
-                throw new InvalidApplicationCertificateException("An error has occurred while parsing client certificate");
+                throw new ApplicationInvalidCertificateException();
             }
+            // For some cases, KeyStoreUtils does not throw an exception but simply returns an empty array of certificates.
+            if (certificates.length == 0) {
+                throw new ApplicationEmptyCertificateException();
+            }
+            X509Certificate certificate;
+            if (certificates.length > 1) {
+                LOGGER.debug("Certificate chain contains multiple certificates, using the first one");
+            }
+            certificate = (X509Certificate) certificates[0];
+
+            // Accept only client certificates.
+            final boolean isCertificateAuthority = certificate.getBasicConstraints() != -1;
+            if (isCertificateAuthority) {
+                throw new ApplicationCertificateAuthorityException();
+            }
+
             // convert it to base64
             applicationSettings
                 .getTls()
@@ -550,7 +567,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         .equals(application.getMetadata().get(Application.METADATA_CLIENT_CERTIFICATE))
                 );
             if (appExistForCertificate) {
-                throw new InvalidApplicationCertificateException("Certificate is currently in use by another application");
+                throw new ApplicationCertificateAlreadyUsedException();
             }
         }
     }

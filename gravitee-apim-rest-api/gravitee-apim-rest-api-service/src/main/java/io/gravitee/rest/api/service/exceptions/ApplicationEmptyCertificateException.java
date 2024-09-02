@@ -21,10 +21,11 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class InvalidApplicationCertificateException extends AbstractManagementException {
+public class ApplicationEmptyCertificateException extends AbstractManagementException {
 
-    public InvalidApplicationCertificateException(String message) {
-        super(message);
+    @Override
+    public String getMessage() {
+        return "No certificate can be extracted";
     }
 
     @Override
@@ -34,7 +35,7 @@ public class InvalidApplicationCertificateException extends AbstractManagementEx
 
     @Override
     public String getTechnicalCode() {
-        return "application.certificate.invalid";
+        return "application.certificate.empty";
     }
 
     @Override
