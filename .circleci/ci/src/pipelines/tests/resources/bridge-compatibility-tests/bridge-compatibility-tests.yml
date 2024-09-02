@@ -319,7 +319,7 @@ workflows:
                 - bridge
               apim_client_tag:
                 - 4.1.x-latest
-                - 4.0.x-latest
+                - graviteeio@4.0
                 - graviteeio@3.20
 orbs:
   keeper: gravitee-io/keeper@0.6.3
