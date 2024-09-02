@@ -1,7 +1,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-@use 'src/scss/gio-layout' as gio-layout;
+@use '../../../../../scss/gio-layout' as gio-layout;
 $typography: map.get(gio.$mat-theme, typography);
 
 .header {
@@ -24,6 +24,9 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__content {
     padding-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
   &__actions {

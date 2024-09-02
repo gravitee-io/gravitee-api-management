@@ -38,6 +38,8 @@ import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-bre
 import { ApiDocumentationV4FileUploadHarness } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4PageConfigurationHarness } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
+import { FetcherListItem } from '../../../../../entities/fetcher';
+import { fakeFetcherList } from '../../../../../entities/fetcher/fetcher.fixture';
 
 interface InitInput {
   pages?: Page[];
@@ -107,6 +109,7 @@ describe('DocumentationNewPageComponent', () => {
       beforeEach(async () => {
         await init('ROOT', undefined);
         initPageServiceRequests({ pages: [EXISTING_PAGE], breadcrumb: [], parentId: 'ROOT' });
+        expectFetchersList();
       });
 
       it('should have 3 steps', async () => {
@@ -148,8 +151,8 @@ describe('DocumentationNewPageComponent', () => {
               excludeGroups: false,
             },
             content: '',
-            source: 'FILL',
-            sourceConfiguration: {},
+            source: '',
+            sourceType: 'FILL',
           });
 
           expect(getPageTitle().includes('New page')).toBeTruthy();
@@ -171,16 +174,16 @@ describe('DocumentationNewPageComponent', () => {
 
         it('should select source', async () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationNewPageHarness);
-          const options = await harness.getSourceOptions();
+          const options = await harness.getSourceTypeOptions();
 
           expect(options.length).toEqual(3);
           const sourceOptions = options.map((option) => option.text);
-          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from URL']);
-          expect(await options[0].disabled).toEqual(false);
-          expect(await options[1].disabled).toEqual(false);
-          expect(await options[2].disabled).toEqual(false);
+          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Link to External Source']);
+          expect(options[0].disabled).toEqual(false);
+          expect(options[1].disabled).toEqual(false);
+          expect(options[2].disabled).toEqual(false);
 
-          await harness.selectSource('IMPORT');
+          await harness.selectSourceType('IMPORT');
         });
       });
 
@@ -355,7 +358,7 @@ describe('DocumentationNewPageComponent', () => {
             return btn.click();
           });
 
-          await harness.selectSource('IMPORT');
+          await harness.selectSourceType('IMPORT');
 
           await harness.getNextButton().then(async (btn) => {
             expect(await btn.isDisabled()).toEqual(false);
@@ -375,10 +378,11 @@ describe('DocumentationNewPageComponent', () => {
         });
       });
 
-      describe('step 3 - Import from URL ', () => {
+      describe('step 3 - Link to External source URL ', () => {
         let harness: DocumentationNewPageHarness;
         const openApiUrl = 'https://openapi.yml';
-        const http = 'HTTP';
+        const http = 'http-fetcher';
+        const bitbucket = 'bitbucket-fetcher';
         const pageName = 'New page';
         const emptyUrlSaveErrorMessage = 'Cannot save without a url';
         const emptyUrlPublishErrorMessage = 'Cannot publish with empty URL';
@@ -391,25 +395,8 @@ describe('DocumentationNewPageComponent', () => {
           expect(await nextBtn.isDisabled()).toEqual(false);
           await nextBtn.click();
 
+          await harness.selectSourceType('EXTERNAL');
           await harness.selectSource(http);
-
-          const req = httpTestingController.expectOne({
-            method: 'GET',
-            url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
-          });
-
-          req.flush([
-            {
-              id: 'http-fetcher',
-              name: http,
-              description: 'The Gravitee.IO Parent POM provides common settings for all Gravitee components.',
-              version: '2.0.1',
-              schema:
-                '{"type": "object","title": "http","properties": {"url": {"title": "URL","description": "Url to the file you want to fetch","type": "string"}}}',
-            },
-          ]);
-
-          fixture.detectChanges();
 
           nextBtn = await harness.getNextButton();
           expect(await nextBtn.isDisabled()).toEqual(false);
@@ -424,9 +411,66 @@ describe('DocumentationNewPageComponent', () => {
           expect(await httpUrlInput.getValue()).toEqual(openApiUrl);
         });
 
+        it('should be able to save after having change source type', async () => {
+          let saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(true);
+
+          // Go Back and select BitBucket
+          let previousBtn = await harness.getPreviousButton();
+          await previousBtn.click();
+          await harness.selectSource(bitbucket);
+          let nextBtn = await harness.getNextButton();
+          await nextBtn.click();
+
+          saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(true);
+
+          // Go Back and select again Http
+          previousBtn = await harness.getPreviousButton();
+          await previousBtn.click();
+          await harness.selectSource(http);
+          nextBtn = await harness.getNextButton();
+          await nextBtn.click();
+
+          saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+          expect(await saveBtn.isDisabled()).toEqual(true);
+
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue(openApiUrl);
+
+          expect(await saveBtn.isDisabled()).toEqual(false);
+          await saveBtn.click();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+          });
+
+          req.flush({});
+          expect(req.request.body).toEqual({
+            type: 'MARKDOWN',
+            name: pageName,
+            visibility: 'PUBLIC',
+            content: '',
+            parentId: 'ROOT',
+            source: {
+              configuration: {
+                autoFetch: false,
+                fetchCron: undefined,
+                url: openApiUrl,
+                useSystemProxy: undefined,
+              },
+              type: 'http-fetcher',
+            },
+            accessControls: [],
+            excludedAccessControls: false,
+            homepage: false,
+          });
+        });
+
         it('should save', async () => {
           const httpUrlInput = await harness.getHttpUrlHarness();
-          await httpUrlInput.setValue(http);
+          await httpUrlInput.setValue(openApiUrl);
 
           const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
           expect(await saveBtn.isDisabled()).toEqual(false);
@@ -446,7 +490,10 @@ describe('DocumentationNewPageComponent', () => {
             parentId: 'ROOT',
             source: {
               configuration: {
-                url: http,
+                autoFetch: false,
+                fetchCron: undefined,
+                url: openApiUrl,
+                useSystemProxy: undefined,
               },
               type: 'http-fetcher',
             },
@@ -458,7 +505,7 @@ describe('DocumentationNewPageComponent', () => {
 
         it('should save and publish', async () => {
           const httpUrlInput = await harness.getHttpUrlHarness();
-          await httpUrlInput.setValue(http);
+          await httpUrlInput.setValue(openApiUrl);
 
           const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
           expect(await saveBtn.isDisabled()).toEqual(false);
@@ -479,7 +526,10 @@ describe('DocumentationNewPageComponent', () => {
             parentId: 'ROOT',
             source: {
               configuration: {
-                url: http,
+                autoFetch: false,
+                fetchCron: undefined,
+                url: openApiUrl,
+                useSystemProxy: undefined,
               },
               type: 'http-fetcher',
             },
@@ -496,6 +546,9 @@ describe('DocumentationNewPageComponent', () => {
         });
 
         it('should show error if raised on save', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue('not-a-valid-URL');
+
           const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
           expect(await saveBtn.isDisabled()).toEqual(false);
           await saveBtn.click();
@@ -513,6 +566,9 @@ describe('DocumentationNewPageComponent', () => {
         });
 
         it('should show error if raised on publish', async () => {
+          const httpUrlInput = await harness.getHttpUrlHarness();
+          await httpUrlInput.setValue('not-a-valid-URL');
+
           const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
           expect(await saveBtn.isDisabled()).toEqual(false);
           await saveBtn.click();
@@ -531,7 +587,12 @@ describe('DocumentationNewPageComponent', () => {
             content: '',
             parentId: 'ROOT',
             source: {
-              configuration: {},
+              configuration: {
+                autoFetch: false,
+                fetchCron: undefined,
+                url: 'not-a-valid-URL',
+                useSystemProxy: undefined,
+              },
               type: 'http-fetcher',
             },
             accessControls: [],
@@ -566,6 +627,7 @@ describe('DocumentationNewPageComponent', () => {
           breadcrumb: [{ name: 'Parent Folder', id: 'parent-folder-id', position: 1 }],
           parentId: 'parent-folder-id',
         });
+        expectFetchersList();
       });
 
       it('should show breadcrumb', async () => {
@@ -613,6 +675,7 @@ describe('DocumentationNewPageComponent', () => {
     beforeEach(async () => {
       await init('ROOT', undefined, undefined, true);
       initPageServiceRequests({ pages: [EXISTING_PAGE], breadcrumb: [], parentId: 'ROOT' });
+      expectFetchersList();
     });
 
     describe('step 1 - Configure page', () => {
@@ -639,8 +702,8 @@ describe('DocumentationNewPageComponent', () => {
             excludeGroups: false,
           },
           content: '',
-          source: 'FILL',
-          sourceConfiguration: {},
+          sourceType: 'FILL',
+          source: '',
         });
       });
     });
@@ -657,16 +720,16 @@ describe('DocumentationNewPageComponent', () => {
 
       it('should select source', async () => {
         const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationNewPageHarness);
-        const options = await harness.getSourceOptions();
+        const options = await harness.getSourceTypeOptions();
 
         expect(options.length).toEqual(3);
         const sourceOptions = options.map((option) => option.text);
-        expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from URL']);
-        expect(await options[0].disabled).toEqual(false);
-        expect(await options[1].disabled).toEqual(false);
-        expect(await options[2].disabled).toEqual(false);
+        expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Link to External Source']);
+        expect(options[0].disabled).toEqual(false);
+        expect(options[1].disabled).toEqual(false);
+        expect(options[2].disabled).toEqual(false);
 
-        await harness.selectSource('IMPORT');
+        await harness.selectSourceType('IMPORT');
       });
     });
 
@@ -754,6 +817,15 @@ describe('DocumentationNewPageComponent', () => {
       });
     });
   });
+
+  const expectFetchersList = (fetchers: FetcherListItem[] = fakeFetcherList()) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+    });
+
+    req.flush(fetchers);
+  };
 
   const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
     const req = httpTestingController.expectOne({

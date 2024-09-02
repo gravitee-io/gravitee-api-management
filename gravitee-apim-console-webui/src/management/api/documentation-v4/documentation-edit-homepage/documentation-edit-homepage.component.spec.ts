@@ -44,6 +44,8 @@ import { Constants } from '../../../../entities/Constants';
 import { DocumentationEditPageHarness } from '../components/documentation-edit-page/documentation-edit-page.harness';
 import { DocumentationNewPageHarness } from '../components/documentation-new-page/documentation-new-page.harness';
 import { ApiDocumentationV4PageConfigurationHarness } from '../components/api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
+import { FetcherListItem } from '../../../../entities/fetcher';
+import { fakeFetcherList } from '../../../../entities/fetcher/fetcher.fixture';
 
 interface InitInput {
   pages?: Page[];
@@ -131,6 +133,7 @@ describe('DocumentationEditHomepageComponent', () => {
     beforeEach(async () => {
       await init(undefined, undefined);
       initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined }, PAGE);
+      expectFetchersList();
 
       const editPage = await harnessLoader.getHarness(ApiDocumentationV4PageConfigurationHarness);
       await editPage.checkVisibility('PUBLIC');
@@ -212,6 +215,15 @@ describe('DocumentationEditHomepageComponent', () => {
       });
     });
   });
+
+  const expectFetchersList = (fetchers: FetcherListItem[] = fakeFetcherList()) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+    });
+
+    req.flush(fetchers);
+  };
 
   const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
     const req = httpTestingController.expectOne({

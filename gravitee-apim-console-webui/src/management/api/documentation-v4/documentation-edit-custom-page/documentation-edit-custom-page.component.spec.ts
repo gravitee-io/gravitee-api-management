@@ -41,6 +41,8 @@ import { GioTestingPermissionProvider } from '../../../../shared/components/gio-
 import { Constants } from '../../../../entities/Constants';
 import { DocumentationNewPageHarness } from '../components/documentation-new-page/documentation-new-page.harness';
 import { DocumentationEditPageHarness } from '../components/documentation-edit-page/documentation-edit-page.harness';
+import { FetcherListItem } from '../../../../entities/fetcher';
+import { fakeFetcherList } from '../../../../entities/fetcher/fetcher.fixture';
 
 interface InitInput {
   pages?: Page[];
@@ -122,6 +124,7 @@ describe('DocumentationEditCustomPageComponent', () => {
     beforeEach(async () => {
       await init(undefined, undefined);
       initPageServiceRequests({ pages: [PAGE], breadcrumb: [] }, undefined);
+      expectFetchersList();
     });
     it('should show create component if no page id found', async () => {
       const newPageHarness = await harnessLoader.getHarnessOrNull(DocumentationNewPageHarness);
@@ -139,6 +142,15 @@ describe('DocumentationEditCustomPageComponent', () => {
       expect(editPageHarness).toBeTruthy();
     });
   });
+
+  const expectFetchersList = (fetchers: FetcherListItem[] = fakeFetcherList()) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+    });
+
+    req.flush(fetchers);
+  };
 
   const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
     const req = httpTestingController.expectOne({
