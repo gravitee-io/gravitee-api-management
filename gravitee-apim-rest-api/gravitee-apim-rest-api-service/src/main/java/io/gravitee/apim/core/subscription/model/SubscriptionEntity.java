@@ -41,6 +41,8 @@ public class SubscriptionEntity {
     private String applicationId;
     /** The clientId linked to the subscription */
     private String clientId;
+    /** The clientCertificate linked to the subscription */
+    private String clientCertificate;
     /** When the subscription has been processed. */
     private ZonedDateTime processedAt;
     /** Give a request message to the api owner why a user wants to subscribe */
