@@ -6598,6 +6598,11 @@ components:
                     description: List of access controls.
                     items:
                         $ref: "#/components/schemas/AccessControl"
+                configuration:
+                    type: object
+                    description: Configuration of a page
+                    additionalProperties:
+                      type: string
             required:
                 - type
                 - name
