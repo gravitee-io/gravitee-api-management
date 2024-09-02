@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { Input, Component, OnInit, signal, inject, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
-import { GioFormJsonSchemaModule, GioFormSelectionInlineModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import {
+  GioFormJsonSchemaModule,
+  GioFormSelectionInlineModule,
+  GioFormSlideToggleModule,
+  GioJsonSchema,
+} from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -27,7 +32,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, EMPTY, Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -62,8 +67,15 @@ import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-p
 interface CreatePageForm {
   stepOne: FormGroup<PageConfigurationForm>;
   content: FormControl<string>;
+  sourceType: FormControl<string>;
   source: FormControl<string>;
-  sourceConfiguration: FormControl<undefined | unknown>;
+}
+
+interface FetcherVM {
+  id: string;
+  name: string;
+  schema: GioJsonSchema;
+  iconPath: string;
 }
 
 @Component({
@@ -115,7 +127,9 @@ export class DocumentationNewPageComponent implements OnInit {
   parentId?: string;
 
   form: FormGroup<CreatePageForm>;
-  source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
+  sourceConfiguration?: FormControl<undefined | unknown>;
+
+  defaultSourceType: string = 'FILL';
   breadcrumbs: Breadcrumb[];
   page: Page;
   isReadOnly: boolean = false;
@@ -126,11 +140,9 @@ export class DocumentationNewPageComponent implements OnInit {
 
   pages: Page[] = [];
 
-  schema$: Observable<any>;
+  fetchers: FetcherVM[];
+  selectedFetcherSchema: GioJsonSchema;
   private destroyRef = inject(DestroyRef);
-  private readonly httpFetcherName = 'http-fetcher';
-
-  private readonly httpValue = 'HTTP';
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -141,16 +153,18 @@ export class DocumentationNewPageComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
     private readonly fetcherService: FetcherService,
+    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.form = new FormGroup<CreatePageForm>({
       stepOne: INIT_PAGE_CONFIGURATION_FORM(),
       content: new FormControl<string>('', [Validators.required]),
-      source: new FormControl<string>(this.source, [Validators.required]),
-      sourceConfiguration: new FormControl<undefined | unknown>({}),
+      sourceType: new FormControl<string>(this.defaultSourceType, [Validators.required]),
+      source: new FormControl<string>(''),
     });
 
+    this.sourceConfiguration = new FormControl<undefined | unknown>({});
     if (this.createHomepage) {
       this.name.set('Homepage');
     }
@@ -172,19 +186,51 @@ export class DocumentationNewPageComponent implements OnInit {
         },
       });
 
-    this.schema$ = this.fetcherService.getList().pipe(
-      map((list) => list.find((fetcher) => fetcher.id === this.httpFetcherName)?.schema),
-      map((schema) => JSON.parse(schema)),
-    );
+    this.fetcherService
+      .getList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(
+        (fetchers) =>
+          (this.fetchers = fetchers.map((f) => {
+            return {
+              id: f.id,
+              name: f.name,
+              schema: JSON.parse(f.schema),
+              iconPath: `assets/logo_${f.name.toLowerCase()}-fetcher.svg`,
+            };
+          })),
+      );
 
-    this.form.controls.source.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
-      if (value === this.httpValue) {
+    this.form.controls.sourceType.valueChanges.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+      if (value === 'EXTERNAL') {
         this.form.controls.content.clearValidators();
+        this.form.controls.source.addValidators([Validators.required]);
+        this.sourceConfiguration?.addValidators([Validators.required]);
       } else {
         this.form.controls.content.addValidators([Validators.required]);
+        this.form.controls.source.clearValidators();
+        this.sourceConfiguration?.clearValidators();
       }
       this.form.controls.content.updateValueAndValidity();
+      this.form.controls.source.updateValueAndValidity();
+      this.sourceConfiguration?.updateValueAndValidity();
     });
+
+    this.form.controls.source.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        tap((_) => {
+          // Clear variable, wait, and re-init is a hack to force re-rendering of GioJsonSchemaForm
+          this.selectedFetcherSchema = undefined;
+          this.sourceConfiguration = undefined;
+        }),
+        debounceTime(500),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((value) => {
+        this.sourceConfiguration = new FormControl<unknown>({}, [Validators.required]);
+        this.selectedFetcherSchema = this.fetchers.find((f) => f.id === value)?.schema;
+      });
   }
 
   onGoBackRouterLink(): void {
@@ -217,20 +263,18 @@ export class DocumentationNewPageComponent implements OnInit {
       });
   }
 
-  private obtainSource(sourceType: string, configuration: unknown | undefined): PageSource {
-    if (sourceType === this.httpValue) {
-      return {
-        type: this.httpFetcherName,
-        configuration,
-      };
-    }
-  }
-
   goBackToPageList() {
     this.router.navigate(['../../'], {
       relativeTo: this.activatedRoute,
       queryParams: { parentId: this.parentId ?? 'ROOT' },
     });
+  }
+
+  private obtainSource(source: string, configuration: unknown | undefined): PageSource {
+    return {
+      type: source,
+      configuration,
+    };
   }
 
   private createPage(): Observable<Page> {
@@ -249,9 +293,10 @@ export class DocumentationNewPageComponent implements OnInit {
       parentId: this.parentId || 'ROOT',
       accessControls: formValue.stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),
       excludedAccessControls: formValue.stepOne.excludeGroups,
-      ...(formValue.source === this.httpValue && {
-        source: this.obtainSource(formValue.source, formValue.sourceConfiguration),
-      }),
+      ...(formValue.sourceType === 'EXTERNAL' &&
+        formValue.source && {
+          source: this.obtainSource(formValue.source, this.sourceConfiguration.value),
+        }),
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err) => {

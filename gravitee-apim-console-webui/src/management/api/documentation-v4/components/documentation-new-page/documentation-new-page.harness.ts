@@ -22,6 +22,10 @@ export class DocumentationNewPageHarness extends ComponentHarness {
   public static hostSelector = 'documentation-new-page';
 
   private nextButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Next' }));
+  private previousButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Previous' }));
+  private sourceTypeSelectionInlineHarness = this.locatorFor(
+    GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source__type' }),
+  );
   private sourceSelectionInlineHarness = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source' }));
   private httpUrlLocator = this.locatorFor(MatInputHarness.with({ selector: '[id*="url"]' }));
 
@@ -29,8 +33,20 @@ export class DocumentationNewPageHarness extends ComponentHarness {
     return this.nextButtonLocator();
   }
 
+  async getPreviousButton() {
+    return this.previousButtonLocator();
+  }
+
   async getHttpUrlHarness() {
     return await this.httpUrlLocator();
+  }
+
+  async getSourceTypeOptions() {
+    return Promise.all(await this.sourceTypeSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
+  }
+
+  async selectSourceType(value: string) {
+    return this.sourceTypeSelectionInlineHarness().then((radioGroup) => radioGroup.select(value));
   }
 
   async getSourceOptions() {
