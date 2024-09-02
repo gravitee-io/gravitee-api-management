@@ -74,6 +74,7 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
         return metadata;
     }
 
+<<<<<<< HEAD
     private Set<String> resolveEnvironments() {
         final Optional<List<String>> optEnvironmentsList = configuration.environments();
         return optEnvironmentsList
@@ -87,6 +88,16 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
                 return true;
             })
             .collect(Collectors.toSet());
+=======
+    private String getInstallationId() {
+        try {
+            return installationRepository.find().map(Installation::getId).orElse(null);
+        } catch (Exception e) {
+            logger.warn("Unable to load installation id", e);
+        }
+
+        return null;
+>>>>>>> afdb907da2 (fix: handle MongoDB exception in GatewayNodeMetadataResolver during installation id retrieval)
     }
 
     private static boolean validateEnvironmentId(final String id) {
