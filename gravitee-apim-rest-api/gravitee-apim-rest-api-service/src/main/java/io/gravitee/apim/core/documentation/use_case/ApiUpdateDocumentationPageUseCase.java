@@ -28,6 +28,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
@@ -73,6 +74,7 @@ public class ApiUpdateDocumentationPageUseCase {
         newPage.visibility(input.visibility);
         newPage.homepage(input.homepage);
         newPage.order(input.order);
+        newPage.configuration(input.configuration);
 
         if (Objects.nonNull(input.excludedAccessControls)) {
             newPage.excludedAccessControls(input.excludedAccessControls);
@@ -111,7 +113,8 @@ public class ApiUpdateDocumentationPageUseCase {
         boolean homepage,
         AuditInfo auditInfo,
         Set<AccessControl> accessControls,
-        Boolean excludedAccessControls
+        Boolean excludedAccessControls,
+        Map<String, String> configuration
     ) {}
 
     public record Output(Page page) {}

@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -471,6 +472,33 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .extracting(Page::getAccessControls)
                 .isNotNull()
                 .isEqualTo(ACCESS_CONTROLS);
+        }
+
+        @Test
+        void should_update_configuration() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
+
+            var configuration = Map.of("new", "config");
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .configuration(configuration)
+                    .apiId(API_ID)
+                    .pageId(OLD_MARKDOWN_PAGE.getId())
+                    .order(OLD_MARKDOWN_PAGE.getOrder())
+                    .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                    .content(OLD_MARKDOWN_PAGE.getContent())
+                    .name(OLD_MARKDOWN_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("configuration", configuration);
         }
 
         @Test
