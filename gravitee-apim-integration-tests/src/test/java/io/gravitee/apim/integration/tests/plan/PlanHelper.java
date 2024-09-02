@@ -53,6 +53,7 @@ public class PlanHelper {
     public static final String PLAN_APIKEY_ID = "plan-apikey-id";
     public static final String PLAN_JWT_ID = "plan-jwt-id";
     public static final String PLAN_OAUTH2_ID = "plan-oauth2-id";
+    public static final String PLAN_MTLS_ID = "plan-mtls-id";
     public static final String APPLICATION_ID = "application-id";
     public static final String SUBSCRIPTION_ID = "subscription-id";
 
@@ -244,6 +245,18 @@ public class PlanHelper {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to set OAuth2 policy configuration", e);
             }
+        }
+
+        if (planIds.contains("mtls")) {
+            io.gravitee.definition.model.v4.plan.Plan mtlsPlan = io.gravitee.definition.model.v4.plan.Plan
+                .builder()
+                .id(PLAN_MTLS_ID)
+                .name("plan-name")
+                .security(PlanSecurity.builder().type("mtls").build())
+                .status(PlanStatus.PUBLISHED)
+                .mode(PlanMode.STANDARD)
+                .build();
+            plans.add(mtlsPlan);
         }
         if (plans.isEmpty()) {
             throw new IllegalArgumentException("No plan configured");
