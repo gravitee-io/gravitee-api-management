@@ -86,7 +86,7 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
     private String getInstallationId() {
         try {
             return installationRepository.find().map(Installation::getId).orElse(null);
-        } catch (TechnicalException e) {
+        } catch (Exception e) {
             logger.warn("Unable to load installation id", e);
         }
 
