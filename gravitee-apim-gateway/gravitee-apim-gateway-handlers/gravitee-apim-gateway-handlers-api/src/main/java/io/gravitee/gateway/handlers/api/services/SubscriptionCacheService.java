@@ -19,15 +19,23 @@ import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.AP
 import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.CLIENT_ID;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
+import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
+import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +44,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SubscriptionCacheService implements SubscriptionService {
 
     private final ApiKeyService apiKeyService;
+    private final SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
+    private final ApiManager apiManager;
 
     // Caches only contains active subscriptions
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
@@ -107,6 +117,8 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscription.getPlan(),
             subscription.getApi()
         );
+        final Set<String> servers = extractApiServersId(subscription);
+        subscriptionTrustStoreLoaderManager.registerSubscription(subscription, servers);
         // Update subscription
         cacheBySubscriptionId.put(idKey, subscription);
         addKeyForApi(subscription.getApi(), idKey);
@@ -221,6 +233,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     private void unregisterFromClientCertificate(final Subscription subscription) {
         if (subscription.getClientCertificate() != null) {
             final String clientCertificateKey = buildClientCertificateCacheKey(subscription);
+            subscriptionTrustStoreLoaderManager.unregisterSubscription(subscription);
             if (cacheByApiClientCertificate.remove(clientCertificateKey) != null) {
                 removeKeyForApi(subscription.getApi(), clientCertificateKey);
             }
@@ -266,5 +279,21 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     String buildCacheKeyFromClientInfo(String api, String clientIdOrCertificate, String plan) {
         return String.format("%s.%s.%s", api, clientIdOrCertificate, plan);
+    }
+
+    private Set<String> extractApiServersId(Subscription subscription) {
+        final ReactableApi<?> reactableApi = apiManager.get(subscription.getApi());
+        final Set<String> servers;
+        if (reactableApi instanceof Api api) {
+            servers = api.getDefinition().getListeners().stream().flatMap(l -> l.getServers().stream()).collect(Collectors.toSet());
+        } else {
+            servers = Set.of();
+            if (reactableApi == null) {
+                log.debug("API {} not found, deploying subscription {} on every servers", subscription.getApi(), subscription.getId());
+            } else {
+                log.debug("V2 APIs do not support subscription using client certificate");
+            }
+        }
+        return servers;
     }
 }

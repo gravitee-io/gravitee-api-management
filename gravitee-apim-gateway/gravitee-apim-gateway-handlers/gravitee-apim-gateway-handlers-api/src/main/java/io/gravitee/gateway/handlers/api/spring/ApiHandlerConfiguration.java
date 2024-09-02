@@ -53,8 +53,10 @@ import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -194,8 +196,17 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public SubscriptionCacheService subscriptionService(ApiKeyCacheService apiKeyService) {
-        return new SubscriptionCacheService(apiKeyService);
+    public SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager(ServerManager serverManager) {
+        return new SubscriptionTrustStoreLoaderManager(serverManager);
+    }
+
+    @Bean
+    public SubscriptionCacheService subscriptionService(
+        ApiKeyCacheService apiKeyService,
+        SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager,
+        ApiManager apiManager
+    ) {
+        return new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
     }
 
     @Bean
