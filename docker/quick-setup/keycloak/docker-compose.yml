@@ -24,6 +24,7 @@ networks:
 
 volumes:
   data-elasticsearch:
+  keycloak_data:
   data-mongo:
 
 services:
@@ -42,20 +43,22 @@ services:
       - frontend
 
   keycloak:
-    image: jboss/keycloak:${KEYCLOAK_VERSION:-13.0.0}
+    image: quay.io/keycloak/keycloak:25.0.0
     environment:
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: password
-      PROXY_ADDRESS_FORWARDING: "true"
-      KEYCLOAK_IMPORT: /tmp/realm-gio.json
-      JAVA_OPTS_APPEND: "-Dkeycloak.profile.feature.upload_scripts=enabled"
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=password
+      - KEYCLOAK_IMPORT="/tmp/realm-gio.json"
+      - PROXY_ADDRESS_FORWARDING="true"
+      - Dkeycloak.profile.feature.upload_scripts="enabled"
     restart: always
-    expose:
-      - 8080
+    ports:
+      - 8080:8080
     volumes:
       - ./realm/realm-gio.json:/tmp/realm-gio.json
+      - keycloak_data:/opt/keycloak/data
     networks:
       - frontend
+    entrypoint: [ "/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm" ]
 
   mongodb:
     image: mongo:${MONGODB_VERSION:-6.0}
@@ -147,24 +150,24 @@ services:
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_plugins_path_0=$${gravitee.home}/plugins
       - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
-      - gravitee_security_providers_1_type=oidc
-      - gravitee_security_providers_1_id=keycloak
-      - gravitee_security_providers_1_clientId=gravitee-client
-      - gravitee_security_providers_1_clientSecret=00dc0118-2a0d-4249-86a3-3e133f5de145
-      - gravitee_security_providers_1_tokenIntrospectionEndpoint=http://auth.localhost/auth/realms/gio/protocol/openid-connect/token/introspect
-      - gravitee_security_providers_1_tokenEndpoint=http://auth.localhost/auth/realms/gio/protocol/openid-connect/token
-      - gravitee_security_providers_1_authorizeEndpoint=http://auth.localhost/auth/realms/gio/protocol/openid-connect/auth
-      - gravitee_security_providers_1_userInfoEndpoint=http://auth.localhost/auth/realms/gio/protocol/openid-connect/userinfo
-      - gravitee_security_providers_1_userLogoutEndpoint=http://auth.localhost/auth/realms/gio/protocol/openid-connect/logout
-      - gravitee_security_providers_1_color=#0076b4
-      - gravitee_security_providers_1_syncMappings=false
-      - gravitee_security_providers_1_scopes_0=openid
-      - gravitee_security_providers_1_scopes_1=profile
-      - gravitee_security_providers_1_userMapping_id=sub
-      - gravitee_security_providers_1_userMapping_email=email
-      - gravitee_security_providers_1_userMapping_lastname=lastname
-      - gravitee_security_providers_1_userMapping_firstname=family_name
-      - gravitee_security_providers_1_userMapping_picture=picture
+      - gravitee_security_providers_2_type=oidc
+      - gravitee_security_providers_2_id=keycloak
+      - gravitee_security_providers_2_clientId=gravitee-client
+      - gravitee_security_providers_2_clientSecret=00dc0118-2a0d-4249-86a3-3e133f5de145
+      - gravitee_security_providers_2_tokenEndpoint=http://auth.localhost/realms/gio/protocol/openid-connect/token
+      - gravitee_security_providers_2_tokenIntrospectionEndpoint=http://auth.localhost/realms/gio/protocol/openid-connect/token/introspect
+      - gravitee_security_providers_2_authorizeEndpoint=http://auth.localhost/realms/gio/protocol/openid-connect/auth
+      - gravitee_security_providers_2_userInfoEndpoint=http://auth.localhost/realms/gio/protocol/openid-connect/userinfo
+      - gravitee_security_providers_2_userLogoutEndpoint=http://auth.localhost/realms/gio/protocol/openid-connect/logout
+      - gravitee_security_providers_2_color=#0076b4
+      - gravitee_security_providers_2_syncMappings=false
+      - gravitee_security_providers_2_scopes_0=openid
+      - gravitee_security_providers_2_scopes_1=profile
+      - gravitee_security_providers_2_userMapping_id=sub
+      - gravitee_security_providers_2_userMapping_email=email
+      - gravitee_security_providers_2_userMapping_lastname=lastname
+      - gravitee_security_providers_2_userMapping_firstname=family_name
+      - gravitee_security_providers_2_userMapping_picture=picture
     networks:
       - storage
       - frontend
@@ -177,7 +180,7 @@ services:
     depends_on:
       - management_api
     environment:
-      - MGMT_API_URL=http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT/
+      - MGMT_API_URL=http://localhost:8083/management/
     volumes:
       - ./.logs/apim-management-ui:/var/log/nginx
     networks:
@@ -191,7 +194,7 @@ services:
     depends_on:
       - management_api
     environment:
-      - PORTAL_API_URL=http://localhost:8083/portal/environments/DEFAULT
+      - PORTAL_API_URL=http://localhost:8083/portal
     volumes:
       - ./.logs/apim-portal-ui:/var/log/nginx
     networks:
