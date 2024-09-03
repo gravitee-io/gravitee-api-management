@@ -1,0 +1,52 @@
+[
+    {
+        "id": "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+        "apiId": "api1",
+        "createdAt": 1470157767000,
+        "assets": [
+            {
+                "pageId": "a8e754af-a593-4dc5-bf38-2d0b83a7edc1",
+                "type": "SWAGGER",
+                "diagnostics": []
+            }
+        ]
+    },
+    {
+        "id": "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
+        "apiId": "api2",
+        "createdAt": 1470157767000,
+        "assets": [
+            {
+                "pageId": "f931618f-3207-412a-adad-5bffdce746f7",
+                "type": "SWAGGER",
+                "diagnostics": [
+                    {
+                        "severity": "WARN",
+                        "range": {
+                            "start": {
+                                "line": 1,
+                                "character": 1
+                            },
+                            "end": {
+                                "line": 1,
+                                "character": 1
+                            }
+                        },
+                        "rule": "operation-operationId",
+                        "message": "Operation must have \"operationId\".",
+                        "path": "paths./echo.options"
+                    }
+                ]
+            },
+            {
+                "pageId": "7f2ad639-3ac4-4517-8dbe-55f377e9118a",
+                "type": "ASYNCAPI",
+                "diagnostics": []
+            },
+            {
+                "type": "GRAVITEE_DEFINITION",
+                "diagnostics": []
+            }
+        ]
+    }
+]

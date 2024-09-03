@@ -334,4 +334,10 @@ public interface GraviteeMapper {
     // SharedPolicyGroupHistory mapping
     SharedPolicyGroupHistoryMongo mapHistory(SharedPolicyGroup item);
     SharedPolicyGroup mapHistory(SharedPolicyGroupHistoryMongo item);
+
+    // Scoring mapping
+    ScoringReport map(ScoringReportMongo source);
+    List<ScoringReport> map(List<ScoringReportMongo> source);
+
+    ScoringReportMongo map(ScoringReport source);
 }

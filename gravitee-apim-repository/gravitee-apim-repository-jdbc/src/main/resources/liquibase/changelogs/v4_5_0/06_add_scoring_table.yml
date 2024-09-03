@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.0_add_scoring
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}scoring_reports
+            columns:
+              - column: { name: report_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: severity, type: nvarchar(32), constraints: { nullable: true } }
+              - column: { name: start_line, type: int, constraints: { nullable: true } }
+              - column: { name: start_character, type: int, constraints: { nullable: true } }
+              - column: { name: end_line, type: int, constraints: { nullable: true } }
+              - column: { name: end_character, type: int, constraints: { nullable: true } }
+              - column: { name: rule, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: message, type: nvarchar(2000), constraints: { nullable: true } }
+              - column: { name: path, type: nvarchar(64), constraints: { nullable: true } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}report_api_page_id
+            tableName: ${gravitee_prefix}scoring_reports
+            columns:
+              - column:
+                  name: report_id
+                  type: nvarchar(64)
+              - column:
+                  name: api_id
+                  type: nvarchar(64)
+              - column:
+                  name: page_id
+                  type: nvarchar(64)
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}api_id
+            tableName: ${gravitee_prefix}scoring_reports
+            columns:
+              - column:
+                  name: api_id
+                  type: nvarchar(64)
