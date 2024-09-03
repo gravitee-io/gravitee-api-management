@@ -9,6 +9,7 @@ databaseChangeLog:
               - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: source_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: type, type: nvarchar(32), constraints: { nullable: false } }
               - column: { name: initiator_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: error_message, type: nvarchar(256), constraints: { nullable: true } }
               - column: { name: status, type: nvarchar(32), constraints: { nullable: false } }

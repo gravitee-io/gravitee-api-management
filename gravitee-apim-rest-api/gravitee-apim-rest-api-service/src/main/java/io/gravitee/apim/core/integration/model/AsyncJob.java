@@ -44,6 +44,9 @@ public class AsyncJob {
     /** The user id that triggers the job */
     String initiatorId;
 
+    /** The type of the job */
+    Type type;
+
     ZonedDateTime createdAt;
     ZonedDateTime updatedAt;
 
@@ -62,6 +65,10 @@ public class AsyncJob {
         PENDING,
         SUCCESS,
         ERROR,
+    }
+
+    public enum Type {
+        FEDERATED_APIS_INGESTION,
     }
 
     public AsyncJob complete() {

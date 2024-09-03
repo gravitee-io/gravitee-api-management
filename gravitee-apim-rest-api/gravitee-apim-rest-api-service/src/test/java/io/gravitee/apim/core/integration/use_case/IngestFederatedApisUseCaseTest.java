@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
-import static fixtures.core.model.AsyncJobFixture.aPendingIngestJob;
+import static fixtures.core.model.AsyncJobFixture.aPendingFederatedApiIngestionJob;
 import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
 import static io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -146,7 +146,7 @@ class IngestFederatedApisUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
 
-    private static final AsyncJob INGEST_JOB = aPendingIngestJob()
+    private static final AsyncJob INGEST_JOB = aPendingFederatedApiIngestionJob()
         .toBuilder()
         .id(INGEST_JOB_ID)
         .sourceId(INTEGRATION_ID)

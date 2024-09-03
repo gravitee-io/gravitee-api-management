@@ -69,6 +69,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
             .addColumn("source_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("initiator_Id", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, String.class)
             .addColumn("error_message", Types.NVARCHAR, String.class)
             .addColumn("upper_limit", Types.INTEGER, Long.class)

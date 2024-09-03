@@ -32,6 +32,7 @@ public class AsyncJobFixture {
             .environmentId("environment-id")
             .initiatorId("initiator-id")
             .status("PENDING")
+            .type("FEDERATED_APIS_INGESTION")
             .upperLimit(10L)
             .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
             .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));

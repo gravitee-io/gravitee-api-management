@@ -175,7 +175,7 @@ class GetIntegrationUseCaseTest {
     void should_return_integration_with_a_pending_job() {
         // Given
         integrationAgent.configureAgentFor(INTEGRATION_ID, IntegrationAgent.Status.DISCONNECTED);
-        var job = givenAnAsyncJob(AsyncJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
+        var job = givenAnAsyncJob(AsyncJobFixture.aPendingFederatedApiIngestionJob().withSourceId(INTEGRATION_ID));
 
         // When
         var output = usecase.execute(new Input(INTEGRATION_ID, ORGANIZATION_ID));

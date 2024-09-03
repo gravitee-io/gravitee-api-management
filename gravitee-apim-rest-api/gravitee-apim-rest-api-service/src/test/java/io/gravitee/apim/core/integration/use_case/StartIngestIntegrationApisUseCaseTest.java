@@ -121,6 +121,7 @@ class StartIngestIntegrationApisUseCaseTest {
                     .sourceId(INTEGRATION_ID)
                     .environmentId(ENVIRONMENT_ID)
                     .initiatorId(USER_ID)
+                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
                     .status(AsyncJob.Status.PENDING)
                     .upperLimit(10L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
