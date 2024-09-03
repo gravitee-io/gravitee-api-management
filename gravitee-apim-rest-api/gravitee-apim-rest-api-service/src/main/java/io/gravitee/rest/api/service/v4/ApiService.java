@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -48,6 +49,7 @@ public interface ApiService {
         final String userId,
         final boolean isAdmin,
         final Set<String> expands,
+        final Sortable sortable,
         final Pageable pageable
     );
 
