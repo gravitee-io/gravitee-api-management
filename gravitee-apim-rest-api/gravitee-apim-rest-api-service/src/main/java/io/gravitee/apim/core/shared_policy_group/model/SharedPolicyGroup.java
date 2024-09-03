@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.core.shared_policy_group.model;
 
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
@@ -27,7 +30,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 
 @Data
 @NoArgsConstructor
@@ -151,7 +153,7 @@ public class SharedPolicyGroup {
             .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
             .apiType(createSharedPolicyGroup.getApiType())
             .phase(createSharedPolicyGroup.getPhase())
-            .steps(createSharedPolicyGroup.getSteps())
+            .steps(ofNullable(createSharedPolicyGroup.getSteps()).orElse(emptyList()))
             .build();
     }
 
