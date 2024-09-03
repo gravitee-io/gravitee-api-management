@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.score.service_provider;
+package io.gravitee.apim.core.scoring.service_provider;
 
 import io.reactivex.rxjava3.core.Completable;
 

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.score;
+package io.gravitee.apim.infra.scoring;
 
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.score.service_provider.ScoringProvider;
+import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommand;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommandPayload;

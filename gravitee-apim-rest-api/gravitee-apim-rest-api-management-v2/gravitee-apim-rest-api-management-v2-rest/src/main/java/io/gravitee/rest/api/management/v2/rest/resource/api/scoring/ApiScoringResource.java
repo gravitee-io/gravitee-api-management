@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.scoring;
 
-import io.gravitee.apim.core.score.use_case.ScoreApiRequestUseCase;
+import io.gravitee.apim.core.scoring.use_case.ScoreApiRequestUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoringAsset;
@@ -28,7 +28,6 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiScoringTriggerResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ScoringStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.scoring.api.model.diagnostic.AssetDiagnostic;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;

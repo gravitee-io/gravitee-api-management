@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.score.service_provider.ScoringProvider;
+import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.reactivex.rxjava3.core.Completable;
 
 public class ScoringProviderInMemory implements ScoringProvider {
