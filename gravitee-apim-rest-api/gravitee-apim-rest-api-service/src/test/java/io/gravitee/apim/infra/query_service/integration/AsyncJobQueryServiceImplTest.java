@@ -64,6 +64,7 @@ public class AsyncJobQueryServiceImplTest {
                     .sourceId("integration-id")
                     .environmentId("environment-id")
                     .initiatorId("initiator-id")
+                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
                     .upperLimit(10L)
                     .status(AsyncJob.Status.PENDING)
                     .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))

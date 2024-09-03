@@ -33,6 +33,7 @@ public class AsyncJobMongo extends Auditable {
     private String sourceId;
     private String environmentId;
     private String initiatorId;
+    private String type;
     private String status;
     private String errorMessage;
     private Long upperLimit;

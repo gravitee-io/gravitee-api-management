@@ -31,6 +31,7 @@ public class AsyncJob {
     String sourceId;
     String environmentId;
     String initiatorId;
+    String type;
 
     Date createdAt;
     Date updatedAt;

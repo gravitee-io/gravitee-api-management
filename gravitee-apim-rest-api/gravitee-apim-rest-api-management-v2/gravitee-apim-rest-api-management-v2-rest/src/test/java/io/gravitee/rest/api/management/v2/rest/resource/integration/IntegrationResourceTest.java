@@ -189,7 +189,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         public void should_get_integration_with_pending_job() {
             // Given
             var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
-            var job = givenAnAsyncJob(AsyncJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
+            var job = givenAnAsyncJob(AsyncJobFixture.aPendingFederatedApiIngestionJob().withSourceId(INTEGRATION_ID));
 
             //When
             Response response = target.request().get();

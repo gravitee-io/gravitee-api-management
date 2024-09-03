@@ -88,6 +88,7 @@ public class StartIngestIntegrationApisUseCase {
             .sourceId(integration.getId())
             .environmentId(integration.getEnvironmentId())
             .initiatorId(initiatorId)
+            .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
             .status(AsyncJob.Status.PENDING)
             .upperLimit(total)
             .createdAt(now)

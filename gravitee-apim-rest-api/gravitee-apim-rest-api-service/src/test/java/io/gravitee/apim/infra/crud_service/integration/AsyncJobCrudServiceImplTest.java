@@ -58,7 +58,7 @@ public class AsyncJobCrudServiceImplTest {
         @SneakyThrows
         void should_create_job() {
             //Given
-            var job = AsyncJobFixture.aPendingIngestJob();
+            var job = AsyncJobFixture.aPendingFederatedApiIngestionJob();
             when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             //When
@@ -71,7 +71,7 @@ public class AsyncJobCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var job = AsyncJobFixture.aPendingIngestJob();
+            var job = AsyncJobFixture.aPendingFederatedApiIngestionJob();
             when(repository.create(any())).thenThrow(TechnicalException.class);
 
             // When
@@ -101,7 +101,9 @@ public class AsyncJobCrudServiceImplTest {
 
             //Then
             assertThat(result)
-                .contains(AsyncJobFixture.aPendingIngestJob().toBuilder().id("my-id").environmentId("environment-id").build());
+                .contains(
+                    AsyncJobFixture.aPendingFederatedApiIngestionJob().toBuilder().id("my-id").environmentId("environment-id").build()
+                );
         }
 
         @Test
@@ -139,7 +141,7 @@ public class AsyncJobCrudServiceImplTest {
         @SneakyThrows
         void should_update_integration() {
             var job = AsyncJobFixture
-                .aSuccessJob()
+                .aSuccessFederatedApiIngestionJob()
                 .toBuilder()
                 .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .build();
@@ -160,6 +162,7 @@ public class AsyncJobCrudServiceImplTest {
                         .initiatorId("initiator-id")
                         .environmentId("my-env")
                         .status("SUCCESS")
+                        .type("FEDERATED_APIS_INGESTION")
                         .upperLimit(10L)
                         .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
                         .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
@@ -174,7 +177,7 @@ public class AsyncJobCrudServiceImplTest {
             when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             //When
-            var toUpdate = AsyncJobFixture.aPendingIngestJob();
+            var toUpdate = AsyncJobFixture.aPendingFederatedApiIngestionJob();
             var updated = service.update(toUpdate);
 
             //Then
@@ -184,7 +187,7 @@ public class AsyncJobCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var job = AsyncJobFixture.aSuccessJob();
+            var job = AsyncJobFixture.aSuccessFederatedApiIngestionJob();
             when(repository.update(any())).thenThrow(TechnicalException.class);
 
             // When
