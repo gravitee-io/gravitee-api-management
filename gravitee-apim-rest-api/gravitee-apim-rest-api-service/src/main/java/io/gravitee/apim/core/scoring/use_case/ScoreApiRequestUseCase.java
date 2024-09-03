@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.gravitee.apim.core.score.use_case;
+package io.gravitee.apim.core.scoring.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.score.service_provider.ScoringProvider;
+import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
