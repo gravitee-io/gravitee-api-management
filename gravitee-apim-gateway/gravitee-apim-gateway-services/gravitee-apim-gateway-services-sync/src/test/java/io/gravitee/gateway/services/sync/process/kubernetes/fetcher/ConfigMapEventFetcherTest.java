@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.services.sync.process.kubernetes.fetcher;
 
+import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.API_DEFINITIONS_KIND;
 import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.DATA_API_DEFINITION_VERSION;
 import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.DATA_DEFINITION;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,17 +30,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.kubernetes.client.KubernetesClient;
+import io.gravitee.kubernetes.client.api.ResourceQuery;
 import io.gravitee.kubernetes.client.config.KubernetesConfig;
+import io.gravitee.kubernetes.client.exception.ResourceVersionNotFoundException;
 import io.gravitee.kubernetes.client.model.v1.ConfigMap;
+import io.gravitee.kubernetes.client.model.v1.ConfigMapList;
 import io.gravitee.kubernetes.client.model.v1.Event;
+import io.gravitee.kubernetes.client.model.v1.ListMeta;
 import io.gravitee.kubernetes.client.model.v1.ObjectMeta;
 import io.gravitee.kubernetes.client.model.v1.OwnerReference;
 import io.gravitee.kubernetes.client.model.v1.Watchable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -61,13 +71,65 @@ class ConfigMapEventFetcherTest {
     private ObjectMapper objectMapper;
 
     @Test
+    @SneakyThrows
+    void should_clear_cache_on_resource_version_error() {
+        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
+
+        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
+
+        when(kubernetesClient.get(any()))
+            .thenReturn(
+                Maybe.just(
+                    new ConfigMapList(
+                        "v1",
+                        List.of(createConfigMap("service1", "default")),
+                        "configmaps",
+                        new ListMeta(null, null, "12345", null)
+                    )
+                )
+            )
+            .thenReturn(
+                Maybe.just(
+                    new ConfigMapList(
+                        "v1",
+                        List.of(createConfigMap("service1", "default")),
+                        "configmaps",
+                        new ListMeta(null, null, "54321", null)
+                    )
+                )
+            )
+            .thenReturn(Maybe.error(new ResourceVersionNotFoundException("54321")))
+            .thenReturn(
+                Maybe.just(
+                    new ConfigMapList(
+                        "v1",
+                        List.of(createConfigMap("service2", "default")),
+                        "configmaps",
+                        new ListMeta(null, null, "56789", null)
+                    )
+                )
+            );
+
+        cut.fetchAll(API_DEFINITIONS_KIND).test().await().assertValueCount(1);
+        cut.fetchAll(API_DEFINITIONS_KIND).test().await().assertValueCount(1);
+        cut.fetchAll(API_DEFINITIONS_KIND).test().await().assertFailure(ResourceVersionNotFoundException.class);
+        cut.fetchAll(API_DEFINITIONS_KIND).test().await().assertValueCount(1);
+
+        var inOrder = inOrder(kubernetesClient);
+
+        inOrder.verify(kubernetesClient).get(argThat(query -> query.getResourceVersion() == null));
+        inOrder.verify(kubernetesClient).get(argThat(query -> "12345".equals(query.getResourceVersion())));
+        inOrder.verify(kubernetesClient).get(argThat(query -> query.getResourceVersion() == null));
+    }
+
+    @Test
     void should_watch_all_namespaces() throws JsonProcessingException {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
 
         when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(3);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(3);
     }
 
     @Test
@@ -77,7 +139,7 @@ class ConfigMapEventFetcherTest {
         when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(3);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(3);
     }
 
     @Test
@@ -94,7 +156,7 @@ class ConfigMapEventFetcherTest {
 
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(2);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(2);
     }
 
     @Test
@@ -107,7 +169,7 @@ class ConfigMapEventFetcherTest {
             .thenReturn(Flowable.just(createEvent(configMap)));
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(1);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
 
     @Test
@@ -123,7 +185,7 @@ class ConfigMapEventFetcherTest {
             .thenReturn(Flowable.just(createEvent(configMap)));
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(1);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
 
     @Test
@@ -139,7 +201,7 @@ class ConfigMapEventFetcherTest {
 
         when(objectMapper.readValue("api", io.gravitee.definition.model.v4.Api.class)).thenReturn(mockApiV4());
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(1);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
 
     @Test
@@ -153,7 +215,7 @@ class ConfigMapEventFetcherTest {
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
 
-        cut.fetchLatest().test().assertNoValues();
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertNoValues();
     }
 
     @Test
@@ -166,7 +228,7 @@ class ConfigMapEventFetcherTest {
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
 
-        cut.fetchLatest().test().assertComplete().assertValueCount(0);
+        cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(0);
     }
 
     private Api mockApiV2() {
@@ -195,13 +257,13 @@ class ConfigMapEventFetcherTest {
         objectMeta.setName(name);
         objectMeta.setNamespace(namespace);
         OwnerReference ownerReference = new OwnerReference();
-        ownerReference.setApiVersion(
-            String.format("%s/%s", ConfigMapEventFetcher.GRAVITEE_IO, ConfigMapEventFetcher.API_DEFINITION_V1_ALPHA1)
-        );
+        ownerReference.setApiVersion(String.format("%s/%s", ConfigMapEventFetcher.RESOURCE_GROUP, ConfigMapEventFetcher.RESOURCE_VERSION));
         objectMeta.setOwnerReferences(List.of(ownerReference));
 
         Map<String, String> data = new HashMap<>();
+
         data.put(DATA_DEFINITION, "api");
+
         data.put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V2.getLabel());
 
         return new ConfigMap("v1", null, data, true, "ConfigMap", objectMeta);

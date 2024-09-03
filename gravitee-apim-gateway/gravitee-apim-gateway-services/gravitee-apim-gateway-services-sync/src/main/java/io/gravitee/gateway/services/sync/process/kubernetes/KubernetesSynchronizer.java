@@ -24,4 +24,5 @@ import java.util.Set;
  */
 public interface KubernetesSynchronizer {
     Completable synchronize(final Set<String> environments);
+    Completable watch(final Set<String> environments);
 }
