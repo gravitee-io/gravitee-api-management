@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
 import com.google.common.base.Strings;
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -111,6 +113,7 @@ public class ApisResource extends AbstractResource {
             getAuthenticatedUser(),
             isAdmin(),
             expands,
+            new SortableImpl("name", true),
             paginationParam.toPageable()
         );
 

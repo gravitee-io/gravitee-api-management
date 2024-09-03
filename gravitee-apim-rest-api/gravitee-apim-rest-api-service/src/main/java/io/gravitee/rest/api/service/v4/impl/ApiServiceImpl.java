@@ -54,6 +54,7 @@ import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -681,6 +682,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final boolean isAdmin,
         final Set<String> expands,
+        final Sortable sortable,
         final Pageable pageable
     ) {
         ApiCriteria.Builder criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
@@ -698,7 +700,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Page<Api> apis = apiRepository.search(
             criteria.build(),
-            null,
+            convert(sortable),
             convert(pageable),
             new ApiFieldFilter.Builder().excludePicture().build()
         );
@@ -730,7 +732,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final boolean isAdmin,
         final Pageable pageable
     ) {
-        return this.findAll(executionContext, userId, isAdmin, Collections.emptySet(), pageable);
+        return this.findAll(executionContext, userId, isAdmin, Collections.emptySet(), null, pageable);
     }
 
     @Override
