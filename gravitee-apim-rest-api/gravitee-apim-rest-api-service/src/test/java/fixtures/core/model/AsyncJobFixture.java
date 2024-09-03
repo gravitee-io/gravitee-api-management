@@ -13,30 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fixtures.repository;
+package fixtures.core.model;
 
-import io.gravitee.repository.management.model.IntegrationJob;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import java.time.Instant;
-import java.util.Date;
+import java.time.ZoneId;
 import java.util.function.Supplier;
+import lombok.experimental.UtilityClass;
 
-public class IntegrationJobFixture {
+@UtilityClass
+public class AsyncJobFixture {
 
-    private IntegrationJobFixture() {}
-
-    public static final Supplier<IntegrationJob.IntegrationJobBuilder> BASE = () ->
-        IntegrationJob
+    public static final Supplier<AsyncJob.AsyncJobBuilder> BASE = () ->
+        AsyncJob
             .builder()
             .id("job-id")
             .sourceId("integration-id")
-            .environmentId("environment-id")
             .initiatorId("initiator-id")
-            .status("PENDING")
+            .environmentId("my-env")
+            .status(AsyncJob.Status.PENDING)
             .upperLimit(10L)
-            .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+            .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
-    public static IntegrationJob anIntegrationJob() {
+    public static AsyncJob aPendingIngestJob() {
         return BASE.get().build();
+    }
+
+    public static AsyncJob aSuccessJob() {
+        return BASE.get().status(AsyncJob.Status.SUCCESS).build();
+    }
+
+    public static AsyncJob anErrorJob() {
+        return BASE.get().status(AsyncJob.Status.ERROR).errorMessage("Job failed").build();
     }
 }

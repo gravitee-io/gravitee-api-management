@@ -16,9 +16,9 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IntegrationJobRepository;
-import io.gravitee.repository.management.model.IntegrationJob;
-import io.gravitee.repository.mongodb.management.internal.integrationjob.IntegrationJobMongoRepository;
+import io.gravitee.repository.management.api.AsyncJobRepository;
+import io.gravitee.repository.management.model.AsyncJob;
+import io.gravitee.repository.mongodb.management.internal.asyncjob.AsyncJobMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
 import java.util.Set;
@@ -29,61 +29,61 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class MongoIntegrationJobRepository implements IntegrationJobRepository {
+public class MongoAsyncJobRepository implements AsyncJobRepository {
 
     @Autowired
-    private IntegrationJobMongoRepository internalRepository;
+    private AsyncJobMongoRepository internalRepository;
 
     @Autowired
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<IntegrationJob> findById(String s) throws TechnicalException {
-        log.debug("Find integrationJob by id [{}]", s);
-        Optional<IntegrationJob> result = internalRepository.findById(s).map(source -> mapper.map(source));
-        log.debug("Find integrationJob by id [{}] - DONE", s);
+    public Optional<AsyncJob> findById(String s) throws TechnicalException {
+        log.debug("Find asyncJob by id [{}]", s);
+        Optional<AsyncJob> result = internalRepository.findById(s).map(source -> mapper.map(source));
+        log.debug("Find asyncJob by id [{}] - DONE", s);
         return result;
     }
 
     @Override
-    public IntegrationJob create(IntegrationJob job) throws TechnicalException {
-        log.debug("Create integrationJob [{}]", job.getId());
+    public AsyncJob create(AsyncJob job) throws TechnicalException {
+        log.debug("Create asyncJob [{}]", job.getId());
         var created = internalRepository.insert(mapper.map(job));
-        log.debug("Create integrationJob [{}] - Done", created.getId());
+        log.debug("Create asyncJob [{}] - Done", created.getId());
         return mapper.map(created);
     }
 
     @Override
-    public IntegrationJob update(IntegrationJob job) throws TechnicalException {
+    public AsyncJob update(AsyncJob job) throws TechnicalException {
         if (job == null) {
-            throw new IllegalStateException("IntegrationJob must not be null");
+            throw new IllegalStateException("AsyncJob must not be null");
         }
 
         return internalRepository
             .findById(job.getId())
             .map(found -> {
-                log.debug("Update integrationJob [{}]", job.getId());
+                log.debug("Update asyncJob [{}]", job.getId());
                 var updated = internalRepository.save(mapper.map(job));
-                log.debug("Update integrationJob [{}] - Done", updated.getId());
+                log.debug("Update asyncJob [{}] - Done", updated.getId());
                 return mapper.map(updated);
             })
-            .orElseThrow(() -> new IllegalStateException(String.format("No integration job found with id [%s]", job.getId())));
+            .orElseThrow(() -> new IllegalStateException(String.format("No asyncJob found with id [%s]", job.getId())));
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        log.debug("Delete integration [{}]", id);
+        log.debug("Delete asyncJob [{}]", id);
         internalRepository.deleteById(id);
-        log.debug("Delete integration [{}] - Done", id);
+        log.debug("Delete asyncJob [{}] - Done", id);
     }
 
     @Override
-    public Set<IntegrationJob> findAll() throws TechnicalException {
+    public Set<AsyncJob> findAll() throws TechnicalException {
         return internalRepository.findAll().stream().map(source -> mapper.map(source)).collect(Collectors.toSet());
     }
 
     @Override
-    public Optional<IntegrationJob> findPendingJobFor(String sourceId) {
+    public Optional<AsyncJob> findPendingJobFor(String sourceId) {
         return internalRepository.findPendingJobFor(sourceId).map(source -> mapper.map(source));
     }
 }

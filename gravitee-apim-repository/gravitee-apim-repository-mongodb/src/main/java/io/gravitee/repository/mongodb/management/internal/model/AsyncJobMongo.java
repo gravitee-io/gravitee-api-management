@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@Data
-public class IntegrationJob {
+@Getter
+@Setter
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}asyncjobs")
+public class AsyncJobMongo extends Auditable {
 
-    String id;
-    String sourceId;
-    String environmentId;
-    String initiatorId;
+    @Id
+    private String id;
 
-    Date createdAt;
-    Date updatedAt;
-
-    String status;
-    String errorMessage;
-
-    Long upperLimit;
+    private String sourceId;
+    private String environmentId;
+    private String initiatorId;
+    private String status;
+    private String errorMessage;
+    private Long upperLimit;
 }

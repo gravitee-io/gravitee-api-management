@@ -22,7 +22,7 @@ import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
-import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
+import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class GetIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
-    private final IntegrationJobQueryService integrationJobQueryService;
+    private final AsyncJobQueryService asyncJobQueryService;
     private final LicenseDomainService licenseDomainService;
     private final IntegrationAgent integrationAgent;
     private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
@@ -59,7 +59,7 @@ public class GetIntegrationUseCase {
             .map(status -> IntegrationView.AgentStatus.valueOf(status.name()))
             .blockingGet();
 
-        var pendingJob = integrationJobQueryService.findPendingJobFor(integrationId);
+        var pendingJob = asyncJobQueryService.findPendingJobFor(integrationId);
         var primaryOwner = integrationPrimaryOwnerDomainService
             .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
             .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))

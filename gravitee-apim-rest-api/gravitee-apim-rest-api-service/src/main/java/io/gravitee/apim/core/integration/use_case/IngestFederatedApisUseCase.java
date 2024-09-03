@@ -32,7 +32,7 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.integration.crud_service.IntegrationJobCrudService;
+import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class IngestFederatedApisUseCase {
 
-    private final IntegrationJobCrudService integrationJobCrudService;
+    private final AsyncJobCrudService asyncJobCrudService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final ValidateFederatedApiDomainService validateFederatedApi;
     private final ApiCrudService apiCrudService;
@@ -83,7 +83,7 @@ public class IngestFederatedApisUseCase {
         var organizationId = input.organizationId();
 
         return Maybe
-            .defer(() -> Maybe.fromOptional(integrationJobCrudService.findById(ingestJobId)))
+            .defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(ingestJobId)))
             .subscribeOn(Schedulers.computation())
             .flatMapCompletable(job -> {
                 var environmentId = job.getEnvironmentId();
@@ -109,7 +109,7 @@ public class IngestFederatedApisUseCase {
                     )
                     .doOnComplete(() -> {
                         if (input.completed) {
-                            integrationJobCrudService.update(job.complete());
+                            asyncJobCrudService.update(job.complete());
                             triggerNotificationDomainService.triggerPortalNotification(
                                 organizationId,
                                 new FederatedApisIngestionCompleteHookContext(job.getSourceId())

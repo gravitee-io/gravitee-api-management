@@ -15,38 +15,38 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.integration.crud_service.IntegrationJobCrudService;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
+import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public class IntegrationJobCrudServiceInMemory implements IntegrationJobCrudService, InMemoryAlternative<IntegrationJob> {
+public class AsyncJobCrudServiceInMemory implements AsyncJobCrudService, InMemoryAlternative<AsyncJob> {
 
-    final ArrayList<IntegrationJob> storage = new ArrayList<>();
+    final ArrayList<AsyncJob> storage = new ArrayList<>();
 
     @Override
-    public IntegrationJob create(IntegrationJob integration) {
+    public AsyncJob create(AsyncJob integration) {
         storage.add(integration);
         return integration;
     }
 
     @Override
-    public Optional<IntegrationJob> findById(String id) {
+    public Optional<AsyncJob> findById(String id) {
         return storage.stream().filter(item -> item.getId().equals(id)).findFirst();
     }
 
     @Override
-    public IntegrationJob update(IntegrationJob integration) {
+    public AsyncJob update(AsyncJob integration) {
         OptionalInt index = this.findIndex(this.storage, i -> i.getId().equals(integration.getId()));
         if (index.isPresent()) {
             storage.set(index.getAsInt(), integration);
             return integration;
         }
 
-        throw new IllegalStateException("IntegrationJob not found");
+        throw new IllegalStateException("AsyncJob not found");
     }
 
     @Override
@@ -58,7 +58,7 @@ public class IntegrationJobCrudServiceInMemory implements IntegrationJobCrudServ
     }
 
     @Override
-    public void initWith(List<IntegrationJob> items) {
+    public void initWith(List<AsyncJob> items) {
         storage.addAll(items);
     }
 
@@ -68,7 +68,7 @@ public class IntegrationJobCrudServiceInMemory implements IntegrationJobCrudServ
     }
 
     @Override
-    public List<IntegrationJob> storage() {
+    public List<AsyncJob> storage() {
         return Collections.unmodifiableList(storage);
     }
 }

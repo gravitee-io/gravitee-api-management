@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.integrationjob;
+package io.gravitee.apim.core.integration.query_service;
 
-import io.gravitee.repository.mongodb.management.internal.model.IntegrationJobMongo;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface IntegrationJobMongoRepository extends MongoRepository<IntegrationJobMongo, String> {
-    @Query("{ sourceId: ?0, status: 'PENDING' }")
-    Optional<IntegrationJobMongo> findPendingJobFor(String sourceId);
+public interface AsyncJobQueryService {
+    Optional<AsyncJob> findPendingJobFor(String integrationId);
 }

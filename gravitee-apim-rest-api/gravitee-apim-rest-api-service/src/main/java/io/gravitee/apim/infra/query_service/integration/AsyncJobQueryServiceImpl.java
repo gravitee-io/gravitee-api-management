@@ -15,11 +15,11 @@
  */
 package io.gravitee.apim.infra.query_service.integration;
 
-import io.gravitee.apim.core.integration.model.IntegrationJob;
-import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
-import io.gravitee.apim.infra.adapter.IntegrationJobAdapter;
+import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
+import io.gravitee.apim.infra.adapter.AsyncJobAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IntegrationJobRepository;
+import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Optional;
@@ -29,20 +29,20 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class IntegrationJobQueryServiceImpl extends AbstractService implements IntegrationJobQueryService {
+public class AsyncJobQueryServiceImpl extends AbstractService implements AsyncJobQueryService {
 
-    private final IntegrationJobRepository integrationJobRepository;
+    private final AsyncJobRepository asyncJobRepository;
 
-    public IntegrationJobQueryServiceImpl(@Lazy IntegrationJobRepository integrationJobRepository) {
-        this.integrationJobRepository = integrationJobRepository;
+    public AsyncJobQueryServiceImpl(@Lazy AsyncJobRepository asyncJobRepository) {
+        this.asyncJobRepository = asyncJobRepository;
     }
 
     @Override
-    public Optional<IntegrationJob> findPendingJobFor(String integrationId) {
+    public Optional<AsyncJob> findPendingJobFor(String sourceId) {
         try {
-            return integrationJobRepository.findPendingJobFor(integrationId).map(IntegrationJobAdapter.INSTANCE::toEntity);
+            return asyncJobRepository.findPendingJobFor(sourceId).map(AsyncJobAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred while finding pending IntegrationJob for: " + integrationId, e);
+            throw new TechnicalManagementException("An error occurred while finding pending AsyncJob for: " + sourceId, e);
         }
     }
 }

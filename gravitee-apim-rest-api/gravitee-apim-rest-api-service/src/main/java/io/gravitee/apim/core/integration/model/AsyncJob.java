@@ -27,7 +27,7 @@ import lombok.With;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntegrationJob {
+public class AsyncJob {
 
     String id;
 
@@ -64,7 +64,7 @@ public class IntegrationJob {
         ERROR,
     }
 
-    public IntegrationJob complete() {
+    public AsyncJob complete() {
         return toBuilder().status(Status.SUCCESS).updatedAt(TimeProvider.now()).build();
     }
 }

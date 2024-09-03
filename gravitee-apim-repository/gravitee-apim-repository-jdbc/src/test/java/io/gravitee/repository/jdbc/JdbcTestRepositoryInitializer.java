@@ -140,7 +140,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "upgraders",
         "integrations",
         "integration_groups",
-        "integrationjobs",
+        "asyncjobs",
         "api_category_orders",
         "sharedpolicygroups",
         "sharedpolicygrouphistories",

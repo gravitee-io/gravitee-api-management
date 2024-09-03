@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.repository.mongodb.management.internal.asyncjob;
 
-import io.gravitee.apim.core.integration.model.IntegrationJob;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
+import java.util.Optional;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
 
-@Mapper
-public interface IntegrationJobAdapter {
-    IntegrationJobAdapter INSTANCE = Mappers.getMapper(IntegrationJobAdapter.class);
-
-    IntegrationJob toEntity(io.gravitee.repository.management.model.IntegrationJob source);
-
-    io.gravitee.repository.management.model.IntegrationJob toRepository(IntegrationJob source);
+@Repository
+public interface AsyncJobMongoRepository extends MongoRepository<AsyncJobMongo, String> {
+    @Query("{ sourceId: ?0, status: 'PENDING' }")
+    Optional<AsyncJobMongo> findPendingJobFor(String sourceId);
 }

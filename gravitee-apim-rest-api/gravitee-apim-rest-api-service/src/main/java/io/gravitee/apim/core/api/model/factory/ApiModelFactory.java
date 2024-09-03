@@ -19,9 +19,9 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -97,7 +97,7 @@ public class ApiModelFactory {
             .build();
     }
 
-    public static Api fromIngestionJob(IntegrationApi integrationApi, IntegrationJob job) {
+    public static Api fromIngestionJob(IntegrationApi integrationApi, AsyncJob job) {
         var id = generateFederatedApiId(integrationApi, job);
         var now = TimeProvider.now();
         var defaultVersion = "0.0.0";
@@ -164,7 +164,7 @@ public class ApiModelFactory {
      * @param job The job that ingested the API
      * @return The generated id
      */
-    public static String generateFederatedApiId(IntegrationApi integrationApi, IntegrationJob job) {
+    public static String generateFederatedApiId(IntegrationApi integrationApi, AsyncJob job) {
         return UuidString.generateForEnvironment(job.getEnvironmentId(), job.getSourceId(), integrationApi.uniqueId());
     }
 }

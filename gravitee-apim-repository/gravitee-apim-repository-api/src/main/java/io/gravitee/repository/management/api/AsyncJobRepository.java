@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.crud_service;
+package io.gravitee.repository.management.api;
 
-import io.gravitee.apim.core.integration.model.IntegrationJob;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.AsyncJob;
 import java.util.Optional;
 
-public interface IntegrationJobCrudService {
-    IntegrationJob create(IntegrationJob job);
-
-    Optional<IntegrationJob> findById(String id);
-
-    IntegrationJob update(IntegrationJob job);
-
-    void delete(String id);
+public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
+    Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException;
 }

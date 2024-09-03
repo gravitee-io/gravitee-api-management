@@ -36,7 +36,7 @@ public class IntegrationView extends Integration {
 
     AgentStatus agentStatus;
 
-    IntegrationJob pendingJob;
+    AsyncJob pendingJob;
     PrimaryOwner primaryOwner;
 
     public enum AgentStatus {
@@ -48,7 +48,7 @@ public class IntegrationView extends Integration {
         this(integration, agentStatus, null, null);
     }
 
-    public IntegrationView(Integration integration, AgentStatus agentStatus, IntegrationJob pendingJob, PrimaryOwner primaryOwner) {
+    public IntegrationView(Integration integration, AgentStatus agentStatus, AsyncJob pendingJob, PrimaryOwner primaryOwner) {
         super(
             integration.getId(),
             integration.getName(),
