@@ -149,13 +149,6 @@ export class DocumentationEditPageComponent implements OnInit {
       ? this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId)
       : [];
 
-    this.pageConfigurationData = {
-      id: this.page.id,
-      name: this.page.name,
-      visibility: this.page.visibility,
-      excludedAccessControls: this.page.excludedAccessControls === true,
-      accessControlGroups: this.initialAccessControlGroups,
-    };
 
     this.form.controls.content.setValue(this.page.content);
 

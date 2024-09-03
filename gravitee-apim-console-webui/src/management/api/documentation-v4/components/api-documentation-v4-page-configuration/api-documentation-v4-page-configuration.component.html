@@ -44,7 +44,12 @@
       <gio-form-label>Exclude the selected groups</gio-form-label>
       When selected, reverses the operation for the group permissions. Users belonging to any of the specified groups will NOT be able to
       view the page.
-      <mat-slide-toggle gioFormSlideToggle formControlName="excludeGroups" aria-label="Exclude selected groups"></mat-slide-toggle>
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="excludeGroups"
+        aria-label="Exclude selected groups"
+        [disabled]="form.value.accessControlGroups.length === 0"
+      ></mat-slide-toggle>
     </gio-form-slide-toggle>
   }
 </form>
