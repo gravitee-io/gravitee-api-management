@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.IntegrationJob;
-import java.util.Optional;
+import io.gravitee.apim.core.integration.model.AsyncJob;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-public interface IntegrationJobRepository extends CrudRepository<IntegrationJob, String> {
-    Optional<IntegrationJob> findPendingJobFor(String integrationId) throws TechnicalException;
+@Mapper
+public interface AsyncJobAdapter {
+    AsyncJobAdapter INSTANCE = Mappers.getMapper(AsyncJobAdapter.class);
+
+    AsyncJob toEntity(io.gravitee.repository.management.model.AsyncJob source);
+
+    io.gravitee.repository.management.model.AsyncJob toRepository(AsyncJob source);
 }

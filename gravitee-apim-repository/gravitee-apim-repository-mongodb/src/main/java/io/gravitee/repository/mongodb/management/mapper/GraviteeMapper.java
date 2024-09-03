@@ -190,10 +190,10 @@ public interface GraviteeMapper {
 
     InvitationMongo map(Invitation toMap);
 
-    // IntegrationJob mapping
-    IntegrationJob map(IntegrationJobMongo source);
+    // AsyncJob mapping
+    AsyncJob map(AsyncJobMongo source);
 
-    IntegrationJobMongo map(IntegrationJob source);
+    AsyncJobMongo map(AsyncJob source);
 
     // License mapping
     @Mapping(target = "referenceId", source = "id.referenceId")

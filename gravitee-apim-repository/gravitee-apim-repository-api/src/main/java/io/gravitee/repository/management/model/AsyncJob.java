@@ -13,11 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.query_service;
+package io.gravitee.repository.management.model;
 
-import io.gravitee.apim.core.integration.model.IntegrationJob;
-import java.util.Optional;
+import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface IntegrationJobQueryService {
-    Optional<IntegrationJob> findPendingJobFor(String integrationId);
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@Data
+public class AsyncJob {
+
+    String id;
+    String sourceId;
+    String environmentId;
+    String initiatorId;
+
+    Date createdAt;
+    Date updatedAt;
+
+    String status;
+    String errorMessage;
+
+    Long upperLimit;
 }

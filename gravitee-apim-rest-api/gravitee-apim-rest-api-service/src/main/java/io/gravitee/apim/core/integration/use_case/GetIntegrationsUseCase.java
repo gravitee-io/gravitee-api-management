@@ -21,7 +21,7 @@ import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicens
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
-import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
+import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
@@ -48,7 +48,7 @@ public class GetIntegrationsUseCase {
     private final LicenseDomainService licenseDomainService;
     private final IntegrationAgent integrationAgent;
     private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
-    private final IntegrationJobQueryService integrationJobQueryService;
+    private final AsyncJobQueryService asyncJobQueryService;
 
     public GetIntegrationsUseCase.Output execute(GetIntegrationsUseCase.Input input) {
         var environmentId = input.environmentId();
@@ -68,7 +68,7 @@ public class GetIntegrationsUseCase {
                         .getAgentStatusFor(integration.getId())
                         .map(status -> IntegrationView.AgentStatus.valueOf(status.name())),
                     Maybe
-                        .fromOptional(integrationJobQueryService.findPendingJobFor(integration.getId()))
+                        .fromOptional(asyncJobQueryService.findPendingJobFor(integration.getId()))
                         .map(Optional::of)
                         .defaultIfEmpty(Optional.empty()),
                     integrationPrimaryOwnerDomainService

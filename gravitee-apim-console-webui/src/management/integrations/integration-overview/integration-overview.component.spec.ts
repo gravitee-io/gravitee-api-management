@@ -27,7 +27,7 @@ import { IntegrationOverviewComponent } from './integration-overview.component';
 import { IntegrationOverviewHarness } from './integration-overview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
-import { AgentStatus, FederatedAPI, FederatedAPIsResponse, IngestionStatus, Integration } from '../integrations.model';
+import { AgentStatus, FederatedAPI, FederatedAPIsResponse, AsyncJobStatus, Integration } from '../integrations.model';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -154,7 +154,7 @@ describe('IntegrationOverviewComponent', () => {
       tick(1);
       expectIntegrationGetRequest(
         fakeIntegration({
-          pendingJob: { id: 'job-id', status: IngestionStatus.PENDING, startedAt: '2023-08-27T18:04:37Z' },
+          pendingJob: { id: 'job-id', status: AsyncJobStatus.PENDING, startedAt: '2023-08-27T18:04:37Z' },
         }),
       );
       expectFederatedAPIsGetRequest([]);
@@ -170,7 +170,7 @@ describe('IntegrationOverviewComponent', () => {
       tick(1);
       expectIntegrationGetRequest(
         fakeIntegration({
-          pendingJob: { id: 'job-id', status: IngestionStatus.PENDING, startedAt: '2023-08-27T18:04:37Z' },
+          pendingJob: { id: 'job-id', status: AsyncJobStatus.PENDING, startedAt: '2023-08-27T18:04:37Z' },
         }),
       );
       expectFederatedAPIsGetRequest([fakeFederatedAPI()]);

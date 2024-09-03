@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
-import static fixtures.core.model.IntegrationJobFixture.aPendingIngestJob;
+import static fixtures.core.model.AsyncJobFixture.aPendingIngestJob;
 import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
 import static io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +34,7 @@ import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -41,7 +42,6 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.IntegrationJobCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -77,8 +77,8 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -146,7 +146,7 @@ class IngestFederatedApisUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
 
-    private static final IntegrationJob INGEST_JOB = aPendingIngestJob()
+    private static final AsyncJob INGEST_JOB = aPendingIngestJob()
         .toBuilder()
         .id(INGEST_JOB_ID)
         .sourceId(INTEGRATION_ID)
@@ -159,7 +159,7 @@ class IngestFederatedApisUseCaseTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
-    IntegrationJobCrudServiceInMemory integrationJobCrudService = new IntegrationJobCrudServiceInMemory();
+    AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
@@ -304,7 +304,7 @@ class IngestFederatedApisUseCaseTest {
 
         useCase =
             new IngestFederatedApisUseCase(
-                integrationJobCrudService,
+                asyncJobCrudService,
                 apiPrimaryOwnerFactory,
                 validateFederatedApiDomainService,
                 apiCrudService,
@@ -1769,8 +1769,8 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getFederatedApiDefinition()).isEqualTo(FederatedApi.builder().id("input").build());
     }
 
-    private void givenAnIngestJob(IntegrationJob job) {
-        integrationJobCrudService.initWith(List.of(job));
+    private void givenAnIngestJob(AsyncJob job) {
+        asyncJobCrudService.initWith(List.of(job));
     }
 
     private void givenExistingApi(Api... apis) {

@@ -17,8 +17,8 @@ package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.IntegrationJobRepository;
-import io.gravitee.repository.management.model.IntegrationJob;
+import io.gravitee.repository.management.api.AsyncJobRepository;
+import io.gravitee.repository.management.model.AsyncJob;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
@@ -29,18 +29,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class JdbcIntegrationJobRepository extends JdbcAbstractCrudRepository<IntegrationJob, String> implements IntegrationJobRepository {
+public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob, String> implements AsyncJobRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIntegrationJobRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAsyncJobRepository.class);
 
-    JdbcIntegrationJobRepository(@Value("${management.jdbc.prefix:}") String prefix) {
-        super(prefix, "integrationjobs");
+    JdbcAsyncJobRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+        super(prefix, "asyncjobs");
     }
 
     @Override
-    public Optional<IntegrationJob> findPendingJobFor(String sourceId) throws TechnicalException {
-        LOGGER.debug("JdbcIntegrationJobRepository.findPendingJobFor({})", sourceId);
-        final List<IntegrationJob> jobs;
+    public Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException {
+        LOGGER.debug("JdbcAsyncJobRepository.findPendingJobFor({})", sourceId);
+        final List<AsyncJob> jobs;
         try {
             jobs =
                 jdbcTemplate.query(
@@ -50,21 +50,21 @@ public class JdbcIntegrationJobRepository extends JdbcAbstractCrudRepository<Int
                 );
             return jobs.stream().findFirst();
         } catch (final Exception ex) {
-            final String message = "Failed to find pending IntegrationJob for: " + sourceId;
+            final String message = "Failed to find pending AsyncJob for: " + sourceId;
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }
     }
 
     @Override
-    protected String getId(IntegrationJob item) {
+    protected String getId(AsyncJob item) {
         return item.getId();
     }
 
     @Override
-    protected JdbcObjectMapper<IntegrationJob> buildOrm() {
+    protected JdbcObjectMapper<AsyncJob> buildOrm() {
         return JdbcObjectMapper
-            .builder(IntegrationJob.class, this.tableName, "id")
+            .builder(AsyncJob.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("source_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)

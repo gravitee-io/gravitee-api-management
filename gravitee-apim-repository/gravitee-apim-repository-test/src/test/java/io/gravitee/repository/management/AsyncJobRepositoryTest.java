@@ -20,15 +20,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.IntegrationJob;
+import io.gravitee.repository.management.model.AsyncJob;
 import java.util.Date;
 import org.junit.Test;
 
-public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTest {
+public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
     protected String getTestCasesPath() {
-        return "/data/integrationjob-tests/";
+        return "/data/asyncjob-tests/";
     }
 
     // Create
@@ -38,7 +38,7 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
         var uuid = UUID.random().toString();
         var job = aJob(uuid, date);
 
-        var createdIntegration = integrationJobRepository.create(job);
+        var createdIntegration = asyncJobRepository.create(job);
 
         assertThat(createdIntegration).isEqualTo(job);
     }
@@ -50,14 +50,14 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
         var date = new Date(1470157767000L);
         var expectedIntegration = aJob(id, date);
 
-        var result = integrationJobRepository.findById(id);
+        var result = asyncJobRepository.findById(id);
 
         assertThat(result).hasValue(expectedIntegration);
     }
 
     @Test
     public void should_return_empty_when_job_not_found() throws TechnicalException {
-        var integration = integrationJobRepository.findById("not-existing-id");
+        var integration = asyncJobRepository.findById("not-existing-id");
 
         assertThat(integration).isNotPresent();
     }
@@ -71,7 +71,7 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
 
         var toUpdate = aJob(id, date).toBuilder().status("ERROR").errorMessage("an error").updatedAt(updateDate).build();
 
-        var result = integrationJobRepository.update(toUpdate);
+        var result = asyncJobRepository.update(toUpdate);
         assertThat(result).isEqualTo(toUpdate);
     }
 
@@ -79,7 +79,7 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
     public void should_throw_exception_when_job_to_update_not_found() {
         var job = aJob("not-existing-id", new Date(1470157767000L));
 
-        assertThatThrownBy(() -> integrationJobRepository.update(job)).isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> asyncJobRepository.update(job)).isInstanceOf(Exception.class);
     }
 
     // Delete
@@ -87,9 +87,9 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
     public void should_delete_a_job() throws TechnicalException {
         var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
 
-        integrationJobRepository.delete(id);
+        asyncJobRepository.delete(id);
 
-        var result = integrationJobRepository.findById(id);
+        var result = asyncJobRepository.findById(id);
         assertThat(result).isEmpty();
     }
 
@@ -97,11 +97,11 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void should_return_pending_job_for_source_id() throws TechnicalException {
-        var result = integrationJobRepository.findPendingJobFor("source-id");
+        var result = asyncJobRepository.findPendingJobFor("source-id");
 
         assertThat(result)
             .hasValue(
-                IntegrationJob
+                AsyncJob
                     .builder()
                     .id("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3")
                     .sourceId("source-id")
@@ -117,12 +117,12 @@ public class IntegrationJobRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void should_return_empty_when_no_pending_job_found() throws TechnicalException {
-        assertThat(integrationJobRepository.findPendingJobFor("459a022c-e79c-4411-9a02-2ce79c141165")).isNotPresent();
-        assertThat(integrationJobRepository.findPendingJobFor("unknown")).isNotPresent();
+        assertThat(asyncJobRepository.findPendingJobFor("459a022c-e79c-4411-9a02-2ce79c141165")).isNotPresent();
+        assertThat(asyncJobRepository.findPendingJobFor("unknown")).isNotPresent();
     }
 
-    private static IntegrationJob aJob(String uuid, Date date) {
-        return IntegrationJob
+    private static AsyncJob aJob(String uuid, Date date) {
+        return AsyncJob
             .builder()
             .id(uuid)
             .sourceId("source-id")

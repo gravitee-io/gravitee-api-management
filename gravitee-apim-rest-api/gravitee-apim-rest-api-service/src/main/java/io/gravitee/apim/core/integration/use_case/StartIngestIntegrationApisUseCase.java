@@ -18,11 +18,11 @@ package io.gravitee.apim.core.integration.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
+import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.apim.core.integration.crud_service.IntegrationJobCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
@@ -38,11 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 public class StartIngestIntegrationApisUseCase {
 
     private final IntegrationCrudService integrationCrudService;
-    private final IntegrationJobCrudService integrationJobCrudService;
+    private final AsyncJobCrudService asyncJobCrudService;
     private final IntegrationAgent integrationAgent;
     private final LicenseDomainService licenseDomainService;
 
-    public Single<IntegrationJob.Status> execute(Input input) {
+    public Single<AsyncJob.Status> execute(Input input) {
         var auditInfo = input.auditInfo;
         var integrationId = input.integrationId;
         var organizationId = auditInfo.organizationId();
@@ -67,28 +67,28 @@ public class StartIngestIntegrationApisUseCase {
 
                         if (ingestStarted.total() == 0) {
                             log.info("No APIs to ingest for integration {}", integration.getId());
-                            return IntegrationJob.Status.SUCCESS;
+                            return AsyncJob.Status.SUCCESS;
                         }
 
-                        integrationJobCrudService.create(
+                        asyncJobCrudService.create(
                             newIngestJob(ingestStarted.ingestJobId(), integration, auditInfo.actor().userId(), ingestStarted.total())
                         );
 
-                        return IntegrationJob.Status.PENDING;
+                        return AsyncJob.Status.PENDING;
                     })
             )
             .doOnError(throwable -> log.error("Error to start ingest {}", integrationId, throwable));
     }
 
-    public IntegrationJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {
+    public AsyncJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {
         var now = TimeProvider.now();
-        return IntegrationJob
+        return AsyncJob
             .builder()
             .id(id)
             .sourceId(integration.getId())
             .environmentId(integration.getEnvironmentId())
             .initiatorId(initiatorId)
-            .status(IntegrationJob.Status.PENDING)
+            .status(AsyncJob.Status.PENDING)
             .upperLimit(total)
             .createdAt(now)
             .updatedAt(now)

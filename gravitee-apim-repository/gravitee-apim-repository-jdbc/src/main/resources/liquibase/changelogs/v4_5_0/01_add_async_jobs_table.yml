@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.5.0_add_integration_jobs
+      id: 4.5.0_add_async_jobs
       author: GraviteeSource Team
       changes:
         - createTable:
-            tableName: ${gravitee_prefix}integrationjobs
+            tableName: ${gravitee_prefix}asyncjobs
             columns:
               - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: source_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -17,6 +17,6 @@ databaseChangeLog:
               - column: { name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
 
         - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}integrationjobs
+            constraintName: pk_${gravitee_prefix}asyncjobs
             columnNames: id
-            tableName: ${gravitee_prefix}integrationjobs
+            tableName: ${gravitee_prefix}asyncjobs

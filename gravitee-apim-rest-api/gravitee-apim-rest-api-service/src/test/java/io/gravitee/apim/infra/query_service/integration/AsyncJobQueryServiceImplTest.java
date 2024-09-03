@@ -21,10 +21,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import fixtures.repository.IntegrationJobFixture;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
+import fixtures.repository.AsyncJobFixture;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IntegrationJobRepository;
+import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -33,16 +33,16 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class IntegrationJobQueryServiceImplTest {
+public class AsyncJobQueryServiceImplTest {
 
-    IntegrationJobRepository integrationRepository;
+    AsyncJobRepository integrationRepository;
 
-    IntegrationJobQueryServiceImpl service;
+    AsyncJobQueryServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        integrationRepository = mock(IntegrationJobRepository.class);
-        service = new IntegrationJobQueryServiceImpl(integrationRepository);
+        integrationRepository = mock(AsyncJobRepository.class);
+        service = new AsyncJobQueryServiceImpl(integrationRepository);
     }
 
     @Test
@@ -50,9 +50,7 @@ public class IntegrationJobQueryServiceImplTest {
     void should_return_pending_job_from_source_id() {
         // Given
         when(integrationRepository.findPendingJobFor(any()))
-            .thenAnswer(invocation ->
-                Optional.of(IntegrationJobFixture.anIntegrationJob().toBuilder().sourceId(invocation.getArgument(0)).build())
-            );
+            .thenAnswer(invocation -> Optional.of(AsyncJobFixture.anAsyncJob().toBuilder().sourceId(invocation.getArgument(0)).build()));
 
         // When
         var result = service.findPendingJobFor("integration-id");
@@ -60,14 +58,14 @@ public class IntegrationJobQueryServiceImplTest {
         //Then
         assertThat(result)
             .contains(
-                IntegrationJob
+                AsyncJob
                     .builder()
                     .id("job-id")
                     .sourceId("integration-id")
                     .environmentId("environment-id")
                     .initiatorId("initiator-id")
                     .upperLimit(10L)
-                    .status(IntegrationJob.Status.PENDING)
+                    .status(AsyncJob.Status.PENDING)
                     .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                     .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                     .build()
@@ -86,6 +84,6 @@ public class IntegrationJobQueryServiceImplTest {
         // Then
         assertThat(throwable)
             .isInstanceOf(TechnicalManagementException.class)
-            .hasMessage("An error occurred while finding pending IntegrationJob for: integration-id");
+            .hasMessage("An error occurred while finding pending AsyncJob for: integration-id");
     }
 }

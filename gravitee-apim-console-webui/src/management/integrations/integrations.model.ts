@@ -36,7 +36,7 @@ export interface Integration {
   name: string;
   provider: string;
   description: string;
-  pendingJob?: IntegrationJob;
+  pendingJob?: AsyncJob;
   primaryOwner?: { id: string; displayName: string; email: string };
   groups: string[];
 }
@@ -46,17 +46,17 @@ export interface IntegrationIngestionRequest {
 }
 
 export interface IntegrationIngestionResponse {
-  status: IngestionStatus;
+  status: AsyncJobStatus;
   message?: string;
 }
 
-export interface IntegrationJob {
+export interface AsyncJob {
   id: string;
-  status: IngestionStatus;
+  status: AsyncJobStatus;
   startedAt: string;
 }
 
-export enum IngestionStatus {
+export enum AsyncJobStatus {
   SUCCESS = 'SUCCESS',
   PENDING = 'PENDING',
   ERROR = 'ERROR',

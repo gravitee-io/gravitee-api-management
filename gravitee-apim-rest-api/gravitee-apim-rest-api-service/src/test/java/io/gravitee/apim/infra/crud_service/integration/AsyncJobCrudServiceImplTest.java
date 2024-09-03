@@ -24,9 +24,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.IntegrationJobFixture;
+import fixtures.core.model.AsyncJobFixture;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IntegrationJobRepository;
+import io.gravitee.repository.management.api.AsyncJobRepository;
+import io.gravitee.repository.management.model.AsyncJob;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -38,16 +39,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-public class IntegrationJobCrudServiceImplTest {
+public class AsyncJobCrudServiceImplTest {
 
-    IntegrationJobRepository repository;
+    AsyncJobRepository repository;
 
-    IntegrationJobCrudServiceImpl service;
+    AsyncJobCrudServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        repository = mock(IntegrationJobRepository.class);
-        service = new IntegrationJobCrudServiceImpl(repository);
+        repository = mock(AsyncJobRepository.class);
+        service = new AsyncJobCrudServiceImpl(repository);
     }
 
     @Nested
@@ -57,7 +58,7 @@ public class IntegrationJobCrudServiceImplTest {
         @SneakyThrows
         void should_create_job() {
             //Given
-            var job = IntegrationJobFixture.aPendingIngestJob();
+            var job = AsyncJobFixture.aPendingIngestJob();
             when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             //When
@@ -70,7 +71,7 @@ public class IntegrationJobCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var job = IntegrationJobFixture.aPendingIngestJob();
+            var job = AsyncJobFixture.aPendingIngestJob();
             when(repository.create(any())).thenThrow(TechnicalException.class);
 
             // When
@@ -79,7 +80,7 @@ public class IntegrationJobCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when creating IntegrationJob for integration: integration-id");
+                .hasMessage("Error when creating AsyncJob for integration: integration-id");
         }
     }
 
@@ -92,9 +93,7 @@ public class IntegrationJobCrudServiceImplTest {
             //Given
             when(repository.findById(any()))
                 .thenAnswer(invocation ->
-                    Optional.of(
-                        fixtures.repository.IntegrationJobFixture.anIntegrationJob().toBuilder().id(invocation.getArgument(0)).build()
-                    )
+                    Optional.of(fixtures.repository.AsyncJobFixture.anAsyncJob().toBuilder().id(invocation.getArgument(0)).build())
                 );
 
             //When
@@ -102,7 +101,7 @@ public class IntegrationJobCrudServiceImplTest {
 
             //Then
             assertThat(result)
-                .contains(IntegrationJobFixture.aPendingIngestJob().toBuilder().id("my-id").environmentId("environment-id").build());
+                .contains(AsyncJobFixture.aPendingIngestJob().toBuilder().id("my-id").environmentId("environment-id").build());
         }
 
         @Test
@@ -129,7 +128,7 @@ public class IntegrationJobCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find the IntegrationJob: my-id");
+                .hasMessage("An error occurs while trying to find the AsyncJob: my-id");
         }
     }
 
@@ -139,7 +138,7 @@ public class IntegrationJobCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_integration() {
-            var job = IntegrationJobFixture
+            var job = AsyncJobFixture
                 .aSuccessJob()
                 .toBuilder()
                 .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -148,13 +147,13 @@ public class IntegrationJobCrudServiceImplTest {
 
             service.update(job);
 
-            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.IntegrationJob.class);
+            var captor = ArgumentCaptor.forClass(AsyncJob.class);
             verify(repository).update(captor.capture());
 
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.IntegrationJob
+                    AsyncJob
                         .builder()
                         .id("job-id")
                         .sourceId("integration-id")
@@ -175,7 +174,7 @@ public class IntegrationJobCrudServiceImplTest {
             when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             //When
-            var toUpdate = IntegrationJobFixture.aPendingIngestJob();
+            var toUpdate = AsyncJobFixture.aPendingIngestJob();
             var updated = service.update(toUpdate);
 
             //Then
@@ -185,7 +184,7 @@ public class IntegrationJobCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var job = IntegrationJobFixture.aSuccessJob();
+            var job = AsyncJobFixture.aSuccessJob();
             when(repository.update(any())).thenThrow(TechnicalException.class);
 
             // When
@@ -194,7 +193,7 @@ public class IntegrationJobCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred when updating IntegrationJob: job-id");
+                .hasMessage("An error occurred when updating AsyncJob: job-id");
         }
     }
 
@@ -212,7 +211,7 @@ public class IntegrationJobCrudServiceImplTest {
             doThrow(new TechnicalException()).when(repository).delete("job-id");
             assertThatThrownBy(() -> service.delete("job-id"))
                 .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when deleting IntegrationJob: job-id");
+                .hasMessage("Error when deleting AsyncJob: job-id");
             verify(repository).delete("job-id");
         }
     }

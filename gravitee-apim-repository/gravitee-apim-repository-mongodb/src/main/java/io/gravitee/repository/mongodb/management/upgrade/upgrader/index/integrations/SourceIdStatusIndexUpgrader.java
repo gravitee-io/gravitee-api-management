@@ -19,14 +19,14 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
-@Component("IntegrationJobsSourceIdStatusIndexUpgrader")
+@Component("AsyncJobsSourceIdStatusIndexUpgrader")
 public class SourceIdStatusIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
-            .collection("integrationjobs")
+            .collection("asyncjobs")
             .name("sis1")
             .key("sourceId", ascending())
             .key("status", ascending())

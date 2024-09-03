@@ -26,7 +26,7 @@ import { DiscoveryPreviewHarness } from './discovery-preview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { IngestionStatus, Integration, IntegrationIngestionResponse } from '../integrations.model';
+import { AsyncJobStatus, Integration, IntegrationIngestionResponse } from '../integrations.model';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -136,7 +136,7 @@ describe('DiscoveryPreviewComponent', () => {
 
       await componentHarness.getProceedButton().then((button) => button.click());
 
-      expectIngestPostRequest(['testit', 'testit2', 'testit3'], { status: IngestionStatus.SUCCESS });
+      expectIngestPostRequest(['testit', 'testit2', 'testit3'], { status: AsyncJobStatus.SUCCESS });
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('Ingestion complete! Your integration is now updated.');
     });
 
@@ -146,7 +146,7 @@ describe('DiscoveryPreviewComponent', () => {
 
       await componentHarness.getProceedButton().then((button) => button.click());
 
-      expectIngestPostRequest(['testit', 'testit2', 'testit3'], { status: IngestionStatus.ERROR, message: 'an error' });
+      expectIngestPostRequest(['testit', 'testit2', 'testit3'], { status: AsyncJobStatus.ERROR, message: 'an error' });
       expect(fakeSnackBarService.error).toHaveBeenCalledWith('Ingestion failed. Please check your settings and try again: an error');
     });
   });
@@ -163,7 +163,7 @@ describe('DiscoveryPreviewComponent', () => {
     expect(req.request.method).toEqual('GET');
   }
 
-  function expectIngestPostRequest(toIngest: string[], response: IntegrationIngestionResponse = { status: IngestionStatus.PENDING }): void {
+  function expectIngestPostRequest(toIngest: string[], response: IntegrationIngestionResponse = { status: AsyncJobStatus.PENDING }): void {
     const req: TestRequest = httpTestingController.expectOne({
       method: 'POST',
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`,

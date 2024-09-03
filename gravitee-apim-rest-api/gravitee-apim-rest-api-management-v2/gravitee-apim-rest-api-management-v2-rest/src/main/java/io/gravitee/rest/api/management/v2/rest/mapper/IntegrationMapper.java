@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static io.gravitee.apim.core.integration.use_case.DiscoveryUseCase.Output.State.NEW;
 import static io.gravitee.apim.core.integration.use_case.DiscoveryUseCase.Output.State.UPDATE;
 
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
@@ -45,7 +45,7 @@ public interface IntegrationMapper {
 
     Integration map(CreateIntegration source);
 
-    IngestionJob map(IntegrationJob source);
+    IngestionJob map(AsyncJob source);
 
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration source);
 
@@ -55,7 +55,7 @@ public interface IntegrationMapper {
 
     Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
 
-    IngestionStatus map(IntegrationJob.Status source);
+    IngestionStatus map(AsyncJob.Status source);
 
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
         return IngestionPreviewResponse

@@ -25,7 +25,7 @@ import {
   CreateIntegrationPayload,
   DeletedFederatedAPIsResponse,
   FederatedAPIsResponse,
-  IngestionStatus,
+  AsyncJobStatus,
   Integration,
   IntegrationIngestionResponse,
   IntegrationPreview,
@@ -60,7 +60,7 @@ export class IntegrationsService {
     return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${integrationId}/_ingest`, { apiIds: apiIdsToIngest }).pipe(
       catchError((error) => {
         return of({
-          status: IngestionStatus.ERROR,
+          status: AsyncJobStatus.ERROR,
           message: `Fail to ingest APIs: ${error.message}`,
         });
       }),

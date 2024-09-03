@@ -15,21 +15,20 @@
  */
 package io.gravitee.apim.core.integration.use_case;
 
-import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
 import static fixtures.core.model.RoleFixtures.integrationPrimaryOwnerRoleId;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.AsyncJobFixture;
 import fixtures.core.model.IntegrationFixture;
-import fixtures.core.model.IntegrationJobFixture;
 import fixtures.core.model.LicenseFixtures;
+import inmemory.AsyncJobQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -37,7 +36,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase.Input;
@@ -69,7 +68,7 @@ class GetIntegrationUseCaseTest {
     private static final String USER_ID = "user-id";
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
-    IntegrationJobQueryServiceInMemory integrationJobQueryService = new IntegrationJobQueryServiceInMemory();
+    AsyncJobQueryServiceInMemory asyncJobQueryService = new AsyncJobQueryServiceInMemory();
     LicenseCrudServiceInMemory licenseCrudService = new LicenseCrudServiceInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
@@ -92,7 +91,7 @@ class GetIntegrationUseCaseTest {
         usecase =
             new GetIntegrationUseCase(
                 integrationCrudServiceInMemory,
-                integrationJobQueryService,
+                asyncJobQueryService,
                 new LicenseDomainService(licenseCrudService, licenseManager),
                 integrationAgent,
                 integrationPrimaryOwnerDomainService
@@ -125,7 +124,7 @@ class GetIntegrationUseCaseTest {
         Stream
             .of(
                 integrationCrudServiceInMemory,
-                integrationJobQueryService,
+                asyncJobQueryService,
                 licenseCrudService,
                 integrationAgent,
                 membershipCrudServiceInMemory,
@@ -176,7 +175,7 @@ class GetIntegrationUseCaseTest {
     void should_return_integration_with_a_pending_job() {
         // Given
         integrationAgent.configureAgentFor(INTEGRATION_ID, IntegrationAgent.Status.DISCONNECTED);
-        var job = givenIntegrationJob(IntegrationJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
+        var job = givenAnAsyncJob(AsyncJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
 
         // When
         var output = usecase.execute(new Input(INTEGRATION_ID, ORGANIZATION_ID));
@@ -206,8 +205,8 @@ class GetIntegrationUseCaseTest {
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
     }
 
-    private IntegrationJob givenIntegrationJob(IntegrationJob job) {
-        integrationJobQueryService.initWith(List.of(job));
+    private AsyncJob givenAnAsyncJob(AsyncJob job) {
+        asyncJobQueryService.initWith(List.of(job));
         return job;
     }
 

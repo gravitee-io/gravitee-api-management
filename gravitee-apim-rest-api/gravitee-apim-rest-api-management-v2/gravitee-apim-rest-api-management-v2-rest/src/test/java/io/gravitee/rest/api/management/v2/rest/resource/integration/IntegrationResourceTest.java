@@ -25,18 +25,18 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.AsyncJobFixture;
 import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.IntegrationFixture;
-import fixtures.core.model.IntegrationJobFixture;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.IntegrationJobCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
@@ -83,7 +83,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
 
     @Autowired
-    IntegrationJobCrudServiceInMemory integrationJobCrudServiceInMemory;
+    AsyncJobCrudServiceInMemory asyncJobCrudServiceInMemory;
 
     @Autowired
     ApiCrudServiceInMemory apiCrudServiceInMemory;
@@ -131,7 +131,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             .of(
                 apiCrudServiceInMemory,
                 integrationCrudServiceInMemory,
-                integrationJobCrudServiceInMemory,
+                asyncJobCrudServiceInMemory,
                 membershipQueryServiceInMemory,
                 integrationAgentInMemory
             )
@@ -189,7 +189,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         public void should_get_integration_with_pending_job() {
             // Given
             var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
-            var job = givenAnIntegrationJob(IntegrationJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
+            var job = givenAnAsyncJob(AsyncJobFixture.aPendingIngestJob().withSourceId(INTEGRATION_ID));
 
             //When
             Response response = target.request().get();
@@ -714,8 +714,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         return integration;
     }
 
-    private IntegrationJob givenAnIntegrationJob(IntegrationJob integrationJob) {
-        integrationJobCrudServiceInMemory.initWith(List.of(integrationJob));
-        return integrationJob;
+    private AsyncJob givenAnAsyncJob(AsyncJob asyncJob) {
+        asyncJobCrudServiceInMemory.initWith(List.of(asyncJob));
+        return asyncJob;
     }
 }

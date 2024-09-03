@@ -15,36 +15,36 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.integration.model.IntegrationJob;
-import io.gravitee.apim.core.integration.query_service.IntegrationJobQueryService;
+import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class IntegrationJobQueryServiceInMemory implements IntegrationJobQueryService, InMemoryAlternative<IntegrationJob> {
+public class AsyncJobQueryServiceInMemory implements AsyncJobQueryService, InMemoryAlternative<AsyncJob> {
 
-    private final List<IntegrationJob> storage;
+    private final List<AsyncJob> storage;
 
-    public IntegrationJobQueryServiceInMemory() {
+    public AsyncJobQueryServiceInMemory() {
         storage = new ArrayList<>();
     }
 
-    public IntegrationJobQueryServiceInMemory(IntegrationJobCrudServiceInMemory integrationJobCrudServiceInMemory) {
-        storage = integrationJobCrudServiceInMemory.storage;
+    public AsyncJobQueryServiceInMemory(AsyncJobCrudServiceInMemory asyncJobCrudServiceInMemory) {
+        storage = asyncJobCrudServiceInMemory.storage;
     }
 
     @Override
-    public Optional<IntegrationJob> findPendingJobFor(String integrationId) {
+    public Optional<AsyncJob> findPendingJobFor(String integrationId) {
         return storage
             .stream()
             .filter(integration -> integration.getSourceId().equals(integrationId))
-            .filter(integration -> integration.getStatus().equals(IntegrationJob.Status.PENDING))
+            .filter(integration -> integration.getStatus().equals(AsyncJob.Status.PENDING))
             .findFirst();
     }
 
     @Override
-    public void initWith(List<IntegrationJob> items) {
+    public void initWith(List<AsyncJob> items) {
         storage.clear();
         storage.addAll(items);
     }
@@ -55,7 +55,7 @@ public class IntegrationJobQueryServiceInMemory implements IntegrationJobQuerySe
     }
 
     @Override
-    public List<IntegrationJob> storage() {
+    public List<AsyncJob> storage() {
         return Collections.unmodifiableList(storage);
     }
 }

@@ -23,10 +23,9 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
-import inmemory.GroupQueryServiceInMemory;
+import inmemory.AsyncJobQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
-import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
@@ -61,7 +60,7 @@ public class GetIntegrationsUseCaseTest {
     private static final int PAGE_SIZE = 5;
     private static final Pageable pageable = new PageableImpl(PAGE_NUMBER, PAGE_SIZE);
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
-    IntegrationJobQueryServiceInMemory integrationJobQueryService = new IntegrationJobQueryServiceInMemory();
+    AsyncJobQueryServiceInMemory asyncJobQueryService = new AsyncJobQueryServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
@@ -86,7 +85,7 @@ public class GetIntegrationsUseCaseTest {
                 new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
                 integrationAgent,
                 integrationPrimaryOwnerDomainService,
-                integrationJobQueryService
+                asyncJobQueryService
             );
 
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);

@@ -23,16 +23,16 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
+import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.IntegrationJobCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.apim.core.integration.model.IntegrationJob;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.node.api.license.LicenseManager;
@@ -60,7 +60,7 @@ class StartIngestIntegrationApisUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
-    IntegrationJobCrudServiceInMemory integrationJobCrudService = new IntegrationJobCrudServiceInMemory();
+    AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
 
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     LicenseManager licenseManager = mock(LicenseManager.class);
@@ -84,7 +84,7 @@ class StartIngestIntegrationApisUseCaseTest {
         useCase =
             new StartIngestIntegrationApisUseCase(
                 integrationCrudService,
-                integrationJobCrudService,
+                asyncJobCrudService,
                 integrationAgent,
                 new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
             );
@@ -94,7 +94,7 @@ class StartIngestIntegrationApisUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(integrationCrudService, integrationJobCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(integrationCrudService, asyncJobCrudService).forEach(InMemoryAlternative::reset);
         reset(licenseManager);
     }
 
@@ -112,16 +112,16 @@ class StartIngestIntegrationApisUseCaseTest {
             .values();
 
         // Then
-        assertThat(result).containsExactly(IntegrationJob.Status.PENDING);
-        assertThat(integrationJobCrudService.storage())
+        assertThat(result).containsExactly(AsyncJob.Status.PENDING);
+        assertThat(asyncJobCrudService.storage())
             .contains(
-                IntegrationJob
+                AsyncJob
                     .builder()
                     .id("generated-id")
                     .sourceId(INTEGRATION_ID)
                     .environmentId(ENVIRONMENT_ID)
                     .initiatorId(USER_ID)
-                    .status(IntegrationJob.Status.PENDING)
+                    .status(AsyncJob.Status.PENDING)
                     .upperLimit(10L)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -143,8 +143,8 @@ class StartIngestIntegrationApisUseCaseTest {
             .values();
 
         // Then
-        assertThat(integrationJobCrudService.storage()).isEmpty();
-        assertThat(result).containsExactly(IntegrationJob.Status.SUCCESS);
+        assertThat(asyncJobCrudService.storage()).isEmpty();
+        assertThat(result).containsExactly(AsyncJob.Status.SUCCESS);
     }
 
     @Test

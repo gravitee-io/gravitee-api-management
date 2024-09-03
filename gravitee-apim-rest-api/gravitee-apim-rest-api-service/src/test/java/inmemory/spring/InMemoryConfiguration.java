@@ -30,6 +30,8 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
+import inmemory.AsyncJobCrudServiceInMemory;
+import inmemory.AsyncJobQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.AuditMetadataQueryServiceInMemory;
 import inmemory.AuditQueryServiceInMemory;
@@ -49,8 +51,6 @@ import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
-import inmemory.IntegrationJobCrudServiceInMemory;
-import inmemory.IntegrationJobQueryServiceInMemory;
 import inmemory.IntegrationQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
@@ -327,8 +327,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public IntegrationJobCrudServiceInMemory integrationJobCrudService() {
-        return new IntegrationJobCrudServiceInMemory();
+    public AsyncJobCrudServiceInMemory asyncJobCrudService() {
+        return new AsyncJobCrudServiceInMemory();
     }
 
     @Bean
@@ -337,10 +337,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public IntegrationJobQueryServiceInMemory integrationJobQueryService(
-        IntegrationJobCrudServiceInMemory integrationJobCrudServiceInMemory
-    ) {
-        return new IntegrationJobQueryServiceInMemory(integrationJobCrudServiceInMemory);
+    public AsyncJobQueryServiceInMemory asyncJobQueryService(AsyncJobCrudServiceInMemory asyncJobCrudServiceInMemory) {
+        return new AsyncJobQueryServiceInMemory(asyncJobCrudServiceInMemory);
     }
 
     @Bean
