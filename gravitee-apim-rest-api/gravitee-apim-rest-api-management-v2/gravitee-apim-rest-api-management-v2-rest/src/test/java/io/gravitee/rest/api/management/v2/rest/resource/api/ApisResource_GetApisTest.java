@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -134,6 +135,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 isNull(),
+                eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 10))
             )
         )
@@ -212,6 +214,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 isNull(),
+                eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 10))
             )
         )
@@ -290,6 +293,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 isNull(),
+                eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 10))
             )
         )
@@ -357,7 +361,14 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi2);
 
         when(
-            apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), isNull(), eq(new PageableImpl(1, 2)))
+            apiServiceV4.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                isNull(),
+                eq(new SortableImpl("name", true)),
+                eq(new PageableImpl(1, 2))
+            )
         )
             .thenReturn(new Page<>(apiList, 1, 2, 42));
 
@@ -421,6 +432,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 eq(Set.of("deploymentState", "primaryOwner")),
+                eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 2))
             )
         )
