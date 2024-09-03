@@ -53,36 +53,31 @@ class LicenseFetcherTest {
     @Mock
     private LicenseRepository licenseRepository;
 
-    @Mock
-    private Node node;
-
     private LicenseFetcher cut;
 
     @BeforeEach
     public void beforeEach() {
-        when(node.metadata()).thenReturn(Map.of());
-        cut = new LicenseFetcher(licenseRepository, 1, node);
+        cut = new LicenseFetcher(licenseRepository, 1);
     }
 
     @Test
     void should_fetch_license() throws TechnicalException {
         License license = new License();
         when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
-        cut.fetchLatest(null, null).test().assertValueCount(1).assertValue(events -> events.contains(license));
+        cut.fetchLatest(null, null, null).test().assertValueCount(1).assertValue(events -> events.contains(license));
     }
 
     @Test
     void should_fetch_license_and_complete_if_page_size_is_higher_than_results() throws TechnicalException {
-        cut = new LicenseFetcher(licenseRepository, 10, node);
+        cut = new LicenseFetcher(licenseRepository, 10);
         License license = new License();
         when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
-        cut.fetchLatest(null, null).test().assertValueCount(1).assertValue(events -> events.contains(license)).assertComplete();
+        cut.fetchLatest(null, null, null).test().assertValueCount(1).assertValue(events -> events.contains(license)).assertComplete();
     }
 
     @Test
     void should_fetch_license_with_criteria() throws TechnicalException {
-        when(node.metadata()).thenReturn(Map.of(Node.META_ORGANIZATIONS, Set.of("orga-id")));
-        cut = new LicenseFetcher(licenseRepository, 1, node);
+        cut = new LicenseFetcher(licenseRepository, 1);
         Instant to = Instant.now();
         Instant from = to.minus(1000, ChronoUnit.MILLIS);
         License license = new License();
@@ -99,7 +94,7 @@ class LicenseFetcherTest {
         )
             .thenReturn(new Page<>(List.of(license), 0, 1, 1));
         cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli())
+            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("orga-id"))
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(license));
@@ -116,7 +111,7 @@ class LicenseFetcherTest {
             .thenReturn(new Page<>(List.of(license3), 2, 1, 3))
             .thenReturn(null);
         cut
-            .fetchLatest(null, null)
+            .fetchLatest(null, null, null)
             .test(0)
             .requestMore(1)
             .assertValueAt(0, List.of(license1))
@@ -132,13 +127,13 @@ class LicenseFetcherTest {
 
     @Test
     void should_not_fetch_new_license_event_without_downstream_request() {
-        cut.fetchLatest(null, null).test(0).assertNotComplete();
+        cut.fetchLatest(null, null, null).test(0).assertNotComplete();
         verifyNoInteractions(licenseRepository);
     }
 
     @Test
     void should_emit_on_error_when_repository_thrown_exception() throws TechnicalException {
         when(licenseRepository.findByCriteria(any(), any())).thenThrow(new RuntimeException());
-        cut.fetchLatest(null, null).test().assertError(RuntimeException.class);
+        cut.fetchLatest(null, null, null).test().assertError(RuntimeException.class);
     }
 }

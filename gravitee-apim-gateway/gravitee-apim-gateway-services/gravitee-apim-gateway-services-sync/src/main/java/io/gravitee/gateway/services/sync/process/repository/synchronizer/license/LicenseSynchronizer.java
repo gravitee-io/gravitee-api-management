@@ -20,6 +20,7 @@ import io.gravitee.gateway.services.sync.process.common.deployer.LicenseDeployer
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LicenseFetcher;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.model.License;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LicenseSynchronizer implements RepositorySynchronizer {
 
+    private final Node node;
     private final LicenseFetcher licenseFetcher;
     private final DeployerFactory deployerFactory;
     private final ThreadPoolExecutor syncFetcherExecutor;
@@ -45,7 +47,7 @@ public class LicenseSynchronizer implements RepositorySynchronizer {
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return licenseFetcher
-            .fetchLatest(from, to)
+            .fetchLatest(from, to, (Set<String>) node.metadata().get(Node.META_ORGANIZATIONS))
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             .flatMap(licenses -> Flowable.fromStream(licenses.stream().map(this::prepareForDeployment)))
