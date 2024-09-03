@@ -18,13 +18,14 @@ import { Component, Input } from '@angular/core';
 import { PageAsciidocComponent } from './page-asciidoc/page-asciidoc.component';
 import { PageAsyncApiComponent } from './page-async-api/page-async-api.component';
 import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
+import { PageRedocComponent } from './page-redoc/page-redoc.component';
 import { PageSwaggerComponent } from './page-swagger/page-swagger.component';
 import { Page } from '../../entities/page/page';
 
 @Component({
   selector: 'app-page',
   standalone: true,
-  imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent, PageAsyncApiComponent],
+  imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent, PageAsyncApiComponent, PageRedocComponent],
   templateUrl: './page.component.html',
   styleUrl: './page.component.scss',
 })
