@@ -17,7 +17,11 @@
 -->
 @switch (page.type) {
   @case ('SWAGGER') {
-    <app-page-swagger [page]="page" />
+    @if (page.configuration?.viewer?.toLowerCase() === 'redoc') {
+      <app-page-redoc [page]="page" />
+    } @else {
+      <app-page-swagger [page]="page" />
+    }
   }
   @case ('MARKDOWN') {
     <app-page-markdown [pages]="pages" [content]="page.content" [apiId]="apiId" />

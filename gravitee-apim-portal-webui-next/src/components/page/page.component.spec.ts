@@ -20,9 +20,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PageAsciidocHarness } from './page-asciidoc/page-asciidoc.harness';
 import { PageAsyncApiHarness } from './page-async-api/page-async-api.harness';
 import { PageMarkdownHarness } from './page-markdown/page-markdown.harness';
+import { PageRedocHarness } from './page-redoc/page-redoc.harness';
 import { PageSwaggerHarness } from './page-swagger/page-swagger.harness';
 import { PageComponent } from './page.component';
 import { fakePage } from '../../entities/page/page.fixtures';
+import { RedocService } from '../../services/redoc.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('PageComponent', () => {
@@ -33,6 +35,12 @@ describe('PageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PageComponent, AppTestingModule],
+      providers: [
+        {
+          provide: RedocService,
+          useValue: { init: (_content: string | undefined, _options: unknown, _el: unknown) => {} },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageComponent);
@@ -52,6 +60,19 @@ describe('PageComponent', () => {
       const swagger = await harnessLoader.getHarnessOrNull(PageSwaggerHarness);
       expect(swagger).toBeTruthy();
       expect(await swagger?.getSwagger()).toBeTruthy();
+    });
+  });
+
+  describe('redoc', () => {
+    beforeEach(() => {
+      component.page = fakePage({ type: 'SWAGGER', configuration: { viewer: 'Redoc' } });
+      fixture.detectChanges();
+    });
+
+    it('should show redoc content', async () => {
+      const redoc = await harnessLoader.getHarnessOrNull(PageRedocHarness);
+      expect(redoc).toBeTruthy();
+      expect(await redoc?.getRedoc()).toBeTruthy();
     });
   });
 
