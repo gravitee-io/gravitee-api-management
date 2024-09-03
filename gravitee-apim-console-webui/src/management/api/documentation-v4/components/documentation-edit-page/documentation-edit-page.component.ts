@@ -32,7 +32,7 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, EMPTY, Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -44,22 +44,38 @@ import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
-import { AccessControl, Api, Breadcrumb, EditDocumentation, Group, Page } from '../../../../../entities/management-api-v2';
+import { AccessControl, Api, Breadcrumb, EditDocumentation, Group, Page, Visibility } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import {
   ApiDocumentationV4PageConfigurationComponent,
-  INIT_PAGE_CONFIGURATION_FORM,
-  PageConfigurationData,
   PageConfigurationForm,
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 
+interface OpenApiConfiguration {
+  entrypointAsBasePath: FormControl<boolean>;
+  entrypointsAsServers: FormControl<boolean>;
+  viewer: FormControl<string>;
+  tryItURL: FormControl<string>;
+  tryIt: FormControl<boolean>;
+  tryItAnonymous: FormControl<boolean>;
+  showURL: FormControl<boolean>;
+  displayOperationId: FormControl<boolean>;
+  usePkce: FormControl<boolean>;
+  docExpansion: FormControl<string>;
+  enableFiltering: FormControl<boolean>;
+  showExtensions: FormControl<boolean>;
+  showCommonExtensions: FormControl<boolean>;
+  maxDisplayedTags: FormControl<number>;
+}
+
 interface EditPageForm {
   pageConfiguration: FormGroup<PageConfigurationForm>;
   content: FormControl<string>;
+  openApiConfiguration: FormGroup<OpenApiConfiguration>;
 }
 
 @Component({
@@ -107,24 +123,20 @@ export class DocumentationEditPageComponent implements OnInit {
   @Input()
   page: Page;
 
-  form: FormGroup<EditPageForm> = new FormGroup<EditPageForm>({
-    pageConfiguration: INIT_PAGE_CONFIGURATION_FORM(),
-    content: new FormControl<string>('', [Validators.required]),
-  });
+  form: FormGroup<EditPageForm>;
   source: 'FILL' | 'IMPORT' | 'HTTP' = 'FILL';
   breadcrumbs: Breadcrumb[];
   formUnchanged: boolean;
   isReadOnly: boolean = false;
   groups: Group[];
-  pageConfigurationData: PageConfigurationData = undefined;
   isHomepage: boolean;
 
   name = signal<string | undefined>(undefined);
 
   pages: Page[] = [];
 
-  private initialAccessControlGroups: string[] = [];
   private destroyRef = inject(DestroyRef);
+  private initialFormValue: unknown;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -141,30 +153,62 @@ export class DocumentationEditPageComponent implements OnInit {
     this.name.set(this.page.name);
     this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-documentation-u']);
 
+    const accessControlGroups = this.page.accessControls
+      ? this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId)
+      : [];
+
+    this.form = new FormGroup<EditPageForm>({
+      pageConfiguration: new FormGroup<PageConfigurationForm>({
+        name: new FormControl<string>(this.page.name ?? '', [Validators.required]),
+        visibility: new FormControl<Visibility>(this.page.visibility ?? 'PUBLIC', [Validators.required]),
+        excludeGroups: new FormControl<boolean>(this.page.excludedAccessControls === true),
+        accessControlGroups: new FormControl<string[]>(accessControlGroups),
+      }),
+      content: new FormControl<string>(this.page.content ?? '', [Validators.required]),
+      openApiConfiguration: new FormGroup<OpenApiConfiguration>({
+        viewer: new FormControl(this.page.configuration?.['viewer'] ?? 'Swagger'),
+        entrypointAsBasePath: new FormControl(this.parseConfigurationStringToBoolean(this.page.configuration?.['entrypointAsBasePath'])),
+        entrypointsAsServers: new FormControl(this.parseConfigurationStringToBoolean(this.page.configuration?.['entrypointsAsServers'])),
+        tryItURL: new FormControl(this.page.configuration?.['tryItURL'] ?? ''),
+        tryIt: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['tryIt'])),
+        tryItAnonymous: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['tryItAnonymous'])),
+        showURL: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['showURL'])),
+        displayOperationId: new FormControl<boolean>(
+          this.parseConfigurationStringToBoolean(this.page.configuration?.['displayOperationId']),
+        ),
+        usePkce: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['usePkce'])),
+        docExpansion: new FormControl<string>(this.page.configuration?.['docExpansion'] ?? 'none'),
+        enableFiltering: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['enableFiltering'])),
+        showExtensions: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['showExtensions'])),
+        showCommonExtensions: new FormControl<boolean>(
+          this.parseConfigurationStringToBoolean(this.page.configuration?.['showCommonExtensions']),
+        ),
+        maxDisplayedTags: new FormControl<number>(this.parseConfigurationStringToNumber(this.page.configuration?.['maxDisplayedTags'])),
+      }),
+    });
+
     if (this.isReadOnly) {
       this.form.disable();
     }
 
-    this.initialAccessControlGroups = this.page.accessControls
-      ? this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId)
-      : [];
 
+    this.form.controls.openApiConfiguration.controls.entrypointsAsServers.valueChanges
+      .pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef))
+      .subscribe((enabled) => {
+        if (enabled) {
+          this.form.controls.openApiConfiguration.controls.tryItURL.disable();
+        } else {
+          this.form.controls.openApiConfiguration.controls.tryItURL.enable();
+        }
+      });
 
-    this.form.controls.content.setValue(this.page.content);
+    this.initialFormValue = this.form.getRawValue();
 
     this.form.valueChanges
       .pipe(
-        tap((value) => {
-          if (this.page) {
-            this.formUnchanged =
-              this.page.name === value.pageConfiguration?.name &&
-              this.page.visibility === value.pageConfiguration?.visibility &&
-              this.page.content === value.content &&
-              (this.page.excludedAccessControls === undefined ||
-                this.page.excludedAccessControls === value.pageConfiguration.excludeGroups ||
-                (value.pageConfiguration.excludeGroups === undefined && value.pageConfiguration.visibility === 'PUBLIC')) &&
-              isEqual(this.initialAccessControlGroups, value.pageConfiguration.accessControlGroups);
-          }
+        distinctUntilChanged(isEqual),
+        tap((_) => {
+          this.formUnchanged = isEqual(this.initialFormValue, this.form.getRawValue());
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -234,6 +278,7 @@ export class DocumentationEditPageComponent implements OnInit {
           content: formValue.content,
           excludedAccessControls: formValue.pageConfiguration.excludeGroups,
           accessControls: [...nonGroupAccessControls, ...selectedGroupAccessControls],
+          ...(this.page.type === 'SWAGGER' ? { configuration: { ...formValue.openApiConfiguration } } : {}),
         };
         return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.page.id, updateDocumentation);
       }),
@@ -275,5 +320,13 @@ export class DocumentationEditPageComponent implements OnInit {
           this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
         },
       });
+  }
+
+  private parseConfigurationStringToBoolean(configString: string): boolean {
+    return configString ? JSON.parse(configString) === true : false;
+  }
+
+  private parseConfigurationStringToNumber(configString: string): number {
+    return configString ? Number(configString) : -1;
   }
 }
