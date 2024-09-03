@@ -4,10 +4,10 @@ Here is a docker-compose to run APIM with a Keycloak container available as an I
 
 ---
 > For more information, please read :
-> https://documentation.gravitee.io/apim/getting-started/configuration/authentication/custom-oauth2-openid-authorization-server#keycloak-authentication
+> https://documentation.gravitee.io/apim/getting-started/configuration/authentication/custom-oauth2-openid-authorization-server
 ---
 
-Keycloak UI is accessible here http://localhost:8081/auth
+Keycloak UI is accessible here http://localhost:8080/
 
 ## How to use ?
 
