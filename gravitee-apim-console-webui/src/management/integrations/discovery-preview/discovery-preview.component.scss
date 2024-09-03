@@ -54,11 +54,18 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .preview {
   &__toggles {
+    display: flex;
+    flex-direction: column;
     padding: 16px;
+
     .desc {
       color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       @include mat.m2-typography-level($typography, body-1);
       margin: 0;
+    }
+
+    gio-form-slide-toggle {
+      padding: 0;
     }
   }
 
