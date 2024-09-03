@@ -21,15 +21,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.kubernetes.client.api.LabelSelector;
+import io.gravitee.kubernetes.client.api.ResourceQuery;
 import io.gravitee.kubernetes.client.api.WatchQuery;
 import io.gravitee.kubernetes.client.config.KubernetesConfig;
+import io.gravitee.kubernetes.client.exception.ResourceVersionNotFoundException;
 import io.gravitee.kubernetes.client.model.v1.ConfigMap;
+import io.gravitee.kubernetes.client.model.v1.ConfigMapList;
 import io.gravitee.kubernetes.client.model.v1.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,25 +46,40 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ConfigMapEventFetcher {
 
-    private static final String LABEL_MANAGED_BY = "managed-by";
-    private static final String LABEL_GIO_TYPE = "gio-type";
-    protected static final String GRAVITEE_IO = "gravitee.io";
-    protected static final String API_DEFINITION_V1_ALPHA1 = "v1alpha1";
-    protected static final String APIDEFINITIONS_TYPE = "apidefinitions.gravitee.io";
+    public static final String API_DEFINITIONS_KIND = "apidefinitions.gravitee.io";
+
+    protected static final String RESOURCE_GROUP = "gravitee.io";
+    protected static final String RESOURCE_VERSION = "v1alpha1";
+
     protected static final String DATA_ENVIRONMENT_ID = "environmentId";
     protected static final String DATA_API_DEFINITION_VERSION = "apiDefinitionVersion";
     protected static final String DATA_DEFINITION = "definition";
+
+    private static final String LABEL_MANAGED_BY = "managed-by";
+    private static final String LABEL_GIO_TYPE = "gio-type";
+
     private static final int RETRY_DELAY_MILLIS = 10000;
+
+    private static final String EVENT_ADDED = "ADDED";
+    private static final String EVENT_MODIFIED = "MODIFIED";
+    private static final String EVENT_DELETED = "DELETED";
+
     private final KubernetesClient client;
     private final String[] namespaces;
     private final ObjectMapper objectMapper;
+
+    private final Map<String, String> resourceVersions = new ConcurrentHashMap<>();
 
     public int bulkEvents() {
         return 1;
     }
 
-    public Flowable<List<io.gravitee.repository.management.model.Event>> fetchLatest() {
-        return watchConfigMaps()
+    public Flowable<List<io.gravitee.repository.management.model.Event>> fetchAll(String kind) {
+        return listConfigMaps(kind).flatMapMaybe(cm -> convertTo(new Event<>(EVENT_ADDED, cm))).buffer(bulkEvents());
+    }
+
+    public Flowable<List<io.gravitee.repository.management.model.Event>> fetchLatest(String kind) {
+        return watchConfigMaps(kind)
             .flatMapMaybe(configMapEvent ->
                 convertTo(configMapEvent)
                     .onErrorResumeNext(throwable -> {
@@ -71,24 +90,58 @@ public class ConfigMapEventFetcher {
             .buffer(bulkEvents());
     }
 
-    private Flowable<Event<ConfigMap>> watchConfigMaps() {
+    private Flowable<ConfigMap> listConfigMaps(String kind) {
         List<String> namespacesAsList = getNamespacesAsList();
         if (namespacesAsList.contains("ALL")) {
-            return watchConfigMaps(null);
+            return listConfigMaps(null, kind).toFlowable().flatMap(Flowable::fromIterable);
         }
-        return Flowable.fromIterable(namespacesAsList).flatMap(this::watchConfigMaps);
+        return Flowable.fromIterable(namespacesAsList).flatMapMaybe(ns -> listConfigMaps(ns, kind)).flatMap(Flowable::fromIterable);
     }
 
-    private Flowable<io.gravitee.kubernetes.client.model.v1.Event<ConfigMap>> watchConfigMaps(final String namespace) {
+    private Maybe<List<ConfigMap>> listConfigMaps(String namespace, String kind) {
+        return client
+            .get(
+                ResourceQuery
+                    .configMaps()
+                    .namespace(namespace)
+                    .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, RESOURCE_GROUP))
+                    .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, kind))
+                    .resourceVersion(resourceVersions.get(kind))
+                    .build()
+            )
+            .doOnSuccess(configMapList -> resourceVersions.put(kind, configMapList.getMetadata().getResourceVersion()))
+            .doOnError(err -> {
+                if (err instanceof ResourceVersionNotFoundException) {
+                    resourceVersions.remove(kind);
+                }
+            })
+            .map(ConfigMapList::getItems);
+    }
+
+    private Flowable<Event<ConfigMap>> watchConfigMaps(String kind) {
+        List<String> namespacesAsList = getNamespacesAsList();
+        if (namespacesAsList.contains("ALL")) {
+            return watchConfigMaps(null, kind);
+        }
+        return Flowable.fromIterable(namespacesAsList).flatMap(ns -> watchConfigMaps(ns, kind));
+    }
+
+    private Flowable<io.gravitee.kubernetes.client.model.v1.Event<ConfigMap>> watchConfigMaps(String namespace, String kind) {
         return client
             .watch(
                 WatchQuery
                     .configMaps()
                     .namespace(namespace)
-                    .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, GRAVITEE_IO))
-                    .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, APIDEFINITIONS_TYPE))
+                    .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, RESOURCE_GROUP))
+                    .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, kind))
+                    .resourceVersion(resourceVersions.get(kind))
                     .build()
             )
+            .doOnError(err -> {
+                if (err instanceof ResourceVersionNotFoundException) {
+                    resourceVersions.remove(kind);
+                }
+            })
             .retryWhen(errors -> errors.delay(RETRY_DELAY_MILLIS, TimeUnit.MILLISECONDS));
     }
 
@@ -136,12 +189,11 @@ public class ConfigMapEventFetcher {
                 api.setId(apiId);
 
                 switch (configMapEvent.getType()) {
-                    case "ADDED":
-                    case "MODIFIED":
+                    case EVENT_ADDED, EVENT_MODIFIED:
                         event.setType(EventType.PUBLISH_API);
                         api.setLifecycleState(LifecycleState.STARTED);
                         break;
-                    case "DELETED":
+                    case EVENT_DELETED:
                         event.setType(EventType.UNPUBLISH_API);
                         api.setLifecycleState(LifecycleState.STOPPED);
                         break;
