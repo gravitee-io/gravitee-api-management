@@ -64,7 +64,16 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
 
     public Completable synchronize(final Set<String> environments) {
         return configMapEventFetcher
-            .fetchLatest()
+            .fetchAll(ConfigMapEventFetcher.API_DEFINITIONS_KIND)
+            .compose(upstream -> processEvents(true, upstream, environments))
+            .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
+            .ignoreElements();
+    }
+
+    @Override
+    public Completable watch(Set<String> environments) {
+        return configMapEventFetcher
+            .fetchLatest(ConfigMapEventFetcher.API_DEFINITIONS_KIND)
             .compose(upstream -> processEvents(false, upstream, environments))
             .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
             .ignoreElements();

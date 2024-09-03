@@ -16,14 +16,17 @@
 package io.gravitee.gateway.services.sync.process.kubernetes;
 
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.node.api.Node;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,11 +38,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesSyncManager extends AbstractService<SyncManager> implements SyncManager {
 
+    private static final int EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS = 1_000;
+    private static final int EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS = 10_000;
+    private static final double EXPONENTIAL_BACKOFF_RETRY_FACTOR = 1.5;
+
     private final List<KubernetesSynchronizer> synchronizers;
     private final DistributedSyncService distributedSyncService;
-    private final Set<String> environments;
+    private final Node node;
 
     private Disposable watcherDisposable;
+
+    private final AtomicBoolean synced = new AtomicBoolean();
 
     public KubernetesSyncManager(
         final Node node,
@@ -48,7 +57,7 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
     ) {
         this.synchronizers = synchronizers;
         this.distributedSyncService = distributedSyncService;
-        this.environments = new HashSet<>((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS));
+        this.node = node;
     }
 
     @Override
@@ -56,12 +65,21 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
         log.debug("Starting kubernetes synchronization process");
         if (!distributedSyncService.isEnabled() || distributedSyncService.isPrimaryNode()) {
             watcherDisposable =
-                Flowable
-                    .fromIterable(synchronizers)
-                    .concatMapCompletable(kubernetesSynchronizer -> kubernetesSynchronizer.synchronize(environments))
-                    .doOnError(throwable -> log.error("An error occurred during kubernetes synchronization refresh. Restarting.", throwable)
+                sync()
+                    .doOnComplete(() -> {
+                        log.debug("Moving to ready state as all resources have been synchronized");
+                        synced.set(true);
+                    })
+                    .andThen(watch())
+                    .doOnError(throwable -> log.error("An error occurred during Kubernetes synchronization. Restarting ...", throwable))
+                    .retryWhen(
+                        RxHelper.retryExponentialBackoff(
+                            EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
+                            EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
+                            TimeUnit.MILLISECONDS,
+                            EXPONENTIAL_BACKOFF_RETRY_FACTOR
+                        )
                     )
-                    .retry()
                     .subscribe();
         } else {
             log.warn("Kubernetes synchronization is disabled as distributed sync is enabled, and current node is secondary.");
@@ -77,6 +95,20 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
 
     @Override
     public boolean syncDone() {
-        return true;
+        return synced.get();
+    }
+
+    private Completable sync() {
+        return Flowable
+            .fromIterable(synchronizers)
+            .doOnNext(sync -> log.debug("{} will synchronize all resources ...", sync))
+            .concatMapCompletable(sync -> sync.synchronize((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS)));
+    }
+
+    private Completable watch() {
+        return Flowable
+            .fromIterable(synchronizers)
+            .doOnNext(sync -> log.debug("{} will start watching on resources ...", sync))
+            .concatMapCompletable(sync -> sync.watch((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS)));
     }
 }
