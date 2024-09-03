@@ -118,6 +118,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
         // force synchronization and then schedule next ones
         synchronize()
+            .retryWhen(RxHelper.retryExponentialBackoff(INITIAL_RETRY_DELAY_MS, MAX_RETRY_DELAY_MS, MILLISECONDS, 1.5))
             .andThen(
                 Completable.fromRunnable(() -> {
                     log.info("Sync service has been scheduled with delay [{}{}]", delay, unit.name());
@@ -133,10 +134,11 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             .delay(delay, unit)
                             .rebatchRequests(1)
                             .concatMapCompletable(interval -> synchronize())
+                            .onErrorComplete()
                             .subscribe();
                 })
             )
-            .blockingSubscribe();
+            .subscribe();
     }
 
     @Override
@@ -226,18 +228,16 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                         );
                     });
             })
-            .onErrorResumeNext(throwable ->
-                Completable.fromRunnable(() -> {
-                    // This condition is only to avoid printing the stacktrace on every loop
-                    if (!lastSyncOnError.get()) {
-                        log.error("Synchronization process has failed", throwable);
-                    } else {
-                        log.error("Synchronization process is still failing.");
-                    }
-                    lastSyncOnError.set(true);
-                    lastSyncErrorMessage.set(throwable.getMessage());
-                })
-            );
+            .doOnError(throwable -> {
+                // This condition is only to avoid printing the stacktrace on every loop
+                if (!lastSyncOnError.get()) {
+                    log.error("Synchronization process has failed", throwable);
+                } else {
+                    log.error("Synchronization process is still failing.");
+                }
+                lastSyncOnError.set(true);
+                lastSyncErrorMessage.set(throwable.getMessage());
+            });
     }
 
     private Completable retrySynchronizer(final Completable upstream, final String synchronizerClazz) {
