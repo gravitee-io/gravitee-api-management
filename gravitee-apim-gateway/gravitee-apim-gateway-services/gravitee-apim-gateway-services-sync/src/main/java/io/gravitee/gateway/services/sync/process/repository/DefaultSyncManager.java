@@ -32,9 +32,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -56,15 +54,17 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
      */
     public static final int TIMEFRAME_DELAY = 30000;
     public static final int RETRY_DELAY_MS = 3_000;
+    public static final int INITIAL_RETRY_DELAY_MS = 3_000;
+    public static final int MAX_RETRY_DELAY_MS = 10_000;
 
     private final Router router;
+    private final Node node;
     private final List<RepositorySynchronizer> synchronizers;
     private final List<DistributedSynchronizer> distributedSynchronizers;
     private final int retryAttempt;
     private final DistributedSyncService distributedSyncService;
     private final int delay;
     private final TimeUnit unit;
-    private final Set<String> environments;
 
     private final AtomicLong syncCounter = new AtomicLong(0);
     private final AtomicBoolean initialSync = new AtomicBoolean(false);
@@ -89,13 +89,13 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         final int retryAttempt
     ) {
         this.router = router;
+        this.node = node;
         this.synchronizers = synchronizers;
         this.distributedSynchronizers = distributedSynchronizers;
         this.distributedSyncService = distributedSyncService;
         this.delay = delay;
         this.unit = unit;
         this.retryAttempt = retryAttempt;
-        this.environments = new HashSet<>((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS));
     }
 
     @Override
@@ -206,7 +206,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             .fromIterable(synchronizers)
                             .concatMapCompletable(synchronizer ->
                                 synchronizer
-                                    .synchronize(nextFromTime, nextToTime, environments)
+                                    .synchronize(nextFromTime, nextToTime, (Set<String>) node.metadata().get(Node.META_ENVIRONMENTS))
                                     .compose(upstream -> retrySynchronizer(upstream, synchronizer.getClass().getSimpleName()))
                             );
                 }
