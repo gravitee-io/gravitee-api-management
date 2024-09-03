@@ -25,16 +25,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  AbstractControl,
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -53,22 +44,6 @@ export interface PageConfigurationForm {
   accessControlGroups: FormControl<string[]>;
   excludeGroups: FormControl<boolean>;
 }
-
-export interface PageConfigurationData {
-  id: string;
-  name: string;
-  visibility?: Visibility;
-  excludedAccessControls: boolean;
-  accessControlGroups: string[];
-}
-
-export const INIT_PAGE_CONFIGURATION_FORM = () =>
-  new FormGroup<PageConfigurationForm>({
-    name: new FormControl<string>('', [Validators.required]),
-    visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
-    accessControlGroups: new FormControl<string[]>([]),
-    excludeGroups: new FormControl<boolean>({ value: false, disabled: true }),
-  });
 
 @Component({
   selector: 'api-documentation-v4-page-configuration',
@@ -100,7 +75,7 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
   pageType: PageType;
 
   @Input()
-  form: FormGroup<PageConfigurationForm> = INIT_PAGE_CONFIGURATION_FORM();
+  form!: FormGroup<PageConfigurationForm>;
 
   @Input()
   groups: Group[] = [];
@@ -109,7 +84,7 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
   apiPages: Page[] = [];
 
   @Input()
-  data?: PageConfigurationData;
+  pageId?: string;
 
   @Input()
   homepage?: boolean;
@@ -120,7 +95,6 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
   ngOnInit() {
     this.setExistingNames();
 
-    this.form.controls.name.setValue(this.name());
     this.form.controls.name.addValidators([this.pageNameUniqueValidator()]);
 
     this.form.controls.name.valueChanges
@@ -146,18 +120,6 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.data && this.data) {
-      this.form.controls.name.setValue(this.data.name);
-      this.form.controls.visibility.setValue(this.data.visibility);
-      this.form.controls.accessControlGroups.setValue(this.data.accessControlGroups);
-
-      this.form.controls.excludeGroups.setValue(this.data.excludedAccessControls === true);
-      if (this.form.value.accessControlGroups.length === 0) {
-        this.form.controls.excludeGroups.disable();
-      } else {
-        this.form.controls.excludeGroups.enable();
-      }
-    }
     if (changes.apiPages) {
       this.setExistingNames();
     }
@@ -170,7 +132,7 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
 
   private setExistingNames(): void {
     this.existingNames = this.apiPages
-      .filter((page) => page.type === this.pageType && (!this.data || page.id !== this.data.id))
+      .filter((page) => page.type === this.pageType && (!this.pageId || page.id !== this.pageId))
       .map((page) => page.name.toLowerCase().trim());
   }
 }

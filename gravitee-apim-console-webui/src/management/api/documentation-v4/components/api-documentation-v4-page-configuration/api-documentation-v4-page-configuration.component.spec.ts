@@ -18,12 +18,13 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { signal } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { ApiDocumentationV4PageConfigurationHarness } from './api-documentation-v4-page-configuration.harness';
-import { ApiDocumentationV4PageConfigurationComponent } from './api-documentation-v4-page-configuration.component';
+import { ApiDocumentationV4PageConfigurationComponent, PageConfigurationForm } from './api-documentation-v4-page-configuration.component';
 
 import { GioTestingModule } from '../../../../../shared/testing';
-import { fakeGroup, fakePage, Group, Page, PageType } from '../../../../../entities/management-api-v2';
+import { fakeGroup, fakePage, Group, Page, PageType, Visibility } from '../../../../../entities/management-api-v2';
 
 describe('ApiDocumentationV4PageConfigurationComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4PageConfigurationComponent>;
@@ -46,6 +47,12 @@ describe('ApiDocumentationV4PageConfigurationComponent', () => {
     fixture.componentInstance.pageType = pageType;
     fixture.componentInstance.homepage = homepage;
     fixture.componentInstance.groups = groups;
+    fixture.componentInstance.form = new FormGroup<PageConfigurationForm>({
+      name: new FormControl<string>(initialName, [Validators.required]),
+      visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
+      accessControlGroups: new FormControl<string[]>([]),
+      excludeGroups: new FormControl<boolean>(false),
+    });
     fixture.detectChanges();
   };
 

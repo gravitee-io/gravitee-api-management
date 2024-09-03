@@ -63,13 +63,7 @@ describe('DocumentationNewPageComponent', () => {
   ) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, FormsModule, GioTestingModule, CommonModule, DocumentationNewPageComponent],
-      providers: [
-        // {
-        //   provide: ActivatedRoute,
-        //   useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId, pageType: 'MARKDOWN' } } },
-        // },
-        { provide: GioTestingPermissionProvider, useValue: apiPermissions },
-      ],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: apiPermissions }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

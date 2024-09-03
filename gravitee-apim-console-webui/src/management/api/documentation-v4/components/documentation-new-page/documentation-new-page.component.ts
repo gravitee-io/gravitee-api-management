@@ -52,14 +52,13 @@ import {
   Page,
   PageSource,
   PageType,
+  Visibility,
 } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import {
   ApiDocumentationV4PageConfigurationComponent,
-  INIT_PAGE_CONFIGURATION_FORM,
-  PageConfigurationData,
   PageConfigurationForm,
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
@@ -134,7 +133,6 @@ export class DocumentationNewPageComponent implements OnInit {
   page: Page;
   isReadOnly: boolean = false;
   groups: Group[];
-  stepOneData: PageConfigurationData = undefined;
 
   name = signal<string | undefined>(undefined);
 
@@ -157,17 +155,23 @@ export class DocumentationNewPageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (this.createHomepage) {
+      this.name.set('Homepage');
+    }
+
     this.form = new FormGroup<CreatePageForm>({
-      stepOne: INIT_PAGE_CONFIGURATION_FORM(),
+      stepOne: new FormGroup<PageConfigurationForm>({
+        name: new FormControl<string>(this.name(), [Validators.required]),
+        visibility: new FormControl<Visibility>('PUBLIC', [Validators.required]),
+        accessControlGroups: new FormControl<string[]>([]),
+        excludeGroups: new FormControl<boolean>(false),
+      }),
       content: new FormControl<string>('', [Validators.required]),
       sourceType: new FormControl<string>(this.defaultSourceType, [Validators.required]),
       source: new FormControl<string>(''),
     });
 
     this.sourceConfiguration = new FormControl<undefined | unknown>({});
-    if (this.createHomepage) {
-      this.name.set('Homepage');
-    }
 
     this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
 
