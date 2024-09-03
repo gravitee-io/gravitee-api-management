@@ -16,6 +16,7 @@
 import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import {
+  GioBannerModule,
   GioConfirmDialogComponent,
   GioConfirmDialogData,
   GioFormJsonSchemaModule,
@@ -109,6 +110,7 @@ interface EditPageForm {
     MatTab,
     MatCardContent,
     ApiDocumentationV4PageHeaderComponent,
+    GioBannerModule,
   ],
   templateUrl: './documentation-edit-page.component.html',
   styleUrl: './documentation-edit-page.component.scss',
@@ -191,6 +193,9 @@ export class DocumentationEditPageComponent implements OnInit {
       this.form.disable();
     }
 
+    if (this.page.source?.type) {
+      this.form.controls.content.disable();
+    }
 
     this.form.controls.openApiConfiguration.controls.entrypointsAsServers.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef))

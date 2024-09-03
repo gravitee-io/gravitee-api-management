@@ -341,6 +341,27 @@ describe('DocumentationEditPageComponent', () => {
           });
         });
       });
+      describe('with fetched page', () => {
+        const PAGE = fakeMarkdown({
+          id: 'page-id',
+          name: 'page-name',
+          content: 'my content',
+          source: { type: 'http-fetcher', configuration: { some: 'config' } },
+        });
+
+        beforeEach(async () => {
+          await init(PAGE, undefined);
+          initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined });
+        });
+
+        it('should not allow editing content', async () => {
+          const editor = await harnessLoader
+            .getHarness(ApiDocumentationV4ContentEditorHarness)
+            .then((harness) => harness.getContentEditor());
+          expect(editor).toBeDefined();
+          expect(await editor.isDisabled()).toEqual(true);
+        });
+      });
       describe('with OpenAPI page', () => {
         describe('with no configuration', () => {
           const PAGE = fakeSwagger({

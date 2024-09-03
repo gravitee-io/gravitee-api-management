@@ -179,6 +179,11 @@
           }
           <mat-tab label="Content">
             <div class="tab__content">
+              @if (page.source?.type) {
+                <gio-banner-info
+                  >This content is a preview and cannot be edited because the page is linked to an external source.</gio-banner-info
+                >
+              }
               <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="page.type" />
 
               @if (form.controls.content.errors?.required) {
