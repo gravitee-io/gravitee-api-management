@@ -35,10 +35,13 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -406,6 +409,7 @@ public class ApiServiceImpl_findAllTest {
 
     @Test
     public void should_expand_primary_owner() {
+        var sortable = new SortableBuilder().field("name").order(Order.ASC).build();
         var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
         var api1 = new Api();
         api1.setId("API_1");
@@ -413,7 +417,7 @@ public class ApiServiceImpl_findAllTest {
         when(
             apiRepository.search(
                 eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
-                isNull(),
+                eq(sortable),
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
@@ -428,6 +432,7 @@ public class ApiServiceImpl_findAllTest {
             "UnitTests",
             true,
             Set.of("primaryOwner"),
+            new SortableImpl("name", true),
             new PageableImpl(1, 10)
         );
 
