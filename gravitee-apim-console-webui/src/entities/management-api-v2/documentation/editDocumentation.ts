@@ -39,6 +39,7 @@ export interface EditDocumentationSwagger extends BaseEditDocumentation {
   content?: string;
   homepage?: boolean;
   source?: PageSource;
+  configuration?: unknown;
 }
 
 export interface EditDocumentationAsyncApi extends BaseEditDocumentation {

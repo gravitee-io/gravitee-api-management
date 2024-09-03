@@ -30,3 +30,8 @@ $typography: map.get(gio.$mat-theme, typography);
     gap: 8px;
   }
 }
+
+.open-api-configuration {
+  display: flex;
+  flex-flow: column;
+}

@@ -38,7 +38,7 @@
   <mat-card-content>
     <div class="tab">
       <form [formGroup]="form">
-        <mat-tab-group [selectedIndex]="1">
+        <mat-tab-group [selectedIndex]="page.type === 'SWAGGER' ? 2 : 1">
           <mat-tab label="Configure Page">
             <div class="tab__content">
               <api-documentation-v4-page-configuration
@@ -52,6 +52,131 @@
               />
             </div>
           </mat-tab>
+          @if (page.type === 'SWAGGER') {
+            <mat-tab label="Configure OpenAPI Viewer">
+              <div class="open-api-configuration" formGroupName="openApiConfiguration">
+                <gio-form-slide-toggle>
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="entrypointsAsServers"
+                    data-test-id="entrypoints-as-servers-toggle"
+                  />
+                  <gio-form-label>
+                    <div>Use API entrypoints as server URLs</div>
+                    <div class="mat-body-2">The base URL in the specification is replaced by the API entrypoints.</div>
+                  </gio-form-label>
+                </gio-form-slide-toggle>
+                <mat-form-field>
+                  <mat-label>Base URL</mat-label>
+                  <input matInput type="text" formControlName="tryItURL" data-test-id="base-url" />
+                  <mat-hint
+                    >Custom base URL to use as server URL. If empty and not using API entrypoints as a base URL, the server URL from the
+                    specification will be used.</mat-hint
+                  >
+                </mat-form-field>
+                <gio-form-slide-toggle>
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    data-test-id="context-path-as-server-toggle"
+                    formControlName="entrypointAsBasePath"
+                  />
+                  <gio-form-label>
+                    <div>Use context-path of API as server URL</div>
+                    <div class="mat-body-2">The context-path of the API will replace the path of the server URL.</div>
+                  </gio-form-label>
+                </gio-form-slide-toggle>
+                <mat-form-field appearance="outline">
+                  <mat-label>OpenAPI Documentation Viewer</mat-label>
+                  <mat-select formControlName="viewer" data-test-id="open-api-viewer">
+                    <mat-option value="Swagger">SwaggerUI</mat-option>
+                    <mat-option value="Redoc">Redoc</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                @if (form.controls.openApiConfiguration.value.viewer === 'Swagger') {
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="try-it" formControlName="tryIt" />
+                    <gio-form-label>
+                      <div>Enable "Try It!" mode</div>
+                      <div class="mat-body-2">
+                        Allows trying the API from the Developer Portal for authenticated users. You may have to configure CORS in the
+                        entrypoint section.
+                      </div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="try-it-anonymous" formControlName="tryItAnonymous" />
+                    <gio-form-label>
+                      <div>Enable "Try It!" mode for anonymous users</div>
+                      <div class="mat-body-2">
+                        Allows users not logged into the Developer Portal to try the API from the OpenAPI spec when the page and API are
+                        public.
+                      </div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="show-url" formControlName="showURL" />
+                    <gio-form-label>
+                      <div>Show URL to download content</div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="display-operation-id" formControlName="displayOperationId" />
+                    <gio-form-label>
+                      <div>Display the <code>operationId</code> in the operation list</div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="use-pkce" formControlName="usePkce" />
+                    <gio-form-label>
+                      <div>Use PKCE with OAuth</div>
+                      <div class="mat-body-2">Uses PKCE when authentication with OAuth authorization code flow.</div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Expand content on the page</mat-label>
+                    <mat-select formControlName="docExpansion" data-test-id="doc-expansion">
+                      <mat-option value="list">Only tags</mat-option>
+                      <mat-option value="full">Tags and operations</mat-option>
+                      <mat-option value="none">Default</mat-option>
+                    </mat-select>
+                    <mat-hint>Determines whether to expand operations, tags, or nothing by default when the page is opened.</mat-hint>
+                  </mat-form-field>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="enable-filtering" formControlName="enableFiltering" />
+                    <gio-form-label>
+                      <div>Add top bar to filter content</div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="show-extensions" formControlName="showExtensions" />
+                    <gio-form-label>
+                      <div>Display vendor extensions</div>
+                      <div class="mat-body-2">
+                        Determines whether vendor extension (X-) fields and values for operations, parameters, and schemas should be
+                        displayed.
+                      </div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="show-common-extensions" formControlName="showCommonExtensions" />
+                    <gio-form-label>
+                      <div>Display extension fields for Parameters</div>
+                      <div class="mat-body-2">
+                        Determines whether pattern, maxLength, minLength, maximum, and minimum extensions should be shown.
+                      </div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <mat-form-field>
+                    <mat-label>Max number of tagged operations displayed</mat-label>
+                    <input matInput type="number" min="-1" formControlName="maxDisplayedTags" data-test-id="max-displayed-tags" />
+                    <mat-hint
+                      >Limits the number of tagged operations displayed to the specific value. -1 means to show all operations.</mat-hint
+                    >
+                  </mat-form-field>
+                }
+              </div>
+            </mat-tab>
+          }
           <mat-tab label="Content">
             <div class="tab__content">
               <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="page.type" />

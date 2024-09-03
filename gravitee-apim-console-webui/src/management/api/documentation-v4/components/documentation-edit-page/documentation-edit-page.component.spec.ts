@@ -41,6 +41,7 @@ import {
   Group,
   fakeGroupsResponse,
   fakeGroup,
+  fakeSwagger,
 } from '../../../../../entities/management-api-v2';
 import { ApiDocumentationV4ContentEditorHarness } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
@@ -266,12 +267,6 @@ describe('DocumentationEditPageComponent', () => {
         });
 
         describe('and no changes', () => {
-          // beforeEach(async () => {
-          //   const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
-          //   await harness.getNextButton().then(async (btn) => btn.click());
-          //   await harness.getNextButton().then(async (btn) => btn.click());
-          // });
-
           it('should not update page', async () => {
             const publishBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
             expect(await publishBtn.isDisabled()).toEqual(true);
@@ -343,6 +338,312 @@ describe('DocumentationEditPageComponent', () => {
                 url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}/_publish`,
               })
               .flush({ updatedPage, published: true });
+          });
+        });
+      });
+      describe('with OpenAPI page', () => {
+        describe('with no configuration', () => {
+          const PAGE = fakeSwagger({
+            id: 'page-id',
+            name: 'page-name',
+            content: 'my content',
+            configuration: {},
+            published: true,
+          });
+          let harness: DocumentationEditPageHarness;
+
+          beforeEach(async () => {
+            await init(PAGE, undefined);
+            initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined });
+            harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
+            await harness.openOpenApiConfigurationTab();
+          });
+          it('should show OpenAPI Viewer Configuration with default values + save is disabled', async () => {
+            const entrypointsAsServersToggle = await harness.getEntrypointsAsServersToggle();
+            expect(await entrypointsAsServersToggle.isChecked()).toEqual(false);
+
+            const contextPathAsServerToggle = await harness.getContextPathAsServerToggle();
+            expect(await contextPathAsServerToggle.isChecked()).toEqual(false);
+
+            const baseUrlInput = await harness.getBaseUrlInput();
+            expect(await baseUrlInput.getValue()).toEqual('');
+
+            const openApiViewerSelect = await harness.getOpenApiViewerSelect();
+            expect(await openApiViewerSelect.getValueText()).toEqual('SwaggerUI');
+
+            const tryItToggle = await harness.getTryItToggle();
+            expect(await tryItToggle.isChecked()).toEqual(false);
+
+            const tryItAnonymousToggle = await harness.getTryItAnonymousToggle();
+            expect(await tryItAnonymousToggle.isChecked()).toEqual(false);
+
+            const showUrlToggle = await harness.getShowUrlToggle();
+            expect(await showUrlToggle.isChecked()).toEqual(false);
+
+            const displayOperationIdToggle = await harness.getDisplayOperationIdToggle();
+            expect(await displayOperationIdToggle.isChecked()).toEqual(false);
+
+            const usePkceToggle = await harness.getUsePkceToggle();
+            expect(await usePkceToggle.isChecked()).toEqual(false);
+
+            const enableFilteringToggle = await harness.getEnableFilteringToggle();
+            expect(await enableFilteringToggle.isChecked()).toEqual(false);
+
+            const showExtensionsToggle = await harness.getShowExtensionsToggle();
+            expect(await showExtensionsToggle.isChecked()).toEqual(false);
+
+            const showCommonExtensionsToggle = await harness.getShowCommonExtensionsToggle();
+            expect(await showCommonExtensionsToggle.isChecked()).toEqual(false);
+
+            const docExpansionSelect = await harness.getDocExpansionSelect();
+            expect(await docExpansionSelect.getValueText()).toEqual('Default');
+
+            const maxOperationsDisplayedInput = await harness.getMaxOperationsDisplayedInput();
+            expect(await maxOperationsDisplayedInput.getValue()).toEqual('-1');
+
+            const saveBtn = await harness.getPublishChangesButton();
+            expect(await saveBtn.isDisabled()).toEqual(true);
+          });
+
+          it('should disable Base URL input when user enables entrypoints as server URLs', async () => {
+            const baseUrlInput = await harness.getBaseUrlInput();
+            expect(await baseUrlInput.isDisabled()).toEqual(false);
+
+            const entrypointsAsServersToggle = await harness.getEntrypointsAsServersToggle();
+            expect(await entrypointsAsServersToggle.isChecked()).toEqual(false);
+            await entrypointsAsServersToggle.toggle();
+
+            expect(await baseUrlInput.isDisabled()).toEqual(true);
+          });
+
+          it('should save new configuration', async () => {
+            const baseUrlInput = await harness.getBaseUrlInput();
+            await baseUrlInput.setValue('cats-rule');
+
+            const publishBtn = await harness.getPublishChangesButton();
+            expect(await publishBtn.isDisabled()).toEqual(false);
+
+            await publishBtn.click();
+
+            expectGetPage(PAGE);
+
+            const req = httpTestingController.expectOne({
+              method: 'PUT',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+            });
+            expect(req.request.body).toEqual({
+              ...PAGE,
+              accessControls: [],
+              excludedAccessControls: false,
+              configuration: {
+                viewer: 'Swagger',
+                entrypointAsBasePath: false,
+                entrypointsAsServers: false,
+                tryItURL: 'cats-rule',
+                tryIt: false,
+                tryItAnonymous: false,
+                showURL: false,
+                displayOperationId: false,
+                usePkce: false,
+                docExpansion: 'none',
+                enableFiltering: false,
+                showExtensions: false,
+                showCommonExtensions: false,
+                maxDisplayedTags: -1,
+              },
+            });
+            req.flush(PAGE);
+          });
+        });
+        describe('with existing Swagger viewer configuration', () => {
+          const PAGE = fakeSwagger({
+            id: 'page-id',
+            name: 'page-name',
+            content: 'my content',
+            published: true,
+            configuration: {
+              viewer: 'Swagger',
+              entrypointAsBasePath: 'true',
+              entrypointsAsServers: 'true',
+              tryItURL: 'cats-rule',
+              tryIt: 'true',
+              tryItAnonymous: 'true',
+              showURL: 'true',
+              displayOperationId: 'true',
+              usePkce: 'true',
+              docExpansion: 'full',
+              enableFiltering: 'true',
+              showExtensions: 'true',
+              showCommonExtensions: 'true',
+              maxDisplayedTags: '0',
+            },
+          });
+          let harness: DocumentationEditPageHarness;
+
+          beforeEach(async () => {
+            await init(PAGE, undefined);
+            initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined });
+            harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
+            await harness.openOpenApiConfigurationTab();
+          });
+          it('should show OpenAPI Viewer Configuration with default values + save is disabled', async () => {
+            const entrypointsAsServersToggle = await harness.getEntrypointsAsServersToggle();
+            expect(await entrypointsAsServersToggle.isChecked()).toEqual(true);
+
+            const contextPathAsServerToggle = await harness.getContextPathAsServerToggle();
+            expect(await contextPathAsServerToggle.isChecked()).toEqual(true);
+
+            const baseUrlInput = await harness.getBaseUrlInput();
+            expect(await baseUrlInput.getValue()).toEqual('cats-rule');
+
+            const openApiViewerSelect = await harness.getOpenApiViewerSelect();
+            expect(await openApiViewerSelect.getValueText()).toEqual('SwaggerUI');
+
+            const tryItToggle = await harness.getTryItToggle();
+            expect(await tryItToggle.isChecked()).toEqual(true);
+
+            const tryItAnonymousToggle = await harness.getTryItAnonymousToggle();
+            expect(await tryItAnonymousToggle.isChecked()).toEqual(true);
+
+            const showUrlToggle = await harness.getShowUrlToggle();
+            expect(await showUrlToggle.isChecked()).toEqual(true);
+
+            const displayOperationIdToggle = await harness.getDisplayOperationIdToggle();
+            expect(await displayOperationIdToggle.isChecked()).toEqual(true);
+
+            const usePkceToggle = await harness.getUsePkceToggle();
+            expect(await usePkceToggle.isChecked()).toEqual(true);
+
+            const enableFilteringToggle = await harness.getEnableFilteringToggle();
+            expect(await enableFilteringToggle.isChecked()).toEqual(true);
+
+            const showExtensionsToggle = await harness.getShowExtensionsToggle();
+            expect(await showExtensionsToggle.isChecked()).toEqual(true);
+
+            const showCommonExtensionsToggle = await harness.getShowCommonExtensionsToggle();
+            expect(await showCommonExtensionsToggle.isChecked()).toEqual(true);
+
+            const docExpansionSelect = await harness.getDocExpansionSelect();
+            expect(await docExpansionSelect.getValueText()).toEqual('Tags and operations');
+
+            const maxOperationsDisplayedInput = await harness.getMaxOperationsDisplayedInput();
+            expect(await maxOperationsDisplayedInput.getValue()).toEqual('0');
+
+            const saveBtn = await harness.getPublishChangesButton();
+            expect(await saveBtn.isDisabled()).toEqual(true);
+          });
+
+          it('should save configuration changes', async () => {
+            const baseUrlInput = await harness.getBaseUrlInput();
+            await baseUrlInput.setValue('dogs-drool');
+
+            const publishBtn = await harness.getPublishChangesButton();
+            expect(await publishBtn.isDisabled()).toEqual(false);
+
+            await publishBtn.click();
+
+            expectGetPage(PAGE);
+
+            const req = httpTestingController.expectOne({
+              method: 'PUT',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+            });
+            expect(req.request.body).toEqual({
+              ...PAGE,
+              accessControls: [],
+              excludedAccessControls: false,
+              configuration: {
+                viewer: 'Swagger',
+                entrypointAsBasePath: true,
+                entrypointsAsServers: true,
+                tryIt: true,
+                tryItAnonymous: true,
+                showURL: true,
+                displayOperationId: true,
+                usePkce: true,
+                docExpansion: 'full',
+                enableFiltering: true,
+                showExtensions: true,
+                showCommonExtensions: true,
+                maxDisplayedTags: 0,
+                tryItURL: 'dogs-drool',
+              },
+            });
+            req.flush(PAGE);
+          });
+
+          it('should change viewer to Redoc', async () => {
+            const viewerSelect = await harness.getOpenApiViewerSelect();
+            await viewerSelect.open();
+            await viewerSelect.clickOptions({ text: 'Redoc' });
+
+            const publishBtn = await harness.getPublishChangesButton();
+            expect(await publishBtn.isDisabled()).toEqual(false);
+
+            await publishBtn.click();
+
+            expectGetPage(PAGE);
+
+            const req = httpTestingController.expectOne({
+              method: 'PUT',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+            });
+            expect(req.request.body).toEqual({
+              ...PAGE,
+              accessControls: [],
+              excludedAccessControls: false,
+              configuration: {
+                viewer: 'Redoc',
+                entrypointAsBasePath: true,
+                entrypointsAsServers: true,
+                tryIt: true,
+                tryItAnonymous: true,
+                showURL: true,
+                displayOperationId: true,
+                usePkce: true,
+                docExpansion: 'full',
+                enableFiltering: true,
+                showExtensions: true,
+                showCommonExtensions: true,
+                maxDisplayedTags: 0,
+                tryItURL: 'cats-rule',
+              },
+            });
+            req.flush(PAGE);
+          });
+        });
+        describe('with existing Redoc viewer configuration', () => {
+          const PAGE = fakeSwagger({
+            id: 'page-id',
+            name: 'page-name',
+            content: 'my content',
+            published: true,
+            configuration: {
+              viewer: 'Redoc',
+              entrypointAsBasePath: 'true',
+              entrypointsAsServers: 'true',
+              tryItURL: 'cats-rule',
+            },
+          });
+          let harness: DocumentationEditPageHarness;
+
+          beforeEach(async () => {
+            await init(PAGE, undefined);
+            initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined });
+            harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
+          });
+
+          it('should not display SwaggerUI fields', async () => {
+            await harness.openOpenApiConfigurationTab();
+            await harness
+              .getEnableFilteringToggle()
+              .then((_) => fail('Enable filtering toggle should not be displayed'))
+              .catch((_) => {});
+          });
+
+          it('should show page content by default', async () => {
+            const activeTab = await harnessLoader.getHarness(MatTabHarness.with({ selected: true }));
+            expect(await activeTab.getLabel()).toEqual('Content');
           });
         });
       });
