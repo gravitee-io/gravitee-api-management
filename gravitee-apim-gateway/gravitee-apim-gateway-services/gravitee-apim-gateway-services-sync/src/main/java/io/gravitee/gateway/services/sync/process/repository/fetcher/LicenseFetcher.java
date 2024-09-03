@@ -17,13 +17,11 @@ package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
-import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.License;
 import io.reactivex.rxjava3.core.Flowable;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -41,17 +39,7 @@ public class LicenseFetcher {
     @Accessors(fluent = true)
     private final int bulkItems;
 
-    private Set<String> organizations;
-
-    public LicenseFetcher(final LicenseRepository licenseRepository, final int bulkItems, final Node node) {
-        this.licenseRepository = licenseRepository;
-        this.bulkItems = bulkItems;
-        if (node.metadata().containsKey(Node.META_ORGANIZATIONS)) {
-            this.organizations = Set.copyOf((Set<String>) node.metadata().get(Node.META_ORGANIZATIONS));
-        }
-    }
-
-    public Flowable<List<License>> fetchLatest(Long from, Long to) {
+    public Flowable<List<License>> fetchLatest(final Long from, final Long to, final Set<String> organizations) {
         return Flowable.generate(
             () ->
                 LicensePageable

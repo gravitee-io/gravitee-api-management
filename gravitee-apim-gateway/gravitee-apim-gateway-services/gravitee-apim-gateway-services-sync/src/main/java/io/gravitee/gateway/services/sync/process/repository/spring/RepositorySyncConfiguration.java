@@ -138,10 +138,9 @@ public class RepositorySyncConfiguration {
     @Bean
     public LicenseFetcher licenseFetcher(
         LicenseRepository licenseRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems,
-        Node node
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
-        return new LicenseFetcher(licenseRepository, bulkItems, node);
+        return new LicenseFetcher(licenseRepository, bulkItems);
     }
 
     @Bean
@@ -273,12 +272,13 @@ public class RepositorySyncConfiguration {
 
     @Bean
     public LicenseSynchronizer licenseSynchronizer(
+        Node node,
         LicenseFetcher licenseFetcher,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
-        return new LicenseSynchronizer(licenseFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+        return new LicenseSynchronizer(node, licenseFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
