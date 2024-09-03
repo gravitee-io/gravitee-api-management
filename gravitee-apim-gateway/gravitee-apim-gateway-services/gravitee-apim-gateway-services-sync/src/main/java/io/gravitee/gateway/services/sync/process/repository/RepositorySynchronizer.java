@@ -16,7 +16,6 @@
 package io.gravitee.gateway.services.sync.process.repository;
 
 import io.reactivex.rxjava3.core.Completable;
-import java.util.List;
 import java.util.Set;
 
 /**

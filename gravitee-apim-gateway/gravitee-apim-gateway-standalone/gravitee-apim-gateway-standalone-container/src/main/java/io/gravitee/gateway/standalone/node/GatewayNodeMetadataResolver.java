@@ -120,7 +120,7 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
                 }
             }
         } catch (Exception e) {
-            log.warn("Unable to load organization ids", e);
+            throw new RuntimeException("Unable to load organization ids", e);
         }
 
         return new HashSet<>();
@@ -146,7 +146,7 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
                 return environmentIds;
             }
         } catch (Exception e) {
-            log.warn("Unable to load environment ids", e);
+            throw new RuntimeException("Unable to load environment ids", e);
         }
 
         return new HashSet<>();
