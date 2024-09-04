@@ -22,6 +22,7 @@ import {
   GioFormJsonSchemaModule,
   GioFormSelectionInlineModule,
   GioFormSlideToggleModule,
+  GioJsonSchema,
 } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -31,9 +32,9 @@ import { MatOption } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { combineLatest, EMPTY, Observable } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -55,6 +56,7 @@ import {
   PageConfigurationForm,
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
+import { FetcherService } from '../../../../../services-ngx/fetcher.service';
 
 interface OpenApiConfiguration {
   entrypointAsBasePath: FormControl<boolean>;
@@ -77,6 +79,7 @@ interface EditPageForm {
   pageConfiguration: FormGroup<PageConfigurationForm>;
   content: FormControl<string>;
   openApiConfiguration: FormGroup<OpenApiConfiguration>;
+  sourceConfiguration: FormControl<unknown>;
 }
 
 @Component({
@@ -136,9 +139,11 @@ export class DocumentationEditPageComponent implements OnInit {
   name = signal<string | undefined>(undefined);
 
   pages: Page[] = [];
+  fetcherSchema$: Observable<GioJsonSchema | undefined> = of();
 
   private destroyRef = inject(DestroyRef);
   private initialFormValue: unknown;
+  sourceConfigurationChanged$: Observable<boolean> = of(false);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -148,6 +153,7 @@ export class DocumentationEditPageComponent implements OnInit {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly fetcherService: FetcherService,
   ) {}
 
   ngOnInit(): void {
@@ -187,6 +193,7 @@ export class DocumentationEditPageComponent implements OnInit {
         ),
         maxDisplayedTags: new FormControl<number>(this.parseConfigurationStringToNumber(this.page.configuration?.['maxDisplayedTags'])),
       }),
+      sourceConfiguration: new FormControl<unknown>(this.page.source?.configuration),
     });
 
     if (this.isReadOnly) {
@@ -228,6 +235,18 @@ export class DocumentationEditPageComponent implements OnInit {
           this.groups = groupsResponse?.data ?? [];
         },
       });
+
+    this.fetcherSchema$ = this.fetcherService.getList().pipe(
+      map((fetchers) => {
+        const currentSchema = fetchers.find((f) => f.id === this.page.source.type)?.schema;
+        return currentSchema ? JSON.parse(currentSchema) : undefined;
+      }),
+      catchError((_) => of([])),
+    );
+
+    this.sourceConfigurationChanged$ = this.form.controls.sourceConfiguration.valueChanges.pipe(
+      map((_) => !isEqual(this.initialFormValue['sourceConfiguration'], this.form.getRawValue().sourceConfiguration)),
+    );
   }
 
   onGoBackRouterLink(): void {
@@ -284,6 +303,14 @@ export class DocumentationEditPageComponent implements OnInit {
           excludedAccessControls: formValue.pageConfiguration.excludeGroups,
           accessControls: [...nonGroupAccessControls, ...selectedGroupAccessControls],
           ...(this.page.type === 'SWAGGER' ? { configuration: { ...formValue.openApiConfiguration } } : {}),
+          ...(this.page.source?.type
+            ? {
+                source: {
+                  type: this.page.source.type,
+                  configuration: formValue.sourceConfiguration,
+                },
+              }
+            : {}),
         };
         return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.page.id, updateDocumentation);
       }),
