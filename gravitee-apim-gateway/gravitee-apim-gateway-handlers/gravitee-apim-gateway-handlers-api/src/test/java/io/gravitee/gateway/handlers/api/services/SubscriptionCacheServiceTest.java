@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
+import io.vertx.core.cli.CLI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -415,6 +416,18 @@ class SubscriptionCacheServiceTest {
             ApiKey apiKey = new ApiKey();
             apiKey.setSubscription(SUB_ID);
             when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.of(apiKey));
+
+            Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
+            assertThat(subscriptionOpt).contains(subscription);
+        }
+
+        @Test
+        void should_get_subscription_by_api_id_and_clientCertificate() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(subscription);
+            SecurityToken securityToken = SecurityToken.forClientCertificate(CLIENT_CERTIFICATE);
+            when(subscriptionTrustStoreLoaderManager.getByCertificate(API_ID, CLIENT_CERTIFICATE, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
             assertThat(subscriptionOpt).contains(subscription);
