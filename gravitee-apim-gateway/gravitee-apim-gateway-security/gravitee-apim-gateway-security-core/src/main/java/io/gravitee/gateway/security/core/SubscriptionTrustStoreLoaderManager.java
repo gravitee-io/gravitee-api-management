@@ -16,11 +16,12 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.security.core.exception.MalformedCertificateException;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.VertxServer;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SubscriptionTrustStoreLoaderManager {
 
     private final Map<String, SubscriptionTrustStoreLoader> subscriptionTrustStoreLoaders = new ConcurrentHashMap<>();
+    private final Map<String, Subscription> subscriptionsByApi = new ConcurrentHashMap<>();
     private final ServerManager serverManager;
 
     public SubscriptionTrustStoreLoaderManager(ServerManager serverManager) {
@@ -40,7 +42,13 @@ public class SubscriptionTrustStoreLoaderManager {
     }
 
     public void registerSubscription(Subscription subscription, Set<String> deployOnServers) {
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(subscription);
+        final SubscriptionTrustStoreLoader loader;
+        try {
+            loader = new SubscriptionTrustStoreLoader(subscription);
+        } catch (MalformedCertificateException e) {
+            log.error(e.getMessage(), e.getCause());
+            return;
+        }
         if (subscriptionTrustStoreLoaders.containsKey(subscription.getId())) {
             log.debug("A TrustStoreLoader for subscription {} is already registered", subscription.getId());
             return;
@@ -53,6 +61,10 @@ public class SubscriptionTrustStoreLoaderManager {
             .map(s -> (VertxServer<?, ?>) s)
             .forEach(server -> server.trustStoreLoaderManager().registerLoader(loader));
         subscriptionTrustStoreLoaders.put(subscription.getId(), loader);
+        subscriptionsByApi.put(
+            buildCacheKeyFromCertificateDigest(subscription.getApi(), loader.certificateDigest(), subscription.getPlan()),
+            subscription
+        );
     }
 
     public void unregisterSubscription(Subscription subscription) {
@@ -62,5 +74,13 @@ public class SubscriptionTrustStoreLoaderManager {
             loader.stop();
             loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));
         }
+    }
+
+    public Optional<Subscription> getByCertificate(String api, String certificateDigest, String plan) {
+        return Optional.ofNullable(subscriptionsByApi.get(buildCacheKeyFromCertificateDigest(api, certificateDigest, plan)));
+    }
+
+    String buildCacheKeyFromCertificateDigest(String api, String certificateDigest, String plan) {
+        return String.format("%s.%s.%s", api, certificateDigest, plan);
     }
 }
