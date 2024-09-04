@@ -33,6 +33,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageContentException
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -499,6 +500,30 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", PAGE_ID)
                 .hasFieldOrPropertyWithValue("configuration", configuration);
+        }
+
+        @Test
+        void should_update_page_source() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
+
+            var pageSource = PageSource.builder().type("http-fetcher").configuration("{\"some\": \"config\"}").build();
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .source(pageSource)
+                    .apiId(API_ID)
+                    .pageId(OLD_MARKDOWN_PAGE.getId())
+                    .order(OLD_MARKDOWN_PAGE.getOrder())
+                    .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                    .content(OLD_MARKDOWN_PAGE.getContent())
+                    .name(OLD_MARKDOWN_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("source", pageSource);
         }
 
         @Test
