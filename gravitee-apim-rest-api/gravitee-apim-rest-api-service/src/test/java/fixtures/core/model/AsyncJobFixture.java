@@ -47,4 +47,8 @@ public class AsyncJobFixture {
     public static AsyncJob anErrorFederatedApiIngestionJob() {
         return BASE.get().type(AsyncJob.Type.FEDERATED_APIS_INGESTION).status(AsyncJob.Status.ERROR).errorMessage("Job failed").build();
     }
+
+    public static AsyncJob aPendingScoringRequestJob() {
+        return BASE.get().type(AsyncJob.Type.SCORING_REQUEST).build();
+    }
 }

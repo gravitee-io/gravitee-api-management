@@ -16,20 +16,28 @@
 
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import io.gravitee.apim.core.scoring.model.ScoringAssetType;
+import io.gravitee.apim.core.scoring.model.ScoringReport;
+import io.gravitee.apim.core.scoring.use_case.SaveScoringResponseUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.scoring.response.ScoringResponseCommand;
 import io.gravitee.cockpit.api.command.v1.scoring.response.ScoringResponseReply;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.reactivex.rxjava3.core.Single;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-@RequiredArgsConstructor
 @Component
 @Slf4j
 public class ScoringResponseCommandHandler implements CommandHandler<ScoringResponseCommand, ScoringResponseReply> {
+
+    private SaveScoringResponseUseCase saveScoringResponseUseCase;
+
+    public ScoringResponseCommandHandler(@Lazy SaveScoringResponseUseCase saveScoringResponseUseCase) {
+        this.saveScoringResponseUseCase = saveScoringResponseUseCase;
+    }
 
     @Override
     public String supportType() {
@@ -42,6 +50,40 @@ public class ScoringResponseCommandHandler implements CommandHandler<ScoringResp
 
         log.info("received response [{}]", payload.result());
 
-        return Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED));
+        var analyzedAssets = payload
+            .result()
+            .assetDiagnostics()
+            .stream()
+            .map(a ->
+                new ScoringReport.Asset(
+                    a.asset().assetId(),
+                    switch (a.asset().type()) {
+                        case OPEN_API -> ScoringAssetType.SWAGGER;
+                        case ASYNC_API -> ScoringAssetType.ASYNCAPI;
+                        case GRAVITEE_API -> ScoringAssetType.GRAVITEE_DEFINITION;
+                    },
+                    a
+                        .diagnostics()
+                        .stream()
+                        .map(d -> {
+                            return new ScoringReport.Diagnostic(
+                                ScoringReport.Severity.valueOf(d.severity().name()),
+                                new ScoringReport.Range(
+                                    new ScoringReport.Position(d.range().start().line(), d.range().start().character()),
+                                    new ScoringReport.Position(d.range().end().line(), d.range().end().character())
+                                ),
+                                d.rule(),
+                                d.message(),
+                                d.path()
+                            );
+                        })
+                        .toList()
+                )
+            )
+            .toList();
+
+        return saveScoringResponseUseCase
+            .execute(new SaveScoringResponseUseCase.Input(payload.correlationId(), analyzedAssets))
+            .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
     }
 }
