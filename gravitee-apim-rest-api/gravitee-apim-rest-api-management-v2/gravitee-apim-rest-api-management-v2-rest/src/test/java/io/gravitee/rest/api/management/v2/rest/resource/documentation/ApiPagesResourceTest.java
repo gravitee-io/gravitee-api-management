@@ -1600,6 +1600,46 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_update_page_source() {
+            var pageSource = PageSource.builder().type("http-fetcher").configuration("{ \"some\": \"config\"}").build();
+            var request = UpdateDocumentationMarkdown
+                .builder()
+                .name("created page")
+                .homepage(true)
+                .content("nice content")
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN)
+                .order(1)
+                .visibility(Visibility.PUBLIC)
+                .source(pageSource)
+                .build();
+            var oldMarkdown = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("old name")
+                .content("old content")
+                .visibility(Page.Visibility.PRIVATE)
+                .order(2)
+                .published(false)
+                .type(Page.Type.MARKDOWN)
+                .homepage(false)
+                .build();
+            givenApiPagesQuery(List.of(oldMarkdown));
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            var updatedPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(updatedPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .extracting(io.gravitee.rest.api.management.v2.rest.model.Page::getSource)
+                .hasFieldOrPropertyWithValue("type", "http-fetcher")
+                .extracting(PageSource::getConfiguration)
+                .hasFieldOrPropertyWithValue("some", "config");
+        }
+
+        @Test
         public void should_not_allow_null_name() {
             var request = UpdateDocumentationMarkdown
                 .builder()
