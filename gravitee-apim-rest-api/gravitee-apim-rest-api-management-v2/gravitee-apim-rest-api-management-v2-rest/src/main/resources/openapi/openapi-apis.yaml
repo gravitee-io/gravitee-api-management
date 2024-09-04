@@ -6603,6 +6603,8 @@ components:
                     description: Configuration of a page
                     additionalProperties:
                       type: string
+                source:
+                    $ref: "#/components/schemas/PageSource"
             required:
                 - type
                 - name
