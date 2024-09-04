@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -32,12 +33,25 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionTrustStoreLoaderTest {
 
+    @SneakyThrows
     @Test
     void should_build_id_based_on_subscription_id() {
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(Subscription.builder().id("subscriptionId").build());
+        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
+            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build()
+        );
         assertThat(loader.id()).isEqualTo("subscription_cert_subscriptionId");
     }
 
+    @SneakyThrows
+    @Test
+    void should_build_compute_digest_based_on_subscription_certificate() {
+        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
+            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build()
+        );
+        assertThat(loader.certificateDigest()).isEqualTo("29906ca0dc39bc99ee0f3f11f7e78517");
+    }
+
+    @SneakyThrows
     @Test
     void should_start_a_loader() {
         final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
@@ -56,6 +70,7 @@ class SubscriptionTrustStoreLoaderTest {
             });
     }
 
+    @SneakyThrows
     @Test
     void should_not_start_a_loader_already_started() {
         final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
