@@ -228,7 +228,7 @@ export class DocumentationNewPageComponent implements OnInit {
           this.selectedFetcherSchema = undefined;
           this.sourceConfiguration = undefined;
         }),
-        debounceTime(500),
+        debounceTime(10),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((value) => {
@@ -286,7 +286,7 @@ export class DocumentationNewPageComponent implements OnInit {
     // Only Markdown, Swagger, and AsyncAPI pages can be created
     if (this.pageType !== 'MARKDOWN' && this.pageType !== 'SWAGGER' && this.pageType !== 'ASYNCAPI') {
       this.snackBarService.error(`Cannot create page with type [${this.pageType}]`);
-      return;
+      return EMPTY;
     }
     const createPage: CreateDocumentation = {
       type: this.pageType as CreateDocumentationType,
