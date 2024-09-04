@@ -75,6 +75,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
+    sort: { active: 'name', direction: 'asc' },
   };
   isQualityDisplayed: boolean;
   searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
