@@ -118,7 +118,7 @@ class ScoreApiRequestUseCaseTest {
                     ORGANIZATION_ID,
                     ENVIRONMENT_ID,
                     api.getId(),
-                    List.of(new ScoreRequest.AssetToScore(ScoringAssetType.SWAGGER, page.getName(), page.getContent()))
+                    List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent()))
                 )
             );
         assertThat(asyncJobCrudService.storage())
@@ -161,7 +161,7 @@ class ScoreApiRequestUseCaseTest {
                     ORGANIZATION_ID,
                     ENVIRONMENT_ID,
                     api.getId(),
-                    List.of(new ScoreRequest.AssetToScore(ScoringAssetType.ASYNCAPI, page.getName(), page.getContent()))
+                    List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.ASYNCAPI, page.getName(), page.getContent()))
                 )
             );
         assertThat(asyncJobCrudService.storage())

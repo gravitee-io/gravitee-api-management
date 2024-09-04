@@ -25,9 +25,9 @@ import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestReply;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.scoring.api.model.ScoringRequest;
+import io.gravitee.scoring.api.model.asset.AssetToAnalyze;
 import io.gravitee.scoring.api.model.asset.AssetType;
 import io.gravitee.scoring.api.model.asset.ContentType;
-import io.gravitee.scoring.api.model.asset.ScoreAsset;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -58,7 +58,8 @@ public class ScoringProviderImpl implements ScoringProvider {
                         .assets()
                         .stream()
                         .map(a ->
-                            new ScoreAsset(
+                            new AssetToAnalyze(
+                                a.assetId(),
                                 switch (a.assetType()) {
                                     case SWAGGER -> AssetType.OPEN_API;
                                     case ASYNCAPI -> AssetType.ASYNC_API;

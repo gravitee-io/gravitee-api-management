@@ -64,7 +64,12 @@ public class ScoreApiRequestUseCase {
                     .fromIterable(apiDocumentationDomainService.getApiPages(api.getId(), null))
                     .filter(page -> page.isAsyncApi() || page.isSwagger())
                     .map(page ->
-                        new ScoreRequest.AssetToScore(ScoringAssetType.fromPageType(page.getType()), page.getName(), page.getContent())
+                        new ScoreRequest.AssetToScore(
+                            page.getId(),
+                            ScoringAssetType.fromPageType(page.getType()),
+                            page.getName(),
+                            page.getContent()
+                        )
                     )
                     .toList()
             )
