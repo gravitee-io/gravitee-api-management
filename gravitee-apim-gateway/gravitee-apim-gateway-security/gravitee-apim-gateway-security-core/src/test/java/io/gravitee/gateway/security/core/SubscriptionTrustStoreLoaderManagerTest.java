@@ -34,6 +34,7 @@ import io.gravitee.node.vertx.server.VertxServer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -99,7 +100,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_register_subscription_on_all_servers() {
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").build(), Set.of());
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(), Set.of());
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
@@ -119,7 +120,10 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_register_subscription_on_selected_servers() {
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").build(), Set.of("server1", "server3"));
+        cut.registerSubscription(
+            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(),
+            Set.of("server1", "server3")
+        );
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
@@ -142,7 +146,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_not_register_already_registered_subscription() {
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").build(), Set.of());
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(), Set.of());
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
@@ -151,7 +155,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
             .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
             .containsExactly("Registering TrustStoreLoader for subscription subscriptionId", Level.DEBUG);
 
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").build(), Set.of());
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build(), Set.of());
         assertThat(logList)
             .hasSize(2)
             .element(1)
@@ -161,7 +165,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_unregister_subscription() {
-        final Subscription subscription = Subscription.builder().id("subscriptionId").build();
+        final Subscription subscription = Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build();
         cut.registerSubscription(subscription, Set.of());
 
         ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
@@ -195,4 +199,23 @@ class SubscriptionTrustStoreLoaderManagerTest {
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList).hasSize(0);
     }
+
+    @Test
+    void should_get_a_subscription() {
+        final Subscription subscription = Subscription
+            .builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(BASE_64_CERTIFICATE)
+            .build();
+        cut.registerSubscription(subscription, Set.of("server1", "server3"));
+        final Optional<Subscription> result = cut.getByCertificate("api", CERTIFICATE_DIGEST, "plan");
+        assertThat(result).contains(subscription);
+    }
+
+    private static final String BASE_64_CERTIFICATE =
+        "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUYzekNDQThlZ0F3SUJBZ0lCWlRBTkJna3Foa2lHOXcwQkFRc0ZBRENCa0RFcE1DY0dDU3FHU0liM0RRRUoKQVJZYVkyOXVkR0ZqZEVCbmNtRjJhWFJsWlhOdmRYSmpaUzVqYjIweEVEQU9CZ05WQkFNTUIwRlFTVTFmUTA0eApEVEFMQmdOVkJBc01CRUZRU1UweEZEQVNCZ05WQkFvTUMwRlFTVTFmVkdWemRHVnlNUTR3REFZRFZRUUhEQVZNCmFXeHNaVEVQTUEwR0ExVUVDQXdHUm5KaGJtTmxNUXN3Q1FZRFZRUUdFd0pHVWpBZUZ3MHlOREE0TWpnd05qVTAKTkRWYUZ3MHlOVEE0TWpnd05qVTBORFZhTUlHUU1Ta3dKd1lKS29aSWh2Y05BUWtCRmhwamIyNTBZV04wUUdkeQpZWFpwZEdWbGMyOTFjbU5sTG1OdmJURVFNQTRHQTFVRUF3d0hRVkJKVFY5RFRqRU5NQXNHQTFVRUN3d0VRVkJKClRURVVNQklHQTFVRUNnd0xRVkJKVFY5VVpYTjBaWEl4RGpBTUJnTlZCQWNNQlV4cGJHeGxNUTh3RFFZRFZRUUkKREFaR2NtRnVZMlV4Q3pBSkJnTlZCQVlUQWtaU01JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQwpDZ0tDQWdFQStncWxkMnkvRlhiUHRDY1pnREl6cGlsQVpJc3FIcEJwREZBeCthYkRNUTVlV1ozUTNBYXhSeGh5ClFCeE1maFhsMkZvZEJmNzZtQVQ4UVpvVHUwdHdTSnIrTGx2eVQ3NTE1RnZiYUxYNGg2bEZSbWs2dXExeE5DdHgKU0FzMC93dkttNVc1QmtHeHJFQ3JYcUV1dWtPSkw2dW5VK3RqRXFBdUtuRFhrQ2QxVXA0WlVWalJJV0RnR0lYVwozQXViazVLeDBPdUZTWlhNWmkvOGFDcTBJc3FyZnk5amVLWjllZjRkMkJ1aENjcVFQQXo2dDFpTTVWVGtvUGNmCnVOQzJYQlVCOEI4YUNpd1FRWm0yTVVsWFo0aGE1V2xnYzZzb3VGVVFyM2kzN2hlaVhiQVJUb2xnVmhPMU9oQ3AKN1VtMDBEbEdtQmFsaXNkODhCdjU4MFplbFNGNldSamkvb2RpVUwrcnZyOElOY1Z5MDVQb04rb1ljckQ1TWZtdQpUZUdUUFdFNmpIMXVXb1llZDAyV0t6LzV4VC9Xc3psMEZ2QVc5MExLUklhWnZveWpvdVdnWGExSFFFM1hrdnlIClZXeXc4eEZHTEIxN09aRGs4LzRMN2NqeDZMVTErZnpvak56WlBhcnJ6UTRSaFNFWE1KYUdZQitZOEVuYUhDWUoKbHVBeVVWMkNVOVdpc0tvaTZaWW9IR3lvUnJVa3JXT3U0MFlkNkJzUmhlQWI3anNqalV6Rjc0UWQ3UVY1enlNagpZZHF4M1dtTzVKdzFyZXNoei9LY1RGYS9SM2VhK1BPTTZ3bEtHWTVNdFlpWThJbWlodms1VVBPamJyR2RpU3BvCmZoSng5RHNWYmY3eTI0OFFROGZZd052TFlUMVVLVmRQaXR0eEhKTml4SEhYS0RIWEdhc0NBd0VBQWFOQ01FQXcKSFFZRFZSME9CQllFRkF3SjNWWlBzYXlsSUMrUkxUeXhqaWd6TWsxa01COEdBMVVkSXdRWU1CYUFGRGNnaUVNMwo3WVdLRk9Wc09NTWc5MWVNZ1RNWU1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQ0FRQkNLczRSUklPZmhhTWt5QmdBCmlmUmZKdU04NFVXSFJqQ0ZzSTVFRElqY3BJaVE1LzVGcm9CNjRPUDBnNUhFNDc0UEtqTVdSQzVMZDhTUDVWY20KK1l6VllUVDJJOGEycDVvbG1iWnhPeElZU0Q0NWF6NDhXRUtLRXNxR091TUw2M29CcUVYeWhCN2hCQjZTaUphcApuOXFLWTZNWXB0RFNER3h1dGxrZC94YnU1VGxXSzBMTEhNZTBCKzdOR2U1UDdaN1AvblpraURiVlg3VG05MVBICi9PUDgwUGluVTJJZHJmUWVCUDZKdVpYem5XU3dVd3NKWlJrNDNTNVBBYkkrQW81M0lCbVR4aGhvbkNSWFF2WGsKbW1kcmsrK2doODVEWTFUazdVQ2xGbEsyNDZvTFNjeEF6aHoxWWxuZktxRm1CK2pLZVVRdXNsNytZc01VMVRBSgoxakxGNUtNU2xBaHRXdG8rMTN0cHBWbFBaYlFYaGZTV0I3bEZBWFpDTkMycjlzNWs0S1RnQU1OQ3E1VEpUUFNyCngvRnQ3UTJSV3F5RnZ3WHErR3VxOEpLYjQyUXpJTkFTVmhsQkJzYVgvNmYyU1h6OWZja2F0cW16ZVh0MHpwMUoKWWFRUmxSUTI2ZWgyUWdyRjN2ejVOaVFNV3pmRzlleWdZY2xEUE1rMlhqWDZVSkhWY2ZUMjcrMElhY251QzhlYQp5Rjl0bCtjRnMyRmpJVENVaFlTWTJRdjNjVDFRUnA0Q3JNUTVYMHdlcFFGVnp1QmZyYW1xMVZKdkRDemFuMlNmClZpMVl1MmdqOGJHVGYzamhzK3k5RW5yYWRxbzZSWHh1T2NzMTNHVWVYMFVHZG41aFREOE03aEtNUzN2V0hOUjkKY0toeGFxY3B5ZTh6S0o4K0lEc0pDMitsTVE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t";
+
+    private static final String CERTIFICATE_DIGEST = "29906ca0dc39bc99ee0f3f11f7e78517";
 }
