@@ -177,9 +177,22 @@
               </div>
             </mat-tab>
           }
+          @if (page.source?.type) {
+            <mat-tab label="Configure External Source">
+              @if (fetcherSchema$ | async; as jsonSchema) {
+                <gio-form-json-schema formControlName="sourceConfiguration" [jsonSchema]="jsonSchema" />
+              }
+            </mat-tab>
+          }
           <mat-tab label="Content">
             <div class="tab__content">
               @if (page.source?.type) {
+                @if (sourceConfigurationChanged$ | async) {
+                  <gio-banner-warning
+                    >You have made changes to the External Source configuration. This preview will be updated once your changes have been
+                    saved.</gio-banner-warning
+                  >
+                }
                 <gio-banner-info
                   >This content is a preview and cannot be edited because the page is linked to an external source.</gio-banner-info
                 >

@@ -26,6 +26,8 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { By } from '@angular/platform-browser';
 
 import { DocumentationEditPageHarness } from './documentation-edit-page.harness';
 import { DocumentationEditPageComponent } from './documentation-edit-page.component';
@@ -47,6 +49,8 @@ import { ApiDocumentationV4ContentEditorHarness } from '../api-documentation-v4-
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4PageConfigurationHarness } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
+import { FetcherListItem } from '../../../../../entities/fetcher';
+import { fakeFetcherList } from '../../../../../entities/fetcher/fetcher.fixture';
 
 interface InitInput {
   pages?: Page[];
@@ -346,20 +350,85 @@ describe('DocumentationEditPageComponent', () => {
           id: 'page-id',
           name: 'page-name',
           content: 'my content',
-          source: { type: 'http-fetcher', configuration: { some: 'config' } },
+          source: {
+            type: 'http-fetcher',
+            configuration: {
+              autoFetch: true,
+              fetchCron: '0 0 0 */1 * *',
+              url: 'https://petstore.swagger.io/v2/swagger.yaml',
+            },
+          },
         });
+
+        let harness: DocumentationEditPageHarness;
 
         beforeEach(async () => {
           await init(PAGE, undefined);
           initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined });
+          expectFetchersList();
+          fixture.detectChanges();
+
+          harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationEditPageHarness);
         });
 
         it('should not allow editing content', async () => {
+          await harness.openContentTab();
+
           const editor = await harnessLoader
             .getHarness(ApiDocumentationV4ContentEditorHarness)
             .then((harness) => harness.getContentEditor());
           expect(editor).toBeDefined();
           expect(await editor.isDisabled()).toEqual(true);
+        });
+
+        it('should show Configure External Source tab by default', async () => {
+          const activeTab = await harnessLoader.getHarness(MatTabHarness.with({ selected: true }));
+          expect(await activeTab.getLabel()).toEqual('Configure External Source');
+        });
+        it('should update external source configuration', async () => {
+          const publishBtn = await harness.getPublishChangesButton();
+          expect(await publishBtn.isDisabled()).toEqual(true);
+
+          const httpUrl = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[id*="url"]' }));
+          expect(await httpUrl.getValue()).toEqual('https://petstore.swagger.io/v2/swagger.yaml');
+
+          await httpUrl.setValue('https://cats-rule.com');
+
+          expect(await publishBtn.isDisabled()).toEqual(false);
+          await publishBtn.click();
+
+          expectGetPage(PAGE);
+
+          const req = httpTestingController.expectOne({
+            method: 'PUT',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+          });
+          expect(req.request.body).toEqual({
+            ...PAGE,
+            accessControls: [],
+            excludedAccessControls: false,
+            source: {
+              type: PAGE.source.type,
+              configuration: {
+                ...PAGE.source.configuration,
+                url: 'https://cats-rule.com',
+              },
+            },
+          });
+          req.flush(PAGE);
+        });
+        it('should display warning banner if configuration is updated', async () => {
+          const httpUrl = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[id*="url"]' }));
+          await httpUrl.setValue('https://cats-rule.com');
+
+          await harness.openContentTab();
+          const warningBanner = fixture.debugElement.query(By.css('gio-banner-warning'));
+          expect(warningBanner).toBeTruthy();
+        });
+        it('should not display warning banner if configuration untouched', async () => {
+          await harness.openContentTab();
+          const warningBanner = fixture.debugElement.query(By.css('gio-banner-warning'));
+          expect(warningBanner).toBeNull();
         });
       });
       describe('with OpenAPI page', () => {
@@ -887,4 +956,13 @@ describe('DocumentationEditPageComponent', () => {
       })
       .flush(fakeGroupsResponse({ data: groups }));
   };
+
+  function expectFetchersList(fetchers: FetcherListItem[] = fakeFetcherList()) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+      })
+      .flush(fetchers);
+  }
 });
