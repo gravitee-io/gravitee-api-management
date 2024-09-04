@@ -25,9 +25,9 @@ import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -53,28 +53,19 @@ public class ApiUpdateDocumentationPageUseCase {
         this.apiDocumentationDomainService.validatePageAssociatedToApi(oldPage, input.apiId);
 
         Page.PageBuilder newPage = oldPage.toBuilder();
+        newPage.updatedAt(new Date());
+        newPage.visibility(input.visibility);
+        newPage.homepage(input.homepage);
+        newPage.order(input.order);
+        newPage.configuration(input.configuration);
+        newPage.content(input.content);
+        newPage.source(input.source);
 
         var name = documentationValidationDomainService.sanitizeDocumentationName(input.name);
         if (!Objects.equals(oldPage.getName(), name)) {
             this.apiDocumentationDomainService.validateNameIsUnique(input.apiId, oldPage.getParentId(), name, oldPage.getType());
             newPage.name(name);
         }
-
-        if (oldPage.isMarkdown() && !Objects.equals(oldPage.getContent(), input.content)) {
-            this.documentationValidationDomainService.validateContent(input.content, input.apiId, input.auditInfo().organizationId());
-            newPage.content(input.content);
-        } else if (oldPage.isSwagger() && !Objects.equals(oldPage.getContent(), input.content)) {
-            this.documentationValidationDomainService.parseOpenApiContent(input.content);
-            newPage.content(input.content);
-        } else if (oldPage.isAsyncApi() && !Objects.equals(oldPage.getContent(), input.content)) {
-            newPage.content(input.content);
-        }
-
-        newPage.updatedAt(new Date());
-        newPage.visibility(input.visibility);
-        newPage.homepage(input.homepage);
-        newPage.order(input.order);
-        newPage.configuration(input.configuration);
 
         if (Objects.nonNull(input.excludedAccessControls)) {
             newPage.excludedAccessControls(input.excludedAccessControls);
@@ -84,7 +75,13 @@ public class ApiUpdateDocumentationPageUseCase {
             newPage.accessControls(this.documentationValidationDomainService.sanitizeAccessControls(input.accessControls));
         }
 
-        var updatedPage = this.updateApiDocumentationDomainService.updatePage(newPage.build(), oldPage, input.auditInfo);
+        var pageToUpdate = newPage.build();
+
+        if (!Objects.equals(oldPage.getContent(), input.content) || !Objects.equals(oldPage.getSource(), input.source)) {
+            this.documentationValidationDomainService.validateAndSanitizeForUpdate(pageToUpdate, input.auditInfo().organizationId(), true);
+        }
+
+        var updatedPage = this.updateApiDocumentationDomainService.updatePage(pageToUpdate, oldPage, input.auditInfo);
 
         if (!updatedPage.isFolder() && updatedPage.isHomepage() && !oldPage.isHomepage()) {
             this.homepageDomainService.setPreviousHomepageToFalse(input.apiId, updatedPage.getId());
@@ -114,7 +111,8 @@ public class ApiUpdateDocumentationPageUseCase {
         AuditInfo auditInfo,
         Set<AccessControl> accessControls,
         Boolean excludedAccessControls,
-        Map<String, String> configuration
+        Map<String, String> configuration,
+        PageSource source
     ) {}
 
     public record Output(Page page) {}
