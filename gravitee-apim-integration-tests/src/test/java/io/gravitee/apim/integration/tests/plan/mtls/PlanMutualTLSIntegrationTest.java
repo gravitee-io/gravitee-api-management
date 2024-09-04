@@ -20,6 +20,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
 import static io.vertx.core.http.HttpMethod.GET;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -28,8 +30,11 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.integration.tests.plan.PlanHelper;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import io.gravitee.node.api.certificate.KeyStoreLoader;
@@ -54,7 +59,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLHandshakeException;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -63,6 +70,8 @@ import org.junit.jupiter.api.Test;
 @GatewayTest
 @DeployApi(value = { "/apis/plan/v4-proxy-api.json" })
 public class PlanMutualTLSIntegrationTest extends AbstractGatewayTest {
+
+    private SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
 
     @Override
     public void configurePolicies(final Map<String, PolicyPlugin> policies) {
@@ -102,6 +111,15 @@ public class PlanMutualTLSIntegrationTest extends AbstractGatewayTest {
     @Override
     protected void configureHttpClient(HttpClientOptions options) {
         options.setSsl(true).setTrustAll(true).setVerifyHost(false).setDefaultPort(gatewayPort());
+    }
+
+    @BeforeEach
+    void setUp() {
+        subscriptionTrustStoreLoaderManager = getBean(SubscriptionTrustStoreLoaderManager.class);
+        // Cheat to use the real SubscriptionTrustStoreLoaderManager instance with SubscriptionService mock
+        final SubscriptionCacheService subscriptionService = (SubscriptionCacheService) getBean(SubscriptionService.class);
+        when(subscriptionService.getByApiAndSecurityToken(any(), any(), any())).thenCallRealMethod();
+        ReflectionTestUtils.setField(subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
     }
 
     @Test
@@ -166,9 +184,10 @@ public class PlanMutualTLSIntegrationTest extends AbstractGatewayTest {
     @SneakyThrows
     Subscription aSubscription() {
         final Subscription subscription = new Subscription();
+        subscription.setApi("v4-proxy-api");
         subscription.setApplication("application-id");
         subscription.setId("subscription-id");
-        subscription.setPlan("plan-id");
+        subscription.setPlan(PlanHelper.PLAN_MTLS_ID);
         final String clientCertificate = Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
         subscription.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
         return subscription;
