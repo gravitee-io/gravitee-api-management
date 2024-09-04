@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.scoring.service_provider;
+package io.gravitee.apim.core.scoring.model;
 
-import io.gravitee.apim.core.scoring.model.ScoreRequest;
-import io.reactivex.rxjava3.core.Completable;
+import io.gravitee.apim.core.documentation.model.Page;
 
-public interface ScoringProvider {
-    Completable requestScore(ScoreRequest request);
+public enum ScoringAssetType {
+    ASYNCAPI,
+    GRAVITEE_DEFINITION,
+    SWAGGER;
+
+    public static ScoringAssetType fromPageType(Page.Type pageType) {
+        return switch (pageType) {
+            case SWAGGER -> ScoringAssetType.SWAGGER;
+            case ASYNCAPI -> ScoringAssetType.ASYNCAPI;
+            default -> throw new IllegalArgumentException("Unexpected value: " + pageType);
+        };
+    }
 }

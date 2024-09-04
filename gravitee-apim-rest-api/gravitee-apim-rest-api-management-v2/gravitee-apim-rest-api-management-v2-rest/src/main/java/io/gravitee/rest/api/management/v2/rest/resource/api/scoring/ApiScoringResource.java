@@ -54,7 +54,7 @@ public class ApiScoringResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
 
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(apiId, executionContext.getEnvironmentId(), executionContext.getOrganizationId()))
+            .execute(new ScoreApiRequestUseCase.Input(apiId, getAuditInfo()))
             .subscribe(
                 () -> response.resume(Response.accepted(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build()).build()),
                 response::resume

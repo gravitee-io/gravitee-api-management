@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.scoring.service_provider;
+package io.gravitee.apim.core.scoring.model;
 
-import io.gravitee.apim.core.scoring.model.ScoreRequest;
-import io.reactivex.rxjava3.core.Completable;
+import java.util.List;
 
-public interface ScoringProvider {
-    Completable requestScore(ScoreRequest request);
+public record ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
+    public record AssetToScore(ScoringAssetType assetType, String assetName, String content) {}
 }
