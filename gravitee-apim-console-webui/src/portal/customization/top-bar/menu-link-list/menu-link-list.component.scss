@@ -50,7 +50,14 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .mat-column-order {
   width: 1%;
-  vertical-align: bottom;
+}
+
+.mat-column-name {
+  width: 25%;
+}
+
+.mat-column-target {
+  word-break: break-all;
 }
 
 .mat-column-actions {
@@ -60,6 +67,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .drag-cursor {
   cursor: move;
+  display: table-cell;
 }
 
 .cdk-drag-preview {
