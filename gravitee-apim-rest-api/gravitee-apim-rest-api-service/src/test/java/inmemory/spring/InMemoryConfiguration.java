@@ -15,8 +15,6 @@
  */
 package inmemory.spring;
 
-import static org.mockito.Mockito.mock;
-
 import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCRDExportDomainServiceInMemory;
@@ -86,8 +84,6 @@ import inmemory.UpdateCategoryApiDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
-import io.gravitee.apim.core.portal_menu_link.crud_service.PortalMenuLinkCrudService;
-import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -446,5 +442,10 @@ public class InMemoryConfiguration {
         PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudServiceInMemory
     ) {
         return new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudServiceInMemory);
+    }
+
+    @Bean
+    public ScoringProviderInMemory scoringProvider() {
+        return new ScoringProviderInMemory();
     }
 }

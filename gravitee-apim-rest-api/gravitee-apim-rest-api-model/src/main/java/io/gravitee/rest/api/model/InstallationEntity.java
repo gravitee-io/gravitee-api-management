@@ -18,7 +18,11 @@ package io.gravitee.rest.api.model;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
+@Builder
+@AllArgsConstructor
 public class InstallationEntity {
 
     /**

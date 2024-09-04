@@ -15,9 +15,8 @@
  */
 package io.gravitee.apim.infra.scoring;
 
-import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommand;
@@ -30,7 +29,6 @@ import io.gravitee.scoring.api.model.asset.AssetType;
 import io.gravitee.scoring.api.model.asset.ContentType;
 import io.gravitee.scoring.api.model.asset.ScoreAsset;
 import io.reactivex.rxjava3.core.Completable;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -41,43 +39,38 @@ public class ScoringProviderImpl implements ScoringProvider {
 
     private final CockpitConnector cockpitConnector;
     private final InstallationService installationService;
-    private final ApiDocumentationDomainService apiDocumentationDomainService;
 
-    public ScoringProviderImpl(
-        @Lazy CockpitConnector cockpitConnector,
-        InstallationService installationService,
-        ApiDocumentationDomainService apiDocumentationDomainService
-    ) {
+    public ScoringProviderImpl(@Lazy CockpitConnector cockpitConnector, InstallationService installationService) {
         this.cockpitConnector = cockpitConnector;
         this.installationService = installationService;
-        this.apiDocumentationDomainService = apiDocumentationDomainService;
     }
 
     @Override
-    public Completable requestScore(String apiId, String organizationId, String environmentId) {
-        //Get OAS or Async API
-        List<Page> pages = apiDocumentationDomainService.getApiPages(apiId, null);
-        List<ScoreAsset> assets = pages
-            .stream()
-            .filter(page -> page.isAsyncApi() || page.isSwagger())
-            .map(page -> {
-                var assetType =
-                    switch (page.getType()) {
-                        case SWAGGER -> AssetType.OPEN_API;
-                        case ASYNCAPI -> AssetType.ASYNC_API;
-                        default -> throw new IllegalStateException("Unexpected value: " + page.getType());
-                    };
-                return new ScoreAsset(assetType, page.getName(), page.getContent(), extractContentType(page.getName()));
-            })
-            .toList();
-
+    public Completable requestScore(ScoreRequest request) {
         ScoringRequestCommand command = new ScoringRequestCommand(
             new ScoringRequestCommandPayload(
-                apiId,
-                environmentId,
-                organizationId,
+                request.jobId(),
+                request.organizationId(),
+                request.environmentId(),
                 installationService.get().getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID),
-                new ScoringRequest(assets)
+                new ScoringRequest(
+                    request
+                        .assets()
+                        .stream()
+                        .map(a ->
+                            new ScoreAsset(
+                                switch (a.assetType()) {
+                                    case SWAGGER -> AssetType.OPEN_API;
+                                    case ASYNCAPI -> AssetType.ASYNC_API;
+                                    case GRAVITEE_DEFINITION -> AssetType.GRAVITEE_API;
+                                },
+                                a.assetName(),
+                                a.content(),
+                                extractContentType(a.assetName())
+                            )
+                        )
+                        .toList()
+                )
             )
         );
 

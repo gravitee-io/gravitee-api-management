@@ -15,13 +15,28 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ScoringProviderInMemory implements ScoringProvider {
 
+    List<ScoreRequest> pendingRequests = new ArrayList<>();
+
     @Override
-    public Completable requestScore(String apiId, String organizationId, String environmentId) {
+    public Completable requestScore(ScoreRequest request) {
+        pendingRequests.add(request);
         return Completable.complete();
+    }
+
+    public void reset() {
+        pendingRequests.clear();
+    }
+
+    public List<ScoreRequest> pendingRequests() {
+        return Collections.unmodifiableList(pendingRequests);
     }
 }
