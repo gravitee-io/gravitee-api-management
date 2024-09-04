@@ -32,9 +32,9 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.scoring.api.model.ScoringRequest;
+import io.gravitee.scoring.api.model.asset.AssetToAnalyze;
 import io.gravitee.scoring.api.model.asset.AssetType;
 import io.gravitee.scoring.api.model.asset.ContentType;
-import io.gravitee.scoring.api.model.asset.ScoreAsset;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +106,9 @@ class ScoringProviderImplTest {
                         ORGANIZATION_ID,
                         ENVIRONMENT_ID,
                         INSTALLATION_ID,
-                        new ScoringRequest(List.of(new ScoreAsset(AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON)))
+                        new ScoringRequest(
+                            List.of(new AssetToAnalyze("page-id", AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON))
+                        )
                     )
                 );
         }
@@ -131,7 +133,7 @@ class ScoringProviderImplTest {
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
                 API_ID,
-                List.of(new ScoreRequest.AssetToScore(ScoringAssetType.SWAGGER, "echo-oas.json", "{}"))
+                List.of(new ScoreRequest.AssetToScore("page-id", ScoringAssetType.SWAGGER, "echo-oas.json", "{}"))
             );
         }
     }

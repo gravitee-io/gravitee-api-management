@@ -18,5 +18,5 @@ package io.gravitee.apim.core.scoring.model;
 import java.util.List;
 
 public record ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
-    public record AssetToScore(ScoringAssetType assetType, String assetName, String content) {}
+    public record AssetToScore(String assetId, ScoringAssetType assetType, String assetName, String content) {}
 }
