@@ -172,6 +172,7 @@ describe('SharedPolicyGroupStudioComponent', () => {
             name: 'Test policy',
             description: 'What does the 🦊 say?',
             condition: undefined,
+            messageCondition: undefined,
             configuration: undefined,
             enabled: true,
           },
