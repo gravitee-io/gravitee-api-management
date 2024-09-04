@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Component, OnInit, signal, inject, DestroyRef, ChangeDetectorRef } from '@angular/core';
+import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import {
   GioFormJsonSchemaModule,
@@ -151,7 +151,6 @@ export class DocumentationNewPageComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
     private readonly fetcherService: FetcherService,
-    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
