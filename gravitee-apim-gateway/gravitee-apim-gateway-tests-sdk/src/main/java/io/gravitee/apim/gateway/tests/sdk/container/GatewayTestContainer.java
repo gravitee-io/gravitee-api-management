@@ -21,6 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
@@ -172,7 +173,7 @@ public class GatewayTestContainer extends GatewayContainer {
 
         @Bean
         public SubscriptionService subscriptionService() {
-            return Mockito.mock(SubscriptionService.class);
+            return Mockito.mock(SubscriptionCacheService.class);
         }
 
         @Bean
