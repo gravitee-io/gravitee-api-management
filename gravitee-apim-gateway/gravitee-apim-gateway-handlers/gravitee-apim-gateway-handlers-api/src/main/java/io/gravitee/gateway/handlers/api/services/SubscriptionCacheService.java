@@ -15,11 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.services;
 
-import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.API_KEY;
-import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.CLIENT_ID;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
-import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -28,9 +25,7 @@ import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
-import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,13 +50,14 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
-        if (securityToken.getTokenType().equals(API_KEY.name())) {
-            return apiKeyService.getByApiAndKey(api, securityToken.getTokenValue()).flatMap(apiKey -> getById(apiKey.getSubscription()));
-        } else if (securityToken.getTokenType().equals(CLIENT_ID.name())) {
-            return getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
-        } else {
-            return Optional.empty();
-        }
+        return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
+            case API_KEY -> apiKeyService
+                .getByApiAndKey(api, securityToken.getTokenValue())
+                .flatMap(apiKey -> getById(apiKey.getSubscription()));
+            case CLIENT_ID -> getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
+            case CERTIFICATE -> subscriptionTrustStoreLoaderManager.getByCertificate(api, securityToken.getTokenValue(), plan);
+            default -> Optional.empty();
+        };
     }
 
     @Override
