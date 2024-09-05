@@ -17,25 +17,25 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ApiScoreService } from './api-score.service';
-import { fakeApiScoringTriggerResponse } from './api-score.fixture';
+import { ApiScoringService } from './api-scoring.service';
+import { fakeApiScoringTriggerResponse } from './api-scoring.fixture';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 
-describe('ApiScoreService', () => {
+describe('ApiScoringService', () => {
   const apiId = 'api-id';
   let httpTestingController: HttpTestingController;
-  let service: ApiScoreService;
+  let service: ApiScoringService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioTestingModule],
-      providers: [ApiScoreService],
+      providers: [ApiScoringService],
     });
-    service = TestBed.inject(ApiScoreService);
+    service = TestBed.inject(ApiScoringService);
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject<ApiScoreService>(ApiScoreService);
+    service = TestBed.inject<ApiScoringService>(ApiScoringService);
   });
 
   afterEach(() => {

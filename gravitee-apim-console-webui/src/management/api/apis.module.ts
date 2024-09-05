@@ -54,7 +54,7 @@ import { ApiRuntimeAlertsModule } from './runtime-alerts';
 import { ApiHistoryV4Module } from './history-v4/api-history-v4.module';
 import { ApiFailoverV4Module } from './failover-v4/api-failover-v4.module';
 import { ApiResourcesComponent } from './resources/api-resources.component';
-import { ApiScoreModule } from './api-score/api-score.module';
+import { ApiScoringModule } from './scoring/api-scoring.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 import { AlertsModule } from '../../components/alerts/alerts.module';
@@ -104,7 +104,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     DocumentationModule,
     GioPolicyStudioRoutingModule,
     ApiHistoryV4Module,
-    ApiScoreModule,
+    ApiScoringModule,
   ],
 })
 export class ApisModule {}

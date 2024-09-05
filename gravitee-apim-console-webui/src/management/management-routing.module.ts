@@ -93,6 +93,17 @@ const managementRoutes: Routes = [
           },
         },
       },
+
+      {
+        path: 'api-score',
+        loadChildren: () => import('./api-score/api-score.module').then((m) => m.ApiScoreModule),
+        data: {
+          permissions: {
+            anyOf: ['environment-integration-r'],
+          },
+        },
+      },
+
       {
         path: 'gateways/:instanceId',
         component: InstanceDetailsComponent,

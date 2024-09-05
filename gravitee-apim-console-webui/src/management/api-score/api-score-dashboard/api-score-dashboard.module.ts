@@ -16,43 +16,35 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { RouterLink } from '@angular/router';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { GioAvatarModule } from '@gravitee/ui-particles-angular';
+import { MatSortModule } from '@angular/material/sort';
 
-import { ApiScoreComponent } from './api-score.component';
-import { ApiScoreService } from './api-score.service';
-import { ApiScoreListComponent } from './api-score-list/api-score-list.component';
+import { ApiScoreDashboardComponent } from './api-score-dashboard.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.pipe';
 
 @NgModule({
-  declarations: [ApiScoreComponent, ApiScoreListComponent],
+  declarations: [ApiScoreDashboardComponent],
+  exports: [ApiScoreDashboardComponent],
   imports: [
     CommonModule,
     RouterLink,
-    MatCardModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatTableModule,
-    MatTooltip,
     GioPermissionModule,
     GioTableWrapperModule,
-    MapProviderNamePipe,
-    GioCardEmptyStateModule,
-    GioLoaderModule,
+    GioAvatarModule,
+    MatTableModule,
+    MatCardModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatIconModule,
+    MatSortModule,
   ],
-  providers: [ApiScoreService],
-  exports: [ApiScoreComponent],
 })
-export class ApiScoreModule {}
+export class ApiScoreDashboardModule {}

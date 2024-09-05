@@ -152,6 +152,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-instance-r'],
         category: 'Gateways',
       },
+      {
+        icon: 'gio:shield-check',
+        routerLink: './api-score',
+        displayName: 'API Score',
+        permissions: ['environment-integration-r'],
+        category: 'API Score',
+      },
     ];
 
     mainMenuItems.push(
