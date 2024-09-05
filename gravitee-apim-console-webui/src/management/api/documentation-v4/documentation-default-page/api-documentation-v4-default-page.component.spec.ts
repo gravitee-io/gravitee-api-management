@@ -20,11 +20,13 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { set } from 'lodash';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { By } from '@angular/platform-browser';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiDocumentationV4DefaultPageComponent } from './api-documentation-v4-default-page.component';
 
@@ -35,7 +37,6 @@ import { PageType } from '../../../../entities/page';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { ApiLifecycleState, Breadcrumb, fakeApiV4, fakeMarkdown, Page } from '../../../../entities/management-api-v2';
-import { ApiDocumentationV4DefaultPageHarness } from '../components/documentation-home-page-header/api-documentation-v4-home-page-header.harness';
 
 describe('ApiDocumentationV4DefaultPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4DefaultPageComponent>;
@@ -58,7 +59,7 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { params: { apiId: API_ID } },
+            params: of({ apiId: API_ID }),
             queryParams: new BehaviorSubject({ parentId }),
           },
         },
@@ -120,11 +121,10 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
     });
 
     it('should navigate to create page', async () => {
-      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4DefaultPageHarness);
-      const createNewPageBtn = await headerHarness.getCreateNewPageButton();
+      const createNewPageBtn = await getCreateNewPageButton();
       expect(createNewPageBtn).toBeDefined();
       expect(await createNewPageBtn.isDisabled()).toEqual(false);
-      await headerHarness.clickCreateNewPage(PageType.MARKDOWN);
+      await createNewPage(PageType.MARKDOWN);
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'homepage', 'new'], {
         relativeTo: expect.anything(),
@@ -151,6 +151,16 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
       expect(pageListComponent.pages[0].id).toBe('page-1');
     });
   });
+
+  async function getCreateNewPageButton(): Promise<MatButtonHarness> {
+    return await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Create New Page' }));
+  }
+
+  async function createNewPage(pageType: PageType) {
+    await getCreateNewPageButton().then((btn) => btn.click());
+    const pageTypeMenu = await harnessLoader.getHarness(MatMenuHarness);
+    return await pageTypeMenu.clickItem({ text: new RegExp(pageType, 'i') });
+  }
 
   const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[]) => {
     const req = httpTestingController.expectOne({

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject, of, combineLatest, EMPTY, BehaviorSubject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { ApiDocumentationPageResult, ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Page, PageType } from '../../../../entities/management-api-v2';
@@ -35,8 +35,10 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
   parentId: string;
   pages: Page[];
   homepage: Page;
-  isLoading = false;
   isReadOnly = false;
+  data$: Observable<{ homepage?: Page; hasCustomPages: boolean }> = of();
+
+  private refreshPages = new BehaviorSubject(1);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -48,26 +50,18 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
   ) {}
 
   ngOnInit() {
-    this.isLoading = true;
-
-    this.apiV2Service
-      .get(this.activatedRoute.snapshot.params.apiId)
-      .pipe(
-        tap((api) => {
-          this.api = api;
-          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
-        }),
-        switchMap(() => this.activatedRoute.queryParams),
-        switchMap(() => {
-          return this.apiDocumentationV2Service.getApiPages(this.api.id);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe((res) => {
-        this.pages = res.pages;
-        this.homepage = this.pages.find((p) => p.homepage === true);
-        this.isLoading = false;
-      });
+    this.data$ = this.activatedRoute.params.pipe(
+      switchMap(({ apiId }) => (apiId ? combineLatest([this.apiV2Service.get(apiId), this.getApiPages(apiId)]) : EMPTY)),
+      map(([api, pagesResponse]) => {
+        this.api = api;
+        this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+        return {
+          hasCustomPages: !!pagesResponse.pages.filter((p) => !p.homepage).length,
+          homepage: pagesResponse.pages.find((p) => p.homepage === true),
+        };
+      }),
+      catchError(() => of({ hasCustomPages: false })),
+    );
   }
 
   ngOnDestroy() {
@@ -106,7 +100,7 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
       .subscribe({
         next: (_) => {
           this.snackBarService.success('Page published successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while publishing page');
@@ -132,7 +126,7 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
       .subscribe({
         next: (_) => {
           this.snackBarService.success('Page unpublished successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while unpublishing page');
@@ -158,7 +152,7 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
       .subscribe({
         next: (_) => {
           this.snackBarService.success('Homepage deleted successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error when deleting homepage');
@@ -170,5 +164,9 @@ export class ApiDocumentationV4DefaultPageComponent implements OnInit, OnDestroy
     this.router.navigate(['.', 'homepage', 'choose'], {
       relativeTo: this.activatedRoute,
     });
+  }
+
+  private getApiPages(apiId: string): Observable<ApiDocumentationPageResult> {
+    return this.refreshPages.pipe(switchMap((_) => this.apiDocumentationV2Service.getApiPages(apiId)));
   }
 }
