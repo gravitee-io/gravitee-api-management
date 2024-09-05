@@ -1106,14 +1106,13 @@ public class ApiServiceImplTest {
     public void shouldDeployApi() throws TechnicalException {
         final Event previousPublishedEvent = new Event();
         previousPublishedEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "3"));
-
         when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(api)).thenReturn(api);
         when(
             eventLatestRepository.search(
                 any(EventCriteria.class),
-                eq(io.gravitee.repository.management.model.Event.EventProperties.API_ID),
+                eq(Event.EventProperties.DEPLOYMENT_NUMBER),
                 eq(0L),
                 eq(1L)
             )
