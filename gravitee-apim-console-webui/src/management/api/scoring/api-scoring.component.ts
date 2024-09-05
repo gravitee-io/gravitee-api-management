@@ -19,39 +19,39 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest } from 'rxjs';
 
-import { ApiScore } from './api-score.model';
-import { ApiScoreService } from './api-score.service';
+import { ApiScoring } from './api-scoring.model';
+import { ApiScoringService } from './api-scoring.service';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
 
 @Component({
-  selector: 'app-api-score',
-  templateUrl: './api-score.component.html',
-  styleUrl: './api-score.component.scss',
+  selector: 'app-api-scoring',
+  templateUrl: './api-scoring.component.html',
+  styleUrl: './api-scoring.component.scss',
 })
-export class ApiScoreComponent implements OnInit {
+export class ApiScoringComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   private apiId = this.activatedRoute.snapshot.params.apiId;
 
   public status = 'all';
   public isLoading = true;
-  public apiScore: ApiScore;
+  public apiScoring: ApiScoring;
   public api: Api;
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
-    private readonly apiScoreService: ApiScoreService,
+    private readonly apiScoringService: ApiScoringService,
   ) {}
 
   ngOnInit() {
-    combineLatest([this.apiService.get(this.apiId), this.apiScoreService.getApiScoring(this.apiId)])
+    combineLatest([this.apiService.get(this.apiId), this.apiScoringService.getApiScoring(this.apiId)])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ([api, apiScore]) => {
+        next: ([api, apiScoring]) => {
           this.api = api;
-          this.apiScore = apiScore;
+          this.apiScoring = apiScoring;
 
           this.isLoading = false;
         },
@@ -59,6 +59,6 @@ export class ApiScoreComponent implements OnInit {
   }
 
   public evaluate() {
-    this.apiScoreService.evaluate(this.api.id).subscribe();
+    this.apiScoringService.evaluate(this.api.id).subscribe();
   }
 }

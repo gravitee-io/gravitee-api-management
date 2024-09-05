@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiScore, ApiScoringTriggerResponse, ScoringAssetType, ScoringSeverity, ScoringStatus } from './api-score.model';
+import { ApiScoring, ApiScoringTriggerResponse, ScoringAssetType, ScoringSeverity, ScoringStatus } from './api-scoring.model';
 
 export const fakeApiScoringTriggerResponse = (attributes?: Partial<ApiScoringTriggerResponse>) => {
   const base: ApiScoringTriggerResponse = {
@@ -27,8 +27,8 @@ export const fakeApiScoringTriggerResponse = (attributes?: Partial<ApiScoringTri
   };
 };
 
-export const fakeApiScore = (attributes?: Partial<ApiScore>) => {
-  const base: ApiScore = {
+export const fakeApiScoring = (attributes?: Partial<ApiScoring>) => {
+  const base: ApiScoring = {
     all: 1,
     errors: 0,
     warnings: 1,

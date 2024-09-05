@@ -146,7 +146,6 @@ export class DiscoveryPreviewComponent implements OnInit {
   }
 
   public runFilters(filters: GioTableWrapperFilters): void {
-    this.filters = { ...this.filters, ...filters };
     const filtered = gioTableFilterCollection(this.apiToIngest(), filters);
     this.apisFiltered = filtered.filteredCollection;
     this.nbTotalInstances = filtered.unpaginatedLength;

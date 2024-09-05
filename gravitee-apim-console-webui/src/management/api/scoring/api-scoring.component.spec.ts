@@ -21,25 +21,25 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiScoreComponent } from './api-score.component';
-import { ApiScoreHarness } from './api-score.harness';
-import { ApiScoreModule } from './api-score.module';
-import { fakeApiScore, fakeApiScoringTriggerResponse } from './api-score.fixture';
+import { ApiScoringComponent } from './api-scoring.component';
+import { ApiScoringHarness } from './api-scoring.harness';
+import { ApiScoringModule } from './api-scoring.module';
+import { fakeApiScoring, fakeApiScoringTriggerResponse } from './api-scoring.fixture';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
 
-describe('ApiScoreComponent', () => {
+describe('ApiScoringComponent', () => {
   const API_ID = 'api-id';
 
-  let fixture: ComponentFixture<ApiScoreComponent>;
-  let componentHarness: ApiScoreHarness;
+  let fixture: ComponentFixture<ApiScoringComponent>;
+  let componentHarness: ApiScoringHarness;
   let httpTestingController: HttpTestingController;
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      declarations: [ApiScoreComponent],
-      imports: [ApiScoreModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
+      declarations: [ApiScoringComponent],
+      imports: [ApiScoringModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -59,16 +59,16 @@ describe('ApiScoreComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(ApiScoreComponent);
+    fixture = TestBed.createComponent(ApiScoringComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoreHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoringHarness);
 
     expectApiGetRequest(API_ID);
     expectApiScoreGetRequest(API_ID);
     fixture.detectChanges();
   };
 
-  describe('ApiScoreComponent', () => {
+  describe('ApiScoringComponent', () => {
     describe('evaluate', () => {
       beforeEach(() => init());
 
@@ -95,7 +95,7 @@ describe('ApiScoreComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/scoring`,
         method: 'GET',
       })
-      .flush(fakeApiScore());
+      .flush(fakeApiScoring());
   }
 
   function expectApiScorePostRequest(apiId: string) {

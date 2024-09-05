@@ -18,19 +18,19 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ApiScore, ApiScoringTriggerResponse } from './api-score.model';
+import { ApiScoring, ApiScoringTriggerResponse } from './api-scoring.model';
 
 import { Constants } from '../../../entities/Constants';
 
 @Injectable()
-export class ApiScoreService {
+export class ApiScoringService {
   constructor(
     private readonly httpClient: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public getApiScoring(apiId: string): Observable<ApiScore> {
-    return this.httpClient.get<ApiScore>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring`);
+  public getApiScoring(apiId: string): Observable<ApiScoring> {
+    return this.httpClient.get<ApiScoring>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring`);
   }
 
   public evaluate(apiId: string): Observable<ApiScoringTriggerResponse> {

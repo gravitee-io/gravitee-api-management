@@ -83,7 +83,7 @@ import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 import { ApiImportV4Component } from './import-v4/api-import-v4.component';
 import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
-import { ApiScoreComponent } from './api-score/api-score.component';
+import { ApiScoringComponent } from './scoring/api-scoring.component';
 import { ApiDocumentationV4MainPagesTabComponent } from './documentation-v4/main-pages-tab/api-documentation-v4-main-pages-tab.component';
 import { DocumentationEditCustomPageComponent } from './documentation-v4/documentation-pages-tab/documentation-edit-custom-page/documentation-edit-custom-page.component';
 import { DocumentationEditHomepageComponent } from './documentation-v4/main-pages-tab/documentation-edit-homepage/documentation-edit-homepage.component';
@@ -298,7 +298,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'api-score',
-        component: ApiScoreComponent,
+        component: ApiScoringComponent,
       },
       {
         path: 'metadata',

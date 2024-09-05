@@ -25,14 +25,14 @@
     <mat-card-header class="card-header">
       <mat-card-title>
         {{ api.name }}
-        @if (apiScore.all) {
+        @if (apiScoring.all) {
           <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>90%</span>
           <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>
         }
       </mat-card-title>
 
-      @if (apiScore.createdAt) {
-        <mat-card-subtitle> Last evaluated at {{ apiScore.createdAt }}</mat-card-subtitle>
+      @if (apiScoring.createdAt) {
+        <mat-card-subtitle> Last evaluated at {{ apiScoring.createdAt }}</mat-card-subtitle>
       }
 
       <div class="card-header__actions">
@@ -43,28 +43,28 @@
     <div class="separator-hr"></div>
 
     <mat-card-content class="card-content">
-      @if (apiScore.all !== 0) {
+      @if (apiScoring.all !== 0) {
         <section>
           <mat-button-toggle-group class="gio-button-toggle-group" name="status" aria-label="" [value]="status">
-            <mat-button-toggle value="all">All ({{ apiScore.all }})</mat-button-toggle>
-            <mat-button-toggle value="errors">Errors ({{ apiScore.errors }})</mat-button-toggle>
-            <mat-button-toggle value="warnings">Warnings ({{ apiScore.warnings }})</mat-button-toggle>
-            <mat-button-toggle value="infos">Infos ({{ apiScore.infos }})</mat-button-toggle>
-            <mat-button-toggle value="hints">Hints ({{ apiScore.hints }})</mat-button-toggle>
+            <mat-button-toggle value="all">All ({{ apiScoring.all }})</mat-button-toggle>
+            <mat-button-toggle value="errors">Errors ({{ apiScoring.errors }})</mat-button-toggle>
+            <mat-button-toggle value="warnings">Warnings ({{ apiScoring.warnings }})</mat-button-toggle>
+            <mat-button-toggle value="infos">Infos ({{ apiScoring.infos }})</mat-button-toggle>
+            <mat-button-toggle value="hints">Hints ({{ apiScoring.hints }})</mat-button-toggle>
           </mat-button-toggle-group>
         </section>
       }
 
       <section class="api-scores-lists">
-        @if (apiScore.all === 0) {
+        @if (apiScoring.all === 0) {
           <gio-card-empty-state
             icon="rocket"
             title="All clear"
             [subtitle]="'There is no recommendations or issues for your API. \n Everything looks great!'"
           ></gio-card-empty-state>
         }
-        @for (asset of apiScore.assets; track asset.name) {
-          <app-api-score-list [asset]="asset"></app-api-score-list>
+        @for (asset of apiScoring.assets; track asset.name) {
+          <app-api-scoring-list [asset]="asset"></app-api-scoring-list>
         }
       </section>
     </mat-card-content>

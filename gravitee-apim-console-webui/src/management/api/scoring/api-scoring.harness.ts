@@ -18,8 +18,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatAccordionHarness } from '@angular/material/expansion/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-export class ApiScoreHarness extends ComponentHarness {
-  public static readonly hostSelector = 'app-api-score';
+export class ApiScoringHarness extends ComponentHarness {
+  public static readonly hostSelector = 'app-api-scoring';
 
   private evaluateButtonLocator = this.locatorFor("[data-testid='evaluate-button']");
   private accordionLocator = this.locatorForAll(MatAccordionHarness);

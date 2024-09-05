@@ -36,7 +36,7 @@ export enum ScoringSeverity {
   WARN = 'WARN',
 }
 
-export interface ApiScore {
+export interface ApiScoring {
   all: number;
   errors: number;
   warnings: number;

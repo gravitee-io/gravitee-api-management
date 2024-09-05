@@ -15,16 +15,16 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 
-import { ScoringAsset, ScoringDiagnostic } from '../api-score.model';
+import { ScoringAsset, ScoringDiagnostic } from '../api-scoring.model';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 @Component({
-  selector: 'app-api-score-list',
-  templateUrl: './api-score-list.component.html',
-  styleUrl: './api-score-list.component.scss',
+  selector: 'app-api-scoring-list',
+  templateUrl: './api-scoring-list.component.html',
+  styleUrl: './api-scoring-list.component.scss',
 })
-export class ApiScoreListComponent implements OnInit {
+export class ApiScoringListComponent implements OnInit {
   @Input() asset: ScoringAsset;
   public displayedColumns: string[] = ['severity', 'location', 'recommendation', 'path'];
   public diagnosticsFiltered: ScoringDiagnostic[] = [];

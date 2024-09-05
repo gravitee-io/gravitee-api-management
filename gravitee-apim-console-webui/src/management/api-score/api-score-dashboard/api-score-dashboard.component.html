@@ -1,0 +1,205 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="api-score-dashboard-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">API Score</h1>
+      <span class="description"
+        >Connect to third-party API gateways and event brokers to create a unified control plane and API portal with Gravitee</span
+      >
+    </div>
+
+    <div class="page-header__actions">
+      <button [disabled]="true" mat-raised-button color="primary" data-testid="evaluate-button" routerLink="">Evaluate</button>
+    </div>
+  </div>
+
+  <!--  Overview -->
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Overview</mat-card-title>
+      <mat-card-subtitle>Last evaluated 1 minute ago.</mat-card-subtitle>
+    </mat-card-header>
+
+    <div class="separator-hr"></div>
+
+    <mat-card-content class="overview-cards">
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title class="card__title">
+            @if (overviewData.overviewScore.averageScore > 70) {
+              <span class="average-score-badge gio-badge-success"
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.overviewScore.averageScore }} %
+              </span>
+            } @else if (overviewData.overviewScore.averageScore > 50) {
+              <span class="average-score-badge gio-badge-warning"
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.overviewScore.averageScore }} %
+              </span>
+            } @else if (overviewData.overviewScore.averageScore > 0) {
+              <span class="average-score-badge gio-badge-error"
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ overviewData.overviewScore.averageScore }} %
+              </span>
+            } @else {
+              <span class="gio-badge-neutral">Not available</span>
+            }
+          </mat-card-title>
+          <mat-card-subtitle> Average score </mat-card-subtitle>
+        </mat-card-header>
+      </mat-card>
+
+      @for (statistic of overviewData.overviewStatistics; track statistic.name) {
+        <mat-card class="card">
+          <mat-card-header>
+            <mat-card-title class="card__title">
+              {{ statistic.count }}
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ statistic.name }}
+            </mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- List of APIs  -->
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>APIs</mat-card-title>
+    </mat-card-header>
+
+    <gio-table-wrapper [disableSearchInput]="false" [length]="nbTotalInstances" [filters]="filters" (filtersChange)="runFilters($event)">
+      <table mat-table matSort [dataSource]="filtered" aria-label="APIs scores table">
+        <caption style="display: none">
+          Table with APIs scores table.
+        </caption>
+
+        <ng-container matColumnDef="picture">
+          <th mat-header-cell *matHeaderCellDef id="picture"></th>
+          <td mat-cell *matCellDef="let element">
+            <gio-avatar [src]="element.picture" [size]="32" [roundedBorder]="true"></gio-avatar>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>API Name</th>
+          <td mat-cell *matCellDef="let element">
+            <a>{{ element.name }}</a>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="score">
+          <th mat-header-cell *matHeaderCellDef id="score" mat-sort-header>Score</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.score > 70) {
+              <span class="gio-badge-success"
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score }} %
+              </span>
+            } @else if (element.score > 50) {
+              <span class="gio-badge-warning"
+                ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score }} %
+              </span>
+            } @else if (element.score > 0) {
+              <span class="gio-badge-error"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ element.score }} % </span>
+            } @else {
+              <span class="gio-badge-neutral">Not available</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="errors">
+          <th mat-header-cell *matHeaderCellDef id="errors" mat-sort-header>Errors</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.errors === -1) {
+              <span class="gio-badge-neutral">Not available</span>
+            } @else if (element.errors === 0) {
+              <span class="gio-badge-neutral">{{ element.errors }}</span>
+            } @else {
+              <span class="gio-badge-success">{{ element.errors }}</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="warnings">
+          <th mat-header-cell *matHeaderCellDef id="warnings" mat-sort-header>Warnings</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.warnings === -1) {
+              <span class="gio-badge-neutral">Not available</span>
+            } @else if (element.warnings === 0) {
+              <span class="gio-badge-neutral">{{ element.warnings }}</span>
+            } @else {
+              <span class="gio-badge-success">{{ element.warnings }}</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="infos">
+          <th mat-header-cell *matHeaderCellDef id="infos" mat-sort-header>Infos</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.infos === -1) {
+              <span class="gio-badge-neutral">Not available</span>
+            } @else if (element.infos === 0) {
+              <span class="gio-badge-neutral">{{ element.infos }}</span>
+            } @else {
+              <span class="gio-badge-success">{{ element.infos }}</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="hints">
+          <th mat-header-cell *matHeaderCellDef id="hints" mat-sort-header>Hints</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.hints === -1) {
+              <span class="gio-badge-neutral">Not available</span>
+            } @else if (element.hints === 0) {
+              <span class="gio-badge-neutral">{{ element.hints }}</span>
+            } @else {
+              <span class="gio-badge-success">{{ element.hints }}</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef id="actions"></th>
+          <td mat-cell *matCellDef="let element">
+            <div class="actions">
+              <button mat-button aria-label="View details button" [disabled]="true">
+                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <!-- Row shown when there is loading or no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            @if (isLoading) {
+              <div class="mat-body">Loading...</div>
+            } @else {
+              <div class="mat-body">No items to display</div>
+            }
+          </td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </mat-card>
+</div>
