@@ -61,6 +61,7 @@ export interface ApplicationOwnerLinks {
 export interface ApplicationSettings {
   oauth?: ApplicationSettingsOAuth;
   app?: ApplicationSettingsApp;
+  tls?: ApplicationSettingsTls;
 }
 
 export interface ApplicationSettingsApp {
@@ -75,6 +76,10 @@ export interface ApplicationSettingsOAuth {
   renew_client_secret_supported: boolean;
   response_types: string[];
   grant_types: string[];
+}
+
+export interface ApplicationSettingsTls {
+  client_certificate: string;
 }
 
 export interface ApplicationLinks {

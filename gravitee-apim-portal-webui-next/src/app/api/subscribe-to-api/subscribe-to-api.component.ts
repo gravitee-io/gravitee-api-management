@@ -310,6 +310,23 @@ export class SubscribeToApiComponent implements OnInit {
           disabledMessage: 'Missing Client ID',
         };
       }
+
+      if (this.existingValidMtlsSubscription(application, subscriptions)) {
+        return {
+          ...application,
+          disabled: true,
+          disabledMessage: 'Already subscribed to a mTLS plan for this API',
+        };
+      }
+
+      if (this.missingTlsClientCertificate(application)) {
+        return {
+          ...application,
+          disabled: true,
+          disabledMessage: 'Missing TLS Client Certificate',
+        };
+      }
+
       return { ...application };
     });
   }
@@ -351,6 +368,22 @@ export class SubscribeToApiComponent implements OnInit {
 
   private missingClientId(application: Application): boolean {
     return (this.currentPlan()?.security === 'OAUTH2' || this.currentPlan()?.security === 'JWT') && application.hasClientId !== true;
+  }
+
+  private existingValidMtlsSubscription(application: Application, allValidApiSubscriptionsResponse: SubscriptionsResponse): boolean {
+    if (this.currentPlan()?.security !== 'MTLS') {
+      return false;
+    }
+    return allValidApiSubscriptionsResponse.data.some(
+      s =>
+        s.application === application.id &&
+        (s.status === 'ACCEPTED' || s.status === 'PENDING' || s.status === 'PAUSED') &&
+        allValidApiSubscriptionsResponse.metadata[s.plan]?.securityType === 'MTLS',
+    );
+  }
+
+  private missingTlsClientCertificate(application: Application): boolean {
+    return this.currentPlan()?.security === 'MTLS' && !application.settings?.tls?.client_certificate;
   }
 
   private handleCheckoutData$(api: Api): Observable<CheckoutData> {

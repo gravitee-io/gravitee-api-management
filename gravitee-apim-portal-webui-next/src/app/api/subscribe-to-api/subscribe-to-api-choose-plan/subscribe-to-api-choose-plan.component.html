@@ -22,7 +22,13 @@
       [id]="plan.id"
       [plan]="plan"
       [selected]="selectedPlanId() === plan.id"
-      [disabled]="plan.security !== 'KEY_LESS' && plan.security !== 'API_KEY' && plan.security !== 'OAUTH2' && plan.security !== 'JWT'"
+      [disabled]="
+        plan.security !== 'KEY_LESS' &&
+        plan.security !== 'API_KEY' &&
+        plan.security !== 'OAUTH2' &&
+        plan.security !== 'JWT' &&
+        plan.security !== 'MTLS'
+      "
       (selectPlan)="selectPlan.emit(plan)"></app-plan-card>
   }
 </div>
