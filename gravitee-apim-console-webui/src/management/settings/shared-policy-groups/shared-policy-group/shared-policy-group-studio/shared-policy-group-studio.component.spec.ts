@@ -233,6 +233,46 @@ describe('SharedPolicyGroupStudioComponent', () => {
     expectSharedPolicyGroup();
   });
 
+  it('should keep unsaved step modification even after deploy', async () => {
+    expectSharedPolicyGroup({ lifecycleState: 'DEPLOYED' });
+    expectGetPolicies();
+
+    // Add a step
+    const studio = await componentHarness.getPolicyGroupStudio();
+    const phaseToAdd = await studio.getPolicyGroupPhase();
+    await phaseToAdd.addStep(0, {
+      policyName: fakePolicyPlugin().name,
+      description: 'What does the 🦊 say?',
+      waitForInitHttpRequestCompletionCb: async () => {
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/schema`).flush({});
+        httpTestingController
+          .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation`)
+          .flush('');
+      },
+    });
+
+    // Click on deploy and expect deploy request
+    const undeployButton = await componentHarness.getUndeployButton();
+    await undeployButton.click();
+    expectUndeploySharedPolicyGroupRequest(httpTestingController, SHARED_POLICY_GROUP_ID);
+    expectSharedPolicyGroup();
+
+    // Expect save button to be enabled and check that the step is still there
+    const saveButton = await componentHarness.getSaveButton();
+    expect(await saveButton.isDisabled()).toEqual(false);
+    const phase = await studio.getPolicyGroupPhase();
+    expect(await phase.getSteps()).toStrictEqual(
+      expect.arrayContaining([
+        {
+          description: 'What does the 🦊 say?',
+          hasCondition: false,
+          name: 'Test policy',
+          type: 'step',
+        },
+      ]),
+    );
+  });
+
   function expectSharedPolicyGroup(modifier?: Partial<SharedPolicyGroup> | ((base: SharedPolicyGroup) => SharedPolicyGroup)) {
     expectGetSharedPolicyGroupRequest(
       httpTestingController,
