@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
@@ -22,6 +24,7 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.ApiCRDEntityAdapter;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiCRDEntity.Member;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
@@ -48,9 +51,16 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
     @Inject
     private ValidateCRDMembersDomainService validateCRDMembersDomainService;
 
+    @Inject
+    private VerifyApiPathDomainService apiPathValidator;
+
     @Override
     public ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
         List<Validator.Error> errors = new ArrayList<>();
+
+        apiPathValidator
+            .validateAndSanitize(new VerifyApiPathDomainService.Input(executionContext.getEnvironmentId(), api.getId(), extractPaths(api)))
+            .peek(sanitized -> api.getProxy().setVirtualHosts(mapPaths(sanitized.paths())), errors::addAll);
 
         validateCategoryIdsDomainService
             .validateAndSanitize(new ValidateCategoryIdsDomainService.Input(executionContext.getEnvironmentId(), api.getCategories()))
@@ -82,5 +92,18 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         }
 
         return new ApiValidationResult<>(api, severe, warning);
+    }
+
+    private static List<Path> extractPaths(ApiCRDEntity api) {
+        return api
+            .getProxy()
+            .getVirtualHosts()
+            .stream()
+            .map(vh -> Path.builder().host(vh.getHost()).path(vh.getPath()).overrideAccess(vh.isOverrideEntrypoint()).build())
+            .toList();
+    }
+
+    private static List<VirtualHost> mapPaths(List<Path> paths) {
+        return paths.stream().map(path -> new VirtualHost(path.getHost(), path.getPath(), path.isOverrideAccess())).toList();
     }
 }
