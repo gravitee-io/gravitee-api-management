@@ -23,7 +23,7 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
@@ -34,7 +34,7 @@ import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentatio
 import { ApiDocumentationV4PagesListHarness } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
+import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4, ApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PageType } from '../../../entities/page';
 import { Constants } from '../../../entities/Constants';
@@ -60,7 +60,7 @@ describe('ApiDocumentationV4', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { params: { apiId: API_ID } },
+            params: of({ apiId: API_ID }),
             queryParams: new BehaviorSubject({ parentId }),
           },
         },
@@ -98,13 +98,7 @@ describe('ApiDocumentationV4', () => {
 
     fixture.detectChanges();
 
-    httpTestingController
-      .expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
-      })
-      .flush(fakeApiV4({ id: API_ID, lifecycleState: apiLifecycleStatus }));
-
+    expectGetApi(fakeApiV4({ id: API_ID, lifecycleState: apiLifecycleStatus }));
     expectGetPages(pages, breadcrumb, parentId);
   };
 
@@ -307,7 +301,6 @@ describe('ApiDocumentationV4', () => {
         })
         .flush(page);
 
-      expectGetApi();
       expectGetPages([page], []);
     });
     it('should create new folder under the current folder', async () => {
@@ -342,7 +335,6 @@ describe('ApiDocumentationV4', () => {
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
         })
         .flush(page);
-      expectGetApi();
       expectGetPages([page], [], 'parent-folder-id');
     });
 
@@ -374,7 +366,6 @@ describe('ApiDocumentationV4', () => {
         name: 'folder',
         visibility: 'PRIVATE',
       });
-      expectGetApi();
       expectGetPages([page], []);
     });
 
@@ -396,7 +387,6 @@ describe('ApiDocumentationV4', () => {
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${ID}/_publish`,
         })
         .flush({ ...PAGE, published: true });
-      expectGetApi();
       expectGetPages([{ ...PAGE, published: true }], []);
     });
 
@@ -435,7 +425,6 @@ describe('ApiDocumentationV4', () => {
       });
       req.flush(firstPage);
 
-      expectGetApi();
       expectGetPages([firstPage, secondPage], []);
     });
 
@@ -458,7 +447,6 @@ describe('ApiDocumentationV4', () => {
         })
         .flush({ ...PAGE, published: false });
 
-      expectGetApi();
       expectGetPages([{ ...PAGE, published: false }], []);
     });
 
@@ -504,7 +492,6 @@ describe('ApiDocumentationV4', () => {
       });
       req.flush(secondPage);
 
-      expectGetApi();
       expectGetPages([firstPage, secondPage], []);
     });
 
@@ -528,7 +515,6 @@ describe('ApiDocumentationV4', () => {
         })
         .flush(null);
 
-      expectGetApi();
       expectGetPages([], []);
     });
   });
@@ -542,12 +528,12 @@ describe('ApiDocumentationV4', () => {
     req.flush({ pages, breadcrumb });
   };
 
-  const expectGetApi = () => {
+  const expectGetApi = (api: ApiV4) => {
     httpTestingController
       .expectOne({
         method: 'GET',
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       })
-      .flush(fakeApiV4({ id: API_ID, lifecycleState: 'PUBLISHED' }));
+      .flush(api);
   };
 });

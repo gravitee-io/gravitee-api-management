@@ -7,3 +7,19 @@ $typography: map.get(gio.$mat-theme, typography);
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
+
+.api-documentation-list {
+  &__header {
+    border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    height: 60px;
+  }
+
+  &__content {
+    &__empty {
+      height: 310px;
+    }
+  }
+}

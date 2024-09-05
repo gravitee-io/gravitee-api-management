@@ -16,36 +16,42 @@
 
 -->
 <mat-card>
-  <api-documentation-list-navigation-header
-    [breadcrumbs]="breadcrumbs || []"
-    [isReadOnly]="isReadOnly"
-    [hasPages]="pages && pages.length > 0"
-    (addFolder)="addFolder()"
-    (addPage)="addPage($event)"
-    (onNavigateTo)="navigateTo($event)"
-  ></api-documentation-list-navigation-header>
-  <api-documentation-v4-pages-list
-    *ngIf="pages && pages.length > 0; else emptyState"
-    mode="PAGE_LIST"
-    [pages]="pages"
-    [isReadOnly]="isReadOnly"
-    (onGoToFolder)="navigateTo($event)"
-    (onEditPage)="editPage($event)"
-    (onEditFolder)="editFolder($event)"
-    (onPublishPage)="publishPage($event)"
-    (onUnpublishPage)="unpublishPage($event)"
-    (onDeletePage)="deletePage($event)"
-    (onMoveUp)="moveUp($event)"
-    (onMoveDown)="moveDown($event)"
-  ></api-documentation-v4-pages-list>
-  <ng-template #emptyState>
-    <api-documentation-empty-state
-      emptyPageTitle="No pages available yet"
-      emptyPageMessage="Start creating pages to fill up your folder."
-      showAddPageButton="true"
-      *ngIf="!isLoading"
+  @if (data$ | async; as data) {
+    <api-documentation-list-navigation-header
+      [breadcrumbs]="data.breadcrumbs"
       [isReadOnly]="isReadOnly"
+      [hasPages]="data.pages.length > 0"
+      (addFolder)="addFolder()"
       (addPage)="addPage($event)"
-    ></api-documentation-empty-state>
-  </ng-template>
+      (onNavigateTo)="navigateTo($event)"
+    />
+    @if (data.pages.length) {
+      <api-documentation-v4-pages-list
+        mode="PAGE_LIST"
+        [pages]="data.pages"
+        [isReadOnly]="isReadOnly"
+        (onGoToFolder)="navigateTo($event)"
+        (onEditPage)="editPage($event)"
+        (onEditFolder)="editFolder($event)"
+        (onPublishPage)="publishPage($event)"
+        (onUnpublishPage)="unpublishPage($event)"
+        (onDeletePage)="deletePage($event)"
+        (onMoveUp)="moveUp($event)"
+        (onMoveDown)="moveDown($event)"
+      />
+    } @else {
+      <api-documentation-empty-state
+        emptyPageTitle="No pages available yet"
+        emptyPageMessage="Start creating pages to fill up your folder."
+        showAddPageButton="true"
+        [isReadOnly]="isReadOnly"
+        (addPage)="addPage($event)"
+      />
+    }
+  } @else {
+    <div class="api-documentation-list__header">
+      <api-documentation-breadcrumb (onNavigateTo)="navigateTo($event)" [breadcrumbs]="[]" />
+    </div>
+    <div class="api-documentation-list__content__empty"></div>
+  }
 </mat-card>

@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, computed, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject, of, combineLatest, EMPTY, BehaviorSubject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import {
   ApiDocumentationV4EditFolderDialog,
   ApiDocumentationV4EditFolderDialogData,
 } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 
-import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
+import { ApiDocumentationPageResult, ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, PageType, EditDocumentationFolder, Breadcrumb, Page, CreateDocumentationFolder } from '../../../entities/management-api-v2';
+
+interface ApiDocumentationV4ListData {
+  pages: Page[];
+  breadcrumbs: Breadcrumb[];
+}
 
 @Component({
   selector: 'api-documentation-v4',
@@ -37,13 +43,20 @@ import { Api, PageType, EditDocumentationFolder, Breadcrumb, Page, CreateDocumen
   styleUrls: ['./api-documentation-v4.component.scss'],
 })
 export class ApiDocumentationV4Component implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
   api: Api;
-  parentId: string;
-  pages: Page[];
-  breadcrumbs: Breadcrumb[];
-  isLoading = false;
   isReadOnly = false;
+  data$: Observable<ApiDocumentationV4ListData> = of();
+
+  private parentId: string;
+  private pagesSignal = toSignal(this.data$);
+  private existingFolderNames = computed(() =>
+    this.pagesSignal()
+      ?.pages.filter((p) => p.type === 'FOLDER')
+      .map(({ name }) => name.toLowerCase().trim()),
+  );
+
+  private refreshPages = new BehaviorSubject(1);
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -55,27 +68,24 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.isLoading = true;
+    this.data$ = combineLatest([this.activatedRoute.params, this.activatedRoute.queryParams]).pipe(
+      switchMap(([params, queryParams]) => {
+        const { apiId } = params;
+        if (!apiId) {
+          return EMPTY;
+        }
+        this.parentId = (queryParams as Params)['parentId'] || 'ROOT';
 
-    this.apiV2Service
-      .get(this.activatedRoute.snapshot.params.apiId)
-      .pipe(
-        tap((api) => {
-          this.api = api;
-          this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
-        }),
-        switchMap(() => this.activatedRoute.queryParams),
-        switchMap((queryParams) => {
-          this.parentId = queryParams.parentId || 'ROOT';
-          return this.apiDocumentationV2Service.getApiPages(this.api.id, this.parentId);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe((res) => {
-        this.pages = res.pages.filter((page) => !page.homepage);
-        this.breadcrumbs = res.breadcrumb;
-        this.isLoading = false;
-      });
+        return combineLatest([this.apiV2Service.get(apiId), this.getApiPages(apiId, this.parentId)]);
+      }),
+      map(([api, pagesResponse]) => {
+        this.api = api;
+        this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+
+        return { pages: pagesResponse.pages.filter((page) => !page.homepage) ?? [], breadcrumbs: pagesResponse.breadcrumb ?? [] };
+      }),
+      catchError(() => of({ pages: [], breadcrumbs: [] })),
+    );
   }
 
   ngOnDestroy() {
@@ -89,7 +99,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         width: GIO_DIALOG_WIDTH.LARGE,
         data: {
           mode: 'create',
-          existingNames: this.pages.filter((page) => page.type === 'FOLDER').map((page) => page.name.toLowerCase().trim()),
+          existingNames: this.existingFolderNames(),
           isReadOnly: this.isReadOnly,
         },
       })
@@ -110,7 +120,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.snackBarService.success('Folder created successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while creating folder');
@@ -146,9 +156,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
           mode: 'edit',
           name: folder.name,
           visibility: folder.visibility,
-          existingNames: this.pages
-            .filter((page) => page.type === 'FOLDER' && page.id !== folder.id)
-            .map((page) => page.name.toLowerCase().trim()),
+          existingNames: this.existingFolderNames(),
           isReadOnly: this.isReadOnly,
         },
       })
@@ -167,7 +175,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.snackBarService.success('Folder updated successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while updating folder');
@@ -193,7 +201,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .subscribe({
         next: (_) => {
           this.snackBarService.success('Page published successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while publishing page');
@@ -219,7 +227,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .subscribe({
         next: (_) => {
           this.snackBarService.success('Page unpublished successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while unpublishing page');
@@ -241,13 +249,13 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.activatedRoute.snapshot.params.apiId, page?.id)),
+        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.api.id, page?.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
         next: (_) => {
           this.snackBarService.success(`${page?.type === 'FOLDER' ? 'Folder' : 'Page'} deleted successfully`);
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
@@ -273,11 +281,15 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.snackBarService.success('Order updated successfully');
-          this.ngOnInit();
+          this.refreshPages.next(1);
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while changing order');
         },
       });
+  }
+
+  private getApiPages(apiId: string, parentId: string): Observable<ApiDocumentationPageResult> {
+    return this.refreshPages.pipe(switchMap((_) => this.apiDocumentationV2Service.getApiPages(apiId, parentId)));
   }
 }

@@ -6,3 +6,29 @@
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
+
+.homepage {
+  &__header {
+    display: flex;
+    padding: 12px 24px;
+    align-items: center;
+    border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
+    &__action {
+      display: flex;
+      gap: 8px;
+    }
+
+    &__title {
+      flex: 1 1 100%;
+      margin: auto;
+      line-height: 36px;
+    }
+  }
+
+  &__content {
+    &__empty {
+      height: 240px;
+    }
+  }
+}

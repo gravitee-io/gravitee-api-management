@@ -16,25 +16,35 @@
 
 -->
 <mat-card>
-  <api-documentation-home-page-header
-    [isReadOnly]="isReadOnly"
-    [hasHomepage]="!!homepage"
-    [noCustomPages]="!pages?.length"
-    (selectPage)="chooseHomepage()"
-    (addPage)="addPage($event)"
-  ></api-documentation-home-page-header>
-  <mat-card-content>
-    @if (homepage) {
+  @if (data$ | async; as data) {
+    <div class="homepage__header">
+      <h3 class="homepage__header__title">Homepage</h3>
+      @if (!data.homepage) {
+        <div class="homepage__header__action" *gioPermission="{ anyOf: ['api-documentation-c'] }">
+          <button
+            [disabled]="!data.hasCustomPages || isReadOnly"
+            mat-stroked-button
+            (click)="chooseHomepage()"
+            *gioPermission="{ anyOf: ['api-documentation-u'] }"
+          >
+            Choose Existing Page
+          </button>
+          <api-documentation-v4-add-page-button [disabled]="isReadOnly" (addPage)="addPage($event)" text="Create New Page" />
+        </div>
+      }
+    </div>
+
+    @if (data.homepage) {
       <api-documentation-v4-pages-list
         mode="HOME_PAGE"
-        [pages]="[homepage]"
+        [pages]="[data.homepage]"
         [isReadOnly]="isReadOnly"
         (onEditPage)="editPage($event)"
         (onPublishPage)="publishPage($event)"
         (onUnpublishPage)="unpublishPage($event)"
         (onDeletePage)="deletePage($event)"
       ></api-documentation-v4-pages-list>
-    } @else if (!isLoading) {
+    } @else {
       <api-documentation-empty-state
         emptyPageTitle="No homepage set"
         emptyPageMessage="You haven't set up a homepage yet."
@@ -43,5 +53,10 @@
         (addPage)="addPage($event)"
       ></api-documentation-empty-state>
     }
-  </mat-card-content>
+  } @else {
+    <div class="homepage__header">
+      <h3 class="homepage__header__title">Homepage</h3>
+    </div>
+    <mat-card-content class="homepage__content__empty" />
+  }
 </mat-card>
