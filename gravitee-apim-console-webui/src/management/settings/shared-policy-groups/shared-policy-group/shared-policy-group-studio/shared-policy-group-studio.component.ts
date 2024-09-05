@@ -80,7 +80,14 @@ export class SharedPolicyGroupStudioComponent {
 
   protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']);
   protected sharedPolicyGroup = toSignal(
-    this.refresh$.pipe(switchMap(() => this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId))),
+    this.refresh$.pipe(
+      switchMap(() => this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId)),
+      map((sharedPolicyGroup) => ({
+        ...sharedPolicyGroup,
+        // Restore unsaved steps if any
+        steps: this.enableSaveButton ? this.sharedPolicyGroup().steps : sharedPolicyGroup.steps,
+      })),
+    ),
   );
   protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
   protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
