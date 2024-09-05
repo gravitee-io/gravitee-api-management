@@ -8,7 +8,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
-          value: /_node/health?probes=sync-process
+          value: /_node/health?probes=http-server
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.httpHeaders[0].value
           value: Basic YWRtaW46YWRtaW5hZG1pbg==
@@ -27,7 +27,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
-          value: /_node/health?probes=sync-process
+          value: /_node/health?probes=http-server
       - notExists:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.httpHeaders
 
@@ -64,7 +64,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
-          value: /_node/health?probes=http-server
+          value: /_node/health?probes=http-server,sync-process
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.httpHeaders[0].value
           value: Basic YWRtaW46YWRtaW5hZG1pbg==
@@ -83,7 +83,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
-          value: /_node/health?probes=http-server
+          value: /_node/health?probes=http-server,sync-process
       - notExists:
           path: spec.template.spec.containers[0].startupProbe.httpGet.httpHeaders
 
