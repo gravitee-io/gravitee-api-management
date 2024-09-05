@@ -53,6 +53,13 @@ export class PortalNavigationService {
         icon: 'gio:top-bar',
       });
     }
+    if (this.permissionService.hasAnyMatching(['environment-category-r', 'environment-category-u'])) {
+      customization.children.push({
+        displayName: 'Catalog',
+        routerLink: 'catalog',
+        icon: 'gio:report-columns',
+      });
+    }
     if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
       customization.children.push({
         displayName: 'Theme',
