@@ -53,7 +53,6 @@ import { ApiDocumentationV4BreadcrumbComponent } from './components/api-document
 import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/api-documentation-v4-metadata.component';
 import { ApiDocumentationV4DefaultPageComponent } from './documentation-default-page/api-documentation-v4-default-page.component';
-import { ApiDocumentationV4HomePageHeaderComponent } from './components/documentation-home-page-header/api-documentation-v4-home-page-header.component';
 import { ApiDocumentationV4AddPageButtonComponent } from './components/api-documentation-v4-add-page-button/api-documentation-v4-add-page-button.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -68,7 +67,6 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4Component,
     ApiDocumentationV4EmptyStateComponent,
     ApiDocumentationV4ListNavigationHeaderComponent,
-    ApiDocumentationV4HomePageHeaderComponent,
     ApiDocumentationV4EditFolderDialog,
     ApiDocumentationV4DefaultPageComponent,
     ApiDocumentationV4AddPageButtonComponent,
