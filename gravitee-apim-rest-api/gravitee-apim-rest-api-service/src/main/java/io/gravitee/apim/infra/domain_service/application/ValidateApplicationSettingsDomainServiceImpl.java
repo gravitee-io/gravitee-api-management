@@ -209,8 +209,9 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
                 if (app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID))) {
                     return List.of(
                         Error.severe(
-                            "client id [%s] is already defined for application [%s] on environment [%s]",
+                            "client id [%s] is already defined for application [%s] with id [%s] on environment [%s]",
                             settings.getClientId(),
+                            app.getName(),
                             app.getId(),
                             environmentId
                         )
