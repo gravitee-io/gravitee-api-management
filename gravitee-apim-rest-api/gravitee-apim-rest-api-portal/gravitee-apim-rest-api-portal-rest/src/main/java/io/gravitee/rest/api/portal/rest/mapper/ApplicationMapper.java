@@ -103,41 +103,7 @@ public class ApplicationMapper {
         application.setPicture(applicationEntity.getPicture());
         application.setBackground(applicationEntity.getBackground());
 
-        final ApplicationSettings applicationEntitySettings = applicationEntity.getSettings();
-        if (applicationEntitySettings != null) {
-            io.gravitee.rest.api.portal.rest.model.ApplicationSettings appSettings =
-                new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
-
-            final SimpleApplicationSettings simpleAppEntitySettings = applicationEntitySettings.getApp();
-            if (simpleAppEntitySettings != null) {
-                appSettings.app(
-                    new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
-                        .clientId(simpleAppEntitySettings.getClientId())
-                        .type(simpleAppEntitySettings.getType())
-                );
-                application.setHasClientId(simpleAppEntitySettings.getClientId() != null);
-            } else {
-                final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getOauth();
-
-                appSettings.oauth(
-                    new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
-                        .applicationType(oAuthClientEntitySettings.getApplicationType())
-                        .clientId(oAuthClientEntitySettings.getClientId())
-                        .clientSecret(oAuthClientEntitySettings.getClientSecret())
-                        .clientUri(oAuthClientEntitySettings.getClientUri())
-                        .logoUri(oAuthClientEntitySettings.getLogoUri())
-                        .grantTypes(oAuthClientEntitySettings.getGrantTypes())
-                        .redirectUris(oAuthClientEntitySettings.getRedirectUris())
-                        .responseTypes(oAuthClientEntitySettings.getResponseTypes())
-                        .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported())
-                );
-                application.setHasClientId(oAuthClientEntitySettings.getClientId() != null);
-            }
-            if (applicationEntitySettings.getTls() != null) {
-                appSettings.setTls(new TlsClientSettings().clientCertificate(applicationEntitySettings.getTls().getClientCertificate()));
-            }
-            application.setSettings(appSettings);
-        }
+        convertSettings(applicationEntity.getSettings(), application);
 
         if (applicationEntity.getApiKeyMode() != null) {
             application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
@@ -188,21 +154,55 @@ public class ApplicationMapper {
 
         application.setOwner(owner);
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        ApplicationSettings settings = applicationListItem.getSettings();
-        application.setHasClientId(
-            settings != null &&
-            (
-                (
-                    settings.getOauth() != null && settings.getOauth().getClientId() != null && !settings.getOauth().getClientId().isEmpty()
-                ) ||
-                (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
-            )
-        );
+
+        convertSettings(applicationListItem.getSettings(), application);
+
         if (applicationListItem.getApiKeyMode() != null) {
             application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
         } else {
             application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
         }
         return application;
+    }
+
+    private static void convertSettings(ApplicationSettings applicationEntitySettings, Application application) {
+        if (applicationEntitySettings != null) {
+            io.gravitee.rest.api.portal.rest.model.ApplicationSettings appSettings =
+                new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
+
+            final SimpleApplicationSettings simpleAppEntitySettings = applicationEntitySettings.getApp();
+            if (simpleAppEntitySettings != null) {
+                appSettings.app(
+                    new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
+                        .clientId(simpleAppEntitySettings.getClientId())
+                        .type(simpleAppEntitySettings.getType())
+                );
+                application.setHasClientId(simpleAppEntitySettings.getClientId() != null);
+            } else {
+                final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getOauth();
+
+                if (oAuthClientEntitySettings != null) {
+                    appSettings.oauth(
+                        new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
+                            .applicationType(oAuthClientEntitySettings.getApplicationType())
+                            .clientId(oAuthClientEntitySettings.getClientId())
+                            .clientSecret(oAuthClientEntitySettings.getClientSecret())
+                            .clientUri(oAuthClientEntitySettings.getClientUri())
+                            .logoUri(oAuthClientEntitySettings.getLogoUri())
+                            .grantTypes(oAuthClientEntitySettings.getGrantTypes())
+                            .redirectUris(oAuthClientEntitySettings.getRedirectUris())
+                            .responseTypes(oAuthClientEntitySettings.getResponseTypes())
+                            .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported())
+                    );
+                    application.setHasClientId(oAuthClientEntitySettings.getClientId() != null);
+                } else {
+                    application.setHasClientId(false);
+                }
+            }
+            if (applicationEntitySettings.getTls() != null) {
+                appSettings.setTls(new TlsClientSettings().clientCertificate(applicationEntitySettings.getTls().getClientCertificate()));
+            }
+            application.setSettings(appSettings);
+        }
     }
 }

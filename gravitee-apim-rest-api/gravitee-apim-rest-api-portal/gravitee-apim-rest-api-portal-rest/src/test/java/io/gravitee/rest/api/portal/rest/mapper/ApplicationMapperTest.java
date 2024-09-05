@@ -26,9 +26,11 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
 import io.gravitee.rest.api.portal.rest.model.Group;
+import io.gravitee.rest.api.portal.rest.model.TlsClientSettings;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
@@ -79,6 +81,7 @@ public class ApplicationMapperTest {
     private static final String APPLICATION_OAUTH_LOGO_URI = "my-application-oauth-logo-uri";
     private static final String APPLICATION_OAUTH_REDIRECT_URI = "my-application-oauth-redirect-uri";
     private static final String APPLICATION_OAUTH_RESPONSE_TYPE = "my-application-oauth-response-type";
+    private static final String APPLICATION_TLS_CLIENT_CERTIFICATE = "my-application-tls-client-certificate";
 
     @InjectMocks
     private ApplicationMapper applicationMapper;
@@ -103,6 +106,7 @@ public class ApplicationMapperTest {
         NO_SETTINGS,
         SIMPLE_SETTINGS,
         OAUTH_SETTINGS,
+        TLS_SETTINGS,
     }
 
     @Before
@@ -164,6 +168,19 @@ public class ApplicationMapperTest {
     public void testConvertFromAppListItem() {
         Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
+    }
+
+    @Test
+    public void testConvertFromAppListItemWithTlsSettings() {
+        var tlsSettings = new TlsSettings();
+        tlsSettings.setClientCertificate(APPLICATION_TLS_CLIENT_CERTIFICATE);
+
+        var settings = new ApplicationSettings();
+        settings.setTls(tlsSettings);
+
+        applicationListItem.setSettings(settings);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
+        checkApplication(now, responseApplication, AppSettingsEnum.TLS_SETTINGS);
     }
 
     @Test
@@ -239,6 +256,7 @@ public class ApplicationMapperTest {
         } else {
             io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings sas = applicationSettings.getApp();
             io.gravitee.rest.api.portal.rest.model.OAuthClientSettings oacs = applicationSettings.getOauth();
+            TlsClientSettings tlss = applicationSettings.getTls();
 
             if (AppSettingsEnum.OAUTH_SETTINGS == appSettingsType) {
                 assertNull(sas);
@@ -271,6 +289,11 @@ public class ApplicationMapperTest {
                 assertEquals(APPLICATION_SIMPLE_CLIENT_ID, sas.getClientId());
                 assertEquals(APPLICATION_SIMPLE_TYPE, sas.getType());
                 assertEquals(responseApplication.getHasClientId(), true);
+            } else if (AppSettingsEnum.TLS_SETTINGS == appSettingsType) {
+                assertNotNull(tlss);
+                assertNull(oacs);
+                assertNull(sas);
+                assertEquals(APPLICATION_TLS_CLIENT_CERTIFICATE, tlss.getClientCertificate());
             }
         }
     }
