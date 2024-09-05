@@ -6820,35 +6820,40 @@ components:
         ApiScoring:
             type: object
             properties:
-                all:
-                    type: integer
-                    description: The total number of violated rules for all assets.
-                    example: 100
-                errors:
-                    type: integer
-                    description: The total number of violated rules with severity ERROR for all assets.
-                    example: 10
-                warnings:
-                    type: integer
-                    description: The total number of violated rules with severity WARN for all assets.
-                    example: 20
-                infos:
-                    type: integer
-                    description: The total number of violated rules with severity INFO for all assets.
-                    example: 30
-                hints:
-                    type: integer
-                    description: The total number of violated rules with severity HINT for all assets.
-                    example: 40
                 createdAt:
                     type: string
                     format: date-time
                     description: The date when the scoring has been created.
                     example: 2023-05-18T12:40:46.184Z
+                summary:
+                    $ref: "#/components/schemas/ApiScoringSummary"
                 assets:
                     type: array
                     items:
                         $ref: "#/components/schemas/ApiScoringAsset"
+        ApiScoringSummary:
+          type: object
+          properties:
+            all:
+              type: integer
+              description: The total number of violated rules for all assets.
+              example: 100
+            errors:
+              type: integer
+              description: The total number of violated rules with severity ERROR for all assets.
+              example: 10
+            warnings:
+              type: integer
+              description: The total number of violated rules with severity WARN for all assets.
+              example: 20
+            infos:
+              type: integer
+              description: The total number of violated rules with severity INFO for all assets.
+              example: 30
+            hints:
+              type: integer
+              description: The total number of violated rules with severity HINT for all assets.
+              example: 40
         ApiScoringAsset:
             type: object
             properties:

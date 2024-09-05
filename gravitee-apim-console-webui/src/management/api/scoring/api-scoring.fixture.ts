@@ -29,12 +29,14 @@ export const fakeApiScoringTriggerResponse = (attributes?: Partial<ApiScoringTri
 
 export const fakeApiScoring = (attributes?: Partial<ApiScoring>) => {
   const base: ApiScoring = {
-    all: 1,
-    errors: 0,
-    warnings: 1,
-    infos: 0,
-    hints: 0,
     createdAt: new Date(),
+    summary: {
+      all: 1,
+      errors: 0,
+      warnings: 1,
+      infos: 0,
+      hints: 0,
+    },
     assets: [
       {
         name: 'echo-oas.json',
