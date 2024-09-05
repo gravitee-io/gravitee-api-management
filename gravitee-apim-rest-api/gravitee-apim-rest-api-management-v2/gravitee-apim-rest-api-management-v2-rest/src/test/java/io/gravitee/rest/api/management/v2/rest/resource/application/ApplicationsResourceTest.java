@@ -165,7 +165,16 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         @SneakyThrows
         void should_return_client_id_error_in_status_without_saving_if_dry_run() {
             when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
-                .thenReturn(Set.of(Application.builder().id("conflicting-app-id").metadata(Map.of("client_id", "test-client-id")).build()));
+                .thenReturn(
+                    Set.of(
+                        Application
+                            .builder()
+                            .name("conflicting-app")
+                            .id("conflicting-app-id")
+                            .metadata(Map.of("client_id", "test-client-id"))
+                            .build()
+                    )
+                );
 
             var crdStatus = doImport("/crd/application/simple-app-with-client-id.json", true);
 
@@ -184,7 +193,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                                     .warning(List.of())
                                     .severe(
                                         List.of(
-                                            "client id [test-client-id] is already defined for application [conflicting-app-id] on environment [fake-env]"
+                                            "client id [test-client-id] is already defined for application [conflicting-app] with id [conflicting-app-id] on environment [fake-env]"
                                         )
                                     )
                                     .build()
