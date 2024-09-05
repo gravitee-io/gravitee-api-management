@@ -37,14 +37,14 @@ export class ApplicationService {
     return this.http.get<ApplicationType>(`${this.configService.baseURL}/applications/${applicationId}/configuration`);
   }
 
-  list(page?: number, size?: number, forSubscriptions?: boolean): Observable<ApplicationsResponse> {
+  list(page?: number, size?: number, forSubscription?: boolean): Observable<ApplicationsResponse> {
     const pageParam = page ? 'page=' + page : 'page=1';
     const perPageParam = size ? 'size=' + size : 'size=10';
 
     const paramList = [pageParam, perPageParam];
 
-    if (forSubscriptions !== undefined) {
-      paramList.push('forSubscriptions=' + forSubscriptions);
+    if (forSubscription !== undefined) {
+      paramList.push('forSubscription=' + forSubscription);
     }
 
     return this.http.get<ApplicationsResponse>(`${this.configService.baseURL}/applications?${paramList.join('&')}`);

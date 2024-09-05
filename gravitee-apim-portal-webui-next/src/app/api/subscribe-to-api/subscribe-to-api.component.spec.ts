@@ -56,10 +56,12 @@ describe('SubscribeToApiComponent', () => {
   const API_KEY_PLAN_ID_GENERAL_CONDITIONS = 'api-key-plan-general-conditions';
   const OAUTH2_PLAN_ID = 'oauth2-plan';
   const JWT_PLAN_ID = 'jwt-plan';
+  const MTLS_PLAN_ID = 'mtls-plan';
   const GENERAL_CONDITIONS_ID = 'page-id';
   const APP_ID = 'app-id';
   const APP_ID_NO_SUBSCRIPTIONS = 'app-id-no-subscriptions';
   const APP_ID_ONE_API_KEY_SUBSCRIPTION = 'app-id-one-api-key-subscription';
+  const APP_ID_WITH_CLIENT_CERTIFICATE = 'app-id-with-client-certificate';
 
   const init = async (sharedApiKeyModeEnabled: boolean) => {
     await TestBed.configureTestingModule({
@@ -100,6 +102,7 @@ describe('SubscribeToApiComponent', () => {
         fakePlan({ id: API_KEY_PLAN_ID_GENERAL_CONDITIONS, security: 'API_KEY', general_conditions: GENERAL_CONDITIONS_ID }),
         fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2', general_conditions: undefined }),
         fakePlan({ id: JWT_PLAN_ID, security: 'JWT', general_conditions: undefined }),
+        fakePlan({ id: MTLS_PLAN_ID, security: 'MTLS', general_conditions: undefined }),
       ],
     });
     fixture.detectChanges();
@@ -933,6 +936,115 @@ describe('SubscribeToApiComponent', () => {
     });
   });
 
+  describe('User subscribes to mTLS plan', () => {
+    beforeEach(async () => {
+      await init(true);
+    });
+    describe('Step 1 -- Choose a plan', () => {
+      it('should be enabled', async () => {
+        const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+        expect(step1).toBeTruthy();
+
+        expect(await step1.isPlanSelected(MTLS_PLAN_ID)).toEqual(false);
+        expect(await step1.isPlanDisabled(MTLS_PLAN_ID)).toEqual(false);
+        await step1.selectPlanByPlanId(MTLS_PLAN_ID);
+
+        expect(await canGoToNextStep()).toEqual(true);
+      });
+    });
+
+    describe('Step 2 -- Choose an application', () => {
+      const APP_ID = 'app-id';
+      beforeEach(async () => {
+        await selectPlan(MTLS_PLAN_ID);
+      });
+
+      it('should disable application with existing subscription to plan', async () => {
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ status: 'ACCEPTED', plan: MTLS_PLAN_ID, application: APP_ID })],
+            metadata: {
+              [MTLS_PLAN_ID]: {
+                securityType: 'MTLS',
+              },
+            },
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+      it('should disable application without TLS Client Certificate', async () => {
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [],
+            metadata: {},
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1', settings: {} })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+      it('should disable application with valid mTLS plan for API', async () => {
+        const anotherMtlsPlan = 'another-plan';
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ status: 'PENDING', plan: anotherMtlsPlan, application: APP_ID })],
+            metadata: {
+              [anotherMtlsPlan]: {
+                securityType: 'MTLS',
+              },
+            },
+          }),
+        );
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const app1 = await harnessLoader.getHarness(RadioCardHarness.with({ title: 'App 1' }));
+        expect(await app1.isDisabled()).toEqual(true);
+      });
+    });
+
+    describe('Step 3 -- Checkout', () => {
+      beforeEach(async () => {
+        await selectPlan(MTLS_PLAN_ID);
+        await selectApplication(APP_ID_WITH_CLIENT_CERTIFICATE);
+
+        expectGetApi();
+        fixture.detectChanges();
+      });
+      it('should subscribe', async () => {
+        const subscribeButton = await getSubscribeButton();
+        expect(await subscribeButton?.isDisabled()).toEqual(false);
+        await subscribeButton?.click();
+
+        expectPostCreateSubscription({ plan: MTLS_PLAN_ID, application: APP_ID_WITH_CLIENT_CERTIFICATE });
+      });
+    });
+  });
+
   function expectGetApi(api?: Api) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}`).flush(api ?? fakeApi({ id: API_ID, entrypoints: [ENTRYPOINT] }));
   }
@@ -956,7 +1068,7 @@ describe('SubscribeToApiComponent', () => {
 
   function expectGetApplications(page: number = 1, applicationsResponse: ApplicationsResponse = fakeApplicationsResponse()) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=9&forSubscriptions=true`)
+      .expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=9&forSubscription=true`)
       .flush(applicationsResponse);
   }
 
@@ -1015,6 +1127,11 @@ describe('SubscribeToApiComponent', () => {
           fakeApplication({ id: APP_ID, name: APP_ID }),
           fakeApplication({ id: APP_ID_NO_SUBSCRIPTIONS, name: APP_ID_NO_SUBSCRIPTIONS, api_key_mode: 'UNSPECIFIED' }),
           fakeApplication({ id: APP_ID_ONE_API_KEY_SUBSCRIPTION, name: APP_ID_ONE_API_KEY_SUBSCRIPTION, api_key_mode: 'UNSPECIFIED' }),
+          fakeApplication({
+            id: APP_ID_WITH_CLIENT_CERTIFICATE,
+            name: APP_ID_WITH_CLIENT_CERTIFICATE,
+            settings: { tls: { client_certificate: 'certificate' } },
+          }),
         ],
       }),
     );
