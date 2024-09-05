@@ -217,14 +217,16 @@ describe('ApisListComponent', () => {
 
         await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
         await tick(400);
-        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25&manageOnly=false`);
+        const req = httpTestingController.expectOne(
+          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25&sortBy=name&manageOnly=false`,
+        );
         expect(req.request.body).toEqual({ query: 'bad-search' });
 
         req.flush('Internal error', { status: 500, statusText: 'Internal error' });
 
         await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('good-search'));
 
-        expectApisListRequest([], null, 'good-search');
+        expectApisListRequest([], 'name', 'good-search');
       }));
 
       it('should display one row with kubernetes icon', fakeAsync(async () => {
@@ -248,12 +250,13 @@ describe('ApisListComponent', () => {
           .then((sortHarness) => sortHarness.host());
         await nameSort.click();
         apis.map((api) => expectSyncedApi(api.id, true));
-        expectApisListRequest(apis, 'name');
+        // APIs are sorted by name by default, so clicking a first time will reverse the order
+        expectApisListRequest(apis, '-name');
 
         fixture.detectChanges();
         await nameSort.click();
         apis.map((api) => expectSyncedApi(api.id, true));
-        expectApisListRequest(apis, '-name');
+        expectApisListRequest(apis, 'name');
       }));
 
       it('should order rows by access', fakeAsync(async () => {
@@ -280,19 +283,13 @@ describe('ApisListComponent', () => {
         const apis = [api];
         await initComponent(apis);
         expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toHaveLength(0);
-
-        const nameSort = await loader
-          .getHarness(MatSortHeaderHarness.with({ selector: '#name' }))
-          .then((sortHarness) => sortHarness.host());
-        await nameSort.click();
-
         expectSyncedApi(api.id, false);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
-        expectApisListRequest(apis, 'name');
       }));
 
       async function initComponent(apis: Api[]) {
-        expectApisListRequest(apis);
+        // APIs are sorted by name by default
+        expectApisListRequest(apis, 'name');
         loader = TestbedHarnessEnvironment.loader(fixture);
         fixture.detectChanges();
       }
@@ -334,7 +331,7 @@ describe('ApisListComponent', () => {
       }));
 
       async function initComponent(api: Api, score = 1) {
-        expectApisListRequest([api]);
+        expectApisListRequest([api], 'name');
         loader = TestbedHarnessEnvironment.loader(fixture);
         expectSyncedApi(api.id, true);
         expectQualityRequest(api.id, score);
@@ -406,7 +403,8 @@ describe('ApisListComponent', () => {
     }));
 
     async function initComponent(apis: ApiV4[]) {
-      expectApisListRequest(apis);
+      // APIs are sorted by name by default
+      expectApisListRequest(apis, 'name');
       loader = TestbedHarnessEnvironment.loader(fixture);
       fixture.detectChanges();
     }
