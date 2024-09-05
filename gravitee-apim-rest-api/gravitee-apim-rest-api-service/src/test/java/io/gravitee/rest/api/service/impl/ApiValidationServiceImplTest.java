@@ -20,18 +20,27 @@ import static io.gravitee.common.component.Lifecycle.State.STARTED;
 import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -43,6 +52,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -54,6 +64,19 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiValidationServiceImplTest {
 
     private final CategoryQueryServiceInMemory categoryQueryService = new CategoryQueryServiceInMemory();
+
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+
+    private final InstallationAccessQueryService installationAccessQueryService = mock(InstallationAccessQueryService.class);
+
+    private final ApiHostValidatorDomainService apiHostValidatorDomainService = mock(ApiHostValidatorDomainService.class);
+
+    @Spy
+    private VerifyApiPathDomainService pathValidator = new VerifyApiPathDomainService(
+        apiQueryService,
+        installationAccessQueryService,
+        apiHostValidatorDomainService
+    );
 
     @Spy
     private ValidateCategoryIdsDomainService validateCategoryIdsDomainService = new ValidateCategoryIdsDomainService(categoryQueryService);
@@ -119,6 +142,7 @@ public class ApiValidationServiceImplTest {
         categoryQueryService.initWith(
             List.of(Category.builder().key(CATEGORY_KEY).name(CATEGORY_KEY).id(UuidString.generateRandom()).build())
         );
+        apiQueryService.reset();
     }
 
     @Test
@@ -221,6 +245,33 @@ public class ApiValidationServiceImplTest {
         assertEquals("can not change the role of exiting primary owner [primary_owner_id]", validationResult.getSevere().get(0));
     }
 
+    @Test
+    public void should_return_error_with_conflicting_path() {
+        apiQueryService.initWith(
+            List.of(
+                Api
+                    .builder()
+                    .id("conflicting-api-id")
+                    .definitionVersion(DefinitionVersion.V2)
+                    .apiDefinition(
+                        io.gravitee.definition.model.Api
+                            .builder()
+                            .id("conflicting-api-id")
+                            .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build())
+                            .build()
+                    )
+                    .build()
+            )
+        );
+
+        var crd = anApiCRDEntity();
+        var validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, crd);
+
+        assertEquals(1, validationResult.getSevere().size());
+        assertEquals(0, validationResult.getWarning().size());
+        assertEquals("Path [/echo/] already exists", validationResult.getSevere().get(0));
+    }
+
     public ApiCRDEntity anApiCRDEntity() {
         ApiCRDEntity crd = new ApiCRDEntity();
         crd.setId(API_ID);
@@ -229,6 +280,7 @@ public class ApiValidationServiceImplTest {
         crd.setDescription(API_NAME);
         crd.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_KUBERNETES));
         crd.setState(STARTED);
+        crd.setProxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build());
 
         return crd;
     }
