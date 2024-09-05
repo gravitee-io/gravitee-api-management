@@ -24,6 +24,9 @@ import { PortalThemeComponent } from './customization/theme/portal-theme.compone
 import { PortalTopBarComponent } from './customization/top-bar/portal-top-bar.component';
 import { MenuLinkEditComponent } from './customization/top-bar/menu-link-edit/menu-link-edit.component';
 import { MenuLinkListComponent } from './customization/top-bar/menu-link-list/menu-link-list.component';
+import { PortalCatalogComponent } from './customization/catalog/portal-catalog.component';
+import { CategoryCatalogComponent } from './customization/catalog/category/category.component';
+import { CategoryListComponent } from './customization/catalog/category-list/category-list.component';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
@@ -64,6 +67,39 @@ const portalRoutes: Routes = [
                 data: {
                   permissions: {
                     anyOf: ['environment-settings-u'],
+                  },
+                },
+              },
+            ],
+          },
+          {
+            path: 'catalog',
+            component: PortalCatalogComponent,
+            children: [
+              {
+                path: '',
+                component: CategoryListComponent,
+                data: {
+                  permissions: {
+                    anyOf: ['environment-category-r', 'environment-category-u'],
+                  },
+                },
+              },
+              {
+                path: 'category/new',
+                component: CategoryCatalogComponent,
+                data: {
+                  permissions: {
+                    anyOf: ['environment-category-r', 'environment-category-u'],
+                  },
+                },
+              },
+              {
+                path: 'category/:categoryId',
+                component: CategoryCatalogComponent,
+                data: {
+                  permissions: {
+                    anyOf: ['environment-category-r', 'environment-category-u'],
                   },
                 },
               },
