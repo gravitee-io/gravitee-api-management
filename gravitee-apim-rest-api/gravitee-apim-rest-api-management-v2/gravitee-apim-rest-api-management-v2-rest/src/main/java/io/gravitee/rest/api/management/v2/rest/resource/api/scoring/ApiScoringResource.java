@@ -51,8 +51,6 @@ public class ApiScoringResource extends AbstractResource {
     @Path("/_evaluate")
     @Produces(MediaType.APPLICATION_JSON)
     public void scoreAPI(@Suspended final AsyncResponse response) {
-        var executionContext = GraviteeContext.getExecutionContext();
-
         scoreApiRequestUseCase
             .execute(new ScoreApiRequestUseCase.Input(apiId, getAuditInfo()))
             .subscribe(
