@@ -149,7 +149,7 @@ export class ApplicationGeneralComponent implements OnInit {
               oauth: {
                 ...this.initialApplication.settings.oauth,
                 ...this.applicationForm.getRawValue().OpenIDForm,
-                application_type: 'NATIVE',
+                application_type: this.applicationType.id,
               },
             },
       ...(imagesValue?.picture?.length ? { picture: imagesValue.picture[0].dataUrl } : { picture: null }),
