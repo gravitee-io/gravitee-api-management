@@ -23,13 +23,16 @@ import static org.mockito.Mockito.verify;
 
 import assertions.CoreAssertions;
 import fixtures.core.model.ApiFixtures;
+import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
@@ -64,6 +67,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Mock
     CategoryDomainService categoryDomainService;
+
+    @Mock
+    FlowValidationDomainService flowValidationDomainService;
 
     @InjectMocks
     ValidateApiDomainServiceLegacyWrapper service;
@@ -109,7 +115,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 entity.setEndpointGroups(List.of());
                 entity.setAnalytics(Analytics.builder().enabled(true).build());
                 entity.setFlowExecution(null);
-                entity.setFlows(List.of());
+                entity.setFlows(List.of(FlowFixtures.aSimpleFlowV4()));
 
                 return null;
             })
@@ -123,6 +129,8 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             })
             .when(apiValidationService)
             .validateDynamicProperties(any());
+
+        doAnswer(invocation -> invocation.<List<Flow>>getArgument(1)).when(flowValidationDomainService).validateAndSanitize(any(), any());
 
         var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
@@ -139,7 +147,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             soft.assertThat(result.getApiDefinitionV4().getListeners()).isEmpty();
             soft.assertThat(result.getApiDefinitionV4().getEndpointGroups()).isEmpty();
             soft.assertThat(result.getApiDefinitionV4().getAnalytics()).isEqualTo(Analytics.builder().enabled(true).build());
-            soft.assertThat(result.getApiDefinitionV4().getFlows()).isEmpty();
+            soft.assertThat(result.getApiDefinitionV4().getFlows()).containsExactly(FlowFixtures.aSimpleFlowV4());
             soft.assertThat(result.getApiDefinitionV4().getFlowExecution()).isNull();
             soft.assertThat(result.getApiDefinitionV4().getServices().getDynamicProperty().getConfiguration()).isEqualTo("sanitized");
         });
