@@ -226,7 +226,12 @@ class EditPageComponentController implements IController {
   }
 
   reset() {
-    this.ngRouter.navigate(['../', this.page.id], { relativeTo: this.activatedRoute });
+    const currentUrl = this.ngRouter.url;
+    const url = this.ngRouter.parseUrl(currentUrl);
+
+    this.ngRouter.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.ngRouter.navigate([currentUrl], { skipLocationChange: true, queryParams: url.queryParams });
+    });
   }
 
   toggleRename() {
