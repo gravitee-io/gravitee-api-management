@@ -33,6 +33,7 @@ import fixtures.definition.ApiDefinitionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import io.gravitee.apim.core.api.exception.ApiCreatedWithErrorException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
@@ -410,7 +411,8 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(InvalidPageNameException.class);
+                .isInstanceOf(ApiCreatedWithErrorException.class)
+                .hasMessage("API created with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
@@ -426,7 +428,10 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(PageContentUnsafeException.class);
+                .isInstanceOf(ApiCreatedWithErrorException.class)
+                .hasMessage(
+                    "API created with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
+                );
         }
 
         @Test
@@ -442,7 +447,8 @@ class ImportApiDefinitionUseCaseTest {
             var importDefinition = anImportDefinition().toBuilder().pages(List.of(page)).build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(InvalidPageContentException.class);
+                .isInstanceOf(ApiCreatedWithErrorException.class)
+                .hasMessage("API created with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
@@ -465,7 +471,8 @@ class ImportApiDefinitionUseCaseTest {
                 .build();
 
             assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(InvalidPageParentException.class);
+                .isInstanceOf(ApiCreatedWithErrorException.class)
+                .hasMessage("API created with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test
