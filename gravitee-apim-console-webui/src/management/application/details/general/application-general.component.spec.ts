@@ -100,7 +100,7 @@ describe('ApplicationGeneralInfoComponent', () => {
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
-            application_type: 'NATIVE',
+            application_type: 'id_test',
             client_id: 'test_client_id',
             client_secret: 'test_client_secret',
             grant_types: ['authorization_code', 'refresh_token', 'password', 'implicit'],
@@ -180,7 +180,7 @@ describe('ApplicationGeneralInfoComponent', () => {
         groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
-            application_type: 'NATIVE',
+            application_type: 'id_test',
             client_id: '123',
             client_secret: 'test_client_secret',
             grant_types: ['authorization_code', 'refresh_token', 'password', 'implicit'],
