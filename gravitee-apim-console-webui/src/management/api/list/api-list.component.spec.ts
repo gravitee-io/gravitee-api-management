@@ -219,16 +219,14 @@ describe('ApisListComponent', () => {
 
         await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
         await tick(400);
-        const req = httpTestingController.expectOne(
-          `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25&sortBy=name&manageOnly=false`,
-        );
+        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25&manageOnly=false`);
         expect(req.request.body).toEqual({ query: 'bad-search' });
 
         req.flush('Internal error', { status: 500, statusText: 'Internal error' });
 
         await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('good-search'));
 
-        expectApisListRequest([], 'name', 'good-search');
+        expectApisListRequest([], null, 'good-search');
       }));
 
       it('should display one row with kubernetes icon', fakeAsync(async () => {
@@ -252,13 +250,12 @@ describe('ApisListComponent', () => {
           .then((sortHarness) => sortHarness.host());
         await nameSort.click();
         apis.map((api) => expectSyncedApi(api.id, true));
-        // APIs are sorted by name by default, so clicking a first time will reverse the order
-        expectApisListRequest(apis, '-name');
+        expectApisListRequest(apis, 'name');
 
         fixture.detectChanges();
         await nameSort.click();
         apis.map((api) => expectSyncedApi(api.id, true));
-        expectApisListRequest(apis, 'name');
+        expectApisListRequest(apis, '-name');
       }));
 
       it('should order rows by access', fakeAsync(async () => {
