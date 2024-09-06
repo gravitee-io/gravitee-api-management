@@ -192,7 +192,6 @@ public interface GraviteeMapper {
 
     // AsyncJob mapping
     AsyncJob map(AsyncJobMongo source);
-
     AsyncJobMongo map(AsyncJob source);
 
     // License mapping

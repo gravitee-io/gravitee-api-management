@@ -16,8 +16,24 @@
 package io.gravitee.apim.core.async_job.query_service;
 
 import io.gravitee.apim.core.async_job.model.AsyncJob;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Optional;
 
 public interface AsyncJobQueryService {
     Optional<AsyncJob> findPendingJobFor(String integrationId);
+
+    Page<AsyncJob> listAsyncJobs(ListQuery query, Pageable pageable);
+
+    record ListQuery(
+        String environmentId,
+        Optional<String> initiatorId,
+        Optional<AsyncJob.Type> type,
+        Optional<AsyncJob.Status> status,
+        Optional<String> sourceId
+    ) {
+        public ListQuery(String environmentId) {
+            this(environmentId, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        }
+    }
 }

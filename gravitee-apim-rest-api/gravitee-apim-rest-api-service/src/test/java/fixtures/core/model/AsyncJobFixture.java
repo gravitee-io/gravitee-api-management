@@ -36,6 +36,10 @@ public class AsyncJobFixture {
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
+    public static AsyncJob anAsyncJob(String id) {
+        return BASE.get().id(id).type(AsyncJob.Type.FEDERATED_APIS_INGESTION).build();
+    }
+
     public static AsyncJob aPendingFederatedApiIngestionJob() {
         return BASE.get().type(AsyncJob.Type.FEDERATED_APIS_INGESTION).build();
     }

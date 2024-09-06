@@ -35,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.asyncjob.AsyncJobsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
@@ -79,6 +80,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(PoliciesResource.class);
         register(ResourcesResource.class);
         register(IntegrationsResource.class);
+        register(AsyncJobsResource.class);
 
         register(MultiPartFeature.class);
 

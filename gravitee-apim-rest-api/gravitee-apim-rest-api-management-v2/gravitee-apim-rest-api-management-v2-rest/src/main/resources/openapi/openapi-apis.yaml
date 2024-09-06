@@ -2469,6 +2469,39 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # Async Job
+    /environments/{envId}/async-jobs:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      get:
+        parameters:
+          - $ref: "#/components/parameters/pageParam"
+          - $ref: "#/components/parameters/perPageParam"
+          - name: sourceId
+            in: query
+            required: true
+            description: SourceId to filter
+            schema:
+              type: string
+          - name: status
+            in: query
+            required: true
+            description: Status to filter
+            schema:
+              $ref: "#/components/schemas/AsyncJobStatus"
+        tags:
+          - AsyncJobs
+        summary: List Async Jobs
+        description: |-
+          Get the list of AsyncJobs.
+        operationId: listAsyncJob
+        responses:
+          "200":
+            $ref: "#/components/responses/AsyncJobsResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
+
 components:
     schemas:
         Analytics:
@@ -6919,6 +6952,53 @@ components:
                     type: integer
                     description: An integer that represents the character position within the line where the issue starts or ends. The value is zero indexed.
                     example: 12
+
+        # Async Jobs
+        AsyncJob:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Id of the job.
+              example: b21cbef5-02b6-462e-9ee8-694c89c3dee5
+            sourceId:
+              type: string
+              description: Resource id related to this job.
+              example: 660bf428-4f06-451f-8144-10bbb581db65
+            environmentId:
+              type: string
+              description: The environment id
+              example: DEFAULT
+            initiatorId:
+              type: string
+              description: User id who triggered this job.
+              example: 660bf428-4f06-451f-8144-10bbb581db65
+            type:
+              type: string
+              description: Resource id related to this job.
+              example: FEDERATED_APIS_INGESTION
+              enum:
+                - FEDERATED_APIS_INGESTION
+                - SCORING_REQUEST
+            status:
+              $ref: "#/components/schemas/AsyncJobStatus"
+            errorMessage:
+              type: string
+              description: A message detailing why the job failed.
+            createdAt:
+              type: string
+              format: date-time
+              description: The date when the job has been created.
+              example: 2023-05-18T12:40:46.184Z
+        AsyncJobStatus:
+          type: string
+          description: Status of the job.
+          example: SUCCESS
+          enum:
+            - SUCCESS
+            - PENDING
+            - ERROR
+
     parameters:
         #############
         # PathParam #
@@ -7700,6 +7780,24 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        # Async Jobs
+        AsyncJobsResponse:
+          description: Page of async jobs
+          content:
+            application/json:
+              schema:
+                title: "AsyncJobsResponse"
+                properties:
+                  data:
+                    description: List of Async Jobs.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AsyncJob"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                  links:
+                    $ref: "#/components/schemas/Links"
 
     securitySchemes:
         BasicAuth:
