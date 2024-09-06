@@ -178,7 +178,7 @@ export class ApplicationGeneralComponent implements OnInit {
                 ...this.initialApplication.settings.oauth,
                 ...this.applicationForm.getRawValue().OpenIDForm,
                 additional_client_metadata: toDictionary(this.applicationForm.getRawValue().OpenIDForm.additional_client_metadata),
-                application_type: 'NATIVE',
+                application_type: this.applicationType.id,
               },
               tls: {
                 ...this.applicationForm.getRawValue().TlsForm,
