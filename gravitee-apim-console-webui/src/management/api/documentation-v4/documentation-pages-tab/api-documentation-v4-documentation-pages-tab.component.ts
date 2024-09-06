@@ -25,12 +25,18 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ApiDocumentationV4EditFolderDialog,
   ApiDocumentationV4EditFolderDialogData,
-} from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
-
-import { ApiDocumentationPageResult, ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
-import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, PageType, EditDocumentationFolder, Breadcrumb, Page, CreateDocumentationFolder } from '../../../entities/management-api-v2';
+} from '../dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
+import { ApiDocumentationPageResult, ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import {
+  Api,
+  PageType,
+  EditDocumentationFolder,
+  Breadcrumb,
+  Page,
+  CreateDocumentationFolder,
+} from '../../../../entities/management-api-v2';
 
 interface ApiDocumentationV4ListData {
   pages: Page[];
@@ -38,11 +44,11 @@ interface ApiDocumentationV4ListData {
 }
 
 @Component({
-  selector: 'api-documentation-v4',
-  templateUrl: './api-documentation-v4.component.html',
-  styleUrls: ['./api-documentation-v4.component.scss'],
+  selector: 'api-documentation-v4-documentation-pages-tab',
+  templateUrl: './api-documentation-v4-documentation-pages-tab.component.html',
+  styleUrls: ['./api-documentation-v4-documentation-pages-tab.component.scss'],
 })
-export class ApiDocumentationV4Component implements OnInit, OnDestroy {
+export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit, OnDestroy {
   api: Api;
   isReadOnly = false;
   data$: Observable<ApiDocumentationV4ListData> = of();

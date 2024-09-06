@@ -59,7 +59,7 @@ import { ApiCreationGetStartedComponent } from './creation-get-started/api-creat
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
-import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
+import { ApiDocumentationV4DocumentationPagesTabComponent } from './documentation-v4/documentation-pages-tab/api-documentation-v4-documentation-pages-tab.component';
 import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { ApisGuard } from './apis.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
@@ -78,15 +78,15 @@ import { ApiDynamicPropertiesComponent } from './properties/components/dynamic-p
 import { ApiPropertiesComponent } from './properties/properties/api-properties.component';
 import { ApiNotificationComponent } from './api-notification/api-notification.component';
 import { ApiRuntimeAlertsComponent } from './runtime-alerts';
-import { ApiDocumentationV4MetadataComponent } from './documentation-v4/documentation-metadata/api-documentation-v4-metadata.component';
+import { ApiDocumentationV4MetadataTabComponent } from './documentation-v4/metadata-tab/api-documentation-v4-metadata-tab.component';
 import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 import { ApiImportV4Component } from './import-v4/api-import-v4.component';
 import { ApiAnalyticsComponent } from './api-traffic-v4/analytics/api-analytics.component';
 import { ApiScoreComponent } from './api-score/api-score.component';
-import { ApiDocumentationV4DefaultPageComponent } from './documentation-v4/documentation-default-page/api-documentation-v4-default-page.component';
-import { DocumentationEditCustomPageComponent } from './documentation-v4/documentation-edit-custom-page/documentation-edit-custom-page.component';
-import { DocumentationEditHomepageComponent } from './documentation-v4/documentation-edit-homepage/documentation-edit-homepage.component';
+import { ApiDocumentationV4MainPagesTabComponent } from './documentation-v4/main-pages-tab/api-documentation-v4-main-pages-tab.component';
+import { DocumentationEditCustomPageComponent } from './documentation-v4/documentation-pages-tab/documentation-edit-custom-page/documentation-edit-custom-page.component';
+import { DocumentationEditHomepageComponent } from './documentation-v4/main-pages-tab/documentation-edit-homepage/documentation-edit-homepage.component';
 import { ApiDocumentationChooseExistingPageComponent } from './documentation-v4/components/api-documentation-choose-existing-page/api-documentation-choose-existing-page.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
@@ -848,7 +848,7 @@ const apisRoutes: Routes = [
           },
           {
             path: 'pages',
-            component: ApiDocumentationV4Component,
+            component: ApiDocumentationV4DocumentationPagesTabComponent,
           },
           {
             path: 'pages/new',
@@ -878,7 +878,7 @@ const apisRoutes: Routes = [
                 anyOf: ['api-metadata-r'],
               },
             },
-            component: ApiDocumentationV4MetadataComponent,
+            component: ApiDocumentationV4MetadataTabComponent,
           },
           {
             path: 'main-pages',
@@ -888,7 +888,7 @@ const apisRoutes: Routes = [
                 anyOf: ['api-documentation-u'],
               },
             },
-            component: ApiDocumentationV4DefaultPageComponent,
+            component: ApiDocumentationV4MainPagesTabComponent,
           },
           {
             path: 'main-pages/homepage/new',

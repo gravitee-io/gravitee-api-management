@@ -37,15 +37,15 @@ import {
   fakeGroup,
   Api,
   fakeApiV4,
-} from '../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../../entities/Constants';
-import { DocumentationEditPageHarness } from '../components/documentation-edit-page/documentation-edit-page.harness';
-import { DocumentationNewPageHarness } from '../components/documentation-new-page/documentation-new-page.harness';
-import { ApiDocumentationV4PageConfigurationHarness } from '../components/api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
-import { FetcherListItem } from '../../../../entities/fetcher';
-import { fakeFetcherList } from '../../../../entities/fetcher/fetcher.fixture';
+} from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../../entities/Constants';
+import { DocumentationEditPageHarness } from '../../components/documentation-edit-page/documentation-edit-page.harness';
+import { DocumentationNewPageHarness } from '../../components/documentation-new-page/documentation-new-page.harness';
+import { ApiDocumentationV4PageConfigurationHarness } from '../../components/api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
+import { FetcherListItem } from '../../../../../entities/fetcher';
+import { fakeFetcherList } from '../../../../../entities/fetcher/fetcher.fixture';
 
 interface InitInput {
   pages?: Page[];
