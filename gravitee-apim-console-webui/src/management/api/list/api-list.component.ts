@@ -73,7 +73,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
   filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
-    sort: { active: 'name', direction: 'asc' },
   };
   isQualityDisplayed: boolean;
   searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
@@ -109,17 +108,34 @@ export class ApiListComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(100),
         distinctUntilChanged(isEqual),
-        tap(({ pagination, searchTerm, status, sort }) => {
+        map(({ pagination, searchTerm, status, sort }) => {
+          let order: string;
+          if (!searchTerm && !sort?.direction) {
+            order = 'name';
+          } else if (searchTerm && !sort?.direction) {
+            order = undefined;
+          } else {
+            order = toOrder(sort);
+          }
+
+          return {
+            pagination,
+            searchTerm,
+            status,
+            order,
+          };
+        }),
+        tap(({ pagination, searchTerm, status, order }) => {
           // Change url params
           this.router.navigate([], {
             relativeTo: this.activatedRoute,
-            queryParams: { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) },
+            queryParams: { q: searchTerm, page: pagination.index, size: pagination.size, status, order },
             queryParamsHandling: 'merge',
           });
         }),
-        switchMap(({ pagination, searchTerm, sort }) =>
+        switchMap(({ pagination, searchTerm, order }) =>
           this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), pagination.index, pagination.size)
+            .search({ query: searchTerm }, apiSortByParamFromString(order), pagination.index, pagination.size)
             .pipe(catchError(() => of(new PagedResult<Api>()))),
         ),
         tap((apisPage) => {
