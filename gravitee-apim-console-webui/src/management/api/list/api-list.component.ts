@@ -71,7 +71,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
   filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
-    sort: { active: 'name', direction: 'asc' },
   };
   isQualityDisplayed: boolean;
   searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
@@ -107,19 +106,32 @@ export class ApiListComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(100),
         distinctUntilChanged(isEqual),
-        tap(({ pagination, searchTerm, status, sort }) => {
-          // Change url params
-          this.ajsState.go(
-            '.',
-            { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) },
-            { notify: false },
-          );
+        map(({ pagination, searchTerm, status, sort }) => {
+          let order: string;
+          if (!searchTerm && !sort?.direction) {
+            order = 'name';
+          } else if (searchTerm && !sort?.direction) {
+            order = undefined;
+          } else {
+            order = toOrder(sort);
+          }
+
+          return {
+            pagination,
+            searchTerm,
+            status,
+            order,
+          };
         }),
-        switchMap(({ pagination, searchTerm, sort }) =>
-          this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), pagination.index, pagination.size)
-            .pipe(catchError(() => of(new PagedResult<Api>()))),
-        ),
+        tap(({ pagination, searchTerm, status, order }) => {
+          // Change url params
+          this.ajsState.go('.', { q: searchTerm, page: pagination.index, size: pagination.size, status, order }, { notify: false });
+        }),
+        switchMap(({ pagination, searchTerm, order }) => {
+          return this.apiServiceV2
+            .search({ query: searchTerm }, apiSortByParamFromString(order), pagination.index, pagination.size)
+            .pipe(catchError(() => of(new PagedResult<Api>())));
+        }),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
           this.apisTableDSUnpaginatedLength = apisPage.pagination.totalCount;
