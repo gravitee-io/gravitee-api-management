@@ -1,8 +1,9 @@
 suite: Test API Gateway Ingress - labels
-templates:
-  - "gateway/gateway-ingress.yaml"
+
 tests:
   - it: Sets common ingress labels
+    templates:
+      - "gateway/gateway-ingress.yaml"
     chart:
       version: 3.1.0
       appVersion: 3.21.0
@@ -20,6 +21,35 @@ tests:
             app.kubernetes.io/managed-by: Helm 
             app.kubernetes.io/name: apim 
             app.kubernetes.io/version: 3.21.0 
+            helm.sh/chart: apim-3.1.0
+            acme.com/team: api
+            acme.com/feature: products
+
+  - it: Sets common ingress labels on technical ingress too
+    templates:
+      - "gateway/gateway-technical-ingress.yaml"
+    chart:
+      version: 3.1.0
+      appVersion: 3.21.0
+    set:
+      common:
+        labels:
+          acme.com/team: api
+          acme.com/feature: products
+      gateway:
+        services:
+          core:
+            ingress:
+              enabled: true
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/component: gateway
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: apim
+            app.kubernetes.io/version: 3.21.0
             helm.sh/chart: apim-3.1.0
             acme.com/team: api
             acme.com/feature: products
