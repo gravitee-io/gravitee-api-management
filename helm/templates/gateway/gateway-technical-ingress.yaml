@@ -16,6 +16,11 @@ metadata:
     app.kubernetes.io/component: "{{ .Values.gateway.name }}"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
   annotations:
     {{- if .Values.gateway.services.core.ingress.annotations }}
     {{- include "common.ingress.annotations.render" (dict "annotations" .Values.gateway.services.core.ingress.annotations "ingressClassName" .Values.gateway.services.core.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
