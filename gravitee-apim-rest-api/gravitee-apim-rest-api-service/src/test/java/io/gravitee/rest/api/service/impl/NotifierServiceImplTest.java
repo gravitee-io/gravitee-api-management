@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +42,7 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -255,6 +257,34 @@ class NotifierServiceImplTest {
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
             verify(emailNotifierService).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
             assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("additional@gio.test", "recipient@gio.test");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_not_trigger_notification_if_hook_not_present() {
+            final Map<String, Object> params = Map.of();
+            final ExecutionContext executionContext = new ExecutionContext();
+
+            when(
+                genericNotificationConfigRepository.findByReferenceAndHook(
+                    ApiHook.API_STARTED.name(),
+                    NotificationReferenceType.API,
+                    "api-id"
+                )
+            )
+                .thenReturn(Collections.emptyList());
+
+            cut.triggerGenericNotifications(
+                executionContext,
+                ApiHook.API_STARTED,
+                NotificationReferenceType.API,
+                "api-id",
+                params,
+                List.of()
+            );
+
+            verify(emailNotifierService, times(0)).trigger(any(), any(), any(), any());
+            verify(webhookNotifierService, times(0)).trigger(any(), any(), any());
         }
     }
 }

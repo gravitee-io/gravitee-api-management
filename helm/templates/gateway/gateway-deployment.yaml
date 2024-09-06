@@ -194,7 +194,7 @@ spec:
             successThreshold: 1
             failureThreshold: 2
             httpGet:
-              path: /_node/health?probes=sync-process
+              path: /_node/health?probes=http-server
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
@@ -213,7 +213,7 @@ spec:
             successThreshold: 1
             failureThreshold: 29
             httpGet:
-              path: /_node/health?probes=http-server
+              path: /_node/health?probes=http-server,sync-process
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
