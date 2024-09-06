@@ -35,6 +35,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyPluginEntity> implements PolicyPluginService {
 
+    public static final Set<String> INTERNAL_POLICIES_ID = Set.of("shared-policy-group-policy");
+
     protected PolicyPluginServiceImpl(
         final JsonSchemaService jsonSchemaService,
         final ConfigurablePluginManager<PolicyPlugin<?>> policyManager
@@ -90,6 +92,11 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
 
     @Override
     public String validatePolicyConfiguration(final String policyPluginId, final String configuration) {
+        // Ignore validation for internal policies
+        if (INTERNAL_POLICIES_ID.contains(policyPluginId)) {
+            return configuration;
+        }
+
         PolicyPluginEntity policyPluginEntity = this.findById(policyPluginId);
         return validateConfiguration(policyPluginEntity.getId(), configuration);
     }

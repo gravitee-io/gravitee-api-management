@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -87,6 +89,16 @@ public class PolicyPluginServiceImplTest {
         String resultConfiguration = cut.validatePolicyConfiguration(PLUGIN_ID, null);
 
         assertNull(resultConfiguration);
+    }
+
+    @Test
+    public void should_validateConfiguration_with_internal_policy() {
+        var policyId = "shared-policy-group-policy";
+
+        String resultConfiguration = cut.validatePolicyConfiguration(policyId, CONFIGURATION);
+
+        assertEquals(CONFIGURATION, resultConfiguration);
+        verify(pluginManager, times(0)).get(policyId, true);
     }
 
     @Test(expected = PluginNotFoundException.class)
