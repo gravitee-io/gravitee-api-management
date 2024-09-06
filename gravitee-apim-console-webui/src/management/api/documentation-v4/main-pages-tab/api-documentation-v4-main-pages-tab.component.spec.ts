@@ -28,7 +28,7 @@ import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 
-import { ApiDocumentationV4DefaultPageComponent } from './api-documentation-v4-default-page.component';
+import { ApiDocumentationV4MainPagesTabComponent } from './api-documentation-v4-main-pages-tab.component';
 
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../entities/Constants';
@@ -38,8 +38,8 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { ApiLifecycleState, Breadcrumb, fakeApiV4, fakeMarkdown, Page } from '../../../../entities/management-api-v2';
 
-describe('ApiDocumentationV4DefaultPageComponent', () => {
-  let fixture: ComponentFixture<ApiDocumentationV4DefaultPageComponent>;
+describe('ApiDocumentationV4MainPagesTab', () => {
+  let fixture: ComponentFixture<ApiDocumentationV4MainPagesTabComponent>;
   let harnessLoader: HarnessLoader;
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
@@ -53,7 +53,7 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
     apiLifecycleStatus: ApiLifecycleState = 'PUBLISHED',
   ) => {
     await TestBed.configureTestingModule({
-      declarations: [ApiDocumentationV4DefaultPageComponent],
+      declarations: [ApiDocumentationV4MainPagesTabComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioTestingModule],
       providers: [
         {
@@ -89,7 +89,7 @@ describe('ApiDocumentationV4DefaultPageComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(ApiDocumentationV4DefaultPageComponent);
+    fixture = TestBed.createComponent(ApiDocumentationV4MainPagesTabComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);

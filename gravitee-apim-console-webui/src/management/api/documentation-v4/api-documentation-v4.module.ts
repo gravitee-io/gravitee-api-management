@@ -44,15 +44,15 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
-import { ApiDocumentationV4Component } from './api-documentation-v4.component';
+import { ApiDocumentationV4DocumentationPagesTabComponent } from './documentation-pages-tab/api-documentation-v4-documentation-pages-tab.component';
 import { ApiDocumentationV4EditFolderDialog } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.component';
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
-import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/api-documentation-v4-metadata.component';
-import { ApiDocumentationV4DefaultPageComponent } from './documentation-default-page/api-documentation-v4-default-page.component';
+import { ApiDocumentationV4MetadataTabComponent } from './metadata-tab/api-documentation-v4-metadata-tab.component';
+import { ApiDocumentationV4MainPagesTabComponent } from './main-pages-tab/api-documentation-v4-main-pages-tab.component';
 import { ApiDocumentationV4AddPageButtonComponent } from './components/api-documentation-v4-add-page-button/api-documentation-v4-add-page-button.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -64,16 +64,16 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
 
 @NgModule({
   declarations: [
-    ApiDocumentationV4Component,
+    ApiDocumentationV4DocumentationPagesTabComponent,
     ApiDocumentationV4EmptyStateComponent,
     ApiDocumentationV4ListNavigationHeaderComponent,
     ApiDocumentationV4EditFolderDialog,
-    ApiDocumentationV4DefaultPageComponent,
+    ApiDocumentationV4MainPagesTabComponent,
     ApiDocumentationV4AddPageButtonComponent,
     ApiDocumentationV4PagesListComponent,
-    ApiDocumentationV4MetadataComponent,
+    ApiDocumentationV4MetadataTabComponent,
   ],
-  exports: [ApiDocumentationV4Component],
+  exports: [ApiDocumentationV4DocumentationPagesTabComponent],
   imports: [
     CommonModule,
     FormsModule,

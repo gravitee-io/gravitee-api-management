@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MatCard } from '@angular/material/card';
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
+import { MatCard } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
+import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { map } from 'rxjs/operators';
 
-import { DocumentationEditPageComponent } from '../components/documentation-edit-page/documentation-edit-page.component';
-import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { Api, Page, PageType } from '../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { DocumentationNewPageComponent } from '../components/documentation-new-page/documentation-new-page.component';
-import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { Api, Page, PageType } from '../../../../../entities/management-api-v2';
+import { DocumentationEditPageComponent } from '../../components/documentation-edit-page/documentation-edit-page.component';
+import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { DocumentationNewPageComponent } from '../../components/documentation-new-page/documentation-new-page.component';
+import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
 
 @Component({
-  selector: 'documentation-edit-homepage',
+  selector: 'documentation-edit-custom-page',
   standalone: true,
-  templateUrl: './documentation-edit-homepage.component.html',
-  imports: [DocumentationEditPageComponent, MatCard, ApiDocumentationV4Module, AsyncPipe, DocumentationNewPageComponent],
-  styleUrl: './documentation-edit-homepage.component.scss',
+  templateUrl: './documentation-edit-custom-page.component.html',
+  imports: [DocumentationEditPageComponent, MatCard, AsyncPipe, ApiDocumentationV4Module, DocumentationNewPageComponent],
+  styleUrl: './documentation-edit-custom-page.component.scss',
 })
-export class DocumentationEditHomepageComponent implements OnInit {
-  data$: Observable<{ api: Api; page?: Page; pageType?: PageType }> = of();
+export class DocumentationEditCustomPageComponent implements OnInit {
+  data$: Observable<{ api: Api; edit?: { page: Page }; new?: { pageType: PageType; parentId: string } }> = of();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -47,7 +47,7 @@ export class DocumentationEditHomepageComponent implements OnInit {
     this.data$ = combineLatest([this.activatedRoute.params, this.activatedRoute.queryParams]).pipe(
       switchMap(([params, queryParams]) => {
         const { apiId, pageId } = params;
-        const { pageType } = queryParams;
+        const { pageType, parentId } = queryParams;
 
         if (!apiId) {
           return EMPTY;
@@ -56,9 +56,10 @@ export class DocumentationEditHomepageComponent implements OnInit {
           this.apiV2Service.get(apiId),
           pageId ? this.apiDocumentationService.getApiPage(apiId, pageId) : of(undefined),
           of(pageType ?? 'MARKDOWN'),
+          of(parentId ?? 'ROOT'),
         ]);
       }),
-      map(([api, page, pageType]) => ({ api, page, pageType })),
+      map(([api, page, pageType, parentId]) => ({ api, edit: { page }, new: { pageType, parentId } })),
     );
   }
 }

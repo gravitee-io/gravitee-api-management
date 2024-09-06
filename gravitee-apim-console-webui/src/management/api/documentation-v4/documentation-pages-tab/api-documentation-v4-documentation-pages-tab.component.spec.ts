@@ -26,21 +26,21 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 
-import { ApiDocumentationV4Component } from './api-documentation-v4.component';
-import { ApiDocumentationV4Module } from './api-documentation-v4.module';
-import { ApiDocumentationV4EmptyStateHarness } from './components/documentation-empty-state/api-documentation-v4-empty-state.harness';
-import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
-import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
-import { ApiDocumentationV4PagesListHarness } from './components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.harness';
+import { ApiDocumentationV4DocumentationPagesTabComponent } from './api-documentation-v4-documentation-pages-tab.component';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4, ApiV4 } from '../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { PageType } from '../../../entities/page';
-import { Constants } from '../../../entities/Constants';
+import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
+import { ApiDocumentationV4EmptyStateHarness } from '../components/documentation-empty-state/api-documentation-v4-empty-state.harness';
+import { ApiDocumentationV4ListNavigationHeaderHarness } from '../components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
+import { ApiDocumentationV4EditFolderDialogHarness } from '../dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
+import { ApiDocumentationV4PagesListHarness } from '../components/api-documentation-v4-pages-list/api-documentation-v4-pages-list.harness';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { Breadcrumb, Page, fakeFolder, fakeMarkdown, ApiLifecycleState, fakeApiV4, ApiV4 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { PageType } from '../../../../entities/page';
+import { Constants } from '../../../../entities/Constants';
 
-describe('ApiDocumentationV4', () => {
-  let fixture: ComponentFixture<ApiDocumentationV4Component>;
+describe('ApiDocumentationV4DocumentationPagesTab', () => {
+  let fixture: ComponentFixture<ApiDocumentationV4DocumentationPagesTabComponent>;
   let harnessLoader: HarnessLoader;
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
@@ -54,7 +54,7 @@ describe('ApiDocumentationV4', () => {
     apiLifecycleStatus: ApiLifecycleState = 'PUBLISHED',
   ) => {
     await TestBed.configureTestingModule({
-      declarations: [ApiDocumentationV4Component],
+      declarations: [ApiDocumentationV4DocumentationPagesTabComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioTestingModule],
       providers: [
         {
@@ -90,7 +90,7 @@ describe('ApiDocumentationV4', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(ApiDocumentationV4Component);
+    fixture = TestBed.createComponent(ApiDocumentationV4DocumentationPagesTabComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);

@@ -35,14 +35,14 @@ import {
   fakeGroup,
   Api,
   fakeApiV2,
-} from '../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../../entities/Constants';
-import { DocumentationNewPageHarness } from '../components/documentation-new-page/documentation-new-page.harness';
-import { DocumentationEditPageHarness } from '../components/documentation-edit-page/documentation-edit-page.harness';
-import { FetcherListItem } from '../../../../entities/fetcher';
-import { fakeFetcherList } from '../../../../entities/fetcher/fetcher.fixture';
+} from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../../entities/Constants';
+import { DocumentationNewPageHarness } from '../../components/documentation-new-page/documentation-new-page.harness';
+import { DocumentationEditPageHarness } from '../../components/documentation-edit-page/documentation-edit-page.harness';
+import { FetcherListItem } from '../../../../../entities/fetcher';
+import { fakeFetcherList } from '../../../../../entities/fetcher/fetcher.fixture';
 
 interface InitInput {
   pages?: Page[];
