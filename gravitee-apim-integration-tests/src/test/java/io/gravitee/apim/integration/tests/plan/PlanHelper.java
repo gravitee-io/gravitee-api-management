@@ -35,6 +35,11 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
 import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpClient;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -79,6 +84,7 @@ public class PlanHelper {
 
     /**
      * Generate the Subscription object that would be returned by the SubscriptionService
+     *
      * @return the Subscription object
      */
     public static Subscription createSubscription(final String apiId, final String planId, final boolean isExpired) {
@@ -263,5 +269,23 @@ public class PlanHelper {
         }
 
         api.setPlans(plans);
+    }
+
+    public static HttpClient createTrustedHttpClient(Vertx vertx, int gatewayPort, boolean withCert) {
+        var options = new HttpClientOptions().setSsl(true).setTrustAll(true).setDefaultPort(gatewayPort).setDefaultHost("localhost");
+        if (withCert) {
+            options =
+                options.setPemKeyCertOptions(
+                    new PemKeyCertOptions()
+                        .addCertPath(getUrl("plans/mtls/client.cer").getPath())
+                        .addKeyPath(getUrl("plans/mtls/client.key").getPath())
+                );
+        }
+
+        return vertx.createHttpClient(options);
+    }
+
+    public static URL getUrl(String name) {
+        return PlanHelper.class.getClassLoader().getResource(name);
     }
 }
