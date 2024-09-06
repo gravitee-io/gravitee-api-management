@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
@@ -30,10 +31,16 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
     private final ApiValidationService apiValidationService;
     private final CategoryDomainService categoryDomainService;
+    private final FlowValidationDomainService flowValidationDomainService;
 
-    public ValidateApiDomainServiceLegacyWrapper(ApiValidationService apiValidationService, CategoryDomainService categoryDomainService) {
+    public ValidateApiDomainServiceLegacyWrapper(
+        ApiValidationService apiValidationService,
+        CategoryDomainService categoryDomainService,
+        FlowValidationDomainService flowValidationDomainService
+    ) {
         this.apiValidationService = apiValidationService;
         this.categoryDomainService = categoryDomainService;
+        this.flowValidationDomainService = flowValidationDomainService;
     }
 
     @Override
@@ -61,7 +68,9 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         api.getApiDefinitionV4().setEndpointGroups(newApiEntity.getEndpointGroups());
         api.getApiDefinitionV4().setAnalytics(newApiEntity.getAnalytics());
         api.getApiDefinitionV4().setFlowExecution(newApiEntity.getFlowExecution());
-        api.getApiDefinitionV4().setFlows(newApiEntity.getFlows());
+
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), newApiEntity.getFlows());
+        api.getApiDefinitionV4().setFlows(sanitizedFlows);
         api.getApiDefinitionV4().setFailover(newApiEntity.getFailover());
         api.getApiDefinitionV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionV4().getResources()));
 
