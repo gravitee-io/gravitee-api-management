@@ -36,7 +36,7 @@
   (filtersChange)="onFiltersChanged($event)"
   [paginationPageSizeOptions]="[5, 10, 25, 50]"
 >
-  <table mat-table matSort [dataSource]="apisTableDS" matSortActive="name" matSortDirection="asc" id="apisTable" aria-label="Apis table">
+  <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Picture Column -->
     <ng-container matColumnDef="picture">
       <th mat-header-cell *matHeaderCellDef id="picture"></th>
