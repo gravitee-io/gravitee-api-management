@@ -77,7 +77,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
 
     combineLatest([
       this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV2Filter(this.snackBarService)),
-      this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, undefined, undefined, undefined, 1, 9999),
+      this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, 1, 9999),
     ])
       .pipe(
         tap(([api, plansResponse]) => {
@@ -95,28 +95,30 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    const updatePlans$ = this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, undefined, undefined, undefined, 1, 9999).pipe(
-      switchMap((plansResponse) => {
-        const plans = plansResponse.data as PlanV2[];
+    const updatePlans$ = this.apiPlanService
+      .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, 1, 9999)
+      .pipe(
+        switchMap((plansResponse) => {
+          const plans = plansResponse.data as PlanV2[];
 
-        const planToUpdate = plans
-          .map((plan) => {
-            const planDefinition = this.apiDefinition.plans.find((p) => p.id === plan.id);
-            if (planDefinition) {
-              const planToUpdate = toApiPlanV2(planDefinition, plan);
+          const planToUpdate = plans
+            .map((plan) => {
+              const planDefinition = this.apiDefinition.plans.find((p) => p.id === plan.id);
+              if (planDefinition) {
+                const planToUpdate = toApiPlanV2(planDefinition, plan);
 
-              return isEqual(plan, planToUpdate) ? null : planToUpdate;
-            }
-            return null;
-          })
-          .filter((p) => p !== null);
+                return isEqual(plan, planToUpdate) ? null : planToUpdate;
+              }
+              return null;
+            })
+            .filter((p) => p !== null);
 
-        return forkJoin(
-          ...planToUpdate.map((plan) => this.apiPlanService.update(this.activatedRoute.snapshot.params.apiId, plan.id, plan)),
-        );
-      }),
-      defaultIfEmpty(null),
-    );
+          return forkJoin(
+            ...planToUpdate.map((plan) => this.apiPlanService.update(this.activatedRoute.snapshot.params.apiId, plan.id, plan)),
+          );
+        }),
+        defaultIfEmpty(null),
+      );
 
     const updateApi$ = this.apiService.get(this.apiDefinition.id).pipe(
       onlyApiV2Filter(this.snackBarService),
