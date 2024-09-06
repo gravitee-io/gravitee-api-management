@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.query_service;
+package io.gravitee.apim.core.async_job.crud_service;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import java.util.Optional;
 
-public interface AsyncJobQueryService {
-    Optional<AsyncJob> findPendingJobFor(String integrationId);
+public interface AsyncJobCrudService {
+    AsyncJob create(AsyncJob job);
+
+    Optional<AsyncJob> findById(String id);
+
+    AsyncJob update(AsyncJob job);
+
+    void delete(String id);
 }

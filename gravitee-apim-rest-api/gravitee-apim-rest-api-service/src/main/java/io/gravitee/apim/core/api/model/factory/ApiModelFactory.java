@@ -19,7 +19,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.common.utils.TimeProvider;

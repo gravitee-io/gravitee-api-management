@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.query_service.integration;
+package io.gravitee.apim.infra.query_service.async_job;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.repository.AsyncJobFixture;
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;

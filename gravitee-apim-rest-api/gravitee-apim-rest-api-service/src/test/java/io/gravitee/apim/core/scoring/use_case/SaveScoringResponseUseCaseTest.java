@@ -22,7 +22,7 @@ import fixtures.core.model.ScoringReportFixture;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringReportCrudServiceInMemory;
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.use_case.SaveScoringResponseUseCase.Input;

@@ -15,7 +15,7 @@
  */
 package fixtures.core.model;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.function.Supplier;

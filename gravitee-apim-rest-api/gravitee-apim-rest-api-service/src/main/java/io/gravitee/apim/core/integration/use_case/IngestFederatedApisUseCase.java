@@ -26,13 +26,13 @@ import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainServic
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
+import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;

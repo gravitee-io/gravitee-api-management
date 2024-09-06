@@ -17,10 +17,9 @@
 package io.gravitee.apim.core.scoring.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.scoring.crud_service.ScoringReportCrudService;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
-import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;

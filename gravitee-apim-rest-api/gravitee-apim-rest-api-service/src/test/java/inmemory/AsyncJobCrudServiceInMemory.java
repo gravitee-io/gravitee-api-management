@@ -15,8 +15,8 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
