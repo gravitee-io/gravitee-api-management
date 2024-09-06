@@ -55,6 +55,7 @@ class ApplicationGeneralController {
   }
 
   update() {
+    this.application.settings.oauth.application_type = this.application.type.toLowerCase();
     this.ApplicationService.update(this.application).then(() => {
       this.initialApplication = _.cloneDeep(this.application);
       this.$scope.formApplication.$setPristine();
