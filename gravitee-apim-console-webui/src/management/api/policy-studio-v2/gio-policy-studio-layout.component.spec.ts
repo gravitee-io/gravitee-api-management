@@ -81,7 +81,9 @@ describe('GioPolicyStudioLayoutComponent', () => {
     httpTestingController.expectOne(LICENSE_CONFIGURATION_TESTING.resourceURL);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999`);
+    httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED`,
+    );
 
     fixture.detectChanges();
   });
@@ -101,9 +103,11 @@ describe('GioPolicyStudioLayoutComponent', () => {
       component.onSubmit();
 
       httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999`).flush({
-        data: plans,
-      });
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED`)
+        .flush({
+          data: plans,
+        });
 
       const apiReq = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}` });
       expect(apiReq.request.body.flowMode).toEqual(apiDefinitionToSave.flow_mode);
