@@ -57,7 +57,17 @@ public class ConfigurationMapperTest {
         String bannerTitle,
         String bannerSubtitle,
         Boolean inputEnabled,
-        Boolean expectedEnabled
+        Boolean expectedEnabled,
+        String primaryButtonLabel,
+        String primaryButtonTarget,
+        String primaryButtonType,
+        String primaryButtonVisibility,
+        Boolean primaryButtonEnabled,
+        String secondaryButtonLabel,
+        String secondaryButtonTarget,
+        String secondaryButtonType,
+        String secondaryButtonVisibility,
+        Boolean secondaryButtonEnabled
     ) {
         PortalNext portalNext = new PortalNext();
         portalNext.setSiteTitle(siteTitle);
@@ -65,6 +75,25 @@ public class ConfigurationMapperTest {
         banner.setEnabled(bannerEnabled);
         banner.setTitle(bannerTitle);
         banner.setSubtitle(bannerSubtitle);
+
+        var primaryButton = new PortalNext.Banner.PrimaryButton();
+        primaryButton.setEnabled(primaryButtonEnabled);
+        primaryButton.setLabel(primaryButtonLabel);
+        primaryButton.setTarget(primaryButtonTarget);
+        primaryButton.setType(primaryButtonType);
+        primaryButton.setVisibility(primaryButtonVisibility);
+
+        banner.setPrimaryButton(primaryButton);
+
+        var secondaryButton = new PortalNext.Banner.SecondaryButton();
+        secondaryButton.setEnabled(secondaryButtonEnabled);
+        secondaryButton.setLabel(secondaryButtonLabel);
+        secondaryButton.setTarget(secondaryButtonTarget);
+        secondaryButton.setType(secondaryButtonType);
+        secondaryButton.setVisibility(secondaryButtonVisibility);
+
+        banner.setSecondaryButton(secondaryButton);
+
         portalNext.setBanner(banner);
         portalNext.setAccess(new Enabled(inputEnabled));
 
@@ -77,12 +106,67 @@ public class ConfigurationMapperTest {
         Assertions.assertEquals(bannerEnabled, configurationPortalNext.getBanner().getEnabled());
         Assertions.assertNotNull(configurationPortalNext.getAccess());
         Assertions.assertEquals(expectedEnabled, configurationPortalNext.getAccess().getEnabled());
+
+        Assertions.assertNotNull(configurationPortalNext.getBanner().getPrimaryButton());
+        Assertions.assertEquals(primaryButtonEnabled, configurationPortalNext.getBanner().getPrimaryButton().getEnabled());
+        Assertions.assertEquals(primaryButtonLabel, configurationPortalNext.getBanner().getPrimaryButton().getLabel());
+        Assertions.assertNotNull(configurationPortalNext.getBanner().getPrimaryButton().getType());
+        Assertions.assertEquals(primaryButtonType, configurationPortalNext.getBanner().getPrimaryButton().getType().getValue());
+        Assertions.assertEquals(primaryButtonTarget, configurationPortalNext.getBanner().getPrimaryButton().getTarget());
+        Assertions.assertNotNull(configurationPortalNext.getBanner().getPrimaryButton().getVisibility());
+        Assertions.assertEquals(primaryButtonVisibility, configurationPortalNext.getBanner().getPrimaryButton().getVisibility().getValue());
+
+        Assertions.assertNotNull(configurationPortalNext.getBanner().getSecondaryButton());
+        Assertions.assertEquals(secondaryButtonEnabled, configurationPortalNext.getBanner().getSecondaryButton().getEnabled());
+        Assertions.assertEquals(secondaryButtonLabel, configurationPortalNext.getBanner().getSecondaryButton().getLabel());
+        Assertions.assertNotNull(configurationPortalNext.getBanner().getSecondaryButton().getType());
+        Assertions.assertEquals(secondaryButtonType, configurationPortalNext.getBanner().getSecondaryButton().getType().getValue());
+        Assertions.assertEquals(secondaryButtonTarget, configurationPortalNext.getBanner().getSecondaryButton().getTarget());
+        Assertions.assertNotNull(configurationPortalNext.getBanner().getSecondaryButton().getVisibility());
+        Assertions.assertEquals(
+            secondaryButtonVisibility,
+            configurationPortalNext.getBanner().getSecondaryButton().getVisibility().getValue()
+        );
     }
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("Test Site Title", true, "Test Banner Title", "Test Banner Subtitle", true, true),
-            Arguments.of("Test Site Title", false, "Test Banner Title", "Test Banner Subtitle", false, false)
+            Arguments.of(
+                "Test Site Title",
+                true,
+                "Test Banner Title",
+                "Test Banner Subtitle",
+                true,
+                true,
+                "Primary button",
+                "primary-target",
+                "EXTERNAL",
+                "PUBLIC",
+                true,
+                "Secondary button",
+                "secondary-target",
+                "EXTERNAL",
+                "PRIVATE",
+                false
+            ),
+            Arguments.of(
+                "Test Site Title",
+                false,
+                "Test Banner Title",
+                "Test Banner Subtitle",
+                false,
+                false,
+                "Primary button",
+                "primary-target",
+                "EXTERNAL",
+                "PUBLIC",
+                true,
+                "Secondary button",
+                "secondary-target",
+                "EXTERNAL",
+                "PRIVATE",
+                false
+            )
         );
     }
 

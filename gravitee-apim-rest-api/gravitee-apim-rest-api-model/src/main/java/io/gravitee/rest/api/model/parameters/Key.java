@@ -90,6 +90,19 @@ public enum Key {
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_BANNER_CONFIG_ENABLED("portal.next.banner.enabled", "true", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_PRIMARY_BUTTON_ENABLED("portal.next.banner.primaryButton.enabled", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_PRIMARY_BUTTON_TARGET("portal.next.banner.primaryButton.target", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_PRIMARY_BUTTON_TYPE("portal.next.banner.primaryButton.type", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_PRIMARY_BUTTON_LABEL("portal.next.banner.primaryButton.label", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_PRIMARY_BUTTON_VISIBILITY("portal.next.banner.primaryButton.visibility", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_SECONDARY_BUTTON_ENABLED("portal.next.banner.secondaryButton.enabled", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_SECONDARY_BUTTON_TARGET("portal.next.banner.secondaryButton.target", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_SECONDARY_BUTTON_TYPE("portal.next.banner.secondaryButton.type", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_SECONDARY_BUTTON_LABEL("portal.next.banner.secondaryButton.label", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_BANNER_SECONDARY_BUTTON_VISIBILITY(
+        "portal.next.banner.secondaryButton.visibility",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
     PORTAL_NEXT_ACCESS_ENABLED("portal.next.access.enabled", "false", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_PRIMARY("portal.next.theme.color.primary", "#613CB0", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_SECONDARY("portal.next.theme.color.secondary", "#958BA9", new HashSet<>(singletonList(ENVIRONMENT))),

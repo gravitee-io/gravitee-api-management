@@ -61,8 +61,50 @@ public class ConfigurationMapper {
             configuration.setEnabled(banner.getEnabled());
             configuration.setTitle(banner.getTitle());
             configuration.setSubtitle(banner.getSubtitle());
+            configuration.setPrimaryButton(convert(banner.getPrimaryButton()));
+            configuration.setSecondaryButton(convert(banner.getSecondaryButton()));
         }
         return configuration;
+    }
+
+    private BannerButton convert(PortalNext.Banner.PrimaryButton primaryButton) {
+        BannerButton button = new BannerButton();
+        if (Objects.nonNull(primaryButton)) {
+            button.enabled(primaryButton.getEnabled());
+            button.label(primaryButton.getLabel());
+            button.target(primaryButton.getTarget());
+            button.type(convertBannerButtonType(primaryButton.getType()));
+            button.visibility(convertBannerButtonVisibility(primaryButton.getVisibility()));
+        }
+        return button;
+    }
+
+    private BannerButton convert(PortalNext.Banner.SecondaryButton secondaryButton) {
+        BannerButton button = new BannerButton();
+        if (Objects.nonNull(secondaryButton)) {
+            button.enabled(secondaryButton.getEnabled());
+            button.label(secondaryButton.getLabel());
+            button.target(secondaryButton.getTarget());
+            button.type(convertBannerButtonType(secondaryButton.getType()));
+            button.visibility(convertBannerButtonVisibility(secondaryButton.getVisibility()));
+        }
+        return button;
+    }
+
+    private BannerButton.TypeEnum convertBannerButtonType(String bannerButtonType) {
+        try {
+            return BannerButton.TypeEnum.fromValue(bannerButtonType);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private BannerButton.VisibilityEnum convertBannerButtonVisibility(String bannerButtonVisibility) {
+        try {
+            return BannerButton.VisibilityEnum.fromValue(bannerButtonVisibility);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private ConfigurationAnalytics convert(Analytics analytics) {

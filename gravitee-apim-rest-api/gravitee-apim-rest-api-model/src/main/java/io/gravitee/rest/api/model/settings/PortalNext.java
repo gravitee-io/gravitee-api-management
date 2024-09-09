@@ -44,8 +44,6 @@ public class PortalNext {
     }
 
     @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Banner {
 
@@ -57,5 +55,59 @@ public class PortalNext {
 
         @ParameterKey(Key.PORTAL_NEXT_BANNER_CONFIG_ENABLED)
         private Boolean enabled;
+
+        private PrimaryButton primaryButton;
+
+        private SecondaryButton secondaryButton;
+
+        public Banner() {
+            super();
+            primaryButton = new PrimaryButton();
+            secondaryButton = new SecondaryButton();
+        }
+
+        @Data
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class PrimaryButton {
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_PRIMARY_BUTTON_LABEL)
+            private String label;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_PRIMARY_BUTTON_TARGET)
+            private String target;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_PRIMARY_BUTTON_ENABLED)
+            private Boolean enabled;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_PRIMARY_BUTTON_TYPE)
+            private String type;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_PRIMARY_BUTTON_VISIBILITY)
+            private String visibility;
+        }
+
+        @Data
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class SecondaryButton {
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_SECONDARY_BUTTON_LABEL)
+            private String label;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_SECONDARY_BUTTON_TARGET)
+            private String target;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_SECONDARY_BUTTON_ENABLED)
+            private Boolean enabled;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_SECONDARY_BUTTON_TYPE)
+            private String type;
+
+            @ParameterKey(Key.PORTAL_NEXT_BANNER_SECONDARY_BUTTON_VISIBILITY)
+            private String visibility;
+        }
     }
 }
