@@ -205,6 +205,10 @@ public class ApiCRDEntity {
         return pages == null ? List.of() : pages.values().stream().collect(Collectors.toList());
     }
 
+    public Map<String, PageCRD> getPagesMap() {
+        return pages == null ? Map.of() : pages;
+    }
+
     @JsonSetter("properties")
     @JsonDeserialize(using = PropertiesEntityAsListDeserializer.class)
     public void setPropertyList(List<PropertyEntity> properties) {
