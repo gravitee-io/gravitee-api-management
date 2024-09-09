@@ -30,6 +30,9 @@ export class ApiImportV4Harness extends ComponentHarness {
   private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
   private getFormatErrorBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
   private getImportDocumentationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="withDocumentation"]' }));
+  private getImportOASValidationPolicyToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[formControlName="withOASValidationPolicy"]' }),
+  );
 
   public async save() {
     return this.getSaveButton().then((btn) => btn.click());
@@ -69,5 +72,17 @@ export class ApiImportV4Harness extends ComponentHarness {
 
   public async toggleDocumentationImport() {
     return this.getImportDocumentationToggle().then((toggle) => toggle.toggle());
+  }
+
+  public async isOASValidationPolicyImportSelected() {
+    return this.getImportOASValidationPolicyToggle().then((toggle) => toggle.isChecked());
+  }
+
+  public async isOASValidationPolicyImportDisabled() {
+    return this.getImportOASValidationPolicyToggle().then((toggle) => toggle.isDisabled());
+  }
+
+  public async toggleOASValidationPolicyImport() {
+    return this.getImportOASValidationPolicyToggle().then((toggle) => toggle.toggle());
   }
 }

@@ -15,5 +15,6 @@
  */
 export interface ImportSwaggerDescriptor {
   payload: string;
-  withDocumentation: boolean;
+  withDocumentation?: boolean;
+  withOASValidationPolicy?: boolean;
 }

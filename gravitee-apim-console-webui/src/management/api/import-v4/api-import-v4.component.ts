@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
@@ -21,8 +21,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 
@@ -30,6 +30,7 @@ import { ApiImportFilePickerComponent } from '../component/api-import-file-picke
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApiV4 } from '../../../entities/management-api-v2';
+import { PolicyV2Service } from '../../../services-ngx/policy-v2.service';
 
 @Component({
   selector: 'api-import-v4',
@@ -59,7 +60,7 @@ export class ApiImportV4Component implements OnInit {
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
-  private changeDetectorRef = inject(ChangeDetectorRef);
+  private policyV2Service = inject(PolicyV2Service);
   private importFileContent: string;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
@@ -77,18 +78,25 @@ export class ApiImportV4Component implements OnInit {
       format: new FormControl('gravitee', [Validators.required]),
       source: new FormControl('local', [Validators.required]),
       withDocumentation: new FormControl({ value: false, disabled: true }),
+      withOASValidationPolicy: new FormControl({ value: false, disabled: true }),
     },
     [this.fileFormatValidator()],
+  );
+
+  protected hasOasValidationPolicy = toSignal(
+    this.policyV2Service.list().pipe(map((policies) => policies.some((policy) => policy.id === 'oas-validation'))),
   );
 
   ngOnInit(): void {
     this.form.controls['format'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
       if (value !== 'openapi') {
-        this.form.patchValue({ withDocumentation: false });
-        this.form.controls['withDocumentation'].disable();
+        this.form.patchValue({ withDocumentation: false, withOASValidationPolicy: false });
+        this.form.get('withDocumentation').disable();
+        this.form.get('withOASValidationPolicy').disable();
       } else {
-        this.form.patchValue({ withDocumentation: true });
-        this.form.controls['withDocumentation'].enable();
+        this.form.patchValue({ withDocumentation: true, withOASValidationPolicy: true });
+        this.form.get('withDocumentation').enable();
+        this.form.get('withOASValidationPolicy').enable();
       }
     });
   }
@@ -111,6 +119,7 @@ export class ApiImportV4Component implements OnInit {
       result = this.apiV2Service.importSwaggerApi({
         payload: this.importFileContent,
         withDocumentation: this.form.value.withDocumentation,
+        withOASValidationPolicy: this.form.value.withOASValidationPolicy,
       });
     } else {
       this.snackBarService.error('Unsupported type for V4 API import');
