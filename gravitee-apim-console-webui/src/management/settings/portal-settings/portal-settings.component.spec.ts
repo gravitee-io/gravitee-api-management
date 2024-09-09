@@ -197,6 +197,7 @@ describe('PortalSettingsComponent', () => {
             enabled: false,
           },
           banner: {
+            ...portalSettingsMock.portalNext.banner,
             enabled: true,
             title: 'testTitle',
             subtitle: 'testSubtitle',

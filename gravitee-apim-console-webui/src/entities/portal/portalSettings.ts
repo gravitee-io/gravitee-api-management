@@ -229,5 +229,15 @@ export interface PortalSettingsPortalNext {
     title?: string;
     subtitle?: string;
     enabled?: boolean;
+    primaryButton?: BannerButton;
+    secondaryButton?: BannerButton;
   };
+}
+
+export interface BannerButton {
+  enabled?: boolean;
+  label?: string;
+  target?: string;
+  type?: 'EXTERNAL';
+  visibility?: 'PUBLIC' | 'PRIVATE';
 }

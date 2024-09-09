@@ -19,84 +19,164 @@
 
 @if (form) {
   <form [formGroup]="form" class="developer-portal-banner__container">
-    <mat-card class="developer-portal-banner">
-      <mat-card-content>
-        <h3>Choose feature banner</h3>
-        <div class="developer-portal-banner__row-one">
-          <mat-radio-group class="developer-portal-banner__row-one__radio-group" aria-label="Select a status" formControlName="enabled">
-            <banner-radio-button
-              title="None"
-              subtitle="No banner will be shown on the catalog page"
-              [value]="false"
-              [selected]="form.controls.enabled.value === false"
-              [disabled]="false"
-            >
-            </banner-radio-button>
+    <mat-card>
+      <mat-card-content class="developer-portal-banner">
+        <div>
+          <h3>Choose feature banner</h3>
+          <div class="developer-portal-banner__row-one">
+            <mat-radio-group class="developer-portal-banner__row-one__radio-group" aria-label="Select a status" formControlName="enabled">
+              <banner-radio-button
+                title="None"
+                subtitle="No banner will be shown on the catalog page"
+                [value]="false"
+                [selected]="form.controls.enabled.value === false"
+                [disabled]="false"
+              >
+              </banner-radio-button>
 
-            <banner-radio-button
-              title="Featured banner"
-              subtitle="Feature your own message and actions in the catalog page"
-              [value]="true"
-              [selected]="form.controls.enabled.value === true"
-              [disabled]="false"
-            >
-            </banner-radio-button>
-          </mat-radio-group>
-          @if (form.controls.enabled.value) {
-            <img
-              class="developer-portal-banner__row-one__image"
-              ngSrc="/assets/banner-featured.svg"
-              alt="Gravitee.io"
-              height="305"
-              width="400"
-            />
-          } @else {
-            <img
-              class="developer-portal-banner__row-one__image"
-              ngSrc="/assets/banner-none.svg"
-              alt="Gravitee.io"
-              height="305"
-              width="400"
-            />
-          }
+              <banner-radio-button
+                title="Featured banner"
+                subtitle="Feature your own message and actions in the catalog page"
+                [value]="true"
+                [selected]="form.controls.enabled.value === true"
+                [disabled]="false"
+              >
+              </banner-radio-button>
+            </mat-radio-group>
+            @if (form.controls.enabled.value) {
+              <img
+                class="developer-portal-banner__row-one__image"
+                ngSrc="/assets/banner-featured.svg"
+                alt="Gravitee.io"
+                height="305"
+                width="400"
+              />
+            } @else {
+              <img
+                class="developer-portal-banner__row-one__image"
+                ngSrc="/assets/banner-none.svg"
+                alt="Gravitee.io"
+                height="305"
+                width="400"
+              />
+            }
+          </div>
         </div>
         @if (form.controls.enabled.value) {
-          <div class="developer-portal-banner__row-two">
-            <div>
-              <div class="header-row">
-                <h3 class="header__title">Information</h3>
-              </div>
-              <div>
-                <mat-form-field class="input_text">
-                  <mat-label>Title Text</mat-label>
-                  <input type="text" maxlength="150" matInput aria-label="Logging configuration condition" formControlName="titleText" />
-                  @if (form.controls.titleText?.errors?.required) {
-                    <mat-error>Title is required</mat-error>
-                  }
-                </mat-form-field>
-              </div>
-              <div>
-                <mat-form-field class="input_text">
-                  <mat-label>Subtitle Text</mat-label>
-                  <input
-                    type="text"
-                    #input
-                    maxlength="250"
-                    matInput
-                    aria-label="Logging configuration condition"
-                    formControlName="subTitleText"
-                  />
-                  <mat-hint>{{ input.value.length }}/250</mat-hint>
-                  @if (form.controls.subTitleText?.errors?.required) {
-                    <mat-error>Subtitle is required</mat-error>
-                  }
-                </mat-form-field>
-              </div>
+          <div class="developer-portal-banner__information">
+            <div class="header-row">
+              <h3 class="header__title">Information</h3>
+            </div>
+            <div class="developer-portal-banner__information__fields">
+              <mat-form-field class="input_text">
+                <mat-label>Title Text</mat-label>
+                <input type="text" maxlength="150" matInput aria-label="Logging configuration condition" formControlName="titleText" />
+                @if (form.controls.titleText?.errors?.required) {
+                  <mat-error>Title is required</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="input_text">
+                <mat-label>Subtitle Text</mat-label>
+                <input
+                  type="text"
+                  #input
+                  maxlength="250"
+                  matInput
+                  aria-label="Logging configuration condition"
+                  formControlName="subTitleText"
+                />
+                <mat-hint>{{ input.value.length }}/250</mat-hint>
+                @if (form.controls.subTitleText?.errors?.required) {
+                  <mat-error>Subtitle is required</mat-error>
+                }
+              </mat-form-field>
             </div>
           </div>
+          <form [formGroup]="form.controls.primaryButton">
+            <div class="developer-portal-banner__button__header">
+              <h3 class="header__title">Primary Button</h3>
+              <div class="developer-portal-banner__button__header__toggle">
+                <gio-form-slide-toggle>
+                  Display in the banner
+                  <mat-slide-toggle aria-label="Enable banner primary button" gioFormSlideToggle formControlName="enabled" />
+                </gio-form-slide-toggle>
+              </div>
+            </div>
+            <div class="developer-portal-banner__button__inputs">
+              <mat-form-field>
+                <mat-label>Button Text</mat-label>
+                <input aria-label="Set primary button text" type="text" maxlength="150" matInput formControlName="label" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Target URL</mat-label>
+                <input aria-label="Set primary button url" type="text" maxlength="150" matInput formControlName="target" />
+              </mat-form-field>
+              <gio-form-selection-inline
+                data-testid="primary-button-visibility"
+                [formControl]="form.controls.primaryButton.controls.visibility"
+              >
+                <gio-form-selection-inline-card value="PUBLIC">
+                  <gio-form-selection-inline-card-content icon="gio:language">
+                    <gio-card-content-title>Public</gio-card-content-title>
+                    <gio-card-content-subtitle>Every user can see the primary button in the Developer Portal.</gio-card-content-subtitle>
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+
+                <gio-form-selection-inline-card value="PRIVATE">
+                  <gio-form-selection-inline-card-content icon="gio:lock">
+                    <gio-card-content-title>Private</gio-card-content-title>
+                    <gio-card-content-subtitle
+                      >Users must be authenticated in the Developer Portal to see the primary button.</gio-card-content-subtitle
+                    >
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+              </gio-form-selection-inline>
+            </div>
+          </form>
+          <form [formGroup]="form.controls.secondaryButton">
+            <div class="developer-portal-banner__button__header">
+              <h3 class="header__title">Secondary Button</h3>
+              <div class="developer-portal-banner__button__header__toggle">
+                <gio-form-slide-toggle>
+                  Display in the banner
+                  <mat-slide-toggle aria-label="Enable banner secondary button" gioFormSlideToggle formControlName="enabled" />
+                </gio-form-slide-toggle>
+              </div>
+            </div>
+            <div class="developer-portal-banner__button__inputs">
+              <mat-form-field>
+                <mat-label>Button Text</mat-label>
+                <input aria-label="Set secondary button text" type="text" maxlength="150" matInput formControlName="label" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Target URL</mat-label>
+                <input aria-label="Set secondary button url" type="text" maxlength="150" matInput formControlName="target" />
+              </mat-form-field>
+              <gio-form-selection-inline
+                data-testid="secondary-button-visibility"
+                [formControl]="form.controls.secondaryButton.controls.visibility"
+              >
+                <gio-form-selection-inline-card value="PUBLIC">
+                  <gio-form-selection-inline-card-content icon="gio:language">
+                    <gio-card-content-title>Public</gio-card-content-title>
+                    <gio-card-content-subtitle>Every user can see the secondary button in the Developer Portal.</gio-card-content-subtitle>
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+
+                <gio-form-selection-inline-card value="PRIVATE">
+                  <gio-form-selection-inline-card-content icon="gio:lock">
+                    <gio-card-content-title>Private</gio-card-content-title>
+                    <gio-card-content-subtitle
+                      >Users must be authenticated in the Developer Portal to see the secondary button.</gio-card-content-subtitle
+                    >
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+              </gio-form-selection-inline>
+            </div>
+          </form>
         }
       </mat-card-content>
     </mat-card>
-    <gio-save-bar [form]="form" [formInitialValues]="form" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
+    <gio-save-bar [form]="form" [formInitialValues]="formInitialValues" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
   </form>
 }
