@@ -18,6 +18,7 @@ package io.gravitee.repository.management.model;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -18,8 +18,10 @@ package io.gravitee.repository.mongodb.management.internal.integration;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
+import java.util.Collection;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -27,11 +29,39 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositoryCustom {
 
     private final MongoTemplate mongoTemplate;
+
+    @Override
+    public Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(String environmentId, Pageable pageable, Collection<String> groups) {
+        if (groups.isEmpty()) {
+            return new Page<>(List.of(), 0, 0, 0);
+        }
+        Query query = new Query();
+        Criteria envCriteria = Criteria.where("environmentId").is(environmentId);
+        Criteria criteria = groups
+            .stream()
+            .map(group -> Criteria.where("groups").is(group))
+            .reduce(Criteria::orOperator)
+            .map(envCriteria::andOperator)
+            .orElse(envCriteria);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        long total = mongoTemplate.count(query, IntegrationMongo.class);
+
+        if (pageable != null) {
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+        }
+
+        List<IntegrationMongo> integrations = mongoTemplate.find(query, IntegrationMongo.class);
+
+        return new Page<>(integrations, (pageable != null) ? pageable.pageNumber() : 0, integrations.size(), total);
+    }
 
     @Override
     public Page<IntegrationMongo> findAllByEnvironmentId(String environmentId, Pageable pageable) {

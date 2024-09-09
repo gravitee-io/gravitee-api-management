@@ -44,6 +44,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -158,7 +159,7 @@ public class GetIntegrationsUseCaseTest {
         var expected = IntegrationFixture.anIntegration();
         integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(List.of(expected));
-        var input = new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID);
+        var input = new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID, true, Set.of());
 
         //When
         var output = usecase.execute(input);
@@ -188,7 +189,9 @@ public class GetIntegrationsUseCaseTest {
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
 
         // When
-        var throwable = Assertions.catchThrowable(() -> usecase.execute(new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID)));
+        var throwable = Assertions.catchThrowable(() ->
+            usecase.execute(new GetIntegrationsUseCase.Input(ORGANIZATION_ID, ENV_ID, true, Set.of()))
+        );
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);

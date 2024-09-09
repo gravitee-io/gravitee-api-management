@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.mongodb.management.internal.integration.IntegrationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -92,13 +93,24 @@ public class MongoIntegrationRepository implements IntegrationRepository {
     }
 
     @Override
-    public Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) throws TechnicalException {
+    public Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) {
         logger.debug("Search by environment ID [{}]", environmentId);
 
         Page<IntegrationMongo> integrations = internalRepository.findAllByEnvironmentId(environmentId, pageable);
         List<Integration> content = mapper.mapIntegrationsList(integrations.getContent());
 
         logger.debug("Search by environment ID [{}] - Done", environmentId);
+        return new Page<>(content, integrations.getPageNumber(), (int) integrations.getPageElements(), integrations.getTotalElements());
+    }
+
+    @Override
+    public Page<Integration> findAllByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable) {
+        logger.debug("Search by environment ID [{}] and groups [{}]", environmentId, groups);
+
+        Page<IntegrationMongo> integrations = internalRepository.findAllByEnvironmentIdAndGroups(environmentId, pageable, groups);
+        List<Integration> content = mapper.mapIntegrationsList(integrations.getContent());
+
+        logger.debug("Search by environment ID [{}] and groups [{}] - Done", environmentId, groups);
         return new Page<>(content, integrations.getPageNumber(), (int) integrations.getPageElements(), integrations.getTotalElements());
     }
 

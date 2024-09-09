@@ -18,7 +18,10 @@ package io.gravitee.repository.mongodb.management.internal.integration;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
+import java.util.Collection;
 
 public interface IntegrationMongoRepositoryCustom {
     Page<IntegrationMongo> findAllByEnvironmentId(String environmentId, Pageable pageable);
+
+    Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(String environmentId, Pageable pageable, Collection<String> groups);
 }

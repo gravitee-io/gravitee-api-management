@@ -712,6 +712,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Nested
     class GetPermissions {
+
         private static final TypeReference<Map<String, char[]>> apiType = new TypeReference<>() {};
 
         @BeforeEach
@@ -731,9 +732,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(OK_200);
             Map<String, char[]> entity = response.readEntity(new GenericType<>() {});
             assertThat(entity)
-                    .containsEntry("DEFINITION", new char[]{'C', 'R', 'U', 'D'})
-                    .containsEntry("MEMBER", new char[]{'C', 'R', 'U', 'D'});
-
+                .containsEntry("DEFINITION", new char[] { 'C', 'R', 'U', 'D' })
+                .containsEntry("MEMBER", new char[] { 'C', 'R', 'U', 'D' });
         }
     }
 
