@@ -105,7 +105,7 @@ public class ApiTemplateServiceImplTest {
         apiMetadataEntity.setApiId("api");
         apiMetadataEntity.setKey("key");
         apiMetadataEntity.setValue("value");
-        when(apiMetadataService.findAllByApi("api")).thenReturn(List.of(apiMetadataEntity));
+        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), "api")).thenReturn(List.of(apiMetadataEntity));
 
         when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any()))
             .thenReturn("{key=value resolved}");

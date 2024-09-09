@@ -75,6 +75,7 @@ import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
@@ -92,7 +93,6 @@ import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -336,7 +336,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void createDefaultSupportEmailMetadata(ExecutionContext executionContext, Api createdApi) {
         NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
         newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
-        newApiMetadataEntity.setName(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
+        newApiMetadataEntity.setName(MetadataService.METADATA_EMAIL_SUPPORT_KEY);
         newApiMetadataEntity.setDefaultValue(EMAIL_METADATA_VALUE);
         newApiMetadataEntity.setValue(EMAIL_METADATA_VALUE);
         newApiMetadataEntity.setApiId(createdApi.getId());

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,7 @@ public class DefaultMetadataInitializerTest {
     @Test
     public void shouldSetSupportEmail() {
         initializer.initialize();
-        verify(metadataService, times(1)).create(any(), argThat(meta -> meta.getValue().equals("support@change.me")));
+        verify(metadataService, times(1)).initialize(eq(GraviteeContext.getExecutionContext()));
     }
 
     @Test

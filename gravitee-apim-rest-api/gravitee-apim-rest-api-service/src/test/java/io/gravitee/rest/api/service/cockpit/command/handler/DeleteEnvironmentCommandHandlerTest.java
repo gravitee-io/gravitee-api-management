@@ -422,8 +422,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(eventService).deleteOrUpdateEventsByEnvironment(ENV_ID);
         verify(portalNotificationConfigRepository)
             .deleteByReferenceIdAndReferenceType(PortalNotificationDefaultReferenceId.DEFAULT.name(), NotificationReferenceType.PORTAL);
-        verify(genericNotificationConfigRepository)
-            .deleteByReferenceIdAndReferenceType(PortalNotificationDefaultReferenceId.DEFAULT.name(), NotificationReferenceType.PORTAL);
+        verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.PORTAL);
         verify(themeRepository).deleteByReferenceIdAndReferenceType(ENV_ID, ThemeReferenceType.ENVIRONMENT);
         verify(identityProviderActivationRepository)
             .deleteByReferenceIdAndReferenceType(
@@ -432,6 +431,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             );
         verify(commandRepository).deleteByEnvironmentId(ENV_ID);
         verify(mediaRepository).deleteByEnvironment(ENV_ID);
+        verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(environmentService).delete(ENV_ID);
     }
 

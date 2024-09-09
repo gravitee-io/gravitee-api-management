@@ -142,7 +142,6 @@ public class MetadataServiceTest {
 
         metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
 
-        verifyNoInteractions(auditService);
         verify(metadataRepository)
             .create(
                 argThat(meta -> {

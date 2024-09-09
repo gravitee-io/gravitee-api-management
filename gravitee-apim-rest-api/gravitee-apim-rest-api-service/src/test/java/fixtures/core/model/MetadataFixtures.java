@@ -48,28 +48,17 @@ public class MetadataFixtures {
         String name,
         Metadata.MetadataFormat format
     ) {
-        return ApiMetadata
-            .builder()
-            .apiId(apiId)
-            .key(key)
-            .value(value)
-            .defaultValue(defaultValue)
-            .name(name)
-            .format(Metadata.MetadataFormat.STRING)
-            .build();
+        return ApiMetadata.builder().apiId(apiId).key(key).value(value).defaultValue(defaultValue).name(name).format(format).build();
     }
 
-    public static Metadata aMetadata(String apiId, String key, String name, Object value, Metadata.MetadataFormat format) {
-        String referenceId;
-        Metadata.ReferenceType referenceType;
-        if (apiId != null) {
-            referenceId = apiId;
-            referenceType = Metadata.ReferenceType.API;
-        } else {
-            referenceId = "_";
-            referenceType = Metadata.ReferenceType.DEFAULT;
-        }
-
+    public static Metadata aMetadata(
+        Metadata.ReferenceType referenceType,
+        String referenceId,
+        String key,
+        String name,
+        Object value,
+        Metadata.MetadataFormat format
+    ) {
         return Metadata
             .builder()
             .referenceId(referenceId)
