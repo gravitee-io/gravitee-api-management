@@ -39,9 +39,9 @@ export class CreateIntegrationComponent {
       { icon: 'apigee', value: 'apigee' },
       { icon: 'azure', value: 'azure-api-management' },
       { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
+      { icon: 'confluent', value: 'confluent-platform' },
     ],
     comingSoon: [
-      { icon: 'confluent', value: 'confluent' },
       { icon: 'kong', value: 'kong' },
       { icon: 'mulesoft', value: 'mulesoft' },
       { icon: 'dell-boomi', value: 'dell-boomi' },

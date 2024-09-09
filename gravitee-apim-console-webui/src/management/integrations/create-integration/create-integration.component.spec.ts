@@ -113,11 +113,9 @@ describe('CreateIntegrationComponent', () => {
           { icon: 'solace.svg', value: 'solace' },
           { icon: 'apigee.svg', value: 'apigee' },
           { icon: 'azure.svg', value: 'azure-api-management' },
+          { icon: 'confluent.svg', value: 'confluent-platform' },
         ],
-        comingSoon: [
-          { icon: 'confluent.svg', value: 'confluent' },
-          { icon: 'kong.svg', value: 'kong' },
-        ],
+        comingSoon: [{ icon: 'kong.svg', value: 'kong' }],
       };
       const radioCards: GioFormSelectionInlineCardHarness[] = await componentHarness.getRadioCards();
       expect(radioCards.length).toEqual(6);
