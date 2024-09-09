@@ -59,6 +59,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
@@ -546,5 +547,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApplicationCrudServiceInMemory applicationCrudService() {
         return new ApplicationCrudServiceInMemory();
+    }
+
+    @Bean
+    public PolicyPluginCrudService policyPluginCrudService() {
+        return mock(PolicyPluginCrudService.class);
     }
 }
