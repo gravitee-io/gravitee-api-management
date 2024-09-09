@@ -26,7 +26,7 @@ export class MapProviderNamePipe implements PipeTransform {
     AWS: 'AWS API Gateway',
     solace: 'Solace',
     apigee: 'Apigee',
-    confluent: 'Confluent',
+    'confluent-platform': 'Confluent Platform',
     'azure-api-management': 'Azure API Management',
     kong: 'Kong',
     'ibm-api-connect': 'IBM API Connect',
