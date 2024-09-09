@@ -90,7 +90,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.migration.APIV1toAPIV2Converter;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -611,7 +610,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // create the default mail support metadata
             NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
             newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
-            newApiMetadataEntity.setName(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
+            newApiMetadataEntity.setName(MetadataService.METADATA_EMAIL_SUPPORT_KEY);
             newApiMetadataEntity.setDefaultValue(emailMetadataValue);
             newApiMetadataEntity.setValue(emailMetadataValue);
             newApiMetadataEntity.setApiId(createdApi.getId());
@@ -787,7 +786,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         dataAsMap.remove("response_templates");
         dataAsMap.remove("path_mappings");
 
-        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(id);
+        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(executionContext, id);
         final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
         metadataList.forEach(m -> mapMetadata.put(m.getKey(), m.getValue() == null ? m.getDefaultValue() : m.getValue()));
         dataAsMap.put("metadata", objectMapper.convertValue(mapMetadata, Map.class));
@@ -969,7 +968,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .getMetadata()
                 .forEach(data -> {
                     try {
-                        final ApiMetadataEntity apiMetadataEntity = this.apiMetadataService.findByIdAndApi(data.getKey(), apiId);
+                        final ApiMetadataEntity apiMetadataEntity =
+                            this.apiMetadataService.findByIdAndApi(executionContext, data.getKey(), apiId);
                         UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
                         updateApiMetadataEntity.setApiId(apiId);
                         updateApiMetadataEntity.setFormat(data.getFormat());

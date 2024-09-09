@@ -69,6 +69,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Autowired
     private InitializeSharedPolicyGroupUseCase initializeSharedPolicyGroupUseCase;
 
+    @Autowired
+    private MetadataService metadataService;
+
     @Override
     public EnvironmentEntity findById(String environmentId) {
         try {
@@ -175,7 +178,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 initializeSharedPolicyGroupUseCase.execute(
                     InitializeSharedPolicyGroupUseCase.Input.builder().organizationId(organizationId).environmentId(environmentId).build()
                 );
-
+                metadataService.initialize(executionContext);
                 return createdEnvironment;
             }
         } catch (TechnicalException ex) {

@@ -36,9 +36,11 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class AuditMetadataQueryServiceImplTest {
+
+    private static final String ENV_ID = "env#1";
 
     @Mock
     ApiRepository apiRepository;
@@ -74,6 +78,8 @@ class AuditMetadataQueryServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+
         service =
             new AuditMetadataQueryServiceImpl(
                 apiRepository,
@@ -84,6 +90,11 @@ class AuditMetadataQueryServiceImplTest {
                 planRepository,
                 userRepository
             );
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Nested
@@ -376,14 +387,14 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_default_metadata_value() {
                 // Given
-                when(metadataRepository.findById(METADATA_KEY, "_", MetadataReferenceType.DEFAULT))
+                when(metadataRepository.findById(METADATA_KEY, ENV_ID, MetadataReferenceType.ENVIRONMENT))
                     .thenAnswer(invocation ->
                         Optional.of(Metadata.builder().key(invocation.getArgument(0)).name("A Default Metadata").build())
                     );
 
                 // When
                 var result = service.fetchPropertyMetadata(
-                    AUDIT.toBuilder().referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT).build(),
+                    AUDIT.toBuilder().referenceId(ENV_ID).referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT).build(),
                     AuditProperties.METADATA.name(),
                     METADATA_KEY
                 );

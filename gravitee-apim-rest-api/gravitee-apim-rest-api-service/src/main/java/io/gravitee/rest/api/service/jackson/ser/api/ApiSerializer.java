@@ -290,7 +290,9 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
             // metadata
             if (!filteredFieldsList.contains("metadata")) {
-                List<ApiMetadataEntity> apiMetadata = applicationContext.getBean(ApiMetadataService.class).findAllByApi(apiEntity.getId());
+                List<ApiMetadataEntity> apiMetadata = applicationContext
+                    .getBean(ApiMetadataService.class)
+                    .findAllByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
                 if (apiMetadata != null && !apiMetadata.isEmpty()) {
                     jsonGenerator.writeObjectField("metadata", apiMetadata);
                 }

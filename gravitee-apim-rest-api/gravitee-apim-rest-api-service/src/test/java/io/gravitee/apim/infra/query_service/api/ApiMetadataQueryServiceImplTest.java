@@ -27,7 +27,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -43,6 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class ApiMetadataQueryServiceImplTest {
 
     private static final String API_ID = "api-id";
+    private static final String ENV_ID = "env#1";
 
     @Mock
     MetadataRepository metadataRepository;
@@ -77,7 +77,7 @@ public class ApiMetadataQueryServiceImplTest {
             );
 
             // when
-            var result = service.findApiMetadata(API_ID);
+            var result = service.findApiMetadata(ENV_ID, API_ID);
 
             // then
             Assertions
@@ -108,7 +108,8 @@ public class ApiMetadataQueryServiceImplTest {
         @Test
         void should_return_api_metadata_with_their_default_value() {
             // given
-            givenExistingDefaultMetadata(
+            givenExistingEnvironmentMetadata(
+                ENV_ID,
                 List.of(
                     Metadata
                         .builder()
@@ -135,7 +136,7 @@ public class ApiMetadataQueryServiceImplTest {
             );
 
             // when
-            var result = service.findApiMetadata(API_ID);
+            var result = service.findApiMetadata(ENV_ID, API_ID);
 
             // then
             Assertions
@@ -175,29 +176,42 @@ public class ApiMetadataQueryServiceImplTest {
 
         @Test
         public void should_throw_when_fail_to_fetch_api_metadata() {
+            givenExistingEnvironmentMetadata(
+                ENV_ID,
+                List.of(
+                    Metadata
+                        .builder()
+                        .key("team-contact")
+                        .value("admin@gravitee.io")
+                        .format(io.gravitee.repository.management.model.MetadataFormat.MAIL),
+                    Metadata.builder().key("brand").value("Gravitee").format(io.gravitee.repository.management.model.MetadataFormat.STRING)
+                )
+            );
             givenApiMetadataFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.findApiMetadata(API_ID));
+            Throwable throwable = catchThrowable(() -> service.findApiMetadata(ENV_ID, API_ID));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }
 
         @Test
         public void should_throw_when_fail_to_fetch_default_metadata() {
-            givenDefaultMetadataFailToBeFetched("technical exception");
+            givenEnvironmentMetadataFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.findApiMetadata(API_ID));
+            Throwable throwable = catchThrowable(() -> service.findApiMetadata(ENV_ID, API_ID));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }
     }
 
     @SneakyThrows
-    private void givenExistingDefaultMetadata(List<Metadata.MetadataBuilder> metadata) {
-        lenient().when(metadataRepository.findByReferenceType(eq(MetadataReferenceType.DEFAULT))).thenReturn(List.of());
+    private void givenExistingEnvironmentMetadata(String envId, List<Metadata.MetadataBuilder> metadata) {
+        lenient()
+            .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(envId)))
+            .thenReturn(List.of());
 
         lenient()
-            .when(metadataRepository.findByReferenceType(eq(MetadataReferenceType.DEFAULT)))
+            .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(envId)))
             .thenReturn(metadata.stream().map(m -> m.referenceType(MetadataReferenceType.API).build()).toList());
     }
 
@@ -217,7 +231,8 @@ public class ApiMetadataQueryServiceImplTest {
     }
 
     @SneakyThrows
-    private void givenDefaultMetadataFailToBeFetched(String message) {
-        when(metadataRepository.findByReferenceType(eq(MetadataReferenceType.DEFAULT))).thenThrow(new TechnicalException(message));
+    private void givenEnvironmentMetadataFailToBeFetched(String message) {
+        when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), any()))
+            .thenThrow(new TechnicalException(message));
     }
 }

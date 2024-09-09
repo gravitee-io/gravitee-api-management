@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
@@ -58,9 +59,17 @@ public class MongoMetadataRepository implements MetadataRepository {
     @Override
     public Metadata create(Metadata metadata) throws TechnicalException {
         LOGGER.debug("Create metadata [{}]", metadata.getName());
-        Metadata res = map(internalMetadataRepository.insert(map(metadata)));
-        LOGGER.debug("Create metadata [{}] - Done", metadata.getName());
-        return res;
+        try {
+            Metadata res = map(internalMetadataRepository.insert(map(metadata)));
+            LOGGER.debug("Create metadata [{}] - Done", metadata.getName());
+            return res;
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            LOGGER.error("An error occurred while creating metadata", e);
+            throw new DuplicateKeyException("An error occurred while creating metadata", e);
+        } catch (Exception e) {
+            LOGGER.error("An error occurred while creating metadata", e);
+            throw new TechnicalException("An error occurred while updating metadata", e);
+        }
     }
 
     @Override
@@ -157,7 +166,7 @@ public class MongoMetadataRepository implements MetadataRepository {
         }
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataMongo.getId().getKey());
-        metadata.setReferenceType(MetadataReferenceType.valueOf(metadataMongo.getId().getReferenceType()));
+        metadata.setReferenceType(MetadataReferenceType.parse(metadataMongo.getId().getReferenceType()));
         metadata.setReferenceId(metadataMongo.getId().getReferenceId());
         metadata.setFormat(MetadataFormat.valueOf(metadataMongo.getFormat()));
         metadata.setName(metadataMongo.getName());

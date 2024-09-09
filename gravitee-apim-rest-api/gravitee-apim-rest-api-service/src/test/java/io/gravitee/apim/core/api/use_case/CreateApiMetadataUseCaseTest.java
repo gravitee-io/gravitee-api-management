@@ -41,6 +41,7 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
@@ -117,6 +118,8 @@ public class CreateApiMetadataUseCaseTest {
                 membershipQueryService
             )
             .forEach(InMemoryAlternative::reset);
+
+        GraviteeContext.cleanContext();
     }
 
     @Test
@@ -152,8 +155,8 @@ public class CreateApiMetadataUseCaseTest {
             List.of(
                 Metadata
                     .builder()
-                    .referenceId("_")
-                    .referenceType(Metadata.ReferenceType.DEFAULT)
+                    .referenceId("env-id")
+                    .referenceType(Metadata.ReferenceType.ENVIRONMENT)
                     .name("global name")
                     .key("key")
                     .value("old-value")
@@ -267,15 +270,15 @@ public class CreateApiMetadataUseCaseTest {
     }
 
     @Test
-    void cannot_create_with_duplicate_global_metadata_name() {
+    void cannot_create_with_duplicate_environment_metadata_name() {
         apiMetadataQueryService.initWith(
             List.of(
                 Metadata
                     .builder()
                     .name("nAmE")
                     .key("key")
-                    .referenceId("_")
-                    .referenceType(Metadata.ReferenceType.DEFAULT)
+                    .referenceId("env-id")
+                    .referenceType(Metadata.ReferenceType.ENVIRONMENT)
                     .format(Metadata.MetadataFormat.STRING)
                     .build()
             )

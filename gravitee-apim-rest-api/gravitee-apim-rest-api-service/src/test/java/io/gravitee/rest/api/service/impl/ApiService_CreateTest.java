@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -54,6 +53,7 @@ import io.gravitee.rest.api.service.ConnectorService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
@@ -70,7 +70,6 @@ import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
@@ -349,7 +348,7 @@ public class ApiService_CreateTest {
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(newApiMetadataEntity ->
                     newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
+                    newApiMetadataEntity.getName().equals(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);

@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,7 +44,7 @@ public class GetApiMetadataUseCase {
             throw new ApiNotFoundException(input.apiId);
         }
 
-        Map<String, ApiMetadata> apiMetadataMap = apiMetadataQueryService.findApiMetadata(input.apiId);
+        Map<String, ApiMetadata> apiMetadataMap = apiMetadataQueryService.findApiMetadata(api.getEnvironmentId(), input.apiId);
         var sortedApiMetadataList = this.sortApiMetadata(apiMetadataMap.values(), input.sortBy);
         var filteredApiMetadataList = this.filterApiMetadata(sortedApiMetadataList, input.filterBy);
 

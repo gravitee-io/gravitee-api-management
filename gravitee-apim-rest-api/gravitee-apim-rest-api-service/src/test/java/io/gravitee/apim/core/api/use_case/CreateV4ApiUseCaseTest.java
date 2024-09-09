@@ -73,9 +73,9 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -439,7 +439,7 @@ class CreateV4ApiUseCaseTest {
                     .builder()
                     .key("email-support")
                     .format(Metadata.MetadataFormat.MAIL)
-                    .name(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
+                    .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
                     .value("${(api.primaryOwner.email)!''}")
                     .referenceType(Metadata.ReferenceType.API)
                     .referenceId("generated-id")
