@@ -4791,6 +4791,32 @@ components:
                 subtitle:
                     description: Subtitle to display on the homepage banner.
                     type: string
+                primaryButton:
+                  $ref: "#/components/schemas/BannerButton"
+                secondaryButton:
+                  $ref: "#/components/schemas/BannerButton"
+        BannerButton:
+          type: object
+          description: Button displayed in the Portal Next banner
+          properties:
+            enabled:
+              description: Button is displayed
+              type: boolean
+            label:
+              description: Button label
+              type: string
+            type:
+              description: Type of link
+              enum:
+                - EXTERNAL
+            target:
+              description: Target of the link
+              type: string
+            visibility:
+              description: Visibility of the button
+              enum:
+                - PUBLIC
+                - PRIVATE
         ConfigurationPortalApis:
             properties:
                 tilesMode:

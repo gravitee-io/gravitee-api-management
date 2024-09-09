@@ -153,7 +153,17 @@
     "banner": {
       "enabled": true,
       "title": "banner title",
-      "subtitle": "banner subtitle"
+      "subtitle": "banner subtitle",
+      "primaryButton": {
+        "enabled": true,
+        "label": "Primary button",
+        "target": "primary-button",
+        "type": "EXTERNAL",
+        "visibility": "PRIVATE"
+      },
+      "secondaryButton": {
+        "enabled": false
+      }
     }
   },
   "reCaptcha": {
