@@ -19,6 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import {
   GioAvatarModule,
+  GioBannerModule,
   GioClipboardModule,
   GioFormFilePickerModule,
   GioFormFocusInvalidModule,
@@ -70,6 +71,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
     ReactiveFormsModule,
     RouterModule,
+    GioBannerModule,
   ],
 })
 export class ApplicationGeneralModule {}
