@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
@@ -51,8 +51,9 @@ import { ApiV4 } from '../../../entities/management-api-v2';
   ],
   templateUrl: './api-import-v4.component.html',
   styleUrl: './api-import-v4.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApiImportV4Component implements AfterViewInit, OnInit {
+export class ApiImportV4Component implements OnInit {
   private apiV2Service = inject(ApiV2Service);
   private snackBarService = inject(SnackBarService);
   private destroyRef = inject(DestroyRef);
@@ -75,7 +76,7 @@ export class ApiImportV4Component implements AfterViewInit, OnInit {
     {
       format: new FormControl('gravitee', [Validators.required]),
       source: new FormControl('local', [Validators.required]),
-      withDocumentation: new FormControl(false, [Validators.required]),
+      withDocumentation: new FormControl({ value: false, disabled: true }),
     },
     [this.fileFormatValidator()],
   );
@@ -90,11 +91,6 @@ export class ApiImportV4Component implements AfterViewInit, OnInit {
         this.form.controls['withDocumentation'].enable();
       }
     });
-  }
-
-  ngAfterViewInit() {
-    // FIXME: Check on gravitee-ui-particles why we have an ExpressionHasChangedAfterCheckedError.
-    this.changeDetectorRef.detectChanges();
   }
 
   protected onImportFile({ importFileContent, importType }: { importFileContent: string; importType: string }) {
