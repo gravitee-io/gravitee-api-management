@@ -19,8 +19,12 @@ import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.common.component.Lifecycle.State.STARTED;
 import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
@@ -32,11 +36,13 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -52,7 +58,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -84,6 +90,9 @@ public class ApiValidationServiceImplTest {
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+
+    @Mock
+    private ValidatePagesDomainService pagesValidator;
 
     @Spy
     private ValidateCRDMembersDomainService validateCRDMembersDomainService = new ValidateCRDMembersDomainService(
@@ -143,6 +152,7 @@ public class ApiValidationServiceImplTest {
             List.of(Category.builder().key(CATEGORY_KEY).name(CATEGORY_KEY).id(UuidString.generateRandom()).build())
         );
         apiQueryService.reset();
+        when(pagesValidator.validateAndSanitize(any())).thenReturn(Validator.Result.ofBoth(null, null));
     }
 
     @Test
@@ -270,6 +280,20 @@ public class ApiValidationServiceImplTest {
         assertEquals(1, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
         assertEquals("Path [/echo/] already exists", validationResult.getSevere().get(0));
+    }
+
+    @Test
+    public void should_return_error_validating_wrong_cron_expression() {
+        when(pagesValidator.validateAndSanitize(any()))
+            .thenReturn(Validator.Result.ofBoth(null, List.of(Validator.Error.severe("cron expression is invalid"))));
+
+        ApiCRDEntity apiCRD = anApiCRDEntity();
+        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+
+        verify(pagesValidator, times(1)).validateAndSanitize(any());
+        assertEquals(1, validationResult.getSevere().size());
+        assertEquals(0, validationResult.getWarning().size());
+        assertEquals("cron expression is invalid", validationResult.getSevere().get(0));
     }
 
     public ApiCRDEntity anApiCRDEntity() {

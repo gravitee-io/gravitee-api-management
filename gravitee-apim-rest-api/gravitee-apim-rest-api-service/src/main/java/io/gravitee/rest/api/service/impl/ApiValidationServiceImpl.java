@@ -18,23 +18,19 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
-import io.gravitee.apim.core.member.model.crd.MemberCRD;
-import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.ApiCRDEntityAdapter;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
-import io.gravitee.rest.api.model.api.ApiCRDEntity.Member;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
 import io.gravitee.rest.api.service.ApiValidationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +49,9 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
 
     @Inject
     private VerifyApiPathDomainService apiPathValidator;
+
+    @Inject
+    private ValidatePagesDomainService pagesValidator;
 
     @Override
     public ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
@@ -76,6 +75,16 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                 )
             )
             .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);
+
+        pagesValidator
+            .validateAndSanitize(
+                new ValidatePagesDomainService.Input(
+                    executionContext.getOrganizationId(),
+                    api.getId(),
+                    ApiCRDEntityAdapter.INSTANCE.toCoreApiCRDPages(api.getPagesMap())
+                )
+            )
+            .peek(sanitized -> api.setPages(ApiCRDEntityAdapter.INSTANCE.toRestApiCRDPages(sanitized.pages())), errors::addAll);
 
         return convertToValidationResult(api, errors);
     }

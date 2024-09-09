@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.crd;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,7 +74,10 @@ public class PageCRD {
     public static class PageSource {
 
         private String type;
+
+        @JsonRawValue
         private String configuration;
+
         private Map<String, Object> configurationMap;
     }
 }

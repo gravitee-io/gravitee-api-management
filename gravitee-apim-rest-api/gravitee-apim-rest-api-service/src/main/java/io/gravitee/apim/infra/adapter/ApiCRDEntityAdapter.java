@@ -15,24 +15,51 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiCRDEntity.Member;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
+@Mapper(builder = @Builder(disableBuilder = true))
 public interface ApiCRDEntityAdapter {
     ApiCRDEntityAdapter INSTANCE = Mappers.getMapper(ApiCRDEntityAdapter.class);
 
     MemberCRD map(Member member);
     Member map(MemberCRD crd);
 
+    @Mapping(target = "configuration", expression = "java(convertToJsonNode(crd.getConfiguration()))")
+    PageSourceEntity map(PageCRD.PageSource crd);
+
+    PageCRD map(ApiCRDEntity.PageCRD crd);
+    ApiCRDEntity.PageCRD map(PageCRD crd);
+
     Set<MemberCRD> toMemberCRDs(List<Member> member);
     List<Member> toApiCRDMembers(Set<MemberCRD> crd);
+    Map<String, PageCRD> toCoreApiCRDPages(Map<String, ApiCRDEntity.PageCRD> crd);
+    Map<String, ApiCRDEntity.PageCRD> toRestApiCRDPages(Map<String, PageCRD> crd);
+
+    default JsonNode convertToJsonNode(String configuration) {
+        if (configuration == null) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().readTree(configuration);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Unexpected error while converting the configuration to JSON Node", ioe);
+        }
+    }
 }
