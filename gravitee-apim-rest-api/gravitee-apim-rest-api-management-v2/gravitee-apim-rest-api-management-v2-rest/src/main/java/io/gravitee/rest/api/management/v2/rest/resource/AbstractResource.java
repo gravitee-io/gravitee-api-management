@@ -180,6 +180,18 @@ public abstract class AbstractResource {
             });
     }
 
+    public Collection<String> listGroupsOfUser() {
+        if (!isAuthenticated()) {
+            return Set.of();
+        }
+
+        return membershipService
+            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .collect(Collectors.toSet());
+    }
+
     private boolean isMemberThroughGroup(Set<String> apiGroups) {
         if (CollectionUtils.isEmpty(apiGroups)) {
             return false;

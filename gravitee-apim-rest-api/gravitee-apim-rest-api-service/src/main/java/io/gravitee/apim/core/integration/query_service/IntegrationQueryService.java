@@ -18,7 +18,9 @@ package io.gravitee.apim.core.integration.query_service;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import java.util.Collection;
 
 public interface IntegrationQueryService {
     Page<Integration> findByEnvironment(String environmentId, Pageable pageable);
+    Page<Integration> findByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable);
 }

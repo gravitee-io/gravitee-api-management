@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Integration;
 import java.sql.Types;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +58,34 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
             integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
             final String message = "Failed to find integrations of environment: " + environmentId;
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+        return getResultAsPage(pageable, integrations);
+    }
+
+    @Override
+    public Page<Integration> findAllByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable)
+        throws TechnicalException {
+        LOGGER.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {}, {})", environmentId, groups, pageable);
+        List<Integration> integrations;
+        try {
+            integrations =
+                jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
+                    getOrm().getRowMapper(),
+                    environmentId
+                );
+
+            integrations =
+                integrations
+                    .stream()
+                    .peek(this::addGroups)
+                    .filter(integration -> integration.getGroups().stream().anyMatch(groups::contains))
+                    .toList();
+        } catch (final Exception ex) {
+            final String message =
+                "Failed to find integrations of environment: " + environmentId + " and groups: " + groups + ": " + ex.getMessage();
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }

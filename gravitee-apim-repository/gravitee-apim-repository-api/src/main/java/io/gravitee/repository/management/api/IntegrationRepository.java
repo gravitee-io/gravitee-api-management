@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Integration;
+import java.util.Collection;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
@@ -26,4 +27,6 @@ import io.gravitee.repository.management.model.Integration;
  */
 public interface IntegrationRepository extends CrudRepository<Integration, String> {
     Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) throws TechnicalException;
+    Page<Integration> findAllByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable)
+        throws TechnicalException;
 }

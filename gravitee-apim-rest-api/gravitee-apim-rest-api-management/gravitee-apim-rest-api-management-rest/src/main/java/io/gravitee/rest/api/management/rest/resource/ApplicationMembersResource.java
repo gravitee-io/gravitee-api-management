@@ -26,7 +26,6 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -90,16 +89,21 @@ public class ApplicationMembersResource extends AbstractResource {
     public Response getApplicationMemberPermissions() {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
-            final String username = getAuthenticatedUser();
-            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-            final ApplicationEntity applicationEntity = applicationService.findById(executionContext, application);
             if (isAdmin()) {
                 final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
                 for (ApplicationPermission perm : ApplicationPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getUserMemberPermissions(executionContext, applicationEntity, username);
+                final String username = getAuthenticatedUser();
+                final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+                permissions =
+                    membershipService.getUserMemberPermissions(
+                        executionContext,
+                        MembershipReferenceType.APPLICATION,
+                        application,
+                        username
+                    );
             }
         }
         return Response.ok(permissions).build();

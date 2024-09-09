@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,18 @@ public class IntegrationQueryServiceImpl extends AbstractService implements Inte
     public Page<Integration> findByEnvironment(String environmentId, Pageable pageable) {
         try {
             return integrationRepository.findAllByEnvironment(environmentId, convert(pageable)).map(IntegrationAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            log.error("An error occurred while finding Integrations by environment", e);
+            throw new TechnicalManagementException("An error occurred while finding Integrations by environment id: " + environmentId, e);
+        }
+    }
+
+    @Override
+    public Page<Integration> findByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable) {
+        try {
+            return integrationRepository
+                .findAllByEnvironmentAndGroups(environmentId, groups, convert(pageable))
+                .map(IntegrationAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Integrations by environment", e);
             throw new TechnicalManagementException("An error occurred while finding Integrations by environment id: " + environmentId, e);

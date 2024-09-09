@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,9 @@ public class GetIntegrationsUseCase {
             throw noLicenseForFederation();
         }
 
-        Page<Integration> page = integrationQueryService.findByEnvironment(environmentId, pageable);
+        Page<Integration> page = input.isAdmin()
+            ? integrationQueryService.findByEnvironment(environmentId, pageable)
+            : integrationQueryService.findByEnvironmentAndGroups(environmentId, input.groups(), pageable);
 
         var pageContent = Flowable
             .fromIterable(page.getContent())
@@ -88,13 +91,19 @@ public class GetIntegrationsUseCase {
     }
 
     @Builder
-    public record Input(String organizationId, String environmentId, Optional<Pageable> pageable) {
-        public Input(String organizationId, String environmentId) {
-            this(organizationId, environmentId, Optional.empty());
+    public record Input(
+        String organizationId,
+        String environmentId,
+        boolean isAdmin,
+        Collection<String> groups,
+        Optional<Pageable> pageable
+    ) {
+        public Input(String organizationId, String environmentId, boolean isAdmin, Collection<String> groups) {
+            this(organizationId, environmentId, isAdmin, groups, Optional.empty());
         }
 
-        public Input(String organizationId, String environmentId, Pageable pageable) {
-            this(organizationId, environmentId, Optional.of(pageable));
+        public Input(String organizationId, String environmentId, boolean isAdmin, Collection<String> groups, Pageable pageable) {
+            this(organizationId, environmentId, isAdmin, groups, Optional.of(pageable));
         }
     }
 

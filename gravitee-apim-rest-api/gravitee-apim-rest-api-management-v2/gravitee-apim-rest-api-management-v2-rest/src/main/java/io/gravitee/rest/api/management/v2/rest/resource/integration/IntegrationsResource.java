@@ -88,6 +88,8 @@ public class IntegrationsResource extends AbstractResource {
                 new GetIntegrationsUseCase.Input(
                     GraviteeContext.getCurrentOrganization(),
                     environmentId,
+                    isAdmin(),
+                    listGroupsOfUser(),
                     new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
                 )
             )

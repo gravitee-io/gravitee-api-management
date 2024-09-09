@@ -15,15 +15,14 @@
  */
 package inmemory;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.service.common.UuidString;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -48,6 +47,25 @@ public class IntegrationQueryServiceInMemory implements IntegrationQueryService,
         var matches = storage
             .stream()
             .filter(integration -> integration.getEnvironmentId().equals(environmentId))
+            .sorted(Comparator.comparing(Integration::getUpdatedAt).reversed())
+            .toList();
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
+    }
+
+    @Override
+    public Page<Integration> findByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable) {
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+
+        var matches = storage
+            .stream()
+            .filter(integration -> integration.getEnvironmentId().equals(environmentId))
+            .filter(integration -> stream(integration.getGroups()).anyMatch(groups::contains))
             .sorted(Comparator.comparing(Integration::getUpdatedAt).reversed())
             .toList();
 
