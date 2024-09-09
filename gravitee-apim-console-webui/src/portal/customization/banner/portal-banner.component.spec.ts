@@ -90,6 +90,20 @@ describe('DeveloperPortalBannerComponent', () => {
         banner: {
           ...PORTAL_SETTINGS.portalNext.banner,
           enabled: false,
+          primaryButton: {
+            enabled: false,
+            label: '',
+            target: '',
+            type: 'EXTERNAL',
+            visibility: 'PUBLIC',
+          },
+          secondaryButton: {
+            enabled: false,
+            label: '',
+            target: '',
+            type: 'EXTERNAL',
+            visibility: 'PUBLIC',
+          },
         },
       },
     });
@@ -119,6 +133,38 @@ describe('DeveloperPortalBannerComponent', () => {
     expect(title).toBe(testTitle);
     expect(subtitle).toBe(testSubtitle);
 
+    const primaryButtonText = await componentHarness.getPrimaryButtonTextInput();
+    expect(await primaryButtonText.getValue()).toEqual('');
+    await primaryButtonText.setValue('Primary button');
+
+    const primaryButtonEnableToggle = await componentHarness.getPrimaryButtonEnableToggle();
+    expect(await primaryButtonEnableToggle.isChecked()).toEqual(false);
+    await primaryButtonEnableToggle.toggle();
+
+    const currentPrimaryButtonVisibility = await componentHarness.getPrimaryButtonVisibilityValue();
+    expect(currentPrimaryButtonVisibility).toEqual('PUBLIC');
+    await componentHarness.setPrimaryButtonVisibility('PRIVATE');
+
+    const primaryButtonTarget = await componentHarness.getPrimaryButtonTargetInput();
+    expect(await primaryButtonTarget.getValue()).toEqual('');
+    await primaryButtonTarget.setValue('cats-rule');
+
+    const secondaryButtonText = await componentHarness.getSecondaryButtonTextInput();
+    expect(await secondaryButtonText.getValue()).toEqual('');
+    await secondaryButtonText.setValue('Secondary button');
+
+    const secondaryButtonEnableToggle = await componentHarness.getSecondaryButtonEnableToggle();
+    expect(await secondaryButtonEnableToggle.isChecked()).toEqual(false);
+    await secondaryButtonEnableToggle.toggle();
+
+    const currentSecondaryButtonVisibility = await componentHarness.getSecondaryButtonVisibilityValue();
+    expect(currentSecondaryButtonVisibility).toEqual('PUBLIC');
+    await componentHarness.setSecondaryButtonVisibility('PRIVATE');
+
+    const secondaryButtonTarget = await componentHarness.getSecondaryButtonTargetInput();
+    expect(await secondaryButtonTarget.getValue()).toEqual('');
+    await secondaryButtonTarget.setValue('dogs-drool');
+
     const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
@@ -128,7 +174,6 @@ describe('DeveloperPortalBannerComponent', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
     });
 
-    request.flush({});
     expect(request.request.body).toEqual({
       ...PORTAL_SETTINGS,
       portalNext: {
@@ -137,9 +182,87 @@ describe('DeveloperPortalBannerComponent', () => {
           enabled: true,
           title: testTitle,
           subtitle: testSubtitle,
+          primaryButton: {
+            enabled: true,
+            label: 'Primary button',
+            target: 'cats-rule',
+            type: 'EXTERNAL',
+            visibility: 'PRIVATE',
+          },
+          secondaryButton: {
+            enabled: true,
+            label: 'Secondary button',
+            target: 'dogs-drool',
+            type: 'EXTERNAL',
+            visibility: 'PRIVATE',
+          },
         },
       },
     });
+    request.flush({});
+
+    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush({});
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+      })
+      .flush(PORTAL_SETTINGS);
+  });
+
+  it('should require text + target when primary button is enabled', async () => {
+    getSettings();
+
+    const primaryButtonEnableToggle = await componentHarness.getPrimaryButtonEnableToggle();
+    expect(await primaryButtonEnableToggle.isChecked()).toEqual(false);
+    await primaryButtonEnableToggle.toggle();
+
+    const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+
+    const primaryButtonText = await componentHarness.getPrimaryButtonTextInput();
+    await primaryButtonText.setValue('Primary button');
+
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+
+    const primaryButtonTarget = await componentHarness.getPrimaryButtonTargetInput();
+    await primaryButtonTarget.setValue('cats-rule');
+
+    await componentHarness.setPrimaryButtonVisibility('PRIVATE');
+
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    const request = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+    });
+    expect(request.request.body).toEqual({
+      ...PORTAL_SETTINGS,
+      portalNext: {
+        ...PORTAL_SETTINGS.portalNext,
+        banner: {
+          ...PORTAL_SETTINGS.portalNext.banner,
+          enabled: true,
+          primaryButton: {
+            enabled: true,
+            label: 'Primary button',
+            target: 'cats-rule',
+            type: 'EXTERNAL',
+            visibility: 'PRIVATE',
+          },
+          secondaryButton: {
+            enabled: false,
+            label: '',
+            target: '',
+            type: 'EXTERNAL',
+            visibility: 'PUBLIC',
+          },
+        },
+      },
+    });
+    request.flush({});
+
     httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush({});
     httpTestingController
       .expectOne({

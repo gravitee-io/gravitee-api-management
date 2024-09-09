@@ -15,7 +15,8 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormSelectionInlineCardHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { BannerRadioButtonHarness } from '../../components/banner-radio-button/banner-radio-button.harness';
 
@@ -24,6 +25,17 @@ export class PortalBannerHarness extends ComponentHarness {
 
   private getTitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName=titleText]' }));
   private getSubtitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName=subTitleText]' }));
+  private locatePrimaryButtonTextInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Set primary button text"]' }));
+  private locateSecondaryButtonTextInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Set secondary button text"]' }));
+  private locatePrimaryButtonTargetInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Set primary button url"]' }));
+  private locateSecondaryButtonTargetInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Set secondary button url"]' }));
+  private locateAllToggles = this.locatorForAll(MatSlideToggleHarness);
+  private locatePrimaryButtonVisibilityOptions = this.locatorForAll(
+    GioFormSelectionInlineCardHarness.with({ ancestor: '[data-testid="primary-button-visibility"]' }),
+  );
+  private locateSecondaryButtonVisibilityOptions = this.locatorForAll(
+    GioFormSelectionInlineCardHarness.with({ ancestor: '[data-testid="secondary-button-visibility"]' }),
+  );
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
   private locateBannerRadio = (title: string) => this.locatorFor(BannerRadioButtonHarness.with({ title }))();
 
@@ -61,5 +73,77 @@ export class PortalBannerHarness extends ComponentHarness {
 
   public reset() {
     return this.getSaveBar().then((saveBar) => saveBar.clickReset());
+  }
+
+  /**
+   * Primary button
+   */
+
+  public async getPrimaryButtonTextInput(): Promise<MatInputHarness> {
+    return await this.locatePrimaryButtonTextInput();
+  }
+
+  public async getPrimaryButtonTargetInput(): Promise<MatInputHarness> {
+    return await this.locatePrimaryButtonTargetInput();
+  }
+
+  public async getPrimaryButtonEnableToggle(): Promise<MatSlideToggleHarness> {
+    return await this.locateAllToggles().then((toggles) => toggles[0]);
+  }
+
+  public async getPrimaryButtonVisibilityValue(): Promise<string> {
+    return await this.getVisibilityValue(await this.locatePrimaryButtonVisibilityOptions());
+  }
+
+  public async setPrimaryButtonVisibility(visibility: 'PUBLIC' | 'PRIVATE'): Promise<void> {
+    return await this.selectVisibilityOption(visibility, await this.locatePrimaryButtonVisibilityOptions());
+  }
+
+  /**
+   * Secondary button
+   */
+
+  public async getSecondaryButtonTextInput(): Promise<MatInputHarness> {
+    return await this.locateSecondaryButtonTextInput();
+  }
+
+  public async getSecondaryButtonTargetInput(): Promise<MatInputHarness> {
+    return await this.locateSecondaryButtonTargetInput();
+  }
+
+  public async getSecondaryButtonEnableToggle(): Promise<MatSlideToggleHarness> {
+    return await this.locateAllToggles().then((toggles) => toggles[1]);
+  }
+
+  public async getSecondaryButtonVisibilityValue(): Promise<string> {
+    return await this.getVisibilityValue(await this.locateSecondaryButtonVisibilityOptions());
+  }
+
+  public async setSecondaryButtonVisibility(visibility: 'PUBLIC' | 'PRIVATE'): Promise<void> {
+    return await this.selectVisibilityOption(visibility, await this.locateSecondaryButtonVisibilityOptions());
+  }
+
+  private async getVisibilityValue(inlineHarnesses: GioFormSelectionInlineCardHarness[]): Promise<string> {
+    const publicOption = inlineHarnesses[0];
+    const privateOption = inlineHarnesses[1];
+    if (await publicOption.isSelected()) {
+      return await publicOption.getValue();
+    }
+    if (await privateOption.isSelected()) {
+      return await privateOption.getValue();
+    }
+    return new Promise(null);
+  }
+
+  private async selectVisibilityOption(
+    visibilityOptionValue: 'PUBLIC' | 'PRIVATE',
+    inlineHarnesses: GioFormSelectionInlineCardHarness[],
+  ): Promise<void> {
+    const publicOption = inlineHarnesses[0];
+    const privateOption = inlineHarnesses[1];
+    if (visibilityOptionValue === 'PUBLIC') {
+      return await publicOption.host().then((opt) => opt.click());
+    }
+    return await privateOption.host().then((opt) => opt.click());
   }
 }

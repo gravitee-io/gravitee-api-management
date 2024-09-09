@@ -22,16 +22,45 @@
 }
 
 .developer-portal-banner {
-  .input_text {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+  display: flex;
+  flex-flow: column;
+  gap: 32px;
 
-    mat-form-field {
-      flex: 1;
+  &__row-one {
+    &__radio-group {
+      .selected {
+        border: 2px solid mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+        color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+      }
     }
+  }
+  &__information {
+    display: flex;
+    flex-flow: column;
 
-    input[matInput] {
+    &__fields {
+      display: flex;
+      flex-flow: column;
+      gap: 16px;
+    }
+  }
+
+  &__button {
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      &__toggle {
+        gio-form-slide-toggle {
+          width: max-content;
+        }
+      }
+    }
+    &__inputs {
+      display: flex;
+      flex-flow: column;
+      gap: 16px;
       width: 100%;
     }
   }
@@ -94,9 +123,4 @@
       gap: 24px;
     }
   }
-}
-
-.selected {
-  border: 2px solid mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
-  color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
 }

@@ -199,6 +199,12 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
         enabled: true,
         title: 'testTitle',
         subtitle: 'testSubtitle',
+        primaryButton: {
+          enabled: false,
+        },
+        secondaryButton: {
+          enabled: false,
+        },
       },
     },
   };
