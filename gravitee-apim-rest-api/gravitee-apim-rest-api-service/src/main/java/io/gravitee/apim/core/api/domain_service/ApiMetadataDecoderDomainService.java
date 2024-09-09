@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +43,9 @@ public class ApiMetadataDecoderDomainService {
         this.templateProcessor = templateProcessor;
     }
 
-    public Map<String, String> decodeMetadata(String apiId, ApiMetadataDecodeContext context) {
+    public Map<String, String> decodeMetadata(String environmentId, String apiId, ApiMetadataDecodeContext context) {
         var metadata = metadataQueryService
-            .findApiMetadata(apiId)
+            .findApiMetadata(environmentId, apiId)
             .entrySet()
             .stream()
             .filter(entry -> entry.getValue().getValue() != null)
@@ -84,6 +85,7 @@ public class ApiMetadataDecoderDomainService {
     }
 
     @SuperBuilder
+    @Getter
     public static class ApiMetadataDecodeContext extends ApiFreemarkerTemplate {
 
         public ApiMetadataDecodeContext(Api api, Map<String, String> metadata, PrimaryOwnerEntity primaryOwner) {

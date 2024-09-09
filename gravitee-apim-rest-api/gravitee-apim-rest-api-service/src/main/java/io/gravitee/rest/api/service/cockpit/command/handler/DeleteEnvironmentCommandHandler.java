@@ -355,7 +355,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
             PortalNotificationDefaultReferenceId.DEFAULT.name(),
             NotificationReferenceType.PORTAL
         );
-
+        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.PORTAL);
         sharedPolicyGroupRepository.deleteByEnvironmentId(environment.getId());
         sharedPolicyGroupHistoryRepository.deleteByEnvironmentId(environment.getId());
         themeRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ThemeReferenceType.ENVIRONMENT);
@@ -367,6 +367,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         integrationRepository.deleteByEnvironmentId(environment.getId());
         asyncJobRepository.deleteByEnvironmentId(environment.getId());
         mediaRepository.deleteByEnvironment(environment.getId());
+        metadataRepository.deleteByReferenceIdAndReferenceType(environment.getId(), MetadataReferenceType.ENVIRONMENT);
         environmentService.delete(environment.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
     }

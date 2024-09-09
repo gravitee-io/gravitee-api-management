@@ -79,7 +79,7 @@ public class MongoMediaRepository implements MediaRepository {
 
     @Override
     public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException {
-        return this.findFirst(this.getQueryFindMedia(hash, mediaCriteria), withContent);
+        return this.findFirst(getQueryFindMedia(hash, mediaCriteria), withContent);
     }
 
     @Override
@@ -154,14 +154,15 @@ public class MongoMediaRepository implements MediaRepository {
         return imageData;
     }
 
-    private Bson getQueryFindMedia(String hash, MediaCriteria mediaCriteria) {
-        final var baseQuery = (mediaCriteria == null || mediaCriteria.getApi() == null)
-            ? not(exists("metadata.api"))
-            : eq("metadata.api", mediaCriteria.getApi());
-
+    private static Bson getQueryFindMedia(String hash, MediaCriteria mediaCriteria) {
         final List<Bson> filters = new ArrayList<>();
-        filters.add(baseQuery);
         filters.add(eq("metadata.hash", hash));
+
+        if (mediaCriteria == null || mediaCriteria.getApi() == null) {
+            filters.add(not(exists("metadata.api")));
+        } else {
+            filters.add(eq("metadata.api", mediaCriteria.getApi()));
+        }
 
         Bson contextQuery = getContextQuery(mediaCriteria);
 
@@ -177,18 +178,32 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     private static Bson getContextQuery(MediaCriteria mediaCriteria) {
-        if (mediaCriteria != null) {
-            if (mediaCriteria.getEnvironment() != null && mediaCriteria.getOrganization() != null) {
-                return and(
-                    eq("metadata.environment", mediaCriteria.getEnvironment()),
-                    eq("metadata.organization", mediaCriteria.getOrganization())
-                );
-            } else if (mediaCriteria.getEnvironment() != null) {
-                return eq("metadata.environment", mediaCriteria.getEnvironment());
-            } else if (mediaCriteria.getOrganization() != null) {
-                return eq("metadata.organization", mediaCriteria.getOrganization());
-            }
+        if (mediaCriteria == null) {
+            return null;
         }
+
+        Bson environmentQuery = getEnvironmentQuery(mediaCriteria.getEnvironment());
+        Bson organizationQuery = getOrganizationQuery(mediaCriteria.getOrganization());
+
+        if (environmentQuery != null && organizationQuery != null) {
+            return and(environmentQuery, organizationQuery);
+        } else if (environmentQuery != null) {
+            return environmentQuery;
+        } else return organizationQuery;
+    }
+
+    private static Bson getEnvironmentQuery(String environment) {
+        if (environment == null) {
+            return null;
+        }
+        return or(eq("metadata.environment", environment), not(exists("metadata.environment")), eq("metadata.environment", null));
+    }
+
+    private static Bson getOrganizationQuery(String organization) {
+        if (organization == null) {
+            return null;
+        }
+        return or(eq("metadata.organization", organization), not(exists("metadata.organization")), eq("metadata.organization", null));
     }
 
     private GridFSBucket getGridFs() {

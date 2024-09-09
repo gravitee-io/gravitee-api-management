@@ -18,7 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
 import static io.gravitee.repository.management.model.MetadataFormat.STRING;
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
-import static io.gravitee.repository.management.model.MetadataReferenceType.DEFAULT;
+import static io.gravitee.repository.management.model.MetadataReferenceType.ENVIRONMENT;
 import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,6 +62,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiMetadataServiceTest {
 
+    private static final String ENV_ID = "env#1";
     private static final String API_ID = "API123";
     private static final String METADATA_KEY = "MET123";
     private static final String DEFAULT_METADATA_KEY = "NOOVERRIDE";
@@ -109,7 +111,7 @@ public class ApiMetadataServiceTest {
 
     @Before
     public void init() throws TechnicalException {
-        mockMetadata(defaultMetadata, METADATA_KEY, DEFAULT, getDefaultReferenceId(), METADATA_VALUE);
+        mockMetadata(defaultMetadata, METADATA_KEY, ENVIRONMENT, ENV_ID, METADATA_VALUE);
         mockMetadata(apiMetadata, METADATA_KEY, API, API_ID, API_METADATA_VALUE);
         mockMetadata(apiMetadataWithoutValue, METADATA_KEY_NO_VALUE, API, API_ID_NO_VALUE, null);
 
@@ -127,11 +129,18 @@ public class ApiMetadataServiceTest {
         when(defaultMetadataEntityWithoutOverride.getName()).thenReturn(METADATA_NAME);
         when(defaultMetadataEntityWithoutOverride.getValue()).thenReturn(METADATA_VALUE);
 
-        when(metadataService.findAllDefault()).thenReturn(Arrays.asList(defaultMetadataEntity, defaultMetadataEntityWithoutOverride));
+        when(metadataService.findByReferenceTypeAndReferenceId(ENVIRONMENT, ENV_ID))
+            .thenReturn(Arrays.asList(defaultMetadataEntity, defaultMetadataEntityWithoutOverride));
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         when(apiSearchService.findGenericById(any(), any())).thenReturn(apiEntity);
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+    }
+
+    @After
+    public void tearDown() throws TechnicalException {
+        GraviteeContext.cleanContext();
     }
 
     private void mockMetadata(Metadata apiMetadata, String key, MetadataReferenceType api, String apiId, String apiMetadataValue) {
@@ -144,7 +153,11 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindByIdAndApi() {
-        final ApiMetadataEntity apiMetadataEntity = apiMetadataService.findByIdAndApi(METADATA_KEY, API_ID);
+        final ApiMetadataEntity apiMetadataEntity = apiMetadataService.findByIdAndApi(
+            GraviteeContext.getExecutionContext(),
+            METADATA_KEY,
+            API_ID
+        );
 
         assertEquals(METADATA_KEY, apiMetadataEntity.getKey());
         assertEquals(API_ID, apiMetadataEntity.getApiId());
@@ -156,7 +169,7 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindAllByApi() {
-        final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(API_ID);
+        final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID);
 
         assertNotNull(apiMetadataEntities);
         assertEquals(2, apiMetadataEntities.size());
@@ -170,7 +183,11 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindByIdAndApiWithoutValue() {
-        final ApiMetadataEntity apiMetadataEntity = apiMetadataService.findByIdAndApi(METADATA_KEY_NO_VALUE, API_ID_NO_VALUE);
+        final ApiMetadataEntity apiMetadataEntity = apiMetadataService.findByIdAndApi(
+            GraviteeContext.getExecutionContext(),
+            METADATA_KEY_NO_VALUE,
+            API_ID_NO_VALUE
+        );
 
         assertEquals(METADATA_KEY_NO_VALUE, apiMetadataEntity.getKey());
         assertEquals(API_ID_NO_VALUE, apiMetadataEntity.getApiId());
@@ -182,7 +199,10 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindAllByApiWithoutValue() {
-        final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(API_ID_NO_VALUE);
+        final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(
+            GraviteeContext.getExecutionContext(),
+            API_ID_NO_VALUE
+        );
 
         assertNotNull(apiMetadataEntities);
         assertEquals(3, apiMetadataEntities.size());

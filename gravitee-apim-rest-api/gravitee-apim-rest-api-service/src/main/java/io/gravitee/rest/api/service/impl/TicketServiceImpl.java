@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Ticket;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.TicketQuery;
@@ -39,7 +40,6 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -129,8 +129,10 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
             final ApplicationEntity applicationEntity;
             if (ticketEntity.getApi() == null || ticketEntity.getApi().isEmpty()) {
                 api = null;
-                final MetadataEntity emailMetadata = metadataService.findDefaultByKey(
-                    DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY
+                final MetadataEntity emailMetadata = metadataService.findByKeyAndReferenceTypeAndReferenceId(
+                    MetadataService.METADATA_EMAIL_SUPPORT_KEY,
+                    MetadataReferenceType.ENVIRONMENT,
+                    executionContext.getEnvironmentId()
                 );
                 if (emailMetadata == null) {
                     throw new IllegalStateException("The support email metadata has not been found");
@@ -138,7 +140,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 emailTo = emailMetadata.getValue();
             } else {
                 api = apiTemplateService.findByIdForTemplates(executionContext, ticketEntity.getApi(), true);
-                final String apiMetadataEmailSupport = api.getMetadata().get(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
+                final String apiMetadataEmailSupport = api.getMetadata().get(MetadataService.METADATA_EMAIL_SUPPORT_KEY);
                 if (apiMetadataEmailSupport == null) {
                     throw new IllegalStateException("The support email API metadata has not been found");
                 }
@@ -146,7 +148,7 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 parameters.put("api", api);
             }
 
-            if (DefaultMetadataInitializer.DEFAULT_METADATA_EMAIL_SUPPORT.equals(emailTo)) {
+            if (MetadataService.DEFAULT_METADATA_EMAIL_SUPPORT.equals(emailTo)) {
                 throw new IllegalStateException("The support email API metadata has not been changed");
             }
 

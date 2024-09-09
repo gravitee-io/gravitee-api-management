@@ -15,16 +15,14 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer.*;
-
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -162,7 +160,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         final boolean decodeTemplate,
         final GenericApiModel genericApiModel
     ) {
-        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
+        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(executionContext, apiId);
 
         if (metadataList == null) {
             return Map.of();
@@ -199,10 +197,10 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                 .map(entry -> entry.split("=", 2))
                 .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
 
-            String supportEmail = decodedMetadata.getOrDefault(METADATA_EMAIL_SUPPORT_KEY, "");
+            String supportEmail = decodedMetadata.getOrDefault(MetadataService.METADATA_EMAIL_SUPPORT_KEY, "");
             if (supportEmail.isBlank()) {
                 decodedMetadata.put(
-                    METADATA_EMAIL_SUPPORT_KEY,
+                    MetadataService.METADATA_EMAIL_SUPPORT_KEY,
                     primaryOwnerService.getPrimaryOwnerEmail(executionContext.getOrganizationId(), genericApiModel.getId())
                 );
             }
