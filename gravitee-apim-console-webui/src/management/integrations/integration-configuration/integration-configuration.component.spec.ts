@@ -42,18 +42,8 @@ describe('IntegrationConfigurationComponent', (): void => {
   };
 
   const init = async (
-    tabs: IntegrationNavigationItem[] = [
-      {
-        displayName: 'OneTab',
-        routerLink: 'One',
-      },
-    ],
-    permissions: GioTestingPermission = [
-      'environment-integration-u',
-      'environment-integration-d',
-      'environment-integration-c',
-      'environment-integration-r',
-    ],
+    tabs: IntegrationNavigationItem[],
+    permissions: GioTestingPermission = ['integration-member-c', 'integration-member-r', 'integration-member-u', 'integration-member-d'],
   ): Promise<void> => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationConfigurationComponent],
@@ -84,6 +74,7 @@ describe('IntegrationConfigurationComponent', (): void => {
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationConfigurationHarness);
     fixture.componentInstance.configurationTabs = tabs;
+    fixture.componentInstance.ngOnInit();
     fixture.detectChanges();
   };
 
@@ -97,18 +88,22 @@ describe('IntegrationConfigurationComponent', (): void => {
         {
           displayName: 'OneTab',
           routerLink: 'One',
+          permissions: ['integration-member-r'],
         },
         {
           displayName: 'TwoTab',
           routerLink: 'Two',
+          permissions: ['integration-member-r'],
         },
         {
           displayName: 'ThreeTab',
           routerLink: 'Three',
+          permissions: ['integration-member-r'],
         },
         {
           displayName: 'FourTab',
           routerLink: 'Four',
+          permissions: ['integration-definition-r'],
         },
       ]);
     });
@@ -116,7 +111,7 @@ describe('IntegrationConfigurationComponent', (): void => {
     it('should have correct number of tabs', async () => {
       const tabNavBar = await componentHarness.getTabNavBar();
 
-      expect(tabNavBar.length).toBe(4);
+      expect(tabNavBar.length).toBe(3);
     });
   });
 });

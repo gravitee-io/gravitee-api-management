@@ -18,6 +18,7 @@ import { Component } from '@angular/core';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { IntegrationNavigationItem } from '../integrations.model';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'app-integration-configuration',
@@ -29,16 +30,28 @@ export class IntegrationConfigurationComponent {
     {
       displayName: 'General',
       routerLink: '.',
+      permissions: ['integration-definition-u', 'integration-definition-d'],
       routerLinkActiveOptions: { exact: true },
       disabled: false,
     },
     {
-      displayName: 'User Permissions',
+      displayName: 'User Permissions ',
       routerLink: 'members',
+      permissions: ['integration-member-r'],
       routerLinkActiveOptions: { exact: true },
       disabled: false,
     },
   ];
+  public allowedItems: IntegrationNavigationItem[] = [];
 
-  constructor(public readonly integrationsService: IntegrationsService) {}
+  constructor(
+    public readonly integrationsService: IntegrationsService,
+    private readonly permissionService: GioPermissionService,
+  ) {}
+
+  ngOnInit(): void {
+    this.allowedItems = this.configurationTabs.filter((item: IntegrationNavigationItem) =>
+      this.permissionService.hasAnyMatching(item.permissions),
+    );
+  }
 }

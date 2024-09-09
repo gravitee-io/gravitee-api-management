@@ -27,7 +27,7 @@
           <button
             class="card__header__actions__button"
             aria-label="Manage groups"
-            *gioPermission="{ anyOf: ['environment-integration-r'] }"
+            *gioPermission="{ anyOf: ['integration-member-r'] }"
             mat-raised-button
             (click)="updateGroups()"
             [disabled]="false"
@@ -37,7 +37,7 @@
           </button>
           <button
             class="card__header__actions__button"
-            *gioPermission="{ anyOf: ['environment-integration-c'] }"
+            *gioPermission="{ anyOf: ['integration-member-c'] }"
             [disabled]="isReadOnly"
             mat-raised-button
             type="button"

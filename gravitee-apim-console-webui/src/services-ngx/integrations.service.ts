@@ -106,4 +106,8 @@ export class IntegrationsService {
   public deleteFederatedAPIs(id: string): Observable<DeletedFederatedAPIsResponse> {
     return this.httpClient.delete<DeletedFederatedAPIsResponse>(`${this.url}/${id}/apis`);
   }
+
+  public getPermissions(id: string): Observable<Record<string, string>> {
+    return this.httpClient.get<Record<string, string>>(`${this.url}/${id}/permissions`);
+  }
 }

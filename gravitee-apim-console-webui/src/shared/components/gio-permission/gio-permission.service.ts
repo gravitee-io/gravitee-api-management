@@ -24,6 +24,7 @@ import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { User } from '../../../entities/user/user';
 import { CurrentUserService as AjsCurrentUserService } from '../../../ajs-upgraded-providers';
 import { ApplicationService } from '../../../services-ngx/application.service';
+import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
 export type GioTestingPermission = string[];
 
@@ -35,6 +36,7 @@ export class GioPermissionService {
   private currentApiPermissions: string[] = [];
   private currentEnvironmentPermissions: string[] = [];
   private currentApplicationPermissions: string[] = [];
+  private currentIntegrationPermissions: string[] = [];
   private permissions: string[] = [];
 
   constructor(
@@ -43,6 +45,7 @@ export class GioPermissionService {
     private readonly apiService: ApiService,
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
+    private readonly integrationService: IntegrationsService,
   ) {
     if (this.gioTestingPermission) {
       this._setPermissions(this.gioTestingPermission);
@@ -114,6 +117,23 @@ export class GioPermissionService {
     );
   }
 
+  loadIntegrationPermissions(integrationId: string): Observable<void> {
+    return this.integrationService.getPermissions(integrationId).pipe(
+      map((integrationPermissions) => {
+        this.currentIntegrationPermissions = Object.entries(integrationPermissions).flatMap(([key, crudValues]) =>
+          crudValues.split('').map((crudValue) => toLower(`integration-${key}-${crudValue}`)),
+        );
+
+        if (this.ajsCurrentUserService) {
+          // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+          // TODO: Remove when AngularJS API permissions are removed
+          this.ajsCurrentUserService.currentUser.userIntegrationPermissions = this.currentIntegrationPermissions;
+          this.ajsCurrentUserService.reloadPermissions();
+        }
+      }),
+    );
+  }
+
   // Set static permissions for tests
   _setPermissions(permissions: GioTestingPermission): void {
     this.permissions = permissions ?? [];
@@ -124,13 +144,14 @@ export class GioPermissionService {
       return false;
     }
 
-    return (
+    const result =
       intersection(this.currentOrganizationPermissions, permissions).length > 0 ||
       intersection(this.currentEnvironmentPermissions, permissions).length > 0 ||
       intersection(this.currentApiPermissions, permissions).length > 0 ||
       intersection(this.currentApplicationPermissions, permissions).length > 0 ||
-      intersection(this.permissions, permissions).length > 0
-    );
+      intersection(this.currentIntegrationPermissions, permissions).length > 0 ||
+      intersection(this.permissions, permissions).length > 0;
+    return result;
   }
 
   clearEnvironmentPermissions() {
@@ -143,5 +164,9 @@ export class GioPermissionService {
 
   clearApplicationPermissions() {
     this.currentApplicationPermissions = [];
+  }
+
+  clearIntegrationPermissions() {
+    this.currentIntegrationPermissions = [];
   }
 }

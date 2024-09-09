@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +38,13 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
 public class MongoIntegrationRepository implements IntegrationRepository {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private IntegrationMongoRepository internalRepository;
-
-    @Autowired
-    private GraviteeMapper mapper;
+    private final IntegrationMongoRepository internalRepository;
+    private final GraviteeMapper mapper;
 
     @Override
     public Optional<Integration> findById(String s) throws TechnicalException {

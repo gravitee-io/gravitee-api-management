@@ -99,6 +99,33 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void shouldFindByEnvironmentIdAndGroups() throws TechnicalException {
+        final List<Integration> integrations = integrationRepository
+                .findAllByEnvironmentAndGroups("my-env", Set.of("group-1"), new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getContent();
+
+        assertThat(integrations)
+                .hasSize(2)
+                .extracting(
+                        Integration::getId,
+                        Integration::getName,
+                        Integration::getDescription,
+                        Integration::getEnvironmentId,
+                        Integration::getGroups
+                )
+                .contains(
+                        tuple("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3", "my-another-integration", "test-description", "my-env", Set.of("group-1")),
+                        tuple(
+                                "459a022c-e79c-4411-9a02-2ce79c141165",
+                                "my-yet-another-integration",
+                                "test-description",
+                                "my-env",
+                                Set.of("group-1", "group-2")
+                        )
+                );
+    }
+
+    @Test
     public void shouldReturnEmptyListWhenEnvironmentIdNotFound() throws TechnicalException {
         final List<Integration> integrations = integrationRepository
             .findAllByEnvironment("other-env", new PageableBuilder().pageSize(10).pageNumber(0).build())

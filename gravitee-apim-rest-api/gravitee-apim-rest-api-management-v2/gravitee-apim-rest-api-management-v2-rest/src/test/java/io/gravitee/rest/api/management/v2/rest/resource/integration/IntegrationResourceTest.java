@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AsyncJobFixture;
 import fixtures.core.model.IntegrationApiFixtures;
@@ -62,10 +63,12 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -704,6 +707,33 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .apis(List.of(IngestionPreviewResponseApisInner.builder().id("asset-id").name("An alien API").state(NEW).build()))
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class GetPermissions {
+        private static final TypeReference<Map<String, char[]>> apiType = new TypeReference<>() {};
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget().path("permissions");
+        }
+
+        @Test
+        void asAdmin() {
+            //Given
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+            integrationAgentInMemory.initWith(List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)));
+
+            //When
+            Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200);
+            Map<String, char[]> entity = response.readEntity(new GenericType<>() {});
+            assertThat(entity)
+                    .containsEntry("DEFINITION", new char[]{'C', 'R', 'U', 'D'})
+                    .containsEntry("MEMBER", new char[]{'C', 'R', 'U', 'D'});
+
         }
     }
 

@@ -49,10 +49,10 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
 
   const init = async (
     permissions: GioTestingPermission = [
-      'environment-integration-u',
-      'environment-integration-d',
-      'environment-integration-c',
-      'environment-integration-r',
+      'integration-definition-u',
+      'integration-definition-d',
+      'integration-definition-c',
+      'integration-definition-r',
     ],
   ): Promise<void> => {
     await TestBed.configureTestingModule({
@@ -226,7 +226,7 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
 
   describe('delete federated APIs button', () => {
     it('should be disabled when federated APIS are not present', async (): Promise<void> => {
-      await init(['environment-api-d', 'environment-integration-d']);
+      await init(['environment-api-d', 'integration-definition-d']);
       expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
       expectFederatedAPIsGetRequest([], 1, 10);
 
@@ -235,7 +235,7 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
     });
 
     it('should be hidden when user has no delete API permission', async (): Promise<void> => {
-      await init(['environment-integration-d']);
+      await init(['integration-definition-d']);
       expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
       expectFederatedAPIsGetRequest([], 1, 10);
       const deleteButton: MatButtonHarness = await componentHarness.getDeleteFederatedApisButton();
@@ -243,7 +243,7 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
     });
 
     it('should send delete request with proper integration ID and display deleted items info', async (): Promise<void> => {
-      await init(['environment-api-d', 'environment-integration-d']);
+      await init(['environment-api-d', 'integration-definition-d']);
       expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
       expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
 

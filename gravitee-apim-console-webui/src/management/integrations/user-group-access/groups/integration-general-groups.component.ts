@@ -53,7 +53,7 @@ export class IntegrationGeneralGroupsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-integration-u']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['integration-member-u']);
 
     const userGroupList: Group[] = this.groups.filter((group) => this.integration.groups?.includes(group.id));
     this.form = this.formBuilder.group({

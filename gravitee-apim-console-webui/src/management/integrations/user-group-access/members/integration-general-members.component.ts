@@ -95,10 +95,10 @@ export class IntegrationGeneralMembersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['environment-integration-u']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['integration-member-u']);
     this.integrationId = this.activatedRoute.snapshot.params.integrationId;
 
-    if (this.permissionService.hasAnyMatching(['environment-integration-d']) && !this.displayedColumns.includes('delete')) {
+    if (this.permissionService.hasAnyMatching(['integration-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
     }
 

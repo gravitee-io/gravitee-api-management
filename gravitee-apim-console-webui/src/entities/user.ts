@@ -37,6 +37,7 @@ export class User {
   public userApiPermissions: string[];
   public userEnvironmentPermissions: string[];
   public userApplicationPermissions: string[];
+  public userIntegrationPermissions: string[];
   public authenticated = false;
   public firstLogin: boolean;
   public picture: string;
