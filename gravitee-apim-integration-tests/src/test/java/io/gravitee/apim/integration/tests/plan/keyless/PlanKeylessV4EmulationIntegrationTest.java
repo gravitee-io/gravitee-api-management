@@ -64,7 +64,7 @@ public class PlanKeylessV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_200_success_without_any_security(String apiId, boolean requireWiremock, HttpClient client) {
+    protected void should_return_200_success_without_any_security(String apiId, boolean requireWiremock, HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
