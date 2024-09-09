@@ -17,12 +17,28 @@
 -->
 @if (showBanner) {
   <app-banner>
-    <div class="welcome-banner-content">
-      @if (bannerTitle) {
-        <div class="m3-headline-large">{{ bannerTitle }}</div>
-      }
-      @if (bannerSubtitle) {
-        <div class="m3-title-small">{{ bannerSubtitle }}</div>
+    <div class="welcome-banner">
+      <div class="welcome-banner__content">
+        @if (bannerTitle) {
+          <div class="m3-headline-large">{{ bannerTitle }}</div>
+        }
+        @if (bannerSubtitle) {
+          <div class="m3-title-small">{{ bannerSubtitle }}</div>
+        }
+      </div>
+      @if (primaryButton.displayed || secondaryButton.displayed) {
+        <div class="welcome-banner__actions">
+          @if (primaryButton.displayed) {
+            <a [href]="primaryButton.href" target="_blank" mat-flat-button class="welcome-banner__actions__primary-button">{{
+              primaryButton.label
+            }}</a>
+          }
+          @if (secondaryButton.displayed) {
+            <a [href]="secondaryButton.href" target="_blank" class="m3-label-large welcome-banner__actions__secondary-button">{{
+              secondaryButton.label
+            }}</a>
+          }
+        </div>
       }
     </div>
   </app-banner>

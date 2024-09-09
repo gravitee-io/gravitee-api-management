@@ -22,5 +22,15 @@ export class ConfigurationPortalNext {
     enabled?: boolean;
     title?: string;
     subtitle?: string;
+    primaryButton?: BannerButton;
+    secondaryButton?: BannerButton;
   };
+}
+
+export interface BannerButton {
+  enabled?: boolean;
+  label?: string;
+  target?: string;
+  type?: string;
+  visibility?: string;
 }

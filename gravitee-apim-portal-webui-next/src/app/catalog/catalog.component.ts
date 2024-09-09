@@ -15,8 +15,9 @@
  */
 
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,9 +30,17 @@ import { BannerComponent } from '../../components/banner/banner.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { Category } from '../../entities/categories/categories';
+import { BannerButton } from '../../entities/configuration/configuration-portal-next';
 import { ApiService } from '../../services/api.service';
 import { CategoriesService } from '../../services/categories.service';
 import { ConfigService } from '../../services/config.service';
+import { CurrentUserService } from '../../services/current-user.service';
+
+interface BannerButtonVM {
+  displayed: boolean;
+  label?: string;
+  href?: string;
+}
 
 export interface ApiVM {
   id: string;
@@ -60,6 +69,7 @@ export interface ApiPaginatorVM {
     LoaderComponent,
     SearchBarComponent,
     MatTabsModule,
+    MatButtonModule,
   ],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
@@ -73,6 +83,8 @@ export class CatalogComponent {
   showBanner: boolean;
   bannerTitle: string;
   bannerSubtitle: string;
+  primaryButton: BannerButtonVM;
+  secondaryButton: BannerButtonVM;
 
   query: string = '';
   filter = signal('');
@@ -86,6 +98,8 @@ export class CatalogComponent {
   private page = signal(1);
   private page$ = toObservable(this.page);
 
+  private isUserAuthenticated = inject(CurrentUserService).isUserAuthenticated;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -96,6 +110,8 @@ export class CatalogComponent {
     this.showBanner = this.configService.configuration?.portalNext?.banner?.enabled ?? false;
     this.bannerTitle = this.configService.configuration?.portalNext?.banner?.title ?? '';
     this.bannerSubtitle = this.configService.configuration?.portalNext?.banner?.subtitle ?? '';
+    this.primaryButton = this.bannerButtonToVM(this.configService.configuration?.portalNext?.banner?.primaryButton);
+    this.secondaryButton = this.bannerButtonToVM(this.configService.configuration?.portalNext?.banner?.secondaryButton);
     this.apiPaginator$ = this.loadApis$();
     this.filterList$ = this.loadCategories$();
   }
@@ -196,5 +212,13 @@ export class CatalogComponent {
     accumulator.hasNextPage = value.hasNextPage;
 
     return accumulator;
+  }
+
+  private bannerButtonToVM(bannerButton: BannerButton | undefined): BannerButtonVM {
+    return {
+      displayed: !!bannerButton && !!bannerButton.enabled && (bannerButton.visibility === 'PUBLIC' || this.isUserAuthenticated()),
+      label: bannerButton?.label,
+      href: bannerButton?.target,
+    };
   }
 }

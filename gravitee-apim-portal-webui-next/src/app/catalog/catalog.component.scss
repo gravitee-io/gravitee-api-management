@@ -13,17 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/theme';
+
 :host {
   display: flex;
   flex-flow: column;
   gap: 32px;
 }
 
-.welcome-banner-content {
+.welcome-banner {
   display: flex;
   flex-flow: column;
   padding: 16px;
-  gap: 24px;
+  gap: 36px;
+
+  &__content {
+    display: flex;
+    flex-flow: column;
+    gap: 24px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    &__secondary-button {
+      color: theme.$banner-text-color;
+      text-decoration: none;
+    }
+  }
 }
 
 .api-list__container {
