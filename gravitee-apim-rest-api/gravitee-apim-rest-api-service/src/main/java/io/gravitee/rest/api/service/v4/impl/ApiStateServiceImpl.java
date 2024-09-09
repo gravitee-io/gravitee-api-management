@@ -226,7 +226,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             .build();
 
         String lastDeployNumber = eventLatestRepository
-            .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
+            .search(criteria, Event.EventProperties.DEPLOYMENT_NUMBER, 0L, 1L)
             .stream()
             .findFirst()
             .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
