@@ -16,11 +16,11 @@
 
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { PagedResult } from '../entities/pagedResult';
 import { AsyncJob, AsyncJobStatus, AsyncJobType } from '../entities/async-job';
+import { PaginatedResult } from '../entities/paginatedResult';
 
 @Injectable({
   providedIn: 'root',
@@ -28,16 +28,21 @@ import { AsyncJob, AsyncJobStatus, AsyncJobType } from '../entities/async-job';
 export class AsyncJobService {
   private url: string = `${this.constants.env.v2BaseURL}/async-jobs`;
 
-  constructor(private readonly httpClient: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly httpClient: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
-  public listAsyncJobs(query: AsyncJobListQuery, page: number, size: number): Observable<PagedResult<AsyncJob>> {
-    return this.httpClient.get<PagedResult<AsyncJob>>(`${this.url}`, {
-      params: {
-        page,
-        size,
-        ...query,
-      },
-    });
+  public listAsyncJobs(query: AsyncJobListQuery, page = 1, perPage = 10): Observable<PaginatedResult<AsyncJob>> {
+    return this.httpClient
+      .get<PaginatedResult<AsyncJob>>(`${this.url}`, {
+        params: {
+          page,
+          perPage,
+          ...query,
+        },
+      })
+      .pipe(map((response) => new PaginatedResult(response.data, response.pagination)));
   }
 }
 

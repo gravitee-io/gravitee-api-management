@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 import { ScoringAsset, ScoringDiagnostic } from '../api-scoring.model';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -24,8 +24,9 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
   templateUrl: './api-scoring-list.component.html',
   styleUrl: './api-scoring-list.component.scss',
 })
-export class ApiScoringListComponent implements OnInit {
-  @Input() asset: ScoringAsset;
+export class ApiScoringListComponent {
+  private _asset: ScoringAsset;
+
   public displayedColumns: string[] = ['severity', 'location', 'recommendation', 'path'];
   public diagnosticsFiltered: ScoringDiagnostic[] = [];
 
@@ -35,7 +36,12 @@ export class ApiScoringListComponent implements OnInit {
   };
   public totalDiagnostics: number;
 
-  ngOnInit() {
+  @Input()
+  public get asset(): ScoringAsset {
+    return this._asset;
+  }
+  set asset(value: ScoringAsset) {
+    this._asset = value;
     this.updateList();
   }
 

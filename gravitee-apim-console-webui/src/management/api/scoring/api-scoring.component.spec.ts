@@ -15,7 +15,7 @@
  */
 
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, discardPeriodicTasks, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -28,6 +28,8 @@ import { fakeApiScoring, fakeApiScoringTriggerResponse } from './api-scoring.fix
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
+import { AsyncJob, fakeAsyncJob } from '../../../entities/async-job';
+import { fakePaginatedResult } from '../../../entities/paginatedResult';
 
 describe('ApiScoringComponent', () => {
   const API_ID = 'api-id';
@@ -63,21 +65,56 @@ describe('ApiScoringComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiScoringHarness);
 
-    expectApiGetRequest(API_ID);
-    expectApiScoreGetRequest(API_ID);
     fixture.detectChanges();
   };
 
-  describe('ApiScoringComponent', () => {
-    describe('evaluate', () => {
-      beforeEach(() => init());
+  describe('initialize', () => {
+    it('should display loading panel while loading', fakeAsync(async () => {
+      await init();
+      expect(await componentHarness.getLoaderPanel()).not.toBeNull();
 
-      it('should trigger API scoring on click', async () => {
-        await componentHarness.clickEvaluate();
+      discardPeriodicTasks();
+    }));
 
-        expectApiScorePostRequest('api-id');
-      });
-    });
+    it('should disable evaluate button when request is pending', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, [fakeAsyncJob({ sourceId: API_ID, status: 'PENDING' })]);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+
+      expect(await componentHarness.evaluateButtonDisabled()).toBeTruthy();
+      discardPeriodicTasks();
+    }));
+
+    it('should show result summary when loaded', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+
+      expect(await componentHarness.getSummaryText()).toEqual(['All (1)', 'Errors (0)', 'Warnings (1)', 'Infos (0)', 'Hints (0)']);
+    }));
+  });
+
+  describe('evaluate', () => {
+    it('should trigger API scoring on click', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+
+      await componentHarness.clickEvaluate();
+      tick(1);
+
+      expectApiScorePostRequest('api-id');
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+    }));
   });
 
   function expectApiGetRequest(apiId: string) {
@@ -96,6 +133,15 @@ describe('ApiScoringComponent', () => {
         method: 'GET',
       })
       .flush(fakeApiScoring());
+  }
+
+  function expectAsyncJobGetRequest(apiId: string, data: AsyncJob[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/async-jobs?page=1&perPage=10&type=SCORING_REQUEST&status=PENDING&sourceId=${apiId}`,
+        method: 'GET',
+      })
+      .flush(fakePaginatedResult(data, { page: 1, pageCount: 1, pageItemCount: data.length, perPage: 20, totalCount: data.length }));
   }
 
   function expectApiScorePostRequest(apiId: string) {

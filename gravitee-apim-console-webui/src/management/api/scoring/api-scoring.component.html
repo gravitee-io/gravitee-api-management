@@ -36,13 +36,21 @@
       }
 
       <div class="card-header__actions">
-        <button mat-raised-button color="primary" data-testid="evaluate-button" (click)="evaluate()">Evaluate</button>
+        <button mat-raised-button color="primary" data-testid="evaluate-button" [disabled]="pendingScoreRequest" (click)="evaluate()">
+          Evaluate
+        </button>
       </div>
     </mat-card-header>
 
     <div class="separator-hr"></div>
 
     <mat-card-content class="card-content">
+      @if (pendingScoreRequest) {
+        <gio-banner-warning class="pending-job-banner">
+          A request is currently processing, updated result will appear below once completed.
+        </gio-banner-warning>
+      }
+
       @if (apiScoring.summary.all !== 0) {
         <section>
           <mat-button-toggle-group class="gio-button-toggle-group" name="status" aria-label="" [value]="status">
