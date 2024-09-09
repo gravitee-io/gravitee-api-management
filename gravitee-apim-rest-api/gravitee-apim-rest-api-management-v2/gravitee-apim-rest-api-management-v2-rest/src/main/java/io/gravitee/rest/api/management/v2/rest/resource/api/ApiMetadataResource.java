@@ -62,9 +62,7 @@ public class ApiMetadataResource extends AbstractResource {
                 MetadataResponse
                     .builder()
                     .data(MetadataMapper.INSTANCE.mapFromCore(paginationData))
-                    .pagination(
-                        PaginationInfo.computePaginationInfo((long) output.metadata().size(), paginationData.size(), paginationParam)
-                    )
+                    .pagination(PaginationInfo.computePaginationInfo(output.metadata().size(), paginationData.size(), paginationParam))
                     .build()
             )
             .build();

@@ -279,18 +279,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     }
                                     break;
                                 case METADATA:
-                                    MetadataReferenceType refType = (
-                                            Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType())
-                                        )
-                                        ? MetadataReferenceType.API
-                                        : (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType()))
-                                            ? MetadataReferenceType.APPLICATION
-                                            : MetadataReferenceType.DEFAULT;
-                                    String refId = refType.equals(MetadataReferenceType.DEFAULT)
-                                        ? getDefaultReferenceId()
-                                        : auditEntity.getReferenceId();
-
-                                    Optional<Metadata> optMetadata = metadataRepository.findById(property.getValue(), refId, refType);
+                                    MetadataReferenceType refType = MetadataReferenceType.parse(auditEntity.getReferenceType().name());
+                                    Optional<Metadata> optMetadata = metadataRepository.findById(
+                                        property.getValue(),
+                                        auditEntity.getReferenceId(),
+                                        refType
+                                    );
                                     if (optMetadata.isPresent()) {
                                         name = optMetadata.get().getName();
                                     }

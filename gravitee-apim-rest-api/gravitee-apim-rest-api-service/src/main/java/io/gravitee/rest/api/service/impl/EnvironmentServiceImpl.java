@@ -65,6 +65,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Autowired
     private DashboardService dashboardService;
 
+    @Autowired
+    private MetadataService metadataService;
+
     @Override
     public EnvironmentEntity findById(String environmentId) {
         try {
@@ -153,7 +156,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 apiHeaderService.initialize(executionContext);
                 pageService.initialize(executionContext);
                 dashboardService.initialize(executionContext);
-
+                metadataService.initialize(executionContext);
                 return createdEnvironment;
             }
         } catch (TechnicalException ex) {

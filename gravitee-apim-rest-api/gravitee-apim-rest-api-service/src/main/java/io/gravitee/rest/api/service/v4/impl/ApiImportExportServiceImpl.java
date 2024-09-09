@@ -105,7 +105,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         }
 
         if (!excludeAdditionalData.contains("metadata")) {
-            var metadata = exportApiMetadata(apiId);
+            var metadata = exportApiMetadata(executionContext, apiId);
             exportApi.setMetadata(metadata);
         }
 
@@ -156,16 +156,9 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         return null;
     }
 
-    private Set<ApiMetadataEntity> exportApiMetadata(String apiId) {
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_METADATA,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            return new HashSet<>(apiMetadataService.findAllByApi(apiId));
+    private Set<ApiMetadataEntity> exportApiMetadata(ExecutionContext executionContext, String apiId) {
+        if (permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, RolePermissionAction.READ)) {
+            return new HashSet<>(apiMetadataService.findAllByApi(executionContext, apiId));
         }
         return null;
     }

@@ -73,7 +73,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_CreateWithDefinitionTest {
 
-    private static final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
     private static final ObjectMapper MAPPER = new GraviteeMapper();
     private static final String USERNAME = "user-name";
 
@@ -204,7 +203,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
-        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
@@ -215,7 +214,7 @@ public class ApiService_CreateWithDefinitionTest {
         UpdateApiEntity api = new UpdateApiEntity();
         api.setGraviteeDefinitionVersion("1.0.0");
 
-        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", null);
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, "", null);
     }
 
     @Test
@@ -246,7 +245,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
-        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
@@ -279,7 +278,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
-        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
@@ -306,7 +305,10 @@ public class ApiService_CreateWithDefinitionTest {
             .when(tagService)
             .checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
 
-        assertThrows(TagNotFoundException.class, () -> apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition));
+        assertThrows(
+            TagNotFoundException.class,
+            () -> apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition)
+        );
         verify(apiRepository, never()).create(any());
         verify(alertService, never()).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
@@ -342,7 +344,7 @@ public class ApiService_CreateWithDefinitionTest {
         when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION))
             .thenReturn(Set.of("a-tag", "unit-tests"));
 
-        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
         verify(tagService, times(1))
             .checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
@@ -371,7 +373,10 @@ public class ApiService_CreateWithDefinitionTest {
         when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION))
             .thenReturn(Set.of("a-tag"));
 
-        assertThrows(TagNotAllowedException.class, () -> apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition));
+        assertThrows(
+            TagNotAllowedException.class,
+            () -> apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition)
+        );
         verify(apiRepository, never()).create(any());
         verify(alertService, never()).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }

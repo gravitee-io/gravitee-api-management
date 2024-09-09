@@ -52,8 +52,8 @@ public class ValidateApiMetadataDomainService {
             });
     }
 
-    public void validateUniqueName(String apiId, String name) {
-        this.metadataQueryService.findApiMetadata(apiId)
+    public void validateUniqueName(String environmentId, String apiId, String name) {
+        this.metadataQueryService.findApiMetadata(environmentId, apiId)
             .values()
             .forEach(val -> {
                 if (val.getName().equalsIgnoreCase(name)) {

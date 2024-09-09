@@ -19,7 +19,6 @@ import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +34,6 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -45,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -60,6 +57,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_FindByIdAsMapTest {
 
+    public static final String ENV_ID = "env-id";
+    public static final String ORG_ID = "org-id";
+
     @InjectMocks
     private ApiServiceImpl apiService;
 
@@ -68,12 +68,6 @@ public class ApiService_FindByIdAsMapTest {
 
     @Mock
     private EnvironmentService environmentService;
-
-    @Mock
-    private MembershipService membershipService;
-
-    @Mock
-    private UserService userService;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -106,24 +100,24 @@ public class ApiService_FindByIdAsMapTest {
         Api api = new Api();
         api.setId("api-id");
         api.setName("test api");
-        api.setEnvironmentId("env-id");
+        api.setEnvironmentId(ENV_ID);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("env-id");
-        environment.setOrganizationId("org-id");
+        environment.setId(ENV_ID);
+        environment.setOrganizationId(ORG_ID);
 
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberId("member-id");
 
         when(apiRepository.findById("api-id")).thenReturn(Optional.of(api));
-        when(environmentService.findById("env-id")).thenReturn(environment);
+        when(environmentService.findById(ENV_ID)).thenReturn(environment);
         when(objectMapper.convertValue(any(), any(Map.class.getClass())))
             .thenAnswer(i -> getObjectMapper().convertValue(i.getArgument(0), Map.class));
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwner);
-        when(apiMetadataService.findAllByApi("api-id")).thenReturn(buildMetadatas());
+        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id")).thenReturn(buildMetadatas());
 
         Map resultMap = apiService.findByIdAsMap("api-id");
 

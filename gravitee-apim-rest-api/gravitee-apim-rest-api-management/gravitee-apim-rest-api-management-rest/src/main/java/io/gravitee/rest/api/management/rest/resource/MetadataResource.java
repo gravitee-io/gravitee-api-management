@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.model.UpdateMetadataEntity;
@@ -56,7 +57,7 @@ public class MetadataResource extends AbstractResource {
     )
     @ApiResponse(
         responseCode = "200",
-        description = "List of platform metadata",
+        description = "List of environment metadata",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
             array = @ArraySchema(schema = @Schema(implementation = MetadataEntity.class))
@@ -65,7 +66,10 @@ public class MetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.READ) })
     public List<MetadataEntity> getMetadatas() {
-        return metadataService.findAllDefault();
+        return metadataService.findByReferenceTypeAndReferenceId(
+            MetadataReferenceType.ENVIRONMENT,
+            GraviteeContext.getExecutionContext().getEnvironmentId()
+        );
     }
 
     @POST

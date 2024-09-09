@@ -84,8 +84,11 @@ public class ApiMetadataDomainService {
         createAuditLog(emailSupportMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
     }
 
+    /**
+     * Save the metadata. This method will save or update the metadata without remove anything.
+     */
     public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
-        var previousMetadata = apiMetadataQueryService.findApiMetadata(apiId);
+        var previousMetadata = apiMetadataQueryService.findApiMetadata(auditInfo.environmentId(), apiId);
 
         if (metadata != null) {
             for (var metadataEntry : metadata) {
@@ -139,15 +142,16 @@ public class ApiMetadataDomainService {
                 .updatedAt(now)
                 .build()
         );
+
         createAuditLog(createdMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
-        return toApiMetadata(createdMetadata);
+        return toApiMetadata(auditInfo.environmentId(), createdMetadata);
     }
 
     public ApiMetadata update(Metadata metadata, AuditInfo auditInfo) {
         log.info("Update metadata [{}] for API [{}]", metadata.getKey(), metadata.getReferenceId());
         var updatedMetadata = metadataCrudService.update(metadata.toBuilder().updatedAt(TimeProvider.now()).build());
         createAuditLog(updatedMetadata, ApiAuditEvent.METADATA_UPDATED, auditInfo);
-        return toApiMetadata(updatedMetadata);
+        return toApiMetadata(auditInfo.environmentId(), updatedMetadata);
     }
 
     private void createAuditLog(Metadata created, ApiAuditEvent apiAuditEvent, AuditInfo auditInfo) {
@@ -166,28 +170,28 @@ public class ApiMetadataDomainService {
         );
     }
 
-    private String findDefaultValue(String key) {
+    private String findDefaultValue(String environmentId, String key) {
         return this.metadataCrudService.findById(
-                MetadataId.builder().key(key).referenceId("_").referenceType(Metadata.ReferenceType.DEFAULT).build()
+                MetadataId.builder().key(key).referenceId(environmentId).referenceType(Metadata.ReferenceType.ENVIRONMENT).build()
             )
             .map(Metadata::getValue)
             .orElse(null);
     }
 
-    private ApiMetadata toApiMetadata(Metadata metadata) {
+    private ApiMetadata toApiMetadata(String environmentId, Metadata metadata) {
         return ApiMetadata
             .builder()
             .key(metadata.getKey())
             .format(metadata.getFormat())
             .name(metadata.getName())
             .value(metadata.getValue())
-            .defaultValue(findDefaultValue(metadata.getKey()))
+            .defaultValue(findDefaultValue(environmentId, metadata.getKey()))
             .apiId(metadata.getReferenceId())
             .build();
     }
 
     public void deleteApiMetadata(String apiId, AuditInfo auditInfo) {
-        var metadataToDelete = apiMetadataQueryService.findApiMetadata(apiId);
+        var metadataToDelete = apiMetadataQueryService.findApiMetadata(auditInfo.environmentId(), apiId);
         metadataToDelete.forEach((keyId, apiMetadata) -> {
             metadataCrudService.delete(toMetadataId(apiMetadata));
             createMetadataDeletedAuditLog(apiMetadata, auditInfo);

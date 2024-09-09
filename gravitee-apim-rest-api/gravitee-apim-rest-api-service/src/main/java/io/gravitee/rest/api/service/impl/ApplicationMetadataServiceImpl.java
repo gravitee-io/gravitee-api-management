@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,13 +45,13 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
 
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(final String applicationId) {
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(APPLICATION, applicationId, false);
+        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(APPLICATION, applicationId);
         return allMetadata.stream().map(m -> convert(m, applicationId)).collect(toList());
     }
 
     @Override
     public ApplicationMetadataEntity findByIdAndApplication(final String metadataId, final String applicationId) {
-        return convert(findByIdAndReference(metadataId, APPLICATION, applicationId, false), applicationId);
+        return convert(findByIdAndReference(metadataId, APPLICATION, applicationId, Optional.empty()), applicationId);
     }
 
     @Override

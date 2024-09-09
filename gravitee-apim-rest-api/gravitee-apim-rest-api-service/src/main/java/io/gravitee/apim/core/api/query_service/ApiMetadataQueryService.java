@@ -16,13 +16,15 @@
 package io.gravitee.apim.core.api.query_service;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
 
 public interface ApiMetadataQueryService {
     /**
      * Find all metadata with their default value for an API.
+     * @param environmentId The environment id.
      * @param apiId The API id.
      * @return A map of metadata key and metadata.
      */
-    Map<String, ApiMetadata> findApiMetadata(String apiId);
+    Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId);
 }

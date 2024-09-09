@@ -24,6 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.function.Function;
@@ -42,10 +43,10 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
     }
 
     @Override
-    public Map<String, ApiMetadata> findApiMetadata(String apiId) {
+    public Map<String, ApiMetadata> findApiMetadata(final String environmentId, final String apiId) {
         try {
             Map<String, ApiMetadata> apiMetadata = metadataRepository
-                .findByReferenceType(MetadataReferenceType.DEFAULT)
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, environmentId)
                 .stream()
                 .map(m ->
                     ApiMetadata

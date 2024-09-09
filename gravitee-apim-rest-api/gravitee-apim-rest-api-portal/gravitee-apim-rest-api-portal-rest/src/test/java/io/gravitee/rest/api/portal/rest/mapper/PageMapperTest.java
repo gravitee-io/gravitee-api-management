@@ -74,8 +74,6 @@ public class PageMapperTest {
     @Mock
     MediaService mediaService;
 
-    public void setup() {}
-
     @Test
     public void should_convert_api_page() {
         //init

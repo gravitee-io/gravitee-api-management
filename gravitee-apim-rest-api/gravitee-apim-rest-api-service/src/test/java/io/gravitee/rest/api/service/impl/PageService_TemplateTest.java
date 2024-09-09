@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import freemarker.template.TemplateException;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PageEntity;
@@ -59,7 +60,8 @@ class PageService_TemplateTest {
         metadata.setName("Email Support");
         metadata.setFormat(MetadataFormat.MAIL);
         metadata.setValue("support@gio.com");
-        when(metadataService.findAllDefault()).thenReturn(List.of(metadata));
+        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID))
+            .thenReturn(List.of(metadata));
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId(PAGE_ID);
@@ -88,7 +90,8 @@ class PageService_TemplateTest {
         metadata.setName("Email Support");
         metadata.setFormat(MetadataFormat.MAIL);
         metadata.setValue("support@gio.com");
-        when(metadataService.findAllDefault()).thenReturn(List.of(metadata));
+        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID))
+            .thenReturn(List.of(metadata));
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId(PAGE_ID);
@@ -118,7 +121,8 @@ class PageService_TemplateTest {
         metadata.setName("Email Support");
         metadata.setFormat(MetadataFormat.MAIL);
         metadata.setValue("support@gio.com");
-        when(metadataService.findAllDefault()).thenReturn(List.of(metadata));
+        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID))
+            .thenReturn(List.of(metadata));
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId(PAGE_ID);

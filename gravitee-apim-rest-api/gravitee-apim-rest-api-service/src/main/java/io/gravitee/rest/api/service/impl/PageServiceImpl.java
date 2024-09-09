@@ -751,7 +751,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (pageEntity.getContent() != null) {
             final Map<String, Object> model = new HashMap<>();
             if (api == null) {
-                final List<MetadataEntity> metadataList = metadataService.findAllDefault();
+                final List<MetadataEntity> metadataList = metadataService.findByReferenceTypeAndReferenceId(
+                    MetadataReferenceType.ENVIRONMENT,
+                    executionContext.getEnvironmentId()
+                );
                 if (metadataList != null) {
                     final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
                     metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue()));

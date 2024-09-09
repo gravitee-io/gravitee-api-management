@@ -1,8 +1,8 @@
 [
    {
       "key":"boolean",
-      "referenceId":"_",
-      "referenceType":"DEFAULT",
+      "referenceId":"DEFAULT",
+      "referenceType":"ENVIRONMENT",
       "name":"Boolean",
       "format":"BOOLEAN"
    },

@@ -32,8 +32,8 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -101,7 +101,7 @@ class ApiMetadataDomainServiceTest {
                         .builder()
                         .key("email-support")
                         .format(Metadata.MetadataFormat.MAIL)
-                        .name(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
+                        .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
                         .value("${(api.primaryOwner.email)!''}")
                         .referenceType(Metadata.ReferenceType.API)
                         .referenceId(API_ID)
@@ -275,7 +275,7 @@ class ApiMetadataDomainServiceTest {
                         .builder()
                         .key("email-support")
                         .format(Metadata.MetadataFormat.MAIL)
-                        .name(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
+                        .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
                         .value("${(api.primaryOwner.email)!''}")
                         .referenceType(Metadata.ReferenceType.API)
                         .referenceId(API_ID)
