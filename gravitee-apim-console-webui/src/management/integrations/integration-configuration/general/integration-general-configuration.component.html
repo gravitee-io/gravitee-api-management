@@ -17,7 +17,7 @@
 -->
 
 <div *ngIf="!isLoading && integration; else loadingTemplate" class="page-cards">
-  <mat-card class="mat-card" *gioPermission="{ anyOf: ['environment-integration-u'] }" data-testid="update-card">
+  <mat-card class="mat-card" *gioPermission="{ anyOf: ['integration-definition-u'] }" data-testid="update-card">
     <div class="card-header">
       <div class="card-header__title">
         <h3>General Information</h3>
@@ -54,7 +54,7 @@
       </form>
     </mat-card-content>
   </mat-card>
-  <mat-card class="danger-card mat-card" *gioPermission="{ anyOf: ['environment-integration-d'] }">
+  <mat-card class="danger-card mat-card" *gioPermission="{ anyOf: ['integration-definition-d'] }">
     <mat-card-content>
       <h3 class="danger-card__title">Danger Zone</h3>
       <div class="danger-card__actions">
@@ -69,7 +69,7 @@
               color="warn"
               (click)="deleteIntegration()"
               data-testid="delete-integration-button"
-              *gioPermission="{ anyOf: ['environment-integration-d'] }"
+              *gioPermission="{ anyOf: ['integration-definition-d'] }"
               [disabled]="hasFederatedAPIs"
             >
               Delete Integration

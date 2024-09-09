@@ -26,6 +26,7 @@ import { IntegrationAgentComponent } from './integration-agent/integration-agent
 import { DiscoveryPreviewComponent } from './discovery-preview/discovery-preview.component';
 import { IntegrationGeneralConfigurationComponent } from './integration-configuration/general/integration-general-configuration.component';
 import { IntegrationUserPermissionsComponent } from './integration-configuration/user-permissions/integration-user-permissions.component';
+import { IntegrationGuard } from './integrations.guard';
 
 import { hasEnterpriseLicenseGuard } from '../../shared/components/gio-license/has-enterprise-license.guard';
 
@@ -47,14 +48,15 @@ const routes: Routes = [
   {
     path: ':integrationId',
     component: IntegrationsNavigationComponent,
-    canActivate: [hasEnterpriseLicenseGuard],
+    canActivate: [hasEnterpriseLicenseGuard, IntegrationGuard.loadPermissions],
+    canDeactivate: [IntegrationGuard.clearPermissions],
     children: [
       {
         path: '',
         component: IntegrationOverviewComponent,
         data: {
           permissions: {
-            anyOf: ['environment-integration-r'],
+            anyOf: ['integration-definition-r'],
           },
         },
       },
@@ -63,7 +65,7 @@ const routes: Routes = [
         component: DiscoveryPreviewComponent,
         data: {
           permissions: {
-            anyOf: ['environment-integration-r'],
+            anyOf: ['integration-definition-r'],
           },
         },
       },
@@ -72,7 +74,7 @@ const routes: Routes = [
         component: IntegrationAgentComponent,
         data: {
           permissions: {
-            anyOf: ['environment-integration-r'],
+            anyOf: ['integration-definition-r'],
           },
         },
       },
@@ -81,7 +83,7 @@ const routes: Routes = [
         component: IntegrationConfigurationComponent,
         data: {
           permissions: {
-            anyOf: ['environment-integration-u', 'environment-integration-d'],
+            anyOf: ['integration-member-r', 'integration-definition-u', 'integration-definition-d'],
           },
         },
         children: [

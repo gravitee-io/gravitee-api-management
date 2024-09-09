@@ -114,9 +114,10 @@ public class GetIntegrationsUseCaseTest {
     }
 
     @Test
-    void should_return_integrations_with_specific_env_id() {
+    void should_return_integrations_with_specific_env_id_and_good_groups() {
         //Given
         var expected = IntegrationFixture.anIntegration();
+        expected.setGroups(Set.of("group-1"));
         integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(
             List.of(expected, IntegrationFixture.anIntegration("falseEnvID"), IntegrationFixture.anIntegration("anotherFalseEnvID"))
@@ -126,6 +127,7 @@ public class GetIntegrationsUseCaseTest {
             .organizationId(ORGANIZATION_ID)
             .environmentId(ENV_ID)
             .pageable(of(pageable))
+            .groups(Set.of("group-1"))
             .build();
 
         //When

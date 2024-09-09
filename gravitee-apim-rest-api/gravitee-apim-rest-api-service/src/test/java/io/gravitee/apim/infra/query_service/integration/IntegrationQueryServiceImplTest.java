@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,27 @@ public class IntegrationQueryServiceImplTest {
         assertThat(throwable)
             .isInstanceOf(TechnicalManagementException.class)
             .hasMessage("An error occurred while finding Integrations by environment id: different-env");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_list_integrations_matching_environment_id_and_groups() {
+        //Given
+        var envId = "my-env";
+        var pageable = new PageableImpl(1, 5);
+        var expectedIntegration = IntegrationFixture.anIntegration();
+        var page = integrationPage(pageable, expectedIntegration);
+        when(integrationRepository.findAllByEnvironmentAndGroups(any(), any(), any())).thenReturn(page);
+
+        //When
+        Page<Integration> responsePage = service.findByEnvironmentAndGroups(envId, Set.of(), pageable);
+
+        //Then
+        assertThat(responsePage).isNotNull();
+        assertThat(responsePage.getPageNumber()).isEqualTo(1);
+        assertThat(responsePage.getPageElements()).isEqualTo(1);
+        assertThat(responsePage.getTotalElements()).isEqualTo(1);
+        assertThat(responsePage.getContent().get(0)).isEqualTo(expectedIntegration);
     }
 
     Page<io.gravitee.repository.management.model.Integration> integrationPage(Pageable pageable, Integration integration) {

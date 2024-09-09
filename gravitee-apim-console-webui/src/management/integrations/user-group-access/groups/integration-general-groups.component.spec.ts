@@ -72,7 +72,7 @@ describe('IntegrationPortalGroupsComponent', () => {
 
   describe('Groups tab for user with writing rights', () => {
     beforeEach(async () => {
-      await init(['environment-integration-r', 'environment-integration-u']);
+      await init(['integration-member-u', 'integration-member-r']);
     });
 
     it('should show groups', async () => {
@@ -128,7 +128,7 @@ describe('IntegrationPortalGroupsComponent', () => {
 
   describe('Groups tab for user with read-only rights', () => {
     beforeEach(async () => {
-      await init(['environment-integration-r']);
+      await init(['integration-member-r']);
     });
 
     it('should display list of groups', async () => {

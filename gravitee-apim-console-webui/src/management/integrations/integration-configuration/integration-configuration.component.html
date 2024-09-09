@@ -27,7 +27,7 @@
   </gio-banner-info>
 
   <nav mat-tab-nav-bar mat-stretch-tabs="false" [tabPanel]="tabPanel">
-    @for (tab of configurationTabs; track tab.displayName) {
+    @for (tab of allowedItems; track tab.displayName) {
       <a
         mat-tab-link
         routerLinkActive
@@ -35,7 +35,7 @@
         [routerLink]="tab.routerLink"
         [active]="rla.isActive"
         [routerLinkActiveOptions]="tab?.routerLinkActiveOptions ?? { exact: false }"
-        *gioPermission="{ anyOf: ['environment-integration-r'] }"
+        *gioPermission="{ anyOf: tab.permissions }"
         [disabled]="tab.disabled"
         >{{ tab.displayName }}</a
       >

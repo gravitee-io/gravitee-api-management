@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.use_case.DeleteIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
@@ -35,12 +39,20 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -57,6 +69,9 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -192,6 +207,37 @@ public class IntegrationResource extends AbstractResource {
         var output = deleteIngestedApisUseCase.execute(input);
 
         return new DeletedIngestedApisResponse().deleted(output.deleted()).skipped(output.skipped()).errors(output.errors());
+    }
+
+    @GET
+    @Path("/permissions")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(
+        responseCode = "200",
+        description = "Integration permissions",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))
+        )
+    )
+    public Map<String, char[]> getPermissions(@PathParam("integrationId") String integrationId) {
+        if (isAdmin()) {
+            final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId() };
+            return Arrays
+                .stream(IntegrationPermission.values())
+                .collect(Collectors.toMap(IntegrationPermission::getName, ignored -> rights));
+        } else if (isAuthenticated()) {
+            final String username = getAuthenticatedUser();
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+            return membershipService.getUserMemberPermissions(
+                executionContext,
+                MembershipReferenceType.INTEGRATION,
+                integrationId,
+                username
+            );
+        } else {
+            return Map.of();
+        }
     }
 
     @Path("/members")

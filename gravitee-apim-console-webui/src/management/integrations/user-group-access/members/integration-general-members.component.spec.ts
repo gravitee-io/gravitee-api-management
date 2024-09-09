@@ -64,7 +64,7 @@ describe('IntegrationGeneralMembersComponent', () => {
         { provide: RoleService, useValue: { list: () => of(roles) } },
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-integration-r', 'environment-integration-u', 'environment-integration-c', 'environment-integration-d'],
+          useValue: ['integration-member-r', 'integration-member-u', 'integration-member-c', 'integration-member-d'],
         },
       ],
       schemas: [NO_ERRORS_SCHEMA],
