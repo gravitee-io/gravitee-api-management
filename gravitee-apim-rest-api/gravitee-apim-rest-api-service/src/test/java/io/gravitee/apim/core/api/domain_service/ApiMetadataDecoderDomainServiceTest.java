@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 class ApiMetadataDecoderDomainServiceTest {
 
+    private static final String ENV_ID = "env#1";
     private static final String API_ID = "api-id";
 
     private static final ApiMetadataDecodeContext CONTEXT = ApiMetadataDecodeContext
@@ -63,7 +64,7 @@ class ApiMetadataDecoderDomainServiceTest {
         );
 
         // When
-        var result = service.decodeMetadata(API_ID, CONTEXT);
+        var result = service.decodeMetadata(ENV_ID, API_ID, CONTEXT);
 
         // Then
         assertThat(result).isEqualTo(Map.of("key1", "value1", "key2", "true"));
@@ -80,7 +81,7 @@ class ApiMetadataDecoderDomainServiceTest {
         );
 
         // When
-        var result = service.decodeMetadata(API_ID, CONTEXT);
+        var result = service.decodeMetadata(ENV_ID, API_ID, CONTEXT);
 
         // Then
         assertThat(result).isEqualTo(Map.of("key1", "value1"));
@@ -117,7 +118,7 @@ class ApiMetadataDecoderDomainServiceTest {
         );
 
         // When
-        var result = service.decodeMetadata(API_ID, CONTEXT);
+        var result = service.decodeMetadata(ENV_ID, API_ID, CONTEXT);
 
         // Then
         assertThat(result)
@@ -142,7 +143,7 @@ class ApiMetadataDecoderDomainServiceTest {
         );
 
         // When
-        var result = service.decodeMetadata(API_ID, CONTEXT);
+        var result = service.decodeMetadata(ENV_ID, API_ID, CONTEXT);
 
         // Then
         assertThat(result).isEqualTo(Map.ofEntries(Map.entry("key1", "value1"), Map.entry("apiVersion", "${api.version}")));

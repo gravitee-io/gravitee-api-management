@@ -95,7 +95,7 @@ public class DocumentationValidationDomainService {
         try {
             Api exitingApi = this.apiCrudService.get(apiId);
             var metadata =
-                this.apiMetadataQueryService.findApiMetadata(apiId)
+                this.apiMetadataQueryService.findApiMetadata(exitingApi.getEnvironmentId(), apiId)
                     .entrySet()
                     .stream()
                     .collect(

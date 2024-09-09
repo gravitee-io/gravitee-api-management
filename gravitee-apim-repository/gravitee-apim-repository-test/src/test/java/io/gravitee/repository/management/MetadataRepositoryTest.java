@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataFormat;
 import io.gravitee.repository.management.model.MetadataReferenceType;
@@ -26,6 +27,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
+
+    private static final String ENV_ID = "DEFAULT";
 
     @Override
     protected String getTestCasesPath() {
@@ -60,19 +63,19 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldCreate() throws Exception {
         final Metadata metadata = new Metadata();
         metadata.setKey("new-metadata");
-        metadata.setReferenceType(MetadataReferenceType.DEFAULT);
-        metadata.setReferenceId("_");
+        metadata.setReferenceType(MetadataReferenceType.ENVIRONMENT);
+        metadata.setReferenceId(ENV_ID);
         metadata.setName("Metadata name");
         metadata.setFormat(MetadataFormat.STRING);
         metadata.setValue("String");
 
-        int nbMetadataListBeforeCreation = metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT).size();
+        int nbMetadataListBeforeCreation = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
         metadataRepository.create(metadata);
-        int nbMetadataListAfterCreation = metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT).size();
+        int nbMetadataListAfterCreation = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
 
         Assert.assertEquals(nbMetadataListBeforeCreation + 1, nbMetadataListAfterCreation);
 
-        Optional<Metadata> optional = metadataRepository.findById("new-metadata", "_", MetadataReferenceType.DEFAULT);
+        Optional<Metadata> optional = metadataRepository.findById("new-metadata", ENV_ID, MetadataReferenceType.ENVIRONMENT);
         Assert.assertTrue("Metadata saved not found", optional.isPresent());
 
         final Metadata metadataSaved = optional.get();
@@ -83,7 +86,7 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Metadata> optional = metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT);
+        Optional<Metadata> optional = metadataRepository.findById("boolean", ENV_ID, MetadataReferenceType.ENVIRONMENT);
         Assert.assertTrue("Metadata to update not found", optional.isPresent());
         Assert.assertEquals("Invalid saved metadata name.", "Boolean", optional.get().getName());
 
@@ -92,13 +95,13 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         metadata.setFormat(MetadataFormat.URL);
         metadata.setValue("New value");
 
-        int nbMetadataListBeforeUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT).size();
+        int nbMetadataListBeforeUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
         metadataRepository.update(metadata);
-        int nbMetadataListAfterUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT).size();
+        int nbMetadataListAfterUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
 
         Assert.assertEquals(nbMetadataListBeforeUpdate, nbMetadataListAfterUpdate);
 
-        Optional<Metadata> optionalUpdated = metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT);
+        Optional<Metadata> optionalUpdated = metadataRepository.findById("boolean", ENV_ID, MetadataReferenceType.ENVIRONMENT);
         Assert.assertTrue("Metadata to update not found", optionalUpdated.isPresent());
 
         final Metadata metadataUpdated = optionalUpdated.get();
@@ -125,7 +128,7 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         Metadata unknownMetadata = new Metadata();
         unknownMetadata.setKey("unknown");
         unknownMetadata.setReferenceId("unknown");
-        unknownMetadata.setReferenceType(MetadataReferenceType.DEFAULT);
+        unknownMetadata.setReferenceType(MetadataReferenceType.ENVIRONMENT);
         metadataRepository.update(unknownMetadata);
         fail("An unknown metadata should not be updated");
     }
@@ -144,5 +147,19 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(2, metadataIds.size());
         Assert.assertEquals(0, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+    }
+
+    @Test(expected = DuplicateKeyException.class)
+    public void should_not_create_an_existing_key() throws Exception {
+        metadataRepository.create(
+            Metadata
+                .builder()
+                .key("boolean")
+                .referenceId("DEFAULT")
+                .referenceType(MetadataReferenceType.ENVIRONMENT)
+                .format(MetadataFormat.BOOLEAN)
+                .name("boolean")
+                .build()
+        );
     }
 }

@@ -85,7 +85,7 @@ public class ApiMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ) })
     public List<ApiMetadataEntity> getApiMetadatas() {
-        return apiMetadataService.findAllByApi(api);
+        return apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), api);
     }
 
     @GET
@@ -104,7 +104,7 @@ public class ApiMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ) })
     public ApiMetadataEntity getApiMetadata(@PathParam("metadata") String metadata) {
-        return apiMetadataService.findByIdAndApi(metadata, api);
+        return apiMetadataService.findByIdAndApi(GraviteeContext.getExecutionContext(), metadata, api);
     }
 
     @POST

@@ -58,10 +58,14 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
     @Autowired
     private AuditService auditService;
 
+    protected List<ReferenceMetadataEntity> findAllByReference(final MetadataReferenceType referenceType, final String referenceId) {
+        return findAllByReference(referenceType, referenceId, Optional.empty());
+    }
+
     protected List<ReferenceMetadataEntity> findAllByReference(
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults
+        final Optional<String> environmentId
     ) {
         try {
             LOGGER.debug("Find all metadata by reference {} / {}", referenceType, referenceId);
@@ -75,8 +79,11 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
                 .collect(toMap(ReferenceMetadataEntity::getKey, Function.identity()));
 
             final List<ReferenceMetadataEntity> allMetadata = new ArrayList<>();
-            if (withDefaults) {
-                final List<MetadataEntity> defaultMetadataList = metadataService.findAllDefault();
+            if (!MetadataReferenceType.ENVIRONMENT.equals(referenceType) && environmentId.isPresent()) {
+                final List<MetadataEntity> defaultMetadataList = metadataService.findByReferenceTypeAndReferenceId(
+                    MetadataReferenceType.ENVIRONMENT,
+                    environmentId.get()
+                );
                 defaultMetadataList.forEach(defaultMetadata -> {
                     ReferenceMetadataEntity referenceMetadataEntity = referenceMetadataMap.get(defaultMetadata.getKey());
                     if (referenceMetadataEntity != null) {
@@ -105,10 +112,10 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final String metadataId,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults
+        final Optional<String> environmentId
     ) {
         LOGGER.debug("Find metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(referenceType, referenceId, withDefaults);
+        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(referenceType, referenceId, environmentId);
         final Optional<ReferenceMetadataEntity> optMetadata = allMetadata.stream().filter(m -> metadataId.equals(m.getKey())).findAny();
         if (optMetadata.isPresent()) {
             final ReferenceMetadataEntity metadata = optMetadata.get();
@@ -168,7 +175,11 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         }
         checkReferenceMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         // First we prevent the duplicate metadata name
-        final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId, withDefaults)
+        final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(
+            referenceType,
+            referenceId,
+            withDefaults ? Optional.of(executionContext.getEnvironmentId()) : Optional.empty()
+        )
             .stream()
             .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
             .findAny();
@@ -277,12 +288,14 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             }
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
             if (withDefaults) {
-                metadataService
-                    .findAllDefault()
-                    .stream()
-                    .filter(m -> m.getKey().equals(metadataEntity.getKey()))
-                    .findAny()
-                    .ifPresent(defaultMetadata -> referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue()));
+                MetadataEntity metadataEnv = metadataService.findByKeyAndReferenceTypeAndReferenceId(
+                    metadataEntity.getKey(),
+                    MetadataReferenceType.ENVIRONMENT,
+                    executionContext.getEnvironmentId()
+                );
+                if (metadataEnv != null) {
+                    referenceMetadataEntity.setDefaultValue(metadataEnv.getValue());
+                }
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {

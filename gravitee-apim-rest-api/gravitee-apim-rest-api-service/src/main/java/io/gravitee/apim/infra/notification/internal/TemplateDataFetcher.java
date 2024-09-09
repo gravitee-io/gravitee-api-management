@@ -116,6 +116,7 @@ public class TemplateDataFetcher {
                 .map(api -> {
                     var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId);
                     var metadata = apiMetadataDecoderDomainService.decodeMetadata(
+                        api.getEnvironmentId(),
                         apiId,
                         ApiMetadataDecodeContext
                             .builder()

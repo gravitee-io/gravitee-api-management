@@ -28,7 +28,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface MetadataService {
-    List<MetadataEntity> findAllDefault();
+    String METADATA_EMAIL_SUPPORT_KEY = "email-support";
+    String DEFAULT_METADATA_EMAIL_SUPPORT = "support@change.me";
+
+    List<MetadataEntity> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId);
 
     MetadataEntity create(ExecutionContext executionContext, NewMetadataEntity metadata);
 
@@ -55,5 +58,11 @@ public interface MetadataService {
         Object entity
     );
 
-    MetadataEntity findDefaultByKey(String key);
+    MetadataEntity findByKeyAndReferenceTypeAndReferenceId(String key, MetadataReferenceType referenceType, String referenceId);
+
+    /**
+     * Initializes the default metadata for an environment.
+     * @param executionContext containing the environment to create metadata for.
+     */
+    void initialize(ExecutionContext executionContext);
 }

@@ -52,7 +52,7 @@ public class CreateApiMetadataUseCase {
         }
 
         this.validateApiMetadataDomainService.validateUniqueKey(apiId, input.newApiMetadata.getKey());
-        this.validateApiMetadataDomainService.validateUniqueName(apiId, input.newApiMetadata.getName());
+        this.validateApiMetadataDomainService.validateUniqueName(input.auditInfo.environmentId(), apiId, input.newApiMetadata.getName());
         this.validateApiMetadataDomainService.validateValueByFormat(
                 api,
                 input.auditInfo().organizationId(),

@@ -81,6 +81,7 @@ public class ApiIndexerDomainService {
      */
     public IndexableApi toIndexableApi(Api apiToIndex, PrimaryOwnerEntity primaryOwner) {
         var metadata = apiMetadataDecoderDomainService.decodeMetadata(
+            apiToIndex.getEnvironmentId(),
             apiToIndex.getId(),
             ApiMetadataDecodeContext
                 .builder()

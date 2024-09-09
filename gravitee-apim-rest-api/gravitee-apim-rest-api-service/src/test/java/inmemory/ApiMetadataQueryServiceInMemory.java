@@ -39,11 +39,12 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
-    public Map<String, ApiMetadata> findApiMetadata(String apiId) {
+    public Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId) {
         Map<String, ApiMetadata> apiMetadata = storage
             .stream()
             .filter(metadata ->
-                Objects.equals(metadata.getReferenceId(), "_") && Metadata.ReferenceType.DEFAULT.equals(metadata.getReferenceType())
+                Objects.equals(metadata.getReferenceId(), environmentId) &&
+                Metadata.ReferenceType.ENVIRONMENT.equals(metadata.getReferenceType())
             )
             .map(m ->
                 ApiMetadata

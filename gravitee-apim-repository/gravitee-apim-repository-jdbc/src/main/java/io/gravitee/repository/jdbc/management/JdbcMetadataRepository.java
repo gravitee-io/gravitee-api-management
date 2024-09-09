@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.MetadataRepository;
@@ -86,6 +87,9 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(metadata));
             return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType()).orElse(null);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            LOGGER.error("An error occurred while creating metadata", e);
+            throw new DuplicateKeyException("An error occurred while creating metadata", e);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create metadata", ex);
             throw new TechnicalException("Failed to create metadata", ex);

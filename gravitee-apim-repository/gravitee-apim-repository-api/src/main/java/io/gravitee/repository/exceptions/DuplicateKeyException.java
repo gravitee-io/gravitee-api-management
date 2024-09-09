@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.exceptions;
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum MetadataReferenceType {
-    API,
-    APPLICATION,
-    ENVIRONMENT,
-    USER;
+public class DuplicateKeyException extends RepositoryException {
 
-    public static MetadataReferenceType parse(String value) {
-        try {
-            return MetadataReferenceType.valueOf(value.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return MetadataReferenceType.ENVIRONMENT;
-        }
+    public DuplicateKeyException() {}
+
+    public DuplicateKeyException(Throwable cause) {
+        super(cause);
+    }
+
+    public DuplicateKeyException(String message) {
+        super(message);
+    }
+
+    public DuplicateKeyException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
