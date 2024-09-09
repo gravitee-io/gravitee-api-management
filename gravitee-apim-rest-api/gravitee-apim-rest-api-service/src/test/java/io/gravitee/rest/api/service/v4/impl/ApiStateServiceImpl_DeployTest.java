@@ -212,14 +212,7 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(
-            eventLatestRepository.search(
-                any(EventCriteria.class),
-                eq(io.gravitee.repository.management.model.Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
-            )
-        )
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L)))
             .thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
@@ -261,14 +254,7 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(
-            eventLatestRepository.search(
-                any(EventCriteria.class),
-                eq(io.gravitee.repository.management.model.Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
-            )
-        )
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L)))
             .thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
