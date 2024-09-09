@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import static io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase.DEFAULT_IMPORT_PAGE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -32,6 +33,7 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -39,9 +41,11 @@ import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
+import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWrapper;
@@ -80,6 +84,7 @@ class OAIToImportApiUseCaseTest {
     private OAIToImportApiUseCase useCase;
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final PolicyPluginCrudServiceInMemory policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -125,7 +130,8 @@ class OAIToImportApiUseCaseTest {
                 groupQueryService,
                 tagQueryService,
                 endpointConnectorPluginService,
-                importDefinitionCreateDomainServiceTestInitializer.initialize()
+                importDefinitionCreateDomainServiceTestInitializer.initialize(),
+                policyPluginCrudService
             );
     }
 
@@ -190,7 +196,7 @@ class OAIToImportApiUseCaseTest {
     }
 
     @Nested
-    class Documentation {
+    class WithDocumentation {
 
         @Test
         @SneakyThrows
@@ -200,10 +206,9 @@ class OAIToImportApiUseCaseTest {
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
             final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
-            importSwaggerDescriptor.setWithDocumentation(true);
 
             // When
-            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
+            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, true, false, AUDIT_INFO));
 
             // Then
             assertThat(output).isNotNull();
@@ -228,10 +233,9 @@ class OAIToImportApiUseCaseTest {
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
             final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
-            importSwaggerDescriptor.setWithDocumentation(false);
 
             // When
-            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
+            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, false, false, AUDIT_INFO));
 
             // Then
             assertThat(output).isNotNull();
@@ -239,6 +243,117 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage()).isEmpty();
+        }
+    }
+
+    @Nested
+    class WithOASValidationPolicy {
+
+        @Test
+        @SneakyThrows
+        void should_add_OAS_validation_policy() {
+            // Given
+            var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+            var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            importSwaggerDescriptor.setPayload(openApiAsString);
+            policyPluginCrudService.initWith(
+                List.of(PolicyPlugin.builder().id("oas-validation").name("OpenAPI Specification Validation").build())
+            );
+
+            // When
+            var output = useCase.execute(
+                OAIToImportApiUseCase.Input
+                    .builder()
+                    .importSwaggerDescriptor(importSwaggerDescriptor)
+                    .withOASValidationPolicy(true)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            // Then
+            assertThat(output).isNotNull();
+
+            var importDefinition = output.apiWithFlows();
+            assertThat(importDefinition).isNotNull();
+            // Check that the OAS validation policy is added
+            assertThat(importDefinition.getApiDefinitionV4().getFlows())
+                .first()
+                .satisfies(flow -> {
+                    assertThat(flow.getName()).isEqualTo("OpenAPI Specification Validation");
+                    assertThat(flow.getRequest()).isNotNull();
+                    var oasValidationStep = flow.getRequest().get(0);
+                    assertThat(oasValidationStep.getPolicy()).isEqualTo("oas-validation");
+                    assertThat(oasValidationStep.getConfiguration()).isEqualTo("{\"resourceName\":\"OpenAPI Specification\"}");
+                });
+
+            // Check that the Resource is added
+            assertThat(importDefinition.getApiDefinitionV4().getResources())
+                .hasSize(1)
+                .first()
+                .satisfies(resource1 -> {
+                    assertThat(resource1.getName()).isEqualTo("OpenAPI Specification");
+                    assertThat(resource1.getType()).isEqualTo("content-provider-inline-resource");
+                    assertThat(resource1.getConfiguration()).contains("\"content\":");
+                });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_if_oas_validation_policy_not_found() {
+            // Given
+            var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+            var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            importSwaggerDescriptor.setPayload(openApiAsString);
+
+            // When
+            var throwable = catchThrowable(() ->
+                useCase.execute(
+                    OAIToImportApiUseCase.Input
+                        .builder()
+                        .importSwaggerDescriptor(importSwaggerDescriptor)
+                        .withOASValidationPolicy(true)
+                        .auditInfo(AUDIT_INFO)
+                        .build()
+                )
+            );
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(InvalidImportWithOASValidationPolicyException.class)
+                .hasMessage("Invalid import with OAS validation policy: Policy not found");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_not_add_OAS_validation_policy() {
+            // Given
+            var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+            var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            importSwaggerDescriptor.setPayload(openApiAsString);
+
+            // When
+            var output = useCase.execute(
+                OAIToImportApiUseCase.Input
+                    .builder()
+                    .importSwaggerDescriptor(importSwaggerDescriptor)
+                    .withOASValidationPolicy(false)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            // Then
+            assertThat(output).isNotNull();
+
+            var importDefinition = output.apiWithFlows();
+            assertThat(importDefinition).isNotNull();
+            // Check that the OAS validation policy is not added
+            assertThat(importDefinition.getApiDefinitionV4().getFlows())
+                .noneMatch(flow -> flow.getName().equals("OpenAPI Specification Validation"));
+            // Check that the Resource is not added
+            assertThat(importDefinition.getApiDefinitionV4().getResources()).isEmpty();
         }
     }
 }

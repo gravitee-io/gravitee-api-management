@@ -15,29 +15,53 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
+import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.tag.query_service.TagQueryService;
+import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Builder;
 
 @UseCase
 public class OAIToImportApiUseCase {
 
     protected static final String DEFAULT_IMPORT_PAGE_NAME = "Swagger";
 
-    public record Input(ImportSwaggerDescriptorEntity importSwaggerDescriptor, AuditInfo auditInfo) {}
+    @Builder
+    public record Input(
+        ImportSwaggerDescriptorEntity importSwaggerDescriptor,
+        boolean withDocumentation,
+        boolean withOASValidationPolicy,
+        AuditInfo auditInfo
+    ) {
+        Input(ImportSwaggerDescriptorEntity importSwaggerDescriptor, AuditInfo auditInfo) {
+            this(importSwaggerDescriptor, false, false, auditInfo);
+        }
+    }
 
     public record Output(ApiWithFlows apiWithFlows) {}
 
@@ -46,37 +70,45 @@ public class OAIToImportApiUseCase {
     private final TagQueryService tagsQueryService;
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService;
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
+    private final PolicyPluginCrudService policyPluginCrudService;
 
     public OAIToImportApiUseCase(
         OAIDomainService oaiDomainService,
         GroupQueryService groupQueryService,
         TagQueryService tagsQueryService,
         EndpointConnectorPluginDomainService endpointConnectorPluginService,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
+        ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
+        PolicyPluginCrudService policyPluginCrudService
     ) {
         this.oaiDomainService = oaiDomainService;
         this.groupQueryService = groupQueryService;
         this.tagsQueryService = tagsQueryService;
         this.endpointConnectorPluginService = endpointConnectorPluginService;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
+        this.policyPluginCrudService = policyPluginCrudService;
     }
 
     public Output execute(Input input) {
         var organizationId = input.auditInfo.organizationId();
         var environmentId = input.auditInfo.environmentId();
         var importDefinition = oaiDomainService.convert(organizationId, environmentId, input.importSwaggerDescriptor);
-        var withDocumentation = input.importSwaggerDescriptor.isWithDocumentation();
 
         if (importDefinition != null) {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
             var importWithDocumentation = addOAIDocumentation(
-                withDocumentation,
+                input.withDocumentation(),
                 input.importSwaggerDescriptor.getPayload(),
                 importWithTags
             );
-            final ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo, importWithDocumentation);
+            var importWithOASValidationPolicy = addOASValidationPolicy(
+                input.withOASValidationPolicy(),
+                input.importSwaggerDescriptor.getPayload(),
+                importWithDocumentation
+            );
+
+            final ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo, importWithOASValidationPolicy);
             return new Output(apiWithFlows);
         }
 
@@ -176,5 +208,50 @@ public class OAIToImportApiUseCase {
             .build();
 
         return importWithTags.toBuilder().pages(List.of(page)).build();
+    }
+
+    private ImportDefinition addOASValidationPolicy(boolean withOASValidationPolicy, String payload, ImportDefinition importDefinition) {
+        if (!withOASValidationPolicy) {
+            return importDefinition;
+        }
+
+        PolicyPlugin oasValidationPolicy = policyPluginCrudService
+            .get("oas-validation")
+            .orElseThrow(() -> new InvalidImportWithOASValidationPolicyException("Policy not found"));
+
+        try {
+            // Add Content provider inline resource to API resources
+            Resource resource = Resource
+                .builder()
+                .name("OpenAPI Specification")
+                .type("content-provider-inline-resource")
+                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", payload))))
+                .build();
+            importDefinition.getApiExport().setResources(List.of(resource));
+
+            // Add Flow with OAS validation policy to API flows
+            var step = Step
+                .builder()
+                .policy(oasValidationPolicy.getId())
+                .name(oasValidationPolicy.getName())
+                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("resourceName", "OpenAPI Specification"))))
+                .build();
+
+            var httpSelector = HttpSelector.builder().path("/").pathOperator(Operator.EQUALS).build();
+
+            var flow = Flow
+                .builder()
+                .name("OpenAPI Specification Validation")
+                .selectors(List.of(httpSelector))
+                .request(List.of(step))
+                .response(List.of(step))
+                .build();
+
+            importDefinition.getApiExport().getFlows().add(0, flow);
+
+            return importDefinition;
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Error while serializing OpenAPI Specification", e);
+        }
     }
 }

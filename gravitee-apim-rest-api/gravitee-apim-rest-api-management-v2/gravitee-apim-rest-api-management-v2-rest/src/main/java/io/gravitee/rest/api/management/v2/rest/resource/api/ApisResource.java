@@ -253,7 +253,13 @@ public class ApisResource extends AbstractResource {
                 .build();
 
             OAIToImportApiUseCase.Output importOutput = oaiToImportApiUseCase.execute(
-                new OAIToImportApiUseCase.Input(importSwaggerDescriptor, audit)
+                OAIToImportApiUseCase.Input
+                    .builder()
+                    .importSwaggerDescriptor(importSwaggerDescriptor)
+                    .auditInfo(audit)
+                    .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
+                    .withOASValidationPolicy(Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()))
+                    .build()
             );
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);

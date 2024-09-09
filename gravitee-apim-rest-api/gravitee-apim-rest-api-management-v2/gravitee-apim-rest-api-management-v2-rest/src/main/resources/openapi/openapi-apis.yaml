@@ -2961,7 +2961,9 @@ components:
                 withDocumentation:
                     type: boolean
                     description: Create documentation based on Swagger/OpenAPI specification.
-                    default: true
+                withOASValidationPolicy:
+                    type: boolean
+                    description: Add an OpenAPI Specification validation policy based on OpenAPI specification.
 
         UpdateApi:
             oneOf:
