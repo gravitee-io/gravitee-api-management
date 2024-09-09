@@ -76,6 +76,19 @@
             name="withDocumentation"
           ></mat-slide-toggle
         ></gio-form-slide-toggle>
+
+        @if (hasOasValidationPolicy()) {
+          <gio-form-slide-toggle
+            ><gio-form-label>Add OpenAPI Specification Validation</gio-form-label>This will add an OpenAPI Specification validation policy
+            with all options enabled (you can change this later).
+            <mat-slide-toggle
+              gioFormSlideToggle
+              formControlName="withOASValidationPolicy"
+              name="withOASValidationPolicy"
+              aria-label="Toggle to add OpenAPI Specification Validation"
+            ></mat-slide-toggle
+          ></gio-form-slide-toggle>
+        }
       </div>
 
       <div class="import__row">

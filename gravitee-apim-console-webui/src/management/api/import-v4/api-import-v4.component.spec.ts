@@ -22,7 +22,7 @@ import { ApiImportV4Component } from './api-import-v4.component';
 import { ApiImportV4Harness } from './api-import-v4.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { fakeApiV4 } from '../../../entities/management-api-v2';
+import { fakeApiV4, fakePolicyPlugin, PolicyPlugin } from '../../../entities/management-api-v2';
 
 describe('ImportV4Component', () => {
   let fixture: ComponentFixture<ApiImportV4Component>;
@@ -84,21 +84,31 @@ describe('ImportV4Component', () => {
   });
 
   it('should allow documentation import only when OpenAPI specification type is selected', async () => {
+    expectGetPolicies([fakePolicyPlugin({ id: 'oas-validation' })]);
+
     await componentHarness.selectFormat('openapi');
     await componentHarness.selectSource('local');
     expect(await componentHarness.isDocumentationImportSelected()).toBeTruthy();
     expect(await componentHarness.isDocumentationImportDisabled()).toBeFalsy();
+    expect(await componentHarness.isOASValidationPolicyImportSelected()).toBeTruthy();
+    expect(await componentHarness.isOASValidationPolicyImportDisabled()).toBeFalsy();
 
     await componentHarness.selectFormat('gravitee');
     expect(await componentHarness.isSaveDisabled()).toBeTruthy();
     expect(await componentHarness.isDocumentationImportDisabled()).toBeTruthy();
     expect(await componentHarness.isDocumentationImportSelected()).toBeFalsy();
+    expect(await componentHarness.isOASValidationPolicyImportDisabled()).toBeTruthy();
+    expect(await componentHarness.isOASValidationPolicyImportSelected()).toBeFalsy();
 
     await componentHarness.selectFormat('openapi');
     expect(await componentHarness.isDocumentationImportDisabled()).toBeFalsy();
     expect(await componentHarness.isDocumentationImportSelected()).toBeTruthy();
     await componentHarness.toggleDocumentationImport();
     expect(await componentHarness.isDocumentationImportSelected()).toBeFalsy();
+    await componentHarness.toggleOASValidationPolicyImport();
+    expect(await componentHarness.isOASValidationPolicyImportSelected()).toBeFalsy();
+
+    await componentHarness.toggleDocumentationImport();
   });
 
   it.each`
@@ -120,4 +130,13 @@ describe('ImportV4Component', () => {
       expect(await componentHarness.isFormatErrorBannerDisplayed()).toBeTruthy();
     },
   );
+
+  function expectGetPolicies(policies: PolicyPlugin[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`,
+        method: 'GET',
+      })
+      .flush(policies);
+  }
 });
