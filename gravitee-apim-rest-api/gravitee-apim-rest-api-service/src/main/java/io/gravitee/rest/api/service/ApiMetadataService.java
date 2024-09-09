@@ -25,9 +25,9 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiMetadataService {
-    List<ApiMetadataEntity> findAllByApi(String apiId);
+    List<ApiMetadataEntity> findAllByApi(final ExecutionContext executionContext, final String apiId);
 
-    ApiMetadataEntity findByIdAndApi(String metadataId, String apiId);
+    ApiMetadataEntity findByIdAndApi(final ExecutionContext executionContext, String metadataId, String apiId);
 
     List<ApiMetadataEntity> create(final ExecutionContext executionContext, List<ApiMetadataEntity> apiMetadata, String apiId);
     ApiMetadataEntity create(final ExecutionContext executionContext, NewApiMetadataEntity metadata);

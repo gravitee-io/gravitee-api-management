@@ -65,11 +65,46 @@ public class GetApiMetadataUseCaseTest {
     class WithValidApi {
 
         // Initial data to be loaded into in-memory repository
-        private final Metadata metadata1 = aMetadata(API_ID, "key1", "key-1", "value1", Metadata.MetadataFormat.STRING);
-        private final Metadata metadata2 = aMetadata(API_ID, "key2", "key-2", "value2", Metadata.MetadataFormat.STRING);
-        private final Metadata globalMetadata2 = aMetadata(null, "key2", "global-key-2", "global-value-2", Metadata.MetadataFormat.STRING);
-        private final Metadata globalMetadata3 = aMetadata(null, "key3", "key-3", "global-value-3", Metadata.MetadataFormat.STRING);
-        private final Metadata metadata4 = aMetadata(API_ID, "a-key-4", "a-key-4-name", "value4", Metadata.MetadataFormat.STRING);
+        private final Metadata metadata1 = aMetadata(
+            Metadata.ReferenceType.API,
+            API_ID,
+            "key1",
+            "key-1",
+            "value1",
+            Metadata.MetadataFormat.STRING
+        );
+        private final Metadata metadata2 = aMetadata(
+            Metadata.ReferenceType.API,
+            API_ID,
+            "key2",
+            "key-2",
+            "value2",
+            Metadata.MetadataFormat.STRING
+        );
+        private final Metadata globalMetadata2 = aMetadata(
+            Metadata.ReferenceType.ENVIRONMENT,
+            ENV_ID,
+            "key2",
+            "global-key-2",
+            "global-value-2",
+            Metadata.MetadataFormat.STRING
+        );
+        private final Metadata globalMetadata3 = aMetadata(
+            Metadata.ReferenceType.ENVIRONMENT,
+            ENV_ID,
+            "key3",
+            "key-3",
+            "global-value-3",
+            Metadata.MetadataFormat.STRING
+        );
+        private final Metadata metadata4 = aMetadata(
+            Metadata.ReferenceType.API,
+            API_ID,
+            "a-key-4",
+            "a-key-4-name",
+            "value4",
+            Metadata.MetadataFormat.STRING
+        );
 
         // Simple api metadata
         private final ApiMetadata apiMetadata1 = anApiMetadata(
@@ -169,14 +204,70 @@ public class GetApiMetadataUseCaseTest {
         void beforeEach_withSorting() {
             apiCrudServiceInMemory.initWith(List.of(API));
 
-            var firstName = aMetadata(API_ID, "first-name", "aaa-first-name", "first-name", Metadata.MetadataFormat.STRING);
-            var lastName = aMetadata(API_ID, "last-name", "zzz-first-name", "last-name", Metadata.MetadataFormat.STRING);
-            var firstKey = aMetadata(API_ID, "aaa-first-key", "first-key", "first-key", Metadata.MetadataFormat.STRING);
-            var lastKey = aMetadata(API_ID, "zzz-last-key", "last-key", "last-key", Metadata.MetadataFormat.STRING);
-            var firstValue = aMetadata(null, "first-value", "first-value", "aaa-first-value", Metadata.MetadataFormat.STRING);
-            var lastValue = aMetadata(API_ID, "last-value", "last-value", "zzz-last-value", Metadata.MetadataFormat.STRING);
-            var firstFormat = aMetadata(null, "first-format", "first-format", "first-format", Metadata.MetadataFormat.BOOLEAN);
-            var lastFormat = aMetadata(API_ID, "last-format", "last-format", "last-format", Metadata.MetadataFormat.URL);
+            var firstName = aMetadata(
+                Metadata.ReferenceType.API,
+                API_ID,
+                "first-name",
+                "aaa-first-name",
+                "first-name",
+                Metadata.MetadataFormat.STRING
+            );
+            var lastName = aMetadata(
+                Metadata.ReferenceType.API,
+                API_ID,
+                "last-name",
+                "zzz-first-name",
+                "last-name",
+                Metadata.MetadataFormat.STRING
+            );
+            var firstKey = aMetadata(
+                Metadata.ReferenceType.API,
+                API_ID,
+                "aaa-first-key",
+                "first-key",
+                "first-key",
+                Metadata.MetadataFormat.STRING
+            );
+            var lastKey = aMetadata(
+                Metadata.ReferenceType.API,
+                API_ID,
+                "zzz-last-key",
+                "last-key",
+                "last-key",
+                Metadata.MetadataFormat.STRING
+            );
+            var firstValue = aMetadata(
+                Metadata.ReferenceType.ENVIRONMENT,
+                ENV_ID,
+                "first-value",
+                "first-value",
+                "aaa-first-value",
+                Metadata.MetadataFormat.STRING
+            );
+            var lastValue = aMetadata(
+                Metadata.ReferenceType.API,
+                API_ID,
+                "last-value",
+                "last-value",
+                "zzz-last-value",
+                Metadata.MetadataFormat.STRING
+            );
+            var firstFormat = aMetadata(
+                Metadata.ReferenceType.ENVIRONMENT,
+                ENV_ID,
+                "first-format",
+                "first-format",
+                "first-format",
+                Metadata.MetadataFormat.BOOLEAN
+            );
+            var lastFormat = aMetadata(
+                Metadata.ReferenceType.API,
+                API_ID,
+                "last-format",
+                "last-format",
+                "last-format",
+                Metadata.MetadataFormat.URL
+            );
             apiMetadataQueryService.initWith(
                 List.of(firstName, lastName, firstKey, lastKey, firstValue, lastValue, firstFormat, lastFormat)
             );

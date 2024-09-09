@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,14 +59,14 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     private NotificationTemplateService notificationTemplateService;
 
     @Override
-    public List<ApiMetadataEntity> findAllByApi(final String apiId) {
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, true);
+    public List<ApiMetadataEntity> findAllByApi(final ExecutionContext executionContext, final String apiId) {
+        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, Optional.of(executionContext.getEnvironmentId()));
         return allMetadata.stream().map(m -> convert(m, apiId)).collect(toList());
     }
 
     @Override
-    public ApiMetadataEntity findByIdAndApi(final String metadataId, final String apiId) {
-        return convert(findByIdAndReference(metadataId, API, apiId, true), apiId);
+    public ApiMetadataEntity findByIdAndApi(final ExecutionContext executionContext, final String metadataId, final String apiId) {
+        return convert(findByIdAndReference(metadataId, API, apiId, Optional.of(executionContext.getEnvironmentId())), apiId);
     }
 
     @Override
@@ -75,7 +76,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public void deleteAllByApi(final ExecutionContext executionContext, String apiId) {
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, false);
+        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, Optional.empty());
         allMetadata.forEach(referenceMetadataEntity -> delete(executionContext, referenceMetadataEntity.getKey(), API, apiId));
     }
 
@@ -130,7 +131,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public GenericApiEntity fetchMetadataForApi(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
-        List<ApiMetadataEntity> metadataList = findAllByApi(genericApiEntity.getId());
+        List<ApiMetadataEntity> metadataList = findAllByApi(executionContext, genericApiEntity.getId());
         final Map<String, Object> mapMetadata = new HashMap<>(metadataList.size());
 
         metadataList.forEach(metadata ->

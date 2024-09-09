@@ -115,7 +115,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     public void deleteAllByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
 
-        deleteWithMetadata("api", api);
+        deleteByField("api", api);
     }
 
     @Override
@@ -132,13 +132,13 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     @Override
     public List<String> deleteByEnvironment(String environment) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByEnvironment({})", environment);
-        return deleteWithMetadata("environment", environment);
+        return deleteByField("environment", environment);
     }
 
     @Override
     public List<String> deleteByOrganization(String organization) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByOrganization({})", organization);
-        return deleteWithMetadata("organization", organization);
+        return deleteByField("organization", organization);
     }
 
     @Override
@@ -181,19 +181,19 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
         }
     }
 
-    private List<String> deleteWithMetadata(String metadata, String value) throws TechnicalException {
-        if (metadata == null || value == null) {
-            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", metadata, value);
+    private List<String> deleteByField(String field, String value) throws TechnicalException {
+        if (field == null || value == null) {
+            LOGGER.warn("Skipping media deletion because the [{}/{}] given as an argument is null", field, value);
         } else {
             try {
                 final var rows = jdbcTemplate.queryForList(
-                    "select id from " + this.tableName + " where " + metadata + " = ?",
+                    "select id from " + this.tableName + " where " + field + " = ?",
                     String.class,
                     value
                 );
 
                 if (!rows.isEmpty()) {
-                    jdbcTemplate.update("delete from " + this.tableName + " where " + metadata + " = ?", value);
+                    jdbcTemplate.update("delete from " + this.tableName + " where " + field + " = ?", value);
                 }
 
                 return rows;

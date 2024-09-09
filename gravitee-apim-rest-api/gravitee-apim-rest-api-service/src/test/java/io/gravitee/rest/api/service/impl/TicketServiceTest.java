@@ -41,7 +41,6 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
@@ -241,7 +240,7 @@ public class TicketServiceTest {
         when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
 
         final Map<String, String> metadata = new HashMap<>();
-        metadata.put(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY, DefaultMetadataInitializer.DEFAULT_METADATA_EMAIL_SUPPORT);
+        metadata.put(MetadataService.METADATA_EMAIL_SUPPORT_KEY, MetadataService.DEFAULT_METADATA_EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
@@ -276,7 +275,7 @@ public class TicketServiceTest {
         when(ticketRepository.create(any())).thenThrow(new TechnicalException());
 
         final Map<String, String> metadata = new HashMap<>();
-        metadata.put(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
+        metadata.put(MetadataService.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
@@ -317,7 +316,7 @@ public class TicketServiceTest {
         when(ticketRepository.create(any(Ticket.class))).thenReturn(ticketToCreate);
 
         final Map<String, String> metadata = new HashMap<>();
-        metadata.put(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
+        metadata.put(MetadataService.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
         TicketEntity createdTicket = ticketService.create(

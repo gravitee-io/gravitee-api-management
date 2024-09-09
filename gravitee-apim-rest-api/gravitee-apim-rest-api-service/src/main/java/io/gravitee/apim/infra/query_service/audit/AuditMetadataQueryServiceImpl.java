@@ -102,8 +102,10 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
                     return groupRepository.findById(propertyValue).map(Group::getName).orElse(propertyValue);
                 case METADATA:
                     var refType = MetadataReferenceType.parse(audit.getReferenceType().name());
-                    String refId = refType.equals(MetadataReferenceType.DEFAULT) ? getDefaultReferenceId() : audit.getReferenceId();
-                    return metadataRepository.findById(propertyValue, refId, refType).map(Metadata::getName).orElse(propertyValue);
+                    return metadataRepository
+                        .findById(propertyValue, audit.getReferenceId(), refType)
+                        .map(Metadata::getName)
+                        .orElse(propertyValue);
                 case PAGE:
                     return pageRepository.findById(propertyValue).map(Page::getName).orElse(propertyValue);
                 case PLAN:

@@ -307,7 +307,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
         apiMetadataEntity.setValue("metadata-value");
         apiMetadataEntity.setDefaultValue("metadata-default-value");
         apiMetadataEntity.setFormat(MetadataFormat.STRING);
-        when(apiMetadataService.findAllByApi(API_ID)).thenReturn(Collections.singletonList(apiMetadataEntity));
+        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID))
+            .thenReturn(Collections.singletonList(apiMetadataEntity));
     }
 
     @After

@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.DashboardService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -82,6 +83,9 @@ public class EnvironmentServiceTest {
 
     @Mock
     private InitializeSharedPolicyGroupUseCase mockInitializeSharedPolicyGroupUseCase;
+
+    @Mock
+    private MetadataService mockMetadataService;
 
     @AfterEach
     void afterEach() {
@@ -195,6 +199,7 @@ public class EnvironmentServiceTest {
             verify(mockPageService, times(1)).initialize(executionContext);
             verify(mockDashboardService, times(1)).initialize(executionContext);
             verify(mockInitializeSharedPolicyGroupUseCase, times(1)).execute(any());
+            verify(mockMetadataService, times(1)).initialize(executionContext);
         }
 
         @Test

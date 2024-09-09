@@ -22,17 +22,24 @@ public class MetadataFixtures {
 
     private MetadataFixtures() {}
 
-    public static Metadata aCoreMetadata(String apiId, String key, String name, Object value, Metadata.MetadataFormat format) {
-        String referenceId;
-        Metadata.ReferenceType referenceType;
-        if (apiId != null) {
-            referenceId = apiId;
-            referenceType = Metadata.ReferenceType.API;
-        } else {
-            referenceId = "_";
-            referenceType = Metadata.ReferenceType.DEFAULT;
-        }
+    public static Metadata aEnvMetadata(String environmentId, String key, String name, Object value, Metadata.MetadataFormat format) {
+        assert environmentId != null;
+        return aCoreMetadata(Metadata.ReferenceType.ENVIRONMENT, environmentId, key, name, value, format);
+    }
 
+    public static Metadata aApiMetadata(String apidId, String key, String name, Object value, Metadata.MetadataFormat format) {
+        assert apidId != null;
+        return aCoreMetadata(Metadata.ReferenceType.API, apidId, key, name, value, format);
+    }
+
+    public static Metadata aCoreMetadata(
+        Metadata.ReferenceType referenceType,
+        String referenceId,
+        String key,
+        String name,
+        Object value,
+        Metadata.MetadataFormat format
+    ) {
         return Metadata
             .builder()
             .referenceId(referenceId)

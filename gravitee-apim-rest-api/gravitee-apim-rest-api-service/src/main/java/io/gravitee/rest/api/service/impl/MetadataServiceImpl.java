@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.UpdateMetadataEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -58,7 +59,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class MetadataServiceImpl extends TransactionalService implements MetadataService {
 
-    private static final String DEFAULT_REFERENCE_ID = "_";
     private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
     @Lazy
@@ -72,65 +72,28 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     private NotificationTemplateService notificationTemplateService;
 
     public static String getDefaultReferenceId() {
-        return DEFAULT_REFERENCE_ID;
+        return GraviteeContext.getDefaultEnvironment();
     }
 
     @Override
-    public List<MetadataEntity> findAllDefault() {
+    public List<MetadataEntity> findByReferenceTypeAndReferenceId(final MetadataReferenceType referenceType, final String referenceId) {
         try {
-            LOGGER.debug("Find all metadata");
+            LOGGER.debug("Find metadata by reference {}/{}", referenceType, referenceId);
             return metadataRepository
-                .findByReferenceType(MetadataReferenceType.DEFAULT)
+                .findByReferenceTypeAndReferenceId(referenceType, referenceId)
                 .stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .map(this::convert)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to find all metadata", ex);
-            throw new TechnicalManagementException("An error occurred while trying to find all metadata", ex);
+            LOGGER.error("An error occurred while trying to find metadata by reference", ex);
+            throw new TechnicalManagementException("An error occurred while trying to find metadata by reference", ex);
         }
     }
 
     @Override
     public MetadataEntity create(final ExecutionContext executionContext, final NewMetadataEntity metadataEntity) {
-        // if no format defined, we just set String format
-        if (metadataEntity.getFormat() == null) {
-            metadataEntity.setFormat(MetadataFormat.STRING);
-        }
-
-        try {
-            // First we prevent the duplicate metadata name
-            final Optional<MetadataEntity> optionalMetadata = findAllDefault()
-                .stream()
-                .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
-                .findAny();
-
-            if (optionalMetadata.isPresent()) {
-                throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
-            }
-
-            checkMetadataValue(metadataEntity.getValue());
-            checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
-            final Metadata metadata = convert(metadataEntity);
-            final Date now = new Date();
-            metadata.setCreatedAt(now);
-            metadata.setUpdatedAt(now);
-            metadataRepository.create(metadata);
-            // Audit
-            // FIXME: Use OrganizationAuditLog?
-            auditService.createAuditLog(
-                executionContext,
-                singletonMap(METADATA, metadata.getKey()),
-                METADATA_CREATED,
-                metadata.getCreatedAt(),
-                null,
-                metadata
-            );
-            return convert(metadata);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurred while trying to create metadata {}", metadataEntity.getName(), ex);
-            throw new TechnicalManagementException("An error occurred while trying to create metadata " + metadataEntity.getName(), ex);
-        }
+        return create(executionContext, metadataEntity, MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
     }
 
     @Override
@@ -147,14 +110,23 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         try {
             checkMetadataValue(metadataEntity.getValue());
             checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
-            final Metadata metadata = convert(metadataEntity);
+            final Metadata metadata = convert(executionContext, metadataEntity);
             final Date now = new Date();
             metadata.setCreatedAt(now);
             metadata.setUpdatedAt(now);
             metadata.setReferenceType(referenceType);
             metadata.setReferenceId(referenceId);
+            Metadata created = metadataRepository.create(metadata);
 
-            return convert(metadataRepository.create(metadata));
+            auditService.createAuditLog(
+                executionContext,
+                singletonMap(METADATA, created.getKey()),
+                METADATA_CREATED,
+                created.getCreatedAt(),
+                null,
+                created
+            );
+            return convert(created);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurred while trying to create metadata " + metadataEntity.getName(), ex);
         }
@@ -165,7 +137,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         try {
             // First we prevent the duplicate metadata name
             final Optional<Metadata> optionalMetadata = metadataRepository
-                .findByReferenceType(MetadataReferenceType.DEFAULT)
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
                 .stream()
                 .filter(metadata ->
                     !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
@@ -179,7 +151,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             checkMetadataValue(metadataEntity.getValue());
             checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
 
-            final Metadata metadata = convert(metadataEntity);
+            final Metadata metadata = convert(executionContext, metadataEntity);
             final Date now = new Date();
             metadata.setUpdatedAt(now);
             metadataRepository.update(metadata);
@@ -210,9 +182,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     @Override
     public void delete(final ExecutionContext executionContext, final String key) {
         try {
-            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+            final Optional<Metadata> optMetadata = metadataRepository.findById(
+                key,
+                executionContext.getEnvironmentId(),
+                MetadataReferenceType.ENVIRONMENT
+            );
             if (optMetadata.isPresent()) {
-                metadataRepository.delete(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+                metadataRepository.delete(key, executionContext.getEnvironmentId(), MetadataReferenceType.ENVIRONMENT);
                 // Audit
                 // FIXME: Use OrganizationAuditLog?
                 auditService.createAuditLog(
@@ -247,19 +223,28 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public MetadataEntity findDefaultByKey(final String key) {
+    public MetadataEntity findByKeyAndReferenceTypeAndReferenceId(
+        final String key,
+        final MetadataReferenceType referenceType,
+        final String referenceId
+    ) {
         try {
-            LOGGER.debug("Find default metadata by key");
-            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
-            if (optMetadata.isPresent()) {
-                return convert(optMetadata.get());
-            } else {
-                return null;
-            }
+            LOGGER.debug("Find by key and reference {}/{}/{}", key, referenceType, referenceId);
+            final Optional<Metadata> optMetadata = metadataRepository.findById(key, referenceId, referenceType);
+            return optMetadata.map(this::convert).orElse(null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find default metadata by key", ex);
             throw new TechnicalManagementException("An error occurred while trying to find default metadata by key", ex);
         }
+    }
+
+    @Override
+    public void initialize(ExecutionContext executionContext) {
+        final NewMetadataEntity metadata = new NewMetadataEntity();
+        metadata.setFormat(MetadataFormat.MAIL);
+        metadata.setName(METADATA_EMAIL_SUPPORT_KEY);
+        metadata.setValue(DEFAULT_METADATA_EMAIL_SUPPORT);
+        create(executionContext, metadata);
     }
 
     @Override
@@ -343,7 +328,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         return metadataEntity;
     }
 
-    private Metadata convert(final NewMetadataEntity metadataEntity) {
+    private Metadata convert(final ExecutionContext executionContext, final NewMetadataEntity metadataEntity) {
         final Metadata metadata = new Metadata();
         metadata.setKey(IdGenerator.generate(metadataEntity.getName()));
         metadata.setName(metadataEntity.getName());
@@ -357,13 +342,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
         }
 
-        metadata.setReferenceId(DEFAULT_REFERENCE_ID);
-        metadata.setReferenceType(MetadataReferenceType.DEFAULT);
+        metadata.setReferenceId(executionContext.getEnvironmentId());
+        metadata.setReferenceType(MetadataReferenceType.ENVIRONMENT);
 
         return metadata;
     }
 
-    private Metadata convert(final UpdateMetadataEntity metadataEntity) {
+    private Metadata convert(final ExecutionContext executionContext, final UpdateMetadataEntity metadataEntity) {
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataEntity.getKey());
         metadata.setName(metadataEntity.getName());
@@ -377,8 +362,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
         }
 
-        metadata.setReferenceId(DEFAULT_REFERENCE_ID);
-        metadata.setReferenceType(MetadataReferenceType.DEFAULT);
+        metadata.setReferenceId(executionContext.getEnvironmentId());
+        metadata.setReferenceType(MetadataReferenceType.ENVIRONMENT);
 
         return metadata;
     }

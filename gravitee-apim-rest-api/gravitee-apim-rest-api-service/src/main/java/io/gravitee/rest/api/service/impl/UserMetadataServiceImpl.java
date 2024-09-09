@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.exceptions.MetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,7 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
             .computeIfAbsent(
                 userId,
                 k -> {
-                    final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, false);
+                    final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, Optional.empty());
                     return allMetadata.stream().map(m -> convert(m, userId)).collect(toList());
                 }
             );

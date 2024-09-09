@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static fixtures.MetadataFixtures.aCoreMetadata;
+import static fixtures.MetadataFixtures.aApiMetadata;
+import static fixtures.MetadataFixtures.aEnvMetadata;
 import static fixtures.MetadataFixtures.aMapiV2Metadata;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,11 +86,11 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
     class GetApiMetadata {
 
         // Initial data to be loaded into in-memory repository
-        private final Metadata metadata1 = aCoreMetadata(API_ID, "key1", "1", "value1", Metadata.MetadataFormat.STRING);
-        private final Metadata metadata2 = aCoreMetadata(API_ID, "key2", "2", "value2", Metadata.MetadataFormat.STRING);
-        private final Metadata globalMetadata2 = aCoreMetadata(null, "key2", "2", "global-value-2", Metadata.MetadataFormat.STRING);
-        private final Metadata globalMetadata3 = aCoreMetadata(null, "key3", "3", "global-value-3", Metadata.MetadataFormat.STRING);
-        private final Metadata metadata4 = aCoreMetadata(API_ID, "a-key-4", "4", "value4", Metadata.MetadataFormat.STRING);
+        private final Metadata metadata1 = aApiMetadata(API_ID, "key1", "1", "value1", Metadata.MetadataFormat.STRING);
+        private final Metadata metadata2 = aApiMetadata(API_ID, "key2", "2", "value2", Metadata.MetadataFormat.STRING);
+        private final Metadata globalMetadata2 = aEnvMetadata(ENV_ID, "key2", "2", "global-value-2", Metadata.MetadataFormat.STRING);
+        private final Metadata globalMetadata3 = aEnvMetadata(ENV_ID, "key3", "3", "global-value-3", Metadata.MetadataFormat.STRING);
+        private final Metadata metadata4 = aApiMetadata(API_ID, "a-key-4", "4", "value4", Metadata.MetadataFormat.STRING);
 
         // Simple api metadata
         private final io.gravitee.rest.api.management.v2.rest.model.Metadata apiMetadata1 = aMapiV2Metadata(
