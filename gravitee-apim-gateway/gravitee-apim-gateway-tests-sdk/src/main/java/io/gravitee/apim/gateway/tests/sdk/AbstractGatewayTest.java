@@ -105,6 +105,7 @@ public abstract class AbstractGatewayTest
     private Consumer<String> apiUndeployer;
     private Consumer<ReactableSharedPolicyGroup> sharedPolicyGroupDeployer;
     private BiConsumer<String, String> sharedPolicyGroupUndeployer;
+    protected Vertx vertx;
 
     /**
      * Represent the symbol used for placeholder.
@@ -211,6 +212,7 @@ public abstract class AbstractGatewayTest
      */
     @BeforeEach
     public void setUp(Vertx vertx) throws Exception {
+        this.vertx = vertx;
         resetAllMocks();
         // Prepare something on a Vert.x event-loop thread
         // The thread changes with each test instance
