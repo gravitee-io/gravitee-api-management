@@ -204,7 +204,7 @@ public class ImportApiCRDUseCase {
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            membersDomainService.updateApiMembers(organizationId, createdApi.getId(), sanitizedInput.spec().getMembers());
+            membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), sanitizedInput.spec().getMembers());
 
             createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
 
@@ -300,7 +300,7 @@ public class ImportApiCRDUseCase {
                 }
             }
 
-            membersDomainService.updateApiMembers(input.auditInfo.organizationId(), updatedApi.getId(), sanitizedInput.spec().getMembers());
+            membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), sanitizedInput.spec().getMembers());
 
             createOrUpdatePages(sanitizedInput.spec.getPages(), updatedApi.getId(), sanitizedInput.auditInfo);
             deleteRemovedPages(sanitizedInput.spec.getPages(), updatedApi.getId());
