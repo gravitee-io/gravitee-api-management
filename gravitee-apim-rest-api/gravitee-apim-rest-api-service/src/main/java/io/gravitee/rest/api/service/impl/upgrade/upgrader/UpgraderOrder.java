@@ -44,4 +44,5 @@ public class UpgraderOrder {
     public static final int API_CATEGORY_ORDER_UPGRADER = 702;
     public static final int INTEGRATION_ROLES_UPGRADER = 702;
     public static final int INTEGRATION_PRIMARY_OWNER_UPGRADER = 703;
+    public static final int INITIALIZE_SHARED_POLICY_GROUP_UPGRADER = 704;
 }
