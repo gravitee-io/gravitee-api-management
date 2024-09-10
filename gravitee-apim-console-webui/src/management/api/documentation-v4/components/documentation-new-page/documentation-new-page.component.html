@@ -24,123 +24,121 @@
     </div>
   </div>
   <div class="stepper">
-    <form [formGroup]="form">
-      <mat-stepper linear color="accent" [disableRipple]="true">
-        <mat-step>
-          <ng-template matStepLabel>Configure page</ng-template>
-          <div class="stepper__content">
-            <api-documentation-v4-page-configuration
-              [name]="name"
-              [pageType]="pageType"
-              [apiPages]="pages"
-              [form]="form.controls.stepOne"
-              [groups]="groups"
-              [homepage]="createHomepage"
-            />
-          </div>
-          <div class="stepper__actions">
-            <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.stepOne.invalid">Next</button>
-          </div>
-        </mat-step>
-        <mat-step>
-          <ng-template matStepLabel>Determine source</ng-template>
-          <div class="stepper__content">
-            <gio-form-selection-inline class="gio-radio-group stepper__content__source__type" formControlName="sourceType">
-              <gio-form-selection-inline-card value="FILL">
-                <gio-form-selection-inline-card-content icon="gio:edit-pencil">
-                  <gio-card-content-title>Fill in the content myself</gio-card-content-title>
-                </gio-form-selection-inline-card-content>
-              </gio-form-selection-inline-card>
-              <gio-form-selection-inline-card value="IMPORT">
-                <gio-form-selection-inline-card-content icon="gio:down-circle">
-                  <gio-card-content-title>Import from file</gio-card-content-title>
-                </gio-form-selection-inline-card-content>
-              </gio-form-selection-inline-card>
-              <gio-form-selection-inline-card value="EXTERNAL">
-                <gio-form-selection-inline-card-content icon="gio:git-branch">
-                  <gio-card-content-title>Link to External Source</gio-card-content-title>
-                </gio-form-selection-inline-card-content>
-              </gio-form-selection-inline-card>
-            </gio-form-selection-inline>
+    <mat-stepper linear color="accent" [disableRipple]="true">
+      <mat-step>
+        <ng-template matStepLabel>Configure page</ng-template>
+        <div class="stepper__content">
+          <api-documentation-v4-page-configuration
+            [name]="name"
+            [pageType]="pageType"
+            [apiPages]="pages"
+            [form]="form.controls.stepOne"
+            [groups]="groups"
+            [homepage]="createHomepage"
+          />
+        </div>
+        <div class="stepper__actions">
+          <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.stepOne.invalid">Next</button>
+        </div>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>Determine source</ng-template>
+        <div class="stepper__content" [formGroup]="form">
+          <gio-form-selection-inline class="gio-radio-group stepper__content__source__type" formControlName="sourceType">
+            <gio-form-selection-inline-card value="FILL">
+              <gio-form-selection-inline-card-content icon="gio:edit-pencil">
+                <gio-card-content-title>Fill in the content myself</gio-card-content-title>
+              </gio-form-selection-inline-card-content>
+            </gio-form-selection-inline-card>
+            <gio-form-selection-inline-card value="IMPORT">
+              <gio-form-selection-inline-card-content icon="gio:down-circle">
+                <gio-card-content-title>Import from file</gio-card-content-title>
+              </gio-form-selection-inline-card-content>
+            </gio-form-selection-inline-card>
+            <gio-form-selection-inline-card value="EXTERNAL">
+              <gio-form-selection-inline-card-content icon="gio:git-branch">
+                <gio-card-content-title>Link to External Source</gio-card-content-title>
+              </gio-form-selection-inline-card-content>
+            </gio-form-selection-inline-card>
+          </gio-form-selection-inline>
 
-            @if (form.controls.sourceType.value === 'EXTERNAL') {
-              <div class="stepper__content__source">
-                <div class="mat-subtitle-2">Page source</div>
+          @if (form.controls.sourceType.value === 'EXTERNAL') {
+            <div class="stepper__content__source">
+              <div class="mat-subtitle-2">Page source</div>
 
-                <gio-form-selection-inline class="gio-radio-group stepper__content__source" formControlName="source">
-                  @for (fetcher of fetchers; track fetcher.id) {
-                    <gio-form-selection-inline-card [value]="fetcher.id">
-                      <gio-form-selection-inline-card-content [img]="fetcher.iconPath">
-                        <gio-card-content-title>{{ fetcher.name }}</gio-card-content-title>
-                      </gio-form-selection-inline-card-content>
-                    </gio-form-selection-inline-card>
-                  }
-                </gio-form-selection-inline>
-              </div>
-            }
-          </div>
-          <div class="stepper__actions">
-            <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.source.invalid">Next</button>
-            <button mat-stroked-button matStepperPrevious>Previous</button>
-          </div>
-        </mat-step>
-        <mat-step>
-          <ng-template matStepLabel>
-            @switch (form.value.sourceType) {
-              @case ('FILL') {
-                Add content
-              }
-              @case ('IMPORT') {
-                Upload a file
-              }
-              @case ('EXTERNAL') {
-                Configure External Source
-              }
-            }
-          </ng-template>
-          <div class="stepper__content">
-            @switch (form.value.sourceType) {
-              @case ('FILL') {
-                <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="pageType" />
-              }
-              @case ('IMPORT') {
-                <api-documentation-file-upload formControlName="content" [pageType]="pageType" [disabled]="isReadOnly" />
-              }
-              @case ('EXTERNAL') {
-                @if (selectedFetcherSchema) {
-                  <gio-form-json-schema [formControl]="sourceConfiguration" [jsonSchema]="selectedFetcherSchema"></gio-form-json-schema>
+              <gio-form-selection-inline class="gio-radio-group stepper__content__source" formControlName="source">
+                @for (fetcher of fetchers; track fetcher.id) {
+                  <gio-form-selection-inline-card [value]="fetcher.id">
+                    <gio-form-selection-inline-card-content [img]="fetcher.iconPath">
+                      <gio-card-content-title>{{ fetcher.name }}</gio-card-content-title>
+                    </gio-form-selection-inline-card-content>
+                  </gio-form-selection-inline-card>
                 }
+              </gio-form-selection-inline>
+            </div>
+          }
+        </div>
+        <div class="stepper__actions">
+          <button mat-flat-button color="primary" matStepperNext [disabled]="form.controls.source.invalid">Next</button>
+          <button mat-stroked-button matStepperPrevious>Previous</button>
+        </div>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>
+          @switch (form.value.sourceType) {
+            @case ('FILL') {
+              Add content
+            }
+            @case ('IMPORT') {
+              Upload a file
+            }
+            @case ('EXTERNAL') {
+              Configure External Source
+            }
+          }
+        </ng-template>
+        <div class="stepper__content" [formGroup]="form">
+          @switch (form.value.sourceType) {
+            @case ('FILL') {
+              <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="pageType" />
+            }
+            @case ('IMPORT') {
+              <api-documentation-file-upload formControlName="content" [pageType]="pageType" [disabled]="isReadOnly" />
+            }
+            @case ('EXTERNAL') {
+              @if (selectedFetcherSchema) {
+                <gio-form-json-schema [formControl]="sourceConfiguration" [jsonSchema]="selectedFetcherSchema"></gio-form-json-schema>
               }
             }
+          }
 
-            @if (form.controls.content.errors?.required) {
-              <mat-error>Page content cannot be empty</mat-error>
-            }
-          </div>
-          <div class="stepper__actions">
-            <ng-container *gioPermission="{ anyOf: ['api-documentation-c'] }">
-              <button
-                *gioPermission="{ anyOf: ['api-documentation-u'] }"
-                mat-flat-button
-                color="primary"
-                [disabled]="form.invalid || (form.controls.sourceType.value === 'EXTERNAL' && sourceConfiguration?.invalid) || isReadOnly"
-                (click)="createAndPublish()"
-              >
-                Save and publish
-              </button>
-              <button
-                mat-stroked-button
-                [disabled]="form.invalid || (form.controls.sourceType.value === 'EXTERNAL' && sourceConfiguration?.invalid)"
-                (click)="create()"
-              >
-                Save
-              </button>
-            </ng-container>
+          @if (form.controls.content.errors?.required) {
+            <mat-error>Page content cannot be empty</mat-error>
+          }
+        </div>
+        <div class="stepper__actions">
+          <ng-container *gioPermission="{ anyOf: ['api-documentation-c'] }">
+            <button
+              *gioPermission="{ anyOf: ['api-documentation-u'] }"
+              mat-flat-button
+              color="primary"
+              [disabled]="form.invalid || (form.controls.sourceType.value === 'EXTERNAL' && sourceConfiguration?.invalid) || isReadOnly"
+              (click)="createAndPublish()"
+            >
+              Save and publish
+            </button>
+            <button
+              mat-stroked-button
+              [disabled]="form.invalid || (form.controls.sourceType.value === 'EXTERNAL' && sourceConfiguration?.invalid)"
+              (click)="create()"
+            >
+              Save
+            </button>
+          </ng-container>
 
-            <button mat-stroked-button matStepperPrevious>Previous</button>
-          </div>
-        </mat-step>
-      </mat-stepper>
-    </form>
+          <button mat-stroked-button matStepperPrevious>Previous</button>
+        </div>
+      </mat-step>
+    </mat-stepper>
   </div>
 </mat-card>
