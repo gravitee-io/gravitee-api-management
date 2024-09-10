@@ -94,7 +94,7 @@
               </div>
 
               <gv-edit-page-content
-                ng-if="!$ctrl.isLink()"
+                ng-if="$ctrl.page != null && !$ctrl.isLink()"
                 can-update="!$ctrl.readOnly && $ctrl.canUpdate"
                 page="$ctrl.page"
                 pages-to-link="$ctrl.pagesToLink"
