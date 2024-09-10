@@ -1,8 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.0.20-dashboards
+      id: 4.0.20-dashboards-check-column-exists
       author: GraviteeSource Team
       runOnChange: true
+      preConditions:
+       onFail: MARK_RAN
+       not:
+         columnExists:
+           tableName: ${gravitee_prefix}dashboards
+           columnName: type
       changes:
         # ################
         # Dashboards changes
