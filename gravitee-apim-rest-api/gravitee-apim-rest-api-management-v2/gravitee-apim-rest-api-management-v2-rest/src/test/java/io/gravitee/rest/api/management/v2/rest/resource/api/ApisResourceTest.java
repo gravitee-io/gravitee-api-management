@@ -607,7 +607,6 @@ class ApisResourceTest extends AbstractResourceTest {
                             .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
-                            .errors(ApiCRDStatus.Errors.builder().severe(List.of()).warning(List.of()).build())
                             .build()
                     );
 
@@ -616,8 +615,8 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_pages_error_in_status_without_saving_if_dry_run() {
-            var crdStatus = doImport("/crd/with-invalid-page-resource-config.json", true);
+        void should_return_fetcher_error_and_warning_without_saving_if_dry_run() {
+            var crdStatus = doImport("/crd/with-invalid-github-fetcher.json", true);
             SoftAssertions.assertSoftly(soft -> {
                 soft
                     .assertThat(crdStatus)
@@ -633,10 +632,15 @@ class ApisResourceTest extends AbstractResourceTest {
                             .errors(
                                 ApiCRDStatus.Errors
                                     .builder()
-                                    .warning(List.of())
                                     .severe(
                                         List.of(
-                                            "invalid documentation page [swagger]. Error: Documentation page [pet-store] contains a fetcher with an invalid cron expression"
+                                            "property [fetchCron] of source [github-fetcher] must be a valid cron expression for page [swagger]",
+                                            "property [owner] is required in [github-fetcher] configuration for page [swagger]"
+                                        )
+                                    )
+                                    .warning(
+                                        List.of(
+                                            "page [swagger] contains unknown configuration property [unknownProperty] for [github-fetcher] source"
                                         )
                                     )
                                     .build()
@@ -663,7 +667,6 @@ class ApisResourceTest extends AbstractResourceTest {
                             .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
-                            .errors(ApiCRDStatus.Errors.builder().warning(List.of()).severe(List.of()).build())
                             .build()
                     );
 

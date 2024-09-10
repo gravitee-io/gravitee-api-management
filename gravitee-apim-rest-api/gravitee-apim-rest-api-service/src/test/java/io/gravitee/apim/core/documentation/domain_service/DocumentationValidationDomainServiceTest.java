@@ -362,28 +362,6 @@ public class DocumentationValidationDomainServiceTest {
             assertThat(sanitized.getType()).isEqualTo(Page.Type.ROOT);
         }
 
-        @Test
-        void should_throw_error_when_cron_fetcher_is_invalid() {
-            Map<String, Object> config = new HashMap<>();
-            config.put("fetchCron", "*/2 * * * * * *");
-
-            assertThatThrownBy(() ->
-                    cut.validateAndSanitizeForCreation(
-                        Page
-                            .builder()
-                            .type(Page.Type.ROOT)
-                            .name("new page")
-                            .content("")
-                            .referenceId("api-id")
-                            .referenceType(Page.ReferenceType.API)
-                            .source(new PageSource("github-fetcher", null, config))
-                            .build(),
-                        ORGANIZATION_ID
-                    )
-                )
-                .isInstanceOf(ValidationDomainException.class);
-        }
-
         private String getNotSafe() {
             String html = "";
             html += "<script src=\"/external.jpg\" />";

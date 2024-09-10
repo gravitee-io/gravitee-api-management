@@ -61,7 +61,6 @@ class ValidateApiCRDUseCaseTest {
                     .organizationId("TEST")
                     .plan("plan-name", "plan-id")
                     .state("STARTED")
-                    .errors(ApiCRDStatus.Errors.EMPTY)
                     .build()
             );
     }

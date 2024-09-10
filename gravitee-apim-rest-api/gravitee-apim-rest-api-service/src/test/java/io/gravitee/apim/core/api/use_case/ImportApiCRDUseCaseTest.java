@@ -94,6 +94,7 @@ import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -122,6 +123,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
+import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -309,6 +311,8 @@ class ImportApiCRDUseCaseTest {
             indexer
         );
 
+        var pageSourceValidator = new ValidatePageSourceDomainServiceImpl();
+
         userDomainService.initWith(
             List.of(
                 BaseUserEntity
@@ -327,7 +331,7 @@ class ImportApiCRDUseCaseTest {
             new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
-            new ValidatePagesDomainService(validationDomainService)
+            new ValidatePagesDomainService(pageSourceValidator, validationDomainService)
         );
 
         categoryQueryService.reset();
