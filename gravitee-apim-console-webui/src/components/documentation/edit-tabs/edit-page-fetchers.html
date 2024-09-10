@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div style="display: inline-block">
+<div style="display: inline-block" ng-if="$ctrl.fetchers != null">
   <md-input-container class="md-block" ng-if="$ctrl.withPublishOption">
     <md-checkbox ng-model="$ctrl.page.published" aria-label="Published" class="md-align-top-left" flex>
       Publish all imported pages
@@ -34,7 +34,7 @@
       <md-icon md-svg-icon="assets/logo_{{fetcher.id | lowercase}}.svg" style="width: 80px; height: 40px"></md-icon>
     </md-button>
   </div>
-  <div layout="column">
+  <div layout="column" ng-if="$ctrl.fetcherJsonSchemaForm != null">
     <form
       name="PageConfigFetcherForm"
       sf-schema="fetcherJsonSchema"
