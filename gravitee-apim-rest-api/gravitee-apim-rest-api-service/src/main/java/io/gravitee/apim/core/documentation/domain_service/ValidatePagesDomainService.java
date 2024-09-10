@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ValidatePagesDomainService implements Validator<ValidatePagesDomainService.Input> {
 
+    private final ValidatePageSourceDomainService pageSourceValidator;
     private final DocumentationValidationDomainService validationDomainService;
 
     public record Input(String organisationId, String apiId, Map<String, PageCRD> pages) implements Validator.Input {
@@ -59,6 +60,11 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
             try {
                 Page page = PageModelFactory.fromCRDSpec(v);
                 page.setReferenceId(input.apiId());
+
+                pageSourceValidator
+                    .validateAndSanitize(new ValidatePageSourceDomainService.Input(k, page.getSource()))
+                    .peek(sanitized -> page.setSource(sanitized.source()), errors::addAll);
+
                 Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(page, input.organisationId, false);
                 sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
             } catch (Exception e) {

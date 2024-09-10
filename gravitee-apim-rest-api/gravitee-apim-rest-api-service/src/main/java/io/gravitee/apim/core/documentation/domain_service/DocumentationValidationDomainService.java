@@ -134,7 +134,6 @@ public class DocumentationValidationDomainService {
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         validatePageContent(organizationId, sanitizedPage);
-        pageSourceDomainService.validatePageSource(sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);
@@ -151,7 +150,6 @@ public class DocumentationValidationDomainService {
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
         validatePageContent(organizationId, sanitizedPage);
-        pageSourceDomainService.validatePageSource(sanitizedPage);
 
         if (shouldValidateParentId) {
             this.validateParentId(sanitizedPage);

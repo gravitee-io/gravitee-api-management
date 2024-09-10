@@ -52,6 +52,7 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -77,6 +78,7 @@ import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -448,6 +450,7 @@ public class ResourceContextConfiguration {
         VerifyApiPathDomainService verifyApiPathDomainService,
         GroupQueryService groupQueryService,
         ValidateResourceDomainService validateResourceDomainService,
+        ValidatePageSourceDomainService validatePageSourceDomainService,
         DocumentationValidationDomainService validationDomainService,
         RoleQueryServiceInMemory roleQueryService,
         MembershipQueryServiceInMemory membershipQueryService
@@ -459,7 +462,7 @@ public class ResourceContextConfiguration {
                 new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
                 new ValidateGroupsDomainService(groupQueryService),
                 validateResourceDomainService,
-                new ValidatePagesDomainService(validationDomainService)
+                new ValidatePagesDomainService(validatePageSourceDomainService, validationDomainService)
             )
         );
     }
@@ -558,5 +561,10 @@ public class ResourceContextConfiguration {
     @Bean
     public InitializeSharedPolicyGroupUseCase initializeSharedPolicyGroupUseCase() {
         return mock(InitializeSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public ValidatePageSourceDomainService validatePageSourceDomainService() {
+        return new ValidatePageSourceDomainServiceImpl();
     }
 }
