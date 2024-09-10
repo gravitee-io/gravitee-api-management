@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.core.documentation.domain_service;
 
-import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
-import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
-import io.gravitee.apim.core.documentation.model.Page;
-import java.util.Map;
-import org.springframework.scheduling.support.CronExpression;
+import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.apim.core.validation.Validator;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PageSourceDomainServiceInMemory implements PageSourceDomainService {
-
-    public static final String MARKDOWN = "# In memory markdown";
-
-    @Override
-    public void setContentFromSource(Page page) {
-        if (page.getSource() != null) {
-            page.setContent(MARKDOWN);
+public interface ValidatePageSourceDomainService extends Validator<ValidatePageSourceDomainService.Input> {
+    record Input(String pageName, PageSource source) implements Validator.Input {
+        public Input sanitized(PageSource source) {
+            return new Input(pageName, source);
         }
     }
 }

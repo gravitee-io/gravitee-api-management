@@ -52,24 +52,10 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
         loadFetcher(page).ifPresentOrElse(fetcher -> fetchContent(fetcher, page), () -> page.setUseAutoFetch(false));
     }
 
-    @Override
-    public void validatePageSource(Page page) {
-        if (page.getSource() == null || page.getSource().getConfigurationMap() == null) {
-            return;
-        }
-
-        // Validate Page Fetcher Cron Expression
-        Map<String, Object> config = page.getSource().getConfigurationMap();
-        Object fetchCron = config.get("fetchCron");
-        if (fetchCron != null && !CronExpression.isValidExpression(fetchCron.toString())) {
-            throw new InvalidPageSourceException(
-                String.format("documentation page [%s] contains a fetcher with an invalid cron expression", page.getName())
-            );
-        }
-    }
-
     private void fetchContent(Fetcher fetcher, Page page) {
-        page.setContent(readContent(fetcher, page.getSource()));
+        if (page.getType() != Page.Type.ROOT) {
+            page.setContent(readContent(fetcher, page.getSource()));
+        }
         page.setUseAutoFetch(fetcher.getConfiguration().isAutoFetch());
     }
 

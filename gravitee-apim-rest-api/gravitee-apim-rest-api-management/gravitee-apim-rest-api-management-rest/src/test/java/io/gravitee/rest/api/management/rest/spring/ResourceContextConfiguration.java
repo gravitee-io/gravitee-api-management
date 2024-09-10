@@ -44,6 +44,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationSetti
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
@@ -66,6 +67,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
@@ -740,5 +742,10 @@ public class ResourceContextConfiguration {
     @Bean
     public InitializeSharedPolicyGroupUseCase initializeSharedPolicyGroupUseCase() {
         return mock(InitializeSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public ValidatePageSourceDomainService validatePageSourceDomainService() {
+        return new ValidatePageSourceDomainServiceImpl();
     }
 }

@@ -44,6 +44,9 @@ public interface ApiCRDEntityAdapter {
     @Mapping(target = "configuration", expression = "java(convertToJsonNode(crd.getConfiguration()))")
     PageSourceEntity map(PageCRD.PageSource crd);
 
+    @Mapping(target = "configurationMap", expression = "java(deserializeSourceConfiguration(source))")
+    PageCRD.PageSource map(PageSourceEntity source);
+
     PageCRD map(ApiCRDEntity.PageCRD crd);
     ApiCRDEntity.PageCRD map(PageCRD crd);
 
@@ -58,6 +61,18 @@ public interface ApiCRDEntityAdapter {
         }
         try {
             return GraviteeJacksonMapper.getInstance().readTree(configuration);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Unexpected error while converting the configuration to JSON Node", ioe);
+        }
+    }
+
+    default Map<String, Object> deserializeSourceConfiguration(PageSourceEntity source) {
+        if (source.getConfiguration() == null) {
+            return Map.of();
+        }
+
+        try {
+            return GraviteeJacksonMapper.getInstance().readValue(source.getConfiguration(), Map.class);
         } catch (IOException ioe) {
             throw new RuntimeException("Unexpected error while converting the configuration to JSON Node", ioe);
         }

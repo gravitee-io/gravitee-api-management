@@ -70,7 +70,7 @@ public class PageCRD {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
+    @Builder(toBuilder = true)
     public static class PageSource {
 
         private String type;

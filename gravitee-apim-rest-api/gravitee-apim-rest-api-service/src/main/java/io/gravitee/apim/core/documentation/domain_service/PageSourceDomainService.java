@@ -24,5 +24,4 @@ import io.gravitee.apim.core.documentation.model.Page;
 
 public interface PageSourceDomainService {
     void setContentFromSource(Page page);
-    void validatePageSource(Page page);
 }
