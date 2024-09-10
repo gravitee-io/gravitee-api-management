@@ -18,7 +18,6 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 
 import { CreateIntegrationPayload, Integration, IntegrationProvider } from '../integrations.model';
@@ -31,30 +30,26 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   styleUrls: ['./create-integration.component.scss'],
 })
 export class CreateIntegrationComponent {
-  public isLoading: boolean = false;
   private destroyRef: DestroyRef = inject(DestroyRef);
-
-  // hardcoded list of providers for time when backend is not ready, icon not needed in future stick to value
+  public isLoading: boolean = false;
   public integrationProviders: { active?: IntegrationProvider[]; comingSoon?: IntegrationProvider[] } = {
     active: [
       { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
       { icon: 'solace', value: 'solace' },
       { icon: 'apigee', value: 'apigee' },
       { icon: 'azure', value: 'azure-api-management' },
+      { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
     ],
     comingSoon: [
       { icon: 'confluent', value: 'confluent' },
       { icon: 'kong', value: 'kong' },
-      { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
       { icon: 'mulesoft', value: 'mulesoft' },
       { icon: 'dell-boomi', value: 'dell-boomi' },
     ],
   };
-
   public chooseProviderForm = this.formBuilder.group({
     provider: ['', Validators.required],
   });
-
   public addInformationForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
     description: ['', Validators.maxLength(250)],
@@ -78,21 +73,18 @@ export class CreateIntegrationComponent {
     this.isLoading = true;
     this.integrationsService
       .createIntegration(payload)
-      .pipe(
-        tap(() => {
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (integration: Integration) => {
           this.isLoading = false;
           this.snackBarService.success(`Integration ${payload.name} created successfully`);
-        }),
-        catchError((_) => {
+          this.router.navigate([`../${integration.id}`], { relativeTo: this.activatedRoute });
+        },
+        error: (_) => {
           this.isLoading = false;
           this.snackBarService.error('An error occurred. Integration not created');
           return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((integration: Integration) => {
-        this.isLoading = false;
-        this.router.navigate([`../${integration.id}`], { relativeTo: this.activatedRoute });
+        },
       });
   }
 }

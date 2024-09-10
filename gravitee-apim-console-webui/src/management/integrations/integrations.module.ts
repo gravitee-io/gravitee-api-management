@@ -16,18 +16,21 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatTooltip } from '@angular/material/tooltip';
-import { MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatTableModule } from '@angular/material/table';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import { CdkAccordion, CdkAccordionItem } from '@angular/cdk/accordion';
-import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
+import { MatRadioModule } from '@angular/material/radio';
+import { CdkAccordionModule } from '@angular/cdk/accordion';
+import { MatStepperModule } from '@angular/material/stepper';
 import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatSortModule } from '@angular/material/sort';
 import {
   GioBannerModule,
   GioBreadcrumbModule,
@@ -41,9 +44,6 @@ import {
   GioCardEmptyStateModule,
   GioIconsModule,
 } from '@gravitee/ui-particles-angular';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
-import { MatSortModule } from '@angular/material/sort';
 
 import { MapProviderNamePipe } from './pipes/map-provider-name.pipe';
 import { IntegrationsComponent } from './integrations.component';
@@ -81,44 +81,19 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationsRoutingModule,
     IntegrationUserGroupModule,
 
-    MatCard,
-    MatCardTitle,
-    MatCardHeader,
-    MatCardContent,
-    MatIcon,
-    MatButton,
-    MatError,
-    MatFormField,
-    MatHint,
-    MatInput,
-    MatLabel,
-    MatCell,
-    MatCellDef,
-    MatColumnDef,
-    MatHeaderCell,
-    MatIconButton,
-    MatTooltip,
+    MatCardModule,
     MatTableModule,
-    MatRadioGroup,
-    MatRadioButton,
-
-    MatStepper,
-    MatStep,
-    MatStepLabel,
-    MatStepperPrevious,
-    MatStepperNext,
-    MatStepperIcon,
-
-    MapProviderNamePipe,
-    MatSlideToggle,
-    MatTableModule,
-    MatTabNavPanel,
-    MatTabLink,
-    MatTabNav,
     MatSortModule,
-
-    CdkAccordion,
-    CdkAccordionItem,
+    MatTabsModule,
+    MatButtonModule,
+    MatStepperModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatRadioModule,
+    MatSlideToggleModule,
+    MatIconModule,
+    MatTooltipModule,
+    CdkAccordionModule,
 
     GioBreadcrumbModule,
     GioSubmenuModule,
@@ -131,9 +106,10 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioLicenseModule,
     GioFormSlideToggleModule,
     GioTableWrapperModule,
-
     GioIconsModule,
     GioCardEmptyStateModule,
+
+    MapProviderNamePipe,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })

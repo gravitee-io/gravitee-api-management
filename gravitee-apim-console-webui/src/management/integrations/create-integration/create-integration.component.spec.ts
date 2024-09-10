@@ -39,6 +39,7 @@ describe('CreateIntegrationComponent', () => {
 
   const fakeSnackBarService = {
     error: jest.fn(),
+    success: jest.fn(),
   };
 
   beforeEach(async () => {
