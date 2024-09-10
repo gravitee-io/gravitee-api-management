@@ -65,12 +65,20 @@ public interface Validator<I extends Validator.Input> {
         private final V value;
         private final List<Error> errors;
 
+        public static <V> Result<V> empty() {
+            return new Result<>(null, null);
+        }
+
         public static <V> Result<V> ofValue(V value) {
             return new Result<>(value, List.of());
         }
 
         public static <V> Result<V> ofErrors(List<Error> errors) {
             return new Result<>(null, errors);
+        }
+
+        public static <V> Result<V> withError(Error error) {
+            return new Result<>(null, List.of(error));
         }
 
         public static <V> Result<V> ofBoth(V value, List<Error> errors) {
@@ -92,7 +100,7 @@ public interface Validator<I extends Validator.Input> {
         }
 
         public Optional<List<Error>> errors() {
-            return Optional.ofNullable(errors);
+            return Optional.ofNullable(errors).filter(CollectionUtils::isNotEmpty);
         }
 
         public Optional<List<Error>> warning() {

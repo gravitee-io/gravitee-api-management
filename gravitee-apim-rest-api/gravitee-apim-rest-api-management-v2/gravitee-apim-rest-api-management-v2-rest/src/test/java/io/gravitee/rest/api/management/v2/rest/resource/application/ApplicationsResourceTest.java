@@ -148,14 +148,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft
                     .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(ApplicationCRDStatus.Errors.builder().warning(List.of()).severe(List.of()).build())
-                            .build()
-                    );
+                    .isEqualTo(ApplicationCRDStatus.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -216,15 +209,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft
                     .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
-                            .id("app-id")
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(ApplicationCRDStatus.Errors.builder().warning(List.of()).severe(List.of()).build())
-                            .build()
-                    );
+                    .isEqualTo(ApplicationCRDStatus.builder().id("app-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });

@@ -26,10 +26,11 @@
           "githubUrl": "https://api.github.com",
           "useSystemProxy": false,
           "owner": "gravitee-io",
+          "personalAccessToken": "test-token",
+          "username": "gravitee-io",
           "repository": "gravitee-api-management",
           "branchOrTag": "master",
           "filepath": "/README.md",
-          "editLink": null,
           "fetchCron": "* * */3 * * *",
           "autoFetch": true
         }
