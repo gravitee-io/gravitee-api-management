@@ -34,12 +34,16 @@ class EditPageFetchersComponentController implements IController {
 
   constructor(private $scope: IPageScope) {}
 
-  $onInit() {
-    const fetcher = this.fetchers.find((f) => f.id === this.page?.source?.type);
-    this.$scope.fetcherJsonSchema = angular.fromJson(fetcher?.schema) || emptyFetcher;
-    this.fetcherJsonSchemaForm = ['*'];
-    if (this.readOnly) {
-      Object.values(this.$scope.fetcherJsonSchema.properties).forEach((prop) => (prop['readonly'] = true));
+  $onChanges() {
+    if (this.fetchers != null) {
+      const fetcher = this.fetchers.find((f) => f.id === this.page?.source?.type);
+      this.$scope.fetcherJsonSchema = angular.fromJson(fetcher?.schema) || emptyFetcher;
+      this.fetcherJsonSchemaForm = ['*'];
+      if (this.readOnly) {
+        Object.values(this.$scope.fetcherJsonSchema.properties).forEach((prop) => (prop['readonly'] = true));
+      }
+    } else {
+      this.fetcherJsonSchemaForm = null;
     }
   }
 
@@ -59,8 +63,8 @@ EditPageFetchersComponentController.$inject = ['$scope'];
 
 export const EditPageFetchersComponent: ng.IComponentOptions = {
   bindings: {
-    fetchers: '=',
-    page: '=',
+    fetchers: '<',
+    page: '<',
     title: '<',
     withPublishOption: '<',
     readOnly: '<',
