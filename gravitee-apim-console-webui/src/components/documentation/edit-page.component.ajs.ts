@@ -43,6 +43,7 @@ class EditPageComponentController implements IController {
   resolvedPage: any;
   resolvedGroups: any[];
   resolvedFetchers: any[];
+  fetchers: any[];
   pagesToLink: any[];
   folders: any[];
   systemFolders: any[];
@@ -128,6 +129,7 @@ class EditPageComponentController implements IController {
   $onInit() {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.page = deepClone(this.resolvedPage);
+    this.fetchers = deepClone(this.resolvedFetchers);
     this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
     const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.activatedRoute.snapshot.queryParams.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
@@ -234,6 +236,7 @@ class EditPageComponentController implements IController {
       groups: [],
       roles: [],
     };
+    this.fetchers = null;
     this.$onInit();
   }
 

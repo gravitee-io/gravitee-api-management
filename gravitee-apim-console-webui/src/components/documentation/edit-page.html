@@ -140,8 +140,9 @@
           <md-tab-label>External Source</md-tab-label>
           <md-tab-body>
             <gv-edit-page-fetchers
+              ng-if="$ctrl.fetchers != null"
               read-only="$ctrl.readOnly"
-              fetchers="$ctrl.resolvedFetchers"
+              fetchers="$ctrl.fetchers"
               page="$ctrl.page"
               title=""
               can-update="!$ctrl.readOnly"
