@@ -34,7 +34,7 @@ class EditPageAclsComponentController implements IController {
     private $scope: IPageScope,
   ) {}
 
-  $onInit() {
+  $onChanges() {
     const scope = this.isApiPage ? 'API' : 'ENVIRONMENT';
     this.RoleService.list(scope).then((roles) => {
       this.roles = roles;
