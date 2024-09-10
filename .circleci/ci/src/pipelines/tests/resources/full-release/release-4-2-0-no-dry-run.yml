@@ -541,11 +541,55 @@ jobs:
           name: Build & Publish Gravitee.io APIM Docker images
           command: |-
             docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet  -t graviteeio/apim-gateway:4.2.0 -t graviteeio/apim-gateway:4.2  -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet  -t graviteeio/apim-management-api:4.2.0 -t graviteeio/apim-management-api:4.2  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet  -t graviteeio/apim-management-ui:4.2.0 -t graviteeio/apim-management-ui:4.2  -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
-            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet  -t graviteeio/apim-portal-ui:4.2.0 -t graviteeio/apim-portal-ui:4.2  -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
+            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-gateway:4.2.0 -t graviteeio/apim-gateway:4.2  -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
+            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-management-api:4.2.0 -t graviteeio/apim-management-api:4.2  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
+            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-management-ui:4.2.0 -t graviteeio/apim-management-ui:4.2  -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
+            docker buildx build --push --platform=linux/arm64,linux/amd64 --build-arg GRAVITEEIO_VERSION=4.2.0 --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions --quiet -t graviteeio/apim-portal-ui:4.2.0 -t graviteeio/apim-portal-ui:4.2  -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
             docker logout
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/apim-gateway:4.2.0}
+          debug: true
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/apim-gateway:4.2.0}
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/apim-management-api:4.2.0}
+          debug: true
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/apim-management-api:4.2.0}
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/apim-management-ui:4.2.0}
+          debug: true
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/apim-management-ui:4.2.0}
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/apim-portal-ui:4.2.0}
+          debug: true
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/apim-portal-ui:4.2.0}
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
   job-add-docker-images-in-snyk:
     docker:
       - image: cimg/base:stable
