@@ -39,6 +39,10 @@ class EditPageTranslationsComponentController implements IController {
     });
   }
 
+  $onChanges() {
+    this.refreshTranslations();
+  }
+
   selectTranslation(translation: any) {
     this.currentTranslation = translation;
     if (!this.currentTranslation.configuration.inheritContent) {
@@ -132,7 +136,7 @@ export const EditPageTranslationsComponent: ng.IComponentOptions = {
     canUpdate: '<',
     currentTranslation: '=',
     pagesToLink: '<',
-    page: '<',
+    page: '=',
     readOnly: '<',
   },
   template: require('html-loader!./edit-page-translations.html').default, // eslint-disable-line @typescript-eslint/no-var-requires

@@ -52,6 +52,7 @@ class EditPageComponentController implements IController {
   activatedRoute: ActivatedRoute;
 
   apiId: string;
+  pageId: string;
   tabs: { id: number; name: string; isUnavailable: () => boolean }[];
   error: any;
   page: any;
@@ -127,6 +128,7 @@ class EditPageComponentController implements IController {
 
   $onInit() {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.pageId = this.activatedRoute.snapshot.params.pageId;
     this.page = deepClone(this.resolvedPage);
     this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
     const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.activatedRoute.snapshot.queryParams.tab);
