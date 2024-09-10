@@ -43,7 +43,7 @@ class ComponentCtrl implements ng.IComponentController {
     private readonly activatedRoute: ActivatedRoute,
   ) {}
 
-  $onInit() {
+  $onChanges() {
     let mediaURL;
     if (this.activatedRoute?.snapshot?.params?.apiId) {
       mediaURL = this.Constants.env.baseURL + '/apis/' + this.activatedRoute.snapshot.params.apiId + '/media/';
