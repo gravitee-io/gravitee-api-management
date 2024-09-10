@@ -117,11 +117,12 @@
           <md-tab-label>Translations</md-tab-label>
           <md-tab-body>
             <gv-edit-page-translations
+              ng-if="$ctrl.page != null"
               api-id="$ctrl.apiId"
               read-only="$ctrl.readOnly"
               can-update="$ctrl.canUpdate"
               current-translation="$ctrl.currentTranslation"
-              page="$ctrl.page"
+              page="$ctrl.resolvedPage"
               pages-to-link="$ctrl.pagesToLink"
             ></gv-edit-page-translations>
           </md-tab-body>
