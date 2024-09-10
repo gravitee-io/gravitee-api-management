@@ -154,7 +154,7 @@
           <md-tab-label>Access Control</md-tab-label>
           <md-tab-body>
             <gv-edit-page-acls
-              read-only="!!$ctrl.readOnly"
+              read-only="!!$ctrl.readOnly && $ctrl.page != null"
               page="$ctrl.page"
               groups="$ctrl.groups"
               roles="$ctrl.roles"
