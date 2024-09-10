@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -64,6 +65,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Autowired
     private DashboardService dashboardService;
+
+    @Autowired
+    private InitializeSharedPolicyGroupUseCase initializeSharedPolicyGroupUseCase;
 
     @Override
     public EnvironmentEntity findById(String environmentId) {
@@ -168,6 +172,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 apiHeaderService.initialize(executionContext);
                 pageService.initialize(executionContext);
                 dashboardService.initialize(executionContext);
+                initializeSharedPolicyGroupUseCase.execute(
+                    InitializeSharedPolicyGroupUseCase.Input.builder().organizationId(organizationId).environmentId(environmentId).build()
+                );
 
                 return createdEnvironment;
             }

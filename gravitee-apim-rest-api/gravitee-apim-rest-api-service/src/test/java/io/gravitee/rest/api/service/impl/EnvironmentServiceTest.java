@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -78,6 +79,9 @@ public class EnvironmentServiceTest {
 
     @Mock
     private DashboardService mockDashboardService;
+
+    @Mock
+    private InitializeSharedPolicyGroupUseCase mockInitializeSharedPolicyGroupUseCase;
 
     @AfterEach
     void afterEach() {
@@ -190,6 +194,7 @@ public class EnvironmentServiceTest {
             verify(mockAPIHeaderService, times(1)).initialize(executionContext);
             verify(mockPageService, times(1)).initialize(executionContext);
             verify(mockDashboardService, times(1)).initialize(executionContext);
+            verify(mockInitializeSharedPolicyGroupUseCase, times(1)).execute(any());
         }
 
         @Test
