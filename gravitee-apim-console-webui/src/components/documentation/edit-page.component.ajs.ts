@@ -18,6 +18,7 @@ import angular, { IController, IScope } from 'angular';
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { Dictionary, keyBy } from 'lodash';
+import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 
 import { emptyFetcher } from './edit-tabs/edit-page-fetchers.component';
 
@@ -62,6 +63,7 @@ class EditPageComponentController implements IController {
   pageList: any[];
   canUpdate: boolean;
   newName: any;
+  isLoading = false;
 
   constructor(
     private readonly NotificationService: NotificationService,
@@ -125,7 +127,7 @@ class EditPageComponentController implements IController {
 
   $onInit() {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
-    this.page = this.resolvedPage;
+    this.page = deepClone(this.resolvedPage);
     this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
     const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.activatedRoute.snapshot.queryParams.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
@@ -163,25 +165,25 @@ class EditPageComponentController implements IController {
   }
 
   isFolder(): boolean {
-    return PageType.FOLDER === this.page.type;
+    return PageType.FOLDER === this.page?.type;
   }
   isLink(): boolean {
-    return PageType.LINK === this.page.type;
+    return PageType.LINK === this.page?.type;
   }
   isSwagger(): boolean {
-    return PageType.SWAGGER === this.page.type;
+    return PageType.SWAGGER === this.page?.type;
   }
   isMarkdown(): boolean {
-    return PageType.MARKDOWN === this.page.type;
+    return PageType.MARKDOWN === this.page?.type;
   }
   isMarkdownTemplate(): boolean {
-    return PageType.MARKDOWN_TEMPLATE === this.page.type;
+    return PageType.MARKDOWN_TEMPLATE === this.page?.type;
   }
   isAsciiDoc(): boolean {
-    return PageType.ASCIIDOC === this.page.type;
+    return PageType.ASCIIDOC === this.page?.type;
   }
   isAsyncApi(): boolean {
-    return PageType.ASYNCAPI === this.page.type;
+    return PageType.ASYNCAPI === this.page?.type;
   }
 
   initEditor() {
@@ -210,7 +212,7 @@ class EditPageComponentController implements IController {
         } else {
           this.NotificationService.show("'" + this.page.name + "' has been updated");
         }
-        this.ngRouter.navigate(['../', this.page.id], { queryParams: { tab: this.currentTab }, relativeTo: this.activatedRoute });
+        this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute });
       })
       .catch((err) => {
         this.error = { ...err.data, title: 'Sorry, unable to update page' };
@@ -226,12 +228,8 @@ class EditPageComponentController implements IController {
   }
 
   reset() {
-    const currentUrl = this.ngRouter.url;
-    const url = this.ngRouter.parseUrl(currentUrl);
-
-    this.ngRouter.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.ngRouter.navigate([currentUrl], { skipLocationChange: true, queryParams: url.queryParams });
-    });
+    this.page = null;
+    this.$onInit();
   }
 
   toggleRename() {
@@ -280,6 +278,7 @@ class EditPageComponentController implements IController {
       : 'This page is not published yet and will not be visible to other users';
   }
 }
+
 EditPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'UserService', '$scope', 'ngRouter'];
 
 export const DocumentationEditPageComponentAjs: ng.IComponentOptions = {
