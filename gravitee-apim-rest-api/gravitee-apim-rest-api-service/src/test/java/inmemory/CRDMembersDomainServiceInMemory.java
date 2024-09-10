@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import java.util.HashMap;
@@ -30,12 +31,12 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
     private final HashMap<String, Set<MemberCRD>> applicationMembers = new HashMap<>();
 
     @Override
-    public void updateApiMembers(String organizationId, String apiId, Set<MemberCRD> members) {
+    public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
         apiMembers.put(apiId, members);
     }
 
     @Override
-    public void updateApplicationMembers(String organizationId, String applicationId, Set<MemberCRD> members) {
+    public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
         applicationMembers.put(applicationId, members);
     }
 

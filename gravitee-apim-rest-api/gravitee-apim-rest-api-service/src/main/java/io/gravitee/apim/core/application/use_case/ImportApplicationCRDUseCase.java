@@ -97,7 +97,7 @@ public class ImportApplicationCRDUseCase {
             createOrUpdateApplicationMetadata(sanitizedInput, newApplication);
 
             membersDomainService.updateApplicationMembers(
-                sanitizedInput.auditInfo.organizationId(),
+                sanitizedInput.auditInfo,
                 newApplication.getId(),
                 sanitizedInput.crd.getMembers()
             );
@@ -135,7 +135,7 @@ public class ImportApplicationCRDUseCase {
             createOrUpdateApplicationMetadata(sanitizedInput, updatedApplication);
 
             membersDomainService.updateApplicationMembers(
-                sanitizedInput.auditInfo.organizationId(),
+                sanitizedInput.auditInfo,
                 updatedApplication.getId(),
                 sanitizedInput.crd.getMembers()
             );

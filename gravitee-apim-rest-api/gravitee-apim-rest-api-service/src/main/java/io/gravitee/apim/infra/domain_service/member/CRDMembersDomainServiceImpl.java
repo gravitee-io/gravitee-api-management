@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.member;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -49,26 +50,26 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     private final RoleService roleService;
 
     @Override
-    public void updateApiMembers(String organizationId, String apiId, Set<MemberCRD> members) {
-        updateMembers(organizationId, apiId, RoleScope.API, MembershipReferenceType.API, members);
-        deleteOrphans(organizationId, apiId, RoleScope.API, MembershipReferenceType.API, members);
+    public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
+        updateMembers(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
+        deleteOrphans(auditInfo, apiId, RoleScope.API, MembershipReferenceType.API, members);
     }
 
     @Override
-    public void updateApplicationMembers(String organizationId, String applicationId, Set<MemberCRD> members) {
-        updateMembers(organizationId, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
-        deleteOrphans(organizationId, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
+    public void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members) {
+        updateMembers(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
+        deleteOrphans(auditInfo, applicationId, RoleScope.APPLICATION, MembershipReferenceType.APPLICATION, members);
     }
 
     private void updateMembers(
-        String organizationId,
+        AuditInfo auditInfo,
         String referenceId,
         RoleScope roleScope,
         MembershipReferenceType referenceType,
         Set<MemberCRD> members
     ) {
-        var executionContext = new ExecutionContext(organizationId);
-        var defaultRole = roleService.findDefaultRoleByScopes(organizationId, roleScope).iterator().next();
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var defaultRole = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), roleScope).iterator().next();
 
         for (var member : members) {
             if (StringUtils.isEmpty(member.getRole())) {
@@ -85,7 +86,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
             var memberRoleEntity = StringUtils.isEmpty(member.getRole())
                 ? defaultRole
-                : findRoleEntity(organizationId, roleScope, member.getRole(), defaultRole);
+                : findRoleEntity(auditInfo.organizationId(), roleScope, member.getRole(), defaultRole);
 
             membershipService.addRoleToMemberOnReference(
                 executionContext,
@@ -101,15 +102,15 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     }
 
     private void deleteOrphans(
-        String organizationId,
+        AuditInfo auditInfo,
         String referenceId,
         RoleScope roleScope,
         MembershipReferenceType referenceType,
         Set<MemberCRD> members
     ) {
-        var executionContext = new ExecutionContext(organizationId);
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
-        var poRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, roleScope);
+        var poRole = roleService.findPrimaryOwnerRoleByOrganization(auditInfo.organizationId(), roleScope);
 
         var givenMemberIds = members.stream().map(MemberCRD::getId).collect(Collectors.toSet());
 
