@@ -229,6 +229,11 @@ class EditPageComponentController implements IController {
 
   reset() {
     this.page = null;
+    this.groups = null;
+    this.$scope.acls = {
+      groups: [],
+      roles: [],
+    };
     this.$onInit();
   }
 
