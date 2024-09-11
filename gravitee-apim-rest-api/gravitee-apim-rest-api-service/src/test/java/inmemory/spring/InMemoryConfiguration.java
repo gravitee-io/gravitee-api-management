@@ -72,6 +72,8 @@ import inmemory.ResourcePluginCrudServiceInMemory;
 import inmemory.ResourcePluginQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.ScoringProviderInMemory;
+import inmemory.ScoringReportCrudServiceInMemory;
+import inmemory.ScoringReportQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
@@ -447,5 +449,15 @@ public class InMemoryConfiguration {
     @Bean
     public ScoringProviderInMemory scoringProvider() {
         return new ScoringProviderInMemory();
+    }
+
+    @Bean
+    public ScoringReportCrudServiceInMemory scoringReportCrudService() {
+        return new ScoringReportCrudServiceInMemory();
+    }
+
+    @Bean
+    public ScoringReportQueryServiceInMemory scoringReportQueryService() {
+        return new ScoringReportQueryServiceInMemory();
     }
 }

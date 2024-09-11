@@ -15,7 +15,7 @@
  */
 package fixtures.core.model;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.function.Supplier;
@@ -36,6 +36,10 @@ public class AsyncJobFixture {
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
+    public static AsyncJob anAsyncJob(String id) {
+        return BASE.get().id(id).type(AsyncJob.Type.FEDERATED_APIS_INGESTION).build();
+    }
+
     public static AsyncJob aPendingFederatedApiIngestionJob() {
         return BASE.get().type(AsyncJob.Type.FEDERATED_APIS_INGESTION).build();
     }
@@ -46,5 +50,9 @@ public class AsyncJobFixture {
 
     public static AsyncJob anErrorFederatedApiIngestionJob() {
         return BASE.get().type(AsyncJob.Type.FEDERATED_APIS_INGESTION).status(AsyncJob.Status.ERROR).errorMessage("Job failed").build();
+    }
+
+    public static AsyncJob aPendingScoringRequestJob() {
+        return BASE.get().type(AsyncJob.Type.SCORING_REQUEST).build();
     }
 }

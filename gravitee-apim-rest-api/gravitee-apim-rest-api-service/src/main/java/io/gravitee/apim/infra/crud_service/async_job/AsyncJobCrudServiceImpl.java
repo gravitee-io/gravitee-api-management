@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.crud_service.integration;
+package io.gravitee.apim.infra.crud_service.async_job;
 
-import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.infra.adapter.AsyncJobAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AsyncJobRepository;

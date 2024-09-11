@@ -19,9 +19,9 @@ package io.gravitee.apim.core.integration.use_case;
 import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicenseForFederation;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.async_job.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
-import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.integration.query_service.IntegrationQueryService;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;

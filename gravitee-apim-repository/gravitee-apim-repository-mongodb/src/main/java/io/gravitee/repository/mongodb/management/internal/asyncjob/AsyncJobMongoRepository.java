@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.asyncjob;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -22,7 +24,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AsyncJobMongoRepository extends MongoRepository<AsyncJobMongo, String> {
+public interface AsyncJobMongoRepository extends MongoRepository<AsyncJobMongo, String>, AsyncJobMongoRepositoryCustom {
     @Query("{ sourceId: ?0, status: 'PENDING' }")
     Optional<AsyncJobMongo> findPendingJobFor(String sourceId);
 }

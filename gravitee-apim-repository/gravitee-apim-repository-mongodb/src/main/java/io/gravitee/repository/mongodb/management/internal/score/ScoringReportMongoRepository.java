@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.query_service;
+package io.gravitee.repository.mongodb.management.internal.score;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-public interface AsyncJobQueryService {
-    Optional<AsyncJob> findPendingJobFor(String integrationId);
+@Repository
+public interface ScoringReportMongoRepository extends MongoRepository<ScoringReportMongo, String> {
+    void deleteByApiId(String apiId);
+    Optional<ScoringReportMongo> findLatestByApiId(String apiId);
 }

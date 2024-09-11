@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

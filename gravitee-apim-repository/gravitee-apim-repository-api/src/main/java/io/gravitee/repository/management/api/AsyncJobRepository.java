@@ -15,10 +15,27 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AsyncJob;
 import java.util.Optional;
 
 public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
     Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException;
+
+    Page<AsyncJob> search(SearchCriteria criteria, Pageable pageable) throws TechnicalException;
+
+    default Page<AsyncJob> search(SearchCriteria criteria) throws TechnicalException {
+        return search(criteria, new PageableBuilder().pageSize(10).pageNumber(0).build());
+    }
+
+    record SearchCriteria(
+        String environmentId,
+        Optional<String> initiatorId,
+        Optional<String> type,
+        Optional<String> status,
+        Optional<String> sourceId
+    ) {}
 }

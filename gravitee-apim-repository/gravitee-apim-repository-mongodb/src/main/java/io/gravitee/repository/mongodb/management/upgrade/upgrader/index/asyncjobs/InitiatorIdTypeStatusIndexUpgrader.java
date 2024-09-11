@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.integrations;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.asyncjobs;
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
-@Component("AsyncJobsSourceIdStatusIndexUpgrader")
-public class SourceIdStatusIndexUpgrader extends IndexUpgrader {
+@Component("AsyncJobsInitiatorIdTypeStatusIndexUpgrader")
+public class InitiatorIdTypeStatusIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index
             .builder()
             .collection("asyncjobs")
-            .name("sis1")
-            .key("sourceId", ascending())
+            .name("i1t1s1")
+            .key("initiatorId", ascending())
+            .key("type", ascending())
             .key("status", ascending())
             .build();
     }

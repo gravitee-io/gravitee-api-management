@@ -15,10 +15,14 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
-import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
+import io.gravitee.apim.core.async_job.query_service.AsyncJobQueryService;
+import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +45,26 @@ public class AsyncJobQueryServiceInMemory implements AsyncJobQueryService, InMem
             .filter(integration -> integration.getSourceId().equals(integrationId))
             .filter(integration -> integration.getStatus().equals(AsyncJob.Status.PENDING))
             .findFirst();
+    }
+
+    @Override
+    public Page<AsyncJob> listAsyncJobs(ListQuery query, Pageable pageable) {
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+
+        var matches = storage
+            .stream()
+            .filter(job -> query.initiatorId().map(value -> job.getInitiatorId().equals(value)).orElse(true))
+            .filter(job -> query.type().map(value -> job.getType().equals(value)).orElse(true))
+            .filter(job -> query.status().map(value -> job.getStatus().equals(value)).orElse(true))
+            .sorted(Comparator.comparing(AsyncJob::getCreatedAt).reversed())
+            .toList();
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override

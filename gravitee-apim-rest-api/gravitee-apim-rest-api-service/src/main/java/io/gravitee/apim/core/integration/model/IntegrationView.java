@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.integration.model;
 
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

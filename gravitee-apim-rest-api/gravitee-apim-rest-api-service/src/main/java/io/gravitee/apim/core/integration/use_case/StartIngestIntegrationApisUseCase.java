@@ -16,12 +16,12 @@
 package io.gravitee.apim.core.integration.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.apim.core.integration.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;

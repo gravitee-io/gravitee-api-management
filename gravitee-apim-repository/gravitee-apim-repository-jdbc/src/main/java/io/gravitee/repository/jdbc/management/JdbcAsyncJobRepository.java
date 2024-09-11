@@ -15,11 +15,16 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.AsyncJobRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AsyncJob;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +62,25 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
     }
 
     @Override
+    public Page<AsyncJob> search(SearchCriteria criteria, Pageable pageable) throws TechnicalException {
+        LOGGER.debug("JdbcAsyncJobRepository.search({})", criteria);
+        final List<AsyncJob> jobs;
+        try {
+            jobs =
+                jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
+                    ps -> fillPreparedStatement(criteria, ps),
+                    getOrm().getRowMapper()
+                );
+            return getResultAsPage(pageable, jobs);
+        } catch (final Exception ex) {
+            final String message = "Failed to search AsyncJob with: " + criteria;
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
+    @Override
     protected String getId(AsyncJob item) {
         return item.getId();
     }
@@ -76,5 +100,39 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
+    }
+
+    private String convert(SearchCriteria criteria) {
+        List<String> clauses = new ArrayList<>();
+
+        clauses.add("environment_id = ?");
+        criteria.initiatorId().ifPresent(initiatorId -> clauses.add("initiator_id = ?"));
+        criteria.type().ifPresent(type -> clauses.add("type = ?"));
+        criteria.status().ifPresent(status -> clauses.add("status = ?"));
+        criteria.sourceId().ifPresent(sourceId -> clauses.add("source_id = ?"));
+
+        if (!clauses.isEmpty()) {
+            return String.join(" AND ", clauses);
+        }
+        return null;
+    }
+
+    private void fillPreparedStatement(SearchCriteria criteria, PreparedStatement ps) throws SQLException {
+        var index = 1;
+
+        ps.setString(index++, criteria.environmentId());
+
+        if (criteria.initiatorId().isPresent()) {
+            ps.setString(index++, criteria.initiatorId().get());
+        }
+        if (criteria.type().isPresent()) {
+            ps.setString(index++, criteria.type().get());
+        }
+        if (criteria.status().isPresent()) {
+            ps.setString(index++, criteria.status().get());
+        }
+        if (criteria.sourceId().isPresent()) {
+            ps.setString(index++, criteria.sourceId().get());
+        }
     }
 }

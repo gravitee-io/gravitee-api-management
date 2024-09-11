@@ -37,13 +37,17 @@ export enum ScoringSeverity {
 }
 
 export interface ApiScoring {
+  createdAt: Date;
+  summary: ApiScoringSummary;
+  assets: ScoringAsset[];
+}
+
+export interface ApiScoringSummary {
   all: number;
   errors: number;
   warnings: number;
   infos: number;
   hints: number;
-  createdAt: Date;
-  assets: ScoringAsset[];
 }
 
 export interface ScoringAsset {

@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.crud_service;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.asyncjobs;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
-import java.util.Optional;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
-public interface AsyncJobCrudService {
-    AsyncJob create(AsyncJob job);
+@Component("AsyncJobsStatusIndexUpgrader")
+public class StatusIndexUpgrader extends IndexUpgrader {
 
-    Optional<AsyncJob> findById(String id);
-
-    AsyncJob update(AsyncJob job);
-
-    void delete(String id);
+    @Override
+    protected Index buildIndex() {
+        return Index
+            .builder()
+            .collection("asyncjobs")
+            .name("s1")
+            .key("status", ascending())
+            .build();
+    }
 }

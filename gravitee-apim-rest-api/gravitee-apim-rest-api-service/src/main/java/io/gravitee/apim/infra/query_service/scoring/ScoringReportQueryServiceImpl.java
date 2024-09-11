@@ -13,36 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.query_service.integration;
+package io.gravitee.apim.infra.query_service.scoring;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
-import io.gravitee.apim.core.integration.query_service.AsyncJobQueryService;
-import io.gravitee.apim.infra.adapter.AsyncJobAdapter;
+import io.gravitee.apim.core.scoring.model.ScoringReport;
+import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
+import io.gravitee.apim.infra.adapter.ScoringReportAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AsyncJobRepository;
+import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
-public class AsyncJobQueryServiceImpl extends AbstractService implements AsyncJobQueryService {
+@Slf4j
+public class ScoringReportQueryServiceImpl implements ScoringReportQueryService {
 
-    private final AsyncJobRepository asyncJobRepository;
+    private final ScoringReportRepository scoringReportRepository;
 
-    public AsyncJobQueryServiceImpl(@Lazy AsyncJobRepository asyncJobRepository) {
-        this.asyncJobRepository = asyncJobRepository;
+    public ScoringReportQueryServiceImpl(@Lazy ScoringReportRepository scoringReportRepository) {
+        this.scoringReportRepository = scoringReportRepository;
     }
 
     @Override
-    public Optional<AsyncJob> findPendingJobFor(String sourceId) {
+    public Optional<ScoringReport> findLatestByApiId(String apiId) {
         try {
-            return asyncJobRepository.findPendingJobFor(sourceId).map(AsyncJobAdapter.INSTANCE::toEntity);
+            return scoringReportRepository.findLatestFor(apiId).map(ScoringReportAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred while finding pending AsyncJob for: " + sourceId, e);
+            log.error("An error occurred while finding Scoring Report by API id", e);
+            throw new TechnicalManagementException("An error occurred while finding Scoring Report of API: " + apiId, e);
         }
     }
 }

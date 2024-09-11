@@ -22,7 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { RouterLink } from '@angular/router';
 
@@ -40,6 +40,7 @@ import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.
     CommonModule,
     RouterLink,
     GioPermissionModule,
+    GioBannerModule,
     GioCardEmptyStateModule,
     GioLoaderModule,
     GioTableWrapperModule,

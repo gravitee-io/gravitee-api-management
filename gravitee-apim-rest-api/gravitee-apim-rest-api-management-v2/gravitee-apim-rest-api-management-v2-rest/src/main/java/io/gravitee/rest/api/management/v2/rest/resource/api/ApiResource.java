@@ -198,9 +198,6 @@ public class ApiResource extends AbstractResource {
     @Inject
     private GetApiDefinitionUseCase getApiDefinitionUseCase;
 
-    @Inject
-    private ScoreApiRequestUseCase scoreApiRequestUseCase;
-
     @Context
     protected UriInfo uriInfo;
 

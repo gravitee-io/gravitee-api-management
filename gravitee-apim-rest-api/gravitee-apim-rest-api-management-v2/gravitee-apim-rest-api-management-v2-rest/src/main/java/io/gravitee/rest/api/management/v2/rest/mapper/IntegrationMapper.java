@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static io.gravitee.apim.core.integration.use_case.DiscoveryUseCase.Output.State.NEW;
 import static io.gravitee.apim.core.integration.use_case.DiscoveryUseCase.Output.State.UPDATE;
 
-import io.gravitee.apim.core.integration.model.AsyncJob;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;

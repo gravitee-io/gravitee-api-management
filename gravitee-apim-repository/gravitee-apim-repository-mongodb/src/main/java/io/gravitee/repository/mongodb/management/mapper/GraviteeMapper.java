@@ -192,7 +192,6 @@ public interface GraviteeMapper {
 
     // AsyncJob mapping
     AsyncJob map(AsyncJobMongo source);
-
     AsyncJobMongo map(AsyncJob source);
 
     // License mapping
@@ -334,4 +333,10 @@ public interface GraviteeMapper {
     // SharedPolicyGroupHistory mapping
     SharedPolicyGroupHistoryMongo mapHistory(SharedPolicyGroup item);
     SharedPolicyGroup mapHistory(SharedPolicyGroupHistoryMongo item);
+
+    // Scoring mapping
+    ScoringReport map(ScoringReportMongo source);
+    List<ScoringReport> map(List<ScoringReportMongo> source);
+
+    ScoringReportMongo map(ScoringReport source);
 }

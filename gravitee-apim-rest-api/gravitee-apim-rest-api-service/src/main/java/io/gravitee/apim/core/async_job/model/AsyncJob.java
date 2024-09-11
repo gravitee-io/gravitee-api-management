@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.model;
+package io.gravitee.apim.core.async_job.model;
 
 import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;

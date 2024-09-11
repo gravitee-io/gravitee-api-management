@@ -17,13 +17,15 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Observable, Subject, timer } from 'rxjs';
+import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { ApiScoring } from './api-scoring.model';
 import { ApiScoringService } from './api-scoring.service';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
+import { AsyncJobService } from '../../../services-ngx/async-job.service';
 
 @Component({
   selector: 'app-api-scoring',
@@ -33,32 +35,77 @@ import { Api } from '../../../entities/management-api-v2';
 export class ApiScoringComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   private apiId = this.activatedRoute.snapshot.params.apiId;
+  private stopPolling$ = new Subject<void>();
 
   public status = 'all';
   public isLoading = true;
   public apiScoring: ApiScoring;
   public api: Api;
+  public pendingScoreRequest: boolean;
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly apiScoringService: ApiScoringService,
+    private readonly asyncJobService: AsyncJobService,
   ) {}
 
   ngOnInit() {
-    combineLatest([this.apiService.get(this.apiId), this.apiScoringService.getApiScoring(this.apiId)])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: ([api, apiScoring]) => {
-          this.api = api;
-          this.apiScoring = apiScoring;
-
-          this.isLoading = false;
-        },
-      });
+    this.initialize();
   }
 
   public evaluate() {
-    this.apiScoringService.evaluate(this.api.id).subscribe();
+    this.apiScoringService
+      .evaluate(this.api.id)
+      .pipe(
+        tap(() => {
+          this.pendingScoreRequest = true;
+          this.initialize();
+        }),
+      )
+      .subscribe();
+  }
+
+  public isScoringRequestPending(): Observable<boolean> {
+    return timer(0, 1000).pipe(
+      switchMap(() =>
+        this.asyncJobService.listAsyncJobs({
+          type: 'SCORING_REQUEST',
+          status: 'PENDING',
+          sourceId: this.apiId,
+        }),
+      ),
+      map((response) => response.pagination.totalCount > 0),
+      takeUntil(this.stopPolling$),
+    );
+  }
+
+  private initialize() {
+    this.isScoringRequestPending()
+      .pipe(
+        switchMap((isPending) => {
+          return combineLatest([this.apiService.get(this.apiId), this.apiScoringService.getApiScoring(this.apiId)]).pipe(
+            map(([api, apiScoring]) => ({
+              pendingScoreRequest: isPending,
+              api,
+              apiScoring,
+            })),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: ({ pendingScoreRequest, api, apiScoring }) => {
+          this.isLoading = false;
+
+          this.pendingScoreRequest = pendingScoreRequest;
+          this.api = api;
+          this.apiScoring = apiScoring;
+
+          if (!this.pendingScoreRequest) {
+            this.stopPolling$.next();
+          }
+        },
+      });
   }
 }
