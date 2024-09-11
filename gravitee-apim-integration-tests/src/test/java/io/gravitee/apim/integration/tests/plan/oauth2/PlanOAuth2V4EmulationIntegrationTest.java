@@ -114,7 +114,7 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(
+    protected void should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(
         final String apiId,
         final boolean requireWiremock,
         final HttpClient client
@@ -151,7 +151,7 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideWrongSecurityHeaders")
-    void should_return_401_unauthorized_with_wrong_security(
+    protected void should_return_401_unauthorized_with_wrong_security(
         final String apiId,
         final String headerName,
         final String headerValue,
@@ -184,7 +184,7 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(
+    protected void should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(
         final String apiId,
         final boolean requireWiremock,
         final HttpClient client
