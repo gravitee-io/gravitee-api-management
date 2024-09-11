@@ -34,20 +34,16 @@
 
   <div>
     <mat-card appearance="raised" class="api-details__tab-details-info__card">
-      @if (api.version) {
+      @if (apiInformation$ | async; as apiInformationList) {
         <div>
-          <div class="m3-body-large" i18n="@@apiDetailsVersion">Version</div>
-          <div class="m3-body-medium">{{ api.version }}</div>
+          @for (apiInformation of apiInformationList; track apiInformation.name) {
+            <div>
+              <div class="m3-body-large">{{ apiInformation.name }}</div>
+              <div class="m3-body-medium">{{ apiInformation.value }}</div>
+            </div>
+          }
         </div>
       }
-
-      @if (api.updated_at) {
-        <div>
-          <div i18n="@@apiDetailsLastUpdated" class="m3-body-large">API Last Updated</div>
-          <div class="m3-body-medium">{{ api.updated_at | date }}</div>
-        </div>
-      }
-
       @if (categories$ | async; as categories) {
         <div>
           <div i18n="@@apiDetailsCategories" class="m3-body-large">Categories</div>

@@ -22,9 +22,11 @@ import { LoaderComponent } from '../../../../components/loader/loader.component'
 import { PageComponent } from '../../../../components/page/page.component';
 import { MarkdownDescriptionPipe } from '../../../../components/pipe/markdown-description.pipe';
 import { Api } from '../../../../entities/api/api';
+import { ApiInformation } from '../../../../entities/api/api-information';
 import { Page } from '../../../../entities/page/page';
 import { CategoriesService } from '../../../../services/categories.service';
 import { PageService } from '../../../../services/page.service';
+import { PortalService } from '../../../../services/portal.service';
 
 interface HomepageData {
   result?: Page;
@@ -45,10 +47,12 @@ export class ApiTabDetailsComponent implements OnInit {
   pages!: Page[];
   homepageData$: Observable<HomepageData> = of();
   categories$: Observable<string> = of('');
+  apiInformation$: Observable<ApiInformation[]> = of([]);
 
   constructor(
     private pageService: PageService,
     private categoriesService: CategoriesService,
+    private portalService: PortalService,
   ) {}
 
   ngOnInit(): void {
@@ -78,5 +82,7 @@ export class ApiTabDetailsComponent implements OnInit {
         }),
       );
     }
+
+    this.apiInformation$ = this.portalService.getApiInformations(this.api.id).pipe(catchError(_ => of([])));
   }
 }

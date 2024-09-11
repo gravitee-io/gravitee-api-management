@@ -45,19 +45,28 @@ export class PortalNavigationService {
       icon: 'gio:palette',
       children: [],
     };
-
+    if (this.permissionService.hasAnyMatching(['environment-category-r', 'environment-category-u'])) {
+      customization.children.push({
+        displayName: 'Catalog',
+        routerLink: 'catalog',
+        icon: 'gio:report-columns',
+      });
+    }
     if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
       customization.children.push({
         displayName: 'Top Bar',
         routerLink: 'top-bar',
         icon: 'gio:top-bar',
       });
-    }
-    if (this.permissionService.hasAnyMatching(['environment-category-r', 'environment-category-u'])) {
       customization.children.push({
-        displayName: 'Catalog',
-        routerLink: 'catalog',
-        icon: 'gio:report-columns',
+        displayName: 'API',
+        routerLink: 'api',
+        icon: 'gio:cloud-settings',
+      });
+      customization.children.push({
+        displayName: 'Banner',
+        routerLink: 'banner',
+        icon: 'gio:chat-lines',
       });
     }
     if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
@@ -67,14 +76,6 @@ export class PortalNavigationService {
         icon: 'gio:color-picker',
       });
     }
-    if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
-      customization.children.push({
-        displayName: 'Banner',
-        routerLink: 'banner',
-        icon: 'gio:chat-lines',
-      });
-    }
-
     if (customization.children.length) {
       items.push(customization);
     }

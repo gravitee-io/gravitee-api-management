@@ -22,6 +22,7 @@ import { ApiTabDetailsComponent } from './api-tab-details.component';
 import { fakeApi } from '../../../../entities/api/api.fixtures';
 import { CategoriesService } from '../../../../services/categories.service';
 import { PageService } from '../../../../services/page.service';
+import { PortalService } from '../../../../services/portal.service';
 import { AppTestingModule } from '../../../../testing/app-testing.module';
 
 describe('ApiTabDetailsComponent', () => {
@@ -34,6 +35,16 @@ describe('ApiTabDetailsComponent', () => {
       providers: [
         { provide: PageService, useValue: { listByApiId: () => of({ data: [] }), content: () => of({}) } },
         { provide: CategoriesService, useValue: { categories: () => of({ data: [] }) } },
+        {
+          provide: PortalService,
+          useValue: {
+            getApiInformations: () =>
+              of([
+                { name: 'API Last Updated', value: '15 Oct 2024' },
+                { name: 'version', value: '2' },
+              ]),
+          },
+        },
       ],
     }).compileComponents();
 
@@ -47,12 +58,17 @@ describe('ApiTabDetailsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display "API Last Updated" if api.updated_at is present', () => {
+  it('should display "API Last Updated" if present', () => {
     component.api.updated_at = new Date();
     fixture.detectChanges();
     const lastUpdatedElement = fixture.debugElement
       .queryAll(By.css('.m3-body-large'))
       .find(el => el.nativeElement.textContent.includes('API Last Updated'));
     expect(lastUpdatedElement).toBeDefined();
+
+    const versionElement = fixture.debugElement
+      .queryAll(By.css('.m3-body-large'))
+      .find(el => el.nativeElement.textContent.includes('version'));
+    expect(versionElement).toBeDefined();
   });
 });

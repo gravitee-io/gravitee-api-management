@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/gio-layout' as gio-layout;
 
-:host {
-  @include gio-layout.gio-responsive-content-container;
+export interface ApiInformation {
+  /**
+   * Name of api information
+   */
+  name: string;
+  /**
+   * Value of api information
+   */
+  value: string;
 }
