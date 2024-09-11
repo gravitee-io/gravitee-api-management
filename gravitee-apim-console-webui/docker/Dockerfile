@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM graviteeio/nginx-noconfd:1.25.1
+FROM graviteeio/nginx:1.27.1
 LABEL maintainer="contact@graviteesource.com"
 
 ENV CONSOLE_BASE_HREF "/"
@@ -30,4 +30,3 @@ RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/
 CMD ["sh", "/run.sh"]
 
 USER nginx
-
