@@ -102,7 +102,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_200_success_with_api_key_and_subscription_on_the_api(
+    protected void should_return_200_success_with_api_key_and_subscription_on_the_api(
         final String apiId,
         final boolean requireWiremock,
         final HttpClient client
@@ -140,7 +140,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideWrongSecurityHeaders")
-    void should_return_401_unauthorized_with_wrong_security(
+    protected void should_return_401_unauthorized_with_wrong_security(
         final String apiId,
         final String headerName,
         final String headerValue,
@@ -173,7 +173,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(
+    protected void should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(
         final String path,
         final boolean requireWiremock,
         final HttpClient client
@@ -184,7 +184,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(
+    protected void should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(
         final String path,
         final boolean requireWiremock,
         final HttpClient client
@@ -195,7 +195,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(
+    protected void should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(
         final String path,
         final boolean requireWiremock,
         final HttpClient client
