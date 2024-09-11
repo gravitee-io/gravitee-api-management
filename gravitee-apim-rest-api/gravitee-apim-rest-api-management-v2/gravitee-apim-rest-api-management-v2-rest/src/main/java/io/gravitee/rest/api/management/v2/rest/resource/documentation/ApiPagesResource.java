@@ -24,6 +24,7 @@ import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageU
 import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase.Input;
+import io.gravitee.apim.core.documentation.use_case.ApiUpdateFetchedPageContentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiDocumentationPagesResponse;
@@ -80,6 +81,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private ApiDeleteDocumentationPageUseCase apiDeleteDocumentationPageUseCase;
+
+    @Inject
+    private ApiUpdateFetchedPageContentUseCase apiUpdateFetchedPageContentUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -184,6 +188,17 @@ public class ApiPagesResource extends AbstractResource {
     public Response unpublishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiUnpublishDocumentationPageUsecase
             .execute(new ApiUnpublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
+            .page();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+    }
+
+    @POST
+    @Path("{pageId}/_fetch")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public Response fetchDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+        var page = apiUpdateFetchedPageContentUseCase
+            .execute(new ApiUpdateFetchedPageContentUseCase.Input(pageId, apiId, getAuditInfo()))
             .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }

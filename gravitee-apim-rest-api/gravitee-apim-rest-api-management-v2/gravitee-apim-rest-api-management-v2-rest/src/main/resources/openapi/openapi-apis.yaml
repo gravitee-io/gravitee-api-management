@@ -2381,6 +2381,31 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/pages/{pageId}/_fetch:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/pageIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Fetch Content of API Documentation Page
+            description: |-
+                Fetch Content of API Documentation Page. Returns the page with newly fetched content.
+                The page must have a configured source, otherwise an error is returned.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: fetchDocumentationPage
+            responses:
+                "200":
+                    description: API Documentation Page
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Page"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Scoring
     /environments/{envId}/apis/{apiId}/scoring/_evaluate:
         parameters:

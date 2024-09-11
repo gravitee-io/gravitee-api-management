@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1896,6 +1897,120 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
             assertThat(body).isNotNull().hasFieldOrPropertyWithValue("published", false);
+        }
+    }
+
+    @Nested
+    class FetchDocumentationPage {
+
+        private static final String API_ID = "api-id";
+        private static final String PAGE_ID = "page-id";
+
+        private static final String PATH = PAGE_ID + "/_fetch";
+
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            roleQueryService.initWith(
+                List.of(
+                    io.gravitee.apim.core.membership.model.Role
+                        .builder()
+                        .id(ROLE_ID)
+                        .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
+                        .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .name("PRIMARY_OWNER")
+                        .build()
+                )
+            );
+            membershipQueryService.initWith(
+                List.of(
+                    Membership
+                        .builder()
+                        .id("member-id")
+                        .memberId("my-member-id")
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .roleId(ROLE_ID)
+                        .build()
+                )
+            );
+            userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").build()));
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        public void should_update_markdown_page() {
+            var oldMarkdown = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("name")
+                .content("old content")
+                .type(Page.Type.MARKDOWN)
+                .source(io.gravitee.apim.core.documentation.model.PageSource.builder().type("http-fetcher").configuration("{}").build())
+                .createdAt(new Date())
+                .build();
+            givenApiPagesQuery(List.of(oldMarkdown));
+
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+            var updatedPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(updatedPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue("type", PageType.MARKDOWN)
+                .hasFieldOrPropertyWithValue("content", PageSourceDomainServiceInMemory.MARKDOWN);
+        }
+
+        @Test
+        public void should_not_allow_page_missing_source() {
+            givenApiPagesQuery(
+                List.of(
+                    Page
+                        .builder()
+                        .id(PAGE_ID)
+                        .type(Page.Type.MARKDOWN)
+                        .referenceId(API_ID)
+                        .referenceType(Page.ReferenceType.API)
+                        .source(null)
+                        .build()
+                )
+            );
+
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Page is missing page source.");
         }
     }
 
