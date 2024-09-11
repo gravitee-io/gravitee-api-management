@@ -180,7 +180,11 @@
           @if (page.source?.type) {
             <mat-tab label="Configure External Source">
               @if (fetcherSchema$ | async; as jsonSchema) {
-                <gio-form-json-schema formControlName="sourceConfiguration" [jsonSchema]="jsonSchema" />
+                <gio-form-json-schema
+                  (ready)="onGioSchemaFormReady($event)"
+                  formControlName="sourceConfiguration"
+                  [jsonSchema]="jsonSchema"
+                />
               }
             </mat-tab>
           }
@@ -192,10 +196,14 @@
                     >You have made changes to the External Source configuration. This preview will be updated once your changes have been
                     saved.</gio-banner-warning
                   >
+                } @else {
+                  <gio-banner-info>
+                    <div>This content is a preview and cannot be edited because the page is linked to an external source.</div>
+                    <div gioBannerAction *gioPermission="{ anyOf: ['api-documentation-u'] }">
+                      <button mat-raised-button color="primary" (click)="refreshContent()">Refresh content</button>
+                    </div>
+                  </gio-banner-info>
                 }
-                <gio-banner-info
-                  >This content is a preview and cannot be edited because the page is linked to an external source.</gio-banner-info
-                >
               }
               <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="page.type" />
 

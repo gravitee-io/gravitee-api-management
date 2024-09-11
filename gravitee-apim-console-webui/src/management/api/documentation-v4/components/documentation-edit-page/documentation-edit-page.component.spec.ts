@@ -385,6 +385,7 @@ describe('DocumentationEditPageComponent', () => {
           const activeTab = await harnessLoader.getHarness(MatTabHarness.with({ selected: true }));
           expect(await activeTab.getLabel()).toEqual('Configure External Source');
         });
+
         it('should update external source configuration', async () => {
           const publishBtn = await harness.getPublishChangesButton();
           expect(await publishBtn.isDisabled()).toEqual(true);
@@ -417,6 +418,7 @@ describe('DocumentationEditPageComponent', () => {
           });
           req.flush(PAGE);
         });
+
         it('should display warning banner if configuration is updated', async () => {
           const httpUrl = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[id*="url"]' }));
           await httpUrl.setValue('https://cats-rule.com');
@@ -425,10 +427,23 @@ describe('DocumentationEditPageComponent', () => {
           const warningBanner = fixture.debugElement.query(By.css('gio-banner-warning'));
           expect(warningBanner).toBeTruthy();
         });
+
         it('should not display warning banner if configuration untouched', async () => {
           await harness.openContentTab();
           const warningBanner = fixture.debugElement.query(By.css('gio-banner-warning'));
           expect(warningBanner).toBeNull();
+        });
+
+        it('should allow user to refresh content', async () => {
+          await harness.openContentTab();
+
+          const saveBtn = await harness.getPublishChangesButton();
+          expect(await saveBtn.isDisabled()).toEqual(true);
+
+          const refreshContentBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Refresh content' }));
+          await refreshContentBtn.click();
+
+          expectFetchPage({ ...PAGE, content: 'fetched content' });
         });
       });
       describe('with OpenAPI page', () => {
@@ -964,5 +979,14 @@ describe('DocumentationEditPageComponent', () => {
         url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
       })
       .flush(fetchers);
+  }
+
+  function expectFetchPage(page: Page) {
+    httpTestingController
+      .expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_fetch`,
+      })
+      .flush(page);
   }
 });

@@ -273,6 +273,24 @@ describe('ApiDocumentationV2Service', () => {
     });
   });
 
+  describe('fetchPage', () => {
+    beforeEach(() => init());
+    const PAGE_ID = 'page-id';
+    it('should call the API to fetch page', (done) => {
+      const fakeResponse: Page = fakeMarkdown();
+      service.fetchDocumentationPage(API_ID, PAGE_ID).subscribe((response) => {
+        expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}/_fetch`,
+        method: 'POST',
+      });
+      req.flush(fakeResponse);
+    });
+  });
+
   describe('getApiNotInPortalTooltip', () => {
     beforeEach(() => init());
     it('should return Created message', () => {

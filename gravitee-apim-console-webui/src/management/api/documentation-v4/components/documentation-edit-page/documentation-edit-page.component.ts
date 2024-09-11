@@ -354,6 +354,30 @@ export class DocumentationEditPageComponent implements OnInit {
       });
   }
 
+  refreshContent() {
+    this.apiDocumentationService
+      .fetchDocumentationPage(this.api.id, this.page.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          this.initialFormValue['content'] = page.content;
+
+          this.form.controls.content.setValue(page.content);
+          this.form.controls.content.updateValueAndValidity();
+          this.snackBarService.success('Page content refreshed successfully.');
+        },
+        error: (_) => {
+          this.snackBarService.error('Error while refreshing page content.');
+        },
+      });
+  }
+
+  onGioSchemaFormReady(ready: boolean) {
+    if (ready) {
+      this.initialFormValue['sourceConfiguration'] = this.form.getRawValue().sourceConfiguration;
+    }
+  }
+
   private parseConfigurationStringToBoolean(configString: string): boolean {
     return configString ? JSON.parse(configString) === true : false;
   }
