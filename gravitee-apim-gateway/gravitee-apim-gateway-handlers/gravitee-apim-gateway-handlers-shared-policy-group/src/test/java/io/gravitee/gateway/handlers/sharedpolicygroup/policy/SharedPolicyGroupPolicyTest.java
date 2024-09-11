@@ -30,6 +30,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.reactivex.rxjava3.core.Completable;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 class SharedPolicyGroupPolicyTest {
 
     public static final String SHARED_POLICY_GROUP_ID = "sharedPolicyGroupId";
+    public static final String ENVIRONMENT_ID = "environmentId";
 
     @Mock
     private ExecutionContext executionContext;
@@ -79,6 +81,7 @@ class SharedPolicyGroupPolicyTest {
 
         when(executionContext.getComponent(SharedPolicyGroupRegistry.class)).thenReturn(sharedPolicyGroupRegistry);
         lenient().when(policyChain.execute(executionContext)).thenReturn(Completable.complete());
+        when(executionContext.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)).thenReturn(ENVIRONMENT_ID);
         final SharedPolicyGroupPolicyConfiguration policyConfiguration = new SharedPolicyGroupPolicyConfiguration();
         policyConfiguration.setSharedPolicyGroupId(SHARED_POLICY_GROUP_ID);
         cut = new SharedPolicyGroupPolicy("id", policyConfiguration);
@@ -100,7 +103,7 @@ class SharedPolicyGroupPolicyTest {
         assertThat(listAppender.list)
             .hasSize(1)
             .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactly("No Shared Policy Group found for id on REQUEST phase");
+            .containsExactly("No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
     }
 
     @Test
@@ -119,7 +122,7 @@ class SharedPolicyGroupPolicyTest {
         assertThat(listAppender.list)
             .hasSize(1)
             .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactly("No Shared Policy Group found for id on RESPONSE phase");
+            .containsExactly("No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
     }
 
     static class FakeSharedPolicyGroupReactor implements SharedPolicyGroupReactor {
