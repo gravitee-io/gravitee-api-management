@@ -214,7 +214,7 @@ class SharedPolicyGroupV4IntegrationTest {
                 .hasSize(1)
                 .element(0)
                 .extracting(ILoggingEvent::getFormattedMessage)
-                .isEqualTo("No Shared Policy Group found for shared-policy-group-policy on RESPONSE phase");
+                .isEqualTo("No Shared Policy Group found for id spg-nested on environment DEFAULT");
         }
     }
 

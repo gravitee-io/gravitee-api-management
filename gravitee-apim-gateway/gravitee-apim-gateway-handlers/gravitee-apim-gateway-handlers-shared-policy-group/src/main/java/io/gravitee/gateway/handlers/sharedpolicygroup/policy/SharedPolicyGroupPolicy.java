@@ -54,19 +54,23 @@ public class SharedPolicyGroupPolicy implements Policy {
     public Completable onRequest(HttpExecutionContext ctx) {
         return getPolicyChain(ctx)
             .map(policyChain -> policyChain.execute((ExecutionContext) ctx))
-            .orElseGet(warnNotFoundAndComplete("REQUEST"));
+            .orElseGet(warnNotFoundAndComplete(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)));
     }
 
     @Override
     public Completable onResponse(HttpExecutionContext ctx) {
         return getPolicyChain(ctx)
             .map(policyChain -> policyChain.execute((ExecutionContext) ctx))
-            .orElseGet(warnNotFoundAndComplete("RESPONSE"));
+            .orElseGet(warnNotFoundAndComplete(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)));
     }
 
-    protected Supplier<Completable> warnNotFoundAndComplete(String phase) {
+    protected Supplier<Completable> warnNotFoundAndComplete(String environmentId) {
         return () -> {
-            log.warn("No Shared Policy Group found for {} on {} phase", id, phase);
+            log.warn(
+                "No Shared Policy Group found for id {} on environment {}",
+                policyConfiguration.getSharedPolicyGroupId(),
+                environmentId
+            );
             return Completable.complete();
         };
     }
