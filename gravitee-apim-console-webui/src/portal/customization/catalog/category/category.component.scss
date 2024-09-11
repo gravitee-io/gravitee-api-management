@@ -19,14 +19,6 @@
 @use '@gravitee/ui-particles-angular' as gio;
 $typography: map.get(gio.$mat-theme, typography);
 
-:host {
-  @include gio-layout.gio-responsive-margin-container;
-  display: flex;
-  flex-direction: column;
-  margin-left: 0;
-  margin-right: 0;
-}
-
 .menu-category {
   &__content {
     display: flex;

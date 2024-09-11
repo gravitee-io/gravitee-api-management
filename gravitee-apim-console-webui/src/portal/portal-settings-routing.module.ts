@@ -27,6 +27,8 @@ import { MenuLinkListComponent } from './customization/top-bar/menu-link-list/me
 import { PortalCatalogComponent } from './customization/catalog/portal-catalog.component';
 import { CategoryCatalogComponent } from './customization/catalog/category/category.component';
 import { CategoryListComponent } from './customization/catalog/category-list/category-list.component';
+import { PortalApiComponent } from './customization/api/portal-api.component';
+import { PortalApiListComponent } from './customization/api/api-list/portal-api-list.component';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
@@ -113,6 +115,21 @@ const portalRoutes: Routes = [
                 anyOf: ['environment-settings-r', 'environment-settings-u'],
               },
             },
+          },
+          {
+            path: 'api',
+            component: PortalApiComponent,
+            children: [
+              {
+                path: '',
+                component: PortalApiListComponent,
+                data: {
+                  permissions: {
+                    anyOf: ['environment-settings-r', 'environment-settings-u'],
+                  },
+                },
+              },
+            ],
           },
           {
             path: 'theme',

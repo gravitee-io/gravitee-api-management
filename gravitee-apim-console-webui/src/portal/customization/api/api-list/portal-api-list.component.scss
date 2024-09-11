@@ -13,28 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 @use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
-@use '../../../../scss/gio-layout' as gio-layout;
+@use '../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+
 $typography: map.get(gio.$mat-theme, typography);
 
-.menu-category {
+.menu-api-container {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.api-style {
   &__content {
     display: flex;
     flex-flow: column;
-    gap: 24px;
+    gap: 48px;
 
     &__header {
       display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 0;
+      padding-bottom: 16px;
 
       &__title {
         display: flex;
         flex-flow: row;
         gap: 8px;
+        padding-bottom: 16px;
 
         & > h3 {
           margin: 0;
@@ -48,27 +56,13 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 }
 
-.categories {
-  &__content {
-    display: flex;
-    flex-flow: column;
-    gap: 24px;
-  }
-  &__actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  &__list {
-    &__actions {
-      display: flex;
-    }
-  }
+.api-style__content__header__title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 10px 0;
 }
 
-.mat-column-picture,
-.mat-column-actions {
-  width: 1%;
-  padding: 0 8px;
-  text-align: end;
+.api-key-header {
+  width: 66%;
 }
