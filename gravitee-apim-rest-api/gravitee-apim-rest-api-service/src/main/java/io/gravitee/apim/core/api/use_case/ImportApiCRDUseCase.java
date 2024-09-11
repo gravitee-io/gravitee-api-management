@@ -211,11 +211,8 @@ public class ImportApiCRDUseCase {
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
             if (shouldDeploy(sanitizedInput.spec())) {
-                if (createdApi.getLifecycleState() == Api.LifecycleState.STOPPED) {
-                    apiStateDomainService.stop(createdApi, sanitizedInput.auditInfo);
-                } else {
-                    apiStateDomainService.start(createdApi, sanitizedInput.auditInfo);
-                }
+                // This will also DEPLOYS the API because it is the first time it has been started
+                apiStateDomainService.start(createdApi, sanitizedInput.auditInfo);
             }
 
             return ApiCRDStatus
@@ -293,10 +290,14 @@ public class ImportApiCRDUseCase {
             deletePlans(api, existingPlans, planKeyIdMapping, sanitizedInput);
 
             if (shouldDeploy(sanitizedInput.spec())) {
+                apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
+            }
+
+            if (api.getLifecycleState() != existingApi.getLifecycleState()) {
                 if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
-                    apiStateDomainService.stop(api, sanitizedInput.auditInfo);
+                    apiStateDomainService.stop(api, input.auditInfo);
                 } else {
-                    apiStateDomainService.start(api, sanitizedInput.auditInfo);
+                    apiStateDomainService.start(api, input.auditInfo);
                 }
             }
 
@@ -433,7 +434,8 @@ public class ImportApiCRDUseCase {
 
     private static boolean shouldDeploy(ApiCRDSpec spec) {
         return (
-            spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT) &&
+            spec.getDefinitionContext().isSyncFromManagement() &&
+            Api.LifecycleState.STARTED.name().equalsIgnoreCase(spec.getState()) &&
             spec
                 .getPlans()
                 .values()

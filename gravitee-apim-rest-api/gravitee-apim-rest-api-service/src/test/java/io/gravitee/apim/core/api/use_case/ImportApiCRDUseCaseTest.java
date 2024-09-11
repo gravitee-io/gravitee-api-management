@@ -20,13 +20,13 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
-import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -638,7 +638,7 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
-        void should_stop_the_api() {
+        void should_not_stop_the_api_on_creation() {
             when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
 
             useCase.execute(
@@ -651,7 +651,9 @@ class ImportApiCRDUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), any());
+            verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
+            verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
+            verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), any());
         }
 
         @Test
@@ -698,6 +700,7 @@ class ImportApiCRDUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .crossId(API_CROSS_ID)
             .build();
+
         private static final Plan KEYLESS = aKeylessV4().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
         private static final Plan API_KEY = anApiKeyV4().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
 
@@ -1075,8 +1078,29 @@ class ImportApiCRDUseCaseTest {
             )
         );
 
+        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+    }
 
+    @Test
+    void should_deploy_the_api() {
+        givenExistingApi();
+
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+
+        useCase.execute(
+            new ImportApiCRDUseCase.Input(
+                AUDIT_INFO,
+                aCRD()
+                    .state("STARTED")
+                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+                    .build()
+            )
+        );
+
+        verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
@@ -1096,12 +1120,13 @@ class ImportApiCRDUseCaseTest {
             )
         );
 
-        verify(apiStateDomainService, times(1)).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
     void should_start_the_api() {
-        givenExistingApi();
+        apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
 
         when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
 
@@ -1115,7 +1140,9 @@ class ImportApiCRDUseCaseTest {
             )
         );
 
-        verify(apiStateDomainService, times(1)).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+        var inOrder = inOrder(apiStateDomainService);
+        inOrder.verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        inOrder.verify(apiStateDomainService).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     void givenExistingApi() {
