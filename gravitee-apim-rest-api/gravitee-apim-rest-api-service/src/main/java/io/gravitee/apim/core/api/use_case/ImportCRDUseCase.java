@@ -300,11 +300,17 @@ public class ImportCRDUseCase {
 
             deletePlans(api, existingPlans, planKeyIdMapping, input);
 
-            if (input.spec.getDefinitionContext().getSyncFrom().equalsIgnoreCase(DefinitionContext.ORIGIN_MANAGEMENT)) {
-                if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
-                    apiStateDomainService.stop(api, input.auditInfo);
-                } else {
-                    apiStateDomainService.start(api, input.auditInfo);
+            if (input.spec.getDefinitionContext().isSyncFromManagement()) {
+                if (api.getLifecycleState() == Api.LifecycleState.STARTED) {
+                    apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
+                }
+
+                if (api.getLifecycleState() != existingApi.getLifecycleState()) {
+                    if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
+                        apiStateDomainService.stop(api, input.auditInfo);
+                    } else {
+                        apiStateDomainService.start(api, input.auditInfo);
+                    }
                 }
             }
 
