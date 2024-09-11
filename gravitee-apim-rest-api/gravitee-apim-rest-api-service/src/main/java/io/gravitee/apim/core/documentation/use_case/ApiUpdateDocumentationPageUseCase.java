@@ -78,7 +78,12 @@ public class ApiUpdateDocumentationPageUseCase {
         var pageToUpdate = newPage.build();
 
         if (!Objects.equals(oldPage.getContent(), input.content) || !Objects.equals(oldPage.getSource(), input.source)) {
-            this.documentationValidationDomainService.validateAndSanitizeForUpdate(pageToUpdate, input.auditInfo().organizationId(), true);
+            pageToUpdate =
+                this.documentationValidationDomainService.validateAndSanitizeForUpdate(
+                        pageToUpdate,
+                        input.auditInfo().organizationId(),
+                        true
+                    );
         }
 
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(pageToUpdate, oldPage, input.auditInfo);
