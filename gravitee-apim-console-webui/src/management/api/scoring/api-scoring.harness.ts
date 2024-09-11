@@ -28,6 +28,7 @@ export class ApiScoringHarness extends ComponentHarness {
   private evaluateButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: "[data-testid='evaluate-button']" }));
   private accordionLocator = this.locatorForAll(MatAccordionHarness);
   private tablesLocator = this.locatorForOptional(MatTableHarness);
+  public filterButtons = this.locatorForOptional(MatButtonToggleGroupHarness);
 
   public getLoaderPanel() {
     return this.loaderPanelLocator();

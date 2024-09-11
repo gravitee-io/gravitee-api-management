@@ -25,14 +25,13 @@
     <mat-card-header class="card-header">
       <mat-card-title>
         {{ api.name }}
-        @if (apiScoring.summary.all) {
-          <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>90%</span>
-          <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>
-        }
+        <!-- Uncomment when score feature ready -->
+        <!-- <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon>90%</span>-->
+        <!-- <span class="gio-badge-success"><mat-icon class="gio-left" svgIcon="gio:trending-up"></mat-icon>+0.7</span>-->
       </mat-card-title>
 
       @if (apiScoring.createdAt) {
-        <mat-card-subtitle> Last evaluated at {{ apiScoring.createdAt }}</mat-card-subtitle>
+        <mat-card-subtitle> Last evaluated at {{ apiScoring.createdAt | date }}</mat-card-subtitle>
       }
 
       <div class="card-header__actions">
@@ -53,12 +52,27 @@
 
       @if (apiScoring.summary.all !== 0) {
         <section>
-          <mat-button-toggle-group class="gio-button-toggle-group" name="status" aria-label="" [value]="status">
-            <mat-button-toggle value="all">All ({{ apiScoring.summary.all }})</mat-button-toggle>
-            <mat-button-toggle value="errors">Errors ({{ apiScoring.summary.errors }})</mat-button-toggle>
-            <mat-button-toggle value="warnings">Warnings ({{ apiScoring.summary.warnings }})</mat-button-toggle>
-            <mat-button-toggle value="infos">Infos ({{ apiScoring.summary.infos }})</mat-button-toggle>
-            <mat-button-toggle value="hints">Hints ({{ apiScoring.summary.hints }})</mat-button-toggle>
+          <mat-button-toggle-group
+            [hideSingleSelectionIndicator]="true"
+            class="gio-button-toggle-group"
+            name="status"
+            aria-label=""
+            [value]="status"
+            (change)="filterScoringAssets($event.value)"
+          >
+            <mat-button-toggle value="ALL"> All ({{ apiScoring.summary.all }}) </mat-button-toggle>
+            <mat-button-toggle [disabled]="!apiScoring.summary.errors" [value]="ScoringSeverity.ERROR"
+              >Errors ({{ apiScoring.summary.errors }})</mat-button-toggle
+            >
+            <mat-button-toggle [disabled]="!apiScoring.summary.warnings" [value]="ScoringSeverity.WARN"
+              >Warnings ({{ apiScoring.summary.warnings }})</mat-button-toggle
+            >
+            <mat-button-toggle [disabled]="!apiScoring.summary.infos" [value]="ScoringSeverity.INFO"
+              >Infos ({{ apiScoring.summary.infos }})</mat-button-toggle
+            >
+            <mat-button-toggle [disabled]="!apiScoring.summary.hints" [value]="ScoringSeverity.HINT"
+              >Hints ({{ apiScoring.summary.hints }})</mat-button-toggle
+            >
           </mat-button-toggle-group>
         </section>
       }

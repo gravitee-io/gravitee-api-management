@@ -25,6 +25,7 @@ import { ApiScoringComponent } from './api-scoring.component';
 import { ApiScoringHarness } from './api-scoring.harness';
 import { ApiScoringModule } from './api-scoring.module';
 import { fakeApiScoring, fakeApiScoringTriggerResponse } from './api-scoring.fixture';
+import { ApiScoring, ScoringAssetType, ScoringSeverity } from './api-scoring.model';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiFederated } from '../../../entities/management-api-v2';
@@ -117,6 +118,102 @@ describe('ApiScoringComponent', () => {
     }));
   });
 
+  describe('filters', () => {
+    it('should show filter options', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(API_ID);
+
+      const filterButtons = await componentHarness.filterButtons();
+      const toggles = await filterButtons.getToggles();
+
+      expect(toggles.length).toBe(5);
+      expect(await toggles[0].isDisabled()).toBe(false);
+      expect(await toggles[0].getText()).toBe('All (1)');
+      expect(await toggles[1].isDisabled()).toBe(true);
+      expect(await toggles[2].isDisabled()).toBe(false);
+      expect(await toggles[2].getText()).toBe('Warnings (1)');
+      expect(await toggles[3].isDisabled()).toBe(true);
+      expect(await toggles[4].isDisabled()).toBe(true);
+    }));
+
+    it('should filter apis', fakeAsync(async () => {
+      await init();
+      tick(1);
+      expectAsyncJobGetRequest(API_ID, []);
+      expectApiGetRequest(API_ID);
+      expectApiScoreGetRequest(
+        API_ID,
+        fakeApiScoring({
+          summary: {
+            all: 3,
+            errors: 2,
+            warnings: 1,
+            infos: 0,
+            hints: 0,
+          },
+          assets: [
+            {
+              name: 'echo-oas.json',
+              type: ScoringAssetType.SWAGGER,
+              diagnostics: [
+                {
+                  range: {
+                    start: { line: 17, character: 12 },
+                    end: { line: 38, character: 25 },
+                  },
+                  severity: ScoringSeverity.ERROR,
+                  message: 'Some Error 1',
+                  path: 'paths./echo.get',
+                },
+                {
+                  range: {
+                    start: { line: 17, character: 12 },
+                    end: { line: 38, character: 25 },
+                  },
+                  severity: ScoringSeverity.ERROR,
+                  message: 'Some Error 2',
+                  path: 'paths./echo.get',
+                },
+                {
+                  range: {
+                    start: { line: 17, character: 12 },
+                    end: { line: 38, character: 25 },
+                  },
+                  severity: ScoringSeverity.WARN,
+                  message: 'Some Warning 1',
+                  path: 'paths./echo.get',
+                },
+              ],
+            },
+          ],
+        }),
+      );
+
+      const filterButtons = await componentHarness.filterButtons();
+      const toggles = await filterButtons.getToggles();
+
+      // check initial length of table
+      const table = await componentHarness.getTables();
+      expect(await table.getRows()).toHaveLength(3);
+
+      // click on filters and check the table length
+      expect(await toggles[1].getText()).toBe('Errors (2)');
+      await toggles[1].toggle();
+      expect(await table.getRows()).toHaveLength(2);
+
+      expect(await toggles[2].getText()).toBe('Warnings (1)');
+      await toggles[2].toggle();
+      expect(await table.getRows()).toHaveLength(1);
+
+      expect(await toggles[0].getText()).toBe('All (3)');
+      await toggles[0].toggle();
+      expect(await table.getRows()).toHaveLength(3);
+    }));
+  });
+
   function expectApiGetRequest(apiId: string) {
     httpTestingController
       .expectOne({
@@ -126,13 +223,13 @@ describe('ApiScoringComponent', () => {
       .flush(fakeApiFederated({ id: apiId }));
   }
 
-  function expectApiScoreGetRequest(apiId: string) {
+  function expectApiScoreGetRequest(apiId: string, payload: ApiScoring = fakeApiScoring()) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/scoring`,
         method: 'GET',
       })
-      .flush(fakeApiScoring());
+      .flush(payload);
   }
 
   function expectAsyncJobGetRequest(apiId: string, data: AsyncJob[]) {
@@ -141,7 +238,15 @@ describe('ApiScoringComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/async-jobs?page=1&perPage=10&type=SCORING_REQUEST&status=PENDING&sourceId=${apiId}`,
         method: 'GET',
       })
-      .flush(fakePaginatedResult(data, { page: 1, pageCount: 1, pageItemCount: data.length, perPage: 20, totalCount: data.length }));
+      .flush(
+        fakePaginatedResult(data, {
+          page: 1,
+          pageCount: 1,
+          pageItemCount: data.length,
+          perPage: 20,
+          totalCount: data.length,
+        }),
+      );
   }
 
   function expectApiScorePostRequest(apiId: string) {

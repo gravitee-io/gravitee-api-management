@@ -25,6 +25,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { GioBannerModule, GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { RouterLink } from '@angular/router';
+import { MatSortModule } from '@angular/material/sort';
 
 import { ApiScoringComponent } from './api-scoring.component';
 import { ApiScoringService } from './api-scoring.service';
@@ -51,6 +52,7 @@ import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.
     MatIconModule,
     MatTableModule,
     MatTooltipModule,
+    MatSortModule,
     MapProviderNamePipe,
   ],
   providers: [ApiScoringService],

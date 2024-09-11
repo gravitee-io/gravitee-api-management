@@ -22,28 +22,31 @@
       <mat-panel-title class="panel-title">
         {{ asset.name }}
         <span class="gio-badge-neutral">{{ asset.type }}</span>
-        <button (click)="openEditor($event)" class="api-scoring-action-button" mat-raised-button [disabled]="false">
+        <!-- Make button visible when preview component ready -->
+        <button (click)="openEditor($event)" class="api-scoring-action-button" mat-raised-button [disabled]="true" hidden>
           Open File Preview
         </button>
       </mat-panel-title>
     </mat-expansion-panel-header>
 
-    <gio-table-wrapper
-      class="table-wrapper"
-      [disableSearchInput]="true"
-      [length]="totalDiagnostics"
-      [filters]="filters"
-      (filtersChange)="onFiltersChanged($event)"
-    >
-      <table mat-table [dataSource]="diagnosticsFiltered" aria-label="Table">
+    <gio-table-wrapper class="table-wrapper" [length]="totalDiagnostics" [filters]="filters" (filtersChange)="runFilters($event)">
+      <table mat-table matSort [dataSource]="diagnosticsFiltered" aria-label="Table">
         <caption style="display: none">
           Table with APIs Scores
         </caption>
 
         <ng-container matColumnDef="severity">
-          <th mat-header-cell *matHeaderCellDef id="severity">Severity</th>
+          <th mat-header-cell mat-sort-header *matHeaderCellDef id="severity">Severity</th>
           <td mat-cell *matCellDef="let issue">
-            <span class="gio-badge-warning">{{ issue.severity }}</span>
+            @if (issue.severity === ScoringSeverity.ERROR) {
+              <span class="gio-badge-error">{{ issue.severity }}</span>
+            } @else if (issue.severity === ScoringSeverity.HINT) {
+              <span class="gio-badge-success">{{ issue.severity }}</span>
+            } @else if (issue.severity === ScoringSeverity.INFO) {
+              <span class="gio-badge-primary">{{ issue.severity }}</span>
+            } @else {
+              <span class="gio-badge-warning">{{ issue.severity }}</span>
+            }
           </td>
         </ng-container>
 
@@ -60,7 +63,7 @@
         </ng-container>
 
         <ng-container matColumnDef="path">
-          <th mat-header-cell *matHeaderCellDef id="path">Path</th>
+          <th mat-header-cell mat-sort-header *matHeaderCellDef id="path">Path</th>
           <td mat-cell *matCellDef="let issue">
             {{ issue.path }}
           </td>
@@ -71,8 +74,8 @@
 
         <!-- Row shown when there are no data for table -->
         <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-          <td *ngIf="!asset.diagnostics.length" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-            {{ 'No issues found' }}
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            {{ 'No data to display' }}
           </td>
         </tr>
       </table>

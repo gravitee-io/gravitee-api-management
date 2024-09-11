@@ -20,7 +20,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest, Observable, Subject, timer } from 'rxjs';
 import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { ApiScoring } from './api-scoring.model';
+import { ApiScoring, ScoringAsset, ScoringDiagnostic, ScoringSeverity } from './api-scoring.model';
 import { ApiScoringService } from './api-scoring.service';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -36,12 +36,14 @@ export class ApiScoringComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   private apiId = this.activatedRoute.snapshot.params.apiId;
   private stopPolling$ = new Subject<void>();
+  private allApiScoring: ApiScoring;
 
-  public status = 'all';
-  public isLoading = true;
   public apiScoring: ApiScoring;
+  public status: ScoringSeverity | 'ALL' = 'ALL';
+  public isLoading = true;
   public api: Api;
   public pendingScoreRequest: boolean;
+  protected readonly ScoringSeverity = ScoringSeverity;
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
@@ -100,12 +102,35 @@ export class ApiScoringComponent implements OnInit {
 
           this.pendingScoreRequest = pendingScoreRequest;
           this.api = api;
+          this.allApiScoring = apiScoring;
           this.apiScoring = apiScoring;
+          this.filterScoringAssets('ALL');
 
           if (!this.pendingScoreRequest) {
             this.stopPolling$.next();
           }
         },
       });
+  }
+
+  public filterScoringAssets(severity: ScoringSeverity | 'ALL') {
+    this.status = severity;
+
+    if (severity === 'ALL') {
+      this.apiScoring = this.allApiScoring;
+      return;
+    }
+
+    const filteredScoringAssets: ScoringAsset[] = this.allApiScoring.assets.map(
+      (asset: ScoringAsset): ScoringAsset => ({
+        ...asset,
+        diagnostics: asset.diagnostics.filter((diagnostic: ScoringDiagnostic) => diagnostic.severity === severity),
+      }),
+    );
+
+    this.apiScoring = {
+      ...this.apiScoring,
+      assets: filteredScoringAssets,
+    };
   }
 }
