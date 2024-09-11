@@ -231,6 +231,14 @@ class EditPageComponentController implements IController {
     this.ngRouter.navigate(['../'], { queryParams: { parent: this.page.parentId }, relativeTo: this.activatedRoute });
   }
 
+  onAttachedResourceUpdate() {
+    this.DocumentationService.getMedia(this.page.id, this.apiId)
+      .then((mediaResponse) => (this.attachedResources = mediaResponse.data))
+      .then(() => this.DocumentationService.get(this.apiId, this.page.id))
+      .then((pageResponse) => (this.resolvedPage = pageResponse.data))
+      .then(() => this.reset());
+  }
+
   reset() {
     this.page = null;
     this.groups = null;
