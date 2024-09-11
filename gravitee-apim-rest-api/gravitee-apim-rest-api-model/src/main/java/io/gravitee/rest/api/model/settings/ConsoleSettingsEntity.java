@@ -48,6 +48,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private TrialInstance trialInstance;
     private Federation federation;
     private Scoring scoring;
+    private Cloud cloud;
 
     public ConsoleSettingsEntity() {
         super();
@@ -67,6 +68,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         trialInstance = new TrialInstance();
         federation = new Federation();
         scoring = new Scoring();
+        cloud = new Cloud();
     }
 
     //Classes

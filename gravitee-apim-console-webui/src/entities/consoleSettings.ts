@@ -33,6 +33,7 @@ export interface ConsoleSettings {
   trialInstance?: ConsoleSettingsTrialInstance;
   federation?: ConsoleSettingsFederation;
   scoring?: ConsoleSettingsScoring;
+  cloud?: ConsoleSettingsCloud;
 }
 
 export interface ConsoleSettingsEmail {
@@ -185,5 +186,9 @@ export interface ConsoleSettingsFederation {
 }
 
 export interface ConsoleSettingsScoring {
+  enabled?: boolean;
+}
+
+export interface ConsoleSettingsCloud {
   enabled?: boolean;
 }
