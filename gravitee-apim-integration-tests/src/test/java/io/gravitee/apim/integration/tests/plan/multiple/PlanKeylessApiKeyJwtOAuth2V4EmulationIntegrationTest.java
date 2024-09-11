@@ -25,6 +25,7 @@ import io.gravitee.apim.integration.tests.plan.apikey.PlanApiKeyV4EmulationInteg
 import io.gravitee.apim.integration.tests.plan.jwt.PlanJwtV4EmulationIntegrationTest;
 import io.gravitee.apim.integration.tests.plan.keyless.PlanKeylessV4EmulationIntegrationTest;
 import io.gravitee.apim.integration.tests.plan.oauth2.MockOAuth2Resource;
+import io.gravitee.apim.integration.tests.plan.oauth2.PlanOAuth2V4EmulationIntegrationTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
@@ -164,7 +165,7 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
     @DeployApi("/apis/plan/v2-api.json")
     public class SelectJwtTest extends AbstractSelectJwtTest {}
 
-    public static class AbstractSelectOAuth2Test extends PlanJwtV4EmulationIntegrationTest {
+    public static class AbstractSelectOAuth2Test extends PlanOAuth2V4EmulationIntegrationTest {
 
         @Override
         public void configureResources(Map<String, ResourcePlugin> resources) {
