@@ -147,7 +147,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
     ];
 
-    if (this.constants?.org?.settings?.management?.installationType !== 'multi-tenant') {
+    if (!this.constants?.org?.settings?.cloud?.enabled) {
       mainMenuItems.push({
         icon: 'gio:cloud-server',
         displayName: 'Gateways',

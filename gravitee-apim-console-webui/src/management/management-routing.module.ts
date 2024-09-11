@@ -24,7 +24,7 @@ import { InstanceDetailsEnvironmentComponent } from './instances/instance-detail
 import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { MessagesComponent } from './messages/messages.component';
-import { NotMultiTenantGuard } from './not-multi-tenant-guard';
+import { CloudGuard } from './cloud-guard';
 
 import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
@@ -84,7 +84,7 @@ const managementRoutes: Routes = [
       },
       {
         path: 'gateways',
-        canActivate: [NotMultiTenantGuard],
+        canActivate: [CloudGuard],
         component: InstanceListComponent,
         data: {
           permissions: {
@@ -109,8 +109,7 @@ const managementRoutes: Routes = [
       {
         path: 'gateways/:instanceId',
         component: InstanceDetailsComponent,
-        canActivate: [NotMultiTenantGuard],
-        canActivateChild: [NotMultiTenantGuard],
+        canActivate: [CloudGuard],
         data: {
           permissions: {
             anyOf: ['environment-instance-r'],

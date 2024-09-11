@@ -21,13 +21,13 @@ import { Constants } from '../entities/Constants';
 @Injectable({
   providedIn: 'root',
 })
-export class NotMultiTenantGuard implements CanActivate {
+export class CloudGuard implements CanActivate {
   constructor(
     private router: Router,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   canActivate(_route: ActivatedRouteSnapshot): boolean {
-    return this.constants?.org?.settings?.management?.installationType !== 'multi-tenant';
+    return !this.constants?.org?.settings?.cloud?.enabled;
   }
 }
