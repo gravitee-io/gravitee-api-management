@@ -108,3 +108,14 @@ $typography: map.get(gio.$mat-theme, typography);
   padding: 0 8px;
   text-align: end;
 }
+
+.title-information {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 18px;
+
+  & > h2 {
+    margin: 0;
+  }
+}

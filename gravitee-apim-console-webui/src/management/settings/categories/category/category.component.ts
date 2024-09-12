@@ -39,6 +39,7 @@ import {
   GioApiSelectDialogData,
   GioApiSelectDialogResult,
 } from '../../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
+import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
 
 interface ApiVM {
   id: string;
@@ -69,6 +70,7 @@ export class CategoryComponent implements OnInit {
   }>;
   highlightApiControl: FormControl<string>;
   categoryDetailsInitialValue: unknown;
+  hasPortalNextEnabled: boolean = false;
 
   category$: Observable<Category>;
   pages$: Observable<Page[]>;
@@ -91,6 +93,7 @@ export class CategoryComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private matDialog: MatDialog,
+    private environmentSettingsService: EnvironmentSettingsService,
   ) {}
 
   ngOnInit() {
@@ -138,6 +141,8 @@ export class CategoryComponent implements OnInit {
     );
 
     this.pages$ = this.refreshData.pipe(switchMap((_) => this.documentationService.listPortalPages(PageType.MARKDOWN, true)));
+
+    this.hasPortalNextEnabled = this.environmentSettingsService.getSnapshot().portalNext?.access?.enabled === true;
   }
 
   onSubmit() {
