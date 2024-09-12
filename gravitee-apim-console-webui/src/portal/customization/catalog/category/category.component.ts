@@ -17,7 +17,7 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatDialog, MatDialogContent } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { filter, map, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -90,7 +90,6 @@ interface ApiVM {
     ReactiveFormsModule,
     RouterLink,
     PortalHeaderComponent,
-    MatDialogContent,
     CdkDropList,
     CdkDrag,
     MatIcon,
