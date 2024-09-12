@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 4.4.2_add_event_organizations
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - createTable:
             tableName: ${gravitee_prefix}event_organizations
@@ -42,6 +43,6 @@ databaseChangeLog:
                   type: nvarchar(64)
             tableName: ${gravitee_prefix}events_latest_environments
         - sql:
-            sql: insert into ${gravitee_prefix}event_organizations(event_id, organization_id) select e.id, env.organization_id from ${gravitee_prefix}events e join ${gravitee_prefix}event_environments ee on ee.event_id = e.id join ${gravitee_prefix}environments env on env.id = ee.environment_id;
+            sql: insert into ${gravitee_prefix}event_organizations(event_id, organization_id) select distinct e.id, env.organization_id from ${gravitee_prefix}events e join ${gravitee_prefix}event_environments ee on ee.event_id = e.id join ${gravitee_prefix}environments env on env.id = ee.environment_id;
         - sql:
-            sql: insert into ${gravitee_prefix}events_latest_organizations(event_id, organization_id) select e.id, env.organization_id from ${gravitee_prefix}events_latest e join ${gravitee_prefix}event_environments ee on ee.event_id = e.id join ${gravitee_prefix}environments env on env.id = ee.environment_id;
+            sql: insert into ${gravitee_prefix}events_latest_organizations(event_id, organization_id) select distinct e.id, env.organization_id from ${gravitee_prefix}events_latest e join ${gravitee_prefix}event_environments ee on ee.event_id = e.id join ${gravitee_prefix}environments env on env.id = ee.environment_id;
