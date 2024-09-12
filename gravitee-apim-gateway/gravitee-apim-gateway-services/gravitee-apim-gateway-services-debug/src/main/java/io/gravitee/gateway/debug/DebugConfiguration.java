@@ -31,6 +31,7 @@ import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFa
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -309,6 +310,7 @@ public class DebugConfiguration {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
+        RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
     ) {
         return new DebugHttpRequestDispatcher(
@@ -322,6 +324,7 @@ public class DebugConfiguration {
             notFoundProcessorChainFactory,
             tracingEnabled,
             requestTimeoutConfiguration,
+            requestClientAuthConfiguration,
             vertx
         );
     }
