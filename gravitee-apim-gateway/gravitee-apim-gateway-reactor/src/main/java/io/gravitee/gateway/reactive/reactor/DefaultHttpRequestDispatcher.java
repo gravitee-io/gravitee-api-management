@@ -86,6 +86,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final DefaultPlatformProcessorChainFactory platformProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    private final RequestClientAuthConfiguration requestClientAuthConfiguration;
     private final Vertx vertx;
     private final List<ChainHook> processorChainHooks;
     private final ComponentProvider globalComponentProvider;
@@ -113,6 +114,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
+        this.requestClientAuthConfiguration = requestClientAuthConfiguration;
         this.vertx = vertx;
 
         this.processorChainHooks = new ArrayList<>();
@@ -186,7 +188,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
-        VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+        VertxHttpServerRequest request = new VertxHttpServerRequest(
+            httpServerRequest,
+            idGenerator,
+            new VertxHttpServerRequest.VertxHttpServerRequestOptions(requestClientAuthConfiguration.getHeaderName())
+        );
 
         MutableExecutionContext ctx = createExecutionContext(request);
         ctx.componentProvider(globalComponentProvider);
