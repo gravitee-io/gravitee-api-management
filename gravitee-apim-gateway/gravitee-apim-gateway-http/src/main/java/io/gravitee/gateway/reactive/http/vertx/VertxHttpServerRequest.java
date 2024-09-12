@@ -24,9 +24,11 @@ import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.BufferFlow;
+import io.gravitee.gateway.reactive.core.DefaultTlsSession;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.reactivex.rxjava3.core.Flowable;
@@ -43,8 +45,13 @@ public class VertxHttpServerRequest extends AbstractRequest {
     protected final HttpServerRequest nativeRequest;
     private Boolean isWebSocket = null;
     private Boolean isStreaming = null;
+    private final VertxHttpServerRequestOptions options;
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
+        this(nativeRequest, idGenerator, new VertxHttpServerRequestOptions());
+    }
+
+    public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         this.nativeRequest = nativeRequest;
         this.originalHost = this.nativeRequest.host();
         this.timestamp = System.currentTimeMillis();
@@ -52,6 +59,7 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
         this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
         this.messageFlow = null;
+        this.options = options;
     }
 
     public VertxHttpServerResponse response() {
@@ -166,6 +174,14 @@ public class VertxHttpServerRequest extends AbstractRequest {
     }
 
     @Override
+    public TlsSession tlsSession() {
+        if (tlsSession == null) {
+            tlsSession = new DefaultTlsSession(nativeRequest.sslSession(), headers, options.clientAuthHeaderName());
+        }
+        return tlsSession;
+    }
+
+    @Override
     public boolean ended() {
         return nativeRequest.isEnded();
     }
@@ -230,5 +246,11 @@ public class VertxHttpServerRequest extends AbstractRequest {
 
         // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
         chunks(Flowable.empty());
+    }
+
+    public record VertxHttpServerRequestOptions(String clientAuthHeaderName) {
+        public VertxHttpServerRequestOptions() {
+            this(null);
+        }
     }
 }
