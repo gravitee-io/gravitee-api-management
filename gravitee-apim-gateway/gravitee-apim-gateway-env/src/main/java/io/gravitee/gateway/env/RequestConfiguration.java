@@ -26,9 +26,9 @@ import org.springframework.context.annotation.Configuration;
  * @author GraviteeSource Team
  */
 @Configuration
-public class TimeoutConfiguration {
+public class RequestConfiguration {
 
-    public static final Logger log = LoggerFactory.getLogger(TimeoutConfiguration.class);
+    public static final Logger log = LoggerFactory.getLogger(RequestConfiguration.class);
 
     @Bean
     public RequestTimeoutConfiguration httpRequestTimeoutConfiguration(
@@ -42,5 +42,12 @@ public class TimeoutConfiguration {
             log.warn("A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms");
         }
         return new RequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay);
+    }
+
+    @Bean
+    public RequestClientAuthConfiguration httpRequestClientAuthConfiguration(
+        @Value("${http.ssl.clientAuthHeader.name:#{null}}") String headerName
+    ) {
+        return new RequestClientAuthConfiguration(headerName);
     }
 }
