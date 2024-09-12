@@ -1,17 +1,14 @@
-@use 'sass:map';
 @use '@angular/material/index' as mat;
 @use '@gravitee/ui-particles-angular/index' as gio;
 
-$typography: map.get(gio.$mat-theme, typography);
-
-.header {
+.portal-header {
   display: flex;
-  gap: 4px;
   flex-flow: column;
-  margin-bottom: 24px;
+  gap: 18px;
+
+  margin-bottom: 28px;
 
   &__subtitle {
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.m2-typography-level($typography, 'body-2');
   }
 }
