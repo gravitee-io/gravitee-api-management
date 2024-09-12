@@ -18,7 +18,7 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { BehaviorSubject, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { filter, map, tap } from 'rxjs/operators';
+import { catchError, filter, map, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -159,6 +159,12 @@ export class CategoryCatalogComponent implements OnInit {
           contextPath: api.accessPaths?.join(','),
           order: api.order,
         }));
+      }),
+      catchError((_) => of([])),
+      tap((apis) => {
+        if (apis.length < 2) {
+          this.displayedColumns.shift();
+        }
       }),
     );
   }

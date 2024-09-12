@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Subject, of } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -188,7 +188,11 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
             };
           }),
         ),
+        catchError((_) => of([])),
         tap((linkListVM) => {
+          if (linkListVM.length < 2) {
+            this.displayedColumns.shift();
+          }
           this.dataSource = linkListVM;
           this.canAddLink = this.dataSource.length < 5;
         }),

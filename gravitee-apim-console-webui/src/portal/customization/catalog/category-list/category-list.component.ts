@@ -115,6 +115,11 @@ export class CategoryListComponent implements OnInit {
       switchMap((_) => this.categoryService.list(true)),
       map((categories) => categories.sort((a, b) => a.order - b.order)),
       catchError((_) => of([])),
+      tap((categories) => {
+        if (categories.length < 2) {
+          this.displayedColumns.shift();
+        }
+      }),
     );
   }
 

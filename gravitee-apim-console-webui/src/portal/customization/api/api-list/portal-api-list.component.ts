@@ -115,6 +115,9 @@ export class PortalApiListComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((apiPortalHeaders: ApiPortalHeader[]): void => {
+        if (apiPortalHeaders.length < 2) {
+          this.displayedColumns.shift();
+        }
         this.dataSource = apiPortalHeaders;
       });
   }
