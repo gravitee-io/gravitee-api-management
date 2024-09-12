@@ -164,7 +164,7 @@
         <gravitee-alert-engine-connectors-ws.version>2.1.0</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>3.1.4</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>4.0.1</gravitee-policy-apikey.version>
-        <gravitee-policy-assign-attributes.version>2.0.1</gravitee-policy-assign-attributes.version>
+        <gravitee-policy-assign-attributes.version>2.0.2</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>2.0.1</gravitee-policy-assign-content.version>
         <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
         <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
