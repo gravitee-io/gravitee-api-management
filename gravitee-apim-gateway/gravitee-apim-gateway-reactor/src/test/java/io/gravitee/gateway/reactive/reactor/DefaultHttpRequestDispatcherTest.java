@@ -25,6 +25,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
@@ -122,6 +123,9 @@ class DefaultHttpRequestDispatcherTest {
     @Mock
     private RequestTimeoutConfiguration requestTimeoutConfiguration;
 
+    @Mock
+    private RequestClientAuthConfiguration requestClientAuthConfiguration;
+
     private DefaultHttpRequestDispatcher cut;
 
     @BeforeEach
@@ -170,6 +174,7 @@ class DefaultHttpRequestDispatcherTest {
                 notFoundProcessorChainFactory,
                 false,
                 requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
                 vertx
             );
         //TODO: to check: is this needed ?

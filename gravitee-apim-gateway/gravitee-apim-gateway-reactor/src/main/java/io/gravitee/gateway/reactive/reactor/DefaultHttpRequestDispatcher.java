@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
@@ -100,6 +101,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
+        RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
     ) {
         this.gatewayConfiguration = gatewayConfiguration;

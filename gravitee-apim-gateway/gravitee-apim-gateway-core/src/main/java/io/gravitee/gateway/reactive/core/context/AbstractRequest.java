@@ -21,6 +21,7 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.TlsSession;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.BufferFlow;
@@ -63,6 +64,7 @@ public abstract class AbstractRequest implements MutableRequest {
     protected String remoteAddress;
     protected String localAddress;
     protected SSLSession sslSession;
+    protected TlsSession tlsSession;
     protected boolean ended;
     protected WebSocket webSocket;
 
@@ -167,6 +169,11 @@ public abstract class AbstractRequest implements MutableRequest {
     @Override
     public SSLSession sslSession() {
         return sslSession;
+    }
+
+    @Override
+    public TlsSession tlsSession() {
+        return tlsSession;
     }
 
     @Override
