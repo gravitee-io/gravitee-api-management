@@ -70,6 +70,9 @@ public class SubscriptionTrustStoreLoaderManager {
     public void unregisterSubscription(Subscription subscription) {
         final SubscriptionTrustStoreLoader loader = subscriptionTrustStoreLoaders.remove(subscription.getId());
         if (loader != null) {
+            subscriptionsByApi.remove(
+                buildCacheKeyFromCertificateDigest(subscription.getApi(), loader.certificateDigest(), subscription.getPlan())
+            );
             log.debug("Stopping TrustStoreLoader for subscription {}", subscription.getId());
             loader.stop();
             loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));
