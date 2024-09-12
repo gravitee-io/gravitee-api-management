@@ -42,24 +42,20 @@ describe('CatalogComponent', () => {
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
 
-  const init = async (
+  const initBase = async (
     params: Partial<{
-      apisResponse: ApisResponse;
       page: number;
       size: number;
       query: string;
       categoryId: string;
-      categoriesResponse: Categories;
       userIsConnected: boolean;
       primaryButton: BannerButton;
       secondaryButton: BannerButton;
     }> = {
-      apisResponse: fakeApisResponse(),
       page: 1,
       size: 18,
       query: '',
       categoryId: '',
-      categoriesResponse: fakeCategoriesResponse(),
       userIsConnected: false,
       primaryButton: { enabled: false },
       secondaryButton: { enabled: false },
@@ -107,7 +103,31 @@ describe('CatalogComponent', () => {
     routerNavigateSpy = jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
-
+  };
+  const init = async (
+    params: Partial<{
+      apisResponse: ApisResponse;
+      page: number;
+      size: number;
+      query: string;
+      categoryId: string;
+      categoriesResponse: Categories;
+      userIsConnected: boolean;
+      primaryButton: BannerButton;
+      secondaryButton: BannerButton;
+    }> = {
+      apisResponse: fakeApisResponse(),
+      page: 1,
+      size: 18,
+      query: '',
+      categoryId: '',
+      categoriesResponse: fakeCategoriesResponse(),
+      userIsConnected: false,
+      primaryButton: { enabled: false },
+      secondaryButton: { enabled: false },
+    },
+  ) => {
+    await initBase(params);
     expectApiList(params.apisResponse, params.page, params.size, params.query, params.categoryId);
     expectCategoriesList(params.categoriesResponse);
     fixture.detectChanges();
@@ -247,14 +267,44 @@ describe('CatalogComponent', () => {
   });
 
   describe('empty component', () => {
-    beforeEach(async () => {
-      await init({ apisResponse: fakeApisResponse({ data: [] }) });
+    describe('when no results', () => {
+      beforeEach(async () => {
+        await init({ apisResponse: fakeApisResponse({ data: [] }) });
+      });
+
+      it('should show empty API list', async () => {
+        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
+        expect(noApiCard).toBeTruthy();
+        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
+      });
     });
 
-    it('should show empty API list', async () => {
-      const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-      expect(noApiCard).toBeTruthy();
-      expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
+    describe('when error occurs', () => {
+      it('should show empty API list if no search params', async () => {
+        await initBase();
+        expectCategoriesList();
+        httpTestingController
+          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=&size=18&q=`)
+          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
+        fixture.detectChanges();
+
+        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
+        expect(noApiCard).toBeTruthy();
+        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
+      });
+
+      it('should show empty API list if search params in request', async () => {
+        await initBase({ categoryId: 'my-category' });
+        expectCategoriesList(fakeCategoriesResponse({ data: [fakeCategory({ id: 'my-category' })] }));
+        httpTestingController
+          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=my-category&size=18&q=`)
+          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
+        fixture.detectChanges();
+
+        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
+        expect(noApiCard).toBeTruthy();
+        expect(await noApiCard.getText()).toContain(`Your search didn't return any APIs`);
+      });
     });
   });
 
