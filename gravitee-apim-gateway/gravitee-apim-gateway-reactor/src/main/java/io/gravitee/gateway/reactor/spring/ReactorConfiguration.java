@@ -24,6 +24,7 @@ import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.DefaultTcpSocketDispatcher;
@@ -154,6 +155,7 @@ public class ReactorConfiguration {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
+        RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
     ) {
         return new DefaultHttpRequestDispatcher(
@@ -167,6 +169,7 @@ public class ReactorConfiguration {
             notFoundProcessorChainFactory,
             tracingEnabled,
             requestTimeoutConfiguration,
+            requestClientAuthConfiguration,
             vertx
         );
     }

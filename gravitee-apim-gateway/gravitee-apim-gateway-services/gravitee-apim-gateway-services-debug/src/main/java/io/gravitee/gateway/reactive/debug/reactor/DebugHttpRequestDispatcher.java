@@ -19,6 +19,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
@@ -49,6 +50,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
+        RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx
     ) {
         super(
@@ -62,6 +64,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             notFoundProcessorChainFactory,
             tracingEnabled,
             requestTimeoutConfiguration,
+            requestClientAuthConfiguration,
             vertx
         );
     }
