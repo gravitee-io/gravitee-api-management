@@ -23,7 +23,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -37,16 +36,16 @@ import org.slf4j.LoggerFactory;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class TimeoutConfigurationTest {
+class RequestConfigurationTest {
 
-    private TimeoutConfiguration cut;
+    private RequestConfiguration cut;
 
     private ListAppender<ILoggingEvent> listAppender;
 
     @BeforeEach
     void setUp() {
         // get Logback Logger
-        Logger logger = (Logger) LoggerFactory.getLogger(TimeoutConfiguration.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(RequestConfiguration.class);
 
         // create and start a ListAppender
         listAppender = new ListAppender<>();
@@ -56,7 +55,7 @@ class TimeoutConfigurationTest {
         // addAppender is outdated now
         logger.addAppender(listAppender);
 
-        cut = new TimeoutConfiguration();
+        cut = new RequestConfiguration();
     }
 
     @Test
