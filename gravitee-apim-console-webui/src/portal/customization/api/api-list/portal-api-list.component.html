@@ -19,8 +19,8 @@
   <form [formGroup]="form">
     <div class="menu-api-container">
       <mat-card class="api-style">
-        <mat-card-content class="categories__content">
-          <div class="menu-api__content__header">
+        <mat-card-content class="api-style__content">
+          <div class="api-style__content__header">
             <div class="api-style__content__header__title">
               <h3>API Subscription</h3>
               <span class="gio-badge-warning" data-testid="badge-warning-1">
@@ -33,20 +33,18 @@
             <mat-form-field appearance="outline" class="api-key-header">
               <input matInput formControlName="apiKeyHeader" />
               <mat-label>API Key Header</mat-label>
+              <mat-hint
+                >Used to display CURL commands in the Developer Portal. To ensure valid CURL commands, make sure this value matches the
+                defined API Key Header in the Gateway YAML configuration.
+              </mat-hint>
             </mat-form-field>
-          </div>
-          <div>
-            <mat-hint
-              >Used to display CURL commands in the Developer Portal. To insure valid CURL commands, make sure this value matches the
-              defined API Key Header in the Gateway YAML configuration.
-            </mat-hint>
           </div>
         </mat-card-content>
       </mat-card>
-      <mat-card class="api-style">
-        <mat-card-content>
+      <mat-card>
+        <mat-card-content class="api-style__content">
           <div class="api-style__content__header__title-row">
-            <div>
+            <div class="api-style__content__header">
               <div class="api-style__content__header__title">
                 <h3>API Details</h3>
                 <span class="gio-badge-warning" data-testid="badge-warning-2">
@@ -67,84 +65,84 @@
               Add Information
             </button>
           </div>
+          <table
+            mat-table
+            class="gio-table-light"
+            [dataSource]="dataSource"
+            cdkDropList
+            (cdkDropListDropped)="drop($event)"
+            cdkDropListData="dataSource"
+          >
+            <caption style="display: none">
+              Table with API Information
+            </caption>
+
+            <!-- Position Column -->
+            <ng-container matColumnDef="order" sticky>
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let element">
+                <mat-icon class="drag-cursor">drag_indicator</mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+            </ng-container>
+
+            <!-- Value Column -->
+            <ng-container matColumnDef="value">
+              <th mat-header-cell *matHeaderCellDef>Value</th>
+              <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let element">
+                <div>
+                  <button
+                    (click)="updateHeader(element)"
+                    mat-icon-button
+                    aria-label="Button to edit header"
+                    matTooltip="Edit header"
+                    *gioPermission="{ anyOf: ['environment-settings-c', 'environment-settings-u', 'environment-settings-d'] }"
+                    data-testid="edit-button"
+                  >
+                    <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
+                  </button>
+
+                  <button
+                    (click)="deleteHeader(element)"
+                    mat-icon-button
+                    aria-label="Button to delete header"
+                    matTooltip="Delete header"
+                    *gioPermission="{ anyOf: ['environment-settings-d'] }"
+                    data-testid="delete-button"
+                  >
+                    <mat-icon data-testid="api_list_edit_button">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              data-testid="link_table_row"
+              cdkDrag
+              [cdkDragData]="row"
+              cdkDragLockAxis="y"
+            ></tr>
+
+            <!-- Row shown when there is no data -->
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow data-testid="no-data-row">
+              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No headers to display.</td>
+            </tr>
+          </table>
         </mat-card-content>
-        <table
-          mat-table
-          class="gio-table-light"
-          [dataSource]="dataSource"
-          cdkDropList
-          (cdkDropListDropped)="drop($event)"
-          cdkDropListData="dataSource"
-        >
-          <caption style="display: none">
-            Table with API Information
-          </caption>
-
-          <!-- Position Column -->
-          <ng-container matColumnDef="order" sticky>
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let element">
-              <mat-icon class="drag-cursor">drag_indicator</mat-icon>
-            </td>
-          </ng-container>
-
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-          </ng-container>
-
-          <!-- Value Column -->
-          <ng-container matColumnDef="value">
-            <th mat-header-cell *matHeaderCellDef>Value</th>
-            <td mat-cell *matCellDef="let element">{{ element.value }}</td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let element">
-              <div>
-                <button
-                  (click)="updateHeader(element)"
-                  mat-icon-button
-                  aria-label="Button to edit header"
-                  matTooltip="Edit header"
-                  *gioPermission="{ anyOf: ['environment-settings-c', 'environment-settings-u', 'environment-settings-d'] }"
-                  data-testid="edit-button"
-                >
-                  <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
-                </button>
-
-                <button
-                  (click)="deleteHeader(element)"
-                  mat-icon-button
-                  aria-label="Button to delete header"
-                  matTooltip="Delete header"
-                  *gioPermission="{ anyOf: ['environment-settings-d'] }"
-                  data-testid="delete-button"
-                >
-                  <mat-icon data-testid="api_list_edit_button">delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-            data-testid="link_table_row"
-            cdkDrag
-            [cdkDragData]="row"
-            cdkDragLockAxis="y"
-          ></tr>
-
-          <!-- Row shown when there is no data -->
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow data-testid="no-data-row">
-            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No headers to display.</td>
-          </tr>
-        </table>
       </mat-card>
       <gio-save-bar [form]="form" [formInitialValues]="formInitialValues" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
     </div>
