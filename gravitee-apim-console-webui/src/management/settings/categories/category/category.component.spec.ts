@@ -29,6 +29,7 @@ import { MatIconHarness } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
 
 import { CategoryComponent } from './category.component';
 
@@ -44,6 +45,8 @@ import { CategoryApi } from '../../../../entities/management-api-v2/category/cat
 import { fakeCategoryApi } from '../../../../entities/management-api-v2/category/categoryApi.fixture';
 import { UpdateCategoryApi } from '../../../../entities/management-api-v2/category/updateCategoryApi';
 import { GioApiSelectDialogHarness } from '../../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.harness';
+import { EnvSettings } from '../../../../entities/Constants';
+import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
 
 describe('CategoryComponent', () => {
   let component: CategoryComponent;
@@ -65,7 +68,20 @@ describe('CategoryComponent', () => {
     highlightApi: 'highlight',
   };
 
-  const init = async (categoryId: string) => {
+  const DEFAULT_PORTAL_SETTINGS = {
+    portalNext: {
+      access: {
+        enabled: true,
+      },
+      banner: {
+        enabled: true,
+        title: 'testTitle',
+        subtitle: 'testSubtitle',
+      },
+    },
+  };
+
+  const init = async (categoryId: string, snapshot: Partial<EnvSettings> = DEFAULT_PORTAL_SETTINGS) => {
     await TestBed.configureTestingModule({
       declarations: [CategoryComponent],
       imports: [NoopAnimationsModule, GioTestingModule, CategoriesModule],
@@ -84,6 +100,7 @@ describe('CategoryComponent', () => {
             'environment-api-r',
           ],
         },
+        { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot } },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -393,6 +410,42 @@ describe('CategoryComponent', () => {
       expectUpdateApi({ ...apiToAdd, categories: [CAT_API_LIST.key] }, { ...apiToAdd, categories: [CAT_API_LIST.key] });
 
       expectGetCategoryApis(CAT_API_LIST.id);
+    });
+  });
+
+  describe('Applies to both portal badge', () => {
+    it('should show the badge in both headers if portal-next is enabled', async () => {
+      await init(CATEGORY.id, { portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, access: { enabled: true } } });
+      expectGetCategory(CATEGORY);
+      fixture.detectChanges();
+
+      expectPortalPagesList();
+      expectGetCategoryApis(CATEGORY.id);
+      fixture.detectChanges();
+
+      const matCards = await harnessLoader.getAllHarnesses(MatCardHarness);
+      expect(matCards).toHaveLength(2);
+
+      expect(await matCards[0].getText()).toContain('Applies to both portals');
+      expect(await matCards[1].getText()).toContain('Applies to both portals');
+    });
+    it('should not show the badge in both headers if portal-next is disabled', async () => {
+      await init(CATEGORY.id, { portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, access: { enabled: false } } });
+      expectGetCategory(CATEGORY);
+      fixture.detectChanges();
+
+      expectPortalPagesList();
+      expectGetCategoryApis(CATEGORY.id);
+      fixture.detectChanges();
+
+      const matCards = await harnessLoader.getAllHarnesses(MatCardHarness);
+      expect(matCards).toHaveLength(2);
+
+      const generalCardText = await matCards[0].getText();
+      expect(generalCardText.includes('Applies to both portals')).toEqual(false);
+
+      const apisCardText = await matCards[1].getText();
+      expect(apisCardText.includes('Applies to both portals')).toEqual(false);
     });
   });
 

@@ -24,6 +24,7 @@ import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing'
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { By } from '@angular/platform-browser';
 
 import { CategoriesModule } from './categories.module';
 import { CategoriesComponent } from './categories.component';
@@ -74,6 +75,16 @@ describe('CategoriesComponent', () => {
         automaticValidation: { enabled: true },
       },
       uploadMedia: { enabled: true, maxSizeInOctet: 10 },
+    },
+    portalNext: {
+      access: {
+        enabled: true,
+      },
+      banner: {
+        enabled: true,
+        title: 'testTitle',
+        subtitle: 'testSubtitle',
+      },
     },
   };
 
@@ -248,6 +259,32 @@ describe('CategoriesComponent', () => {
 
       expectDeleteCategory(CATEGORIES()[0].id);
       expectGetCategoriesList();
+    });
+  });
+
+  describe('Applies to both portals badge', () => {
+    it('should show badge when portal next is enabled', async () => {
+      await init({ ...DEFAULT_PORTAL_SETTINGS, portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, access: { enabled: true } } });
+      expectGetCategoriesList([
+        { id: 'cat-1', name: 'cat-1', key: 'cat-1', order: 1, hidden: false, description: 'nice cat', totalApis: 1 },
+      ]);
+      fixture.detectChanges();
+
+      const title = fixture.debugElement.query(By.css('.title'));
+      const element: HTMLDivElement = title.nativeElement;
+      expect(element.innerHTML).toContain('Applies to both portals');
+    });
+    it('should not show badge when portal next is disabled', async () => {
+      await init({ ...DEFAULT_PORTAL_SETTINGS, portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, access: { enabled: false } } });
+      expectGetCategoriesList([
+        { id: 'cat-1', name: 'cat-1', key: 'cat-1', order: 1, hidden: false, description: 'nice cat', totalApis: 1 },
+      ]);
+      fixture.detectChanges();
+
+      const title = fixture.debugElement.query(By.css('.title'));
+      const element: HTMLDivElement = title.nativeElement;
+      const innerHTML = element.innerHTML;
+      expect(innerHTML.includes('Applies to both portals')).toEqual(false);
     });
   });
 

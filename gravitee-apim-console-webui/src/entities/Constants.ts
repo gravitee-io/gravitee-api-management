@@ -196,9 +196,9 @@ export interface EnvSettings {
       enabled: boolean;
     };
     banner: {
-      enabled: true;
-      title: 'testTitle';
-      subtitle: 'testSubtitle';
+      enabled: boolean;
+      title: string;
+      subtitle: string;
     };
   };
   reCaptcha: {
