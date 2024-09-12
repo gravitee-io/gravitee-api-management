@@ -6,6 +6,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_prefix}scoring_reports
             columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
               - column: { name: report_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: api_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: page_id, type: nvarchar(64), constraints: { nullable: false } }
