@@ -26,7 +26,7 @@ public class EventLatestCrudInMemory implements EventLatestCrudService, InMemory
 
     @Override
     public Event createOrPatchLatestEvent(String organizationId, String latestEventId, Event event) {
-        event.setId(latestEventId);
+        event = event.toBuilder().id(latestEventId).build();
         if (storage.contains(event)) {
             storage.remove(event);
         }

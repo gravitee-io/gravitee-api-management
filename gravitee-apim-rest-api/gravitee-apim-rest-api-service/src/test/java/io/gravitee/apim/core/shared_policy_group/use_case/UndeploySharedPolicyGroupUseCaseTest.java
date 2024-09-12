@@ -167,7 +167,7 @@ class UndeploySharedPolicyGroupUseCaseTest {
             .first()
             .satisfies(event -> {
                 // The Event latest is generated with ID equals to shared policy group cross id
-                assertThat(event.getId()).isEqualTo(SHARED_POLICY_GROUP_CROSS_ID);
+                assertThat(event.getId()).isEqualTo(SHARED_POLICY_GROUP_ID);
                 assertThat(event.getEnvironments()).containsExactly(ENV_ID);
                 assertThat(event.getProperties())
                     .containsAllEntriesOf(

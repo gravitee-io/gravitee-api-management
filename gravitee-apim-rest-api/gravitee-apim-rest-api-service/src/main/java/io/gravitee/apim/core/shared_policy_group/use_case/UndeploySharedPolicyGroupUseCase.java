@@ -103,7 +103,7 @@ public class UndeploySharedPolicyGroupUseCase {
             )
         );
 
-        eventLatestCrudService.createOrPatchLatestEvent(input.auditInfo.organizationId(), sharedPolicyGroup.getCrossId(), event);
+        eventLatestCrudService.createOrPatchLatestEvent(input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
     }
 
     private void createAuditLog(SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
