@@ -40,6 +40,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isEqual } from 'lodash';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
@@ -314,8 +315,12 @@ export class DocumentationEditPageComponent implements OnInit {
         };
         return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.page.id, updateDocumentation);
       }),
-      catchError((err) => {
-        this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 500 && err.error.message.includes('fetch') && !!this.page.source?.type) {
+          this.snackBarService.error('External source configuration invalid.');
+        } else {
+          this.snackBarService.error(err.error?.message ?? 'Error during page update.');
+        }
         return EMPTY;
       }),
     );

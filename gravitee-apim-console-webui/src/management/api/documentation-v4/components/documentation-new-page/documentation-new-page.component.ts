@@ -36,6 +36,7 @@ import { catchError, debounceTime, distinctUntilChanged, switchMap, tap } from '
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
@@ -302,8 +303,12 @@ export class DocumentationNewPageComponent implements OnInit {
         }),
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
-      catchError((err) => {
-        this.snackBarService.error(err?.error?.message ?? 'Cannot save page');
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 500 && err.error.message.includes('fetch') && formValue.sourceType === 'EXTERNAL') {
+          this.snackBarService.error('External source configuration invalid.');
+        } else {
+          this.snackBarService.error(err.error?.message ?? 'Error during page creation.');
+        }
         return EMPTY;
       }),
     );
