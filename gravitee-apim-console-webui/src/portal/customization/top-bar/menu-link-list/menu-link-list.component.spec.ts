@@ -84,7 +84,7 @@ describe('MenuLinkListComponent', () => {
     expect(await harness.countRows()).toEqual(2);
     const row1 = await harness.getRowByIndex(0);
     expect(row1.name).toEqual('public');
-    expect(row1.type).toEqual('Link to a Website');
+    expect(row1.type).toEqual('Website');
     expect(row1.target).toEqual('target1');
     expect(row1.visibility).toEqual('Public');
     expect(row1.updateButton).toBeTruthy();
@@ -92,7 +92,7 @@ describe('MenuLinkListComponent', () => {
 
     const row2 = await harness.getRowByIndex(1);
     expect(row2.name).toEqual('private');
-    expect(row2.type).toEqual('Link to a Website');
+    expect(row2.type).toEqual('Website');
     expect(row2.target).toEqual('target2');
     expect(row2.visibility).toEqual('Private');
     expect(row2.updateButton).toBeTruthy();
@@ -113,7 +113,7 @@ describe('MenuLinkListComponent', () => {
     expect(await dia.targetFieldExists()).toBeTruthy();
     expect(await dia.visibilitySelectExists()).toBeTruthy();
 
-    await dia.selectType('Link to a Website');
+    await dia.selectType('Website');
     await dia.fillOutName('a name');
     await dia.fillOutTarget('https://my.target');
     await dia.selectVisibility('PRIVATE');

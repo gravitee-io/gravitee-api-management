@@ -52,6 +52,10 @@ $typography: map.get(gio.$mat-theme, typography);
   width: 1%;
 }
 
+.badge-column-header {
+  padding-left: 12px;
+}
+
 .mat-column-name {
   width: 25%;
 }

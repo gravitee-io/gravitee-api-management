@@ -43,6 +43,13 @@ $typography: map.get(gio.$mat-theme, typography);
 
       &__button {
         width: 100%;
+
+        &__content {
+          display: flex;
+          line-height: normal;
+          align-items: center;
+          gap: 6px;
+        }
       }
     }
   }

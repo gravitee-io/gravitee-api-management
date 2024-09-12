@@ -26,7 +26,14 @@
       <mat-button-toggle-group id="type" aria-label="Select Link type" formControlName="type" class="menu-link-dialog__form__types">
         @for (linkType of linksType; track linkType.type) {
           <mat-button-toggle class="menu-link-dialog__form__types__button" [value]="linkType.type" [disabled]="linkType.disabled">
-            {{ linkType.name }}
+            @if (linkType.disabled) {
+              <span class="menu-link-dialog__form__types__button__content">
+                {{ linkType.name }}
+                <span class="gio-badge-neutral">Coming soon</span>
+              </span>
+            } @else {
+              {{ linkType.name }}
+            }
           </mat-button-toggle>
         }
       </mat-button-toggle-group>

@@ -22,7 +22,7 @@ export type PortalMenuLinkType = (typeof PORTAL_MENU_LINK_TYPES)[number];
 export const toReadableMenuLinkType = (menuLinkType: PortalMenuLinkType): string => {
   switch (menuLinkType) {
     case 'EXTERNAL':
-      return 'Link to a Website';
+      return 'Website';
   }
 };
 
