@@ -16,38 +16,34 @@
 
 -->
 @if (category$ | async; as category) {
-  <div class="menu-category__content__header__title">
+  <div class="category__content__header">
     <gio-go-back-button routerLink="../.."></gio-go-back-button>
-    <h4 class="center-vertical">Catalog</h4>
+    <h4>Catalog</h4>
   </div>
-  <form [formGroup]="categoryDetails" class="content">
+  <form [formGroup]="categoryDetails" class="category__form">
     <mat-card>
-      <mat-card-content>
-        <div class="menu-category__content__header__title">
-          <h3 class="subtitle-vertical">General</h3>
+      <mat-card-content class="category__content">
+        <div class="category__content__header">
+          <h3>General</h3>
           <span class="gio-badge-warning"><mat-icon svgIcon="gio:chat-lines"></mat-icon>&nbsp;Applies to both portals</span>
         </div>
-        <mat-dialog-content>
-          <div class="menu-category__form">
-            <mat-form-field appearance="outline">
-              <input matInput formControlName="name" />
-              <mat-label>Name</mat-label>
-            </mat-form-field>
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="name" />
+          <mat-label>Name</mat-label>
+        </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <input matInput formControlName="description" />
-              <mat-label>Description</mat-label>
-            </mat-form-field>
-          </div>
-        </mat-dialog-content>
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="description" />
+          <mat-label>Description</mat-label>
+        </mat-form-field>
       </mat-card-content>
     </mat-card>
     @if (mode === 'edit') {
       <mat-card *gioPermission="{ anyOf: ['environment-api-r'] }">
-        <mat-card-content>
-          <div class="apis__title">
-            <div class="menu-category__content__header__title">
-              <h3 class="subtitle-vertical">APIs</h3>
+        <mat-card-content class="category__content">
+          <div class="category__apis__title">
+            <div class="category__content__header">
+              <h3>APIs</h3>
               <span class="gio-badge-warning"><mat-icon svgIcon="gio:chat-lines"></mat-icon>&nbsp;Applies to both portals</span>
             </div>
             <button
@@ -61,86 +57,86 @@
               Add API to Category
             </button>
           </div>
+          @if (apis$ | async; as apis) {
+            <table
+              mat-table
+              class="gio-table-light"
+              [dataSource]="apis"
+              id="categoriesTable"
+              aria-label="Categories table"
+              cdkDropList
+              (cdkDropListDropped)="drop($event)"
+              cdkDropListData="dataSource"
+            >
+              <!-- Position Column -->
+              <ng-container matColumnDef="order" sticky>
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let element">
+                  <mat-icon class="drag-cursor">drag_indicator</mat-icon>
+                </td>
+              </ng-container>
+
+              <!-- Display Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+                <td mat-cell *matCellDef="let element">
+                  <div class="category__table__name">
+                    {{ element.name }}
+                  </div>
+                </td>
+              </ng-container>
+              <!-- Display Version Column -->
+              <ng-container matColumnDef="version">
+                <th mat-header-cell *matHeaderCellDef id="version">Version</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.version }}
+                </td>
+              </ng-container>
+
+              <!-- Display Context Path Column -->
+              <ng-container matColumnDef="contextPath">
+                <th mat-header-cell *matHeaderCellDef id="context-path">Context path</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.contextPath }}
+                </td>
+              </ng-container>
+
+              <!-- Display Context Path Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef id="api-list-actions">Actions</th>
+                <td mat-cell *matCellDef="let element">
+                  <div class="category__table__actions">
+                    <button
+                      mat-button
+                      (click)="removeApiFromCategory(element, category)"
+                      matTooltip="Remove API"
+                      *gioPermission="{ anyOf: ['environment-api-u'] }"
+                    >
+                      <mat-icon svgIcon="gio:trash"></mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: displayedColumns"
+                data-testid="link_table_row"
+                cdkDrag
+                [cdkDragData]="row"
+                cdkDragLockAxis="y"
+              ></tr>
+
+              <!-- Row shown when there is no data -->
+              <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+                <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+                  There are no APIs for this category.
+                </td>
+              </tr>
+            </table>
+          }
         </mat-card-content>
-        @if (apis$ | async; as apis) {
-          <table
-            mat-table
-            class="gio-table-light"
-            [dataSource]="apis"
-            id="categoriesTable"
-            aria-label="Categories table"
-            cdkDropList
-            (cdkDropListDropped)="drop($event)"
-            cdkDropListData="dataSource"
-          >
-            <!-- Position Column -->
-            <ng-container matColumnDef="order" sticky>
-              <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let element">
-                <mat-icon class="drag-cursor">drag_indicator</mat-icon>
-              </td>
-            </ng-container>
-
-            <!-- Display Name Column -->
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-              <td mat-cell *matCellDef="let element">
-                <div class="apis__table__name">
-                  {{ element.name }}
-                </div>
-              </td>
-            </ng-container>
-            <!-- Display Version Column -->
-            <ng-container matColumnDef="version">
-              <th mat-header-cell *matHeaderCellDef id="version">Version</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.version }}
-              </td>
-            </ng-container>
-
-            <!-- Display Context Path Column -->
-            <ng-container matColumnDef="contextPath">
-              <th mat-header-cell *matHeaderCellDef id="context-path">Context path</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.contextPath }}
-              </td>
-            </ng-container>
-
-            <!-- Display Context Path Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef id="api-list-actions">Actions</th>
-              <td mat-cell *matCellDef="let element">
-                <div class="apis__table__actions">
-                  <button
-                    mat-button
-                    (click)="removeApiFromCategory(element, category)"
-                    matTooltip="Remove API"
-                    *gioPermission="{ anyOf: ['environment-api-u'] }"
-                  >
-                    <mat-icon svgIcon="gio:trash"></mat-icon>
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr
-              mat-row
-              *matRowDef="let row; columns: displayedColumns"
-              data-testid="link_table_row"
-              cdkDrag
-              [cdkDragData]="row"
-              cdkDragLockAxis="y"
-            ></tr>
-
-            <!-- Row shown when there is no data -->
-            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-                There are no APIs for this category.
-              </td>
-            </tr>
-          </table>
-        }
       </mat-card>
     }
 

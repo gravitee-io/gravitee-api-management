@@ -17,26 +17,24 @@
 -->
 <mat-card class="menu-catalog">
   <mat-card-content class="categories__content">
-    <div class="menu-category__content__header">
-      <div>
-        <div class="menu-category__content__header__title">
+    <div class="categories__header">
+      <div class="categories__header__information">
+        <div class="categories__header__information__title">
           <h3>Categories</h3>
           <span class="gio-badge-warning"><mat-icon svgIcon="gio:chat-lines"></mat-icon>&nbsp;Applies to both portals</span>
         </div>
-        <div class="menu-category__content__header__description">Organize your API into categories</div>
+        <div class="mat-body-2">Organize your API into categories</div>
       </div>
-      <div class="menu-category__header__action">
-        <button
-          class="add-button"
-          [routerLink]="['category', 'new']"
-          mat-raised-button
-          color="primary"
-          *gioPermission="{ anyOf: ['environment-category-c'] }"
-        >
-          <mat-icon>add</mat-icon>
-          Add Category
-        </button>
-      </div>
+      <button
+        class="add-button"
+        [routerLink]="['category', 'new']"
+        mat-raised-button
+        color="primary"
+        *gioPermission="{ anyOf: ['environment-category-c'] }"
+      >
+        <mat-icon>add</mat-icon>
+        Add Category
+      </button>
     </div>
 
     <table

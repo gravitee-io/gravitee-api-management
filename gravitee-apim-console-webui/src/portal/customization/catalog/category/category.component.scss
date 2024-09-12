@@ -13,90 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../scss/gio-layout' as gio-layout;
-@use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
-$typography: map.get(gio.$mat-theme, typography);
+:host {
+  display: flex;
+  flex-flow: column;
+  gap: 10px;
+}
 
-.menu-category {
+.category {
+  &__form {
+    display: flex;
+    flex-flow: column;
+    gap: 24px;
+  }
   &__content {
     display: flex;
     flex-flow: column;
-    gap: 12px;
+    gap: 16px;
 
     &__header {
       display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-
-      &__title {
-        display: flex;
-        flex-flow: row;
-        gap: 8px;
-      }
-    }
-  }
-
-  &__form {
-    display: flex;
-    flex-direction: column;
-
-    &__row {
-      display: flex;
+      flex-flow: row;
       gap: 8px;
-      mat-form-field {
-        flex: 1 1 100%;
+      align-items: center;
+
+      h3,
+      h4 {
+        margin: 0;
       }
     }
-  }
-}
-
-.title {
-  display: flex;
-  flex-flow: row;
-}
-
-.content {
-  display: flex;
-  flex-flow: column;
-  gap: 48px;
-}
-
-.general {
-  display: flex;
-  gap: 12px;
-
-  &__left {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    flex: 1;
-  }
-
-  &__right {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-
-    &__text {
-      @include mat.m2-typography-level($typography, caption);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 114px;
-    }
-  }
-}
-
-.apis {
-  &__title {
-    display: flex;
-    flex-flow: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px 12px 20px;
   }
   &__table {
     &__name {
@@ -107,18 +51,18 @@ $typography: map.get(gio.$mat-theme, typography);
       display: flex;
     }
   }
+
+  &__apis {
+    &__title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
 }
 
 .mat-column-actions {
   width: 1%;
   padding: 0 8px;
   text-align: end;
-}
-
-.center-vertical {
-  margin: 12px 0 0;
-}
-
-.subtitle-vertical {
-  margin: 0 0 0;
 }
