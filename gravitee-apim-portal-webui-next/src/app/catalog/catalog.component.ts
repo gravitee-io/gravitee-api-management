@@ -22,13 +22,14 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
-import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { catchError, combineLatestWith, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
+import { ApisResponse } from '../../entities/api/apis-response';
 import { Category } from '../../entities/categories/categories';
 import { BannerButton } from '../../entities/configuration/configuration-portal-next';
 import { ApiService } from '../../services/api.service';
@@ -78,7 +79,7 @@ export interface ApiPaginatorVM {
 export class CatalogComponent {
   apiPaginator$: Observable<ApiPaginatorVM> = of();
   filterList$: Observable<Category[]> = of([]);
-  loadingPage$ = new BehaviorSubject(true);
+  loadingPage: boolean = true;
 
   showBanner: boolean;
   bannerTitle: string;
@@ -152,7 +153,7 @@ export class CatalogComponent {
         this.page.set(1);
       }),
       combineLatestWith(this.page$),
-      tap(_ => this.loadingPage$.next(true)),
+      tap(_ => (this.loadingPage = true)),
       switchMap(([queryParams, currentPage]) => {
         const category = queryParams['filter'];
         const query = queryParams['query'];
@@ -169,7 +170,7 @@ export class CatalogComponent {
           return of({ page: currentPage, size: 9, category, query });
         }
       }),
-      switchMap(({ page, size, category, query }) => this.apiService.search(page, category, query ?? '', size)),
+      switchMap(({ page, size, category, query }) => this.searchApis$(page, size, category, query)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
@@ -190,7 +191,7 @@ export class CatalogComponent {
         };
       }),
       scan(this.updatePaginator, { data: [], page: 1, hasNextPage: true }),
-      tap(_ => this.loadingPage$.next(false)),
+      tap(_ => (this.loadingPage = false)),
     );
   }
 
@@ -200,6 +201,10 @@ export class CatalogComponent {
       catchError(_ => of([])),
       tap(categories => this.categories.set(categories)),
     );
+  }
+
+  private searchApis$(page: number, size: number, category: string, query?: string): Observable<ApisResponse> {
+    return this.apiService.search(page, category, query ?? '', size).pipe(catchError(_ => of({ data: [], metadata: undefined })));
   }
 
   private updatePaginator(accumulator: ApiPaginatorVM, value: ApiPaginatorVM): ApiPaginatorVM {

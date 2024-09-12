@@ -73,7 +73,13 @@
 }
 
 @if (apiPaginator$ | async; as apis) {
-  @if (apis.data.length === 0) {
+  @if (apis.data.length > 0) {
+    <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
+      @for (api of apis.data; track api.id) {
+        <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" />
+      }
+    </div>
+  } @else if (!loadingPage) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
         <div>
@@ -88,15 +94,9 @@
         </div>
       </mat-card-content>
     </mat-card>
-  } @else {
-    <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
-      @for (api of apis.data; track api.id) {
-        <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" />
-      }
-    </div>
   }
 }
 
-@if (loadingPage$ | async) {
+@if (loadingPage) {
   <app-loader />
 }
