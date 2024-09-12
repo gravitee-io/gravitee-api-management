@@ -30,19 +30,17 @@ $typography: map.get(gio.$mat-theme, typography);
   &__content {
     display: flex;
     flex-flow: column;
-    gap: 48px;
+    gap: 16px;
 
     &__header {
       display: flex;
       flex-direction: column;
-      gap: 0;
-      padding-bottom: 16px;
+      gap: 8px;
 
       &__title {
         display: flex;
         flex-flow: row;
         gap: 8px;
-        padding-bottom: 16px;
 
         & > h3 {
           margin: 0;
@@ -60,7 +58,6 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0 10px 0;
 }
 
 .api-key-header {
