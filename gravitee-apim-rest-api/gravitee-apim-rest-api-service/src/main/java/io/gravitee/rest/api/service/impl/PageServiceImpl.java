@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.fetcher.api.*;
+import io.gravitee.fetcher.api.ResourceNotFoundException;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -1510,6 +1511,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 } else {
                     page.setUseAutoFetch(null); // set null to remove the value not set to false
                 }
+            } catch (ResourceNotFoundException e) {
+                throw e;
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 throw new FetcherException(e.getMessage(), e);
@@ -1647,7 +1650,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 pageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
                 return fetchPages(executionContext, page.getReferenceId(), pageEntity);
             } else {
-                return Arrays.asList(fetch(executionContext, page, SYSTEM_CONTRIBUTOR));
+                PageEntity fetchedPage = fetch(executionContext, page, SYSTEM_CONTRIBUTOR);
+                if (fetchedPage != null) {
+                    return List.of(fetchedPage);
+                }
+                return List.of();
             }
         } catch (TechnicalException e) {
             logger.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
@@ -2206,6 +2213,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         UpdatePageEntity updatePageEntity = convertToUpdateEntity(page, false);
         try {
             fetchPage(updatePageEntity);
+        } catch (ResourceNotFoundException e) {
+            logger.debug("page [{}] was not found in the source, it will be removed in the database too", page.getName());
+            pageRepository.delete(page.getId());
+            return null;
         } catch (FetcherException e) {
             throw onUpdateFail(page.getId(), e);
         }
