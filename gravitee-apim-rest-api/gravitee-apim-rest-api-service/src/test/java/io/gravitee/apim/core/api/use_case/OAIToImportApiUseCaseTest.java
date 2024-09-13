@@ -52,7 +52,9 @@ import io.gravitee.apim.infra.domain_service.api.ApiImportDomainServiceLegacyWra
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.plugin.EndpointConnectorPluginLegacyWrapper;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
@@ -282,6 +284,8 @@ class OAIToImportApiUseCaseTest {
                 .satisfies(flow -> {
                     assertThat(flow.getName()).isEqualTo("OpenAPI Specification Validation");
                     assertThat(flow.getRequest()).isNotNull();
+                    assertThat(((HttpSelector) flow.getSelectors().get(0)).getPath()).isEqualTo("/");
+                    assertThat(((HttpSelector) flow.getSelectors().get(0)).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
                     var oasValidationStep = flow.getRequest().get(0);
                     assertThat(oasValidationStep.getPolicy()).isEqualTo("oas-validation");
                     assertThat(oasValidationStep.getConfiguration()).isEqualTo("{\"resourceName\":\"OpenAPI Specification\"}");
