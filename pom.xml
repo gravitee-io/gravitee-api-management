@@ -46,7 +46,7 @@
     </issueManagement>
     <properties>
         <!-- Version properties -->
-        <revision>4.5.0</revision>
+        <revision>4.6.0</revision>
         <sha1/>
         <changelist>-SNAPSHOT</changelist>
 
