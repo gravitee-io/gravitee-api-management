@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.fetcher.api.*;
+import io.gravitee.fetcher.api.ResourceNotFoundException;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -1510,6 +1511,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 } else {
                     page.setUseAutoFetch(null); // set null to remove the value not set to false
                 }
+            } catch (ResourceNotFoundException e) {
+                logger.error(e.getMessage(), e);
+                throw e;
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 throw new FetcherException(e.getMessage(), e);
@@ -2206,6 +2210,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         UpdatePageEntity updatePageEntity = convertToUpdateEntity(page, false);
         try {
             fetchPage(updatePageEntity);
+        } catch (ResourceNotFoundException e) {
+            pageRepository.delete(page.getId());
         } catch (FetcherException e) {
             throw onUpdateFail(page.getId(), e);
         }
