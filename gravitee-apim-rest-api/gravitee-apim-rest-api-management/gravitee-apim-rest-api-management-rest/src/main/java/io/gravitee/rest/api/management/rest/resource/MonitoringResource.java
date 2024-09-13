@@ -19,6 +19,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -27,7 +29,9 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MonitoringService;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.CloudEnabledException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,6 +43,8 @@ import jakarta.ws.rs.Produces;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -57,6 +63,9 @@ public class MonitoringResource extends AbstractResource {
     @Inject
     private EnvironmentService environmentService;
 
+    @Inject
+    private ParameterService parameterService;
+
     @PathParam("instance")
     @Parameter(name = "instance", hidden = true)
     private String instance;
@@ -66,6 +75,10 @@ public class MonitoringResource extends AbstractResource {
     @Operation(summary = "Get monitoring metrics for a gateway instance")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
     public MonitoringData getInstanceMonitoring(@PathParam("gatewayId") String gatewayId) {
+        if (cloudEnabled()) {
+            throw new CloudEnabledException();
+        }
+
         InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
         if (
             !isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment()) ||
@@ -88,5 +101,14 @@ public class MonitoringResource extends AbstractResource {
 
     private boolean isInstanceAccessibleByEnv(Set<String> environments, String currentEnvironment) {
         return environments == null || environments.isEmpty() || environments.contains(currentEnvironment);
+    }
+
+    private Boolean cloudEnabled() {
+        return parameterService.findAsBoolean(
+            GraviteeContext.getExecutionContext(),
+            Key.CLOUD_ENABLED,
+            GraviteeContext.getCurrentOrganization(),
+            ParameterReferenceType.ORGANIZATION
+        );
     }
 }
