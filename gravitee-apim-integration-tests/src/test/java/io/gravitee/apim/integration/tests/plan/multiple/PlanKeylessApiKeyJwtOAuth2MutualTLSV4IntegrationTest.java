@@ -116,10 +116,7 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         config
             .httpSecured(true)
             .set("http.ssl.clientAuth", "request")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED)
-            // Gateway requires an empty truststore to work properly with clientAuth: request mode.
-            .set("http.ssl.truststore.path", getUrl("plans/mtls/empty-truststore.jks").getPath())
-            .set("http.ssl.truststore.password", "secret");
+            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
     }
 
     @Nested
