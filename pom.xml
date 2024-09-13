@@ -64,7 +64,7 @@
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
         <gravitee-exchange.version>1.8.2</gravitee-exchange.version>
         <gravitee-expression-language.version>3.2.1</gravitee-expression-language.version>
-        <gravitee-fetcher-api.version>2.0.0</gravitee-fetcher-api.version>
+        <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.8.0</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-scoring-api.version>0.2.0</gravitee-scoring-api.version>
@@ -239,7 +239,7 @@
         <gravitee-cockpit-connectors-ws.version>5.0.29</gravitee-cockpit-connectors-ws.version>
         <gravitee-fetcher-bitbucket.version>2.1.1</gravitee-fetcher-bitbucket.version>
         <gravitee-fetcher-git.version>2.1.1</gravitee-fetcher-git.version>
-        <gravitee-fetcher-github.version>2.1.1</gravitee-fetcher-github.version>
+        <gravitee-fetcher-github.version>2.2.1</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>2.1.1</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>2.1.1</gravitee-fetcher-http.version>
         <gravitee-notifier-email.version>1.5.1</gravitee-notifier-email.version>
