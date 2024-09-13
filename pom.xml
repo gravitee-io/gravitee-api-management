@@ -47,7 +47,7 @@
     <properties>
         <!-- Version properties -->
         <revision>4.5.0</revision>
-        <sha1/>
+        <sha1>-alpha.1</sha1>
         <changelist>-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
