@@ -202,7 +202,7 @@ public class ApiCRDEntity {
     }
 
     public List<PageCRD> getPages() {
-        return pages == null ? List.of() : pages.values().stream().collect(Collectors.toList());
+        return pages == null ? List.of() : new ArrayList<>(pages.values());
     }
 
     public Map<String, PageCRD> getPagesMap() {
