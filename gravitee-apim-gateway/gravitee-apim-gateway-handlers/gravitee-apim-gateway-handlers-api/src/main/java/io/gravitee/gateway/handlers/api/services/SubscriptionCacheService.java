@@ -26,11 +26,13 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -281,7 +283,13 @@ public class SubscriptionCacheService implements SubscriptionService {
         final ReactableApi<?> reactableApi = apiManager.get(subscription.getApi());
         final Set<String> servers;
         if (reactableApi instanceof Api api) {
-            servers = api.getDefinition().getListeners().stream().flatMap(l -> l.getServers().stream()).collect(Collectors.toSet());
+            servers =
+                api
+                    .getDefinition()
+                    .getListeners()
+                    .stream()
+                    .flatMap(l -> l.getServers() != null ? l.getServers().stream() : Stream.empty())
+                    .collect(Collectors.toSet());
         } else {
             servers = Set.of();
             if (reactableApi == null) {
