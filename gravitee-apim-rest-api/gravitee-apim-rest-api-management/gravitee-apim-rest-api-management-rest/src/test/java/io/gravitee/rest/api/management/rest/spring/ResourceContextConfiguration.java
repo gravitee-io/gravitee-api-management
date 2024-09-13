@@ -102,11 +102,13 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.MonitoringService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.PageService;
@@ -148,6 +150,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @Import(
@@ -747,5 +750,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
         return new ValidatePageSourceDomainServiceImpl();
+    }
+
+    @Bean
+    public InstanceService instanceService() {
+        return mock(InstanceService.class);
+    }
+
+    @Bean
+    public MonitoringService monitoringService() {
+        return mock(MonitoringService.class);
     }
 }

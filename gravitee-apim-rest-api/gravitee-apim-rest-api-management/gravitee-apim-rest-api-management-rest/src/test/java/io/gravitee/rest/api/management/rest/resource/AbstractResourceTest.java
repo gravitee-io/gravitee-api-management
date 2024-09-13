@@ -282,6 +282,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected CategoryDomainService categoryDomainService;
 
+    @Autowired
+    protected InstanceService instanceService;
+
+    @Autowired
+    protected MonitoringService monitoringService;
+
     @Before
     public void setUp() throws Exception {
         when(
