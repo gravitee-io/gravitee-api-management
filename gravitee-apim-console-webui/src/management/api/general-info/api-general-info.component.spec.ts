@@ -33,6 +33,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiGeneralInfoModule } from './api-general-info.module';
 import { ApiGeneralInfoComponent } from './api-general-info.component';
@@ -59,9 +60,7 @@ describe('ApiGeneralInfoComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: {
-              params: { apiId: API_ID },
-            },
+            params: of({ apiId: API_ID }),
           },
         },
         {
