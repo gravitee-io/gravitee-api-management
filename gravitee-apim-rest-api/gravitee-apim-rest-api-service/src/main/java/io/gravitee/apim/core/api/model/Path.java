@@ -20,12 +20,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Pattern;
-import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 
 @Data
-@Builder(toBuilder = true)
 @With
 public class Path {
 
@@ -37,6 +35,16 @@ public class Path {
     String host;
     String path;
     boolean overrideAccess;
+
+    Path(String host, String path, boolean overrideAccess) {
+        this.host = host;
+        this.path = path;
+        this.overrideAccess = overrideAccess;
+    }
+
+    public static PathBuilder builder() {
+        return new PathBuilder();
+    }
 
     public boolean hasHost() {
         return host != null && !host.isEmpty();
@@ -70,5 +78,41 @@ public class Path {
             }
         }
         return sanitizedPath;
+    }
+
+    public PathBuilder toBuilder() {
+        return new PathBuilder().host(this.host).path(this.path).overrideAccess(this.overrideAccess);
+    }
+
+    public static class PathBuilder {
+
+        private String host;
+        private String path;
+        private boolean overrideAccess;
+
+        PathBuilder() {}
+
+        public PathBuilder host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public PathBuilder path(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public PathBuilder overrideAccess(boolean overrideAccess) {
+            this.overrideAccess = overrideAccess;
+            return this;
+        }
+
+        public Path build() {
+            return new Path(this.host, this.path, this.overrideAccess);
+        }
+
+        public String toString() {
+            return "Path.PathBuilder(host=" + this.host + ", path=" + this.path + ", overrideAccess=" + this.overrideAccess + ")";
+        }
     }
 }
