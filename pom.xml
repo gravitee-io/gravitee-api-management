@@ -48,7 +48,7 @@
         <!-- Version properties -->
         <revision>4.3.13</revision>
         <sha1/>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist></changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
              in gravitee-apim-gateway-tests-sdk and gravitee-apim-integration-tests
