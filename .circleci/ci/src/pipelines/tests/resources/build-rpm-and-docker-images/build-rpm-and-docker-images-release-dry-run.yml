@@ -99,28 +99,28 @@ jobs:
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-gateway:4.1.0}
+          artifact_to_register: graviteeio/apim-gateway:4.1.0
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-gateway:4.1.0}
+          docker_image_to_scan: graviteeio/apim-gateway:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-management-api:4.1.0}
+          artifact_to_register: graviteeio/apim-management-api:4.1.0
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-management-api:4.1.0}
+          docker_image_to_scan: graviteeio/apim-management-api:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-management-ui:4.1.0}
+          artifact_to_register: graviteeio/apim-management-ui:4.1.0
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-management-ui:4.1.0}
+          docker_image_to_scan: graviteeio/apim-management-ui:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio/apim-portal-ui:4.1.0}
+          artifact_to_register: graviteeio/apim-portal-ui:4.1.0
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/apim-portal-ui:4.1.0}
+          docker_image_to_scan: graviteeio/apim-portal-ui:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
   job-add-docker-images-in-snyk:
     docker:
