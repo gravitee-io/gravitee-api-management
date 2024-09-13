@@ -113,10 +113,12 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
     this.isQualityEnabled = this.constants.env?.settings?.apiQualityMetrics?.enabled;
 
-    this.apiId = this.activatedRoute.snapshot.params.apiId;
-
-    combineLatest([this.apiService.get(this.apiId), this.categoryService.list()])
+    this.activatedRoute.params
       .pipe(
+        switchMap((params) => {
+          this.apiId = params.apiId;
+          return combineLatest([this.apiService.get(this.apiId), this.categoryService.list()]);
+        }),
         switchMap(([api, categories]) =>
           combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl'])]).pipe(
             map(
