@@ -237,7 +237,7 @@ public class OAIToImportApiUseCase {
                 .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("resourceName", "OpenAPI Specification"))))
                 .build();
 
-            var httpSelector = HttpSelector.builder().path("/").pathOperator(Operator.EQUALS).build();
+            var httpSelector = HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build();
 
             var flow = Flow
                 .builder()
