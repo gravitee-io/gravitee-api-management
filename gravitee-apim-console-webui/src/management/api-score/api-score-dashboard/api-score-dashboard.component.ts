@@ -124,6 +124,8 @@ export class ApiScoreDashboardComponent implements OnInit {
     ],
   };
 
+  public evaluatingDate = new Date();
+
   ngOnInit() {
     this.runFilters(this.filters);
   }

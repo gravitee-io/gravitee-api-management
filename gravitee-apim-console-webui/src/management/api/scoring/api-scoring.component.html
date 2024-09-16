@@ -31,7 +31,7 @@
       </mat-card-title>
 
       @if (apiScoring.createdAt) {
-        <mat-card-subtitle> Last evaluated at {{ apiScoring.createdAt | date }}</mat-card-subtitle>
+        <mat-card-subtitle> Last evaluated {{ apiScoring.createdAt | dateAgo }}</mat-card-subtitle>
       }
 
       <div class="card-header__actions">
