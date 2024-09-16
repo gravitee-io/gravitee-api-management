@@ -40,8 +40,6 @@ import { Constants } from '../entities/Constants';
 export class IntegrationsService {
   private url: string = `${this.constants.env.v2BaseURL}/integrations`;
   private currentIntegration$: BehaviorSubject<Integration> = new BehaviorSubject<Integration>(null);
-  private IS_INGEST_TO_RUN = false;
-  private APIS_IDS_TO_INGEST: string[] = undefined;
 
   public readonly bannerMessages = {
     techPreview: `This tech preview feature is new! We're gathering feedback on it to make it even better, so it may change as we make improvements.`,

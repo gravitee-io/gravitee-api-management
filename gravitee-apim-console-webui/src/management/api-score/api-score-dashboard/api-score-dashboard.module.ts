@@ -29,6 +29,7 @@ import { ApiScoreDashboardComponent } from './api-score-dashboard.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { DateAgoPipe } from '../../../shared/pipes/date-ago.pipe';
 
 @NgModule({
   declarations: [ApiScoreDashboardComponent],
@@ -45,6 +46,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatTooltipModule,
     MatIconModule,
     MatSortModule,
+    DateAgoPipe,
   ],
 })
 export class ApiScoreDashboardModule {}
