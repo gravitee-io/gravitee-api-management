@@ -25,13 +25,9 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.integration-configuration {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .page-header {
+  margin-bottom: 24px;
+
   &__page-title {
     @include mat.m2-typography-level($typography, headline-6);
     margin: 0 0 4px 0;
@@ -41,4 +37,12 @@ $typography: map.get(gio.$mat-theme, typography);
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     @include mat.m2-typography-level($typography, body-1);
   }
+}
+
+.tech-preview-banner {
+  margin-bottom: 24px;
+}
+
+.nav-tabs {
+  margin-bottom: 24px;
 }
