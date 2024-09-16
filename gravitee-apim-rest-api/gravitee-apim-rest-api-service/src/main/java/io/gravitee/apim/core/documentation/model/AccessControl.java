@@ -18,14 +18,19 @@ package io.gravitee.apim.core.documentation.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class AccessControl {
 
     private String referenceId;
     private String referenceType;
+
+    public boolean isGroup() {
+        return "GROUP".equals(referenceType);
+    }
 }
