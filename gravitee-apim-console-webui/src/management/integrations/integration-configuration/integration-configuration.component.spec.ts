@@ -19,7 +19,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { IntegrationConfigurationComponent } from './integration-configuration.component';
 import { IntegrationConfigurationHarness } from './integration-configuration.harness';
@@ -35,6 +35,7 @@ describe('IntegrationConfigurationComponent', (): void => {
   let componentHarness: IntegrationConfigurationHarness;
   let httpTestingController: HttpTestingController;
   const integrationId: string = '123TestID';
+  let routerNavigateSpy: jest.SpyInstance;
 
   const fakeSnackBarService = {
     error: jest.fn(),
@@ -75,6 +76,8 @@ describe('IntegrationConfigurationComponent', (): void => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationConfigurationHarness);
     fixture.componentInstance.configurationTabs = tabs;
     fixture.componentInstance.ngOnInit();
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
   };
 
@@ -83,8 +86,8 @@ describe('IntegrationConfigurationComponent', (): void => {
   });
 
   describe('tabs', () => {
-    beforeEach(() => {
-      init([
+    it('should have correct number of tabs', async () => {
+      await init([
         {
           displayName: 'OneTab',
           routerLink: 'One',
@@ -106,12 +109,32 @@ describe('IntegrationConfigurationComponent', (): void => {
           permissions: ['integration-definition-r'],
         },
       ]);
+      const tabNavBar = await componentHarness.getTabNavBar();
+      expect(tabNavBar.length).toBe(3);
     });
 
-    it('should have correct number of tabs', async () => {
+    it('should redirect to first allowed path', async () => {
+      await init(
+        [
+          {
+            displayName: 'OneTab',
+            routerLink: 'one',
+            permissions: ['integration-definition-u', 'integration-definition-d'],
+          },
+          {
+            displayName: 'TwoTab',
+            routerLink: 'two',
+            permissions: ['integration-member-r'],
+          },
+        ],
+        ['integration-member-r'],
+      );
       const tabNavBar = await componentHarness.getTabNavBar();
 
-      expect(tabNavBar.length).toBe(3);
+      fixture.componentInstance.ngOnInit();
+
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['two'], { relativeTo: expect.anything() });
+      expect(tabNavBar.length).toBe(1);
     });
   });
 });
