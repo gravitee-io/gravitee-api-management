@@ -163,21 +163,6 @@ class ApiHistoryControllerAjs {
 
   $onInit() {
     this.studio = document.querySelector('gv-policy-studio');
-    if (this.hasDesign()) {
-      Promise.all([
-        this.PolicyService.list(true, true),
-        this.ResourceService.list(true, true),
-        this.ApiService.getFlowSchemaForm(),
-        this.FlowService.getConfigurationSchema(),
-      ]).then(([policies, resources, flowSchema, configurationSchema]) => {
-        this.studio.policies = policies.data;
-        this.studio.resourceTypes = resources.data;
-        this.studio.flowSchema = flowSchema.data;
-        this.studio.configurationSchema = configurationSchema.data;
-        this.studio.propertyProviders = propertyProviders;
-      });
-    }
-
     Promise.all([
       this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
       this.ApiService.isAPISynchronized(this.activatedRoute.snapshot.params.apiId),
@@ -198,6 +183,20 @@ class ApiHistoryControllerAjs {
           }
         : undefined;
       this.appendNextPage(toDeployEventTimeline);
+      if (this.hasDesign()) {
+        Promise.all([
+          this.PolicyService.list(true, true),
+          this.ResourceService.list(true, true),
+          this.ApiService.getFlowSchemaForm(),
+          this.FlowService.getConfigurationSchema(),
+        ]).then(([policies, resources, flowSchema, configurationSchema]) => {
+          this.studio.policies = policies.data;
+          this.studio.resourceTypes = resources.data;
+          this.studio.flowSchema = flowSchema.data;
+          this.studio.configurationSchema = configurationSchema.data;
+          this.studio.propertyProviders = propertyProviders;
+        });
+      }
     });
   }
 
