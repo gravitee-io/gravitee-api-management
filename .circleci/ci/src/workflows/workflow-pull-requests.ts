@@ -81,6 +81,7 @@ export class PullRequestsWorkflow {
     const jobs: workflow.WorkflowJob[] = [
       new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
         context: config.jobContext,
+        debug: true,
         preSteps: [
           new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
             'secret-url': config.secrets.aquaKey,

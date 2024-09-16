@@ -18,7 +18,11 @@ import { config } from '../config';
 
 export const aquasec = new orb.OrbImport('aquasec', 'gravitee-io', 'aquasec', config.orbs.aquasec);
 
-aquasec.jobs.fs_scan = new orb.OrbRef('fs_scan', new parameters.CustomParametersList(), aquasec);
+aquasec.jobs.fs_scan = new orb.OrbRef(
+  'fs_scan',
+  new parameters.CustomParametersList([new parameters.CustomParameter('debug', 'boolean')]),
+  aquasec,
+);
 aquasec.jobs.register_artifact = new orb.OrbRef(
   'register_artifact',
   new parameters.CustomParametersList([new parameters.CustomParameter('built_docker_image_file', 'string')]),
