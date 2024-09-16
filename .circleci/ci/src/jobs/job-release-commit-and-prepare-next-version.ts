@@ -24,6 +24,20 @@ import { CircleCIEnvironment } from '../pipelines';
 export class ReleaseCommitAndPrepareNextVersionJob {
   private static jobName = 'job-release-commit-and-prepare-next-version';
 
+  private static buildHelmCommand(nextVersion: string, nextQualifier: string) {
+    let command = `sed -e "0,/^version:/{s/version:.*/version: ${nextVersion}${nextQualifier}/}" \\
+    -e "0,/^appVersion:/{ s/appVersion.*/appVersion: ${nextVersion}${nextQualifier}/ }" \\`;
+    // Do not clean the helm changelog when building pre-release
+    if (!nextQualifier) {
+      command += `
+    -e '/artifacthub.io\\/changes/,\${ s/|// }' \\
+    -e '/artifacthub.io\\/changes:/q0'`;
+    }
+    command += `
+    -i helm/Chart.yaml`;
+    return command;
+  }
+
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const parsedVersion = parse(environment.graviteeioVersion);
 
@@ -82,10 +96,7 @@ sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#'
 sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-portal-webui-next/build.json
 
 # Helm chart increase version, appVersion and clean the artifacthub.io/changes annotation
-sed -e "0,/^version:/{s/version:.*/version: ${nextVersion}${nextQualifier}/}" \\
-    -e "0,/^appVersion:/{ s/appVersion.*/appVersion: ${nextVersion}${nextQualifier}/ }" \\
-    -e '/artifacthub.io\\/changes/,\${ s/|//; /^[ ]*\\- /d }' \\
-    -i helm/Chart.yaml
+${this.buildHelmCommand(nextVersion, nextQualifier)}
 
 git add --update
 git commit -m 'chore: prepare next version [skip ci]'
