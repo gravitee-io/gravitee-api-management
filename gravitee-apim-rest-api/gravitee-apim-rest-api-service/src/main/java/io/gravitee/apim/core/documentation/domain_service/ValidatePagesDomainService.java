@@ -17,6 +17,7 @@ package io.gravitee.apim.core.documentation.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.validation.Validator;
@@ -37,11 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 public class ValidatePagesDomainService implements Validator<ValidatePagesDomainService.Input> {
 
     private final ValidatePageSourceDomainService pageSourceValidator;
+    private final ValidatePageAccessControlsDomainService accessControlsValidator;
     private final DocumentationValidationDomainService validationDomainService;
 
-    public record Input(String organisationId, String apiId, Map<String, PageCRD> pages) implements Validator.Input {
+    public record Input(AuditInfo auditInfo, String apiId, Map<String, PageCRD> pages) implements Validator.Input {
         ValidatePagesDomainService.Input sanitized(Map<String, PageCRD> sanitizedPages) {
-            return new ValidatePagesDomainService.Input(organisationId, apiId, sanitizedPages);
+            return new ValidatePagesDomainService.Input(auditInfo, apiId, sanitizedPages);
         }
     }
 
@@ -65,7 +67,11 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                     .validateAndSanitize(new ValidatePageSourceDomainService.Input(k, page.getSource()))
                     .peek(sanitized -> page.setSource(sanitized.source()), errors::addAll);
 
-                Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(page, input.organisationId, false);
+                accessControlsValidator
+                    .validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(input.auditInfo, page.getAccessControls()))
+                    .peek(sanitized -> page.setAccessControls(sanitized.accessControls()), errors::addAll);
+
+                Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(page, input.auditInfo.organizationId(), false);
                 sanitizedPages.put(k, PageModelFactory.toCRDSpec(sanitizedPage));
             } catch (Exception e) {
                 errors.add(Error.severe("invalid documentation page [%s]. Error: %s", k, e.getMessage()));

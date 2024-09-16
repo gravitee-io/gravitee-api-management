@@ -41,6 +41,7 @@ class ValidateApiCRDDomainServiceTest {
 
     private static final String ORG_ID = "TEST";
     private static final String ENV_ID = "TEST";
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build();
 
     ValidateCategoryIdsDomainService categoryIdsValidator = mock(ValidateCategoryIdsDomainService.class);
 
@@ -90,7 +91,7 @@ class ValidateApiCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(ENV_ID, spec.getId(), any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();

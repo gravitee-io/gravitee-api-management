@@ -33,12 +33,15 @@ import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -197,13 +200,9 @@ public class DocumentationValidationDomainService {
         accessControlsByGroupAndRole.computeIfPresent(
             "GROUP",
             (key, acs) -> {
-                var foundGroupIds =
-                    this.groupQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
-                        .stream()
-                        .map(Group::getId)
-                        .toList();
-
-                return acs.stream().filter(accessControl -> foundGroupIds.contains(accessControl.getReferenceId())).toList();
+                var referenceIds = acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet());
+                var foundGroups = findGroupReferences(referenceIds);
+                return acs.stream().filter(accessControl -> foundGroups.contains(accessControl.getReferenceId())).toList();
             }
         );
 
@@ -220,5 +219,15 @@ public class DocumentationValidationDomainService {
         );
 
         return accessControlsByGroupAndRole.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+    }
+
+    // TODO this should be moved in a validator we own
+    private List<String> findGroupReferences(Set<String> referenceIds) {
+        var byIds = this.groupQueryService.findByIds(referenceIds).stream().map(Group::getId).toList();
+
+        var byNames =
+            this.groupQueryService.findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds).stream().map(Group::getName).toList();
+
+        return Stream.concat(byIds.stream(), byNames.stream()).toList();
     }
 }
