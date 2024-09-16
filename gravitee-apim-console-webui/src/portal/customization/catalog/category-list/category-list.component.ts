@@ -54,6 +54,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { CategoryService } from '../../../../services-ngx/category.service';
 import { Category } from '../../../../entities/category/Category';
 import { PortalHeaderComponent } from '../../../components/header/portal-header.component';
+import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both-portals-badge/both-portals-badge.component';
 
 @Component({
   selector: 'category-list',
@@ -87,6 +88,7 @@ import { PortalHeaderComponent } from '../../../components/header/portal-header.
     MatNoDataRow,
     CdkDropList,
     CdkDrag,
+    BothPortalsBadgeComponent,
   ],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',

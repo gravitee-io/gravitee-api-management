@@ -25,15 +25,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { CategoryCatalogComponent } from './category.component';
-import {
-  addApiToCategory,
-  getActionButtonByRowIndexAndTooltip,
-  getDescriptionInput,
-  getNameByRowIndex,
-  getNameInput,
-  getSaveBar,
-  getTableRows,
-} from './category.component.harness';
+import { CategoryHarness } from './category.harness';
 
 import { NewCategory } from '../../../../entities/category/NewCategory';
 import { UpdateCategory } from '../../../../entities/category/UpdateCategory';
@@ -53,6 +45,7 @@ describe('CategoryCatalogComponent', () => {
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let router: Router;
+  let componentHarness: CategoryHarness;
 
   const CATEGORY: Category = {
     id: 'cat',
@@ -93,6 +86,7 @@ describe('CategoryCatalogComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CategoryHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -117,10 +111,10 @@ describe('CategoryCatalogComponent', () => {
 
     it('should be able to create', async () => {
       const spy = jest.spyOn(router, 'navigate');
-      await getNameInput(harnessLoader).then((input) => input.setValue('Cat'));
-      await getDescriptionInput(harnessLoader).then((input) => input.setValue('Cat desc'));
+      await componentHarness.getNameInput(harnessLoader).then((input) => input.setValue('Cat'));
+      await componentHarness.getDescriptionInput(harnessLoader).then((input) => input.setValue('Cat desc'));
 
-      const saveBar = await getSaveBar(harnessLoader);
+      const saveBar = await componentHarness.getSaveBar(harnessLoader);
       expect(await saveBar.isVisible()).toEqual(true);
       expect(await saveBar.isSubmitButtonVisible()).toEqual(true);
       await saveBar.clickSubmit();
@@ -148,10 +142,10 @@ describe('CategoryCatalogComponent', () => {
     });
 
     it('should be able to update', async () => {
-      await getNameInput(harnessLoader).then((input) => input.setValue('Cat'));
-      await getDescriptionInput(harnessLoader).then((input) => input.setValue('Cat desc'));
+      await componentHarness.getNameInput(harnessLoader).then((input) => input.setValue('Cat'));
+      await componentHarness.getDescriptionInput(harnessLoader).then((input) => input.setValue('Cat desc'));
 
-      const saveBar = await getSaveBar(harnessLoader);
+      const saveBar = await componentHarness.getSaveBar(harnessLoader);
       expect(await saveBar.isVisible()).toEqual(true);
       expect(await saveBar.isSubmitButtonVisible()).toEqual(true);
       await saveBar.clickSubmit();
@@ -171,14 +165,14 @@ describe('CategoryCatalogComponent', () => {
     });
 
     it('should require name', async () => {
-      const nameInput = await getNameInput(harnessLoader);
+      const nameInput = await componentHarness.getNameInput(harnessLoader);
       expect(await nameInput.getValue()).toEqual(CATEGORY.name);
-      expect(await getSaveBar(harnessLoader).then((saveBar) => saveBar.isVisible())).toBeFalsy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isVisible())).toBeFalsy();
       await nameInput.setValue('New name');
-      expect(await getSaveBar(harnessLoader).then((saveBar) => saveBar.isVisible())).toBeTruthy();
-      expect(await getSaveBar(harnessLoader).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isVisible())).toBeTruthy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
       await nameInput.setValue('');
-      expect(await getSaveBar(harnessLoader).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
     });
   });
 
@@ -197,19 +191,19 @@ describe('CategoryCatalogComponent', () => {
 
     it('should show empty APIs', async () => {
       expectGetCategoryApis(CAT_API_LIST.id);
-      const rows = await getTableRows(harnessLoader);
+      const rows = await componentHarness.getTableRows(harnessLoader);
       expect(await rows[0].host().then((host) => host.text())).toContain('There are no APIs for this category.');
     });
 
     it('should show API list', async () => {
       expectGetCategoryApis(CAT_API_LIST.id, APIS);
-      expect(await getNameByRowIndex(harnessLoader, 0)).toEqual('Lowlight');
-      expect(await getNameByRowIndex(harnessLoader, 1)).toEqual('Highlight');
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('Lowlight');
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 1)).toEqual('Highlight');
     });
 
     it('should remove API from category', async () => {
       expectGetCategoryApis(CAT_API_LIST.id, APIS);
-      const removeApiBtn = await getActionButtonByRowIndexAndTooltip(harnessLoader, 0, 'Remove API');
+      const removeApiBtn = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 0, 'Remove API');
       expect(removeApiBtn).toBeTruthy();
       await removeApiBtn.click();
       const removeApiDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
@@ -232,7 +226,7 @@ describe('CategoryCatalogComponent', () => {
 
       expectGetCategoryApis(CAT_API_LIST.id);
       fixture.detectChanges();
-      await addApiToCategory(harnessLoader);
+      await componentHarness.addApiToCategory(harnessLoader);
     });
 
     it('should not allow user to choose API already in category', async () => {
@@ -255,6 +249,11 @@ describe('CategoryCatalogComponent', () => {
       expectGetApi(apiToAdd);
       expectUpdateApi({ ...apiToAdd, categories: [CAT_API_LIST.key] }, { ...apiToAdd, categories: [CAT_API_LIST.key] });
       expectGetCategoryApis(CAT_API_LIST.id);
+    });
+
+    it('portal badges should be present', async () => {
+      expect(await componentHarness.getBothPortalForCategoryList()).toBeTruthy();
+      expect(await componentHarness.getBothPortalForNewCategory()).toBeTruthy();
     });
   });
 

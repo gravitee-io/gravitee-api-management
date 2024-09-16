@@ -24,13 +24,7 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { CategoryListComponent } from './category-list.component';
-import {
-  getTableRows,
-  getNameByRowIndex,
-  getApiCountByRowIndex,
-  getDescriptionByRowIndex,
-  getActionButtonByRowIndexAndTooltip,
-} from './category-list.harness';
+import { CategoryListHarness } from './category-list.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Category } from '../../../../entities/category/Category';
@@ -45,6 +39,7 @@ describe('CategoryListComponent', () => {
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let componentHarness: CategoryListHarness;
   const DEFAULT_PORTAL_SETTINGS = {
     portal: {
       url: 'url',
@@ -111,6 +106,7 @@ describe('CategoryListComponent', () => {
     fixture = TestBed.createComponent(CategoryListComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CategoryListHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
   };
@@ -125,7 +121,7 @@ describe('CategoryListComponent', () => {
       expectGetCategoriesList();
     });
     it('should display empty message', async () => {
-      const tableRows = await getTableRows(harnessLoader);
+      const tableRows = await componentHarness.getTableRows(harnessLoader);
       expect(await tableRows[0].host().then((host) => host.text())).toContain('There are no categories for this environment.');
     });
   });
@@ -140,27 +136,27 @@ describe('CategoryListComponent', () => {
       ]);
     });
     it('should show multiple categories', async () => {
-      expect(await getTableRows(harnessLoader).then((rows) => rows.length)).toEqual(3);
+      expect(await componentHarness.getTableRows(harnessLoader).then((rows) => rows.length)).toEqual(3);
     });
     it('should sort categories by order', async () => {
-      expect(await getNameByRowIndex(harnessLoader, 0)).toEqual('cat-1');
-      expect(await getNameByRowIndex(harnessLoader, 1)).toEqual('cat-3');
-      expect(await getNameByRowIndex(harnessLoader, 2)).toEqual('cat-2');
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('cat-1');
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 1)).toEqual('cat-3');
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 2)).toEqual('cat-2');
     });
     it('should show which categories are hidden', async () => {
-      const rows = await getTableRows(harnessLoader);
+      const rows = await componentHarness.getTableRows(harnessLoader);
       const hiddenIcon = await rows[1].getCells({ columnName: 'name' }).then((cells) => cells[0].getHarnessOrNull(MatIconHarness));
       expect(hiddenIcon).toBeTruthy();
     });
     it('should show api count', async () => {
-      expect(await getApiCountByRowIndex(harnessLoader, 0)).toEqual('1');
-      expect(await getApiCountByRowIndex(harnessLoader, 1)).toEqual('0');
-      expect(await getApiCountByRowIndex(harnessLoader, 2)).toEqual('10');
+      expect(await componentHarness.getApiCountByRowIndex(harnessLoader, 0)).toEqual('1');
+      expect(await componentHarness.getApiCountByRowIndex(harnessLoader, 1)).toEqual('0');
+      expect(await componentHarness.getApiCountByRowIndex(harnessLoader, 2)).toEqual('10');
     });
     it('should show category description', async () => {
-      expect(await getDescriptionByRowIndex(harnessLoader, 0)).toEqual('nice cat');
-      expect(await getDescriptionByRowIndex(harnessLoader, 1)).toEqual('nice cat - hidden');
-      expect(await getDescriptionByRowIndex(harnessLoader, 2)).toEqual('nice cat - out of order');
+      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 0)).toEqual('nice cat');
+      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 1)).toEqual('nice cat - hidden');
+      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 2)).toEqual('nice cat - out of order');
     });
   });
 
@@ -176,7 +172,7 @@ describe('CategoryListComponent', () => {
     });
 
     it('should show category', async () => {
-      const showCategoryButton = await getActionButtonByRowIndexAndTooltip(harnessLoader, 1, 'Show Category');
+      const showCategoryButton = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 1, 'Show Category');
       expect(showCategoryButton).toBeTruthy();
       expect(await showCategoryButton.isDisabled()).toEqual(false);
 
@@ -187,7 +183,8 @@ describe('CategoryListComponent', () => {
     });
 
     it('should delete category', async () => {
-      const deleteButton = await getActionButtonByRowIndexAndTooltip(harnessLoader, 0, 'Delete');
+      expect(await componentHarness.getBothPortalBadge()).toBeTruthy();
+      const deleteButton = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 0, 'Delete');
       expect(deleteButton).toBeTruthy();
       expect(await deleteButton.isDisabled()).toEqual(false);
 
