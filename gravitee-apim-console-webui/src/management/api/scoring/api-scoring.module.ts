@@ -34,6 +34,7 @@ import { ApiScoringListComponent } from './api-scoring-list/api-scoring-list.com
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.pipe';
+import { DateAgoPipe } from '../../../shared/pipes/date-ago.pipe';
 
 @NgModule({
   declarations: [ApiScoringComponent, ApiScoringListComponent],
@@ -54,6 +55,7 @@ import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.
     MatTooltipModule,
     MatSortModule,
     MapProviderNamePipe,
+    DateAgoPipe,
   ],
   providers: [ApiScoringService],
   exports: [ApiScoringComponent],
