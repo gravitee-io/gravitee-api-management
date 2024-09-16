@@ -15,6 +15,7 @@
  */
 
 import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { IntegrationNavigationItem } from '../integrations.model';
@@ -47,11 +48,22 @@ export class IntegrationConfigurationComponent {
   constructor(
     public readonly integrationsService: IntegrationsService,
     private readonly permissionService: GioPermissionService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.allowedItems = this.configurationTabs.filter((item: IntegrationNavigationItem) =>
       this.permissionService.hasAnyMatching(item.permissions),
     );
+    if (this.allowedItems.length && this.allowedItems.length !== this.configurationTabs.length) {
+      this.redirectToFirstAllowed();
+    }
+  }
+
+  redirectToFirstAllowed() {
+    this.router.navigate([this.allowedItems[0].routerLink], {
+      relativeTo: this.activatedRoute,
+    });
   }
 }
