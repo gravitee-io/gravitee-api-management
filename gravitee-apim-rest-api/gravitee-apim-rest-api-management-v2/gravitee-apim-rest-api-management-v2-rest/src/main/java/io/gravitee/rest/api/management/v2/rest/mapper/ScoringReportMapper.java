@@ -15,9 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
+import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
+import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
+import jakarta.ws.rs.core.UriInfo;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,4 +34,18 @@ public interface ScoringReportMapper {
     ScoringReportMapper INSTANCE = Mappers.getMapper(ScoringReportMapper.class);
 
     ApiScoring map(ScoringReportView source);
+
+    @Mapping(target = "id", source = "source.api.apiId")
+    @Mapping(target = "name", source = "source.api.name")
+    @Mapping(target = "errors", source = "source.summary.errors")
+    @Mapping(target = "warnings", source = "source.summary.warnings")
+    @Mapping(target = "infos", source = "source.summary.infos")
+    @Mapping(target = "hints", source = "source.summary.hints")
+    @Mapping(target = "pictureUrl", expression = "java(computePictureUrl(source, uriInfo))")
+    EnvironmentApiScore map(EnvironmentApiScoringReport source, UriInfo uriInfo);
+
+    @Named("computeApiLinks")
+    default String computePictureUrl(EnvironmentApiScoringReport report, UriInfo uriInfo) {
+        return ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), report);
+    }
 }

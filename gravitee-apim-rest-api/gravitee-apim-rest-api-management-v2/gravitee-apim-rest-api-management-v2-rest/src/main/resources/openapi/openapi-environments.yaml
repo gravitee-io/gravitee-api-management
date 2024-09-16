@@ -209,6 +209,22 @@ paths:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
                 default:
                     $ref: "#/components/responses/Error"
+
+    # Scoring
+    /scoring/apis:
+        get:
+            tags:
+                - Scoring
+            summary: Get the scoring of all APIs
+            operationId: getApisScoring
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentApisScoringResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 components:
     schemas:
         # Shared policy group
@@ -358,7 +374,6 @@ components:
                     $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
                 phase:
                     $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
-
         SharedPolicyGroupLifecycleState:
             type: string
             description: The lifecycle state of a shared policy group
@@ -367,6 +382,38 @@ components:
                 - DEPLOYED
                 - UNDEPLOYED
                 - PENDING
+
+        # Scoring
+        EnvironmentApiScore:
+            type: object
+            description: The scoring result of an API
+            properties:
+                id:
+                    type: string
+                    description: API identifier
+                name:
+                    type: string
+                    description: API name
+                pictureUrl:
+                    type: string
+                    description: The URL to the API's picture
+                errors:
+                    type: integer
+                    description: The total number of violated rules with severity ERROR for all assets.
+                    example: 10
+                warnings:
+                    type: integer
+                    description: The total number of violated rules with severity WARN for all assets.
+                    example: 20
+                infos:
+                    type: integer
+                    description: The total number of violated rules with severity INFO for all assets.
+                    example: 30
+                hints:
+                    type: integer
+                    description: The total number of violated rules with severity HINT for all assets.
+                    example: 40
+
         Error:
             type: object
             properties:
@@ -404,8 +451,64 @@ components:
                                 example: updateApi.properties[0].key
                             invalidValue:
                                 description: The invalid value.
+        Pagination:
+            description: Generic object to handle pagination data.
+            type: object
+            properties:
+                page:
+                    type: integer
+                    description: The current page.
+                perPage:
+                    type: integer
+                    description: The number of items requested per page.
+                pageCount:
+                    type: integer
+                    description: The total number of pages.
+                pageItemsCount:
+                    type: integer
+                    description: The number of items for the current page.
+                totalCount:
+                    type: integer
+                    format: int64
+                    description: The total number of items.
+        Links:
+            description: List of links for pagination
+            properties:
+                self:
+                    type: string
+                    description: Link to current resource
+                first:
+                    type: string
+                    description: In a paginated response, link to the first page
+                last:
+                    type: string
+                    description: In a paginated response, link to the last page
+                previous:
+                    type: string
+                    description: In a paginated response, link to the previous page. Maybe null if current is the first page
+                next:
+                    type: string
+                    description: In a paginated response, link to the next page. Maybe null if current is the last page
 
     parameters:
+        pageParam:
+            name: page
+            in: query
+            required: false
+            description: The page number for pagination.
+            schema:
+                type: integer
+                default: 1
+        perPageParam:
+            name: perPage
+            in: query
+            required: false
+            description: |
+                The number of items per page for pagination.
+            schema:
+                type: integer
+                default: 10
+
         sharedPolicyGroupId:
             name: sharedPolicyGroupId
             in: path
@@ -444,23 +547,23 @@ components:
                 type: string
                 example: my shared policy group
         sharedPolicyGroupHistoriesSortByParam:
-            name: sortBy
-            in: query
-            required: false
-            description: |-
-                Possibility to sort Shared Policy Group history results by field.
-                Can be ascending or descending with minus '-' prefix.
-                By default, no sort is applied.
-            schema:
-                type: string
-                example: name
-                enum:
-                    - version
-                    - -version
-                    - updatedAt
-                    - -updatedAt
-                    - deployedAt
-                    - -deployedAt
+                name: sortBy
+                in: query
+                required: false
+                description: |-
+                    Possibility to sort Shared Policy Group history results by field.
+                    Can be ascending or descending with minus '-' prefix.
+                    By default, no sort is applied.
+                schema:
+                    type: string
+                    example: name
+                    enum:
+                        - version
+                        - -version
+                        - updatedAt
+                        - -updatedAt
+                        - deployedAt
+                        - -deployedAt
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -506,6 +609,24 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Error"
+
+        # Scoring
+        EnvironmentApisScoringResponse:
+            description: Page of Apis Scoring
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentApisScoringResponse"
+                        properties:
+                            data:
+                                description: List of EnvironmentApiScoreSummary.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/EnvironmentApiScore"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
 
     securitySchemes:
         BasicAuth:
