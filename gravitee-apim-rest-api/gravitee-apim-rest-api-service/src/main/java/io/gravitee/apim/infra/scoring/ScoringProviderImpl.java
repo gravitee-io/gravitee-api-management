@@ -67,7 +67,7 @@ public class ScoringProviderImpl implements ScoringProvider {
                                 },
                                 a.assetName(),
                                 a.content(),
-                                extractContentType(a.assetName())
+                                detectContentType(a.content())
                             )
                         )
                         .toList()
@@ -89,12 +89,10 @@ public class ScoringProviderImpl implements ScoringProvider {
             });
     }
 
-    private ContentType extractContentType(String pageName) {
-        if (pageName.endsWith(".json")) {
+    private ContentType detectContentType(String content) {
+        if (content.startsWith("{")) {
             return ContentType.JSON;
-        } else if (pageName.endsWith(".yaml") || pageName.endsWith(".yml")) {
-            return ContentType.YAML;
         }
-        throw new IllegalArgumentException("Unsupported content type for page: " + pageName);
+        return ContentType.YAML;
     }
 }
