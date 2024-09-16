@@ -17,8 +17,16 @@ keywords:
 kubeVersion: ">=1.14.0-0"
 annotations:
   # List of changes for the release in artifacthub.io
-  # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
-  artifacthub.io/changes: 
-      description: Fix cloud configuration: avoid empty secret generation and fix example in value.yaml
-      description: Fix cloud configuration: avoid empty volume mount
-      description: Split hazelcast config for cluster and cache
+  # https://artifacthub.io/packages/  helm/graviteeio/apim?modal=changelog
+  ###########
+  # WARNING #
+  ###########
+  # "changes" must be the last section in this file, because a CI job clean it after each release
+  ###########
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'Fix cloud configuration: avoid empty secret generation and fix example in value.yaml'
+    - kind: fixed
+      description: 'Fix cloud configuration: avoid empty volume mount'
+    - kind: fixed
+      description: 'Split hazelcast config for cluster and cache'
