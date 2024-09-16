@@ -94,6 +94,7 @@ import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -312,6 +313,7 @@ class ImportApiCRDUseCaseTest {
         );
 
         var pageSourceValidator = new ValidatePageSourceDomainServiceImpl();
+        var accessControlValidator = new ValidatePageAccessControlsDomainService(groupQueryService);
 
         userDomainService.initWith(
             List.of(
@@ -331,7 +333,7 @@ class ImportApiCRDUseCaseTest {
             new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
-            new ValidatePagesDomainService(pageSourceValidator, validationDomainService)
+            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService)
         );
 
         categoryQueryService.reset();

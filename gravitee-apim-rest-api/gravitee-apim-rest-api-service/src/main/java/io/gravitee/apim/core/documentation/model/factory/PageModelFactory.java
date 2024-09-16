@@ -16,8 +16,12 @@
 package io.gravitee.apim.core.documentation.model.factory;
 
 import io.gravitee.apim.core.api.model.crd.PageCRD;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -41,6 +45,16 @@ public class PageModelFactory {
             .content(pageCRD.getContent())
             .homepage(pageCRD.isHomepage())
             .configuration(pageCRD.getConfiguration())
+            .excludedAccessControls(pageCRD.isExcludedAccessControls())
+            .accessControls(
+                pageCRD.getAccessControls() == null
+                    ? Set.of()
+                    : pageCRD
+                        .getAccessControls()
+                        .stream()
+                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
+                        .collect(Collectors.toSet())
+            )
             .source(
                 pageCRD.getSource() == null
                     ? null
@@ -67,6 +81,16 @@ public class PageModelFactory {
             .content(page.getContent())
             .homepage(page.isHomepage())
             .configuration(page.getConfiguration())
+            .excludedAccessControls(page.isExcludedAccessControls())
+            .accessControls(
+                page.getAccessControls() == null
+                    ? Set.of()
+                    : page
+                        .getAccessControls()
+                        .stream()
+                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
+                        .collect(Collectors.toSet())
+            )
             .source(
                 page.getSource() == null
                     ? null

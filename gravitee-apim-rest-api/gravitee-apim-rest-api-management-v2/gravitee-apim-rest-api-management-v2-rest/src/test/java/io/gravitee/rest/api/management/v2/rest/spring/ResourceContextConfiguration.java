@@ -52,6 +52,7 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -451,6 +452,7 @@ public class ResourceContextConfiguration {
         GroupQueryService groupQueryService,
         ValidateResourceDomainService validateResourceDomainService,
         ValidatePageSourceDomainService validatePageSourceDomainService,
+        ValidatePageAccessControlsDomainService validatePageAccessControlsDomainService,
         DocumentationValidationDomainService validationDomainService,
         RoleQueryServiceInMemory roleQueryService,
         MembershipQueryServiceInMemory membershipQueryService
@@ -462,7 +464,11 @@ public class ResourceContextConfiguration {
                 new ValidateCRDMembersDomainService(userDomainService, roleQueryService, membershipQueryService),
                 new ValidateGroupsDomainService(groupQueryService),
                 validateResourceDomainService,
-                new ValidatePagesDomainService(validatePageSourceDomainService, validationDomainService)
+                new ValidatePagesDomainService(
+                    validatePageSourceDomainService,
+                    validatePageAccessControlsDomainService,
+                    validationDomainService
+                )
             )
         );
     }
@@ -566,5 +572,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
         return new ValidatePageSourceDomainServiceImpl();
+    }
+
+    @Bean
+    public ValidatePageAccessControlsDomainService validatePageAccessControlsDomainService(GroupQueryService groupQueryService) {
+        return new ValidatePageAccessControlsDomainService(groupQueryService);
     }
 }

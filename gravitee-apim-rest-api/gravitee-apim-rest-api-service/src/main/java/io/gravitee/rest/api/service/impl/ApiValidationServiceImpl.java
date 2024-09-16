@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -79,7 +80,11 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         pagesValidator
             .validateAndSanitize(
                 new ValidatePagesDomainService.Input(
-                    executionContext.getOrganizationId(),
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .build(),
                     api.getId(),
                     ApiCRDEntityAdapter.INSTANCE.toCoreApiCRDPages(api.getPagesMap())
                 )
