@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.notifier.NotifierPlugin;
@@ -186,7 +187,8 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         triggerGenericNotifications(executionContext, hook, refType, refId, params, Collections.emptyList());
     }
 
-    private void triggerGenericNotifications(
+    @VisibleForTesting
+    void triggerGenericNotifications(
         ExecutionContext executionContext,
         final Hook hook,
         final NotificationReferenceType refType,
@@ -199,34 +201,35 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 .findByReferenceAndHook(hook.name(), refType, refId)
                 .stream()
                 .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
+            if (!notificationConfigs.isEmpty()) {
+                list(refType, refId)
+                    .forEach(notifier -> {
+                        switch (notifier.type()) {
+                            case EMAIL -> {
+                                var emailAdditionalRecipients = additionalRecipients
+                                    .stream()
+                                    .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                    .map(Recipient::value)
+                                    .toList();
 
-            list(refType, refId)
-                .forEach(notifier -> {
-                    switch (notifier.type()) {
-                        case EMAIL -> {
-                            var emailAdditionalRecipients = additionalRecipients
-                                .stream()
-                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
-                                .map(Recipient::value)
-                                .toList();
+                                var recipients = notificationConfigs
+                                    .getOrDefault(notifier.getId(), Collections.emptyList())
+                                    .stream()
+                                    .map(GenericNotificationConfig::getConfig)
+                                    .collect(Collectors.toList());
+                                recipients.addAll(emailAdditionalRecipients);
 
-                            var recipients = notificationConfigs
-                                .getOrDefault(notifier.getId(), Collections.emptyList())
-                                .stream()
-                                .map(GenericNotificationConfig::getConfig)
-                                .collect(Collectors.toList());
-                            recipients.addAll(emailAdditionalRecipients);
-
-                            emailNotifierService.trigger(executionContext, hook, params, recipients);
+                                emailNotifierService.trigger(executionContext, hook, params, recipients);
+                            }
+                            case WEBHOOK -> {
+                                notificationConfigs
+                                    .getOrDefault(notifier.getId(), Collections.emptyList())
+                                    .forEach(config -> webhookNotifierService.trigger(hook, config, params));
+                            }
+                            default -> LOGGER.error("Unknown notifier {}", notifier.getType());
                         }
-                        case WEBHOOK -> {
-                            notificationConfigs
-                                .getOrDefault(notifier.getId(), Collections.emptyList())
-                                .forEach(config -> webhookNotifierService.trigger(hook, config, params));
-                        }
-                        default -> LOGGER.error("Unknown notifier {}", notifier.getType());
-                    }
-                });
+                    });
+            }
         } catch (TechnicalException e) {
             LOGGER.error("Error looking for GenericNotificationConfig with {}/{}/{}", hook, refType, refId, e);
         }
