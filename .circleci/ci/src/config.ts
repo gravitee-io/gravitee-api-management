@@ -84,7 +84,7 @@ const maven = {
 };
 
 const orbs = {
-  aquasec: '1.0.0',
+  aquasec: '1.0.1',
   artifactory: '1.0.1',
   awsCli: '2.0.6',
   awsS3: '3.0.0',
