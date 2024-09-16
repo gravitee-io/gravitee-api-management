@@ -15,349 +15,349 @@ security:
     - CookieAuth: []
 
 servers:
-  - url: "{protocol}://{managementAPIHost}/management/v2/environments/{envId}"
-    description: APIM Management API v2 - Default base URL
-    variables:
-      protocol:
-        description: The protocol you want to use to communicate with the mAPI
-        default: https
-        enum:
-          - https
-          - http
-      managementAPIHost:
-        description: The domain of the server hosting your Management API
-        default: localhost:8083
-      envId:
-        description: The unique ID of your environment
-        default: DEFAULT
-  - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}/environments/{envId}"
-    description: APIM Management API v2 - Base URL to target specific organizations
-    variables:
-      protocol:
-        description: The protocol you want to use to communicate with the mAPI
-        default: https
-        enum:
-          - https
-          - http
-      managementAPIHost:
-        description: The domain of the server hosting your Management API
-        default: localhost:8083
-      orgId:
-        description: The unique ID of your organization
-        default: DEFAULT
-      envId:
-        description: The unique ID of your environment
-        default: DEFAULT
+    - url: "{protocol}://{managementAPIHost}/management/v2/environments/{envId}"
+      description: APIM Management API v2 - Default base URL
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+          envId:
+              description: The unique ID of your environment
+              default: DEFAULT
+    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}/environments/{envId}"
+      description: APIM Management API v2 - Base URL to target specific organizations
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+          orgId:
+              description: The unique ID of your organization
+              default: DEFAULT
+          envId:
+              description: The unique ID of your environment
+              default: DEFAULT
 
 tags:
     - name: SharedPolicyGroups
       description: Everything about shared policy groups
 
 paths:
-  # Shared policy group
-  /shared-policy-groups:
-    post:
-        tags:
-          - SharedPolicyGroups
-        summary: Create a shared policy group
-        operationId: createSharedPolicyGroup
-        requestBody:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateSharedPolicyGroup"
-          required: true
-        responses:
-          "201":
-            description: Shared policy group created
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/SharedPolicyGroup"
-          default:
-            $ref: "#/components/responses/Error"
-    get:
-          tags:
-            - SharedPolicyGroups
-          summary: Search shared policy groups
-          operationId: searchSharedPolicyGroups
-          parameters:
-            - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
-            - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
-            - $ref: "#/components/parameters/sharedPolicyGroupSortByParam"
-            - $ref: "#/components/parameters/sharedPolicyGroupSearchParam"
-          responses:
-            "200":
-              $ref: "#/components/responses/SharedPolicyGroupsResponse"
-            default:
-              $ref: "#/components/responses/Error"
-  /shared-policy-groups/policy-plugins:
-    get:
-      tags:
-        - SharedPolicyGroups
-      summary: Get all shared policy group for a policy plugin usage
-      operationId: getPolicyPlugins
-      responses:
-        "200":
-          description: Shared policy group found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SharedPolicyGroupPolicyPlugin"
-        default:
-          $ref: "#/components/responses/Error"
-  /shared-policy-groups/{sharedPolicyGroupId}:
-    get:
-        tags:
-          - SharedPolicyGroups
-        summary: Get a shared policy group
-        operationId: getSharedPolicyGroup
-        parameters:
-          - $ref: "#/components/parameters/sharedPolicyGroupId"
-        responses:
-          "200":
-            description: Shared policy group found
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/SharedPolicyGroup"
-          default:
-            $ref: "#/components/responses/Error"
-    put:
-        tags:
-          - SharedPolicyGroups
-        summary: Update a shared policy group
-        operationId: updateSharedPolicyGroup
-        parameters:
-          - $ref: "#/components/parameters/sharedPolicyGroupId"
-        requestBody:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UpdateSharedPolicyGroup"
-          required: true
-        responses:
-          "200":
-            description: Shared policy group updated
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/SharedPolicyGroup"
-          default:
-            $ref: "#/components/responses/Error"
-    delete:
-        tags:
-          - SharedPolicyGroups
-        summary: Delete a shared policy group
-        operationId: deleteSharedPolicyGroup
-        parameters:
-          - $ref: "#/components/parameters/sharedPolicyGroupId"
-        responses:
-          "204":
-            description: Shared policy group deleted
-          default:
-            $ref: "#/components/responses/Error"
-  /shared-policy-groups/{sharedPolicyGroupId}/histories:
-    get:
-      tags:
-        - SharedPolicyGroups
-      summary: Get the histories of a shared policy group
-      operationId: getSharedPolicyGroupHistories
-      parameters:
-        - $ref: "#/components/parameters/sharedPolicyGroupId"
-        - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
-        - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
-        - $ref: "#/components/parameters/sharedPolicyGroupHistoriesSortByParam"
-      responses:
-        "200":
-          $ref: "#/components/responses/SharedPolicyGroupHistoriesResponse"
-        default:
-          $ref: "#/components/responses/Error"
-  /shared-policy-groups/{sharedPolicyGroupId}/_deploy:
-    post:
-      tags:
-        - SharedPolicyGroups
-      summary: Deploy a shared policy group
-      operationId: deploySharedPolicyGroup
-      parameters:
-        - $ref: "#/components/parameters/sharedPolicyGroupId"
-      responses:
-        "202":
-          description: Shared policy group deploy request has been accepted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SharedPolicyGroup"
-        default:
-          $ref: "#/components/responses/Error"
-  /shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
-    post:
-      tags:
-        - SharedPolicyGroups
-      summary: Undeploy a shared policy group
-      operationId: undeploySharedPolicyGroup
-      parameters:
-        - $ref: "#/components/parameters/sharedPolicyGroupId"
-      responses:
-        "202":
-          description: Shared policy group undeploy request has been accepted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SharedPolicyGroup"
-        default:
-          $ref: "#/components/responses/Error"
+    # Shared policy group
+    /shared-policy-groups:
+        post:
+            tags:
+                - SharedPolicyGroups
+            summary: Create a shared policy group
+            operationId: createSharedPolicyGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateSharedPolicyGroup"
+                required: true
+            responses:
+                "201":
+                    description: Shared policy group created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SharedPolicyGroup"
+                default:
+                    $ref: "#/components/responses/Error"
+        get:
+            tags:
+                - SharedPolicyGroups
+            summary: Search shared policy groups
+            operationId: searchSharedPolicyGroups
+            parameters:
+                - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
+                - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/sharedPolicyGroupSortByParam"
+                - $ref: "#/components/parameters/sharedPolicyGroupSearchParam"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SharedPolicyGroupsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /shared-policy-groups/policy-plugins:
+        get:
+            tags:
+                - SharedPolicyGroups
+            summary: Get all shared policy group for a policy plugin usage
+            operationId: getPolicyPlugins
+            responses:
+                "200":
+                    description: Shared policy group found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/SharedPolicyGroupPolicyPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /shared-policy-groups/{sharedPolicyGroupId}:
+        get:
+            tags:
+                - SharedPolicyGroups
+            summary: Get a shared policy group
+            operationId: getSharedPolicyGroup
+            parameters:
+                - $ref: "#/components/parameters/sharedPolicyGroupId"
+            responses:
+                "200":
+                    description: Shared policy group found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SharedPolicyGroup"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - SharedPolicyGroups
+            summary: Update a shared policy group
+            operationId: updateSharedPolicyGroup
+            parameters:
+                - $ref: "#/components/parameters/sharedPolicyGroupId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateSharedPolicyGroup"
+                required: true
+            responses:
+                "200":
+                    description: Shared policy group updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SharedPolicyGroup"
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - SharedPolicyGroups
+            summary: Delete a shared policy group
+            operationId: deleteSharedPolicyGroup
+            parameters:
+                - $ref: "#/components/parameters/sharedPolicyGroupId"
+            responses:
+                "204":
+                    description: Shared policy group deleted
+                default:
+                    $ref: "#/components/responses/Error"
+    /shared-policy-groups/{sharedPolicyGroupId}/histories:
+        get:
+            tags:
+                - SharedPolicyGroups
+            summary: Get the histories of a shared policy group
+            operationId: getSharedPolicyGroupHistories
+            parameters:
+                - $ref: "#/components/parameters/sharedPolicyGroupId"
+                - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
+                - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/sharedPolicyGroupHistoriesSortByParam"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SharedPolicyGroupHistoriesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /shared-policy-groups/{sharedPolicyGroupId}/_deploy:
+        post:
+            tags:
+                - SharedPolicyGroups
+            summary: Deploy a shared policy group
+            operationId: deploySharedPolicyGroup
+            parameters:
+                - $ref: "#/components/parameters/sharedPolicyGroupId"
+            responses:
+                "202":
+                    description: Shared policy group deploy request has been accepted
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SharedPolicyGroup"
+                default:
+                    $ref: "#/components/responses/Error"
+    /shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
+        post:
+            tags:
+                - SharedPolicyGroups
+            summary: Undeploy a shared policy group
+            operationId: undeploySharedPolicyGroup
+            parameters:
+                - $ref: "#/components/parameters/sharedPolicyGroupId"
+            responses:
+                "202":
+                    description: Shared policy group undeploy request has been accepted
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SharedPolicyGroup"
+                default:
+                    $ref: "#/components/responses/Error"
 components:
     schemas:
         # Shared policy group
         CreateSharedPolicyGroup:
-          type: object
-          description: Create payload for a shared policy group
-          properties:
-            crossId:
-              type: string
-              description: The unique ID of the shared policy group
-              example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
-            name:
-              type: string
-              description: The name of the shared policy group
-              example: My Shared Policy Group
-              maxLength: 512
-            description:
-              type: string
-              description: The description of the shared policy group
-              example: This is a shared policy group
-              maxLength: 1024
-            prerequisiteMessage:
-              type: string
-              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
-              example: The resource cache "my-cache" is required
-              maxLength: 1024
-            apiType:
-              $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
-            phase:
-              $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
-            steps:
-              type: array
-              description: The list of steps (policies) in the shared policy group
-              items:
-                $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
-          required: ["name", "apiType","phase"]
+            type: object
+            description: Create payload for a shared policy group
+            properties:
+                crossId:
+                    type: string
+                    description: The unique ID of the shared policy group
+                    example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+                name:
+                    type: string
+                    description: The name of the shared policy group
+                    example: My Shared Policy Group
+                    maxLength: 512
+                description:
+                    type: string
+                    description: The description of the shared policy group
+                    example: This is a shared policy group
+                    maxLength: 1024
+                prerequisiteMessage:
+                    type: string
+                    description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+                    example: The resource cache "my-cache" is required
+                    maxLength: 1024
+                apiType:
+                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                phase:
+                    $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+                steps:
+                    type: array
+                    description: The list of steps (policies) in the shared policy group
+                    items:
+                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+            required: ["name", "apiType", "phase"]
         UpdateSharedPolicyGroup:
-          type: object
-          description: Update payload for a shared policy group
-          properties:
-            crossId:
-              type: string
-              description: The unique ID of the shared policy group
-              example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
-            name:
-              type: string
-              description: The name of the shared policy group
-              example: My Shared Policy Group
-              maxLength: 512
-            description:
-              type: string
-              description: The description of the shared policy group
-              example: This is a shared policy group
-              maxLength: 1024
-            prerequisiteMessage:
-              type: string
-              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
-              example: The resource cache "my-cache" is required
-              maxLength: 1024
-            steps:
-              type: array
-              description: The list of steps (policies) in the shared policy group
-              items:
-                $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+            type: object
+            description: Update payload for a shared policy group
+            properties:
+                crossId:
+                    type: string
+                    description: The unique ID of the shared policy group
+                    example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+                name:
+                    type: string
+                    description: The name of the shared policy group
+                    example: My Shared Policy Group
+                    maxLength: 512
+                description:
+                    type: string
+                    description: The description of the shared policy group
+                    example: This is a shared policy group
+                    maxLength: 1024
+                prerequisiteMessage:
+                    type: string
+                    description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+                    example: The resource cache "my-cache" is required
+                    maxLength: 1024
+                steps:
+                    type: array
+                    description: The list of steps (policies) in the shared policy group
+                    items:
+                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
         SharedPolicyGroup:
-          type: object
-          description: A shared policy group
-          properties:
-            id:
-              type: string
-              description: The unique ID of the shared policy group
-            crossId:
-              type: string
-              description: The unique ID of the shared policy group
-              example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
-            name:
-              type: string
-              description: The name of the shared policy group
-              example: My Shared Policy Group
-              maxLength: 512
-            description:
-              type: string
-              description: The description of the shared policy group
-              example: This is a shared policy group
-              maxLength: 1024
-            prerequisiteMessage:
-              type: string
-              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
-              example: The resource cache "my-cache" is required
-              maxLength: 1024
-            version:
-              type: number
-              description: The version of the shared policy group
-              example: 1
-            apiType:
-              $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
-            steps:
-              type: array
-              description: The list of steps (policies) in the shared policy group
-              items:
-                $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
-            phase:
-              $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
-            deployedAt:
-              type: string
-              format: date-time
-              description: The date at which the shared policy group was deployed
-              example: 2020-01-01T00:00:00Z
-            createdAt:
-              type: string
-              format: date-time
-              description: The date at which the shared policy group was created
-              example: 2020-01-01T00:00:00Z
-            updatedAt:
-              type: string
-              format: date-time
-              description: The date at which the shared policy group was last updated
-              example: 2020-01-01T00:00:00Z
-            lifecycleState:
-              $ref: "#/components/schemas/SharedPolicyGroupLifecycleState"
+            type: object
+            description: A shared policy group
+            properties:
+                id:
+                    type: string
+                    description: The unique ID of the shared policy group
+                crossId:
+                    type: string
+                    description: The unique ID of the shared policy group
+                    example: 5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b
+                name:
+                    type: string
+                    description: The name of the shared policy group
+                    example: My Shared Policy Group
+                    maxLength: 512
+                description:
+                    type: string
+                    description: The description of the shared policy group
+                    example: This is a shared policy group
+                    maxLength: 1024
+                prerequisiteMessage:
+                    type: string
+                    description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+                    example: The resource cache "my-cache" is required
+                    maxLength: 1024
+                version:
+                    type: number
+                    description: The version of the shared policy group
+                    example: 1
+                apiType:
+                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                steps:
+                    type: array
+                    description: The list of steps (policies) in the shared policy group
+                    items:
+                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                phase:
+                    $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+                deployedAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the shared policy group was deployed
+                    example: 2020-01-01T00:00:00Z
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the shared policy group was created
+                    example: 2020-01-01T00:00:00Z
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the shared policy group was last updated
+                    example: 2020-01-01T00:00:00Z
+                lifecycleState:
+                    $ref: "#/components/schemas/SharedPolicyGroupLifecycleState"
         SharedPolicyGroupPolicyPlugin:
-          type: object
-          description: A shared policy group for a policy plugin
-          properties:
-            id:
-              type: string
-              description: The unique ID of the shared policy group
-            policyId:
-              type: string
-              description: The id of shared-policy-group plugin
-            name:
-              type: string
-              description: The name of the shared policy group
-              example: My Shared Policy Group
-              maxLength: 512
-            description:
-              type: string
-              description: The description of the shared policy group
-              example: This is a shared policy group
-              maxLength: 1024
-            prerequisiteMessage:
-              type: string
-              description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
-              example: The resource cache "my-cache" is required
-              maxLength: 1024
-            apiType:
-              $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
-            phase:
-              $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
+            type: object
+            description: A shared policy group for a policy plugin
+            properties:
+                id:
+                    type: string
+                    description: The unique ID of the shared policy group
+                policyId:
+                    type: string
+                    description: The id of shared-policy-group plugin
+                name:
+                    type: string
+                    description: The name of the shared policy group
+                    example: My Shared Policy Group
+                    maxLength: 512
+                description:
+                    type: string
+                    description: The description of the shared policy group
+                    example: This is a shared policy group
+                    maxLength: 1024
+                prerequisiteMessage:
+                    type: string
+                    description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+                    example: The resource cache "my-cache" is required
+                    maxLength: 1024
+                apiType:
+                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                phase:
+                    $ref: "./openapi-plugins.yaml#/components/schemas/ExecutionPhase"
 
         SharedPolicyGroupLifecycleState:
             type: string
@@ -414,53 +414,53 @@ components:
             schema:
                 type: string
         sharedPolicyGroupSortByParam:
-          name: sortBy
-          in: query
-          required: false
-          description: |-
-            Possibility to sort Shared Policy Group results by field.
-            Can be ascending or descending with minus '-' prefix.
-            By default, no sort is applied.
-          schema:
-            type: string
-            example: name
-            enum:
-              - name
-              - -name
-              - apiType
-              - -apiType
-              - phase
-              - -phase
-              - updatedAt
-              - -updatedAt
-              - deployedAt
-              - -deployedAt
+            name: sortBy
+            in: query
+            required: false
+            description: |-
+                Possibility to sort Shared Policy Group results by field.
+                Can be ascending or descending with minus '-' prefix.
+                By default, no sort is applied.
+            schema:
+                type: string
+                example: name
+                enum:
+                    - name
+                    - -name
+                    - apiType
+                    - -apiType
+                    - phase
+                    - -phase
+                    - updatedAt
+                    - -updatedAt
+                    - deployedAt
+                    - -deployedAt
         sharedPolicyGroupSearchParam:
-          name: q
-          in: query
-          description: |-
-            A search query to filter shared policy groups.
-          schema:
-            type: string
-            example: my shared policy group
+            name: q
+            in: query
+            description: |-
+                A search query to filter shared policy groups.
+            schema:
+                type: string
+                example: my shared policy group
         sharedPolicyGroupHistoriesSortByParam:
-          name: sortBy
-          in: query
-          required: false
-          description: |-
-            Possibility to sort Shared Policy Group history results by field.
-            Can be ascending or descending with minus '-' prefix.
-            By default, no sort is applied.
-          schema:
-            type: string
-            example: name
-            enum:
-              - version
-              - -version
-              - updatedAt
-              - -updatedAt
-              - deployedAt
-              - -deployedAt
+            name: sortBy
+            in: query
+            required: false
+            description: |-
+                Possibility to sort Shared Policy Group history results by field.
+                Can be ascending or descending with minus '-' prefix.
+                By default, no sort is applied.
+            schema:
+                type: string
+                example: name
+                enum:
+                    - version
+                    - -version
+                    - updatedAt
+                    - -updatedAt
+                    - deployedAt
+                    - -deployedAt
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -469,37 +469,37 @@ components:
                     schema:
                         type: object
         SharedPolicyGroupsResponse:
-          description: Page of shared policy groups
-          content:
-            application/json:
-              schema:
-                title: "SharedPolicyGroupsResponse"
-                properties:
-                  data:
-                    description: List of SharedPolicyGroup.
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/SharedPolicyGroup"
-                  pagination:
-                    $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
-                  links:
-                    $ref: "./openapi-apis.yaml#/components/schemas/Links"
+            description: Page of shared policy groups
+            content:
+                application/json:
+                    schema:
+                        title: "SharedPolicyGroupsResponse"
+                        properties:
+                            data:
+                                description: List of SharedPolicyGroup.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/SharedPolicyGroup"
+                            pagination:
+                                $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                            links:
+                                $ref: "./openapi-apis.yaml#/components/schemas/Links"
         SharedPolicyGroupHistoriesResponse:
-          description: Page of shared policy group histories
-          content:
-            application/json:
-              schema:
-                title: "SharedPolicyGroupHistoriesResponse"
-                properties:
-                  data:
-                    description: List of SharedPolicyGroup.
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/SharedPolicyGroup"
-                  pagination:
-                    $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
-                  links:
-                    $ref: "./openapi-apis.yaml#/components/schemas/Links"
+            description: Page of shared policy group histories
+            content:
+                application/json:
+                    schema:
+                        title: "SharedPolicyGroupHistoriesResponse"
+                        properties:
+                            data:
+                                description: List of SharedPolicyGroup.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/SharedPolicyGroup"
+                            pagination:
+                                $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                            links:
+                                $ref: "./openapi-apis.yaml#/components/schemas/Links"
         Error:
             description: Generic error response
             content:
