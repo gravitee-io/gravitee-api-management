@@ -72,7 +72,7 @@ describe('IntegrationPortalGroupsComponent', () => {
 
   describe('Groups tab for user with writing rights', () => {
     beforeEach(async () => {
-      await init(['integration-member-u', 'integration-member-r']);
+      await init(['integration-member-c', 'integration-member-r']);
     });
 
     it('should show groups', async () => {
