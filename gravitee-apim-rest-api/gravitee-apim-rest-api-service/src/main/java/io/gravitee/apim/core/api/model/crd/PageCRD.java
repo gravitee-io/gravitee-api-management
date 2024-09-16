@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.api.model.crd;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +41,8 @@ public class PageCRD {
     private String parentId;
     private PageSource source;
     private Map<String, String> configuration;
+    private Set<AccessControl> accessControls;
+    private boolean excludedAccessControls;
 
     // Folder attributes
     @With
