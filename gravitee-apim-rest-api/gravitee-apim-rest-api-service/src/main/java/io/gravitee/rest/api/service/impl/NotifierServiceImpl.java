@@ -210,45 +210,46 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 .findByReferenceAndHook(hook.name(), refType, refId)
                 .stream()
                 .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
+            if (!notificationConfigs.isEmpty()) {
+                list(refType, refId)
+                    .forEach(notifier -> {
+                        switch (notifier.type()) {
+                            case EMAIL -> {
+                                var emailAdditionalRecipients = additionalRecipients
+                                    .stream()
+                                    .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                    .map(Recipient::value)
+                                    .toList();
 
-            list(refType, refId)
-                .forEach(notifier -> {
-                    switch (notifier.type()) {
-                        case EMAIL -> {
-                            var emailAdditionalRecipients = additionalRecipients
-                                .stream()
-                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
-                                .map(Recipient::value)
-                                .toList();
+                                var recipients = notificationConfigs
+                                    .getOrDefault(notifier.getId(), Collections.emptyList())
+                                    .stream()
+                                    .map(GenericNotificationConfig::getConfig)
+                                    .collect(Collectors.toList());
+                                recipients.addAll(emailAdditionalRecipients);
 
-                            var recipients = notificationConfigs
-                                .getOrDefault(notifier.getId(), Collections.emptyList())
-                                .stream()
-                                .map(GenericNotificationConfig::getConfig)
-                                .collect(Collectors.toList());
-                            recipients.addAll(emailAdditionalRecipients);
+                                // extract emails from templated string (eg: ${api.primaryOwner.email})
+                                var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, params);
+                                // extract emails of opted-in users if trial instance
+                                var validRecipients = parameterService.findAsBoolean(
+                                        executionContext,
+                                        Key.TRIAL_INSTANCE,
+                                        ParameterReferenceType.SYSTEM
+                                    )
+                                    ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
+                                    : processedRecipients;
 
-                            // extract emails from templated string (eg: ${api.primaryOwner.email})
-                            var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, params);
-                            // extract emails of opted-in users if trial instance
-                            var validRecipients = parameterService.findAsBoolean(
-                                    executionContext,
-                                    Key.TRIAL_INSTANCE,
-                                    ParameterReferenceType.SYSTEM
-                                )
-                                ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
-                                : processedRecipients;
-
-                            emailNotifierService.trigger(executionContext, hook, params, validRecipients);
+                                emailNotifierService.trigger(executionContext, hook, params, validRecipients);
+                            }
+                            case WEBHOOK -> {
+                                notificationConfigs
+                                    .getOrDefault(notifier.getId(), Collections.emptyList())
+                                    .forEach(config -> webhookNotifierService.trigger(hook, config, params));
+                            }
+                            default -> LOGGER.error("Unknown notifier {}", notifier.getType());
                         }
-                        case WEBHOOK -> {
-                            notificationConfigs
-                                .getOrDefault(notifier.getId(), Collections.emptyList())
-                                .forEach(config -> webhookNotifierService.trigger(hook, config, params));
-                        }
-                        default -> LOGGER.error("Unknown notifier {}", notifier.getType());
-                    }
-                });
+                    });
+            }
         } catch (TechnicalException e) {
             LOGGER.error("Error looking for GenericNotificationConfig with {}/{}/{}", hook, refType, refId, e);
         }
