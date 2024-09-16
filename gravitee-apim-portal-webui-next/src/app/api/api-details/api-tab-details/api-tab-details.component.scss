@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @use '../../../../scss/m3-adapter';
+@use '../../../../scss/theme';
 
 .api-details {
   &__tab {
@@ -37,4 +38,8 @@
       gap: 32px;
     }
   }
+}
+
+.api-info-value {
+  color: theme.$paragraph-color;
 }
