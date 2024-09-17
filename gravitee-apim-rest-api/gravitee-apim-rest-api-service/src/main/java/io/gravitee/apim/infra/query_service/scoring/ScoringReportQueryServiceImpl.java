@@ -21,7 +21,9 @@ import io.gravitee.apim.infra.adapter.ScoringReportAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,16 @@ public class ScoringReportQueryServiceImpl implements ScoringReportQueryService 
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Scoring Report by API id", e);
             throw new TechnicalManagementException("An error occurred while finding Scoring Report of API: " + apiId, e);
+        }
+    }
+
+    @Override
+    public Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiIds) {
+        try {
+            return scoringReportRepository.findLatestReports(apiIds).map(ScoringReportAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            log.error("An error occurred while finding Scoring Reports by API id", e);
+            throw new TechnicalManagementException("An error occurred while finding Scoring Report of API: " + apiIds, e);
         }
     }
 }

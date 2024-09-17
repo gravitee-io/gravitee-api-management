@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -111,6 +112,72 @@ public class ScoringReportQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurred while finding Scoring Report of API: api-id");
+        }
+    }
+
+    @Nested
+    class FindLatestReportsByApiId {
+
+        @Test
+        @SneakyThrows
+        void should_find_scoring_report() {
+            when(scoringReportRepository.findLatestReports(any())).thenAnswer(invocation -> Stream.of(aReport()));
+
+            // When
+            var result = service.findLatestReportsByApiId(List.of("api-id"));
+
+            // Then
+            assertThat(result)
+                .contains(
+                    new ScoringReport(
+                        "report-id",
+                        "api-id",
+                        Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                        new ScoringReport.Summary(0L, 1L, 0L, 0L),
+                        List.of(
+                            new ScoringReport.Asset(
+                                "asset1",
+                                ScoringAssetType.SWAGGER,
+                                List.of(
+                                    new ScoringReport.Diagnostic(
+                                        ScoringReport.Severity.WARN,
+                                        new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
+                                        "operation-operationId",
+                                        "Operation must have \"operationId\".",
+                                        "paths./echo.options"
+                                    )
+                                )
+                            ),
+                            new ScoringReport.Asset("asset2", ScoringAssetType.GRAVITEE_DEFINITION, List.of())
+                        )
+                    )
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_when_no_report() {
+            when(scoringReportRepository.findLatestReports(any())).thenAnswer(invocation -> Stream.empty());
+
+            // When
+            var result = service.findLatestReportsByApiId(List.of("api-id"));
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(scoringReportRepository.findLatestReports(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findLatestReportsByApiId(List.of("api-id")));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurred while finding Scoring Report of API: [api-id]");
         }
     }
 
