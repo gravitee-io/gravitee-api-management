@@ -16,11 +16,13 @@
 import { Component, DestroyRef, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
+import { filter, mergeMap } from 'rxjs/operators';
 
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GroupData } from '../integration-general-members.component';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 interface MemberDataSource {
   id: string;
@@ -55,10 +57,11 @@ export class IntegrationGeneralGroupMembersComponent implements OnInit, OnDestro
     searchTerm: '',
   };
 
-  public canViewGroupMembers: boolean;
+  public canViewGroupMembers = false;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
+    private readonly permissionService: GioPermissionService,
     private readonly groupService: GroupV2Service,
     private readonly userService: UsersService,
   ) {}
@@ -87,16 +90,19 @@ export class IntegrationGeneralGroupMembersComponent implements OnInit, OnDestro
   }
 
   private getGroupMembersPage(page = 1, perPage = 10): void {
-    this.groupService
-      .getMembers(this.groupData.id, page, perPage)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.permissionService
+      .fetchGroupPermissions(this.groupData.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((permissions) => permissions.includes('group-member-r')),
+        mergeMap((_) => this.groupService.getMembers(this.groupData.id, page, perPage)),
+      )
       .subscribe({
         next: (membersResponse) => {
           if (!membersResponse.pagination.totalCount || membersResponse.pagination.totalCount === 0) {
             this.destroy.emit();
             return;
           }
-          this.canViewGroupMembers = true;
           this.dataSourceGroup = {
             memberTotalCount: membersResponse.pagination.totalCount,
             membersPageResult: membersResponse.data.map((member) => ({
@@ -106,6 +112,7 @@ export class IntegrationGeneralGroupMembersComponent implements OnInit, OnDestro
               picture: this.userService.getUserAvatar(member.id),
             })),
           };
+          this.canViewGroupMembers = true;
         },
         error: ({ error }) => {
           if (error.httpStatus === 403) {

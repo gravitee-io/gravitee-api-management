@@ -46,4 +46,8 @@ export class GroupV2Service {
       },
     });
   }
+
+  public getPermissions(groupId: string): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/groups/${groupId}/permissions`);
+  }
 }

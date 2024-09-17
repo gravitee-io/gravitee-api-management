@@ -20,13 +20,14 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { of } from 'rxjs';
 
 import { IntegrationGeneralGroupsHarness } from './integration-general-groups.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { IntegrationUserGroupModule } from '../integration-user-group.module';
 import { fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { IntegrationGeneralMembersComponent } from '../members/integration-general-members.component';
 import { IntegrationGeneralMembersHarness } from '../members/integration-general-members.harness';
 import { Role } from '../../../../entities/role/role';
@@ -50,11 +51,15 @@ describe('IntegrationPortalGroupsComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const init = async (permissions: string[]) => {
+    const permissionService = {
+      hasAnyMatching: (permissionGuess: string[]) => permissionGuess.some((guess) => permissions.includes(guess)),
+      fetchGroupPermissions: (_) => of(['group-member-r']),
+    };
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, IntegrationUserGroupModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { integrationId: integrationId } } } },
-        { provide: GioTestingPermissionProvider, useValue: permissions },
+        { provide: GioPermissionService, useValue: permissionService },
       ],
     }).compileComponents();
 
