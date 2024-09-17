@@ -18,10 +18,12 @@ package inmemory;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ScoringReportQueryServiceInMemory implements ScoringReportQueryService, InMemoryAlternative<ScoringReport> {
 
@@ -38,6 +40,11 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
     @Override
     public Optional<ScoringReport> findLatestByApiId(String apiId) {
         return storage.stream().filter(report -> report.apiId().equals(apiId)).max(Comparator.comparing(ScoringReport::createdAt));
+    }
+
+    @Override
+    public Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiIds) {
+        return storage.stream().filter(report -> apiIds.contains(report.apiId()));
     }
 
     @Override

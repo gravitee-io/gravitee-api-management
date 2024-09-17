@@ -142,6 +142,54 @@ public class ScoringReportReportRepositoryTest extends AbstractManagementReposit
             );
     }
 
+    // findLatestReports
+    @Test
+    public void findLatestReports_should_return_reports() throws Exception {
+        var result = scoringReportRepository.findLatestReports(List.of("api1", "api2", "api3"));
+
+        Assertions
+            .assertThat(result)
+            .contains(
+                new ScoringReport(
+                    "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+                    "api1",
+                    new Date(1470157767000L),
+                    new ScoringReport.Summary(0L, 0L, 0L, 0L),
+                    List.of(new ScoringReport.Asset("a8e754af-a593-4dc5-bf38-2d0b83a7edc1", "SWAGGER", List.of()))
+                ),
+                new ScoringReport(
+                    "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
+                    "api2",
+                    new Date(1470157767000L),
+                    new ScoringReport.Summary(1L, 2L, 3L, 4L),
+                    List.of(
+                        new ScoringReport.Asset(
+                            "f931618f-3207-412a-adad-5bffdce746f7",
+                            "SWAGGER",
+                            List.of(
+                                new ScoringReport.Diagnostic(
+                                    "WARN",
+                                    new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
+                                    "operation-operationId",
+                                    "Operation must have \"operationId\".",
+                                    "paths./echo.options"
+                                )
+                            )
+                        ),
+                        new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of()),
+                        new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of())
+                    )
+                ),
+                new ScoringReport(
+                    "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                    "api3",
+                    new Date(1470157767000L),
+                    new ScoringReport.Summary(0L, 0L, 0L, 0L),
+                    List.of()
+                )
+            );
+    }
+
     // DeleteByApi
     @Test
     public void should_deleteByApi() throws Exception {
