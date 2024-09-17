@@ -47,7 +47,11 @@
     <properties>
         <!-- Version properties -->
         <revision>4.5.0</revision>
+<<<<<<< HEAD
         <sha1>-alpha.2</sha1>
+=======
+        <sha1/>
+>>>>>>> parent of 2f78b15207 (chore: prepare for next 4.6.x version)
         <changelist>-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
