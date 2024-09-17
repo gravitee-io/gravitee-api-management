@@ -31,6 +31,7 @@ public class ScoringReportFixture {
             .builder()
             .id("report-id")
             .apiId("api-id")
+            .summary(new ScoringReport.Summary(0L, 1L, 0L, 0L))
             .assets(
                 List.of(
                     new ScoringReport.Asset(

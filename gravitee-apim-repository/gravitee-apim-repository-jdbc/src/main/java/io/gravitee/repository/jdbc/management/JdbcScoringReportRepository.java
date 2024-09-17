@@ -20,6 +20,9 @@ import io.gravitee.repository.jdbc.management.model.JdbcScoringRow;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.model.ScoringReport;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
@@ -28,14 +31,29 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
 @Repository
 public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow> implements ScoringReportRepository {
 
+    private final String SCORING_REPORT_SUMMARY;
+
+    static final JdbcHelper.ChildAdder<JdbcScoringRow> CHILD_ADDER = (JdbcScoringRow parent, ResultSet rs) -> {
+        if (parent.getSummary() == null) {
+            parent.setSummary(
+                new ScoringReport.Summary(rs.getLong("errors"), rs.getLong("warnings"), rs.getLong("infos"), rs.getLong("hints"))
+            );
+        }
+        if (parent.getCreatedAt() == null) {
+            parent.setCreatedAt(new Date(rs.getTimestamp("created_at").getTime()));
+        }
+    };
+
     JdbcScoringReportRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "scoring_reports");
+        SCORING_REPORT_SUMMARY = getTableNameFor("scoring_report_summary");
     }
 
     @Override
@@ -58,25 +76,26 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                     .diagnostics()
                     .stream()
                     .map(d ->
-                        new JdbcScoringRow(
-                            report.getId(),
-                            report.getApiId(),
-                            pageId,
-                            a.type(),
-                            report.getCreatedAt(),
-                            d.severity(),
-                            d.range().start().line(),
-                            d.range().start().character(),
-                            d.range().end().line(),
-                            d.range().end().character(),
-                            d.rule(),
-                            d.message(),
-                            d.path()
-                        )
+                        JdbcScoringRow
+                            .builder()
+                            .reportId(report.getId())
+                            .apiId(report.getApiId())
+                            .pageId(pageId)
+                            .type(a.type())
+                            .severity(d.severity())
+                            .startLine(d.range().start().line())
+                            .startCharacter(d.range().start().character())
+                            .endLine(d.range().end().line())
+                            .endCharacter(d.range().end().character())
+                            .rule(d.rule())
+                            .message(d.message())
+                            .path(d.path())
+                            .build()
                     );
             })
             .toList();
 
+        storeSummary(report);
         for (var row : rows) {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(row));
         }
@@ -89,19 +108,37 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         log.debug("JdbcScoringRepository.deleteByApi({})", apiId);
 
         jdbcTemplate.update("delete from " + getOrm().getTableName() + " where api_id = ?", apiId);
+        jdbcTemplate.update("delete from " + SCORING_REPORT_SUMMARY + " where api_id = ?", apiId);
     }
 
     public Optional<ScoringReport> findByReportId(String reportId) {
         log.debug("JdbcScoringRepository.findByReportId({})", reportId);
-        var rows = jdbcTemplate.query(getOrm().getSelectAllSql() + " where report_id = ?", getRowMapper(), reportId);
-        return adaptScoringReport(rows);
+
+        var query =
+            "select * from " +
+            SCORING_REPORT_SUMMARY +
+            " r left join " +
+            getOrm().getTableName() +
+            " s on r.report_id = s.report_id where r.report_id = ?";
+
+        var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+        jdbcTemplate.query(query, rowMapper, reportId);
+        return adaptScoringReport(rowMapper.getRows());
     }
 
     @Override
     public Optional<ScoringReport> findLatestFor(String apiId) {
         log.debug("JdbcScoringRepository.findByApi({})", apiId);
-        var rows = jdbcTemplate.query(getOrm().getSelectAllSql() + " where api_id = ?", getRowMapper(), apiId);
-        return adaptScoringReport(rows);
+        var query =
+            "select * from " +
+            SCORING_REPORT_SUMMARY +
+            " r left join " +
+            getOrm().getTableName() +
+            " s on r.report_id = s.report_id where r.api_id = ?";
+
+        var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+        jdbcTemplate.query(query, rowMapper, apiId);
+        return adaptScoringReport(rowMapper.getRows());
     }
 
     @Override
@@ -112,7 +149,6 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .addColumn("api_id", Types.NVARCHAR, String.class)
             .addColumn("page_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("severity", Types.NVARCHAR, String.class)
             .addColumn("start_line", Types.INTEGER, Integer.class)
             .addColumn("start_character", Types.INTEGER, Integer.class)
@@ -124,9 +160,47 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             .build();
     }
 
+    private void storeSummary(ScoringReport report) {
+        jdbcTemplate.batchUpdate(
+            "insert into " +
+            SCORING_REPORT_SUMMARY +
+            " ( report_id, api_id, created_at, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ? )",
+            new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, report.getId());
+                    ps.setString(2, report.getApiId());
+                    ps.setTimestamp(3, new java.sql.Timestamp(report.getCreatedAt().toInstant().toEpochMilli()));
+                    ps.setLong(4, report.getSummary().errors());
+                    ps.setLong(5, report.getSummary().warnings());
+                    ps.setLong(6, report.getSummary().infos());
+                    ps.setLong(7, report.getSummary().hints());
+                }
+
+                @Override
+                public int getBatchSize() {
+                    return 1;
+                }
+            }
+        );
+    }
+
     private static Optional<ScoringReport> adaptScoringReport(List<JdbcScoringRow> rows) {
         if (rows.isEmpty()) {
             return Optional.empty();
+        }
+
+        if (rows.size() == 1 && rows.get(0).getPageId() == null) {
+            // no asset
+            return Optional.of(
+                new ScoringReport(
+                    rows.get(0).getReportId(),
+                    rows.get(0).getApiId(),
+                    rows.get(0).getCreatedAt(),
+                    rows.get(0).getSummary(),
+                    List.of()
+                )
+            );
         }
 
         var grouped = rows.stream().collect(Collectors.groupingBy(JdbcScoringRow::getPageId));
@@ -156,6 +230,15 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                 return new ScoringReport.Asset(pageId, entry.getValue().get(0).getType(), diagnostics);
             })
             .toList();
-        return Optional.of(new ScoringReport(rows.get(0).getReportId(), rows.get(0).getApiId(), rows.get(0).getCreatedAt(), assets));
+
+        return Optional.of(
+            new ScoringReport(
+                rows.get(0).getReportId(),
+                rows.get(0).getApiId(),
+                rows.get(0).getCreatedAt(),
+                rows.get(0).getSummary(),
+                assets
+            )
+        );
     }
 }

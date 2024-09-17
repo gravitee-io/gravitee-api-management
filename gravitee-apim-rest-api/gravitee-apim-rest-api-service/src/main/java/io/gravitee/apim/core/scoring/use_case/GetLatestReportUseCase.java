@@ -47,12 +47,6 @@ public class GetLatestReportUseCase {
             })
             .toList();
 
-        var summary = report
-            .assets()
-            .stream()
-            .flatMap(asset -> asset.diagnostics().stream())
-            .collect(Collectors.groupingBy(ScoringReport.Diagnostic::severity, Collectors.counting()));
-
         return new Output(
             new ScoringReportView(
                 report.id(),
@@ -60,10 +54,10 @@ public class GetLatestReportUseCase {
                 report.createdAt(),
                 assets,
                 new ScoringReportView.Summary(
-                    summary.getOrDefault(ScoringReport.Severity.ERROR, 0L),
-                    summary.getOrDefault(ScoringReport.Severity.WARN, 0L),
-                    summary.getOrDefault(ScoringReport.Severity.INFO, 0L),
-                    summary.getOrDefault(ScoringReport.Severity.HINT, 0L)
+                    report.summary().errors(),
+                    report.summary().warnings(),
+                    report.summary().infos(),
+                    report.summary().hints()
                 )
             )
         );

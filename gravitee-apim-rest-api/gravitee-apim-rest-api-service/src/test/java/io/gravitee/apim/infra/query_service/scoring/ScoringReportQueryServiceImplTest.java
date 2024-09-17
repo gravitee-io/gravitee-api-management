@@ -66,6 +66,7 @@ public class ScoringReportQueryServiceImplTest {
                         "report-id",
                         "api-id",
                         Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                        new ScoringReport.Summary(0L, 1L, 0L, 0L),
                         List.of(
                             new ScoringReport.Asset(
                                 "asset1",
@@ -118,25 +119,28 @@ public class ScoringReportQueryServiceImplTest {
             .builder()
             .id("report-id")
             .apiId("api-id")
-            .asset(
-                new io.gravitee.repository.management.model.ScoringReport.Asset(
-                    "asset1",
-                    "SWAGGER",
-                    List.of(
-                        new io.gravitee.repository.management.model.ScoringReport.Diagnostic(
-                            "WARN",
-                            new io.gravitee.repository.management.model.ScoringReport.Range(
-                                new io.gravitee.repository.management.model.ScoringReport.Position(17, 12),
-                                new io.gravitee.repository.management.model.ScoringReport.Position(38, 25)
-                            ),
-                            "operation-operationId",
-                            "Operation must have \"operationId\".",
-                            "paths./echo.options"
+            .summary(new io.gravitee.repository.management.model.ScoringReport.Summary(0L, 1L, 0L, 0L))
+            .assets(
+                List.of(
+                    new io.gravitee.repository.management.model.ScoringReport.Asset(
+                        "asset1",
+                        "SWAGGER",
+                        List.of(
+                            new io.gravitee.repository.management.model.ScoringReport.Diagnostic(
+                                "WARN",
+                                new io.gravitee.repository.management.model.ScoringReport.Range(
+                                    new io.gravitee.repository.management.model.ScoringReport.Position(17, 12),
+                                    new io.gravitee.repository.management.model.ScoringReport.Position(38, 25)
+                                ),
+                                "operation-operationId",
+                                "Operation must have \"operationId\".",
+                                "paths./echo.options"
+                            )
                         )
-                    )
+                    ),
+                    new io.gravitee.repository.management.model.ScoringReport.Asset("asset2", "GRAVITEE_DEFINITION", List.of())
                 )
             )
-            .asset(new io.gravitee.repository.management.model.ScoringReport.Asset("asset2", "GRAVITEE_DEFINITION", List.of()))
             .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
             .build();
     }
