@@ -27,7 +27,6 @@ import { ApplicationLogComponent } from './applications/application/application-
 import { ApplicationLogTableComponent } from './applications/application/application-tab-logs/application-log-table/application-log-table.component';
 import { ApplicationTabLogsComponent } from './applications/application/application-tab-logs/application-tab-logs.component';
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
-import { ApplicationTabSubscriptionsComponent } from './applications/application/application-tab-subscriptions/application-tab-subscriptions.component';
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
 import { CatalogComponent } from './catalog/catalog.component';
@@ -138,11 +137,6 @@ export const routes: Routes = [
             path: 'settings',
             component: ApplicationTabSettingsComponent,
             resolve: { applicationTypeConfiguration: applicationTypeResolver },
-            data: { breadcrumb: { skip: true } },
-          },
-          {
-            path: 'subscriptions',
-            component: ApplicationTabSubscriptionsComponent,
             data: { breadcrumb: { skip: true } },
           },
         ],
