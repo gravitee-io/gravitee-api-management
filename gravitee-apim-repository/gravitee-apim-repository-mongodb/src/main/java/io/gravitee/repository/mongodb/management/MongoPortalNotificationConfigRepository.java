@@ -119,16 +119,15 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     private PortalNotificationConfig map(PortalNotificationConfigMongo mongo) {
-        PortalNotificationConfig cfg = new PortalNotificationConfig();
-
-        cfg.setReferenceType(mongo.getId().getReferenceType());
-        cfg.setReferenceId(mongo.getId().getReferenceId());
-        cfg.setUser(mongo.getId().getUser());
-        cfg.setHooks(mongo.getHooks());
-        cfg.setCreatedAt(mongo.getCreatedAt());
-        cfg.setUpdatedAt(mongo.getUpdatedAt());
-
-        return cfg;
+        return PortalNotificationConfig
+            .builder()
+            .referenceType(mongo.getId().getReferenceType())
+            .referenceId(mongo.getId().getReferenceId())
+            .user(mongo.getId().getUser())
+            .hooks(mongo.getHooks())
+            .createdAt(mongo.getCreatedAt())
+            .updatedAt(mongo.getUpdatedAt())
+            .build();
     }
 
     @Override

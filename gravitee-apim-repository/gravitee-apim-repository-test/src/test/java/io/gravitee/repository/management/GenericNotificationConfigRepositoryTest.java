@@ -152,15 +152,21 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
 
     @Test
     public void should_delete_by_reference_type_and_reference_id() throws Exception {
-        int nbBeforeDeletion = genericNotificationConfigRepository.findByReference(NotificationReferenceType.PORTAL, "ToBeDeleted").size();
-        List<String> deleted = genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            NotificationReferenceType.PORTAL
+        final var beforeDeletion = genericNotificationConfigRepository
+            .findByReference(NotificationReferenceType.ENVIRONMENT, "env_id_to_be_deleted")
+            .stream()
+            .map(GenericNotificationConfig::getId)
+            .toList();
+        final var deleted = genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+            "env_id_to_be_deleted",
+            NotificationReferenceType.ENVIRONMENT
         );
-        int nbAfterDeletion = genericNotificationConfigRepository.findByReference(NotificationReferenceType.PORTAL, "ToBeDeleted").size();
+        int nbAfterDeletion = genericNotificationConfigRepository
+            .findByReference(NotificationReferenceType.ENVIRONMENT, "env_id_to_be_deleted")
+            .size();
 
-        assertEquals(2, nbBeforeDeletion);
-        assertEquals(2, deleted.size());
+        assertEquals(beforeDeletion.size(), deleted.size());
+        assertTrue(beforeDeletion.containsAll(deleted));
         assertEquals(0, nbAfterDeletion);
     }
 }

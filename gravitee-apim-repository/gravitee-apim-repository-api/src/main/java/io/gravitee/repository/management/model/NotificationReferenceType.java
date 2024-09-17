@@ -20,7 +20,10 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum NotificationReferenceType {
+    // Must use ENVIRONMENT instead of PORTAL
+    @Deprecated
     PORTAL,
     API,
     APPLICATION,
+    ENVIRONMENT,
 }
