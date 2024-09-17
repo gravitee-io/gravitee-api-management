@@ -35,7 +35,6 @@ describe('PortalApiListComponent', () => {
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
 
-  const appliesToBothPortals = 'Applies to both portals';
   const fakeEmptyApiPortalHeaders: ApiPortalHeader[] = [];
   const fakeApiPortalHeaders: ApiPortalHeader[] = [
     {
@@ -117,10 +116,8 @@ describe('PortalApiListComponent', () => {
     await init(fakeApiPortalHeaders);
     expect(await componentHarness.getApiKeyHeader()).toEqual(portalSettingsOld.portal.apikeyHeader);
     expect(await componentHarness.getAddButton()).toBeTruthy();
-    expect(await componentHarness.getBadgeIconName1()).toBeTruthy();
-    expect(await componentHarness.getBadgeIconName2()).toBeTruthy();
-    expect(await componentHarness.getBadgeWarningText1()).toEqual(appliesToBothPortals);
-    expect(await componentHarness.getBadgeWarningText2()).toEqual(appliesToBothPortals);
+    expect(await componentHarness.getBothPortalsForApiSubscription()).toBeTruthy();
+    expect(await componentHarness.getBothPortalsForApiDetails()).toBeTruthy();
     expect(await componentHarness.getTableRows()).toBeTruthy();
   });
 

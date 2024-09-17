@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
@@ -24,9 +24,14 @@ export class PortalThemeHarness extends ComponentHarness {
   private getPrimaryColorInput = this.locatorFor(GioFormColorInputHarness.with({ selector: '[formControlName=primaryColor]' }));
   private getPublishButton = this.locatorFor(MatButtonHarness.with({ selector: '[type=submit]' }));
   private getDiscardButton = this.locatorFor(MatButtonHarness.with({ selector: '[type=button]' }));
+  private newPortalBadgeLocator = this.locatorFor('[data-testid="new-portal-badge"]');
 
   public async setPrimaryColor(color: string) {
     return this.getPrimaryColorInput().then((input) => input.setValue(color));
+  }
+
+  async getNewPortalBadge(): Promise<TestElement> {
+    return await this.newPortalBadgeLocator();
   }
 
   public async getPrimaryColor() {

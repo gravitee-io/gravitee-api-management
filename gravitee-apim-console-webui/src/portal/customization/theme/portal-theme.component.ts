@@ -35,6 +35,7 @@ import { UiPortalThemeService } from '../../../services-ngx/ui-theme.service';
 import { ThemePortalNext, UpdateThemePortalNext } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { NewPortalBadgeComponent } from '../../components/portal-badge/new-portal-badge/new-portal-badge.component';
 
 export interface ThemeVM {
   logo?: string[];
@@ -73,6 +74,7 @@ export interface ThemeVM {
     PortalHeaderComponent,
     MatSelect,
     MatOption,
+    NewPortalBadgeComponent,
   ],
   standalone: true,
 })

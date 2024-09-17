@@ -42,6 +42,7 @@ import {
   ApiPortalHeaderEditDialogResult,
 } from '../../../../management/settings/api-portal-header/api-portal-header-edit-dialog/api-portal-header-edit-dialog.component';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both-portals-badge/both-portals-badge.component';
 
 interface ApiForm {
   apiKeyHeader: FormControl<string>;
@@ -78,6 +79,7 @@ interface ApiForm {
     ReactiveFormsModule,
     MatFormFieldModule,
     GioSaveBarModule,
+    BothPortalsBadgeComponent,
   ],
   templateUrl: './portal-api-list.component.html',
   styleUrl: './portal-api-list.component.scss',
