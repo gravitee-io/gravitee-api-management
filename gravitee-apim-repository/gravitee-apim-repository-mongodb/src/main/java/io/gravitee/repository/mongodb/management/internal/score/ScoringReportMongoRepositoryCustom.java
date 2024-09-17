@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.scoring.query_service;
+package io.gravitee.repository.mongodb.management.internal.score;
 
-import io.gravitee.apim.core.scoring.model.ScoringReport;
+import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.List;
+import org.springframework.stereotype.Repository;
 
-public interface ScoringReportQueryService {
-    Optional<ScoringReport> findLatestByApiId(String apiId);
-    Stream<ScoringReport> findLatestReportsByApiId(Collection<String> apiId);
+@Repository
+public interface ScoringReportMongoRepositoryCustom {
+    List<ScoringReportMongo> findLatestReports(Collection<String> apiIds);
 }
