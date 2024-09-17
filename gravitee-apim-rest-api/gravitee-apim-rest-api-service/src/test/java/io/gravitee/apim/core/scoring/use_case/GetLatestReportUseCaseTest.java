@@ -156,6 +156,7 @@ class GetLatestReportUseCaseTest {
             .id(REPORT_ID)
             .apiId(API_ID)
             .createdAt(CREATED_AT)
+            .summary(new ScoringReport.Summary(1L, 1L, 1L, 1L))
             .assets(List.of(ASSET))
             .build();
     }

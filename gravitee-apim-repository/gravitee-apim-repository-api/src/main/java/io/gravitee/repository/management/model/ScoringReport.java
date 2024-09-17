@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -40,9 +41,12 @@ public final class ScoringReport {
 
     private String apiId;
     private Date createdAt;
+    private Summary summary;
 
-    @Singular
-    private List<Asset> assets;
+    @Builder.Default
+    private List<Asset> assets = Collections.emptyList();
+
+    public record Summary(Long errors, Long warnings, Long infos, Long hints) {}
 
     public record Asset(String pageId, String type, List<Diagnostic> diagnostics) {}
 

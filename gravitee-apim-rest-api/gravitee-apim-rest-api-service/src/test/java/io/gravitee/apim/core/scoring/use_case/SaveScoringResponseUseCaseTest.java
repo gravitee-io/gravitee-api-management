@@ -57,6 +57,13 @@ class SaveScoringResponseUseCaseTest {
                 "operation-operationId",
                 "Operation must have \"operationId\".",
                 "paths./echo.options"
+            ),
+            new ScoringReport.Diagnostic(
+                ScoringReport.Severity.HINT,
+                new ScoringReport.Range(new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
+                "hint-rule",
+                "Hint rule message",
+                "paths./hint"
             )
         )
     );
@@ -105,6 +112,7 @@ class SaveScoringResponseUseCaseTest {
                     .builder()
                     .id(JOB_ID)
                     .apiId("api-id")
+                    .summary(new ScoringReport.Summary(0L, 1L, 0L, 1L))
                     .assets(List.of(ANALYZED_ASSET_1))
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
@@ -145,6 +153,7 @@ class SaveScoringResponseUseCaseTest {
                     .builder()
                     .id(JOB_ID)
                     .apiId("api-id")
+                    .summary(new ScoringReport.Summary(0L, 1L, 0L, 1L))
                     .assets(List.of(ANALYZED_ASSET_1))
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
