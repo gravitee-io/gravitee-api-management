@@ -73,7 +73,6 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.ParameterReferenceType;
-import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.ThemeReferenceType;
@@ -347,15 +346,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         eventService.deleteOrUpdateEventsByEnvironment(environment.getId());
 
         // Always default for environment
-        portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
-            PortalNotificationDefaultReferenceId.DEFAULT.name(),
-            NotificationReferenceType.PORTAL
-        );
-        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
-            PortalNotificationDefaultReferenceId.DEFAULT.name(),
-            NotificationReferenceType.PORTAL
-        );
-        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.PORTAL);
+        portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
+        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
         sharedPolicyGroupRepository.deleteByEnvironmentId(environment.getId());
         sharedPolicyGroupHistoryRepository.deleteByEnvironmentId(environment.getId());
         themeRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ThemeReferenceType.ENVIRONMENT);
