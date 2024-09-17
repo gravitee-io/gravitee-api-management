@@ -25,6 +25,7 @@ import { User } from '../../../entities/user/user';
 import { CurrentUserService as AjsCurrentUserService } from '../../../ajs-upgraded-providers';
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+import { GroupV2Service } from '../../../services-ngx/group-v2.service';
 
 export type GioTestingPermission = string[];
 
@@ -46,6 +47,7 @@ export class GioPermissionService {
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
     private readonly integrationService: IntegrationsService,
+    private readonly groupService: GroupV2Service,
   ) {
     if (this.gioTestingPermission) {
       this._setPermissions(this.gioTestingPermission);
@@ -134,6 +136,18 @@ export class GioPermissionService {
     );
   }
 
+  public fetchGroupPermissions(groupId: string): Observable<string[]> {
+    return this.groupService
+      .getPermissions(groupId)
+      .pipe(
+        map((integrationPermissions) =>
+          Object.entries(integrationPermissions).flatMap(([key, crudValues]) =>
+            crudValues.split('').map((crudValue) => toLower(`group-${key}-${crudValue}`)),
+          ),
+        ),
+      );
+  }
+
   // Set static permissions for tests
   _setPermissions(permissions: GioTestingPermission): void {
     this.permissions = permissions ?? [];
@@ -144,14 +158,14 @@ export class GioPermissionService {
       return false;
     }
 
-    const result =
+    return (
       intersection(this.currentOrganizationPermissions, permissions).length > 0 ||
       intersection(this.currentEnvironmentPermissions, permissions).length > 0 ||
       intersection(this.currentApiPermissions, permissions).length > 0 ||
       intersection(this.currentApplicationPermissions, permissions).length > 0 ||
       intersection(this.currentIntegrationPermissions, permissions).length > 0 ||
-      intersection(this.permissions, permissions).length > 0;
-    return result;
+      intersection(this.permissions, permissions).length > 0
+    );
   }
 
   clearEnvironmentPermissions() {
