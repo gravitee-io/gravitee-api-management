@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.management.model.JdbcScoringRow;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -24,6 +26,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -139,6 +142,33 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(query, rowMapper, apiId);
         return adaptScoringReport(rowMapper.getRows());
+    }
+
+    @Override
+    public Stream<ScoringReport> findLatestReports(Collection<String> apiIds) {
+        log.debug("JdbcScoringRepository.findLatestReports({})", apiIds);
+        var query =
+            "select * from " +
+            SCORING_REPORT_SUMMARY +
+            " s left join " +
+            getOrm().getTableName() +
+            " r on r.report_id = s.report_id " +
+            " where s.api_id in (" +
+            getOrm().buildInClause(apiIds) +
+            ")";
+
+        var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+        jdbcTemplate.query(
+            query,
+            (PreparedStatement ps) -> {
+                getOrm().setArguments(ps, apiIds, 1);
+            },
+            rowMapper
+        );
+
+        var rowsByApiId = rowMapper.getRows().stream().collect(groupingBy(JdbcScoringRow::getApiId));
+
+        return rowsByApiId.entrySet().stream().flatMap(entry -> adaptScoringReport(entry.getValue()).stream());
     }
 
     @Override

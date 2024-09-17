@@ -17,11 +17,13 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ScoringReport;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ScoringReportRepository {
     ScoringReport create(ScoringReport report) throws TechnicalException;
     Optional<ScoringReport> findLatestFor(String apiId) throws TechnicalException;
+    Stream<ScoringReport> findLatestReports(Collection<String> apiIds) throws TechnicalException;
     void deleteByApi(String api) throws TechnicalException;
 }

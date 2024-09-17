@@ -16,13 +16,12 @@
 package io.gravitee.repository.mongodb.management.internal.score;
 
 import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ScoringReportMongoRepository extends MongoRepository<ScoringReportMongo, String> {
+public interface ScoringReportMongoRepository extends MongoRepository<ScoringReportMongo, String>, ScoringReportMongoRepositoryCustom {
     void deleteByApiId(String apiId);
     Optional<ScoringReportMongo> findLatestByApiId(String apiId);
 }

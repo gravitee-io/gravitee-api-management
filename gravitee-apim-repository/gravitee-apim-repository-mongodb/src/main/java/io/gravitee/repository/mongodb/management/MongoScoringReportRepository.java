@@ -21,8 +21,10 @@ import io.gravitee.repository.management.model.ScoringReport;
 import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
 import io.gravitee.repository.mongodb.management.internal.score.ScoringReportMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,14 @@ public class MongoScoringReportRepository implements ScoringReportRepository {
         var result = internalRepository.findLatestByApiId(apiId);
         logger.debug("Find scoring report by api [{}] - DONE", apiId);
         return result.map(mapper::map);
+    }
+
+    @Override
+    public Stream<ScoringReport> findLatestReports(Collection<String> apiIds) {
+        logger.debug("Find latest scoring reports of {}", apiIds);
+        var result = internalRepository.findLatestReports(apiIds);
+        logger.debug("Find latest scoring reports of {} - DONE", apiIds);
+        return result.stream().map(mapper::map);
     }
 
     @Override
