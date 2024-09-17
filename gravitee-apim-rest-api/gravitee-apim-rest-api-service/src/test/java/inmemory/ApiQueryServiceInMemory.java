@@ -15,6 +15,8 @@
  */
 package inmemory;
 
+import static java.util.Objects.isNull;
+
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -43,6 +45,42 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
         storage = apiCrudServiceInMemory.storage;
     }
 
+    @Override
+    public Page<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+
+        var matches =
+            this.storage()
+                .stream()
+                .filter(api -> {
+                    var matchesIntegrationId =
+                        isNull(apiCriteria) ||
+                        isNull(apiCriteria.getIntegrationId()) ||
+                        Objects.equals(
+                            ((OriginContext.Integration) api.getOriginContext()).integrationId(),
+                            apiCriteria.getIntegrationId()
+                        );
+                    var matchesApiId = isNull(apiCriteria) || isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
+                    var matchesEnvironmentId =
+                        isNull(apiCriteria) ||
+                        isNull(apiCriteria.getEnvironmentId()) ||
+                        apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
+                    var matchesLifecycleState =
+                        isNull(apiCriteria) ||
+                        isNull(apiCriteria.getLifecycleStates()) ||
+                        apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
+                    return matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId;
+                })
+                .toList();
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
+    }
+
     /**
      * WARNING: this implementation doesn't actually filter the API present in the storage. Instead, it will return all applications from storage.
      * Except for the integrationId where filtering is implemented.
@@ -54,15 +92,14 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                 .stream()
                 .filter(api -> {
                     var matchesIntegrationId =
-                        Objects.isNull(apiCriteria.getIntegrationId()) ||
+                        isNull(apiCriteria.getIntegrationId()) ||
                         Objects.equals(
                             ((OriginContext.Integration) api.getOriginContext()).integrationId(),
                             apiCriteria.getIntegrationId()
                         );
-                    var matchesApiId = Objects.isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
+                    var matchesApiId = isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
                     var matchesLifecycleState =
-                        Objects.isNull(apiCriteria.getLifecycleStates()) ||
-                        apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
+                        isNull(apiCriteria.getLifecycleStates()) || apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
                     return matchesIntegrationId && matchesApiId && matchesLifecycleState;
                 });
         }
