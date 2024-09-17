@@ -18,8 +18,12 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
 import static io.gravitee.repository.management.model.MetadataFormat.STRING;
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+<<<<<<< HEAD
 import static io.gravitee.repository.management.model.MetadataReferenceType.DEFAULT;
 import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
+=======
+import static io.gravitee.repository.management.model.MetadataReferenceType.ENVIRONMENT;
+>>>>>>> b26dbaada1 (fix: can override environment metadata)
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.junit.Assert.*;
@@ -64,6 +68,7 @@ public class ApiMetadataServiceTest {
     private static final String API_ID = "API123";
     private static final String METADATA_KEY = "MET123";
     private static final String DEFAULT_METADATA_KEY = "NOOVERRIDE";
+    private static final String DEFAULT_METADATA_NAME = "NOOVERRIDE-METNAME";
     private static final String METADATA_NAME = "METNAME";
     private static final String METADATA_VALUE = "METVALUE";
     private static final Date METADATA_DATE = new Date();
@@ -124,7 +129,7 @@ public class ApiMetadataServiceTest {
 
         when(defaultMetadataEntityWithoutOverride.getKey()).thenReturn(DEFAULT_METADATA_KEY);
         when(defaultMetadataEntityWithoutOverride.getFormat()).thenReturn(MetadataFormat.STRING);
-        when(defaultMetadataEntityWithoutOverride.getName()).thenReturn(METADATA_NAME);
+        when(defaultMetadataEntityWithoutOverride.getName()).thenReturn(DEFAULT_METADATA_NAME);
         when(defaultMetadataEntityWithoutOverride.getValue()).thenReturn(METADATA_VALUE);
 
         when(metadataService.findAllDefault()).thenReturn(Arrays.asList(defaultMetadataEntity, defaultMetadataEntityWithoutOverride));
@@ -381,5 +386,41 @@ public class ApiMetadataServiceTest {
         apiMetadataService.deleteAllByApi(GraviteeContext.getExecutionContext(), API_ID);
 
         verify(metadataRepository, times(1)).delete(any(), eq(API_ID), eq(MetadataReferenceType.API));
+    }
+
+    @Test
+    public void should_override_environment_metadata() throws TechnicalException {
+        final NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+        newApiMetadataEntity.setApiId(API_ID);
+        newApiMetadataEntity.setFormat(MetadataFormat.STRING);
+        newApiMetadataEntity.setName(DEFAULT_METADATA_NAME);
+        newApiMetadataEntity.setValue(METADATA_VALUE);
+
+        final ApiMetadataEntity createdApiMetadata = apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
+
+        assertEquals(DEFAULT_METADATA_NAME.toLowerCase(), createdApiMetadata.getKey());
+        assertEquals(MetadataFormat.STRING, createdApiMetadata.getFormat());
+        assertEquals(DEFAULT_METADATA_NAME, createdApiMetadata.getName());
+        assertEquals(METADATA_VALUE, createdApiMetadata.getValue());
+
+        final Metadata newApiMetadata = new Metadata();
+        newApiMetadata.setKey(DEFAULT_METADATA_NAME.toLowerCase());
+        newApiMetadata.setReferenceType(API);
+        newApiMetadata.setReferenceId(API_ID);
+        newApiMetadata.setFormat(STRING);
+        newApiMetadata.setName(DEFAULT_METADATA_NAME);
+        newApiMetadata.setValue(METADATA_VALUE);
+
+        verify(metadataRepository).create(newApiMetadata);
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                any(),
+                eq(METADATA_CREATED),
+                any(),
+                eq(null),
+                eq(newApiMetadata)
+            );
     }
 }

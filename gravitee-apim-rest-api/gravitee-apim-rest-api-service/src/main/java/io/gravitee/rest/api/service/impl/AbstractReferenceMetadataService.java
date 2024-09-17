@@ -160,7 +160,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final NewReferenceMetadataEntity metadataEntity,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults
+        final boolean withDefaultValue
     ) {
         // if no format defined, we just set String format
         if (metadataEntity.getFormat() == null) {
@@ -168,7 +168,11 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         }
         checkReferenceMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         // First we prevent the duplicate metadata name
+<<<<<<< HEAD
         final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId, withDefaults)
+=======
+        final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId)
+>>>>>>> b26dbaada1 (fix: can override environment metadata)
             .stream()
             .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
             .findAny();
@@ -185,7 +189,11 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             metadataRepository.create(metadata);
             // Audit
             createReferenceAuditLog(executionContext, referenceType, referenceId, null, metadata, METADATA_CREATED);
-            return convert(metadata);
+            ReferenceMetadataEntity referenceMetadataEntity = convert(metadata);
+            if (withDefaultValue) {
+                return fillDefaultValue(executionContext, referenceMetadataEntity);
+            }
+            return referenceMetadataEntity;
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurred while trying to create metadata " + metadataEntity.getName() + " on reference " + referenceId;
@@ -254,7 +262,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final UpdateReferenceMetadataEntity metadataEntity,
         final MetadataReferenceType referenceType,
         final String referenceId,
-        final boolean withDefaults
+        final boolean withDefaultValue
     ) {
         checkReferenceMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         try {
@@ -276,6 +284,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
                 createReferenceAuditLog(executionContext, referenceType, referenceId, null, metadata, METADATA_CREATED);
             }
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
+<<<<<<< HEAD
             if (withDefaults) {
                 metadataService
                     .findAllDefault()
@@ -283,6 +292,10 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
                     .filter(m -> m.getKey().equals(metadataEntity.getKey()))
                     .findAny()
                     .ifPresent(defaultMetadata -> referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue()));
+=======
+            if (withDefaultValue) {
+                return fillDefaultValue(executionContext, referenceMetadataEntity);
+>>>>>>> b26dbaada1 (fix: can override environment metadata)
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {
@@ -292,6 +305,19 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
                 ex
             );
         }
+    }
+
+    private ReferenceMetadataEntity fillDefaultValue(ExecutionContext executionContext, ReferenceMetadataEntity referenceMetadataEntity) {
+        MetadataEntity defaultValue = metadataService.findByKeyAndReferenceTypeAndReferenceId(
+            referenceMetadataEntity.getKey(),
+            MetadataReferenceType.ENVIRONMENT,
+            executionContext.getEnvironmentId()
+        );
+
+        if (defaultValue != null) {
+            referenceMetadataEntity.setDefaultValue(defaultValue.getValue());
+        }
+        return referenceMetadataEntity;
     }
 
     private ReferenceMetadataEntity convert(final Optional<Metadata> optMetadata, final MetadataEntity defaultMetadata) {
