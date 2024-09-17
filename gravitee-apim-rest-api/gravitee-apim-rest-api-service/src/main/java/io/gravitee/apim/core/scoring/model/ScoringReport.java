@@ -20,7 +20,9 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record ScoringReport(String id, String apiId, ZonedDateTime createdAt, List<Asset> assets) {
+public record ScoringReport(String id, String apiId, ZonedDateTime createdAt, Summary summary, List<Asset> assets) {
+    public record Summary(Long errors, Long warnings, Long infos, Long hints) {}
+
     public record Asset(String pageId, ScoringAssetType type, List<Diagnostic> diagnostics) {}
 
     public record Diagnostic(Severity severity, Range range, String rule, String message, String path) {}

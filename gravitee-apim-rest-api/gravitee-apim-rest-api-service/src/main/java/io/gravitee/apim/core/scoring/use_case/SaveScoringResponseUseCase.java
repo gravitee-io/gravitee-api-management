@@ -25,6 +25,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @UseCase
@@ -51,6 +52,7 @@ public class SaveScoringResponseUseCase {
                     .id(job.getId())
                     .apiId(apiId)
                     .createdAt(TimeProvider.now())
+                    .summary(processSummary(input.analyzedAssets))
                     .assets(input.analyzedAssets)
                     .build();
 
@@ -61,6 +63,20 @@ public class SaveScoringResponseUseCase {
                     .doOnError(throwable -> log.error("Fail to save scoring report for API [{}]", apiId, throwable));
             })
             .onErrorComplete();
+    }
+
+    private ScoringReport.Summary processSummary(List<ScoringReport.Asset> assets) {
+        var summary = assets
+            .stream()
+            .flatMap(asset -> asset.diagnostics().stream())
+            .collect(Collectors.groupingBy(ScoringReport.Diagnostic::severity, Collectors.counting()));
+
+        return new ScoringReport.Summary(
+            summary.getOrDefault(ScoringReport.Severity.ERROR, 0L),
+            summary.getOrDefault(ScoringReport.Severity.WARN, 0L),
+            summary.getOrDefault(ScoringReport.Severity.INFO, 0L),
+            summary.getOrDefault(ScoringReport.Severity.HINT, 0L)
+        );
     }
 
     public record Input(String jobId, List<ScoringReport.Asset> analyzedAssets) {}

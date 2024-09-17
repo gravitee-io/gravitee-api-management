@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.jdbc.management.model;
 
+import io.gravitee.repository.management.model.ScoringReport;
 import java.util.Date;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +31,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
+@Builder
 public final class JdbcScoringRow {
 
     @EqualsAndHashCode.Include
@@ -46,6 +49,8 @@ public final class JdbcScoringRow {
     private String rule;
     private String message;
     private String path;
+
+    private ScoringReport.Summary summary;
 
     public JdbcScoringRow(String reportId, String apiId, String pageId, String type, Date createdAt) {
         this.reportId = reportId;

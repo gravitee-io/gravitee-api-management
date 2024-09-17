@@ -35,5 +35,6 @@ public class ScoringReportMongo extends Auditable {
     private String apiId;
     private String pageId;
     private String type;
+    private ScoringReport.Summary summary;
     private List<ScoringReport.Asset> assets;
 }
