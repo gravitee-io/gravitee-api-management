@@ -35,6 +35,7 @@ import { of } from 'rxjs';
 
 import { PortalSettingsComponent } from './portal-settings.component';
 import { PortalSettingsModule } from './portal-settings.module';
+import { PortalSettingsHarness } from './portal-settings.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -45,6 +46,7 @@ describe('PortalSettingsComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let portalSettingsMock;
+  let componentHarness: PortalSettingsHarness;
 
   const init = async (
     permissions: GioTestingPermission = ['environment-settings-u'],
@@ -81,6 +83,8 @@ describe('PortalSettingsComponent', () => {
     fixture = TestBed.createComponent(PortalSettingsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PortalSettingsHarness);
+
     fixture.detectChanges();
   };
 
@@ -319,6 +323,33 @@ describe('PortalSettingsComponent', () => {
       expect(await saveBar.isVisible()).toBe(false);
 
       expect(fixture.nativeElement.querySelector('.portal__form_card')).toBeNull();
+    });
+
+    it('applies to both portals is present', async () => {
+      const appliesToBothPortals = 'Applies to both portals';
+      portalSettingsMock = fakePortalSettings({
+        portalNext: {
+          access: { enabled: true },
+        },
+      });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      expect(await componentHarness.getBadgeWarningText()).toEqual(appliesToBothPortals);
+      expect(await componentHarness.getBadgeIcon()).toBeTruthy();
+    });
+
+    it('applies to both portals is absent', async () => {
+      portalSettingsMock = fakePortalSettings({
+        portalNext: {
+          access: { enabled: false },
+        },
+      });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const badgeWarning = await componentHarness.getBadgeWarningText().catch(() => null);
+      const badgeIcon = await componentHarness.getBadgeIcon().catch(() => null);
+
+      expect(badgeWarning).toBeNull();
+      expect(badgeIcon).toBeNull();
     });
   });
 

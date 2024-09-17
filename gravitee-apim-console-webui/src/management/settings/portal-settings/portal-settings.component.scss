@@ -68,3 +68,13 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
+
+.form-field-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.api-key-header {
+  width: 80%;
+}
