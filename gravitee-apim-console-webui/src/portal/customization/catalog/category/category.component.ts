@@ -57,6 +57,7 @@ import { CategoryV2Service } from '../../../../services-ngx/category-v2.service'
 import { CategoryService } from '../../../../services-ngx/category.service';
 import { Category } from '../../../../entities/category/Category';
 import { PortalHeaderComponent } from '../../../components/header/portal-header.component';
+import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both-portals-badge/both-portals-badge.component';
 
 interface ApiVM {
   id: string;
@@ -93,6 +94,7 @@ interface ApiVM {
     CdkDropList,
     CdkDrag,
     MatIcon,
+    BothPortalsBadgeComponent,
   ],
   templateUrl: './category.component.html',
   styleUrl: './category.component.scss',

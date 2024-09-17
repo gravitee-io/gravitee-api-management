@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
-import { MatIconHarness } from '@angular/material/icon/testing';
 
 export class PortalApiListHarness extends ComponentHarness {
   static hostSelector = 'app-portal-api-list';
@@ -25,17 +24,10 @@ export class PortalApiListHarness extends ComponentHarness {
   private apiKeyHeaderLocator = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="apiKeyHeader"]' }));
   private addButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: 'button[data-testid="add-information-button"]' }));
   private tableLocator = this.locatorFor(MatTableHarness);
-  private resetButtonLocator = this.locatorFor(MatButtonHarness.with({ text: /Discard/i }));
   private editButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: 'button[data-testid="edit-button"]' }));
   private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: 'button[data-testid="delete-button"]' }));
-  private badgeWarningLocator1 = this.locatorFor('.gio-badge-warning[data-testid="badge-warning-1"]');
-  private badgeWarningLocator2 = this.locatorFor('.gio-badge-warning[data-testid="badge-warning-2"]');
-  private badgeIconLocator1 = this.locatorFor(
-    MatIconHarness.with({ selector: 'mat-icon[svgIcon="gio:chat-lines"][data-testid="badge-icon-1"]' }),
-  );
-  private badgeIconLocator2 = this.locatorFor(
-    MatIconHarness.with({ selector: 'mat-icon[svgIcon="gio:chat-lines"][data-testid="badge-icon-2"]' }),
-  );
+  private bothPortalsBadgeForApiSubscriptionLocator = this.locatorFor('[data-testid="both-portals-badge-for-api-subscription"]');
+  private bothPortalsBadgeForApiDetailsLocator = this.locatorFor('[data-testid="both-portals-badge-for-api-details"]');
   private noDataRowLocator = this.locatorFor('tr[data-testid="no-data-row"]');
   private rows = this.locatorForAll(MatRowHarness);
 
@@ -44,24 +36,12 @@ export class PortalApiListHarness extends ComponentHarness {
     await input.setValue(value);
   }
 
-  async getBadgeWarningText1(): Promise<string> {
-    const badge = await this.badgeWarningLocator1();
-    return badge.text();
+  async getBothPortalsForApiSubscription(): Promise<TestElement> {
+    return await this.bothPortalsBadgeForApiSubscriptionLocator();
   }
 
-  async getBadgeWarningText2(): Promise<string> {
-    const badge = await this.badgeWarningLocator2();
-    return badge.text();
-  }
-
-  async getBadgeIconName1(): Promise<string> {
-    const icon = await this.badgeIconLocator1();
-    return icon.getName();
-  }
-
-  async getBadgeIconName2(): Promise<string> {
-    const icon = await this.badgeIconLocator2();
-    return icon.getName();
+  async getBothPortalsForApiDetails(): Promise<TestElement> {
+    return await this.bothPortalsBadgeForApiDetailsLocator();
   }
 
   public async getAddButton() {

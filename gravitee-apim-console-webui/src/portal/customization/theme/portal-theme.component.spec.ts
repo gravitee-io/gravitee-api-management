@@ -146,6 +146,7 @@ describe('PortalThemeComponent', () => {
     expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
     await componentHarness.setPrimaryColor(currentTheme.definition.color.primary);
     expect(await componentHarness.isSubmitInvalid()).toBeTruthy();
+    expect(await componentHarness.getNewPortalBadge()).toBeTruthy();
   });
 
   function expectDefaultTheme(theme: ThemePortalNext) {
