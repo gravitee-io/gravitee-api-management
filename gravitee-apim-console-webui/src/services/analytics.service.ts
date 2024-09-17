@@ -42,7 +42,7 @@ class AnalyticsService {
     const keys = Object.keys(request);
     _.forEach(keys, (key) => {
       const val = request[key];
-      if (val !== undefined) {
+      if (val !== null && val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
