@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.group;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
@@ -24,7 +28,9 @@ import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -32,13 +38,19 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Path("/environments/{envId}/groups")
@@ -89,5 +101,31 @@ public class GroupsResource extends AbstractResource {
             .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubset.size(), paginationParam))
             .links(computePaginationLinks(members.size(), paginationParam))
             .metadata(metadata);
+    }
+
+    @GET
+    @Path("/{groupId}/permissions")
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @ApiResponse(
+        responseCode = "200",
+        description = "Integration permissions",
+        content = @Content(
+            mediaType = io.gravitee.common.http.MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))
+        )
+    )
+    public Map<String, char[]> getPermissions(@PathParam("groupId") String groupId) {
+        if (isAdmin()) {
+            final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId() };
+            return Arrays
+                .stream(IntegrationPermission.values())
+                .collect(Collectors.toMap(IntegrationPermission::getName, ignored -> rights));
+        } else if (isAuthenticated()) {
+            final String username = getAuthenticatedUser();
+            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+            return membershipService.getUserMemberPermissions(executionContext, MembershipReferenceType.GROUP, groupId, username);
+        } else {
+            return Map.of();
+        }
     }
 }
