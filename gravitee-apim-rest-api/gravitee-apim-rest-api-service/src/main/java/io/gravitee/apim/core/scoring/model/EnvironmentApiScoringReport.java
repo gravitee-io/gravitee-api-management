@@ -16,26 +16,11 @@
 package io.gravitee.apim.core.scoring.model;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 import lombok.Builder;
-import lombok.With;
 
 @Builder(toBuilder = true)
-public record ScoringReport(String id, @With String apiId, ZonedDateTime createdAt, Summary summary, List<Asset> assets) {
-    public record Summary(Long errors, Long warnings, Long infos, Long hints) {}
+public record EnvironmentApiScoringReport(Api api, Summary summary) {
+    public record Summary(String id, ZonedDateTime createdAt, Long errors, Long warnings, Long infos, Long hints) {}
 
-    public record Asset(String pageId, ScoringAssetType type, List<Diagnostic> diagnostics) {}
-
-    public record Diagnostic(Severity severity, Range range, String rule, String message, String path) {}
-
-    public record Range(Position start, Position end) {}
-
-    public record Position(int line, int character) {}
-
-    public enum Severity {
-        ERROR,
-        HINT,
-        INFO,
-        WARN,
-    }
+    public record Api(String apiId, String name, ZonedDateTime updatedAt) {}
 }
