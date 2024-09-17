@@ -25,7 +25,6 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
-import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -153,15 +152,15 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         triggerPortalNotifications(
             executionContext,
             hook,
-            NotificationReferenceType.PORTAL,
-            PortalNotificationDefaultReferenceId.DEFAULT.name(),
+            NotificationReferenceType.ENVIRONMENT,
+            executionContext.getEnvironmentId(),
             params
         );
         triggerGenericNotifications(
             executionContext,
             hook,
-            NotificationReferenceType.PORTAL,
-            PortalNotificationDefaultReferenceId.DEFAULT.name(),
+            NotificationReferenceType.ENVIRONMENT,
+            executionContext.getEnvironmentId(),
             params
         );
     }

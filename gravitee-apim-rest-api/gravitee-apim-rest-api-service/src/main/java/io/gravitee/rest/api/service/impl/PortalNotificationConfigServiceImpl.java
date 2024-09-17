@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -142,12 +143,13 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     }
 
     private PortalNotificationConfig convert(PortalNotificationConfigEntity entity) {
-        PortalNotificationConfig portalNotificationConfig = new PortalNotificationConfig();
-        portalNotificationConfig.setReferenceType(NotificationReferenceType.valueOf(entity.getReferenceType()));
-        portalNotificationConfig.setReferenceId(entity.getReferenceId());
-        portalNotificationConfig.setUser(entity.getUser());
-        portalNotificationConfig.setHooks(entity.getHooks());
-        return portalNotificationConfig;
+        return PortalNotificationConfig
+            .builder()
+            .referenceType(NotificationReferenceType.valueOf(entity.getReferenceType()))
+            .referenceId(entity.getReferenceId())
+            .user(entity.getUser())
+            .hooks(entity.getHooks())
+            .build();
     }
 
     private PortalNotificationConfigEntity convert(PortalNotificationConfig portalNotificationConfig) {

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.rest.api.management.rest.resource.configuration.application.registration.ClientRegistrationProvidersResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.dictionary.DictionariesResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
@@ -99,7 +98,7 @@ public class EnvironmentConfigurationResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_NOTIFICATION, acls = RolePermissionAction.READ) })
     public List<NotifierEntity> getPortalNotifiers() {
-        return notifierService.list(NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name());
+        return notifierService.list(NotificationReferenceType.PORTAL, GraviteeContext.getCurrentEnvironment());
     }
 
     @Path("categories")

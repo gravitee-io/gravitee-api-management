@@ -38,13 +38,15 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldCreate() throws Exception {
-        final PortalNotificationConfig cfg = new PortalNotificationConfig();
-        cfg.setReferenceType(NotificationReferenceType.API);
-        cfg.setReferenceId("config-created");
-        cfg.setUser("userid");
-        cfg.setHooks(Arrays.asList("A", "B", "C"));
-        cfg.setUpdatedAt(new Date(1439022010883L));
-        cfg.setCreatedAt(new Date(1439022010883L));
+        final PortalNotificationConfig cfg = PortalNotificationConfig
+            .builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("config-created")
+            .user("userid")
+            .hooks(Arrays.asList("A", "B", "C"))
+            .updatedAt(new Date(1439022010883L))
+            .createdAt(new Date(1439022010883L))
+            .build();
 
         PortalNotificationConfig notificationCreated = portalNotificationConfigRepository.create(cfg);
 
@@ -59,23 +61,27 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
     @Test
     public void shouldDelete() throws Exception {
         assertTrue(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete").isPresent());
-        final PortalNotificationConfig cfg = new PortalNotificationConfig();
-        cfg.setReferenceType(NotificationReferenceType.API);
-        cfg.setReferenceId("config-to-delete");
-        cfg.setUser("userid");
+        final PortalNotificationConfig cfg = PortalNotificationConfig
+            .builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("config-to-delete")
+            .user("userid")
+            .build();
         portalNotificationConfigRepository.delete(cfg);
         assertFalse(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete").isPresent());
     }
 
     @Test
     public void shouldUpdate() throws Exception {
-        final PortalNotificationConfig cfg = new PortalNotificationConfig();
-        cfg.setReferenceType(NotificationReferenceType.API);
-        cfg.setReferenceId("config-to-update");
-        cfg.setUser("userid");
-        cfg.setHooks(Arrays.asList("D", "B", "C"));
-        cfg.setUpdatedAt(new Date(1479022010883L));
-        cfg.setCreatedAt(new Date(1469022010883L));
+        final PortalNotificationConfig cfg = PortalNotificationConfig
+            .builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("config-to-update")
+            .user("userid")
+            .hooks(Arrays.asList("D", "B", "C"))
+            .updatedAt(new Date(1479022010883L))
+            .createdAt(new Date(1469022010883L))
+            .build();
 
         PortalNotificationConfig notificationUpdated = portalNotificationConfigRepository.update(cfg);
 
@@ -89,13 +95,15 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldFindById() throws Exception {
-        final PortalNotificationConfig cfg = new PortalNotificationConfig();
-        cfg.setReferenceType(NotificationReferenceType.API);
-        cfg.setReferenceId("config-to-find");
-        cfg.setUser("userid");
-        cfg.setHooks(Arrays.asList("A", "B"));
-        cfg.setUpdatedAt(new Date(1439022010883L));
-        cfg.setCreatedAt(new Date(1439022010883L));
+        final PortalNotificationConfig cfg = PortalNotificationConfig
+            .builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("config-to-find")
+            .user("userid")
+            .hooks(Arrays.asList("A", "B"))
+            .updatedAt(new Date(1439022010883L))
+            .createdAt(new Date(1439022010883L))
+            .build();
 
         Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
             "userid",
