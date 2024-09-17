@@ -49,6 +49,17 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
     }
 
     @Override
+    public Page<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        return this.apiRepository.search(
+                apiCriteria == null ? null : ApiSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(apiCriteria),
+                sortable == null ? null : SortableAdapter.INSTANCE.toSortableForRepository(sortable),
+                convert(pageable),
+                apiFieldFilter == null ? null : ApiFieldFilterAdapter.INSTANCE.toApiFieldFilterForRepository(apiFieldFilter)
+            )
+            .map(ApiAdapter.INSTANCE::toCoreModel);
+    }
+
+    @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
         return ApiAdapter.INSTANCE.toCoreModelStream(
             this.apiRepository.search(
