@@ -73,6 +73,7 @@ describe('IntegrationGeneralGroupMembersComponent', () => {
   });
 
   it('should display group members tables', async () => {
+    expectGroupsPermissionsRequest({ member: 'R' });
     expectGroupsGetMembersRequest({
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'INTEGRATION' }] })],
       metadata: { groupName: GROUP_NAME },
@@ -88,6 +89,7 @@ describe('IntegrationGeneralGroupMembersComponent', () => {
   });
 
   it('should group members tables -- no Integration role', async () => {
+    expectGroupsPermissionsRequest({ member: 'R' });
     expectGroupsGetMembersRequest({
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'APPLICATION' }] })],
       metadata: { groupName: GROUP_NAME },
@@ -103,6 +105,7 @@ describe('IntegrationGeneralGroupMembersComponent', () => {
   });
 
   it('should not display group members tables if no members', async () => {
+    expectGroupsPermissionsRequest({ member: 'R' });
     expectGroupsGetMembersRequest({
       data: [],
       metadata: { groupName: GROUP_NAME },
@@ -116,12 +119,7 @@ describe('IntegrationGeneralGroupMembersComponent', () => {
   });
 
   it('should display message if user lacks permissions', async () => {
-    httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/groupId1/members?page=1&perPage=10`, method: 'GET' })
-      .flush(
-        { httpStatus: 403, message: 'You do not have the permissions to access this resource' },
-        { statusText: 'Forbidden', status: 403 },
-      );
+    expectGroupsPermissionsRequest({});
     fixture.detectChanges();
 
     const integrationGroupsMembersComponent = await loader.getHarness(IntegrationGeneralGroupMembersHarness);
@@ -132,5 +130,11 @@ describe('IntegrationGeneralGroupMembersComponent', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${GROUP_ID}/members?page=1&perPage=10`, method: 'GET' })
       .flush(membersResponse);
+  }
+
+  function expectGroupsPermissionsRequest(permissions: Record<string, string>) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${GROUP_ID}/permissions`, method: 'GET' })
+      .flush(permissions);
   }
 });
