@@ -20,7 +20,6 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
@@ -63,15 +62,12 @@ public class PortalNotificationSettingsResource extends AbstractResource {
             portalNotificationConfigService.findById(
                 getAuthenticatedUser(),
                 NotificationReferenceType.PORTAL,
-                PortalNotificationDefaultReferenceId.DEFAULT.name()
+                GraviteeContext.getCurrentEnvironment()
             )
         );
         if (hasPermission(GraviteeContext.getExecutionContext(), ENVIRONMENT_NOTIFICATION, CREATE, UPDATE, DELETE)) {
             settings.addAll(
-                genericNotificationConfigService.findByReference(
-                    NotificationReferenceType.PORTAL,
-                    PortalNotificationDefaultReferenceId.DEFAULT.name()
-                )
+                genericNotificationConfigService.findByReference(NotificationReferenceType.PORTAL, GraviteeContext.getCurrentEnvironment())
             );
         }
         return settings;
@@ -110,7 +106,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
         GenericNotificationConfigEntity config
     ) {
         if (
-            !PortalNotificationDefaultReferenceId.DEFAULT.name().equals(config.getReferenceId()) ||
+            !GraviteeContext.getCurrentEnvironment().equals(config.getReferenceId()) ||
             !NotificationReferenceType.PORTAL.name().equals(config.getReferenceType()) ||
             !config.getConfigType().equals(NotificationConfigType.GENERIC) ||
             !notificationId.equals(config.getId())
@@ -127,7 +123,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
     @Permissions({ @Permission(value = ENVIRONMENT_NOTIFICATION, acls = READ) })
     public PortalNotificationConfigEntity updatePortalNotificationSettings(PortalNotificationConfigEntity config) {
         if (
-            !PortalNotificationDefaultReferenceId.DEFAULT.name().equals(config.getReferenceId()) ||
+            !GraviteeContext.getCurrentEnvironment().equals(config.getReferenceId()) ||
             !NotificationReferenceType.PORTAL.name().equals(config.getReferenceType()) ||
             !config.getConfigType().equals(NotificationConfigType.PORTAL)
         ) {
