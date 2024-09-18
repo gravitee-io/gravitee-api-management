@@ -52,6 +52,7 @@ public class SubscriptionMapper {
                 );
             }
             subscription.setMetadata(subscriptionModel.getMetadata());
+            subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
             return subscription;
         } catch (Exception e) {
             log.error("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
