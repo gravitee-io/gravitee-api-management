@@ -18,18 +18,21 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.PeriodTimeUnit;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
 import io.gravitee.rest.api.portal.rest.model.PlanMode;
-import io.gravitee.rest.api.portal.rest.model.PlanUsageConfiguration;
 import java.time.Instant;
 import java.util.*;
 import org.junit.Before;
@@ -63,6 +66,16 @@ public class PlanMapperTest {
 
     private PlanEntity planEntityV2;
     private io.gravitee.rest.api.model.v4.plan.PlanEntity planEntityV4;
+
+    private final ApiEntity aV4Api = ApiEntity
+        .builder()
+        .definitionVersion(DefinitionVersion.V4)
+        .properties(List.of(new Property("ratelimit", "25")))
+        .build();
+    private final io.gravitee.rest.api.model.api.ApiEntity aV2Api = io.gravitee.rest.api.model.api.ApiEntity
+        .builder()
+        .properties(Properties.builder().propertiesList(List.of(new io.gravitee.definition.model.Property("ratelimit", "25"))).build())
+        .build();
     private final Instant now = Instant.now();
     private final Date nowDate = Date.from(now);
 
@@ -76,7 +89,7 @@ public class PlanMapperTest {
 
     @Test
     public void testConvertWithSubscriptionsV2() {
-        Plan responsePlan = planMapper.convert(planEntityV2);
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
         assertNotNull(responsePlan);
 
         List<String> characteristics = responsePlan.getCharacteristics();
@@ -96,7 +109,7 @@ public class PlanMapperTest {
 
     @Test
     public void testConvertWithSubscriptionsV4() {
-        Plan responsePlan = planMapper.convert(planEntityV4);
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
         assertNotNull(responsePlan);
 
         List<String> characteristics = responsePlan.getCharacteristics();
@@ -118,7 +131,7 @@ public class PlanMapperTest {
     public void testConvertPushPlan() {
         planEntityV2.setSecurity(null);
         planEntityV2.setSecurityDefinition(null);
-        Plan responsePlan = planMapper.convert(planEntityV2);
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
         assertNotNull(responsePlan);
 
         assertNull(responsePlan.getSecurity());
@@ -126,7 +139,7 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapNoRateLimitOrQuotaV2() {
-        Plan responsePlan = planMapper.convert(planEntityV2);
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         assertNull(responsePlan.getUsageConfiguration().getRateLimit());
@@ -135,7 +148,25 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapNoRateLimitOrQuotaV4() {
-        Plan responsePlan = planMapper.convert(planEntityV4);
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        assertNull(responsePlan.getUsageConfiguration().getRateLimit());
+        assertNull(responsePlan.getUsageConfiguration().getQuota());
+    }
+
+    @Test
+    public void shouldMapELDynamicRateLimitV2() {
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        assertNull(responsePlan.getUsageConfiguration().getRateLimit());
+        assertNull(responsePlan.getUsageConfiguration().getQuota());
+    }
+
+    @Test
+    public void shouldMapELDynamicRateLimitV4() {
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         assertNull(responsePlan.getUsageConfiguration().getRateLimit());
@@ -175,7 +206,7 @@ public class PlanMapperTest {
         flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
 
         planEntityV2.setFlows(List.of(flow1, flow2));
-        Plan responsePlan = planMapper.convert(planEntityV2);
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         var rateLimitConfig = responsePlan.getUsageConfiguration().getRateLimit();
@@ -221,7 +252,7 @@ public class PlanMapperTest {
 
         planEntityV4.setFlows(List.of(flow1, disabledFlow));
 
-        Plan responsePlan = planMapper.convert(planEntityV4);
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         var rateLimitConfig = responsePlan.getUsageConfiguration().getRateLimit();
@@ -265,7 +296,7 @@ public class PlanMapperTest {
 
         planEntityV2.setFlows(List.of(flow1, flow2));
 
-        Plan responsePlan = planMapper.convert(planEntityV2);
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         var quotaConfig = responsePlan.getUsageConfiguration().getQuota();
@@ -309,7 +340,7 @@ public class PlanMapperTest {
 
         planEntityV4.setFlows(List.of(flow1, disabledFlow));
 
-        Plan responsePlan = planMapper.convert(planEntityV4);
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         var quotaConfig = responsePlan.getUsageConfiguration().getQuota();
@@ -353,7 +384,7 @@ public class PlanMapperTest {
 
         planEntityV4.setFlows(List.of(flow1, disabledFlow));
 
-        Plan responsePlan = planMapper.convert(planEntityV4);
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
         assertNotNull(responsePlan);
         assertNotNull(responsePlan.getUsageConfiguration());
         var quotaConfig = responsePlan.getUsageConfiguration().getQuota();
@@ -361,6 +392,172 @@ public class PlanMapperTest {
         assertEquals(25L, quotaConfig.getLimit());
         assertEquals(4, quotaConfig.getPeriodTime());
         assertEquals(PeriodTimeUnit.HOURS, quotaConfig.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldHandleELDynamicLimitForApiPropertiesV4() {
+        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepNoLimit.setPolicy(RATE_LIMIT);
+        stepNoLimit.setConfiguration(
+            "{ \"rate\": {  \"dynamicLimit\": \"{#api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
+        );
+        stepNoLimit.setEnabled(true);
+
+        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        flow1.setRequest(List.of(stepNoLimit));
+        flow1.setEnabled(true);
+
+        planEntityV4.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimit);
+        assertEquals(25L, rateLimit.getLimit());
+        assertEquals(6, rateLimit.getPeriodTime());
+        assertEquals(PeriodTimeUnit.MINUTES, rateLimit.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldHandleELDynamicLimitForLegacyPropertiesV4() {
+        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        stepNoLimit.setPolicy(RATE_LIMIT);
+        stepNoLimit.setConfiguration(
+            "{ \"rate\": {  \"dynamicLimit\": \"{#properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
+        );
+        stepNoLimit.setEnabled(true);
+
+        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        flow1.setRequest(List.of(stepNoLimit));
+        flow1.setEnabled(true);
+
+        planEntityV4.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimit);
+        assertEquals(25L, rateLimit.getLimit());
+        assertEquals(6, rateLimit.getPeriodTime());
+        assertEquals(PeriodTimeUnit.MINUTES, rateLimit.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldHandleELDynamicLimitForApiPropertiesV2() {
+        var step = new Step();
+        step.setPolicy(RATE_LIMIT);
+        step.setConfiguration(
+            "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{#api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
+        );
+        step.setEnabled(true);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(step));
+        flow1.setEnabled(true);
+
+        planEntityV2.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimit);
+        assertEquals(25L, rateLimit.getLimit());
+        assertEquals(6, rateLimit.getPeriodTime());
+        assertEquals(PeriodTimeUnit.MINUTES, rateLimit.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldHandleELDynamicLimitForLegacyPropertiesV2() {
+        var step = new Step();
+        step.setPolicy(RATE_LIMIT);
+        step.setConfiguration(
+            "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{#properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
+        );
+        step.setEnabled(true);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(step));
+        flow1.setEnabled(true);
+
+        planEntityV2.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimit);
+        assertEquals(25L, rateLimit.getLimit());
+        assertEquals(6, rateLimit.getPeriodTime());
+        assertEquals(PeriodTimeUnit.MINUTES, rateLimit.getPeriodTimeUnit());
+    }
+
+    @Test
+    public void shouldNotMapDynamicLimitIfPropertyNotFound() {
+        var step = new Step();
+        step.setPolicy(RATE_LIMIT);
+        step.setConfiguration(
+            "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{#api.properties['not-found']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
+        );
+        step.setEnabled(true);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(step));
+        flow1.setEnabled(true);
+
+        planEntityV2.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNull(rateLimit);
+    }
+
+    @Test
+    public void shouldNotReturnDynamicLimitIfELInvalid() {
+        var step = new Step();
+        step.setPolicy(RATE_LIMIT);
+        step.setConfiguration(
+            "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{##api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
+        );
+        step.setEnabled(true);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(step));
+        flow1.setEnabled(true);
+
+        planEntityV2.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV2, aV2Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNull(rateLimit);
+    }
+
+    @Test
+    public void shouldNotReturnDynamicLimitIfApiNull() {
+        var step = new Step();
+        step.setPolicy(RATE_LIMIT);
+        step.setConfiguration(
+            "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{##api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
+        );
+        step.setEnabled(true);
+
+        var flow1 = new Flow();
+        flow1.setPre(List.of(step));
+        flow1.setEnabled(true);
+
+        planEntityV2.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV2, null);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNull(rateLimit);
     }
 
     private void preparePlanEntityV2() {
