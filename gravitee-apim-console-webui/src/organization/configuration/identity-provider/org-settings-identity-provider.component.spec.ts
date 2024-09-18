@@ -903,7 +903,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   }
 
   function expectGroupListRequest(groups: Group[]) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/groups`);
     expect(req.request.method).toEqual('GET');
     req.flush(groups);
     fixture.detectChanges();
