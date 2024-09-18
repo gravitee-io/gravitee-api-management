@@ -115,7 +115,7 @@ public class ApiResource extends AbstractResource {
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
                     .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
-                    .map(p -> planMapper.convert(p))
+                    .map(p -> planMapper.convert(p, genericApiEntity))
                     .collect(Collectors.toList());
                 api.setPlans(plans);
             }
