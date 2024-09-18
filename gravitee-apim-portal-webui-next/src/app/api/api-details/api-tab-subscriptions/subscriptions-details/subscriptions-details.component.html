@@ -20,23 +20,29 @@
   Manage subscriptions
 </div>
 
-@if (subscriptionDetails$ | async; as details) {
-  <div class="subscriptions-details__container">
-    <app-subscription-info
-      class="subscriptions-details__subscription-info"
-      [applicationName]="details.applicationName"
-      [planName]="details.planName"
-      [planSecurity]="details.planSecurity"
-      [subscriptionStatus]="details.subscriptionStatus"
-      [planUsageConfiguration]="details.planUsageConfiguration" />
-    <app-api-access
-      [planSecurity]="details.planSecurity"
-      [subscriptionStatus]="details.subscriptionStatus"
-      [entrypointUrl]="details.entrypointUrl"
-      [apiKey]="details.apiKey"
-      [clientId]="details.clientId"
-      [clientSecret]="details.clientSecret" />
-  </div>
+@if (subscriptionDetails$ | async; as detailsVM) {
+  @if (detailsVM.error) {
+    <div i18n="@@subscriptionDetailsError" class="m3-body-medium subscriptions-details__error">
+      An error occurred. Try again later or contact your Portal administrator.
+    </div>
+  } @else if (detailsVM.result) {
+    <div class="subscriptions-details__container">
+      <app-subscription-info
+        class="subscriptions-details__subscription-info"
+        [applicationName]="detailsVM.result.applicationName"
+        [planName]="detailsVM.result.planName"
+        [planSecurity]="detailsVM.result.planSecurity"
+        [subscriptionStatus]="detailsVM.result.subscriptionStatus"
+        [planUsageConfiguration]="detailsVM.result.planUsageConfiguration" />
+      <app-api-access
+        [planSecurity]="detailsVM.result.planSecurity"
+        [subscriptionStatus]="detailsVM.result.subscriptionStatus"
+        [entrypointUrl]="detailsVM.result.entrypointUrl"
+        [apiKey]="detailsVM.result.apiKey"
+        [clientId]="detailsVM.result.clientId"
+        [clientSecret]="detailsVM.result.clientSecret" />
+    </div>
+  }
 } @else {
   <app-loader />
 }
