@@ -178,6 +178,7 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
                 command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
                 command.setCreatedAt(Date.from(now));
                 command.setUpdatedAt(Date.from(now));
+                command.setEnvironmentId(subscription.getEnvironmentId());
 
                 convertSubscriptionCommand(subscription, command, throwable.getMessage());
 
