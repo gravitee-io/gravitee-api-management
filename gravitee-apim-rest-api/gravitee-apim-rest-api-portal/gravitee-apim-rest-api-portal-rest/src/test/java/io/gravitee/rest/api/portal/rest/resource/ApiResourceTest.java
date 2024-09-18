@@ -73,7 +73,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         api.setId(API);
         doReturn(api).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new Plan()).when(planMapper).convert(any());
+        doReturn(new Plan()).when(planMapper).convert(any(), any());
         doReturn(new Rating()).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
