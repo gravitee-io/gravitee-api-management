@@ -21,7 +21,10 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.api.ApiTemplateVariables;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.portal.rest.model.PeriodTimeUnit;
@@ -37,12 +40,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class PlanMapper {
 
@@ -55,11 +60,7 @@ public class PlanMapper {
     private final String QUOTA_POLICY_ID = "quota";
     private final Map<String, String> POLICY_CONFIGURATION_ATTRIBUTES = Map.of(QUOTA_POLICY_ID, "quota", RATE_LIMIT_POLICY_ID, "rate");
 
-    public Plan convert(PlanEntity plan) {
-        return convert((GenericPlanEntity) plan);
-    }
-
-    public Plan convert(GenericPlanEntity plan) {
+    public Plan convert(GenericPlanEntity plan, GenericApiEntity api) {
         final Plan planItem = new Plan();
 
         planItem.setCharacteristics(plan.getCharacteristics());
@@ -77,15 +78,15 @@ public class PlanMapper {
         planItem.setGeneralConditions(plan.getGeneralConditions());
         planItem.setMode(PlanMode.valueOf(plan.getPlanMode().name()));
 
-        planItem.setUsageConfiguration(this.toUsageConfiguration(plan));
+        planItem.setUsageConfiguration(this.toUsageConfiguration(plan, api));
 
         return planItem;
     }
 
-    private PlanUsageConfiguration toUsageConfiguration(GenericPlanEntity plan) {
+    private PlanUsageConfiguration toUsageConfiguration(GenericPlanEntity plan, GenericApiEntity api) {
         var configuration = new PlanUsageConfiguration();
-        configuration.setRateLimit(this.getMostRestrictivePolicyConfiguration(RATE_LIMIT_POLICY_ID, plan));
-        configuration.setQuota(this.getMostRestrictivePolicyConfiguration(QUOTA_POLICY_ID, plan));
+        configuration.setRateLimit(this.getMostRestrictivePolicyConfiguration(RATE_LIMIT_POLICY_ID, plan, api));
+        configuration.setQuota(this.getMostRestrictivePolicyConfiguration(QUOTA_POLICY_ID, plan, api));
         return configuration;
     }
 
@@ -96,7 +97,7 @@ public class PlanMapper {
      * @param plan -- GenericPlanEntity
      * @return A TimePeriodConfiguration with the longest duration between calls. Null if no valid configuration exists.
      */
-    private TimePeriodConfiguration getMostRestrictivePolicyConfiguration(String policyId, GenericPlanEntity plan) {
+    private TimePeriodConfiguration getMostRestrictivePolicyConfiguration(String policyId, GenericPlanEntity plan, GenericApiEntity api) {
         List<String> policyConfigurations = this.getEnabledConfigurationsByPolicyId(policyId, plan);
 
         // Configuration with the longest minimum duration between calls
@@ -119,8 +120,13 @@ public class PlanMapper {
                     return;
                 }
 
+                var limitToUse = this.getLimitToUse(configuration, api);
+                if (limitToUse < 0) {
+                    return;
+                }
+
                 var configAsTimePeriodConfiguration = new TimePeriodConfiguration();
-                configAsTimePeriodConfiguration.setLimit(this.getLimitToUse(configuration));
+                configAsTimePeriodConfiguration.setLimit(limitToUse);
                 configAsTimePeriodConfiguration.setPeriodTime(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME).intValue());
                 configAsTimePeriodConfiguration.setPeriodTimeUnit(
                     PeriodTimeUnit.valueOf(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME_UNIT).asText())
@@ -158,15 +164,37 @@ public class PlanMapper {
             .dividedBy(configuration.getLimit().intValue());
     }
 
-    private long getLimitToUse(JsonNode configuration) {
+    private long getLimitToUse(JsonNode configuration, GenericApiEntity api) {
         // Dynamic limit exists and limit is either missing or equal to 0
         if (
             configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT) &&
             (!configuration.has(POLICY_CONFIGURATION_LIMIT) || configuration.get(POLICY_CONFIGURATION_LIMIT).intValue() == 0)
         ) {
-            return Long.parseLong(configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT).asText());
+            return parseLimit(configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT), api);
         }
-        return configuration.get(POLICY_CONFIGURATION_LIMIT).longValue();
+        return parseLimit(configuration.get(POLICY_CONFIGURATION_LIMIT), api);
+    }
+
+    private long parseLimit(JsonNode limitNode, GenericApiEntity api) {
+        var evaluatedLimit = evaluateLimit(limitNode, api);
+        if (evaluatedLimit != null) {
+            try {
+                return Long.parseLong(evaluatedLimit);
+            } catch (NumberFormatException ignored) {
+                log.debug("Limit could not be parsed: {}", evaluatedLimit);
+            }
+        }
+        return -1L;
+    }
+
+    private String evaluateLimit(JsonNode limitNode, GenericApiEntity api) {
+        var apiParams = new ApiTemplateVariables(api);
+
+        TemplateEngine templateEngine = TemplateEngine.templateEngine();
+        templateEngine.getTemplateContext().setVariable("api", apiParams);
+        templateEngine.getTemplateContext().setVariable("properties", apiParams.getProperties());
+
+        return templateEngine.eval(limitNode.asText(), String.class).onErrorReturnItem(limitNode.asText()).blockingGet();
     }
 
     /**
