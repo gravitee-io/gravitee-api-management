@@ -45,6 +45,10 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
     return this.getSubscriptionDetailText('status');
   }
 
+  public async getConsumerStatus(): Promise<string> {
+    return this.getSubscriptionDetailText('consumer-status');
+  }
+
   public async getSubscribedBy(): Promise<string> {
     return this.getSubscriptionDetailText('subscribed-by');
   }
