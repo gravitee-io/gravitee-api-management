@@ -95,22 +95,27 @@ public class MongoIntegrationRepository implements IntegrationRepository {
     public Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) {
         logger.debug("Search by environment ID [{}]", environmentId);
 
-        Page<IntegrationMongo> integrations = internalRepository.findAllByEnvironmentId(environmentId, pageable);
-        List<Integration> content = mapper.mapIntegrationsList(integrations.getContent());
+        Page<Integration> integrations = internalRepository.findAllByEnvironmentId(environmentId, pageable).map(mapper::map);
 
         logger.debug("Search by environment ID [{}] - Done", environmentId);
-        return new Page<>(content, integrations.getPageNumber(), (int) integrations.getPageElements(), integrations.getTotalElements());
+        return integrations;
     }
 
     @Override
-    public Page<Integration> findAllByEnvironmentAndGroups(String environmentId, Collection<String> groups, Pageable pageable) {
+    public Page<Integration> findAllByEnvironmentAndGroups(
+        String environmentId,
+        Collection<String> integrationIds,
+        Collection<String> groups,
+        Pageable pageable
+    ) {
         logger.debug("Search by environment ID [{}] and groups [{}]", environmentId, groups);
 
-        Page<IntegrationMongo> integrations = internalRepository.findAllByEnvironmentIdAndGroups(environmentId, pageable, groups);
-        List<Integration> content = mapper.mapIntegrationsList(integrations.getContent());
+        Page<Integration> integrations = internalRepository
+            .findAllByEnvironmentIdAndGroups(environmentId, pageable, integrationIds, groups)
+            .map(mapper::map);
 
         logger.debug("Search by environment ID [{}] and groups [{}] - Done", environmentId, groups);
-        return new Page<>(content, integrations.getPageNumber(), (int) integrations.getPageElements(), integrations.getTotalElements());
+        return integrations;
     }
 
     @Override
