@@ -65,7 +65,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   identityProviderType: IdentityProvider['type'] | null = null;
 
-  groups$ = this.groupService.list().pipe(shareReplay(1));
+  groups$ = this.groupService.listByOrganization().pipe(shareReplay(1));
 
   organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay(1));
 
