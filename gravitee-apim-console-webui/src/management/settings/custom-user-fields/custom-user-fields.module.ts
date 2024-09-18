@@ -28,11 +28,11 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { GioFormSlideToggleModule, GioFormTagsInputModule } from '@gravitee/ui-particles-angular';
 
-import { CustomUserFieldsMigratedComponent } from './custom-user-fields-migrated.component';
+import { CustomUserFieldsComponent } from './custom-user-fields.component';
 import { CustomUserFieldsDialogComponent } from './dialog/custom-user-fields-dialog.component';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   imports: [
@@ -56,7 +56,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     GioFormTagsInputModule,
     GioPermissionModule,
   ],
-  declarations: [CustomUserFieldsMigratedComponent, CustomUserFieldsDialogComponent],
-  exports: [CustomUserFieldsMigratedComponent],
+  declarations: [CustomUserFieldsComponent, CustomUserFieldsDialogComponent],
+  exports: [CustomUserFieldsComponent],
 })
 export class CustomUserFieldsModule {}

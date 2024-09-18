@@ -15,9 +15,9 @@
  */
 
 @use 'sass:map';
-@use '../../../../../node_modules/@angular/material/index' as mat;
-@use '../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
-@use '../../../../scss/gio-layout' as gio-layout;
+@use '../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
 
 $typography: map.get(gio.$mat-theme, typography);
 :host {

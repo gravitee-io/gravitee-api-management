@@ -21,19 +21,19 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
-import { CustomUserFieldsMigratedComponent } from './custom-user-fields-migrated.component';
-import { CustomUserFieldsMigratedHarness } from './custom-user-fields-migrated.harness';
+import { CustomUserFieldsComponent } from './custom-user-fields.component';
+import { CustomUserFieldsHarness } from './custom-user-fields.harness';
 import { CustomUserFieldsDialogHarness } from './dialog/custom-user-fields-dialog.harness';
 
-import { SettingsModule } from '../../settings.module';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GioTestingPermission, GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { CustomUserField } from '../../../../entities/customUserFields';
-import { fakeCustomUserField } from '../../../../entities/custom-user-fields/custom-user-fields.fixture';
+import { SettingsModule } from '../settings.module';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { CustomUserField } from '../../../entities/customUserFields';
+import { fakeCustomUserField } from '../../../entities/custom-user-fields/custom-user-fields.fixture';
 
-describe('CustomUserFieldsMigratedComponent', () => {
-  let fixture: ComponentFixture<CustomUserFieldsMigratedComponent>;
-  let componentHarness: CustomUserFieldsMigratedHarness;
+describe('CustomUserFieldsComponent', () => {
+  let fixture: ComponentFixture<CustomUserFieldsComponent>;
+  let componentHarness: CustomUserFieldsHarness;
   let httpTestingController: HttpTestingController;
 
   const init = async (
@@ -45,7 +45,7 @@ describe('CustomUserFieldsMigratedComponent', () => {
     ],
   ) => {
     await TestBed.configureTestingModule({
-      declarations: [CustomUserFieldsMigratedComponent],
+      declarations: [CustomUserFieldsComponent],
       imports: [SettingsModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule],
       providers: [
         {
@@ -62,9 +62,9 @@ describe('CustomUserFieldsMigratedComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(CustomUserFieldsMigratedComponent);
+    fixture = TestBed.createComponent(CustomUserFieldsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CustomUserFieldsMigratedHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CustomUserFieldsHarness);
     fixture.componentInstance.filters = {
       pagination: { index: 1, size: 25 },
       searchTerm: '',

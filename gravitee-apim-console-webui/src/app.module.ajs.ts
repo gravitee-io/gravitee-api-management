@@ -229,12 +229,8 @@ import PortalThemeController from './management/settings/portal-theme/portalThem
 import PortalThemeComponentAjs from './management/settings/portal-theme/portalTheme.component.ajs';
 import PortalThemeService from './services/portalTheme.service';
 
-import CustomUserFieldsComponentAjs from './management/settings/custom-user-fields/custom-user-fields.component.ajs';
-import CustomUserFieldsController from './management/settings/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from './services/custom-user-fields.service';
-import NewFieldDialogController from './management/settings/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController from './management/settings/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController from './management/settings/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+
 import FlowService from './services/flow.service';
 import AlertsDashboardComponent from './components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from './components/dashboard/widget/count/widget-chart-count.component';
@@ -456,16 +452,12 @@ graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
 graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
 graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
-graviteeManagementModule.controller('DeleteFieldDialogController', DeleteFieldDialogController);
-graviteeManagementModule.controller('NewFieldDialogController', NewFieldDialogController);
-graviteeManagementModule.controller('UpdateFieldDialogController', UpdateFieldDialogController);
 graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
 graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
-graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
 graviteeManagementModule.controller('SelectFolderDialogController', SelectFolderDialogController);
 graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
 graviteeManagementModule.service('ApplicationService', ApplicationService);
@@ -526,7 +518,6 @@ graviteeManagementModule.controller('ErrorController', ErrorController);
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
 
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
-graviteeManagementModule.component('customUserFieldsAjs', CustomUserFieldsComponentAjs);
 
 graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);
 graviteeManagementModule.controller('ApiCreationV2AjsController', ApiCreationV2ControllerAjs);
