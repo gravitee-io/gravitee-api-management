@@ -33,7 +33,7 @@ public class CloudEnabledException extends AbstractManagementException {
 
     @Override
     public String getTechnicalCode() {
-        return "cloud.enabled";
+        return "cloud-hosted.enabled";
     }
 
     @Override

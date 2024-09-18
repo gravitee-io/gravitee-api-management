@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.InstanceQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -54,7 +53,7 @@ public class InstancesResourceTest extends AbstractResourceTest {
         when(
             parameterService.findAsBoolean(
                 executionContext,
-                Key.CLOUD_ENABLED,
+                Key.CLOUD_HOSTED_ENABLED,
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )
@@ -74,7 +73,7 @@ public class InstancesResourceTest extends AbstractResourceTest {
         when(
             parameterService.findAsBoolean(
                 executionContext,
-                Key.CLOUD_ENABLED,
+                Key.CLOUD_HOSTED_ENABLED,
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )

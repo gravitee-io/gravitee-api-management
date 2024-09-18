@@ -409,7 +409,7 @@ public enum Key {
 
     INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
     TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM)),
-    CLOUD_ENABLED("cloud.enabled", "false", Set.of(SYSTEM)),
+    CLOUD_HOSTED_ENABLED("cloud-hosted.enabled", "false", Set.of(SYSTEM)),
 
     EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
     EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM));

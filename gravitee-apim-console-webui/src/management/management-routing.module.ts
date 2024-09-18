@@ -24,7 +24,7 @@ import { InstanceDetailsEnvironmentComponent } from './instances/instance-detail
 import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { MessagesComponent } from './messages/messages.component';
-import { CloudGuard } from './cloud-guard';
+import { CloudHostedGuard } from './cloud-hosted-guard';
 
 import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
@@ -84,7 +84,7 @@ const managementRoutes: Routes = [
       },
       {
         path: 'gateways',
-        canActivate: [CloudGuard],
+        canActivate: [CloudHostedGuard],
         component: InstanceListComponent,
         data: {
           permissions: {
@@ -109,7 +109,7 @@ const managementRoutes: Routes = [
       {
         path: 'gateways/:instanceId',
         component: InstanceDetailsComponent,
-        canActivate: [CloudGuard],
+        canActivate: [CloudHostedGuard],
         data: {
           permissions: {
             anyOf: ['environment-instance-r'],
